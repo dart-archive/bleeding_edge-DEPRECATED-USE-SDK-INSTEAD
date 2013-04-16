@@ -22,6 +22,14 @@ import com.google.common.collect.Interners;
  * @coverage dart.engine.utilities
  */
 public final class StringUtilities {
+  /**
+   * The empty String {@code ""}.
+   */
+  public static final String EMPTY = "";
+
+  /**
+   * An empty array of strings.
+   */
   public static final String[] EMPTY_ARRAY = new String[0];
 
   /**
@@ -40,6 +48,61 @@ public final class StringUtilities {
     }
     str = new String(str);
     return INTERNER.intern(str);
+  }
+
+  /**
+   * Return {@code true} if the given CharSequence is empty ("") or null.
+   * 
+   * <pre>
+   * StringUtils.isEmpty(null)      = true
+   * StringUtils.isEmpty("")        = true
+   * StringUtils.isEmpty(" ")       = false
+   * StringUtils.isEmpty("bob")     = false
+   * StringUtils.isEmpty("  bob  ") = false
+   * </pre>
+   * 
+   * @param cs the CharSequence to check, may be null
+   * @return {@code true} if the CharSequence is empty or null
+   */
+  public static boolean isEmpty(CharSequence cs) {
+    return cs == null || cs.length() == 0;
+  }
+
+  /**
+   * Return the substring before the first occurrence of a separator. The separator is not returned.
+   * <p>
+   * A {@code null} string input will return {@code null}. An empty ("") string input will return
+   * the empty string. A {@code null} separator will return the input string.
+   * <p>
+   * If nothing is found, the string input is returned.
+   * 
+   * <pre>
+   * StringUtils.substringBefore(null, *)      = null
+   * StringUtils.substringBefore("", *)        = ""
+   * StringUtils.substringBefore("abc", "a")   = ""
+   * StringUtils.substringBefore("abcba", "b") = "a"
+   * StringUtils.substringBefore("abc", "c")   = "ab"
+   * StringUtils.substringBefore("abc", "d")   = "abc"
+   * StringUtils.substringBefore("abc", "")    = ""
+   * StringUtils.substringBefore("abc", null)  = "abc"
+   * </pre>
+   * 
+   * @param str the string to get a substring from, may be null
+   * @param separator the string to search for, may be null
+   * @return the substring before the first occurrence of the separator
+   */
+  public static String substringBefore(String str, String separator) {
+    if (isEmpty(str) || separator == null) {
+      return str;
+    }
+    if (separator.length() == 0) {
+      return EMPTY;
+    }
+    int pos = str.indexOf(separator);
+    if (pos < 0) {
+      return str;
+    }
+    return str.substring(0, pos);
   }
 
   /**

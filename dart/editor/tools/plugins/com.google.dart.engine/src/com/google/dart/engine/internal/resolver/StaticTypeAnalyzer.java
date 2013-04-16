@@ -79,6 +79,7 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeVariableType;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -675,6 +676,33 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
             }
           }
         }
+      } else if (methodName.equals("query")) {
+        Expression target = node.getRealTarget();
+        if (target == null) {
+          Element methodElement = node.getMethodName().getElement();
+          if (methodElement != null) {
+            LibraryElement library = methodElement.getLibrary();
+            if (isHtmlLibrary(library)) {
+              Type returnType = getFirstArgumentAsQuery(library, node.getArgumentList());
+              if (returnType != null) {
+                return recordType(node, returnType);
+              }
+            }
+          }
+        } else {
+          Type targetType = getType(target);
+          if (targetType instanceof InterfaceType
+              && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals(
+                  "Document"))) {
+            LibraryElement library = targetType.getElement().getLibrary();
+            if (isHtmlLibrary(library)) {
+              Type returnType = getFirstArgumentAsQuery(library, node.getArgumentList());
+              if (returnType != null) {
+                return recordType(node, returnType);
+              }
+            }
+          }
+        }
       } else if (methodName.equals("JS")) {
         Type returnType = getFirstArgumentAsType(
             typeProvider.getObjectType().getElement().getLibrary(),
@@ -1063,6 +1091,61 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
 
   /**
    * If the given argument list contains at least one argument, and if the argument is a simple
+   * string literal, then parse that argument as a query string and return the type specified by the
+   * argument.
+   * 
+   * @param library the library in which the specified type would be defined
+   * @param argumentList the list of arguments from which a type is to be extracted
+   * @return the type specified by the first argument in the argument list
+   */
+  private Type getFirstArgumentAsQuery(LibraryElement library, ArgumentList argumentList) {
+    String argumentValue = getFirstArgumentAsString(argumentList);
+    if (argumentValue != null) {
+      //
+      // If the query has spaces, full parsing is required because it might be:
+      //   E[text='warning text']
+      //
+      if (argumentValue.contains(" ")) {
+        return null;
+      }
+      //
+      // Otherwise, try to extract the tag based on http://www.w3.org/TR/CSS2/selector.html.
+      //
+      String tag = argumentValue;
+      tag = StringUtilities.substringBefore(tag, ":");
+      tag = StringUtilities.substringBefore(tag, "[");
+      tag = StringUtilities.substringBefore(tag, ".");
+      tag = StringUtilities.substringBefore(tag, "#");
+
+      tag = HTML_ELEMENT_TO_CLASS_MAP.get(tag.toLowerCase());
+      ClassElement returnType = library.getType(tag);
+      if (returnType != null) {
+        return returnType.getType();
+      }
+    }
+    return null;
+  }
+
+  /**
+   * If the given argument list contains at least one argument, and if the argument is a simple
+   * string literal, return the String value of the argument.
+   * 
+   * @param argumentList the list of arguments from which a string value is to be extracted
+   * @return the string specified by the first argument in the argument list
+   */
+  private String getFirstArgumentAsString(ArgumentList argumentList) {
+    NodeList<Expression> arguments = argumentList.getArguments();
+    if (arguments.size() > 0) {
+      Expression argument = arguments.get(0);
+      if (argument instanceof SimpleStringLiteral) {
+        return ((SimpleStringLiteral) argument).getValue();
+      }
+    }
+    return null;
+  }
+
+  /**
+   * If the given argument list contains at least one argument, and if the argument is a simple
    * string literal, and if the value of the argument is the name of a class defined within the
    * given library, return the type specified by the argument.
    * 
@@ -1085,20 +1168,14 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   private Type getFirstArgumentAsType(LibraryElement library, ArgumentList argumentList,
       HashMap<String, String> nameMap) {
-    NodeList<Expression> arguments = argumentList.getArguments();
-    if (arguments.size() > 0) {
-      Expression argument = arguments.get(0);
-      if (argument instanceof SimpleStringLiteral) {
-        String argumentValue = ((SimpleStringLiteral) argument).getValue();
-        if (argumentValue != null) {
-          if (nameMap != null) {
-            argumentValue = nameMap.get(argumentValue.toLowerCase());
-          }
-          ClassElement returnType = library.getType(argumentValue);
-          if (returnType != null) {
-            return returnType.getType();
-          }
-        }
+    String argumentValue = getFirstArgumentAsString(argumentList);
+    if (argumentValue != null) {
+      if (nameMap != null) {
+        argumentValue = nameMap.get(argumentValue.toLowerCase());
+      }
+      ClassElement returnType = library.getType(argumentValue);
+      if (returnType != null) {
+        return returnType.getType();
       }
     }
     return null;

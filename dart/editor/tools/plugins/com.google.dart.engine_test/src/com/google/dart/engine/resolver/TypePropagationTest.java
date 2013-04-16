@@ -18,9 +18,12 @@ import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.IfStatement;
+import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.LibraryElement;
@@ -376,5 +379,64 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
     assertSame(typeA, variableName.getStaticType());
+  }
+
+  public void test_query() throws Exception {
+    addSource("/html.dart", createSource(//
+        "library dart.dom.html;",
+        "",
+        "class Element {}",
+        "class AnchorElement extends Element {}",
+        "class BodyElement extends Element {}",
+        "class ButtonElement extends Element {}",
+        "class DivElement extends Element {}",
+        "class Document extends Element {}",
+        "class HtmlDocument extends Document {",
+        "  Element query(String selector) { return null; }",
+        "}",
+        "class InputElement extends Element {}",
+        "class SelectElement extends Element {}",
+        "",
+        "HtmlDocument document = null;",
+        "",
+        "Element query(String selector) { return null; }"));
+    Source source = addSource("/test.dart", createSource(//
+        "import 'html.dart';",
+        "",
+        "main() {",
+        "  var v1 = query('a');",
+        "  var v2 = query('A');",
+        "  var v3 = query('body:active');",
+        "  var v4 = query('button[foo=\"bar\"]');",
+        "  var v5 = query('div.class');",
+        "  var v6 = query('input#id');",
+        "  var v7 = query('select#id');",
+        "  // invocation of method",
+        "  var m1 = document.query('div');",
+        " // unsupported currently",
+        "  var b1 = query('noSuchTag');",
+        "  var b2 = query('DART_EDITOR_NO_SUCH_TYPE');",
+        "  var b3 = query('body div');",
+        "  return [v1, v2, v3, v4, v5, v6, v7, m1, b1, b2, b3];",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    FunctionDeclaration main = (FunctionDeclaration) unit.getDeclarations().get(0);
+    BlockFunctionBody body = (BlockFunctionBody) main.getFunctionExpression().getBody();
+    ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(11);
+    NodeList<Expression> elements = ((ListLiteral) statement.getExpression()).getElements();
+    assertEquals("AnchorElement", elements.get(0).getStaticType().getName());
+    assertEquals("AnchorElement", elements.get(1).getStaticType().getName());
+    assertEquals("BodyElement", elements.get(2).getStaticType().getName());
+    assertEquals("ButtonElement", elements.get(3).getStaticType().getName());
+    assertEquals("DivElement", elements.get(4).getStaticType().getName());
+    assertEquals("InputElement", elements.get(5).getStaticType().getName());
+    assertEquals("SelectElement", elements.get(6).getStaticType().getName());
+    assertEquals("DivElement", elements.get(7).getStaticType().getName());
+    assertEquals("Element", elements.get(8).getStaticType().getName());
+    assertEquals("Element", elements.get(9).getStaticType().getName());
+    assertEquals("Element", elements.get(10).getStaticType().getName());
   }
 }
