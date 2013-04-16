@@ -20,10 +20,14 @@ import org.eclipse.debug.core.model.IDebugTarget;
 
 public class DartServerLaunchConfigurationDelegateTest extends TestCase {
 
+  public void testPerformRemoteConnection1() throws Exception {
+
+  }
+
   // TODO(devoncarew): this times out waiting for the VM to finish execution on the linux and mac
   // bots. I suspect that it's hitting an issue where the VM doesn't resume properly after the
   // initial pause.
-  public void xxx_testPerformRemoteConnection() throws Exception {
+  public void xxx_testPerformRemoteConnection2() throws Exception {
     VMDebugger vm = new VMDebugger();
 
     vm.start();
