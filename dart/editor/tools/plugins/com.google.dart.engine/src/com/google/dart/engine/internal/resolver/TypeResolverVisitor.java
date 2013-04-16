@@ -707,8 +707,11 @@ public class TypeResolverVisitor extends ScopedVisitor {
         String name = typeName.getName().getName();
         if (name.equals(dynamicKeyword)) {
           reportError(CompileTimeErrorCode.IMPLEMENTS_DYNAMIC, typeName);
-        } else if (typeName.getName().getElement().equals(classElement)) {
-          reportError(CompileTimeErrorCode.IMPLEMENTS_SELF, typeName, name);
+        } else {
+          Element element = typeName.getName().getElement();
+          if (element != null && element.equals(classElement)) {
+            reportError(CompileTimeErrorCode.IMPLEMENTS_SELF, typeName, name);
+          }
         }
         if (!detectedRepeatOnIndex[i]) {
           for (int j = i + 1; j < typeNames.length; j++) {
