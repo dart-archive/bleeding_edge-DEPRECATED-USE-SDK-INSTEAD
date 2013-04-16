@@ -177,7 +177,7 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
 
   @Override
   public Source[] getLibrarySources() {
-    return ArrayUtils.addAll(getLibrarySources(), sdkAnalysisContext.getLibrarySources());
+    return ArrayUtils.addAll(super.getLibrarySources(), sdkAnalysisContext.getLibrarySources());
   }
 
   @Override
