@@ -35,4 +35,14 @@ public class CompositeChangeTest extends TestCase {
     change.add(changeA, changeB);
     assertThat(change.getChildren()).containsExactly(changeA, changeB);
   }
+
+  public void test_new_withChanges() throws Exception {
+    Change changeA = mock(Change.class);
+    Change changeB = mock(Change.class);
+    // new CompositeChange
+    CompositeChange change = new CompositeChange("myName", changeA, changeB);
+    assertEquals("myName", change.getName());
+    // has changes
+    assertThat(change.getChildren()).containsExactly(changeA, changeB);
+  }
 }

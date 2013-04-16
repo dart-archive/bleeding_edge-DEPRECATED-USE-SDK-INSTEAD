@@ -16,6 +16,7 @@ package com.google.dart.engine.services.refactoring;
 
 import com.google.common.base.Preconditions;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -28,6 +29,7 @@ import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.internal.refactoring.ConvertMethodToGetterRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.ExtractMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactoringImpl;
@@ -41,6 +43,15 @@ import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefa
  * Factory for creating {@link Refactoring} instances.
  */
 public class RefactoringFactory {
+  /**
+   * @return the {@link ConvertMethodToGetterRefactoring} the {@link MethodDeclaration} of the given
+   *         {@link Element} into getter.
+   */
+  public static ConvertMethodToGetterRefactoring createConvertMethodToGetterRefactoring(
+      SearchEngine searchEngine, ExecutableElement element) throws Exception {
+    return new ConvertMethodToGetterRefactoringImpl(searchEngine, element);
+  }
+
   /**
    * @return the {@link ExtractLocalRefactoring} to extract {@link Expression} selected in given
    *         {@link AssistContext}.

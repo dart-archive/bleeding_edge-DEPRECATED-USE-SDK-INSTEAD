@@ -29,6 +29,11 @@ public class CompositeChange extends Change {
     super(name);
   }
 
+  public CompositeChange(String name, Change... changes) {
+    super(name);
+    add(changes);
+  }
+
   /**
    * Adds given {@link Change}s.
    */

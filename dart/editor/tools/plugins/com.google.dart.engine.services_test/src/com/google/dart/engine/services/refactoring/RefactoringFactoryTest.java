@@ -27,6 +27,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
+import com.google.dart.engine.services.internal.refactoring.ConvertMethodToGetterRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.ExtractMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactoringImpl;
@@ -36,6 +37,7 @@ import com.google.dart.engine.services.internal.refactoring.RenameConstructorRef
 import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefactoringImpl;
 
+import static com.google.dart.engine.services.refactoring.RefactoringFactory.createConvertMethodToGetterRefactoring;
 import static com.google.dart.engine.services.refactoring.RefactoringFactory.createExtractLocalRefactoring;
 import static com.google.dart.engine.services.refactoring.RefactoringFactory.createExtractMethodRefactoring;
 import static com.google.dart.engine.services.refactoring.RefactoringFactory.createInlineLocalRefactoring;
@@ -51,6 +53,14 @@ public class RefactoringFactoryTest extends AbstractDartTest {
   private final CompilationUnitElement enclosingUnit = mock(CompilationUnitElement.class);
   private final ClassElement enclosingClass = mock(ClassElement.class);
   private final ExecutableElement enclosingMethod = mock(ExecutableElement.class);
+
+  public void test_createConvertMethodToGetterRefactoring() throws Exception {
+    MethodElement element = mock(MethodElement.class);
+    ConvertMethodToGetterRefactoring refactoring = createConvertMethodToGetterRefactoring(
+        searchEngine,
+        element);
+    assertThat(refactoring).isInstanceOf(ConvertMethodToGetterRefactoringImpl.class);
+  }
 
   public void test_createExtractLocalRefactoring() throws Exception {
     parseTestUnit("");

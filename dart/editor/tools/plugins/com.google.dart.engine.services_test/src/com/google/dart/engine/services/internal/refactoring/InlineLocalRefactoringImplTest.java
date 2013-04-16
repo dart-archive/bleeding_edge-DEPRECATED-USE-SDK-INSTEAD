@@ -234,7 +234,7 @@ public class InlineLocalRefactoringImplTest extends RefactoringImplTest {
    * {@link #testUnit} is same source as given lines.
    */
   protected final void assertSuccessfulRefactoring(String... lines) throws Exception {
-    assertRefactoringStatus(refactoringStatus, RefactoringStatusSeverity.OK, null);
+    assertRefactoringStatusOK(refactoringStatus);
     Change change = refactoring.createChange(pm);
     assertTestChangeResult(change, makeSource(lines));
   }
