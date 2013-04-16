@@ -37,8 +37,8 @@ public class OperationQueue {
   private final List<IndexOperation> queryOperations = Lists.newLinkedList();
 
   /**
-   * {@code true} if query operations should be returned by {@link #dequeue(long)} or
-   * <code>false</code> if not.
+   * {@code true} if query operations should be returned by {@link #dequeue(long)} or {code false}
+   * if not.
    */
   private boolean processQueries = true;
 
@@ -139,9 +139,9 @@ public class OperationQueue {
    * Set whether the receiver's {@link #dequeue(long)} method should return query operations.
    * 
    * @param processQueries {@code true} if the receiver's {@link #dequeue(long)} method should
-   *          return query operations or <code>false</code> if query operations should be queued but
-   *          not returned by the receiver's {@link #dequeue(long)} method until this method is
-   *          called with a value of {@code true}.
+   *          return query operations or {@code false} if query operations should be queued but not
+   *          returned by the receiver's {@link #dequeue(long)} method until this method is called
+   *          with a value of {@code true}.
    */
   public void setProcessQueries(boolean processQueries) {
     synchronized (nonQueryOperations) {
