@@ -70,9 +70,6 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 /**
  * Instances of the class {@code DeclarationResolver} are used to resolve declarations in an AST
  * structure to already built elements.
@@ -210,10 +207,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
         writer.println("---------");
         parent = parent.getParent();
       }
-      StringWriter sw = new StringWriter();
-      new AnalysisException().printStackTrace(new PrintWriter(sw));
-      writer.println(sw.toString());
-      AnalysisEngine.getInstance().getLogger().logError(writer.toString());
+      AnalysisEngine.getInstance().getLogger().logError(writer.toString(), new AnalysisException());
     }
     Expression defaultValue = node.getDefaultValue();
     if (defaultValue != null) {

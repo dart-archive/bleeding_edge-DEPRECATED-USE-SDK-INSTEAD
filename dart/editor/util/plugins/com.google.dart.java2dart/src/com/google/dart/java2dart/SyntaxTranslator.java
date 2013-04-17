@@ -1754,9 +1754,10 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
     ITypeBinding typeBinding = context.getNodeTypeBinding(expression);
     if (typeBinding != null) {
-      String name = typeBinding.getName();
+      String name = JavaUtils.getFullyQualifiedName(typeBinding, false);
       return name.equals("char") || name.equals("short") || name.equals("int")
-          || name.equals("long") || name.equals("float") || name.equals("double");
+          || name.equals("long") || name.equals("float") || name.equals("double")
+          || name.equals("java.lang.Class");
     }
     return false;
   }

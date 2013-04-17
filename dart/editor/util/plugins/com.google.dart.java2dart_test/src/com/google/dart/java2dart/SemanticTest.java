@@ -858,6 +858,30 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  /**
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=9845
+   */
+  public void test_expression_equals_Class() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class A {",
+            "  boolean testA(Class a, Class b) {",
+            "    return a == b;",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(toString(//
+        "class A {",
+        "  bool testA(Class a, Class b) => a == b;",
+        "}"), getFormattedSource(unit));
+  }
+
   public void test_forbiddenNames_methods() throws Exception {
     setFileLines(
         "test/Test.java",

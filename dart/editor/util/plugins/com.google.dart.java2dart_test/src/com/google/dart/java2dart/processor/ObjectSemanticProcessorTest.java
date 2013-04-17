@@ -615,21 +615,23 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  public void test_PrintWriter_printlnString() throws Exception {
+  public void test_PrintWriter_println() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
         "import java.io.PrintWriter;",
         "public class Test {",
-        "  public void main(PrintWriter p) {",
-        "    p.println(\"msg\");",
+        "  public void main(PrintWriter p, String s) {",
+        "    p.println();",
+        "    p.println(s);",
         "  }",
         "}");
     runProcessor();
     assertFormattedSource(//
         "class Test {",
-        "  void main(PrintWriter p) {",
-        "    p.printlnObject(\"msg\");",
+        "  void main(PrintWriter p, String s) {",
+        "    p.newLine();",
+        "    p.println(s);",
         "  }",
         "}");
   }

@@ -275,8 +275,12 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
           return null;
         }
+        if (isMethodInClass2(node, "println()", "java.io.PrintWriter")) {
+          nameNode.setToken(token("newLine"));
+          return null;
+        }
         if (isMethodInClass2(node, "println(java.lang.String)", "java.io.PrintWriter")) {
-          nameNode.setToken(token("printlnObject"));
+          nameNode.setToken(token("println"));
           return null;
         }
         if (isMethodInClass(node, "format", "java.lang.String")) {
