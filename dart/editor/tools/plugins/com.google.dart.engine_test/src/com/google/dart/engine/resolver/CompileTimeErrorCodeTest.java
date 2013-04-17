@@ -209,27 +209,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_initializerForNonExistant_initializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  A() : x = 0 {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD);
-    verify(source);
-  }
-
-  public void fail_initializerForStaticField() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  static x;",
-        "  A() : x = 0 {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD);
-    verify(source);
-  }
-
   public void fail_invalidConstructorName() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         // TODO
@@ -1525,6 +1504,26 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(
         CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
         CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES);
+    verify(source);
+  }
+
+  public void test_initializerForNonExistant_initializer() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  A() : x = 0 {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD);
+  }
+
+  public void test_initializerForStaticField() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  static x;",
+        "  A() : x = 0 {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD);
     verify(source);
   }
 

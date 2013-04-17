@@ -390,16 +390,23 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * error if <i>k</i>'s initializer list contains an initializer for a variable that is not an
    * instance variable declared in the immediately surrounding class.
    * 
+   * @param id the name of the initializing formal that is not an instance variable in the
+   *          immediately enclosing class
    * @see #INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD
    */
-  INITIALIZER_FOR_NON_EXISTANT_FIELD(""),
+  INITIALIZER_FOR_NON_EXISTANT_FIELD("'%s' is not a variable in the enclosing class"),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
    * error if <i>k</i>'s initializer list contains an initializer for a variable that is not an
    * instance variable declared in the immediately surrounding class.
+   * 
+   * @param id the name of the initializing formal that is a static variable in the immediately
+   *          enclosing class
+   * @see #INITIALIZING_FORMAL_FOR_STATIC_FIELD
    */
-  INITIALIZER_FOR_STATIC_FIELD(""),
+  INITIALIZER_FOR_STATIC_FIELD(
+      "'%s' is a static variable in the enclosing class, variables initialized in a constructor cannot be static"),
 
   /**
    * 7.6.1 Generative Constructors: An initializing formal has the form <i>this.id</i>. It is a
@@ -420,10 +427,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 
    * @param id the name of the initializing formal that is a static variable in the immediately
    *          enclosing class
-   * @see #INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD
+   * @see #INITIALIZER_FOR_STATIC_FIELD
    */
   INITIALIZING_FORMAL_FOR_STATIC_FIELD(
-      "'%s' is a static variable in the enclosing class, variable initialized in a constructor cannot be static"),
+      "'%s' is a static variable in the enclosing class, variables initialized in a constructor cannot be static"),
 
   /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time

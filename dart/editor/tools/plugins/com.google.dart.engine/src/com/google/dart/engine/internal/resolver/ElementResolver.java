@@ -223,8 +223,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     SimpleIdentifier fieldName = node.getFieldName();
     ClassElement enclosingClass = resolver.getEnclosingClass();
     fieldElement = ((ClassElementImpl) enclosingClass).getField(fieldName.getName());
-    if (fieldElement != null && !fieldElement.isSynthetic()) {
+    if (fieldElement == null) {
+      resolver.reportError(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD, node, fieldName);
+    } else if (!fieldElement.isSynthetic()) {
       recordResolution(fieldName, fieldElement);
+      if (fieldElement.isStatic()) {
+        resolver.reportError(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, node, fieldName);
+      }
     }
     return null;
   }
