@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -45,6 +47,7 @@ import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -65,6 +68,9 @@ import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 /**
  * Instances of the class {@code DeclarationResolver} are used to resolve declarations in an AST
@@ -187,7 +193,28 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
     SimpleIdentifier parameterName = node.getParameter().getIdentifier();
-    ParameterElement element = find(enclosingExecutable.getParameters(), parameterName);
+
+    ParameterElement element = null;
+    if (enclosingExecutable != null) {
+      element = find(enclosingExecutable.getParameters(), parameterName);
+    } else {
+      StringBuffer sb = new StringBuffer();
+      String lineSeparator = System.getProperty("line.separator");
+      sb.append("Invalid state found in the Analysis Engine:" + lineSeparator);
+      sb.append("DeclarationResolver.visitDefaultFormalParameter() is visiting a parameter that "
+          + "does not appear to be in a method or function." + lineSeparator);
+      sb.append("Ancestors:" + lineSeparator);
+      ASTNode parent = node.getParent();
+      while (parent != null) {
+        sb.append(parent.getClass().getName() + lineSeparator);
+        sb.append("---------" + lineSeparator);
+        parent = parent.getParent();
+      }
+      StringWriter sw = new StringWriter();
+      new AnalysisException().printStackTrace(new PrintWriter(sw));
+      sb.append(sw.toString() + lineSeparator);
+      AnalysisEngine.getInstance().getLogger().logError(sb.toString());
+    }
     Expression defaultValue = node.getDefaultValue();
     if (defaultValue != null) {
       ExecutableElement outerExecutable = enclosingExecutable;
