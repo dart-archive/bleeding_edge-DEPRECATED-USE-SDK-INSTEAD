@@ -35,8 +35,6 @@ import static com.google.dart.java2dart.util.TokenFactory.token;
  * {@link SemanticProcessor} for making Dart AST cleaner and nicer.
  */
 public class BeautifySemanticProcessor extends SemanticProcessor {
-  public static final SemanticProcessor INSTANCE = new BeautifySemanticProcessor();
-
   private static boolean canRemovePathenthesis(ParenthesizedExpression node) {
     // argument of invocation
     if (node.getParent() instanceof MethodInvocation) {
@@ -76,8 +74,12 @@ public class BeautifySemanticProcessor extends SemanticProcessor {
     return false;
   }
 
+  public BeautifySemanticProcessor(Context context) {
+    super(context);
+  }
+
   @Override
-  public void process(final Context context, CompilationUnit unit) {
+  public void process(CompilationUnit unit) {
     unit.accept(new GeneralizingASTVisitor<Void>() {
       @Override
       public Void visitAsExpression(AsExpression node) {

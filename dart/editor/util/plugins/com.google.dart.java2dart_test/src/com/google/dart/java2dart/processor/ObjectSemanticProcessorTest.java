@@ -27,7 +27,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return BigInteger.ZERO;",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  int main() => 0;",
@@ -43,7 +43,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return a | b;",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  bool test(bool a, bool b) => javaBooleanOr(a, b);",
@@ -62,7 +62,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return Boolean.FALSE;",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  Object testTrue() => true;",
@@ -82,7 +82,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return null;",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  Object getAncestor(Type t) {",
@@ -104,7 +104,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    t.getSimpleName();",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  Object getAncestor(Type t) {",
@@ -123,7 +123,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return Double.parseDouble(p);",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  double foo(String p) => double.parse(p);",
@@ -147,7 +147,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return p.ordinal();",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  int main(MyEnum p) => p.ordinal;",
@@ -171,7 +171,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return MyEnum.values();",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  List<MyEnum> foo() => MyEnum.values;",
@@ -195,7 +195,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    super(e);",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test extends JavaException {",
         "  Test() {",
@@ -235,7 +235,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    }",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void mainA() {",
@@ -258,7 +258,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return p.intValue();",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  int main(int p) => p;",
@@ -277,7 +277,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return Integer.MAX_VALUE;",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  Object testMin() => -2147483648;",
@@ -297,7 +297,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return Integer.parseInt(p, 16);",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  int test(String p) => int.parse(p);",
@@ -314,7 +314,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return new Object[]{Integer.valueOf(42)};",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  Object foo() => <Object> [42];",
@@ -330,7 +330,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return p.longValue();",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  int main(int p) => p;",
@@ -346,7 +346,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return new Object[]{Long.valueOf(42)};",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  Object foo() => <Object> [42];",
@@ -371,7 +371,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return p;",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test<E> {",
         "  E testA(E p) => p;",
@@ -391,7 +391,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    new BigInteger(p, 16);",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  void main(String p) {",
@@ -411,7 +411,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return this.equals(o);",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  Object o;",
@@ -437,7 +437,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return 1 == 2 && o.equals(p);",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  MyInterface o;",
@@ -455,7 +455,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return o.getClass();",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  Object o;",
@@ -473,7 +473,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return o.hashCode();",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  Object o;",
@@ -522,7 +522,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  private static void print(Object p) {",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void testBoolean(bool a, bool b) {",
@@ -580,7 +580,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return p.toString();",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void mainInteger(int p) {",
@@ -606,7 +606,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    p.print('[');",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  void main(PrintWriter p) {",
@@ -625,7 +625,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    p.println(\"msg\");",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  void main(PrintWriter p) {",
@@ -643,7 +643,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return s.charAt(0);",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  int foo(String s) => s.codeUnitAt(0);",
@@ -662,7 +662,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return firstName + \".\" + lastName;",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  String testA(String name, int position) => \"Node ${name} \\n at ${position}\";",
@@ -679,7 +679,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return name + \" of \" + type.getName();",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  String test(String name, Type type) => \"${name} of ${type.toString()}\";",
@@ -695,7 +695,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return firstName + '.' + lastName;",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  String test(String firstName, String lastName) => \"${firstName}.${lastName}\";",
@@ -711,7 +711,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return a.equalsIgnoreCase(b);",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  bool main(String a, String b) => javaStringEqualsIgnoreCase(a, b);",
@@ -727,7 +727,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return String.format(fmt, name, position);",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  String foo(String fmt, String name, int position) => JavaString.format(fmt, [name, position]);",
@@ -744,7 +744,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    s.indexOf('2', 42);",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  void main(String s) {",
@@ -764,7 +764,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    s.isEmpty();",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  void main(String s) {",
@@ -783,7 +783,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return s.replace(p, r);",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  String foo(String s, String p, String r) => s.replaceAll(p, r);",
@@ -805,7 +805,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    return sb.toString();",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  String main() {",
@@ -829,12 +829,16 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    e.printStackTrace();",
         "  }",
         "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  main(Exception e) {",
         "    print(e);",
         "  }",
         "}");
+  }
+
+  private void runProcessor() {
+    new ObjectSemanticProcessor(context).process(unit);
   }
 }

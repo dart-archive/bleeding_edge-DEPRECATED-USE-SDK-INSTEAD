@@ -14,7 +14,6 @@
 
 package com.google.dart.java2dart.processor;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -60,10 +59,12 @@ import java.util.List;
  * {@link SemanticProcessor} for Java <code>java.util</code> collections.
  */
 public class CollectionSemanticProcessor extends SemanticProcessor {
-  public static final SemanticProcessor INSTANCE = new CollectionSemanticProcessor();
+  public CollectionSemanticProcessor(Context context) {
+    super(context);
+  }
 
   @Override
-  public void process(final Context context, final CompilationUnit unit) {
+  public void process(final CompilationUnit unit) {
     unit.accept(new GeneralizingASTVisitor<Void>() {
       @Override
       public Void visitCompilationUnit(CompilationUnit node) {
@@ -114,7 +115,7 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
                 && JavaUtils.getQualifiedName(intfs[0]).equals("java.util.Comparator")) {
               ClassDeclaration innerClass = context.getAnonymousDeclaration(node);
               if (innerClass != null) {
-                boolean removed = unit.getDeclarations().remove(innerClass);
+                unit.getDeclarations().remove(innerClass);
                 List<ClassMember> innerMembers = innerClass.getMembers();
                 MethodDeclaration compareMethod = (MethodDeclaration) innerMembers.get(0);
                 FunctionExpression functionExpression = functionExpression(
@@ -289,24 +290,6 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           }
         }
         return null;
-      }
-
-      private boolean isMethodInClass(MethodInvocation node, String reqName, String reqClassName) {
-        String name = node.getMethodName().getName();
-        return Objects.equal(name, reqName)
-            && JavaUtils.isMethodInClass(context.getNodeBinding(node), reqClassName);
-      }
-
-      private boolean isMethodInClass2(IMethodBinding binding, String reqSignature,
-          String reqClassName) {
-        return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
-            && JavaUtils.isMethodInClass(binding, reqClassName);
-      }
-
-      private boolean isMethodInClass2(MethodInvocation node, String reqSignature,
-          String reqClassName) {
-        IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
-        return isMethodInClass2(binding, reqSignature, reqClassName);
       }
     });
   }

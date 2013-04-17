@@ -36,7 +36,7 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "public class Test {",
         "  Map<String, String> m = ImmutableMap.of();",
         "}");
-    GuavaSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  Map<String, String> m = new Map();",
@@ -61,7 +61,7 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "    return Objects.equal(a, b);",
         "  }",
         "}");
-    GuavaSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  bool run_equal(Object a, Object b) => a == b;",
@@ -86,10 +86,14 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "public class Test {",
         "  Set<String> m = Sets.newHashSet();",
         "}");
-    GuavaSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  Set<String> m = new Set();",
         "}");
+  }
+
+  private void runProcessor() {
+    new GuavaSemanticProcessor(context).process(unit);
   }
 }

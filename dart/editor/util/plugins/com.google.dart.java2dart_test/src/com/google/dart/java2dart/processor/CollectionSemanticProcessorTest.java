@@ -35,7 +35,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    return new ArrayList<String>(5);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  List<String> test1() {",
@@ -58,7 +58,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    return Arrays.equals(a, b);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  bool main(List<String> a, List<String> b) => JavaArrays.equals(a, b);",
@@ -76,7 +76,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    return Arrays.hashCode(a);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  bool main(List<String> a) => JavaArrays.makeHashCode(a);",
@@ -93,7 +93,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    Arrays.sort(items);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void foo(List<String> items) {",
@@ -112,7 +112,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    return items.isEmpty();",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  bool foo(List<String> items) => items.isEmpty;",
@@ -129,7 +129,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    return items.size();",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  int foo(List<String> items) => items.length;",
@@ -147,7 +147,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    Collections.addAll(target, source);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void main(List<String> target, List<String> source) {",
@@ -167,7 +167,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    Collections.unmodifiableList(source);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void main(List<String> source) {",
@@ -188,7 +188,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    }",
         "  };",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  Comparator<String> MY = (String a, String b) => a.length() - b.length();",
@@ -213,7 +213,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    EnumSet<MyEnum> set = EnumSet.noneOf(MyEnum.class);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  void main() {",
@@ -236,7 +236,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    return new HashMap<String, Integer>(p);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void mainA() {",
@@ -256,7 +256,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    HashSet<String> result = new HashSet<String>(5);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  void main() {",
@@ -275,7 +275,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    return items.toArray(new String[items.length]);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  List<String> main(Set<String> items) => new List.from(items);",
@@ -296,7 +296,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    }",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  void main(List<String> items) {",
@@ -319,7 +319,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    items.add(2, 42);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void foo(List<int> items) {",
@@ -338,7 +338,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    return items.get(2);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  String foo(List<String> items) => items[2];",
@@ -355,7 +355,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    items.remove(2);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void foo(List<String> items) {",
@@ -374,7 +374,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    items.remove(this);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void foo(List<String> items) {",
@@ -393,7 +393,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    return items.toArray(new String[items.length]);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  List<String> foo(List<String> items) => new List.from(items);",
@@ -410,7 +410,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    Set<Map.Entry<String, Integer>> entries = items.entrySet();",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  void main(Map<String, int> items) {",
@@ -429,7 +429,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    items.get(this);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void foo(Map<Object, Object> items) {",
@@ -448,7 +448,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    return p.isEmpty();",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  bool foo(Map<String, String> p) => p.isEmpty;",
@@ -465,7 +465,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    items.put(this, 42);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void foo(Map<Object, Object> items) {",
@@ -484,7 +484,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    target.putAll(source);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void main(Map<String, int> target, Map<String, int> source) {",
@@ -503,7 +503,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    return items.size();",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  int main(Map<String, String> items) => items.length;",
@@ -521,7 +521,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    items.keySet();",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  void main(Map<String, int> items) {",
@@ -541,12 +541,16 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    items.add(42);",
         "  }",
         "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  void foo(Set<int> items) {",
         "    javaSetAdd(items, 42);",
         "  }",
         "}");
+  }
+
+  private void runProcessor() {
+    new CollectionSemanticProcessor(context).process(unit);
   }
 }

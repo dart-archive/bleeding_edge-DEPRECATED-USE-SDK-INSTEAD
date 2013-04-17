@@ -14,17 +14,21 @@
 
 package com.google.dart.java2dart.processor;
 
+import com.google.common.base.Objects;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.SyntaxTranslator;
+import com.google.dart.java2dart.util.JavaUtils;
+
+import org.eclipse.jdt.core.dom.IMethodBinding;
 
 /**
  * {@link SemanticProcessor} subclasses perform semantic translation of some specific syntax or
  * library.
  */
 public abstract class SemanticProcessor {
-
   /**
    * @return the {@link ASTNode} of given {@link Class} which is given {@link ASTNode} itself, or
    *         one of its parents.
@@ -44,5 +48,56 @@ public abstract class SemanticProcessor {
     SyntaxTranslator.replaceNode(node.getParent(), node, replacement);
   }
 
-  abstract public void process(Context context, CompilationUnit unit);
+  protected final Context context;
+
+  public SemanticProcessor(Context context) {
+    this.context = context;
+  }
+
+  abstract public void process(CompilationUnit unit);
+
+  /**
+   * Checks if given {@link IMethodBinding} is method of given class with given name.
+   */
+  protected final boolean isMethodInClass(IMethodBinding binding, String reqName,
+      String reqClassName) {
+    return binding != null && Objects.equal(binding.getName(), reqName)
+        && JavaUtils.isMethodInClass(binding, reqClassName);
+  }
+
+  /**
+   * Checks if {@link IMethodBinding} of the given {@link MethodInvocation} is method of given class
+   * with given name.
+   */
+  protected final boolean isMethodInClass(MethodInvocation node, String reqName, String reqClassName) {
+    Object nodeBinding = context.getNodeBinding(node);
+    if (nodeBinding instanceof IMethodBinding) {
+      IMethodBinding binding = (IMethodBinding) nodeBinding;
+      return isMethodInClass(binding, reqName, reqClassName);
+    }
+    return false;
+  }
+
+  /**
+   * Checks if given {@link IMethodBinding} is method of given class with given signature.
+   */
+  protected final boolean isMethodInClass2(IMethodBinding binding, String reqSignature,
+      String reqClassName) {
+    return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
+        && JavaUtils.isMethodInClass(binding, reqClassName);
+  }
+
+  /**
+   * Checks if {@link IMethodBinding} of the given {@link MethodInvocation} is method of given class
+   * with given signature.
+   */
+  protected final boolean isMethodInClass2(MethodInvocation node, String reqSignature,
+      String reqClassName) {
+    Object nodeBinding = context.getNodeBinding(node);
+    if (nodeBinding instanceof IMethodBinding) {
+      IMethodBinding binding = (IMethodBinding) nodeBinding;
+      return isMethodInClass2(binding, reqSignature, reqClassName);
+    }
+    return false;
+  }
 }

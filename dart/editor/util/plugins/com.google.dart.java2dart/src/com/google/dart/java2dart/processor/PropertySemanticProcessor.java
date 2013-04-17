@@ -41,14 +41,16 @@ import java.util.List;
  * or setter.
  */
 public class PropertySemanticProcessor extends SemanticProcessor {
-  public static final SemanticProcessor INSTANCE = new PropertySemanticProcessor();
-
   private static boolean isValidSetterType(TypeName type) {
     return type.getName().getName().equals("void");
   }
 
+  public PropertySemanticProcessor(Context context) {
+    super(context);
+  }
+
   @Override
-  public void process(final Context context, final CompilationUnit unit) {
+  public void process(final CompilationUnit unit) {
     unit.accept(new GeneralizingASTVisitor<Void>() {
       @Override
       public Void visitFieldDeclaration(FieldDeclaration node) {

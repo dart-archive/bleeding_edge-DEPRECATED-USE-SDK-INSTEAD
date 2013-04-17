@@ -71,16 +71,6 @@ public class MainEngine {
   private static File engineFolder2;
   private static CompilationUnit dartUnit;
 
-  private static final List<SemanticProcessor> PROCESSORS = ImmutableList.of(
-      ObjectSemanticProcessor.INSTANCE,
-      CollectionSemanticProcessor.INSTANCE,
-      IOSemanticProcessor.INSTANCE,
-      PropertySemanticProcessor.INSTANCE,
-      GuavaSemanticProcessor.INSTANCE,
-      JUnitSemanticProcessor.INSTANCE,
-      BeautifySemanticProcessor.INSTANCE,
-      EngineSemanticProcessor.INSTANCE);
-
   private static final String HEADER = "// This code was auto-generated, is not intended to be edited, and is subject to\n"
       + "// significant change. Please see the README file for more information.\n\n";
 
@@ -187,8 +177,19 @@ public class MainEngine {
     // translate into single CompilationUnit
     dartUnit = context.translate();
     // run processors
-    for (SemanticProcessor processor : PROCESSORS) {
-      processor.process(context, dartUnit);
+    {
+      List<SemanticProcessor> PROCESSORS = ImmutableList.of(
+          new ObjectSemanticProcessor(context),
+          new CollectionSemanticProcessor(context),
+          new IOSemanticProcessor(context),
+          new PropertySemanticProcessor(context),
+          new GuavaSemanticProcessor(context),
+          new JUnitSemanticProcessor(context),
+          new BeautifySemanticProcessor(context),
+          new EngineSemanticProcessor(context));
+      for (SemanticProcessor processor : PROCESSORS) {
+        processor.process(dartUnit);
+      }
     }
     // run this again, because we may introduce conflicts when convert methods to getters/setters
     context.ensureUniqueClassMemberNames(dartUnit);

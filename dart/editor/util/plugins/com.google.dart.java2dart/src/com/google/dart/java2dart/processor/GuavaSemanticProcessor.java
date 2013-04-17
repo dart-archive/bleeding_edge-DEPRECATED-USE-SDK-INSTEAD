@@ -14,7 +14,6 @@
 
 package com.google.dart.java2dart.processor;
 
-import com.google.common.base.Objects;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.MethodInvocation;
@@ -22,7 +21,6 @@ import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
-import com.google.dart.java2dart.util.JavaUtils;
 
 import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
 import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
@@ -34,10 +32,12 @@ import java.util.List;
  * {@link SemanticProcessor} for Google Guava.
  */
 public class GuavaSemanticProcessor extends SemanticProcessor {
-  public static final SemanticProcessor INSTANCE = new GuavaSemanticProcessor();
+  public GuavaSemanticProcessor(Context context) {
+    super(context);
+  }
 
   @Override
-  public void process(final Context context, final CompilationUnit unit) {
+  public void process(final CompilationUnit unit) {
     unit.accept(new GeneralizingASTVisitor<Void>() {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
@@ -56,12 +56,6 @@ public class GuavaSemanticProcessor extends SemanticProcessor {
           return null;
         }
         return null;
-      }
-
-      private boolean isMethodInClass(MethodInvocation node, String reqName, String reqClassName) {
-        String name = node.getMethodName().getName();
-        return Objects.equal(name, reqName)
-            && JavaUtils.isMethodInClass(context.getNodeBinding(node), reqClassName);
       }
     });
   }

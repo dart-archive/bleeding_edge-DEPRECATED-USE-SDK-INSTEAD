@@ -33,7 +33,7 @@ public class JUnitSemanticProcessorTest extends SemanticProcessorTest {
         "    Assert.fail(\"msg\");",
         "  }",
         "}");
-    JUnitSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     String resultSource = getFormattedSource(unit);
     resultSource = StringUtils.substringBefore(resultSource, "static dartSuite() {");
     assertEquals(toString(//
@@ -62,7 +62,7 @@ public class JUnitSemanticProcessorTest extends SemanticProcessorTest {
         "    assertFalse(\"msg\", v);",
         "  }",
         "}");
-    JUnitSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test extends JUnitTestCase {",
         "  void test_assertTrue() {",
@@ -106,7 +106,7 @@ public class JUnitSemanticProcessorTest extends SemanticProcessorTest {
         "    assertNotSame(3, v);",
         "  }",
         "}");
-    JUnitSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     String resultSource = getFormattedSource(unit);
     resultSource = StringUtils.substringBefore(resultSource, "static dartSuite() {");
     assertEquals(
@@ -129,5 +129,9 @@ public class JUnitSemanticProcessorTest extends SemanticProcessorTest {
   protected void setUp() throws Exception {
     super.setUp();
     context.addClasspathFile(new File("../../../../third_party/junit/v4_8_2/junit.jar"));
+  }
+
+  private void runProcessor() {
+    new JUnitSemanticProcessor(context).process(unit);
   }
 }

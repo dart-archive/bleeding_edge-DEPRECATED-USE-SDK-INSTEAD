@@ -25,7 +25,7 @@ public class BeautifySemanticProcessorTest extends SemanticProcessorTest {
         "    return (short) 0xFFFF;",
         "  }",
         "}");
-    BeautifySemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class A {",
         "  int main() => 0xFFFF;",
@@ -54,7 +54,7 @@ public class BeautifySemanticProcessorTest extends SemanticProcessorTest {
         "  void print(Object x) {",
         "  }",
         "}");
-    BeautifySemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class A {",
         "  void main(Object p) {",
@@ -84,7 +84,7 @@ public class BeautifySemanticProcessorTest extends SemanticProcessorTest {
         "    boolean b2 = !(p instanceof String);",
         "  }",
         "}");
-    BeautifySemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class A {",
         "  void test(Object p) {",
@@ -92,5 +92,9 @@ public class BeautifySemanticProcessorTest extends SemanticProcessorTest {
         "    bool b2 = p is! String;",
         "  }",
         "}");
+  }
+
+  private void runProcessor() {
+    new BeautifySemanticProcessor(context).process(unit);
   }
 }

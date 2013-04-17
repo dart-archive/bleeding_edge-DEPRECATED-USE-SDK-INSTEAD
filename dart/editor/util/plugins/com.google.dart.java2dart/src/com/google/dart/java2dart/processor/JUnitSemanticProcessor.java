@@ -55,8 +55,6 @@ import java.util.List;
  * {@link SemanticProcessor} for Java <code>Object</code>.
  */
 public class JUnitSemanticProcessor extends SemanticProcessor {
-  public static final SemanticProcessor INSTANCE = new JUnitSemanticProcessor();
-
   /**
    * @return the name of all "test" methods in the hierarchy.
    */
@@ -75,8 +73,12 @@ public class JUnitSemanticProcessor extends SemanticProcessor {
     return testMethods;
   }
 
+  public JUnitSemanticProcessor(Context context) {
+    super(context);
+  }
+
   @Override
-  public void process(final Context context, CompilationUnit unit) {
+  public void process(CompilationUnit unit) {
     unit.accept(new GeneralizingASTVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
@@ -178,13 +180,6 @@ public class JUnitSemanticProcessor extends SemanticProcessor {
 
       private boolean isJUnitAssertMethod(MethodInvocation node) {
         return JavaUtils.isMethodInClass(context.getNodeBinding(node), "junit.framework.Assert");
-      }
-
-      private boolean isMethodInClass2(MethodInvocation node, String reqSignature,
-          String reqClassName) {
-        IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
-        return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
-            && JavaUtils.isMethodInClass(binding, reqClassName);
       }
     });
   }

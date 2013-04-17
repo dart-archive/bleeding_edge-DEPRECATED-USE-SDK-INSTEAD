@@ -31,7 +31,7 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
         "    return new File(uri);",
         "  }",
         "}");
-    IOSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  JavaFile newRelative(JavaFile parent, String child) => new JavaFile.relative(parent, child);",
@@ -53,7 +53,7 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
         "    f.exists();",
         "  }",
         "}");
-    IOSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void main(JavaFile f) {",
@@ -79,7 +79,7 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
         "    return File.separator;",
         "  }",
         "}");
-    IOSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  int testA() => JavaFile.separatorChar;",
@@ -102,7 +102,7 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
         "    return f.toURI();",
         "  }",
         "}");
-    IOSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  Uri newFromPath(String absolutePath) {",
@@ -127,7 +127,7 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
         "    p.normalize();",
         "  }",
         "}");
-    IOSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  void main(Uri p) {",
@@ -138,5 +138,9 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
         "    p;",
         "  }",
         "}");
+  }
+
+  private void runProcessor() {
+    new IOSemanticProcessor(context).process(unit);
   }
 }

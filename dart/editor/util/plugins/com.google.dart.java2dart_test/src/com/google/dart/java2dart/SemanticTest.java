@@ -942,7 +942,7 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     // This will rename "elements" to "_elements".
     // We need to make sure that all references are renamed.
-    PropertySemanticProcessor.INSTANCE.process(context, unit);
+    new PropertySemanticProcessor(context).process(unit);
     assertEquals(
         toString(
             "class Test<T> {",

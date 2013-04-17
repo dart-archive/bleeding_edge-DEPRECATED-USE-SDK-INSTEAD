@@ -15,7 +15,6 @@
 package com.google.dart.java2dart.engine;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -97,8 +96,6 @@ import java.util.Set;
  * {@link SemanticProcessor} for Engine.
  */
 public class EngineSemanticProcessor extends SemanticProcessor {
-  public static final SemanticProcessor INSTANCE = new EngineSemanticProcessor();
-
   /**
    * Adds "main" function with given {@link Statement}s.
    */
@@ -524,8 +521,12 @@ public class EngineSemanticProcessor extends SemanticProcessor {
     return Joiner.on("\n").join(lines);
   }
 
+  public EngineSemanticProcessor(Context context) {
+    super(context);
+  }
+
   @Override
-  public void process(final Context context, final CompilationUnit unit) {
+  public void process(final CompilationUnit unit) {
     List<CompilationUnitMember> declarations = unit.getDeclarations();
     // remove NodeList, it is declared in enginelib.dart
     for (Iterator<CompilationUnitMember> iter = declarations.iterator(); iter.hasNext();) {
@@ -684,17 +685,6 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           }
         }
         return super.visitTypeName(node);
-      }
-
-      private boolean isMethodInClass(IMethodBinding binding, String reqName, String reqClassName) {
-        return binding != null && Objects.equal(binding.getName(), reqName)
-            && JavaUtils.isMethodInClass(binding, reqClassName);
-      }
-
-      private boolean isMethodInClass(MethodInvocation node, String reqName, String reqClassName) {
-        Object binding = context.getNodeBinding(node);
-        String name = node.getMethodName().getName();
-        return Objects.equal(name, reqName) && JavaUtils.isMethodInClass(binding, reqClassName);
       }
     });
   }

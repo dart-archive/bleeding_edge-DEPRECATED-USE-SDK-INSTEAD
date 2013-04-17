@@ -14,7 +14,6 @@
 
 package com.google.dart.java2dart.processor;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -64,8 +63,6 @@ import java.util.List;
  * {@link SemanticProcessor} for Java <code>Object</code>.
  */
 public class ObjectSemanticProcessor extends SemanticProcessor {
-  public static final SemanticProcessor INSTANCE = new ObjectSemanticProcessor();
-
   private static List<Expression> gatherBinaryExpressions(BinaryExpression binary) {
     List<Expression> expressions = Lists.newArrayList();
     {
@@ -93,8 +90,12 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
     return false;
   }
 
+  public ObjectSemanticProcessor(Context context) {
+    super(context);
+  }
+
   @Override
-  public void process(final Context context, CompilationUnit unit) {
+  public void process(CompilationUnit unit) {
     unit.accept(new GeneralizingASTVisitor<Void>() {
       @Override
       public Void visitBinaryExpression(BinaryExpression node) {
@@ -466,34 +467,6 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         }
         // done
         return super.visitTypeName(node);
-      }
-
-      private boolean isMethodInClass(MethodInvocation node, String reqName, String reqClassName) {
-        String name = node.getMethodName().getName();
-        return Objects.equal(name, reqName)
-            && JavaUtils.isMethodInClass(context.getNodeBinding(node), reqClassName);
-      }
-
-//      private boolean isMethodInClass2(ASTNode node, String reqSignature, String reqClassName) {
-//        Object nodeBinding = context.getNodeBinding(node);
-//        if (nodeBinding instanceof IMethodBinding) {
-//          IMethodBinding binding = (IMethodBinding) nodeBinding;
-//          return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
-//              && JavaUtils.isMethodInClass(binding, reqClassName);
-//        }
-//        return false;
-//      }
-
-      private boolean isMethodInClass2(IMethodBinding binding, String reqSignature,
-          String reqClassName) {
-        return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
-            && JavaUtils.isMethodInClass(binding, reqClassName);
-      }
-
-      private boolean isMethodInClass2(MethodInvocation node, String reqSignature,
-          String reqClassName) {
-        IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
-        return isMethodInClass2(binding, reqSignature, reqClassName);
       }
     });
   }

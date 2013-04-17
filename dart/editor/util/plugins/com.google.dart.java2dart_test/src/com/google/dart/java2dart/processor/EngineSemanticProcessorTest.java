@@ -41,7 +41,7 @@ public class EngineSemanticProcessorTest extends SemanticProcessorTest {
         "    return lineStarts.toArray();",
         "  }",
         "}");
-    EngineSemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  List<int> foo() {",
@@ -50,5 +50,9 @@ public class EngineSemanticProcessorTest extends SemanticProcessorTest {
         "    return lineStarts;",
         "  }",
         "}");
+  }
+
+  private void runProcessor() {
+    new EngineSemanticProcessor(context).process(unit);
   }
 }

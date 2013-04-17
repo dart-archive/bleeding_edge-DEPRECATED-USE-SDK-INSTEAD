@@ -36,7 +36,7 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "    print(this.getFoo());",
         "  }",
         "}");
-    PropertySemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  int _foo = 0;",
@@ -77,7 +77,7 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "    }",
         "  }",
         "}");
-    PropertySemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "}",
@@ -112,7 +112,7 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "    print(getFoo());",
         "  }",
         "}");
-    PropertySemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     context.ensureUniqueClassMemberNames(unit);
     assertFormattedSource(
         "class Test {",
@@ -135,7 +135,7 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "  private int b, c;",
         "  public int d;",
         "}");
-    PropertySemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(//
         "class Test {",
         "  int _a = 0;",
@@ -162,7 +162,7 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "    print(getFoo());",
         "  }",
         "}");
-    PropertySemanticProcessor.INSTANCE.process(context, unit);
+    runProcessor();
     assertFormattedSource(
         "class Test {",
         "  int _foo = 0;",
@@ -176,5 +176,9 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "    print(foo);",
         "  }",
         "}");
+  }
+
+  private void runProcessor() {
+    new PropertySemanticProcessor(context).process(unit);
   }
 }
