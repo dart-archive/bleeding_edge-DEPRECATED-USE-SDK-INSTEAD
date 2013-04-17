@@ -52,15 +52,6 @@ public abstract class Member implements Element {
   }
 
   @Override
-  public <R> R accept(ElementVisitor<R> visitor) {
-    //
-    // Elements within this element should have type parameters substituted, just like this element.
-    //
-    throw new UnsupportedOperationException();
-//    return getBaseElement().accept(visitor);
-  }
-
-  @Override
   public <E extends Element> E getAncestor(Class<E> elementClass) {
     return getBaseElement().getAncestor(elementClass);
   }
@@ -130,11 +121,7 @@ public abstract class Member implements Element {
 
   @Override
   public void visitChildren(ElementVisitor<?> visitor) {
-    //
-    // Elements within this element should have type parameters substituted, just like this element.
-    //
-    throw new UnsupportedOperationException();
-//    getBaseElement().visitChildren(visitor);
+    // There are no children to visit
   }
 
   /**
@@ -144,6 +131,32 @@ public abstract class Member implements Element {
    */
   protected InterfaceType getDefiningType() {
     return definingType;
+  }
+
+  /**
+   * If the given child is not {@code null}, use the given visitor to visit it.
+   * 
+   * @param child the child to be visited
+   * @param visitor the visitor to be used to visit the child
+   */
+  protected void safelyVisitChild(Element child, ElementVisitor<?> visitor) {
+    if (child != null) {
+      child.accept(visitor);
+    }
+  }
+
+  /**
+   * Use the given visitor to visit all of the children in the given array.
+   * 
+   * @param children the children to be visited
+   * @param visitor the visitor being used to visit the children
+   */
+  protected void safelyVisitChildren(Element[] children, ElementVisitor<?> visitor) {
+    if (children != null) {
+      for (Element child : children) {
+        child.accept(visitor);
+      }
+    }
   }
 
   /**

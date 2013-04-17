@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element.member;
 
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
@@ -61,6 +62,11 @@ public class MethodMember extends ExecutableMember implements MethodElement {
    */
   public MethodMember(MethodElement baseElement, InterfaceType definingType) {
     super(baseElement, definingType);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitMethodElement(this);
   }
 
   @Override

@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element.member;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
@@ -64,6 +65,11 @@ public class PropertyAccessorMember extends ExecutableMember implements Property
    */
   public PropertyAccessorMember(PropertyAccessorElement baseElement, InterfaceType definingType) {
     super(baseElement, definingType);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitPropertyAccessorElement(this);
   }
 
   @Override

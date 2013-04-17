@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element.member;
 
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
@@ -63,6 +64,11 @@ public class FieldMember extends VariableMember implements FieldElement {
    */
   public FieldMember(FieldElement baseElement, InterfaceType definingType) {
     super(baseElement, definingType);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitFieldElement(this);
   }
 
   @Override

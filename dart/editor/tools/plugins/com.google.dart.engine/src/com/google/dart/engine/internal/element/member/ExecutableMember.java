@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element.member;
 
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LabelElement;
@@ -93,5 +94,16 @@ public abstract class ExecutableMember extends Member implements ExecutableEleme
   @Override
   public boolean isStatic() {
     return getBaseElement().isStatic();
+  }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    // TODO(brianwilkerson) We need to finish implementing the accessors used below so that we can
+    // safely invoke them.
+    super.visitChildren(visitor);
+    safelyVisitChildren(getBaseElement().getFunctions(), visitor);
+    safelyVisitChildren(getLabels(), visitor);
+    safelyVisitChildren(getBaseElement().getLocalVariables(), visitor);
+    safelyVisitChildren(getParameters(), visitor);
   }
 }

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element.member;
 
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.InterfaceType;
@@ -62,5 +63,13 @@ public abstract class VariableMember extends Member implements VariableElement {
   @Override
   public boolean isFinal() {
     return getBaseElement().isFinal();
+  }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    // TODO(brianwilkerson) We need to finish implementing the accessors used below so that we can
+    // safely invoke them.
+    super.visitChildren(visitor);
+    safelyVisitChild(getBaseElement().getInitializer(), visitor);
   }
 }
