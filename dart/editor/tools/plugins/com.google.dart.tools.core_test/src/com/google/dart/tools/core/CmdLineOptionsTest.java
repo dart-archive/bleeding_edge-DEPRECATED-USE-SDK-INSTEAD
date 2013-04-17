@@ -70,6 +70,14 @@ public class CmdLineOptionsTest extends TestCase {
     assertEquals(file2, options.getFiles().get(1));
   }
 
+  public void test_parse_packageOverrideDirectory() {
+    File file1 = new File("foo").getAbsoluteFile();
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {
+        "--package-override-directory", "foo"});
+    assertOptions(options, false, 0, false, 0, false, 0, 0);
+    assertEquals(file1, options.getPackageOverrideDirectory());
+  }
+
   public void test_parse_packageRoot() {
     File file1 = new File("foo").getAbsoluteFile();
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--package-root", "foo"});

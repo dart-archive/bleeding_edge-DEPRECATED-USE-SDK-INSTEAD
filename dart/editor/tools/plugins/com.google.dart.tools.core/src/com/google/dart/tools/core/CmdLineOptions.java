@@ -35,6 +35,7 @@ public class CmdLineOptions {
   private static final String KILL_AFTER_PERF_OLD = "-kill-after-perf"; // deprecated
   private static final String OPEN = "--open";
   private static final String PACKAGE_ROOT = "--package-root";
+  private static final String PACKAGE_OVERRIDE = "--package-override-directory";
   private static final String PERF = "--perf";
   private static final String PERF_OLD = "-perf"; // deprecated
   private static final String START_TIME = "--start-time";
@@ -104,6 +105,14 @@ public class CmdLineOptions {
         }
         if (roots.size() == 0) {
           options.warning("Expected path after " + PACKAGE_ROOT);
+        }
+
+      } else if (arg.equals(PACKAGE_OVERRIDE)) {
+        if (isOptionValue(args, index)) {
+          options.packageOverrideDirectory = new File(args[index]).getAbsoluteFile();
+          index++;
+        } else {
+          options.warning("Expected path after " + PACKAGE_OVERRIDE);
         }
 
       } else if (arg.equals(START_TIME)) {
@@ -195,6 +204,7 @@ public class CmdLineOptions {
   private long startTime = 0;
   private String packageRootString = null;
   private File[] packageRoots = null;
+  private File packageOverrideDirectory = null;
   private ArrayList<String> warnings = new ArrayList<String>();
 
   // use parseCmdLine(...) to construct new options
@@ -226,6 +236,15 @@ public class CmdLineOptions {
    */
   public boolean getMeasurePerformance() {
     return measurePerformance;
+  }
+
+  /**
+   * Answer a string representing the package override directory specified on the command line.
+   * 
+   * @return the package override directory or {@code null} if none specified
+   */
+  public File getPackageOverrideDirectory() {
+    return packageOverrideDirectory;
   }
 
   /**
