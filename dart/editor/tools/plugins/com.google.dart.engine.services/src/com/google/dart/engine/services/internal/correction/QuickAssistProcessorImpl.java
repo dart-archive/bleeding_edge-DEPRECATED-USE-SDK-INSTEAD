@@ -58,6 +58,8 @@ import com.google.dart.engine.services.internal.util.RunnableEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndEnd;
@@ -147,18 +149,31 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     selectionOffset = context.getSelectionOffset();
     selectionLength = context.getSelectionLength();
     utils = new CorrectionUtils(context.getCompilationUnit());
-    for (final Method method : QuickAssistProcessorImpl.class.getDeclaredMethods()) {
-      if (method.getName().startsWith("addProposal_")) {
-        resetProposalElements();
-        ExecutionUtils.runIgnore(new RunnableEx() {
-          @Override
-          public void run() throws Exception {
-            method.invoke(QuickAssistProcessorImpl.this);
-          }
-        });
+
+    final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
+    try {
+      for (final Method method : QuickAssistProcessorImpl.class.getDeclaredMethods()) {
+        if (method.getName().startsWith("addProposal_")) {
+          resetProposalElements();
+          ExecutionUtils.runIgnore(new RunnableEx() {
+            @Override
+            public void run() throws Exception {
+              method.invoke(QuickAssistProcessorImpl.this);
+            }
+          });
+        }
       }
+      instrumentation.metric("QuickFix-Offset", selectionOffset);
+      instrumentation.metric("QuickFix-Length", selectionLength);
+      instrumentation.metric("QuickFix-ProposalCount", proposals.size());
+      instrumentation.data("QuickFix-Source", utils.getText());
+      for (int index = 0; index < proposals.size(); index++) {
+        instrumentation.data("QuickFix-Proposal-" + index, proposals.get(index).getName());
+      }
+      return proposals.toArray(new CorrectionProposal[proposals.size()]);
+    } finally {
+      instrumentation.log();
     }
-    return proposals.toArray(new CorrectionProposal[proposals.size()]);
   }
 
   void addProposal_addTypeAnnotation() throws Exception {
@@ -540,6 +555,9 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
 //    }
     // if no Conditional, may be on Statement with Conditional
     Statement statement = node.getAncestor(Statement.class);
+    if (statement == null) {
+      return;
+    }
     // variable declaration
     boolean inVariable = false;
     if (statement instanceof VariableDeclarationStatement) {
