@@ -83,6 +83,7 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -101,6 +102,7 @@ import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.search.SearchPattern;
 import com.google.dart.engine.search.SearchPatternFactory;
@@ -135,12 +137,44 @@ public class CompletionEngine {
     }
   }
 
+  class ContainmentFilter implements SearchFilter {
+    ExecutableElement containingElement;
+
+    ContainmentFilter(ExecutableElement element) {
+      containingElement = element;
+    }
+
+    @Override
+    public boolean passes(SearchMatch match) {
+      Element baseElement = match.getElement();
+      if (containingElement == null) {
+        return baseElement.getEnclosingElement() instanceof CompilationUnitElement;
+      }
+      return true;
+    }
+  }
+
   class NameCollector {
     private Map<String, List<Element>> uniqueNames = new HashMap<String, List<Element>>();
+
+    public void addLocalNames(SimpleIdentifier identifier) {
+      ASTNode node = identifier;
+      Declaration decl;
+      while ((decl = node.getAncestor(Declaration.class)) != null) {
+        Element declElement = decl.getElement();
+        if (declElement instanceof ExecutableElement) {
+          addNamesDefinedByExecutable((ExecutableElement) declElement);
+        } else {
+          return;
+        }
+        node = decl.getParent();
+      }
+    }
 
     void addNamesDefinedByExecutable(ExecutableElement execElement) {
       mergeNames(execElement.getParameters());
       mergeNames(execElement.getLocalVariables());
+      mergeNames(execElement.getFunctions());
     }
 
     void addNamesDefinedByType(InterfaceType type) {
@@ -1158,8 +1192,6 @@ public class CompletionEngine {
 
   }
 
-  // Review note: It may look like literals (pNull, etc) are coded redundantly, but that's because
-  // all the code hasn't been written yet.
   private static final String C_DYNAMIC = "dynamic";
   private static final String C_FALSE = "false";
   private static final String C_NULL = "null";
@@ -1218,11 +1250,17 @@ public class CompletionEngine {
     // For now, just use whatever is already there.
     SimpleIdentifier identifier = varDecl.getName();
     filter = new Filter(identifier);
-    TypeName type = ((VariableDeclarationList) varDecl.getParent()).getType();
+    VariableDeclarationList varList = (VariableDeclarationList) varDecl.getParent();
+    TypeName type = varList.getType();
     if (identifier.getLength() > 0) {
       pName(identifier);
     }
-    if (type != null) {
+    if (type == null) {
+      if (varList.getKeyword() == null) {
+        // Interpret as the type name of a typed variable declaration { DivE!; }
+        analyzeLocalName(identifier);
+      }
+    } else {
       pParamName(type.getName().getName().toLowerCase());
     }
   }
@@ -1396,6 +1434,7 @@ public class CompletionEngine {
   void directAccess(ClassElement classElement, SimpleIdentifier identifier) {
     filter = new Filter(identifier);
     NameCollector names = new NameCollector();
+    names.addLocalNames(identifier);
     names.addNamesDefinedByTypes(allSuperTypes(classElement));
     names.addNamesDefinedByTypes(allSubtypes(classElement));
     names.addTopLevelNames();
@@ -1594,9 +1633,15 @@ public class CompletionEngine {
       if (element instanceof TopLevelVariableElement) {
         topLevelDef = element;
       }
-      if (element instanceof ExecutableElement) {
+      ExecutableElement localFunc = null;
+      while (decl != null && element instanceof ExecutableElement) {
         ExecutableElement execElement = (ExecutableElement) element;
         names.addNamesDefinedByExecutable(execElement);
+        if (localFunc != null) {
+          for (FunctionElement funcElement : execElement.getFunctions()) {
+            names.remove(funcElement);
+          }
+        }
         VariableElement[] vars = execElement.getLocalVariables();
         for (VariableElement var : vars) {
           // Remove local vars defined after ident.
@@ -1611,6 +1656,9 @@ public class CompletionEngine {
         decl = decl.getParent().getAncestor(Declaration.class);
         if (decl != null) {
           element = decl.getElement();
+        }
+        if (execElement instanceof FunctionElement) {
+          localFunc = execElement;
         }
       }
       if (element instanceof ClassElement) {
@@ -1639,6 +1687,9 @@ public class CompletionEngine {
   }
 
   private SearchScope constructSearchScope() {
+    if (libraries == null) {
+      libraries = new LibraryElement[] {getCurrentLibrary()};
+    }
     if (libraries != null) {
       return SearchScopeFactory.createLibraryScope(libraries);
     }
@@ -1689,7 +1740,8 @@ public class CompletionEngine {
     SearchEngine engine = context.getSearchEngine();
     SearchScope scope = constructSearchScope();
     SearchPattern pattern = SearchPatternFactory.createWildcardPattern("*", false);
-    List<SearchMatch> matches = engine.searchFunctionDeclarations(scope, pattern, null);
+    SearchFilter filter = new ContainmentFilter(null);
+    List<SearchMatch> matches = engine.searchFunctionDeclarations(scope, pattern, filter);
     return extractElementsFromSearchMatches(matches);
   }
 
@@ -1824,14 +1876,7 @@ public class CompletionEngine {
   }
 
   private void pDynamic() {
-    if (filterDisallows(C_DYNAMIC)) {
-      return;
-    }
-    CompletionProposal prop = factory.createCompletionProposal(
-        ProposalKind.VARIABLE,
-        completionTokenOffset());
-    prop.setCompletion(C_DYNAMIC);
-    requestor.accept(prop);
+    pWord(C_DYNAMIC, ProposalKind.VARIABLE);
   }
 
   private void pExecutable(ExecutableElement element, SimpleIdentifier identifier) {
@@ -1851,7 +1896,7 @@ public class CompletionEngine {
     requestor.accept(prop);
   }
 
-  private void pExecutable(TopLevelVariableElement element, SimpleIdentifier identifier) {
+  private void pExecutable(VariableElement element, SimpleIdentifier identifier) {
     // Create a completion proposal for the element: top-level variable.
     String name = element.getName();
     if (name.isEmpty() || filterDisallows(element)) {
@@ -1868,14 +1913,7 @@ public class CompletionEngine {
   }
 
   private void pFalse() {
-    if (filterDisallows(C_FALSE)) {
-      return;
-    }
-    CompletionProposal prop = factory.createCompletionProposal(
-        ProposalKind.VARIABLE,
-        completionTokenOffset());
-    prop.setCompletion(C_FALSE);
-    requestor.accept(prop);
+    pWord(C_FALSE, ProposalKind.VARIABLE);
   }
 
   private void pField(FieldElement element, SimpleIdentifier identifier, ClassElement classElement) {
@@ -1955,14 +1993,7 @@ public class CompletionEngine {
   }
 
   private void pNull() {
-    if (filterDisallows(C_NULL)) {
-      return;
-    }
-    CompletionProposal prop = factory.createCompletionProposal(
-        ProposalKind.VARIABLE,
-        completionTokenOffset());
-    prop.setCompletion(C_NULL);
-    requestor.accept(prop);
+    pWord(C_NULL, ProposalKind.VARIABLE);
   }
 
   private void pParamName(String name) {
@@ -2032,14 +2063,14 @@ public class CompletionEngine {
         case PARAMETER:
         case FUNCTION:
         case GETTER:
-        case LOCAL_VARIABLE:
         case METHOD:
         case SETTER:
-          ExecutableElement candidate = (ExecutableElement) uniques.get(0);
+          ExecutableElement candidate = (ExecutableElement) element;
           pExecutable(candidate, identifier);
           break;
+        case LOCAL_VARIABLE:
         case TOP_LEVEL_VARIABLE:
-          TopLevelVariableElement var = (TopLevelVariableElement) uniques.get(0);
+          VariableElement var = (VariableElement) element;
           pExecutable(var, identifier);
           break;
         case CLASS:
@@ -2052,35 +2083,23 @@ public class CompletionEngine {
   }
 
   private void pTrue() {
-    if (filterDisallows(C_TRUE)) {
-      return;
-    }
-    CompletionProposal prop = factory.createCompletionProposal(
-        ProposalKind.VARIABLE,
-        completionTokenOffset());
-    prop.setCompletion(C_TRUE);
-    requestor.accept(prop);
+    pWord(C_TRUE, ProposalKind.VARIABLE);
   }
 
   private void pVar() {
-    if (filterDisallows(C_VAR)) {
-      return;
-    }
-    CompletionProposal prop = factory.createCompletionProposal(
-        ProposalKind.VARIABLE,
-        completionTokenOffset());
-    prop.setCompletion(C_VAR);
-    requestor.accept(prop);
+    pWord(C_VAR, ProposalKind.VARIABLE);
   }
 
   private void pVoid() {
-    if (filterDisallows(C_VOID)) {
+    pWord(C_VOID, ProposalKind.VARIABLE);
+  }
+
+  private void pWord(String word, ProposalKind kind) {
+    if (filterDisallows(word)) {
       return;
     }
-    CompletionProposal prop = factory.createCompletionProposal(
-        ProposalKind.VARIABLE,
-        completionTokenOffset());
-    prop.setCompletion(C_VOID);
+    CompletionProposal prop = factory.createCompletionProposal(kind, completionTokenOffset());
+    prop.setCompletion(word);
     requestor.accept(prop);
   }
 

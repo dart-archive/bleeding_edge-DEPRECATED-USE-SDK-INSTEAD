@@ -547,7 +547,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets033() throws Exception {
-    // TODO Enable after type propagation is implemented.
+    // Type propagation
     test(
         "class List{add(){}length(){}}t1() {var x;if (x is List) {x.!1add(3);}}",
         "1+add",
@@ -561,7 +561,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets035() throws Exception {
-    // TODO Enable after type propagation is implemented.
+    // Type propagation
     test(
         "class List{clear(){}length(){}}t3() {var x=new List(), y=x.!1length();x.!2clear();}",
         "1+length",
@@ -1179,7 +1179,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets086() throws Exception {
-    test("class Q{f(){xy() {};x!1y();}}", "1+xy");
+    test("class Q{f(){xy() {!2};x!1y();}}", "1+xy", "2+f", "2-xy");
   }
 
   public void testCommentSnippets087() throws Exception {
@@ -1201,6 +1201,60 @@ public class CompletionTests extends CompletionTestCase {
         "  f() {q.!1}",
         "}");
     test(source, "1+f", "1+m"); // f->num, m()->A
+  }
+
+  public void testCommentSnippets089() throws Exception {
+    String source = src(
+        "class Q {",
+        "  fqe() {",
+        "    xya() {",
+        "      xyb() {",
+        "        !1",
+        "      }",
+        "      !3 xyb();",
+        "    };",
+        "    xza() {",
+        "      !2",
+        "    }",
+        "    xya();",
+        "    !4 xza();",
+        "  }",
+        "  fqi() {",
+        "    !5",
+        "  }",
+        "}");
+    test(
+        source,
+        "1+fqe",
+        "1+fqi",
+        "1+Q",
+        "1-xya",
+        "1-xyb",
+        "1-xza",
+        "2+fqe",
+        "2+fqi",
+        "2+Q",
+        "2-xya",
+        "2-xyb",
+        "2-xza",
+        "3+fqe",
+        "3+fqi",
+        "3+Q",
+        "3-xya",
+        "3+xyb",
+        "3-xza",
+        "4+fqe",
+        "4+fqi",
+        "4+Q",
+        "4+xya",
+        "4-xyb",
+        "4+xza",
+        "5+fqe",
+        "5+fqi",
+        "5+Q",
+        "5-xya",
+        "5-xyb",
+        "5-xza");
   }
 
   public void testCompletion_alias_field() throws Exception {
