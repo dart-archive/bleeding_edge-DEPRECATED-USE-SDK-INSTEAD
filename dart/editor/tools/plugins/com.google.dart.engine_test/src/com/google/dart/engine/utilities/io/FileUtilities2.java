@@ -98,6 +98,23 @@ public final class FileUtilities2 {
   }
 
   /**
+   * Delete symlink or throw an exception if creation of symlinks is not supported. Use
+   * {@link #isSymLinkSupported()} to determine if this method will work on the current platform.
+   * 
+   * @param linkFile the symlink to be deleted (not {@code null}, and must exist)
+   */
+  public static void deleteSymLink(File linkFile) throws IOException {
+    assertTrue("Creation of symlinks is not supported", isSymLinkSupported());
+    assertTrue("Link does not exist", linkFile.exists());
+
+    ProcessRunner runner = new ProcessRunner(new String[] {"rm", linkFile.getPath()});
+    int exitCode = runner.runSync(10000);
+    if (exitCode != 0) {
+      fail("Symlink deletion failed [" + exitCode + "] " + linkFile);
+    }
+  }
+
+  /**
    * Delete the temporary directory. This should called from the {@link TestCase} tearDown method of
    * any test case which calls {@link #createTempDir(String)} or {@link #createTempFile(String)}.
    */

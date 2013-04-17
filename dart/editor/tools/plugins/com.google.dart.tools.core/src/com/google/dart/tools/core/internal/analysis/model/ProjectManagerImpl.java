@@ -458,6 +458,8 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   private void processPackageChanges(IResource packagesDir, IResourceDelta[] deltas) {
     final AnalysisContext context = getContext(packagesDir);
     final ChangeSet changeSet = new ChangeSet();
+    final Boolean[] packageWasRemoved = new Boolean[1];
+    packageWasRemoved[0] = false;
     try {
       for (IResourceDelta delta : deltas) {
         switch (delta.getKind()) {
@@ -486,14 +488,14 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
             });
             break;
           case IResourceDelta.REMOVED:
-            // TODO(keertip): canonical can only be got pre-delete, this needs
-            // to be figured out before the delete actually happens. 
-            changeSet.removedContainer(new DirectoryBasedSourceContainer(
-                delta.getResource().getLocation().toFile().getCanonicalFile()));
+            packageWasRemoved[0] = true;
         }
       }
     } catch (Exception e) {
       DartCore.logError(e);
+    }
+    if (packageWasRemoved[0]) {
+      changeSet.removedContainer(getPubFolder(packagesDir).getInvertedSourceContainer());
     }
     context.applyChanges(changeSet);
     new AnalysisWorker(getProject(packagesDir.getProject()), context).performAnalysisInBackground();

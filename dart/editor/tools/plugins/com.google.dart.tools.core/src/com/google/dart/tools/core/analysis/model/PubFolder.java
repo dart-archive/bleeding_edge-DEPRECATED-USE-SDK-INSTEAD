@@ -15,6 +15,7 @@ package com.google.dart.tools.core.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.tools.core.internal.analysis.model.InvertedSourceContainer;
 import com.google.dart.tools.core.pub.PubspecModel;
 
 import org.eclipse.core.resources.IContainer;
@@ -33,6 +34,12 @@ public interface PubFolder {
    * @return the analysis context (not {@code null})
    */
   AnalysisContext getContext();
+
+  /**
+   * Answer a source container that can be used to determine which sources are not contained in the
+   * pub folder
+   */
+  InvertedSourceContainer getInvertedSourceContainer();
 
   /**
    * The pubspec model representing the pubspec.yaml file

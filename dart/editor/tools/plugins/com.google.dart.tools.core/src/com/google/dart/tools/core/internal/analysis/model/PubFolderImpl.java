@@ -15,6 +15,9 @@ package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.source.DirectoryBasedSourceContainer;
+import com.google.dart.engine.source.SourceContainer;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.pub.PubspecModel;
 
@@ -23,12 +26,17 @@ import static com.google.dart.tools.core.utilities.io.FileUtilities.getContents;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a project or folder within a project containing a pubspec file
@@ -67,6 +75,11 @@ public class PubFolderImpl implements PubFolder {
   }
 
   @Override
+  public InvertedSourceContainer getInvertedSourceContainer() {
+    return new InvertedSourceContainer(getSourceContainer());
+  }
+
+  @Override
   public PubspecModel getPubspec() throws CoreException, IOException {
     if (pubspec == null) {
       IFile file = container.getFile(new Path(PUBSPEC_FILE_NAME));
@@ -89,5 +102,34 @@ public class PubFolderImpl implements PubFolder {
   @Override
   public void invalidatePubspec() throws IOException, CoreException {
     pubspec = null;
+  }
+
+  private CompositeSourceContainer getSourceContainer() {
+    List<SourceContainer> containers = new ArrayList<SourceContainer>();
+    containers.add(new DirectoryBasedSourceContainer(container.getLocation().toFile()));
+    IFolder packagesFolder = container.getFolder(new Path(DartCore.PACKAGES_DIRECTORY_NAME));
+
+    if (packagesFolder != null) {
+      File packagesDir = packagesFolder.getLocation().toFile();
+      File[] packages = packagesDir.listFiles(new FileFilter() {
+        @Override
+        public boolean accept(File pathname) {
+          if (pathname.isDirectory()) {
+            return true;
+          }
+          return false;
+        }
+      });
+      if (packages != null) {
+        for (File file : packages) {
+          try {
+            containers.add(new DirectoryBasedSourceContainer(file.getCanonicalFile()));
+          } catch (IOException e) {
+            DartCore.logError(e);
+          }
+        }
+      }
+    }
+    return new CompositeSourceContainer(containers);
   }
 }

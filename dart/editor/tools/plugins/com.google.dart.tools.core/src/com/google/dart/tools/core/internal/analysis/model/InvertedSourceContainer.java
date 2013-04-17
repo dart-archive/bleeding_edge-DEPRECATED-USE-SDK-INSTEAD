@@ -13,16 +13,24 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(ProjectImplTest.class);
-    suite.addTestSuite(ProjectManagerImplTest.class);
-    suite.addTestSuite(PubFolderImplTest.class);
-    suite.addTestSuite(CompositeSourceContainerTest.class);
-    return suite;
+/**
+ * Instances of the class {@link InvertedSourceContainer} represent a source container that contains
+ * all source containers not in a given directory.
+ */
+public class InvertedSourceContainer implements SourceContainer {
+
+  private final CompositeSourceContainer container;
+
+  public InvertedSourceContainer(CompositeSourceContainer container) {
+    this.container = container;
   }
+
+  @Override
+  public boolean contains(Source source) {
+    return !container.contains(source);
+  }
+
 }
