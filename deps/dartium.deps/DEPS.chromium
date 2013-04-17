@@ -8,32 +8,32 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "147749",
+  "webkit_revision": "148305",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "11126",
+  "nacl_revision": "11177",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "11040",  # native_client/DEPS: tools_rev
   "gtm_revision": "608",
 
-  "libjingle_revision": "302",
+  "libjingle_revision": "305",
   "libphonenumber_revision": "456",
-  "libvpx_revision": "187374",
+  "libvpx_revision": "192165",
   "lss_revision": "20",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "189952",
-  "ffmpeg_hash": "54b4fe19d390794c895226f7d014cd4deff24293",
+  "ffmpeg_revision": "192924",
+  "ffmpeg_hash": "b377d75784d29f35d84abb51f54f06ef6ccc7903",
 
   "sfntly_revision": "134",
-  "skia_revision": "8528",
+  "skia_revision": "8637",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "14137",
+  "v8_revision": "14226",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
@@ -43,7 +43,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarm_client
   # and whatever else without interference from each other.
-  "swarm_revision": "192327",
+  "swarm_revision": "193231",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
@@ -61,7 +61,7 @@ deps = {
     (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1139",
 
   "src/googleurl":
-    (Var("googlecode_url") % "google-url") + "/trunk@183",
+    (Var("googlecode_url") % "google-url") + "/trunk@185",
 
   "src/sandbox/linux/seccomp-legacy":
     (Var("googlecode_url") % "seccompsandbox") + "/trunk@189",
@@ -89,7 +89,7 @@ deps = {
     "/trunk/deps/third_party/WebKit@76115",
 
   "src/third_party/icu":
-    "/trunk/deps/third_party/icu46@182486",
+    "/trunk/deps/third_party/icu46@192960",
 
   "src/third_party/libexif/sources":
     "/trunk/deps/third_party/libexif/sources@146817",
@@ -98,7 +98,7 @@ deps = {
    "/trunk/deps/third_party/hunspell@184822",
 
   "src/third_party/hunspell_dictionaries":
-    "/trunk/deps/third_party/hunspell_dictionaries@175986",
+    "/trunk/deps/third_party/hunspell_dictionaries@193701",
 
   "src/third_party/safe_browsing/testing":
     (Var("googlecode_url") % "google-safe-browsing") + "/trunk/testing@112",
@@ -117,7 +117,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@115",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1605",
+    (Var("googlecode_url") % "gyp") + "/trunk@1611",
 
   "src/tools/swarm_client":
     "/trunk/tools/swarm_client@" + Var("swarm_revision"),
@@ -409,7 +409,7 @@ deps_os = {
     # Binary level profile guided optimizations. This points to the
     # latest release binaries for the toolchain.
     "src/third_party/syzygy/binaries":
-      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@1395",
+      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@1439",
 
     # Binaries for nacl sdk.
     "src/third_party/nacl_sdk_binaries":
@@ -563,7 +563,7 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@3191a5ed48b982bf6e0ae7f77b9d70c817a4d015",
+      "@5d39f60ce99c9133ff5932446ba46a51bf0c2b70",
 
     # Note that this is different from Android's freetype repo.
     "src/third_party/freetype2/src":
