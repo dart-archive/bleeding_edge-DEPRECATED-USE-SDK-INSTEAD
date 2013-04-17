@@ -379,8 +379,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 13.9 Switch: It is a compile-time error if values of the expressions <i>e<sub>k</sub></i> are
    * not instances of the same class <i>C</i>, for all <i>1 &lt;= k &lt;= n</i>.
+   * 
+   * @param expressionSource the expression source code that is the unexpected type
+   * @param expectedType the name of the expected type
    */
-  INCONSITENT_CASE_EXPRESSION_TYPES(""),
+  INCONSISTENT_CASE_EXPRESSION_TYPES("Case expressions must have the same types, '%s' is not a %s'"),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time

@@ -345,6 +345,21 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_inconsistentCaseExpressionTypes() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f(var p) {",
+        "  switch (p) {",
+        "    case 1:",
+        "      break;",
+        "    case 2:",
+        "      break;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_initializingFormalForNonExistantField() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",

@@ -49,6 +49,8 @@ import com.google.dart.engine.ast.RethrowExpression;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SwitchCase;
+import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
@@ -391,6 +393,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitSwitchStatement(SwitchStatement node) {
     checkForCaseExpressionTypeImplementsEquals(node);
+    checkForInconsistentCaseExpressionTypes(node);
     return super.visitSwitchStatement(node);
   }
 
@@ -968,6 +971,40 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           | checkForExtendsOrImplementsDisallowedClass(
               type,
               CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    }
+    return foundError;
+  }
+
+  /**
+   * This verifies that the passed switch statement case expressions all have the same type.
+   * 
+   * @param node the switch statement to evaluate
+   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#INCONSISTENT_CASE_EXPRESSION_TYPES
+   */
+  private boolean checkForInconsistentCaseExpressionTypes(SwitchStatement node) {
+    // TODO(jwren) Revisit this algorithm, should there up to n-1 errors.
+    NodeList<SwitchMember> switchMembers = node.getMembers();
+    boolean foundError = false;
+    Type firstType = null;
+    for (SwitchMember switchMember : switchMembers) {
+      if (switchMember instanceof SwitchCase) {
+        SwitchCase switchCase = (SwitchCase) switchMember;
+        Expression expression = switchCase.getExpression();
+        if (firstType == null) {
+          firstType = expression.getStaticType();
+        } else {
+          Type nType = expression.getStaticType();
+          if (!firstType.equals(nType)) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
+                expression,
+                expression.toSource(),
+                firstType.getName());
+            foundError = true;
+          }
+        }
+      }
     }
     return foundError;
   }

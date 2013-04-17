@@ -209,21 +209,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_inconsistentCaseExpressionTypes() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f(var p) {",
-        "  switch (p) {",
-        "    case 3:",
-        "      break;",
-        "    case 'a':",
-        "      break;",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INCONSITENT_CASE_EXPRESSION_TYPES);
-    verify(source);
-  }
-
   public void fail_initializerForNonExistant_initializer() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -1518,6 +1503,40 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "part of lib;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
+    verify(source);
+  }
+
+  public void test_inconsistentCaseExpressionTypes() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f(var p) {",
+        "  switch (p) {",
+        "    case 1:",
+        "      break;",
+        "    case 'a':",
+        "      break;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES);
+    verify(source);
+  }
+
+  public void test_inconsistentCaseExpressionTypes_repeated() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f(var p) {",
+        "  switch (p) {",
+        "    case 1:",
+        "      break;",
+        "    case 'a':",
+        "      break;",
+        "    case 'b':",
+        "      break;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
+        CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES);
     verify(source);
   }
 
