@@ -1032,6 +1032,36 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseCompilationUnit", "static var x;", ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
   }
 
+  public void test_switchHasCaseAfterDefaultCase() throws Exception {
+    parse(
+        "parseSwitchStatement",
+        "switch (a) {default: return 0; case 1: return 1;}",
+        ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE);
+  }
+
+  public void test_switchHasCaseAfterDefaultCase_repeated() throws Exception {
+    parse(
+        "parseSwitchStatement",
+        "switch (a) {default: return 0; case 1: return 1; case 2: return 2;}",
+        ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE,
+        ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE);
+  }
+
+  public void test_switchHasMultipleDefaultCases() throws Exception {
+    parse(
+        "parseSwitchStatement",
+        "switch (a) {default: return 0; default: return 1;}",
+        ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES);
+  }
+
+  public void test_switchHasMultipleDefaultCases_repeated() throws Exception {
+    parse(
+        "parseSwitchStatement",
+        "switch (a) {default: return 0; default: return 1; default: return 2;}",
+        ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
+        ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES);
+  }
+
   public void test_topLevelOperator_withoutType() throws Exception {
     parse(
         "parseCompilationUnitMember",

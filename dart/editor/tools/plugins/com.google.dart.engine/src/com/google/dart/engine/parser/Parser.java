@@ -4466,6 +4466,7 @@ public class Parser {
       Expression expression = parseExpression();
       Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
       Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
+      Token defaultKeyword = null;
       List<SwitchMember> members = new ArrayList<SwitchMember>();
       while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)) {
         List<Label> labels = new ArrayList<Label>();
@@ -4488,8 +4489,14 @@ public class Parser {
           Expression caseExpression = parseExpression();
           Token colon = expect(TokenType.COLON);
           members.add(new SwitchCase(labels, caseKeyword, caseExpression, colon, parseStatements()));
+          if (defaultKeyword != null) {
+            reportError(ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, caseKeyword);
+          }
         } else if (matches(Keyword.DEFAULT)) {
-          Token defaultKeyword = getAndAdvance();
+          if (defaultKeyword != null) {
+            reportError(ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, peek());
+          }
+          defaultKeyword = getAndAdvance();
           Token colon = expect(TokenType.COLON);
           members.add(new SwitchDefault(labels, defaultKeyword, colon, parseStatements()));
         } else {

@@ -136,6 +136,9 @@ public enum ParserErrorCode implements ErrorCode {
   STATIC_CONSTRUCTOR("Constructors cannot be static"),
   STATIC_OPERATOR("Operators cannot be static"),
   STATIC_TOP_LEVEL_DECLARATION("Top-level declarations cannot be declared to be 'static'"),
+  SWITCH_HAS_CASE_AFTER_DEFAULT_CASE(
+      "The 'default' case should be the last case in a switch statement"),
+  SWITCH_HAS_MULTIPLE_DEFAULT_CASES("The 'default' case can only be declared once"),
   TOP_LEVEL_OPERATOR("Operators must be declared within a class"),
   UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP("There is no '%s' to open a parameter group"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
