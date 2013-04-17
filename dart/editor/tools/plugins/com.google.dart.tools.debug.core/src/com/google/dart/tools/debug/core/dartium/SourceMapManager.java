@@ -277,7 +277,12 @@ public class SourceMapManager implements ResourceChangeParticipant {
   private IFile resolveFile(IFile relativeFile, String path) {
     if (path.startsWith("file:")) {
       try {
-        URI uri = new URI(path);
+        // These incoming uris are not properly uri encoded. If we uri encoded them, we would then
+        // not be able to handle properly uri encoded uris. Instead we handle certain illegal chars.
+        //String encodedPath = URIUtilities.uriEncode(path);
+        String encodedPath = path.replaceAll(" ", "%20");
+
+        URI uri = new URI(encodedPath);
 
         IResource resource = WorkspaceSourceContainer.locatePathAsResource(uri.getPath());
 
