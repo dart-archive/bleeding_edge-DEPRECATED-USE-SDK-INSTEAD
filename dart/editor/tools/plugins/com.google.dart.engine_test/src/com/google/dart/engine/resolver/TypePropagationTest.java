@@ -382,26 +382,8 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_query() throws Exception {
-    addSource("/html.dart", createSource(//
-        "library dart.dom.html;",
-        "",
-        "class Element {}",
-        "class AnchorElement extends Element {}",
-        "class BodyElement extends Element {}",
-        "class ButtonElement extends Element {}",
-        "class DivElement extends Element {}",
-        "class Document extends Element {}",
-        "class HtmlDocument extends Document {",
-        "  Element query(String selector) { return null; }",
-        "}",
-        "class InputElement extends Element {}",
-        "class SelectElement extends Element {}",
-        "",
-        "HtmlDocument document = null;",
-        "",
-        "Element query(String selector) { return null; }"));
     Source source = addSource("/test.dart", createSource(//
-        "import 'html.dart';",
+        "import 'dart:html';",
         "",
         "main() {",
         "  var v1 = query('a');",

@@ -14,10 +14,15 @@
 package com.google.dart.engine.context;
 
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
@@ -25,8 +30,14 @@ import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.functionElement;
+import static com.google.dart.engine.element.ElementFactory.methodElement;
+import static com.google.dart.engine.element.ElementFactory.topLevelVariableElement;
 
 import java.util.HashMap;
 
@@ -69,6 +80,27 @@ public final class AnalysisContextFactory {
     CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
     htmlUnit.setSource(htmlSource);
+    ClassElementImpl elementElement = classElement("Element");
+    InterfaceType elementType = elementElement.getType();
+    ClassElementImpl documentElement = classElement("Document", elementType);
+    ClassElementImpl htmlDocumentElement = classElement("HtmlDocument", documentElement.getType());
+    htmlDocumentElement.setMethods(new MethodElement[] {methodElement(
+        "query",
+        elementType,
+        new Type[] {provider.getStringType()})});
+    htmlUnit.setTypes(new ClassElement[] {
+        classElement("AnchorElement", elementType), classElement("BodyElement", elementType),
+        classElement("ButtonElement", elementType), classElement("DivElement", elementType),
+        documentElement, elementElement, htmlDocumentElement,
+        classElement("InputElement", elementType), classElement("SelectElement", elementType),});
+    htmlUnit.setFunctions(new FunctionElement[] {functionElement(
+        "query",
+        elementElement,
+        new ClassElement[] {provider.getStringType().getElement()},
+        ClassElementImpl.EMPTY_ARRAY)});
+    TopLevelVariableElementImpl document = topLevelVariableElement("document");
+    document.setType(htmlDocumentElement.getType());
+    htmlUnit.setTopLevelVariables(new TopLevelVariableElement[] {document});
     LibraryElementImpl htmlLibrary = new LibraryElementImpl(context, libraryIdentifier(
         "dart",
         "dom",
