@@ -68,6 +68,7 @@ import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -198,22 +199,21 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
     if (enclosingExecutable != null) {
       element = find(enclosingExecutable.getParameters(), parameterName);
     } else {
-      StringBuffer sb = new StringBuffer();
-      String lineSeparator = System.getProperty("line.separator");
-      sb.append("Invalid state found in the Analysis Engine:" + lineSeparator);
-      sb.append("DeclarationResolver.visitDefaultFormalParameter() is visiting a parameter that "
-          + "does not appear to be in a method or function." + lineSeparator);
-      sb.append("Ancestors:" + lineSeparator);
+      PrintStringWriter writer = new PrintStringWriter();
+      writer.println("Invalid state found in the Analysis Engine:");
+      writer.println("DeclarationResolver.visitDefaultFormalParameter() is visiting a parameter that "
+          + "does not appear to be in a method or function.");
+      writer.println("Ancestors:");
       ASTNode parent = node.getParent();
       while (parent != null) {
-        sb.append(parent.getClass().getName() + lineSeparator);
-        sb.append("---------" + lineSeparator);
+        writer.println(parent.getClass().getName());
+        writer.println("---------");
         parent = parent.getParent();
       }
       StringWriter sw = new StringWriter();
       new AnalysisException().printStackTrace(new PrintWriter(sw));
-      sb.append(sw.toString() + lineSeparator);
-      AnalysisEngine.getInstance().getLogger().logError(sb.toString());
+      writer.println(sw.toString());
+      AnalysisEngine.getInstance().getLogger().logError(writer.toString());
     }
     Expression defaultValue = node.getDefaultValue();
     if (defaultValue != null) {
