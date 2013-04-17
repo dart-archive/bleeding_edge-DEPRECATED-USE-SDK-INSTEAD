@@ -438,6 +438,17 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_joinVariableDeclaration_wrong(initial, "v =");
   }
 
+  public void test_joinVariableDeclaration_onAssignment_wrong_notResolved() throws Exception {
+    verifyNoTestUnitErrors = false;
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v;",
+        "  x = 1;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "x = 1");
+  }
+
   public void test_joinVariableDeclaration_onAssignment_wrong_notSameBlock() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -672,6 +683,13 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_replaceConditionalWithIfElse(initial, "vv =", expected);
     // on statement
     assert_replaceConditionalWithIfElse(initial, "int ", expected);
+  }
+
+  public void test_replaceConditionalWithIfElse_wrong_noEnclosingStatement() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = true ? 111 : 222;");
+    assert_replaceConditionalWithIfElse_wrong(initial, "? 111");
   }
 
   public void test_replaceIfElseWithConditional_OK_assignment() throws Exception {
@@ -1254,6 +1272,11 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         expectedSource);
   }
 
+  private void assert_replaceConditionalWithIfElse_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_replaceConditionalWithIfElse(initialSource, offsetPattern, initialSource);
+  }
+
   private void assert_replaceIfElseWithConditional(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
@@ -1273,7 +1296,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
    */
   private void assert_runProcessor(String proposalName, String expectedSource) throws Exception {
     // XXX used to see coverage of only one quick assist
-//    if (!proposalName.equals("Join variable declaration")) {
+//    if (!proposalName.equals("Replace conditional with 'if-else'")) {
 //      return;
 //    }
     CorrectionProposal[] proposals = getProposals();

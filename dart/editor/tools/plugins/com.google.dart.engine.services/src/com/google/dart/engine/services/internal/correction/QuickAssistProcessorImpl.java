@@ -540,20 +540,8 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   }
 
   void addProposal_replaceConditionalWithIfElse() throws Exception {
-    // try to find Conditional under cursor
-//    ConditionalExpression conditional = node.getAncestor(ConditionalExpression.class);
     ConditionalExpression conditional = null;
-//    {
-//      ASTNode currentNode = node;
-//      while (currentNode instanceof Expression) {
-//        if (currentNode instanceof ConditionalExpression) {
-//          conditional = (ConditionalExpression) currentNode;
-//          break;
-//        }
-//        currentNode = currentNode.getParent();
-//      }
-//    }
-    // if no Conditional, may be on Statement with Conditional
+    // may be on Statement with Conditional
     Statement statement = node.getAncestor(Statement.class);
     if (statement == null) {
       return;
@@ -640,29 +628,6 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
         "Replace conditional with 'if-else'",
         CorrectionImage.IMG_CORRECTION_CHANGE);
   }
-
-  // TODO(scheglov) implement later
-//  void addProposal_renameRefactoring() throws CoreException {
-//    // check that we can rename DartElement under cursor
-//    DartElement[] elements = unit.codeSelect(selectionOffset, 0);
-//    if (elements.length == 0) {
-//      return;
-//    }
-//    DartElement element = elements[0];
-//    if (element == null || !RefactoringAvailabilityTester.isRenameElementAvailable(element)) {
-//      return;
-//    }
-//    // we need DartEditor
-//    if (context instanceof AssistContext) {
-//      IEditorPart editor = ((AssistContext) context).getEditor();
-//      if (editor instanceof DartEditor) {
-//        DartEditor dartEditor = (DartEditor) editor;
-//        // add proposal
-//        ICommandAccess proposal = new RenameRefactoringProposal(dartEditor);
-//        proposals.add(proposal);
-//      }
-//    }
-//  }
 
   void addProposal_replaceIfElseWithConditional() throws Exception {
     // should be "if"
