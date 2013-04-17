@@ -232,6 +232,12 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (element instanceof Member) {
       element = ((Member) element).getBaseElement();
     }
+    // Sanity check.
+    // Sometimes Element in Location has no enclosing, so we don't have context.
+    // This is probably bug in resolver.
+    if (locationContext == null) {
+      return;
+    }
     // TODO(scheglov) remove after fix in resolver
     if (elementContext == null && !(element instanceof NameElementImpl)
         && !(element instanceof UniverseElementImpl)) {

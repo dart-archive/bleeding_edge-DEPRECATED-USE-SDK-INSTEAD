@@ -227,6 +227,13 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     assertEquals(0, store.internalGetRelationshipCount());
   }
 
+  public void test_recordRelationship_noLocationElement() throws Exception {
+    Element elementWithoutEnclosing = mock(Element.class);
+    Location location = new Location(elementWithoutEnclosing, 0, 0, null);
+    store.recordRelationship(elementA, relationship, location);
+    assertEquals(0, store.internalGetRelationshipCount());
+  }
+
   public void test_removeContext_instrumented() throws Exception {
     InstrumentedAnalysisContextImpl instrumentedContext = mock(InstrumentedAnalysisContextImpl.class);
     when(instrumentedContext.getBasis()).thenReturn(contextA);
