@@ -66,6 +66,19 @@ public abstract class SemanticProcessor {
   }
 
   /**
+   * Checks if {@link IMethodBinding} of the given {@link MethodInvocation} is method of given
+   * class.
+   */
+  protected final boolean isMethodInClass(MethodInvocation node, String reqClassName) {
+    Object nodeBinding = context.getNodeBinding(node);
+    if (nodeBinding instanceof IMethodBinding) {
+      IMethodBinding binding = (IMethodBinding) nodeBinding;
+      return JavaUtils.isMethodInClass(binding, reqClassName);
+    }
+    return false;
+  }
+
+  /**
    * Checks if {@link IMethodBinding} of the given {@link MethodInvocation} is method of given class
    * with given name.
    */

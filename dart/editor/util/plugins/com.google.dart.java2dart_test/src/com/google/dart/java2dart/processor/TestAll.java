@@ -21,7 +21,10 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(BeautifySemanticProcessorTest.class);
     suite.addTestSuite(ObjectSemanticProcessorTest.class);
+    suite.addTestSuite(MathSemanticProcessorTest.class);
+    suite.addTestSuite(DateSemanticProcessorTest.class);
     suite.addTestSuite(CollectionSemanticProcessorTest.class);
+    suite.addTestSuite(LoggerSemanticProcessorTest.class);
     suite.addTestSuite(PropertySemanticProcessorTest.class);
     suite.addTestSuite(GuavaSemanticProcessorTest.class);
     suite.addTestSuite(JUnitSemanticProcessorTest.class);
