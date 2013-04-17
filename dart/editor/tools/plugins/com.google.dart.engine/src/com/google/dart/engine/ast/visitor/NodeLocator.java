@@ -106,6 +106,14 @@ public class NodeLocator extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitNode(ASTNode node) {
+    int start = node.getOffset();
+    int end = start + node.getLength();
+    if (end < startOffset) {
+      return null;
+    }
+    if (start > endOffset) {
+      return null;
+    }
     try {
       node.visitChildren(this);
     } catch (NodeFoundException exception) {
@@ -116,8 +124,6 @@ public class NodeLocator extends GeneralizingASTVisitor<Void> {
           "Exception caught while traversing an AST structure.",
           exception);
     }
-    int start = node.getOffset();
-    int end = start + node.getLength();
     if (start <= startOffset && endOffset <= end) {
       foundNode = node;
       throw new NodeFoundException();

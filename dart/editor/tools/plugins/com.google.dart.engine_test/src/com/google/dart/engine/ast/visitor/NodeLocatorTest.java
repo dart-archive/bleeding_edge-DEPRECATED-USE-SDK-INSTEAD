@@ -25,6 +25,20 @@ public class NodeLocatorTest extends ParserTestCase {
     assertLocate(unit, 10, SimpleIdentifier.class);
   }
 
+  public void test_offsetAfterNode() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(createSource("class A {}", "class B {}"));
+    NodeLocator locator = new NodeLocator(1024, 1024);
+    ASTNode node = locator.searchWithin(unit.getDeclarations().get(0));
+    assertNull(node);
+  }
+
+  public void test_offsetBeforeNode() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(createSource("class A {}", "class B {}"));
+    NodeLocator locator = new NodeLocator(0, 0);
+    ASTNode node = locator.searchWithin(unit.getDeclarations().get(1));
+    assertNull(node);
+  }
+
   public void test_range() throws Exception {
     CompilationUnit unit = parseCompilationUnit("library myLib;");
     assertLocate(unit, 4, 10, LibraryDirective.class);

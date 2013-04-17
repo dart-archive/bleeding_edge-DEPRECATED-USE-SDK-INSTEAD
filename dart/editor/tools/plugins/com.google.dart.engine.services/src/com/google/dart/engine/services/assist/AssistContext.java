@@ -33,6 +33,8 @@ public class AssistContext {
   private final int selectionLength;
   private ASTNode coveredNode;
   private ASTNode coveringNode;
+  private Element coveredElement;
+  private boolean coveredElementFound;
 
   public AssistContext(SearchEngine searchEngine, CompilationUnit compilationUnit,
       int selectionOffset, int selectionLength) {
@@ -58,11 +60,15 @@ public class AssistContext {
    * @return the {@link Element} of the {@link #coveredNode}, may be <code>null</code>.
    */
   public Element getCoveredElement() {
-    ASTNode coveredNode = getCoveredNode();
-    if (coveredNode == null) {
-      return null;
+    if (!coveredElementFound) {
+      coveredElementFound = true;
+      ASTNode coveredNode = getCoveredNode();
+      if (coveredNode == null) {
+        return null;
+      }
+      coveredElement = ElementLocator.locate(coveredNode);
     }
-    return ElementLocator.locate(coveredNode);
+    return coveredElement;
   }
 
   /**
