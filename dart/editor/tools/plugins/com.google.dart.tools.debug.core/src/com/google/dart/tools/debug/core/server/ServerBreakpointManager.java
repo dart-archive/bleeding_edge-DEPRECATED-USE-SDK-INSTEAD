@@ -139,12 +139,12 @@ class ServerBreakpointManager implements IBreakpointListener {
       int line = breakpoint.getLine();
 
       try {
-        getConnection().setBreakpointSync(isolate, url, line, new BreakpointCallback(breakpoint));
+        getConnection().setBreakpoint(isolate, url, line, new BreakpointCallback(breakpoint));
 
         url = getPubUrlForResource(breakpoint.getFile());
 
         if (url != null) {
-          getConnection().setBreakpointSync(isolate, url, line, new BreakpointCallback(breakpoint));
+          getConnection().setBreakpoint(isolate, url, line, new BreakpointCallback(breakpoint));
         }
       } catch (IOException exception) {
         DartDebugCorePlugin.logError(exception);

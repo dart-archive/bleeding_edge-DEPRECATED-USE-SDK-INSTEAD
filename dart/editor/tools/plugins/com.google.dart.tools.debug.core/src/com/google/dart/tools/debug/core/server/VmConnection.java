@@ -611,19 +611,14 @@ public class VmConnection {
   }
 
   /**
-   * TODO(devoncarew): we use a synchronous version of this call to work around a deadlock issue in
-   * the VM
-   * 
    * @param isolate
    * @param url
    * @param line
    * @param callback
    * @throws IOException
    */
-  public void setBreakpointSync(VmIsolate isolate, final String url, final int line,
+  public void setBreakpoint(VmIsolate isolate, final String url, final int line,
       final BreakpointResolvedCallback callback) throws IOException {
-    final CountDownLatch latch = new CountDownLatch(1);
-
     try {
       JSONObject request = new JSONObject();
 
@@ -635,35 +630,32 @@ public class VmConnection {
       sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject object) throws JSONException {
-          try {
-            if (!object.has("error")) {
-              int breakpointId = JsonUtils.getInt(object.getJSONObject("result"), "breakpointId");
+          if (!object.has("error")) {
+            int breakpointId = JsonUtils.getInt(object.getJSONObject("result"), "breakpointId");
 
-              VmBreakpoint bp = new VmBreakpoint(url, line, breakpointId);
+            VmBreakpoint bp = new VmBreakpoint(url, line, breakpointId);
 
-              breakpoints.add(bp);
+            breakpoints.add(bp);
 
-              if (callback != null) {
-                //callback.handleResolved(bp);
+            if (callback != null) {
+              //callback.handleResolved(bp);
 
-                breakpointCallbackMap.put(breakpointId, callback);
-              }
+              breakpointCallbackMap.put(breakpointId, callback);
             }
-          } finally {
-            latch.countDown();
           }
         }
       });
-
-      try {
-        latch.await();
-      } catch (InterruptedException e) {
-
-      }
     } catch (JSONException exception) {
-      latch.countDown();
-
       throw new IOException(exception);
+    }
+
+    try {
+      // TODO(devoncarew): workaround for bug https://code.google.com/p/dart/issues/detail?id=9705
+      // We need to give the VM time to process all the events before we start sending more.
+      // There's some race condition going on in the VM's queue.
+      Thread.sleep(10);
+    } catch (InterruptedException e) {
+
     }
   }
 
@@ -734,6 +726,38 @@ public class VmConnection {
       }
     } catch (JSONException exception) {
       throw new IOException(exception);
+    }
+  }
+
+  /**
+   * Set the VM to pause on exceptions.
+   * 
+   * @param isolate
+   * @param kind
+   * @throws IOException
+   */
+  public void setPauseOnExceptionSync(VmIsolate isolate, BreakOnExceptionsType kind)
+      throws IOException {
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    try {
+      setPauseOnException(isolate, kind, new VmCallback<Boolean>() {
+        @Override
+        public void handleResult(VmResult<Boolean> result) {
+          latch.countDown();
+        }
+      });
+    } catch (IOException ioe) {
+      latch.countDown();
+    } catch (Throwable t) {
+      latch.countDown();
+      throw new RuntimeException(t);
+    }
+
+    try {
+      latch.await();
+    } catch (InterruptedException e) {
+
     }
   }
 

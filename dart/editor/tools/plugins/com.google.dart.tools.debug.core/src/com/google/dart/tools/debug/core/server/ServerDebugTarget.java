@@ -398,7 +398,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
     // Turn on break-on-exceptions.
     try {
-      connection.setPauseOnException(isolate, getPauseType());
+      connection.setPauseOnExceptionSync(isolate, getPauseType());
     } catch (IOException e) {
       DartDebugCorePlugin.logError(e);
     }
