@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.web.pubspec;
 
+import com.google.dart.tools.core.pub.IModelListener;
 import com.google.dart.tools.core.pub.PubspecModel;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.web.DartWebPlugin;
@@ -112,6 +113,7 @@ public class PubspecEditor extends FormEditor {
     }
     yamlEditor.doSave(monitor);
     editorDirtyStateChanged();
+    model.fireModelChanged(null, IModelListener.REFRESH);
   }
 
   @Override
