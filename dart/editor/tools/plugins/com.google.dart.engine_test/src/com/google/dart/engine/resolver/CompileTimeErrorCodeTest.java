@@ -326,18 +326,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invalidTypeArgumentForKey() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  m() {",
-        "    return const <int, int>{}",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_FOR_KEY);
-    verify(source);
-  }
-
   public void fail_invalidTypeArgumentInConstList() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A<E> {",
@@ -1581,6 +1569,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD);
+    verify(source);
+  }
+
+  public void test_invalidTypeArgumentForKey() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  m() {",
+        "    return const <int, int>{}",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_FOR_KEY);
     verify(source);
   }
 

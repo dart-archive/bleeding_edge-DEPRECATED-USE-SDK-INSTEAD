@@ -41,6 +41,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NativeFunctionBody;
 import com.google.dart.engine.ast.NodeList;
@@ -54,6 +55,7 @@ import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
+import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
@@ -353,6 +355,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForTypeArgumentNotMatchingBounds(node, constructorName.getElement(), typeName);
     }
     return super.visitInstanceCreationExpression(node);
+  }
+
+  @Override
+  public Void visitMapLiteral(MapLiteral node) {
+    checkForInvalidTypeArgumentForKey(node);
+    return super.visitMapLiteral(node);
   }
 
   @Override
@@ -1028,6 +1036,31 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           rhs,
           rightType.getName(),
           leftType.getName());
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Checks to ensure that native function bodies can only in SDK code.
+   * 
+   * @param node the map literal to test
+   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#INVALID_TYPE_ARGUMENT_FOR_KEY
+   */
+  private boolean checkForInvalidTypeArgumentForKey(MapLiteral node) {
+    TypeArgumentList typeArgumentList = node.getTypeArguments();
+    if (typeArgumentList == null) {
+      return false;
+    }
+    NodeList<TypeName> arguments = typeArgumentList.getArguments();
+    if (arguments.size() == 0) {
+      return false;
+    }
+    TypeName firstArgument = arguments.get(0);
+    Type firstArgumentType = firstArgument.getType();
+    if (firstArgumentType != null && !firstArgumentType.equals(typeProvider.getStringType())) {
+      errorReporter.reportError(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_FOR_KEY, firstArgument);
       return true;
     }
     return false;

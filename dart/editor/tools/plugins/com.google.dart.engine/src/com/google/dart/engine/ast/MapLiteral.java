@@ -22,7 +22,7 @@ import java.util.List;
  * 
  * <pre>
  * mapLiteral ::=
- *     'const'? ('<' {@link TypeName type} '>')? '{' ({@link MapLiteralEntry entry} (',' {@link MapLiteralEntry entry})* ','?)? '}'
+ *     'const'? ('<' {@link TypeName type} (',' {@link TypeName type})* '>')? '{' ({@link MapLiteralEntry entry} (',' {@link MapLiteralEntry entry})* ','?)? '}'
  * </pre>
  * 
  * @coverage dart.engine.ast
