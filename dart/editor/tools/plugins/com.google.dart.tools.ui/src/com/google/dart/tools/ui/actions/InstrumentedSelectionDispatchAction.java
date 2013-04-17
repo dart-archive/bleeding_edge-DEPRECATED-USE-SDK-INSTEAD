@@ -282,7 +282,11 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
   @Override
   protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     ISelection selection = getSelection();
-    doRun(selection, event, instrumentation);
+    if (selection instanceof IStructuredSelection) {
+      doRun((IStructuredSelection) selection, event, instrumentation);
+    } else {
+      doRun(selection, event, instrumentation);
+    }
   }
 
   /**
