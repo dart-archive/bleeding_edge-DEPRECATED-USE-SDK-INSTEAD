@@ -699,7 +699,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
             Keyword.STATIC));
       }
     }
-    return super.visitVariableDeclaration(node);
+    return null;
   }
 
   private Type[] createTypeVariableTypes(TypeVariableElement[] typeVariables) {
