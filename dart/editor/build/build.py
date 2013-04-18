@@ -830,7 +830,11 @@ def BuildUpdateSite(ant, revision, name, buildroot, buildout,
 
 def UploadSite(buildout, gsPath) :
   # remove any old artifacts
-  Gsutil(['rm', '-R', join(gsPath, '*')])
+  try:
+    Gsutil(['rm', '-R', join(gsPath, '*')])
+  except:
+    # Ignore this, in the general case there is nothing.
+    pass
   # create eclipse-update/index.html first to ensure eclipse-update prefix
   # exists (needed for recursive copy to follow)
   Gsutil(['cp', '-a', 'public-read',
