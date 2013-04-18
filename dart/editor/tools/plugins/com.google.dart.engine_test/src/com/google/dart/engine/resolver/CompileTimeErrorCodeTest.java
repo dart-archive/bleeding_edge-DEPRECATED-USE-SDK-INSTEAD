@@ -305,30 +305,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invalidTypeArgumentInConstList() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A<E> {",
-        "  m() {",
-        "    return const <E>[]",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST);
-    verify(source);
-  }
-
-  public void fail_invalidTypeArgumentInConstMap() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A<E> {",
-        "  m() {",
-        "    return const <String, E>{}",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
-    verify(source);
-  }
-
   public void fail_memberWithClassName() throws Exception { // field, getter, setter, method
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -1580,6 +1556,30 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_FOR_KEY);
+    verify(source);
+  }
+
+  public void test_invalidTypeArgumentInConstList() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A<E> {",
+        "  m() {",
+        "    return const <E>[]",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST);
+    verify(source);
+  }
+
+  public void test_invalidTypeArgumentInConstMap() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A<E> {",
+        "  m() {",
+        "    return const <String, E>{}",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
     verify(source);
   }
 

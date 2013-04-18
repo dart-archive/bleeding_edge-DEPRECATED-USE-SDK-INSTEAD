@@ -465,8 +465,9 @@ public enum CompileTimeErrorCode implements ErrorCode {
   INVALID_OVERRIDE_NAMED(""),
 
   /**
-   * 7.1 Instance Methods: It is a compile-time error if an instance method m1 overrides an instance
-   * member <i>m2</i> and <i>m1</i> has fewer optional positional parameters than <i>m2</i>.
+   * 7.1 Instance Methods: It is a compile-time error if an instance method <i>m1</i> overrides an
+   * instance member <i>m2</i> and <i>m1</i> has fewer optional positional parameters than
+   * <i>m2</i>.
    */
   INVALID_OVERRIDE_POSITIONAL(""),
 
@@ -493,14 +494,20 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 12.6 Lists: It is a compile time error if the type argument of a constant list literal includes
    * a type parameter.
+   * 
+   * @name the name of the type parameter
    */
-  INVALID_TYPE_ARGUMENT_IN_CONST_LIST(""),
+  INVALID_TYPE_ARGUMENT_IN_CONST_LIST(
+      "Constant list literals cannot include a type parameter as a type argument, such as '%s'"),
 
   /**
    * 12.7 Maps: It is a compile time error if the type arguments of a constant map literal include a
    * type parameter.
+   * 
+   * @name the name of the type parameter
    */
-  INVALID_TYPE_ARGUMENT_IN_CONST_MAP(""),
+  INVALID_TYPE_ARGUMENT_IN_CONST_MAP(
+      "Constant map literals cannot include a type parameter as a type argument, such as '%s'"),
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is

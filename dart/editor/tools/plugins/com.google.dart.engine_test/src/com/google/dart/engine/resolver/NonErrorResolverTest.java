@@ -394,6 +394,30 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidTypeArgumentInConstList() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A<E> {",
+        "  m() {",
+        "    return <E>[]",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidTypeArgumentInConstMap() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A<E> {",
+        "  m() {",
+        "    return <String, E>{}",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invocationOfNonFunction_dynamic() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",

@@ -41,6 +41,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NativeFunctionBody;
@@ -88,6 +89,7 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.type.TypeVariableType;
 
 import java.util.HashMap;
 
@@ -358,8 +360,35 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitListLiteral(ListLiteral node) {
+    if (node.getModifier() != null) {
+      TypeArgumentList typeArguments = node.getTypeArguments();
+      if (typeArguments != null) {
+        NodeList<TypeName> arguments = typeArguments.getArguments();
+        if (arguments.size() != 0) {
+          checkForInvalidTypeArgumentInConstTypedLiteral(
+              arguments,
+              CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST);
+        }
+      }
+    }
+    return super.visitListLiteral(node);
+  }
+
+  @Override
   public Void visitMapLiteral(MapLiteral node) {
-    checkForInvalidTypeArgumentForKey(node);
+    TypeArgumentList typeArguments = node.getTypeArguments();
+    if (typeArguments != null) {
+      NodeList<TypeName> arguments = typeArguments.getArguments();
+      if (arguments.size() != 0) {
+        checkForInvalidTypeArgumentForKey(arguments);
+        if (node.getModifier() != null) {
+          checkForInvalidTypeArgumentInConstTypedLiteral(
+              arguments,
+              CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
+        }
+      }
+    }
     return super.visitMapLiteral(node);
   }
 
@@ -1042,21 +1071,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Checks to ensure that native function bodies can only in SDK code.
+   * Checks to ensure that first type argument to a map literal must be the 'String' type.
    * 
-   * @param node the map literal to test
+   * @param arguments a non-{@code null}, non-empty {@link TypeName} node list from the respective
+   *          {@link MapLiteral}
    * @return return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#INVALID_TYPE_ARGUMENT_FOR_KEY
    */
-  private boolean checkForInvalidTypeArgumentForKey(MapLiteral node) {
-    TypeArgumentList typeArgumentList = node.getTypeArguments();
-    if (typeArgumentList == null) {
-      return false;
-    }
-    NodeList<TypeName> arguments = typeArgumentList.getArguments();
-    if (arguments.size() == 0) {
-      return false;
-    }
+  private boolean checkForInvalidTypeArgumentForKey(NodeList<TypeName> arguments) {
     TypeName firstArgument = arguments.get(0);
     Type firstArgumentType = firstArgument.getType();
     if (firstArgumentType != null && !firstArgumentType.equals(typeProvider.getStringType())) {
@@ -1064,6 +1086,28 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Checks to ensure that the passed {@link ListLiteral} or {@link MapLiteral} does not have a type
+   * parameter as a type argument.
+   * 
+   * @param arguments a non-{@code null}, non-empty {@link TypeName} node list from the respective
+   *          {@link ListLiteral} or {@link MapLiteral}
+   * @param errorCode either {@link CompileTimeErrorCode#INVALID_TYPE_ARGUMENT_IN_CONST_LIST} or
+   *          {@link CompileTimeErrorCode#INVALID_TYPE_ARGUMENT_IN_CONST_MAP}
+   * @return {@code true} if and only if an error code is generated on the passed node
+   */
+  private boolean checkForInvalidTypeArgumentInConstTypedLiteral(NodeList<TypeName> arguments,
+      ErrorCode errorCode) {
+    boolean foundError = false;
+    for (TypeName typeName : arguments) {
+      if (typeName.getType() instanceof TypeVariableType) {
+        errorReporter.reportError(errorCode, typeName, typeName.getName());
+        foundError = true;
+      }
+    }
+    return foundError;
   }
 
   /**
