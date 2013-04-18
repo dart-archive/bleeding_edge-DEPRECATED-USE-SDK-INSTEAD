@@ -1455,7 +1455,18 @@ public class CompletionEngine {
         prefixedAccess(receiverName, identifier);
         break;
       default: {
-        Type receiverType = typeOf(receiver);
+        Type receiverType;
+        Type propType = typeOf(receiverName);
+        if (propType == null || propType.isDynamic()) {
+          receiverType = typeOf(receiver);
+        } else {
+          Type declType = typeOf(receiver);
+          if (propType.isMoreSpecificThan(declType)) {
+            receiverType = propType;
+          } else {
+            receiverType = declType;
+          }
+        }
         analyzePrefixedAccess(receiverType, identifier);
         break;
       }

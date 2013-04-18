@@ -555,8 +555,8 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets034() throws Exception {
-    // TODO Enable after type propagation is implemented.
-    // TODO Move to new TestCase that includes corelib analysis
+    // Type propagation.
+    // TODO Move to new TestCase that includes corelib analysis (this works in the editor)
 //    test("t2() {var q=[0],z=q.!1length;q.!2clear();}", "1+length", "1+isEmpty", "2+clear");
   }
 
@@ -689,21 +689,21 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets051() throws Exception {
-    // TODO Enable after type propagation is implemented.
-//    String source = src(
-//        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
-//        "void r() {",
-//        "  var v;",
-//        "  if (v is String) {",
-//        "    v.!1length;",
-//        "    v.!2getKeys;",
-//        "  }",
-//        "}");
-//    test(source, "1+length", "2-getKeys");
+    // Type propagation.
+    String source = src(
+        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+        "void r() {",
+        "  var v;",
+        "  if (v is String) {",
+        "    v.!1length;",
+        "    v.!2getKeys;",
+        "  }",
+        "}");
+    test(source, "1+length", "2-getKeys");
   }
 
   public void testCommentSnippets052() throws Exception {
-    // TODO Enable after type propagation is implemented.
+    // TODO Enable after type propagation is implemented. Not yet.
 //    String source = src(
 //        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
 //        "void r() {",
@@ -717,7 +717,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets053() throws Exception {
-    // TODO Enable after type propagation is implemented.
+    // TODO Enable after type propagation is implemented. Not yet
 //    String source = src(
 //        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
 //        "void r() {",
@@ -731,7 +731,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets054() throws Exception {
-    // TODO Enable after type propagation is implemented.
+    // TODO Enable after type propagation is implemented. Not yet.
 //    String source = src(
 //        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
 //        "void r() {",
@@ -757,28 +757,28 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets056() throws Exception {
-    // TODO Enable after type propagation is implemented.
-//    String source = src(
-//        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
-//        "void f(var v) {",
-//        "  if (v is!! String) {",
-//        "    return;",
-//        "  }",
-//        "  v.!1toUpperCase;",
-//        "}");
-//    test(source, "1+toUpperCase");
+    // Type propagation.
+    String source = src(
+        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+        "void f(var v) {",
+        "  if (v is!! String) {",
+        "    return;",
+        "  }",
+        "  v.!1toUpperCase;",
+        "}");
+    test(source, "1+toUpperCase");
   }
 
   public void testCommentSnippets057() throws Exception {
-    // TODO Enable after type propagation is implemented.
-//    String source = src(
-//        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
-//        "void f(var v) {",
-//        "  if ((v as String).length == 0) {",
-//        "    v.!1toUpperCase;",
-//        "  }",
-//        "}");
-//    test(source, "1+toUpperCase");
+    // Type propagation.
+    String source = src(
+        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+        "void f(var v) {",
+        "  if ((v as String).length == 0) {",
+        "    v.!1toUpperCase;",
+        "  }",
+        "}");
+    test(source, "1+toUpperCase");
   }
 
   public void testCommentSnippets058() throws Exception {
@@ -823,20 +823,21 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets062() throws Exception {
+    // TODO Enable after type propagation is implemented. Not yet.
     // TODO Move to new TestCase that includes corelib analysis
 //    test("var PHI;main(){PHI=5.3;PHI.abs().!1 Object x;}", "1+abs");
   }
 
   public void testCommentSnippets063() throws Exception {
-    // TODO Enable after type propagation is implemented.
-//  String source = src(
-//      "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
-//        "void r(var v) {",
-//        "  v.!1toUpperCase;",
-//        "  assert(v is String);",
-//        "  v.!2toUpperCase;",
-//        "}");
-//    test(source, "1-toUpperCase", "2+toUpperCase");
+    // Type propagation.
+    String source = src(
+        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+        "void r(var v) {",
+        "  v.!1toUpperCase;",
+        "  assert(v is String);",
+        "  v.!2toUpperCase;",
+        "}");
+    test(source, "1-toUpperCase", "2+toUpperCase");
   }
 
   public void testCommentSnippets064() throws Exception {
@@ -1255,6 +1256,10 @@ public class CompletionTests extends CompletionTestCase {
         "5-xya",
         "5-xyb",
         "5-xza");
+  }
+
+  public void testCommentSnippets090() throws Exception {
+    test("class X { f() { var a = 'x'; a.!1 }}", "1+length");
   }
 
   public void testCompletion_alias_field() throws Exception {
