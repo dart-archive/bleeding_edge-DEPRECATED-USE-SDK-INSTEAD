@@ -94,8 +94,15 @@ public class RunPubJob extends Job {
       builder.redirectErrorStream(true);
 
       List<String> args = new ArrayList<String>();
-      args.add(pubFile.getAbsolutePath());
-      args.add(command);
+      if (DartCore.isMac()) {
+        args.add("/bin/bash");
+        args.add("--login");
+        args.add("-c");
+        args.add(pubFile.getAbsolutePath() + " " + command);
+      } else {
+        args.add(pubFile.getAbsolutePath());
+        args.add(command);
+      }
       builder.command(args);
 
       // Run the pub command as an external process.
