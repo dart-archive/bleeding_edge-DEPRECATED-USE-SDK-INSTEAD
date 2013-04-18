@@ -117,7 +117,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
   NON_TYPE_AS_TYPE_ARGUMENT(""),
 
   /**
-   * 7.6.2 Factories: It is a static type warning if any of the type arguments to <i>k’</i> are not
+   * 7.6.2 Factories: It is a static type warning if any of the type arguments to <i>k'</i> are not
    * subtypes of the bounds of the corresponding formal type parameters of type.
    */
   REDIRECT_WITH_INVALID_TYPE_PARAMETERS(""),

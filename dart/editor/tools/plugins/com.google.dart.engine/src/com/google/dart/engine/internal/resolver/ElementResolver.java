@@ -318,7 +318,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
 //    else {
     // TODO(jwren) Report error, constructor initializer variable is a top level element
-    // (Either here or in ErrorVerifier#checkForAllFinalInitializedErrorCodes)
+    // (Either here or in ErrorVerifier#checkForAllFinalInitializedErrorCodes)
 //    }
     return super.visitFieldFormalParameter(node);
   }

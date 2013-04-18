@@ -556,7 +556,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           }
 //          else if (variableElement instanceof TopLevelVariableElement) {
           // TODO(jwren) Report error, constructor initializer variable is a top level element
-          // (Either here or in ElementResolver#visitFieldFormalParameter)
+          // (Either here or in ElementResolver#visitFieldFormalParameter)
 //          }
         }
 //        else {

@@ -287,7 +287,7 @@ public enum StaticWarningCode implements ErrorCode {
   PART_OF_DIFFERENT_LIBRARY("Expected this library to be part of '%s', not '%s'"),
 
   /**
-   * 7.6.2 Factories: It is a static warning if the function type of <i>k’</i> is not a subtype of
+   * 7.6.2 Factories: It is a static warning if the function type of <i>k'</i> is not a subtype of
    * the type of <i>k</i>.
    */
   REDIRECT_TO_INVALID_RETURN_TYPE(""),

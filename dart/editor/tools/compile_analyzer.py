@@ -44,6 +44,7 @@ def CompileAnalyzer(options, args):
          '-source', '6',
          '-target', '6',
          '-implicit:none',
+         '-encoding', 'UTF-8',
          '-d', options.output_dir,
          '-cp', class_path,
          ]

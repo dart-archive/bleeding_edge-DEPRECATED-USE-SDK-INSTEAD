@@ -268,14 +268,14 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time
    * error if more than one initializer corresponding to a given instance variable appears in
-   * <i>k</i>’s list.
+   * <i>k</i>'s list.
    */
   FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS(
       "The field '%s' cannot be initialized twice in the same constructor"),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time
-   * error if <i>k</i>’s initializer list contains an initializer for a final variable <i>f</i>
+   * error if <i>k</i>'s initializer list contains an initializer for a final variable <i>f</i>
    * whose declaration includes an initialization expression.
    */
   FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION(
@@ -283,7 +283,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time
-   * error if <i>k</i>’s initializer list contains an initializer for a variable that is initialized
+   * error if <i>k</i>'s initializer list contains an initializer for a variable that is initialized
    * by means of an initializing formal of <i>k</i>.
    */
   FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER(
@@ -304,7 +304,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    */
   // TODO (jwren) only a subset of these are being caught
   FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR(
-      "'%s' is final and was given a value when it was declared, so it cannot be set to a new value"),
+      "'%s' is final and was given a value when it was declared, so it cannot be set to a new value"),
 
   /**
    * 5 Variables: It is a compile-time error if a final instance variable that has is initialized by
@@ -692,7 +692,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
 
   /**
    * 6.2.2 Optional Formals: It is a compile-time error if the name of a named optional parameter
-   * begins with an ‘_’ character.
+   * begins with an '_' character.
    */
   PRIVATE_OPTIONAL_PARAMETER(""),
 
@@ -721,7 +721,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
 
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
-   * <i>k’</i> is not a constant constructor.
+   * <i>k'</i> is not a constant constructor.
    */
   REDIRECT_TO_NON_CONST_CONSTRUCTOR(""),
 
@@ -830,7 +830,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
   WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR(""),
 
   /**
-   * 7.3 Setters: It is a compile-time error if a setter’s formal parameter list does not include
+   * 7.3 Setters: It is a compile-time error if a setter's formal parameter list does not include
    * exactly one required formal parameter <i>p</i>.
    */
   WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER(""),

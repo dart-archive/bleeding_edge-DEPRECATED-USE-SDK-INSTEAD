@@ -837,7 +837,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeB = classB.getType();
 
     assertTrue(typeB.isMoreSpecificThan(typeA));
-    // the opposite test tests a different branch in isMoreSpecificThan()
+    // the opposite test tests a different branch in isMoreSpecificThan()
     assertFalse(typeA.isMoreSpecificThan(typeB));
   }
 
