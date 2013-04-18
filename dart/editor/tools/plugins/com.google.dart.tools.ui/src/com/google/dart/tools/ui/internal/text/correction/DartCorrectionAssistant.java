@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,36 +14,30 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.services.correction.ProblemLocation;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
-import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IInformationControl;
-import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
-import org.eclipse.jface.text.contentassist.ContentAssistEvent;
-import org.eclipse.jface.text.contentassist.ICompletionListener;
-import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
 import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbenchPreferenceConstants;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.ui.texteditor.MarkerAnnotation;
 
 import java.util.Iterator;
 import java.util.List;
@@ -52,104 +46,48 @@ import java.util.List;
  * @coverage dart.editor.ui.correction
  */
 public class DartCorrectionAssistant extends QuickAssistAssistant {
-
-  public static int collectQuickFixableAnnotations(ITextEditor editor, int invocationLocation,
-      boolean goToClosest, List<Annotation> resultingAnnotations) throws BadLocationException {
-    IAnnotationModel model = DartUI.getDocumentProvider().getAnnotationModel(
-        editor.getEditorInput());
-    if (model == null) {
-      return invocationLocation;
-    }
-
-    ensureUpdatedAnnotations(editor);
-
-    @SuppressWarnings("unchecked")
-    Iterator<Annotation> iter = model.getAnnotationIterator();
-    if (goToClosest) {
-      IRegion lineInfo = getRegionOfInterest(editor, invocationLocation);
-      if (lineInfo == null) {
-        return invocationLocation;
-      }
-      int rangeStart = lineInfo.getOffset();
-      int rangeEnd = rangeStart + lineInfo.getLength();
-
-      List<Annotation> allAnnotations = Lists.newArrayList();
-      List<Position> allPositions = Lists.newArrayList();
-      int bestOffset = Integer.MAX_VALUE;
-      while (iter.hasNext()) {
-        Annotation annot = iter.next();
-        if (DartCorrectionProcessor.isQuickFixableType(annot)) {
-          Position pos = model.getPosition(annot);
-          if (pos != null && isInside(pos.offset, rangeStart, rangeEnd)) { // inside our range?
-            allAnnotations.add(annot);
-            allPositions.add(pos);
-            bestOffset = processAnnotation(annot, pos, invocationLocation, bestOffset);
-          }
-        }
-      }
-      if (bestOffset == Integer.MAX_VALUE) {
-        return invocationLocation;
-      }
-      for (int i = 0; i < allPositions.size(); i++) {
-        Position pos = allPositions.get(i);
-        if (isInside(bestOffset, pos.offset, pos.offset + pos.length)) {
-          resultingAnnotations.add(allAnnotations.get(i));
-        }
-      }
-      return bestOffset;
-    } else {
-      while (iter.hasNext()) {
-        Annotation annot = iter.next();
-        if (DartCorrectionProcessor.isQuickFixableType(annot)) {
-          Position pos = model.getPosition(annot);
-          if (pos != null && isInside(invocationLocation, pos.offset, pos.offset + pos.length)) {
-            resultingAnnotations.add(annot);
-          }
-        }
-      }
-      return invocationLocation;
-    }
-  }
-
   /**
-   * Computes and returns the invocation offset given a new position, the initial offset and the
-   * best invocation offset found so far.
-   * <p>
-   * The closest offset to the left of the initial offset is the best. If there is no offset on the
-   * left, the closest on the right is the best.
-   * </p>
-   * 
-   * @param newOffset the offset to look at
-   * @param invocationLocation the invocation location
-   * @param bestOffset the current best offset
-   * @return -1 is returned if the given offset is not closer or the new best offset
+   * @return the {@link ProblemLocation} created from the given {@link Annotation}. May be
+   *         {@code null}.
    */
-  private static int computeBestOffset(int newOffset, int invocationLocation, int bestOffset) {
-    if (newOffset <= invocationLocation) {
-      if (bestOffset > invocationLocation) {
-        return newOffset; // closest was on the right, prefer on the left
-      } else if (bestOffset <= newOffset) {
-        return newOffset; // we are closer or equal
+  static ProblemLocation createProblemLocation(Annotation annotation) {
+    // prepare marker
+    if (!(annotation instanceof MarkerAnnotation)) {
+      return null;
+    }
+    IMarker marker = ((MarkerAnnotation) annotation).getMarker();
+    if (marker == null) {
+      return null;
+    }
+    // prepare ErrorCode
+    ErrorCode errorCode = DartCore.getErrorCode(marker);
+    if (errorCode == null) {
+      return null;
+    }
+    // prepare message
+    String message = marker.getAttribute(IMarker.MESSAGE, (String) null);
+    if (message == null) {
+      return null;
+    }
+    // prepare 'offset'
+    int offset;
+    {
+      offset = marker.getAttribute(IMarker.CHAR_START, -1);
+      if (offset == -1) {
+        return null;
       }
-      return -1; // further away
     }
-
-    if (newOffset <= bestOffset) {
-      return newOffset; // we are closer or equal
+    // prepare 'length'
+    int length;
+    {
+      int end = marker.getAttribute(IMarker.CHAR_END, -1);
+      if (end == -1) {
+        return null;
+      }
+      length = end - offset;
     }
-
-    return -1; // further away
-  }
-
-  private static void ensureUpdatedAnnotations(ITextEditor editor) {
-    // TODO(scheglov) now sure if this works
-    Object inputElement = editor.getEditorInput().getAdapter(DartElement.class);
-    if (inputElement instanceof CompilationUnit) {
-      ASTProvider.getASTProvider().getAST(
-          (CompilationUnit) inputElement,
-          ASTProvider.WAIT_ACTIVE_ONLY,
-          null);
-    }
+    // OK
+    return new ProblemLocation(errorCode, offset, length, message);
   }
 
   private static IRegion getRegionOfInterest(ITextEditor editor, int invocationLocation)
@@ -166,110 +104,46 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
   }
 
   private static boolean isInside(int offset, int start, int end) {
-    return offset == start || offset == end || offset > start && offset < end; // make sure to handle 0-length ranges
+    // make sure to handle 0-length ranges
+    return offset == start || offset == end || offset > start && offset < end;
   }
 
-  private static int processAnnotation(Annotation annot, Position pos, int invocationLocation,
-      int bestOffset) {
-    int posBegin = pos.offset;
-    int posEnd = posBegin + pos.length;
-    if (isInside(invocationLocation, posBegin, posEnd)) { // covers invocation location?
-      return invocationLocation;
-    } else if (bestOffset != invocationLocation) {
-      int newClosestPosition = computeBestOffset(posBegin, invocationLocation, bestOffset);
-      if (newClosestPosition != -1) {
-        if (newClosestPosition != bestOffset) { // new best
-          if (DartCorrectionProcessor.hasCorrections(annot)) { // only jump to it if there are proposals
-            return newClosestPosition;
-          }
-        }
-      }
-    }
-    return bestOffset;
-  }
-
-  private ITextViewer fViewer;
-
-  private final ITextEditor fEditor;
-
-  private Position fPosition;
-
-  private Annotation[] fCurrentAnnotations;
-
-  private QuickAssistLightBulbUpdater fLightBulbUpdater;
-
-  private boolean fIsCompletionActive;
-
-  private boolean fIsProblemLocationAvailable;
+  private final DartEditor editor;
+  private ITextViewer viewer;
+  /**
+   * The {@link ProblemLocation} to propose fixes for.
+   */
+  private ProblemLocation problemLocationToFix;
 
   public DartCorrectionAssistant(ITextEditor editor) {
-    super();
     Assert.isNotNull(editor);
-    fEditor = editor;
-
-    DartCorrectionProcessor processor = new DartCorrectionProcessor(this);
-
-    setQuickAssistProcessor(processor);
-    enableColoredLabels(PlatformUI.getPreferenceStore().getBoolean(
-        IWorkbenchPreferenceConstants.USE_COLORED_LABELS));
-
-    setInformationControlCreator(getInformationControlCreator());
-
-    addCompletionListener(new ICompletionListener() {
-      @Override
-      public void assistSessionEnded(ContentAssistEvent event) {
-        fIsCompletionActive = false;
-      }
-
-      @Override
-      public void assistSessionStarted(ContentAssistEvent event) {
-        fIsCompletionActive = true;
-      }
-
-      @Override
-      public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
-      }
-    });
+    if (editor instanceof DartEditor) {
+      this.editor = (DartEditor) editor;
+      DartCorrectionProcessor processor = new DartCorrectionProcessor(this);
+      setQuickAssistProcessor(processor);
+    } else {
+      this.editor = null;
+    }
   }
 
   /**
-   * Returns the annotations at the current offset
-   * 
-   * @return the annotations at the offset
+   * @return the underlying {@link DartEditor}.
    */
-  public Annotation[] getAnnotationsAtOffset() {
-    return fCurrentAnnotations;
+  public DartEditor getEditor() {
+    return editor;
   }
 
-  public IEditorPart getEditor() {
-    return fEditor;
+  /**
+   * @return the {@link ProblemLocation} to compute fixes for.
+   */
+  public ProblemLocation getProblemLocationToFix() {
+    return problemLocationToFix;
   }
 
   @Override
   public void install(ISourceViewer sourceViewer) {
     super.install(sourceViewer);
-    fViewer = sourceViewer;
-
-    fLightBulbUpdater = new QuickAssistLightBulbUpdater(fEditor, sourceViewer);
-    fLightBulbUpdater.install();
-  }
-
-  /**
-   * @return <code>true</code> if a problem exist on the current line and the completion was not
-   *         invoked at the problem location
-   * @since 3.4
-   */
-  public boolean isProblemLocationAvailable() {
-    return fIsProblemLocationAvailable;
-  }
-
-  /**
-   * Returns true if the last invoked completion was called with an updated offset.
-   * 
-   * @return <code> true</code> if the last invoked completion was called with an updated offset.
-   */
-  public boolean isUpdatedOffset() {
-    return fPosition != null;
+    this.viewer = sourceViewer;
   }
 
   /**
@@ -281,90 +155,109 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
    */
   @Override
   public String showPossibleQuickAssists() {
-    boolean isReinvoked = false;
-    fIsProblemLocationAvailable = false;
+    prepareProblemsAtCaretLocation();
+    return super.showPossibleQuickAssists();
+  }
 
-    if (fIsCompletionActive) {
-      if (isUpdatedOffset()) {
-        isReinvoked = true;
-        restorePosition();
-        hide();
-        fIsProblemLocationAvailable = true;
-      }
-    }
-
-    fPosition = null;
-    fCurrentAnnotations = null;
-
-    if (fViewer == null || fViewer.getDocument() == null) {
-      // Let superclass deal with this
-      return super.showPossibleQuickAssists();
-    }
-
-    List<Annotation> resultingAnnotations = Lists.newArrayList();
+  /**
+   * Fills {@link #problemLocationToFix}.
+   */
+  private void prepareProblemsAtCaretLocation() {
+    problemLocationToFix = null;
     try {
-      Point selectedRange = fViewer.getSelectedRange();
+      Point selectedRange = viewer.getSelectedRange();
       int currOffset = selectedRange.x;
-      int currLength = selectedRange.y;
-      boolean goToClosest = currLength == 0 && !isReinvoked;
-
-      int newOffset = collectQuickFixableAnnotations(
-          fEditor,
-          currOffset,
-          goToClosest,
-          resultingAnnotations);
-      if (newOffset != currOffset) {
-        storePosition(currOffset, currLength);
-        fViewer.setSelectedRange(newOffset, 0);
-        fViewer.revealRange(newOffset, 0);
-        fIsProblemLocationAvailable = true;
-        if (fIsCompletionActive) {
-          hide();
+      // prepare IAnnotationModel
+      IAnnotationModel model;
+      {
+        IEditorInput editorInput = editor.getEditorInput();
+        model = DartUI.getDocumentProvider().getAnnotationModel(editorInput);
+        if (model == null) {
+          return;
         }
+      }
+      // prepare current line range
+      IRegion lineInfo = getRegionOfInterest(editor, currOffset);
+      if (lineInfo == null) {
+        return;
+      }
+      int rangeStart = lineInfo.getOffset();
+      int rangeEnd = rangeStart + lineInfo.getLength();
+
+      List<ProblemLocation> allProblemLocations = Lists.newArrayList();
+      List<Position> allPositions = Lists.newArrayList();
+      @SuppressWarnings("unchecked")
+      Iterator<Annotation> iter = model.getAnnotationIterator();
+      while (iter.hasNext()) {
+        Annotation annotation = iter.next();
+        // prepare Annotation position
+        Position pos = model.getPosition(annotation);
+        if (pos == null) {
+          continue;
+        }
+        // check that Annotation is on the current line
+        if (!isInside(pos.offset, rangeStart, rangeEnd)) {
+          continue;
+        }
+        // 
+        ProblemLocation problemLocation = createProblemLocation(annotation);
+        if (problemLocation == null) {
+          continue;
+        }
+        if (QuickFixProcessor.hasFix(problemLocation)) {
+          allProblemLocations.add(problemLocation);
+          allPositions.add(pos);
+        }
+      }
+      problemLocationToFix = null;
+      // problem under caret
+      for (int i = 0; i < allPositions.size(); i++) {
+        Position pos = allPositions.get(i);
+        if (pos.includes(currOffset)) {
+          problemLocationToFix = allProblemLocations.get(i);
+          break;
+        }
+      }
+      // problem after caret
+      if (problemLocationToFix == null) {
+        int bestOffset = Integer.MAX_VALUE;
+        for (int i = 0; i < allPositions.size(); i++) {
+          Position pos = allPositions.get(i);
+          if (pos.offset > currOffset) {
+            int offset = pos.offset - currOffset;
+            if (offset < bestOffset) {
+              bestOffset = offset;
+              problemLocationToFix = allProblemLocations.get(i);
+            }
+          }
+        }
+      }
+      // problem before caret
+      if (problemLocationToFix == null) {
+        int bestOffset = Integer.MAX_VALUE;
+        for (int i = 0; i < allPositions.size(); i++) {
+          Position pos = allPositions.get(i);
+          if (pos.offset < currOffset) {
+            int offset = currOffset - pos.offset;
+            if (offset < bestOffset) {
+              bestOffset = offset;
+              problemLocationToFix = allProblemLocations.get(i);
+            }
+          }
+        }
+      }
+      // not found
+      if (problemLocationToFix == null) {
+        return;
+      }
+      // show problem
+      {
+        int offset = problemLocationToFix.getOffset();
+        viewer.setSelectedRange(offset, 0);
+        viewer.revealRange(offset, 0);
       }
     } catch (BadLocationException e) {
       DartToolsPlugin.log(e);
     }
-    fCurrentAnnotations = resultingAnnotations.toArray(new Annotation[resultingAnnotations.size()]);
-
-    return super.showPossibleQuickAssists();
-  }
-
-  @Override
-  public void uninstall() {
-    if (fLightBulbUpdater != null) {
-      fLightBulbUpdater.uninstall();
-      fLightBulbUpdater = null;
-    }
-    super.uninstall();
-  }
-
-  @Override
-  protected void possibleCompletionsClosed() {
-    super.possibleCompletionsClosed();
-    restorePosition();
-  }
-
-  private IInformationControlCreator getInformationControlCreator() {
-    return new IInformationControlCreator() {
-      @Override
-      public IInformationControl createInformationControl(Shell parent) {
-        return new DefaultInformationControl(
-            parent,
-            DartToolsPlugin.getAdditionalInfoAffordanceString());
-      }
-    };
-  }
-
-  private void restorePosition() {
-    if (fPosition != null && !fPosition.isDeleted() && fViewer.getDocument() != null) {
-      fViewer.setSelectedRange(fPosition.offset, fPosition.length);
-      fViewer.revealRange(fPosition.offset, fPosition.length);
-    }
-    fPosition = null;
-  }
-
-  private void storePosition(int currOffset, int currLength) {
-    fPosition = new Position(currOffset, currLength);
   }
 }

@@ -15,6 +15,7 @@ package com.google.dart.tools.core;
 
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
@@ -27,6 +28,7 @@ import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
 import com.google.dart.tools.core.internal.OptionManager;
 import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
+import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
@@ -59,6 +61,7 @@ import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
@@ -658,6 +661,15 @@ public class DartCore extends Plugin implements DartSdkListener {
       // occurs
     }
     return ResourcesPlugin.getEncoding();
+  }
+
+  /**
+   * Extract {@link ErrorCode} form the given {@link IMarker}.
+   * 
+   * @return the {@link ErrorCode}, may be {@code null}.
+   */
+  public static ErrorCode getErrorCode(IMarker marker) {
+    return AnalysisMarkerManager.getErrorCode(marker);
   }
 
   /**

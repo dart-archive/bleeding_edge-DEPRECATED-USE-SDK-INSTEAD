@@ -18,8 +18,8 @@ import com.google.dart.compiler.util.apache.ArrayUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.internal.text.correction.AssistContext;
 import com.google.dart.tools.ui.internal.text.correction.ICommandAccess;
-import com.google.dart.tools.ui.internal.text.correction.ProblemLocation;
-import com.google.dart.tools.ui.internal.text.correction.QuickFixProcessor;
+import com.google.dart.tools.ui.internal.text.correction.ProblemLocation_OLD;
+import com.google.dart.tools.ui.internal.text.correction.QuickFixProcessor_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal_OLD;
 import com.google.dart.tools.ui.refactoring.AbstractDartTest;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
@@ -36,10 +36,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 /**
- * Test for {@link QuickFixProcessor}.
+ * Test for {@link QuickFixProcessor_OLD}.
  */
 public final class QuickFixProcessorTest extends AbstractDartTest {
-  private static final IQuickFixProcessor PROCESSOR = new QuickFixProcessor();
+  private static final IQuickFixProcessor PROCESSOR = new QuickFixProcessor_OLD();
 
   /**
    * Asserts that given {@link IDartCompletionProposal} has expected preview content.
@@ -1062,7 +1062,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
         int problemOffset = marker.getAttribute(IMarker.CHAR_START, -1);
         int problemLength = marker.getAttribute(IMarker.CHAR_END, -1) - problemOffset;
         // done
-        return new ProblemLocation(
+        return new ProblemLocation_OLD(
             problemOffset,
             problemLength,
             problemCode,

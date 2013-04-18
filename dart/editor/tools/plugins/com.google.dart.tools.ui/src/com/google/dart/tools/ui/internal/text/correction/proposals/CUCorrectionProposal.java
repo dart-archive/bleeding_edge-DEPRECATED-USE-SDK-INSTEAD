@@ -13,12 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
-import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.fix.LinkedProposalModel;
 import com.google.dart.tools.internal.corext.fix.LinkedProposalPositionGroup;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.DartUiStatus;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -60,7 +59,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
  */
 public class CUCorrectionProposal extends ChangeCorrectionProposal {
 
-  private final CompilationUnitElement unitElement;
+  private final Source source;
   private LinkedProposalModel linkedProposalModel;
   private boolean switchedEditor;
 
@@ -78,20 +77,20 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
    * @param image the image that is displayed for this proposal or <code>null</code> if no image is
    *          desired.
    */
-  public CUCorrectionProposal(String name, CompilationUnitElement cu, TextChange change,
-      int relevance, Image image) {
+  public CUCorrectionProposal(String name, Source source, TextChange change, int relevance,
+      Image image) {
     super(name, change, relevance, image);
-    if (cu == null) {
-      throw new IllegalArgumentException("Compilation unit must not be null"); //$NON-NLS-1$
+    if (source == null) {
+      throw new IllegalArgumentException("Source must not be null"); //$NON-NLS-1$
     }
-    this.unitElement = cu;
+    this.source = source;
     this.linkedProposalModel = null;
   }
 
   @Override
   public void apply(IDocument document) {
     try {
-      IResource resource = DartCore.getProjectManager().getResource(unitElement.getSource());
+      IResource resource = DartCore.getProjectManager().getResource(source);
       if (resource != null && resource.exists()) {
         boolean canEdit = performValidateEdit(resource);
         if (!canEdit) {
@@ -100,13 +99,14 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
         // ensure DartEditor is open
         IEditorPart part;
         {
-          part = EditorUtility.isOpenInEditor(unitElement);
+          part = EditorUtility.isOpenInEditor(source);
           if (part == null) {
-            part = DartUI.openInEditor(unitElement);
-            if (part != null) {
-              switchedEditor = true;
-              document = DartUI.getDocumentProvider().getDocument(part.getEditorInput());
-            }
+            // TODO(scheglov) there is pending CL with openInEditor(Source)
+//            part = DartUI.openInEditor(unitElement);
+//            if (part != null) {
+//              switchedEditor = true;
+//              document = DartUI.getDocumentProvider().getDocument(part.getEditorInput());
+//            }
           }
           IWorkbenchPage page = DartToolsPlugin.getActivePage();
           if (page != null && part != null) {

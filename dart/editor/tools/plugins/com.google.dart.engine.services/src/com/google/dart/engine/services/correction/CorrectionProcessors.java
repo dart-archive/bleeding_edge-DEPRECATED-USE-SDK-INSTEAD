@@ -15,17 +15,26 @@
 package com.google.dart.engine.services.correction;
 
 import com.google.dart.engine.services.internal.correction.QuickAssistProcessorImpl;
+import com.google.dart.engine.services.internal.correction.QuickFixProcessorImpl;
 
 /**
  * Accesses for Quick Fix/Assist processors.
  */
 public class CorrectionProcessors {
   private static final QuickAssistProcessor QUICK_ASSIST_PROCESSOR = new QuickAssistProcessorImpl();
+  private static final QuickFixProcessor QUICK_FIX_PROCESSOR = new QuickFixProcessorImpl();
 
   /**
    * @return the {@link QuickAssistProcessor}.
    */
   public static QuickAssistProcessor getQuickAssistProcessor() {
     return QUICK_ASSIST_PROCESSOR;
+  }
+
+  /**
+   * @return the {@link QuickFixProcessor}.
+   */
+  public static QuickFixProcessor getQuickFixProcessor() {
+    return QUICK_FIX_PROCESSOR;
   }
 }

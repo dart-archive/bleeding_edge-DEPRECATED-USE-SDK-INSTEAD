@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
+import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
@@ -72,8 +74,9 @@ public class AnalysisMarkerManager {
       int errorCount = 0;
 
       for (AnalysisError error : errors) {
+        ErrorCode errorCode = error.getErrorCode();
         int severity;
-        ErrorSeverity errorSeverity = error.getErrorCode().getErrorSeverity();
+        ErrorSeverity errorSeverity = errorCode.getErrorSeverity();
         if (errorSeverity == ErrorSeverity.ERROR) {
           severity = IMarker.SEVERITY_ERROR;
         } else if (errorSeverity == ErrorSeverity.WARNING) {
@@ -91,7 +94,7 @@ public class AnalysisMarkerManager {
         marker.setAttribute(IMarker.CHAR_START, error.getOffset());
         marker.setAttribute(IMarker.CHAR_END, error.getOffset() + error.getLength());
         marker.setAttribute(IMarker.LINE_NUMBER, lineNum);
-//        marker.setAttribute("errorCode", error.getErrorCode());
+        marker.setAttribute(ERROR_CODE, encodeErrorCode(errorCode));
         marker.setAttribute(IMarker.MESSAGE, error.getMessage());
 
         errorCount++;
@@ -110,6 +113,7 @@ public class AnalysisMarkerManager {
   }
 
   private static final int MAX_ERROR_COUNT = 500;
+  private static final String ERROR_CODE = "errorCode";
 
   /**
    * The singleton used for translating {@link AnalysisError}s into Eclipse markers.
@@ -118,12 +122,51 @@ public class AnalysisMarkerManager {
       ResourcesPlugin.getWorkspace());
 
   /**
+   * Extract {@link ErrorCode} form the given {@link IMarker}.
+   * 
+   * @return the {@link ErrorCode}, may be {@code null}.
+   */
+  public static ErrorCode getErrorCode(IMarker marker) {
+    if (marker == null) {
+      return null;
+    }
+    String encoding = marker.getAttribute(ERROR_CODE, null);
+    if (encoding == null) {
+      return null;
+    }
+    return decodeErrorCode(encoding);
+  }
+
+  /**
    * Answer the singleton used for translating {@link AnalysisError}s into Eclipse markers.
    * 
    * @return the marker manager (not {@code null})
    */
   public static AnalysisMarkerManager getInstance() {
     return INSTANCE;
+  }
+
+  /**
+   * @return the {@link ErrorCode} enumeration constant for string from
+   *         {@link #encodeErrorCode(ErrorCode)}.
+   */
+  private static ErrorCode decodeErrorCode(String encoding) {
+    try {
+      String className = StringUtils.substringBeforeLast(encoding, ".");
+      String fieldName = StringUtils.substringAfterLast(encoding, ".");
+      Class<?> errorCodeClass = Class.forName(className);
+      return (ErrorCode) errorCodeClass.getField(fieldName).get(null);
+    } catch (Throwable e) {
+      return null;
+    }
+  }
+
+  /**
+   * @return the encoding of the given {@link ErrorCode} enumeration, good for passing it to
+   *         {@link #decodeErrorCode(String)}.
+   */
+  private static String encodeErrorCode(ErrorCode errorCode) {
+    return errorCode.getClass().getCanonicalName() + "." + ((Enum<?>) errorCode).name();
   }
 
   /**

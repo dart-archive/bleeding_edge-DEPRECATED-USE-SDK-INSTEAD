@@ -17,7 +17,7 @@ package com.google.dart.engine.services.correction;
 import com.google.dart.engine.services.assist.AssistContext;
 
 /**
- * Provides {@link CorrectionProposal} to perform useful and small source code manipulations.
+ * Provides {@link CorrectionProposal}s to perform useful and small source code manipulations.
  */
 public interface QuickAssistProcessor {
   /**

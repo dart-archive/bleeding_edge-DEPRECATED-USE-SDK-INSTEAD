@@ -14,16 +14,22 @@
 
 package com.google.dart.engine.services.correction;
 
-import junit.framework.TestCase;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.services.assist.AssistContext;
 
-public class CorrectionProcessorsTest extends TestCase {
-  public void test_getQuickAssistProcessor() throws Exception {
-    QuickAssistProcessor processor = CorrectionProcessors.getQuickAssistProcessor();
-    assertNotNull(processor);
-  }
+/**
+ * Provides {@link CorrectionProposal}s to fix given {@link AnalysisError}s.
+ */
+public interface QuickFixProcessor {
+  /**
+   * @return the {@link CorrectionProposal}s which may fix given {@link ProblemLocation}.
+   */
+  CorrectionProposal[] computeProposals(AssistContext context, ProblemLocation problem)
+      throws Exception;
 
-  public void test_getQuickFixProcessor() throws Exception {
-    QuickFixProcessor processor = CorrectionProcessors.getQuickFixProcessor();
-    assertNotNull(processor);
-  }
+  /**
+   * @return the {@code true} if {@link QuickFixProcessor} can produce {@link CorrectionProposal}(s)
+   *         which may fix given {@link ProblemLocation}.
+   */
+  boolean hasFix(ProblemLocation problem);
 }

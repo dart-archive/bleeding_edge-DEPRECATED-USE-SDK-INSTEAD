@@ -27,7 +27,7 @@ import com.google.dart.tools.ui.text.dart.IProblemLocation;
 /**
  * @coverage dart.editor.ui.correction
  */
-public class ProblemLocation implements IProblemLocation {
+public class ProblemLocation_OLD implements IProblemLocation {
 
   private final ErrorCode fId;
   private final String[] fArguments;
@@ -36,7 +36,7 @@ public class ProblemLocation implements IProblemLocation {
   private final boolean fIsError;
   private final String fMarkerType;
 
-  public ProblemLocation(int offset, int length, ErrorCode id, String[] arguments, boolean isError,
+  public ProblemLocation_OLD(int offset, int length, ErrorCode id, String[] arguments, boolean isError,
       String markerType) {
     fId = id;
     fArguments = arguments;
@@ -46,7 +46,7 @@ public class ProblemLocation implements IProblemLocation {
     fMarkerType = markerType;
   }
 
-  public ProblemLocation(int offset, int length, IJavaAnnotation annotation) {
+  public ProblemLocation_OLD(int offset, int length, IJavaAnnotation annotation) {
     fId = annotation.getId();
     String[] arguments = annotation.getArguments();
     fArguments = arguments != null ? arguments : new String[0];
@@ -58,7 +58,7 @@ public class ProblemLocation implements IProblemLocation {
     fMarkerType = markerType != null ? markerType : DartCore.DART_PROBLEM_MARKER_TYPE;
   }
 
-  public ProblemLocation(Problem problem) {
+  public ProblemLocation_OLD(Problem problem) {
     fId = problem.getID();
     fArguments = problem.getArguments();
     fOffset = problem.getSourceStart();

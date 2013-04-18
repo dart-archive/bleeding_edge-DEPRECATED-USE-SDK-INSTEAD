@@ -103,7 +103,7 @@ public class CorrectionMarkerResolutionGenerator implements IMarkerResolutionGen
       String markerType = marker.getType();
       if (cu != null && id != null && start != -1 && end != -1 && arguments != null) {
         boolean isError = (severity == IMarker.SEVERITY_ERROR);
-        return new ProblemLocation(start, end - start, id, arguments, isError, markerType);
+        return new ProblemLocation_OLD(start, end - start, id, arguments, isError, markerType);
       }
     } catch (CoreException e) {
       DartToolsPlugin.log(e);
@@ -123,7 +123,7 @@ public class CorrectionMarkerResolutionGenerator implements IMarkerResolutionGen
           if (marker.equals(annot.getMarker())) {
             Position pos = model.getPosition(annot);
             if (pos != null) {
-              return new ProblemLocation(pos.getOffset(), pos.getLength(), annot);
+              return new ProblemLocation_OLD(pos.getOffset(), pos.getLength(), annot);
             }
           }
         }
@@ -173,7 +173,7 @@ public class CorrectionMarkerResolutionGenerator implements IMarkerResolutionGen
 //          }
 
           List<IDartCompletionProposal> proposals = Lists.newArrayList();
-          DartCorrectionProcessor.collectCorrections(
+          DartCorrectionProcessor_OLD.collectCorrections(
               context,
               new IProblemLocation[] {location},
               proposals);
@@ -199,7 +199,7 @@ public class CorrectionMarkerResolutionGenerator implements IMarkerResolutionGen
     ErrorCode id = new DartMarkerAnnotation(marker).getId();
     CompilationUnit cu = getCompilationUnit(marker);
     return cu != null
-        && DartCorrectionProcessor.hasCorrections(cu, id, MarkerUtilities.getMarkerType(marker));
+        && DartCorrectionProcessor_OLD.hasCorrections(cu, id, MarkerUtilities.getMarkerType(marker));
   }
 
   @Override

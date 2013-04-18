@@ -53,7 +53,7 @@ import java.util.Iterator;
 /**
  * @coverage dart.editor.ui.correction
  */
-public class QuickAssistLightBulbUpdater {
+public class QuickAssistLightBulbUpdater_OLD {
 
   public static class AssistAnnotation extends Annotation implements IAnnotationPresentation {
 
@@ -104,7 +104,7 @@ public class QuickAssistLightBulbUpdater {
   private ISelectionListenerWithAST fListener;
   private IPropertyChangeListener fPropertyChangeListener;
 
-  public QuickAssistLightBulbUpdater(ITextEditor part, ITextViewer viewer) {
+  public QuickAssistLightBulbUpdater_OLD(ITextEditor part, ITextViewer viewer) {
     fEditor = part;
     fViewer = viewer;
     fAnnotation = new AssistAnnotation();
@@ -165,7 +165,7 @@ public class QuickAssistLightBulbUpdater {
    * Needs to be called synchronized
    */
   private void calculateLightBulb(IAnnotationModel model, IInvocationContext context) {
-    boolean needsAnnotation = DartCorrectionProcessor.hasAssists(context);
+    boolean needsAnnotation = DartCorrectionProcessor_OLD.hasAssists(context);
     if (fIsAnnotationShown) {
       model.removeAnnotation(fAnnotation);
     }
@@ -235,13 +235,13 @@ public class QuickAssistLightBulbUpdater {
       Iterator<Annotation> iter = model.getAnnotationIterator();
       while (iter.hasNext()) {
         Annotation annot = iter.next();
-        if (DartCorrectionProcessor.isQuickFixableType(annot)) {
+        if (DartCorrectionProcessor_OLD.isQuickFixableType(annot)) {
           // may throw an IndexOutOfBoundsException upon concurrent annotation model changes
           Position pos = model.getPosition(annot);
           if (pos != null) {
             // may throw an IndexOutOfBoundsException upon concurrent document modification
             int startLine = document.getLineOfOffset(pos.getOffset());
-            if (startLine == currLine && DartCorrectionProcessor.hasCorrections(annot)) {
+            if (startLine == currLine && DartCorrectionProcessor_OLD.hasCorrections(annot)) {
               return true;
             }
           }

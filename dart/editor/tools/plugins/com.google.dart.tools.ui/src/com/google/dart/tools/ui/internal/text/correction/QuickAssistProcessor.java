@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
@@ -25,12 +26,10 @@ import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionP
 import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
-import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
-import com.google.dart.tools.ui.text.dart.IInvocationContext;
-import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.ltk.core.refactoring.TextChange;
 import org.eclipse.swt.graphics.Image;
 
@@ -41,17 +40,38 @@ import java.util.List;
  * 
  * @coverage dart.editor.ui.correction
  */
-public class QuickAssistProcessor implements IQuickAssistProcessor {
+public class QuickAssistProcessor {
+  /**
+   * Adds service {@link CorrectionProposal} to the Eclipse {@link ICompletionProposal}s.
+   */
+  static void addServiceProposals(List<ICompletionProposal> proposals,
+      CorrectionProposal[] serviceProposals) {
+    for (CorrectionProposal serviceProposal : serviceProposals) {
+      Image image = ServiceUtils.toLTK(serviceProposal.getImage());
+      // TODO(scheglov) why do we have several SourceChange-s in CorrectionProposal? 
+      List<SourceChange> serviceChanges = serviceProposal.getChanges();
+      if (serviceChanges.size() == 1) {
+        SourceChange sourceChange = serviceChanges.get(0);
+        TextChange textChange = ServiceUtils.toLTK(sourceChange);
+        proposals.add(new CUCorrectionProposal(
+            serviceProposal.getName(),
+            sourceChange.getSource(),
+            textChange,
+            serviceProposal.getRelevance(),
+            image));
+      }
+    }
+  }
+
   private AssistContext context;
   private DartEditor editor;
   private DartSelection selection;
-  private List<IDartCompletionProposal> proposals;
 
-  @Override
-  public synchronized IDartCompletionProposal[] getAssists(IInvocationContext _context,
-      IProblemLocation[] locations) throws CoreException {
-    this.context = (AssistContext) _context;
-    this.editor = (DartEditor) context.getEditor();
+  private List<ICompletionProposal> proposals;
+
+  public synchronized ICompletionProposal[] getAssists(AssistContextUI contextUI) {
+    this.context = contextUI.getContext();
+    this.editor = contextUI.getEditor();
     this.selection = (DartSelection) editor.getSelectionProvider().getSelection();
     proposals = Lists.newArrayList();
     ExecutionUtils.runLog(new RunnableEx() {
@@ -62,36 +82,22 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
         // ask services
         com.google.dart.engine.services.correction.QuickAssistProcessor serviceProcessor;
         serviceProcessor = CorrectionProcessors.getQuickAssistProcessor();
-        CorrectionProposal[] serviceProposals = serviceProcessor.getProposals(context.getContext());
-        for (CorrectionProposal serviceProposal : serviceProposals) {
-          Image image = ServiceUtils.toLTK(serviceProposal.getImage());
-          // TODO(scheglov) why do we have several SourceChange-s in CorrectionProposal? 
-          List<SourceChange> serviceChanges = serviceProposal.getChanges();
-          if (serviceChanges.size() == 1) {
-            TextChange textChange = ServiceUtils.toLTK(serviceChanges.get(0));
-            proposals.add(new CUCorrectionProposal(
-                serviceProposal.getName(),
-                context.getContext().getCompilationUnit().getElement(),
-                textChange,
-                serviceProposal.getRelevance(),
-                image));
-          }
-        }
+        CorrectionProposal[] serviceProposals = serviceProcessor.getProposals(context);
+        addServiceProposals(proposals, serviceProposals);
       }
     });
     this.context = null;
     this.editor = null;
     this.selection = null;
     try {
-      return proposals.toArray(new IDartCompletionProposal[proposals.size()]);
+      return proposals.toArray(new ICompletionProposal[proposals.size()]);
     } finally {
       proposals = null;
     }
   }
 
-  @Override
-  public boolean hasAssists(IInvocationContext context) throws CoreException {
-    return context.getContext() != null;
+  public boolean hasAssists(AssistContextUI contextUI) throws CoreException {
+    return contextUI.getContext() != null;
   }
 
   void addProposal_renameRefactoring() throws CoreException {

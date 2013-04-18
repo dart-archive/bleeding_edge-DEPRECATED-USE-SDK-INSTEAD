@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.correction;
 import com.google.dart.tools.ui.internal.text.correction.AssistContext;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
 import com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor;
+import com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal_OLD;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.refactoring.AbstractDartTest;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.when;
  * Test for {@link QuickAssistProcessor}.
  */
 public final class QuickAssistProcessorTest extends AbstractDartTest {
-  private static final IQuickAssistProcessor PROCESSOR = new QuickAssistProcessor();
+  private static final IQuickAssistProcessor PROCESSOR = new QuickAssistProcessor_OLD();
   private static final IProblemLocation[] NO_PROBLEMS = new IProblemLocation[0];
 
   private static void assertHasProposal(IDartCompletionProposal[] proposals, String proposalName) {

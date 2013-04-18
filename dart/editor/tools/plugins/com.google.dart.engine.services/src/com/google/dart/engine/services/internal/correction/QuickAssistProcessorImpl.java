@@ -163,12 +163,12 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
           });
         }
       }
-      instrumentation.metric("QuickFix-Offset", selectionOffset);
-      instrumentation.metric("QuickFix-Length", selectionLength);
-      instrumentation.metric("QuickFix-ProposalCount", proposals.size());
-      instrumentation.data("QuickFix-Source", utils.getText());
+      instrumentation.metric("QuickAssist-Offset", selectionOffset);
+      instrumentation.metric("QuickAssist-Length", selectionLength);
+      instrumentation.metric("QuickAssist-ProposalCount", proposals.size());
+      instrumentation.data("QuickAssist-Source", utils.getText());
       for (int index = 0; index < proposals.size(); index++) {
-        instrumentation.data("QuickFix-Proposal-" + index, proposals.get(index).getName());
+        instrumentation.data("QuickAssist-Proposal-" + index, proposals.get(index).getName());
       }
       return proposals.toArray(new CorrectionProposal[proposals.size()]);
     } finally {

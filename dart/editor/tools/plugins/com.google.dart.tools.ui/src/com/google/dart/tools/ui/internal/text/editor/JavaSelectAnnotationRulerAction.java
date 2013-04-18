@@ -17,7 +17,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
-import com.google.dart.tools.ui.internal.text.correction.DartCorrectionProcessor;
+import com.google.dart.tools.ui.internal.text.correction.DartCorrectionProcessor_OLD;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.IDocument;
@@ -170,7 +170,7 @@ public class JavaSelectAnnotationRulerAction extends SelectMarkerRulerAction {
       DartX.todo();
       if (!isReadOnly && ((
 //                (hasAssistLightbulb && annotation instanceof AssistAnnotation) ||
-          DartCorrectionProcessor.hasCorrections(annotation)))) {
+          DartCorrectionProcessor_OLD.hasCorrections(annotation)))) {
         fPosition = position;
         fAnnotation = annotation;
         fHasCorrection = true;

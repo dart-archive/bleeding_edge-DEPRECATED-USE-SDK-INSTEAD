@@ -42,7 +42,7 @@ import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.Logger;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
-import com.google.dart.tools.ui.internal.text.correction.DartCorrectionProcessor;
+import com.google.dart.tools.ui.internal.text.correction.DartCorrectionProcessor_OLD;
 import com.google.dart.tools.ui.internal.text.dart.IProblemRequestorExtension;
 import com.google.dart.tools.ui.internal.text.editor.saveparticipant.IPostSaveListener;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
@@ -340,7 +340,7 @@ public class LegacyCompilationUnitDocumentProvider extends TextFileDocumentProvi
         DartX.todo("quickfix");
         if (!isQuickFixableStateSet()) {
           setQuickFixable(isProblem() && indicateQuixFixableProblems()
-              && DartCorrectionProcessor.hasCorrections(this)); // no light bulb for tasks
+              && DartCorrectionProcessor_OLD.hasCorrections(this)); // no light bulb for tasks
         }
         if (isQuickFixable()) {
           if (DartMarkerAnnotation.ERROR_ANNOTATION_TYPE.equals(getType())) {

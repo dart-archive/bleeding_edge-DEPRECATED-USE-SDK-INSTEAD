@@ -12,18 +12,28 @@
  * the License.
  */
 
-package com.google.dart.engine.services.correction;
+package com.google.dart.tools.ui.internal.text.correction;
 
-import junit.framework.TestCase;
+import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
-public class CorrectionProcessorsTest extends TestCase {
-  public void test_getQuickAssistProcessor() throws Exception {
-    QuickAssistProcessor processor = CorrectionProcessors.getQuickAssistProcessor();
-    assertNotNull(processor);
+/**
+ * Container with {@link AssistContext} and UI information.
+ */
+public class AssistContextUI {
+  private final AssistContext context;
+  private final DartEditor editor;
+
+  public AssistContextUI(AssistContext context, DartEditor editor) {
+    this.context = context;
+    this.editor = editor;
   }
 
-  public void test_getQuickFixProcessor() throws Exception {
-    QuickFixProcessor processor = CorrectionProcessors.getQuickFixProcessor();
-    assertNotNull(processor);
+  public AssistContext getContext() {
+    return context;
+  }
+
+  public DartEditor getEditor() {
+    return editor;
   }
 }
