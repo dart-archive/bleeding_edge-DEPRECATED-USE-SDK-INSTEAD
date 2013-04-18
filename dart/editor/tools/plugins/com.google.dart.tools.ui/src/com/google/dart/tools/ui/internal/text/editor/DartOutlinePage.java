@@ -22,7 +22,6 @@ import com.google.dart.tools.ui.actions.InstrumentedAction;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
@@ -37,7 +36,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -50,7 +48,6 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -106,13 +103,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     private void updateColors() {
       SWTUtil.setColors(getTree(), DartOutlinePage.this.editor.getPreferences());
     }
-
-    private void updateTreeFont() {
-      Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
-      Font oldFont = getTree().getFont();
-      Font font = SWTUtil.changeFontSize(oldFont, newFont);
-      getTree().setFont(font);
-    }
   }
 
   private class ExpandAllAction extends InstrumentedAction {
@@ -128,17 +118,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       viewer.expandAll();
 
-    }
-  }
-
-  private class FontPropertyChangeListener implements IPropertyChangeListener {
-    @Override
-    public void propertyChange(PropertyChangeEvent event) {
-      if (viewer != null) {
-        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
-          viewer.updateTreeFont();
-        }
-      }
     }
   }
 
@@ -189,7 +168,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
   private DartEditor editor;
   private DartOutlineViewer viewer;
   private IPropertyChangeListener propertyChangeListener;
-  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
   private Menu contextMenu;
   private CompositeActionGroup actionGroups;
 
@@ -208,7 +186,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     };
     DartToolsPlugin.getDefault().getPreferenceStore().addPropertyChangeListener(
         propertyChangeListener);
-    JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
   }
 
   @Override
@@ -228,7 +205,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     ColoredViewersManager.install(viewer);
     viewer.setContentProvider(LightNodeElements.newTreeContentProvider());
     viewer.setLabelProvider(LightNodeElements.LABEL_PROVIDER);
-    viewer.updateTreeFont();
+    SWTUtil.bindJFaceResourcesFontToControl(tree);
     // install listeners added before UI creation
     {
       Object[] listeners = selectionChangedListeners.getListeners();
@@ -286,6 +263,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
       public IStatus runInUIThread(IProgressMonitor monitor) {
         if (viewer != null) {
           viewer.setInput(input);
+//          SWTUtil.setItemHeightForFont(viewer.getTree());
         }
         return Status.OK_STATUS;
       }
@@ -305,10 +283,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
       IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
       preferenceStore.removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
-    }
-    if (fontPropertyChangeListener != null) {
-      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
-      fontPropertyChangeListener = null;
     }
     // dispose "contextMenu"
     if (contextMenu != null && !contextMenu.isDisposed()) {

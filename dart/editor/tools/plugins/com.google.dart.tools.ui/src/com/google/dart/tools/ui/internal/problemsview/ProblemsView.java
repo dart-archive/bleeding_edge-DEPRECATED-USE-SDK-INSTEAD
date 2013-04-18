@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.problemsview;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -474,17 +473,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
-  private class FontPropertyChangeListener implements IPropertyChangeListener {
-    @Override
-    public void propertyChange(PropertyChangeEvent event) {
-      if (tableViewer != null) {
-        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
-          updateTableFont();
-        }
-      }
-    }
-  }
-
   private class GoToMarkerAction extends SelectionProviderAction {
 
     private static final String GOINTO_RESOURCE_IMG_PATH = "elcl16/gotoobj_tsk.gif"; //$NON-NLS-1$
@@ -799,7 +787,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   private Display swtDisplay;
   private IPreferenceStore preferences;
-  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
     @Override
@@ -809,7 +796,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   };
 
   public ProblemsView() {
-    JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
   }
 
   @Override
@@ -885,8 +871,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
     table.setLayoutData(new GridData(GridData.FILL_BOTH));
 //    table.setFont(parent.getFont());
-    updateTableFont();
-    getPreferences().addPropertyChangeListener(propertyChangeListener);
+    SWTUtil.bindJFaceResourcesFontToControl(table);
     updateColors();
 
     table.setLinesVisible(true);
@@ -929,10 +914,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       goToMarkerAction = null;
     }
 
-    if (fontPropertyChangeListener != null) {
-      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
-      fontPropertyChangeListener = null;
-    }
     if (propertyChangeListener != null) {
       getPreferences().removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
@@ -1138,14 +1119,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
 
     setContentDescription(desc);
-  }
-
-  protected void updateTableFont() {
-    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
-    Font oldFont = tableViewer.getTable().getFont();
-    Font font = SWTUtil.changeFontSize(oldFont, newFont);
-    tableViewer.getTable().setFont(font);
-    tableViewer.getTable().layout(true, true); // bug: row height never decreases
   }
 
   private void addActionsForSelection(IMenuManager menuManager) {

@@ -33,6 +33,7 @@ import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.text.editor.NewDartElementLabelProvider;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.eclipse.core.resources.IMarker;
@@ -362,6 +363,7 @@ public abstract class SearchMatchPage extends SearchPage {
       }
     });
     SearchView.updateColors(viewer.getControl());
+    SWTUtil.bindJFaceResourcesFontToControl(viewer.getControl());
   }
 
   @Override

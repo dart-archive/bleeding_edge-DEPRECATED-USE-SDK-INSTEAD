@@ -13,13 +13,18 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.StyledText;
@@ -30,6 +35,7 @@ import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
@@ -40,6 +46,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.swt.widgets.Scrollable;
@@ -63,6 +70,31 @@ public class SWTUtil {
    * this does not "solve the font problem" since Eclipse code does not always dispose fonts.
    */
   private static WeakHashMap<String, Font> fontCache = new WeakHashMap<String, Font>();
+
+  /**
+   * Propagates changes in {@link JFaceResources} font to the given {@link Control}.
+   */
+  public static void bindJFaceResourcesFontToControl(final Control control) {
+    updateFontSizeFromJFaceResources(control);
+    final FontRegistry fontRegistry = JFaceResources.getFontRegistry();
+    final IPropertyChangeListener propertyListener = new IPropertyChangeListener() {
+      @Override
+      public void propertyChange(PropertyChangeEvent event) {
+        if (!control.isDisposed()) {
+          if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+            updateFontSizeFromJFaceResources(control);
+          }
+        }
+      }
+    };
+    control.addListener(SWT.Dispose, new Listener() {
+      @Override
+      public void handleEvent(Event event) {
+        fontRegistry.removeListener(propertyListener);
+      }
+    });
+    fontRegistry.addListener(propertyListener);
+  }
 
   /**
    * Create a new font with the same attributes as the given <code>oldFont</code> except that its
@@ -352,6 +384,20 @@ public class SWTUtil {
     }
   }
 
+  /**
+   * Sets the size of the item to correspond size of the font.
+   */
+  public static void setItemHeightForFont(Control container) {
+    GC gc = new GC(container);
+    try {
+      Point size = gc.textExtent("A");
+      ReflectionUtils.invokeMethod(container, "setItemHeight(int)", Math.max(16, size.y));
+    } catch (Throwable e) {
+    } finally {
+      gc.dispose();
+    }
+  }
+
   private static Color createColor(IPreferenceStore store, String key) {
     RGB rgb = null;
     if (store.contains(key)) {
@@ -365,6 +411,32 @@ public class SWTUtil {
       }
     }
     return null;
+  }
+
+  /**
+   * Sets size of the font in the given {@link Control} to the size specified in
+   * {@link JFaceResources}.
+   */
+  private static void updateFontSizeFromJFaceResources(Control control) {
+    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
+    Font oldFont = control.getFont();
+    Font font = SWTUtil.changeFontSize(oldFont, newFont);
+    control.setFont(font);
+    // set Table/Tree item height
+    if (control instanceof Table || control instanceof Tree) {
+      setItemHeightForFont(control);
+    }
+    // process Composite children
+    if (control instanceof Composite) {
+      Composite composite = (Composite) control;
+      Control[] children = composite.getChildren();
+      if (children != null) {
+        for (Control child : children) {
+          updateFontSizeFromJFaceResources(child);
+        }
+      }
+      composite.layout();
+    }
   }
 
   private SWTUtil() {

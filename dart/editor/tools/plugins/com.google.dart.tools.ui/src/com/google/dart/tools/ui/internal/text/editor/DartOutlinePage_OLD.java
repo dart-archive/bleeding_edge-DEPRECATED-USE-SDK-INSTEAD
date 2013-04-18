@@ -37,7 +37,6 @@ import com.google.dart.tools.ui.ProblemsLabelDecorator.ProblemsLabelChangedEvent
 import com.google.dart.tools.ui.actions.OpenViewActionGroup_OLD;
 import com.google.dart.tools.ui.actions.RefactorActionGroup_OLD;
 import com.google.dart.tools.ui.internal.actions.AbstractToggleLinkingAction;
-import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
 import com.google.dart.tools.ui.internal.text.ProductProperties;
@@ -58,7 +57,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -75,7 +73,6 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -551,13 +548,6 @@ public class DartOutlinePage_OLD extends Page implements IContentOutlinePage, IA
       SWTUtil.setColors(getTree(), DartOutlinePage_OLD.this.fEditor.getPreferences());
     }
 
-    protected void updateTreeFont() {
-      Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
-      Font oldFont = getTree().getFont();
-      Font font = SWTUtil.changeFontSize(oldFont, newFont);
-      getTree().setFont(font);
-    }
-
     private IResource getUnderlyingResource() {
       Object input = getInput();
       if (input instanceof CompilationUnit) {
@@ -762,17 +752,6 @@ public class DartOutlinePage_OLD extends Page implements IContentOutlinePage, IA
     }
   }
 
-  private class FontPropertyChangeListener implements IPropertyChangeListener {
-    @Override
-    public void propertyChange(PropertyChangeEvent event) {
-      if (fOutlineViewer != null) {
-        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
-          fOutlineViewer.updateTreeFont();
-        }
-      }
-    }
-  }
-
   static Object[] NO_CHILDREN = new Object[0];
 
   /** A flag to show contents of top level type only */
@@ -798,7 +777,6 @@ public class DartOutlinePage_OLD extends Page implements IContentOutlinePage, IA
   private CompositeActionGroup fActionGroups;
 
   private IPropertyChangeListener fPropertyChangeListener;
-  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
   private OpenAndLinkWithEditorHelper fOpenAndLinkWithEditorHelper;
 
   /**
@@ -829,7 +807,6 @@ public class DartOutlinePage_OLD extends Page implements IContentOutlinePage, IA
     };
     DartOutlinePage_OLD.this.fEditor.getPreferences().addPropertyChangeListener(
         fPropertyChangeListener);
-    JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
   }
 
   @Override
@@ -869,7 +846,7 @@ public class DartOutlinePage_OLD extends Page implements IContentOutlinePage, IA
       fOutlineViewer.setContentProvider(new OldDartOutlinePageContentProvider(true));
       fOutlineViewer.setLabelProvider(new DartElementLabelProvider());
     }
-    fOutlineViewer.updateTreeFont();
+    SWTUtil.bindJFaceResourcesFontToControl(tree);
 
     Object[] listeners = fSelectionChangedListeners.getListeners();
     for (int i = 0; i < listeners.length; i++) {
@@ -990,10 +967,6 @@ public class DartOutlinePage_OLD extends Page implements IContentOutlinePage, IA
       DartToolsPlugin.getDefault().getPreferenceStore().removePropertyChangeListener(
           fPropertyChangeListener);
       fPropertyChangeListener = null;
-    }
-    if (fontPropertyChangeListener != null) {
-      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
-      fontPropertyChangeListener = null;
     }
 
     if (fMenu != null && !fMenu.isDisposed()) {

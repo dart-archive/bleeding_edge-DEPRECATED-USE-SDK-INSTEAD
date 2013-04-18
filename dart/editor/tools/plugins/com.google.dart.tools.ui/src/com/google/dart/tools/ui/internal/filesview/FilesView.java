@@ -32,7 +32,6 @@ import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
-import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
@@ -55,7 +54,6 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.DecoratingStyledCellLabelProvider;
@@ -70,7 +68,6 @@ import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -106,18 +103,6 @@ import java.util.List;
  */
 @SuppressWarnings("deprecation")
 public class FilesView extends ViewPart implements ISetSelectionTarget {
-
-  private class FontPropertyChangeListener implements IPropertyChangeListener {
-    @Override
-    public void propertyChange(PropertyChangeEvent event) {
-      if (treeViewer != null) {
-        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
-          updateTreeFont();
-          treeViewer.refresh();
-        }
-      }
-    }
-  }
 
   private class OpenPubDocs extends Action {
 
@@ -209,7 +194,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private RunPubAction pubInstallAction;
 
   private IPreferenceStore preferences;
-  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
@@ -285,8 +269,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
     });
 
-    JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
-    updateTreeFont();
+    SWTUtil.bindJFaceResourcesFontToControl(treeViewer.getTree());
     getPreferences().addPropertyChangeListener(propertyChangeListener);
     updateColors();
     PubManager.getInstance().addListener(pubUpdateListener);
@@ -316,10 +299,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     if (propertyChangeListener != null) {
       getPreferences().removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
-    }
-    if (fontPropertyChangeListener != null) {
-      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
-      fontPropertyChangeListener = null;
     }
     if (propertyDialogAction != null) {
       treeViewer.removeSelectionChangedListener(propertyDialogAction);
@@ -616,13 +595,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   protected void updateColors() {
     SWTUtil.setColors(getViewer().getTree(), getPreferences());
-  }
-
-  protected void updateTreeFont() {
-    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
-    Font oldFont = treeViewer.getTree().getFont();
-    Font font = SWTUtil.changeFontSize(oldFont, newFont);
-    treeViewer.getTree().setFont(font);
   }
 
   Shell getShell() {

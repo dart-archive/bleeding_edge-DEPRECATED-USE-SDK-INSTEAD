@@ -16,20 +16,17 @@ package com.google.dart.tools.debug.ui.internal.view;
 
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.debug.internal.ui.viewers.model.provisional.TreeModelViewer;
 import org.eclipse.debug.internal.ui.views.variables.details.DetailPaneProxy;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -41,18 +38,6 @@ import org.eclipse.ui.IActionBars;
 @SuppressWarnings("restriction")
 public class BreakpointsView extends
     org.eclipse.debug.internal.ui.views.breakpoints.BreakpointsView {
-  private class FontPropertyChangeListener implements IPropertyChangeListener {
-    @Override
-    public void propertyChange(PropertyChangeEvent event) {
-      if (getViewer() != null) {
-        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
-          updateTreeFont();
-          getViewer().refresh();
-        }
-      }
-    }
-  }
-
   public static final String VIEW_ID = "com.google.dart.tools.debug.breakpointsView";
 
   private RemoveAllBreakpointsAction removeAllBreakpointsAction;
@@ -60,7 +45,6 @@ public class BreakpointsView extends
   ListViewer breakpointsViewer;
   private TreeModelViewer treeViewer;
   private IPreferenceStore preferences;
-  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
@@ -126,8 +110,7 @@ public class BreakpointsView extends
         SWTUtil.eraseSelection(event, treeViewer.getTree(), getPreferences());
       }
     });
-    JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
-    updateTreeFont();
+    SWTUtil.bindJFaceResourcesFontToControl(treeViewer.getTree());
     getPreferences().addPropertyChangeListener(propertyChangeListener);
     updateColors();
     return treeViewer;
@@ -135,13 +118,6 @@ public class BreakpointsView extends
 
   protected void updateColors() {
     SWTUtil.setColors(treeViewer.getTree(), getPreferences());
-  }
-
-  protected void updateTreeFont() {
-    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
-    Font oldFont = treeViewer.getTree().getFont();
-    Font font = SWTUtil.changeFontSize(oldFont, newFont);
-    treeViewer.getTree().setFont(font);
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {

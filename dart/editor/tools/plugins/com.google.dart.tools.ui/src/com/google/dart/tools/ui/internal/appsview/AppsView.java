@@ -31,7 +31,6 @@ import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.filesview.FilesViewDragAdapter;
 import com.google.dart.tools.ui.internal.filesview.FilesViewDropAdapter;
 import com.google.dart.tools.ui.internal.filesview.LinkWithEditorAction;
-import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
@@ -47,7 +46,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -62,7 +60,6 @@ import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -96,19 +93,6 @@ import java.util.List;
  * editor tab to be the same as used in Files view (and possibly use that here)
  */
 public class AppsView extends ViewPart implements ISetSelectionTarget {
-
-  private class FontPropertyChangeListener implements IPropertyChangeListener {
-    @Override
-    public void propertyChange(PropertyChangeEvent event) {
-      if (treeViewer != null) {
-        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
-          updateTreeFont();
-          treeViewer.refresh();
-        }
-      }
-    }
-  }
-
   public static final String VIEW_ID = "com.google.dart.tools.ui.AppsView";
 
   private static final String LINK_WITH_EDITOR_ID = "linkWithEditor";
@@ -128,7 +112,6 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
   private UndoRedoActionGroup undoRedoActionGroup;
 
   private IPreferenceStore preferences;
-  private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
@@ -210,8 +193,7 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
         }
       });
 
-      JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
-      updateTreeFont();
+      SWTUtil.bindJFaceResourcesFontToControl(treeViewer.getTree());
       getPreferences().addPropertyChangeListener(propertyChangeListener);
       updateColors();
 
@@ -244,11 +226,6 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     if (propertyChangeListener != null) {
       getPreferences().removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
-    }
-
-    if (fontPropertyChangeListener != null) {
-      JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
-      fontPropertyChangeListener = null;
     }
 
     if (modelListener != null) {
@@ -503,23 +480,6 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
   protected void updateColors() {
     SWTUtil.setColors(getViewer().getTree(), getPreferences());
-  }
-
-  protected void updateTreeFont() {
-
-    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("AppsView.updateTreeFont");
-    try {
-
-      Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
-      Font oldFont = treeViewer.getTree().getFont();
-      Font font = SWTUtil.changeFontSize(oldFont, newFont);
-      treeViewer.getTree().setFont(font);
-      appLabelProvider.updateFont(font);
-
-    } finally {
-      instrumentation.log();
-
-    }
   }
 
   Shell getShell() {

@@ -31,7 +31,6 @@ import com.google.dart.tools.ui.NewStandardDartElementContentProvider;
 import com.google.dart.tools.ui.OldStandardDartElementContentProvider;
 import com.google.dart.tools.ui.OverrideIndicatorLabelDecorator;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
-import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.NewDartElementLabelProvider;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
@@ -57,7 +56,6 @@ import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
@@ -655,10 +653,7 @@ public class DartOutlineInformationControl_OLD extends AbstractInformationContro
 
     treeViewer.getTree().addKeyListener(getKeyAdapter());
 
-    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
-    Font oldFont = treeViewer.getTree().getFont();
-    Font font = SWTUtil.changeFontSize(oldFont, newFont);
-    treeViewer.getTree().setFont(font);
+    SWTUtil.bindJFaceResourcesFontToControl(tree);
 
     return treeViewer;
   }

@@ -56,6 +56,7 @@ public class SearchView extends ViewPart {
       {
         Label emptyLabel = new Label(emptyComposite, SWT.WRAP);
         emptyLabel.setText("No search results available.");
+        SWTUtil.bindJFaceResourcesFontToControl(emptyComposite);
       }
       updateColors(emptyComposite);
     }
