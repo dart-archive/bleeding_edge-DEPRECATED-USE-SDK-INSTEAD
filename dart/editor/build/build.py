@@ -811,7 +811,7 @@ def ExecuteCommand(cmd, directory=None):
   if directory is not None:
     os.chdir(cwd)
   if status:
-    raise 'Running %s failed' % cmd
+    raise Exception('Running %s failed' % cmd)
 
 
 def BuildUpdateSite(ant, revision, name, buildroot, buildout,
