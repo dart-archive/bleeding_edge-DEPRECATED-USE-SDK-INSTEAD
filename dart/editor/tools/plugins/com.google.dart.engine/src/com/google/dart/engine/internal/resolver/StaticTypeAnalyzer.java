@@ -1181,6 +1181,12 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     return null;
   }
 
+  /**
+   * Return the type of the given (overridable) element.
+   * 
+   * @param element the element whose type is to be returned
+   * @return the type of the given element
+   */
   private Type getType(Element element) {
     if (element instanceof LocalVariableElement) {
       return ((LocalVariableElement) element).getType();
@@ -1308,7 +1314,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @param inferredType the inferred type of the element
    */
   private void override(VariableElement element, Type staticType, Type inferredType) {
-    if (inferredType == BottomTypeImpl.getInstance() || !(element instanceof VariableElement)) {
+    if (inferredType == BottomTypeImpl.getInstance()) {
       return;
     }
     if (element instanceof PropertyInducingElement) {

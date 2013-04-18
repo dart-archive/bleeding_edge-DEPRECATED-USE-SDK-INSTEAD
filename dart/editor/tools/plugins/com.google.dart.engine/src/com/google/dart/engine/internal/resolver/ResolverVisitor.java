@@ -65,8 +65,12 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
@@ -156,7 +160,7 @@ public class ResolverVisitor extends ScopedVisitor {
       if (element != null) {
         Type type = node.getType().getType();
         if (type != null) {
-          overrideManager.setType(element, type);
+          override(element, getType(element), type);
         }
       }
     }
@@ -638,6 +642,21 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * Return the type of the given (overridable) element.
+   * 
+   * @param element the element whose type is to be returned
+   * @return the type of the given element
+   */
+  private Type getType(Element element) {
+    if (element instanceof LocalVariableElement) {
+      return ((LocalVariableElement) element).getType();
+    } else if (element instanceof ParameterElement) {
+      return ((ParameterElement) element).getType();
+    }
+    return null;
+  }
+
+  /**
    * Return {@code true} if the given expression terminates abruptly (that is, if any expression
    * following the given expression will not be reached).
    * 
@@ -681,6 +700,29 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * If it is appropriate to do so, override the type of the given element. Use the static type and
+   * inferred type of the element to determine whether or not it is appropriate.
+   * 
+   * @param element the element whose type might be overridden
+   * @param staticType the static type of the element
+   * @param inferredType the inferred type of the element
+   */
+  private void override(VariableElement element, Type staticType, Type inferredType) {
+    if (inferredType == BottomTypeImpl.getInstance()) {
+      return;
+    }
+    if (element instanceof PropertyInducingElement) {
+      PropertyInducingElement variable = (PropertyInducingElement) element;
+      if (!variable.isConst() && !variable.isFinal()) {
+        return;
+      }
+    }
+    if (staticType == null || (inferredType != null && inferredType.isMoreSpecificThan(staticType))) {
+      overrideManager.setType(element, inferredType);
+    }
+  }
+
+  /**
    * Propagate any type information that results from knowing that the given condition will have
    * evaluated to 'false'.
    * 
@@ -693,11 +735,11 @@ public class ResolverVisitor extends ScopedVisitor {
     if (condition instanceof IsExpression) {
       IsExpression is = (IsExpression) condition;
       if (is.getNotOperator() != null) {
-        Element element = getOverridableElement(is.getExpression());
+        VariableElement element = getOverridableElement(is.getExpression());
         if (element != null) {
           Type type = is.getType().getType();
           if (type != null) {
-            overrideManager.setType(element, type);
+            override(element, getType(element), type);
           }
         }
       }
@@ -723,11 +765,11 @@ public class ResolverVisitor extends ScopedVisitor {
     if (condition instanceof IsExpression) {
       IsExpression is = (IsExpression) condition;
       if (is.getNotOperator() == null) {
-        Element element = getOverridableElement(is.getExpression());
+        VariableElement element = getOverridableElement(is.getExpression());
         if (element != null) {
           Type type = is.getType().getType();
           if (type != null) {
-            overrideManager.setType(element, type);
+            override(element, getType(element), type);
           }
         }
       }

@@ -19,11 +19,13 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.LibraryElement;
@@ -131,6 +133,22 @@ public class TypePropagationTest extends ResolverTestCase {
     assertSame(getTypeProvider().getIntType(), variableName.getStaticType());
   }
 
+  public void test_initializer_dereference() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  var v = 'String';",
+        "  v.",
+        "}"));
+    LibraryElement library = resolve(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
+    BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
+    ExpressionStatement statement = (ExpressionStatement) body.getBlock().getStatements().get(1);
+    PrefixedIdentifier invocation = (PrefixedIdentifier) statement.getExpression();
+    SimpleIdentifier variableName = invocation.getPrefix();
+    assertSame(getTypeProvider().getStringType(), variableName.getStaticType());
+  }
+
   public void test_is_conditional() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {}",
@@ -156,6 +174,31 @@ public class TypePropagationTest extends ResolverTestCase {
         "class A {}",
         "A f(var p) {",
         "  if (p is A) {",
+        "    return p;",
+        "  } else {",
+        "    return null;",
+        "  }",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
+    InterfaceType typeA = classA.getElement().getType();
+    FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(1);
+    BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
+    IfStatement ifStatement = (IfStatement) body.getBlock().getStatements().get(0);
+    ReturnStatement statement = (ReturnStatement) ((Block) ifStatement.getThenStatement()).getStatements().get(
+        0);
+    SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
+    assertSame(typeA, variableName.getStaticType());
+  }
+
+  public void test_is_if_lessSpecific() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "A f(A p) {",
+        "  if (p is Object) {",
         "    return p;",
         "  } else {",
         "    return null;",
