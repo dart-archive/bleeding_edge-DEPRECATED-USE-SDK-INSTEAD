@@ -65,6 +65,16 @@ public class TestTypeProvider implements TypeProvider {
   private InterfaceType intType;
 
   /**
+   * The type representing the built-in type 'Iterable'.
+   */
+  private InterfaceType iterableType;
+
+  /**
+   * The type representing the built-in type 'Iterator'.
+   */
+  private InterfaceType iteratorType;
+
+  /**
    * The type representing the built-in type 'List'.
    */
   private InterfaceType listType;
@@ -155,15 +165,37 @@ public class TestTypeProvider implements TypeProvider {
     return intType;
   }
 
+  public InterfaceType getIterableType() {
+    if (iterableType == null) {
+      ClassElementImpl iterableElement = classElement("Iterable", "E");
+      iterableType = iterableElement.getType();
+      Type eType = iterableElement.getTypeVariables()[0].getType();
+      iterableElement.setAccessors(new PropertyAccessorElement[] {//
+          getterElement("iterator", false, getIteratorType().substitute(new Type[] {eType})),
+          getterElement("last", false, eType),});
+    }
+    return iterableType;
+  }
+
+  public InterfaceType getIteratorType() {
+    if (iteratorType == null) {
+      ClassElementImpl iteratorElement = classElement("Iterator", "E");
+      iteratorType = iteratorElement.getType();
+      Type eType = iteratorElement.getTypeVariables()[0].getType();
+      iteratorElement.setAccessors(new PropertyAccessorElement[] {//
+      getterElement("current", false, eType),});
+    }
+    return iteratorType;
+  }
+
   @Override
   public InterfaceType getListType() {
     if (listType == null) {
       ClassElementImpl listElement = classElement("List", "E");
       listType = listElement.getType();
       Type eType = listElement.getTypeVariables()[0].getType();
-      listElement.setAccessors(new PropertyAccessorElement[] {//
-      getterElement("last", false, eType), // defined in Iterable
-      });
+      InterfaceType supertype = getIterableType().substitute(new Type[] {eType});
+      listElement.setSupertype(supertype);
       listElement.setMethods(new MethodElement[] {
           methodElement("[]", eType, intType),
           methodElement("[]=", VoidTypeImpl.getInstance(), intType, eType)});
@@ -217,10 +249,10 @@ public class TestTypeProvider implements TypeProvider {
     if (stringType == null) {
       stringType = classElement("String").getType();
       ClassElementImpl stringElement = (ClassElementImpl) stringType.getElement();
-      stringElement.setAccessors(new PropertyAccessorElement[] {getterElement(
-          "length",
-          false,
-          getIntType())});
+      stringElement.setAccessors(new PropertyAccessorElement[] {//
+      getterElement("isEmpty", false, getBoolType()), getterElement("length", false, getIntType())});
+      stringElement.setMethods(new MethodElement[] {//
+      methodElement("toLowerCase", stringType), methodElement("toUpperCase", stringType)});
     }
     return stringType;
   }

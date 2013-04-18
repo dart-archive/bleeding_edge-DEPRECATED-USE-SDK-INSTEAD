@@ -717,17 +717,17 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets053() throws Exception {
-    // TODO Enable after type propagation is implemented. Not yet
-//    String source = src(
-//        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
-//        "void r() {",
-//        "  var v;",
-//        "  while (v is String) {",
-//        "    v.!1toUpperCase;",
-//        "    v.!2getKeys;",
-//        "  }",
-//        "}");
-//    test(source, "1+toUpperCase", "2-getKeys");
+    // Type propagation.
+    String source = src(
+        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+        "void r() {",
+        "  var v;",
+        "  while (v is String) {",
+        "    v.!1toUpperCase;",
+        "    v.!2getKeys;",
+        "  }",
+        "}");
+    test(source, "1+toUpperCase", "2-getKeys");
   }
 
   public void testCommentSnippets054() throws Exception {

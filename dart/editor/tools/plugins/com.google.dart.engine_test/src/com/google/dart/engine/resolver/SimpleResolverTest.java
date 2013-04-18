@@ -180,7 +180,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "class A {",
         "  List get X => [() => 0];",
         "  m(A a) {",
-        "    X.last();",
+        "    X.last;",
         "  }",
         "}"));
     resolve(source);

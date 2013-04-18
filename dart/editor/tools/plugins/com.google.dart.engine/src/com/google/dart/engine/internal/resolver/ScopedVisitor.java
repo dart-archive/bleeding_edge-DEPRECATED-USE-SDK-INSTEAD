@@ -246,7 +246,7 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
     Scope outerNameScope = nameScope;
     nameScope = new EnclosedScope(nameScope);
     try {
-      super.visitForEachStatement(node);
+      visitForEachStatementInScope(node);
     } finally {
       nameScope = outerNameScope;
       labelScope = outerLabelScope;
@@ -458,6 +458,17 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
         token.getLength(),
         errorCode,
         arguments));
+  }
+
+  /**
+   * Visit the given statement after it's scope has been created. This replaces the normal call to
+   * the inherited visit method so that ResolverVisitor can intervene when type propagation is
+   * enabled.
+   * 
+   * @param node the statement to be visited
+   */
+  protected void visitForEachStatementInScope(ForEachStatement node) {
+    super.visitForEachStatement(node);
   }
 
   /**

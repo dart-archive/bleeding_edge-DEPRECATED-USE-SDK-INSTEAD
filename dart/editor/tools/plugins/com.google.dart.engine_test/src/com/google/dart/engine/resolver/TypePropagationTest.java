@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionStatement;
+import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ListLiteral;
@@ -28,6 +29,7 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
@@ -114,6 +116,29 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(2);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
     assertSame(getTypeProvider().getDoubleType(), variableName.getStaticType());
+  }
+
+  public void test_forEach() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "A f(List<A> p) {",
+        "  for (var e in p) {",
+        "    return e;",
+        "  }",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
+    InterfaceType typeA = classA.getElement().getType();
+    FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(1);
+    BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
+    ForEachStatement forStatement = (ForEachStatement) body.getBlock().getStatements().get(0);
+    ReturnStatement statement = (ReturnStatement) ((Block) forStatement.getBody()).getStatements().get(
+        0);
+    SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
+    assertSame(typeA, variableName.getStaticType());
   }
 
   public void test_initializer() throws Exception {
@@ -310,6 +335,29 @@ public class TypePropagationTest extends ResolverTestCase {
         0);
     MethodInvocation invocation = (MethodInvocation) statement.getExpression();
     assertNotNull(invocation.getMethodName().getElement());
+  }
+
+  public void test_is_while() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "A f(var p) {",
+        "  while (p is A) {",
+        "    return p;",
+        "  }",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
+    InterfaceType typeA = classA.getElement().getType();
+    FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(1);
+    BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
+    WhileStatement whileStatement = (WhileStatement) body.getBlock().getStatements().get(0);
+    ReturnStatement statement = (ReturnStatement) ((Block) whileStatement.getBody()).getStatements().get(
+        0);
+    SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
+    assertSame(typeA, variableName.getStaticType());
   }
 
   public void test_isNot_conditional() throws Exception {

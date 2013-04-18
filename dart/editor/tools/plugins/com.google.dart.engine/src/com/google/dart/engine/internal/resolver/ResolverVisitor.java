@@ -28,10 +28,12 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
+import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
@@ -61,18 +63,21 @@ import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 import java.util.ArrayList;
@@ -169,9 +174,52 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitAssertStatement(AssertStatement node) {
-    Expression condition = node.getCondition();
-    condition.accept(this);
-    propagateTrueState(condition);
+    super.visitAssertStatement(node);
+    if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      propagateTrueState(node.getCondition());
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitBinaryExpression(BinaryExpression node) {
+    if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      TokenType operatorType = node.getOperator().getType();
+      if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
+        Expression leftOperand = node.getLeftOperand();
+        leftOperand.accept(this);
+        Expression rightOperand = node.getRightOperand();
+        if (rightOperand != null) {
+          try {
+            overrideManager.enterScope();
+            propagateTrueState(leftOperand);
+            rightOperand.accept(this);
+          } finally {
+            overrideManager.exitScope();
+          }
+        }
+      } else if (operatorType == TokenType.BAR_BAR) {
+        Expression leftOperand = node.getLeftOperand();
+        leftOperand.accept(this);
+        Expression rightOperand = node.getRightOperand();
+        if (rightOperand != null) {
+          try {
+            overrideManager.enterScope();
+            propagateFalseState(leftOperand);
+            rightOperand.accept(this);
+          } finally {
+            overrideManager.exitScope();
+          }
+        }
+      } else {
+        node.getLeftOperand().accept(this);
+        node.getRightOperand().accept(this);
+      }
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    } else {
+      super.visitBinaryExpression(node);
+    }
     return null;
   }
 
@@ -210,62 +258,79 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitCompilationUnit(CompilationUnit node) {
-    try {
-      overrideManager.enterScope();
-      for (Directive directive : node.getDirectives()) {
-        directive.accept(this);
-      }
-      ArrayList<CompilationUnitMember> classes = new ArrayList<CompilationUnitMember>();
-      for (CompilationUnitMember declaration : node.getDeclarations()) {
-        if (declaration instanceof ClassDeclaration) {
-          classes.add(declaration);
-        } else {
+    if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      //
+      // TODO(brianwilkerson) The goal of the code below is to visit the declarations in such an
+      // order that we can infer type information for top-level variables before we visit references
+      // to them. This is better than making no effort, but still doesn't completely satisfy that
+      // goal (consider for example "final var a = b; final var b = 0;"; we'll infer a type of 'int'
+      // for 'b', but not for 'a' because of the order of the visits). It should be improved.
+      //
+      try {
+        overrideManager.enterScope();
+        for (Directive directive : node.getDirectives()) {
+          directive.accept(this);
+        }
+        ArrayList<CompilationUnitMember> classes = new ArrayList<CompilationUnitMember>();
+        for (CompilationUnitMember declaration : node.getDeclarations()) {
+          if (declaration instanceof ClassDeclaration) {
+            classes.add(declaration);
+          } else {
+            declaration.accept(this);
+          }
+        }
+        for (CompilationUnitMember declaration : classes) {
           declaration.accept(this);
         }
+      } finally {
+        overrideManager.exitScope();
       }
-      for (CompilationUnitMember declaration : classes) {
-        declaration.accept(this);
-      }
-    } finally {
-      overrideManager.exitScope();
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    } else {
+      super.visitCompilationUnit(node);
     }
     return null;
   }
 
   @Override
   public Void visitConditionalExpression(ConditionalExpression node) {
-    Expression condition = node.getCondition();
-    condition.accept(this);
-    Expression thenExpression = node.getThenExpression();
-    if (thenExpression != null) {
-      try {
-        overrideManager.enterScope();
-        propagateTrueState(condition);
-        thenExpression.accept(this);
-      } finally {
-        overrideManager.exitScope();
-      }
-    }
-    Expression elseExpression = node.getElseExpression();
-    if (elseExpression != null) {
-      try {
-        overrideManager.enterScope();
-        propagateFalseState(condition);
-        elseExpression.accept(this);
-      } finally {
-        overrideManager.exitScope();
-      }
-    }
     if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      Expression condition = node.getCondition();
+      condition.accept(this);
+      Expression thenExpression = node.getThenExpression();
+      if (thenExpression != null) {
+        try {
+          overrideManager.enterScope();
+          propagateTrueState(condition);
+          thenExpression.accept(this);
+        } finally {
+          overrideManager.exitScope();
+        }
+      }
+      Expression elseExpression = node.getElseExpression();
+      if (elseExpression != null) {
+        try {
+          overrideManager.enterScope();
+          propagateFalseState(condition);
+          elseExpression.accept(this);
+        } finally {
+          overrideManager.exitScope();
+        }
+      }
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
       boolean thenIsAbrupt = thenExpression != null && isAbruptTermination(thenExpression);
       boolean elseIsAbrupt = elseExpression != null && isAbruptTermination(elseExpression);
       if (elseIsAbrupt && !thenIsAbrupt) {
         // TODO(brianwilkerson) This is sub-optimal because it only preserves information inferred
-        // from the condition and looses information inferred from the respective expressions.
+        // from the condition and looses information inferred from the then and else expressions.
         propagateTrueState(condition);
       } else if (thenIsAbrupt && !elseIsAbrupt) {
         propagateFalseState(condition);
       }
+    } else {
+      super.visitConditionalExpression(node);
     }
     return null;
   }
@@ -317,37 +382,62 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitFieldDeclaration(FieldDeclaration node) {
-    try {
-      overrideManager.enterScope();
-      super.visitFieldDeclaration(node);
-    } finally {
-      HashMap<Element, Type> overrides = captureOverrides(node.getFields());
-      overrideManager.exitScope();
-      for (Map.Entry<Element, Type> entry : overrides.entrySet()) {
-        overrideManager.setType(entry.getKey(), entry.getValue());
+    if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      try {
+        overrideManager.enterScope();
+        super.visitFieldDeclaration(node);
+      } finally {
+        HashMap<Element, Type> overrides = captureOverrides(node.getFields());
+        overrideManager.exitScope();
+        applyOverrides(overrides);
       }
+    } else {
+      super.visitFieldDeclaration(node);
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitForEachStatement(ForEachStatement node) {
+    if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      try {
+        overrideManager.enterScope();
+        super.visitForEachStatement(node);
+      } finally {
+        overrideManager.exitScope();
+      }
+    } else {
+      super.visitForEachStatement(node);
     }
     return null;
   }
 
   @Override
   public Void visitForStatement(ForStatement node) {
-    try {
-      overrideManager.enterScope();
+    if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      try {
+        overrideManager.enterScope();
+        super.visitForStatement(node);
+      } finally {
+        overrideManager.exitScope();
+      }
+    } else {
       super.visitForStatement(node);
-    } finally {
-      overrideManager.exitScope();
     }
     return null;
   }
 
   @Override
   public Void visitFunctionBody(FunctionBody node) {
-    try {
-      overrideManager.enterScope();
+    if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      try {
+        overrideManager.enterScope();
+        super.visitFunctionBody(node);
+      } finally {
+        overrideManager.exitScope();
+      }
+    } else {
       super.visitFunctionBody(node);
-    } finally {
-      overrideManager.exitScope();
     }
     return null;
   }
@@ -370,10 +460,14 @@ public class ResolverVisitor extends ScopedVisitor {
     ExecutableElement outerFunction = enclosingFunction;
     try {
       enclosingFunction = node.getElement();
-      overrideManager.enterScope();
+      if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+        overrideManager.enterScope();
+      }
       super.visitFunctionExpression(node);
     } finally {
-      overrideManager.exitScope();
+      if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+        overrideManager.exitScope();
+      }
       enclosingFunction = outerFunction;
     }
     return null;
@@ -383,45 +477,49 @@ public class ResolverVisitor extends ScopedVisitor {
   public Void visitHideCombinator(HideCombinator node) {
     //
     // Combinators aren't visited by this visitor, the LibraryResolver has already resolved the
-    // identifiers.
+    // identifiers and there is no type analysis to be done.
     //
     return null;
   }
 
   @Override
   public Void visitIfStatement(IfStatement node) {
-    Expression condition = node.getCondition();
-    condition.accept(this);
-    Statement thenStatement = node.getThenStatement();
-    if (thenStatement != null) {
-      try {
-        overrideManager.enterScope();
-        propagateTrueState(condition);
-        thenStatement.accept(this);
-      } finally {
-        overrideManager.exitScope();
-      }
-    }
-    Statement elseStatement = node.getElseStatement();
-    if (elseStatement != null) {
-      try {
-        overrideManager.enterScope();
-        propagateFalseState(condition);
-        elseStatement.accept(this);
-      } finally {
-        overrideManager.exitScope();
-      }
-    }
     if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      Expression condition = node.getCondition();
+      condition.accept(this);
+      Statement thenStatement = node.getThenStatement();
+      if (thenStatement != null) {
+        try {
+          overrideManager.enterScope();
+          propagateTrueState(condition);
+          thenStatement.accept(this);
+        } finally {
+          overrideManager.exitScope();
+        }
+      }
+      Statement elseStatement = node.getElseStatement();
+      if (elseStatement != null) {
+        try {
+          overrideManager.enterScope();
+          propagateFalseState(condition);
+          elseStatement.accept(this);
+        } finally {
+          overrideManager.exitScope();
+        }
+      }
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
       boolean thenIsAbrupt = thenStatement != null && isAbruptTermination(thenStatement);
       boolean elseIsAbrupt = elseStatement != null && isAbruptTermination(elseStatement);
       if (elseIsAbrupt && !thenIsAbrupt) {
         // TODO(brianwilkerson) This is sub-optimal because it only preserves information inferred
-        // from the condition and looses information inferred from the respective statements.
+        // from the condition and looses information inferred from the then and else statements.
         propagateTrueState(condition);
       } else if (thenIsAbrupt && !elseIsAbrupt) {
         propagateFalseState(condition);
       }
+    } else {
+      super.visitIfStatement(node);
     }
     return null;
   }
@@ -517,7 +615,7 @@ public class ResolverVisitor extends ScopedVisitor {
   public Void visitShowCombinator(ShowCombinator node) {
     //
     // Combinators aren't visited by this visitor, the LibraryResolver has already resolved the
-    // identifiers.
+    // identifiers and there is no type analysis to be done.
     //
     return null;
   }
@@ -536,37 +634,47 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitSwitchCase(SwitchCase node) {
-    try {
-      overrideManager.enterScope();
+    if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      try {
+        overrideManager.enterScope();
+        super.visitSwitchCase(node);
+      } finally {
+        overrideManager.exitScope();
+      }
+    } else {
       super.visitSwitchCase(node);
-    } finally {
-      overrideManager.exitScope();
     }
     return null;
   }
 
   @Override
   public Void visitSwitchDefault(SwitchDefault node) {
-    try {
-      overrideManager.enterScope();
+    if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      try {
+        overrideManager.enterScope();
+        super.visitSwitchDefault(node);
+      } finally {
+        overrideManager.exitScope();
+      }
+    } else {
       super.visitSwitchDefault(node);
-    } finally {
-      overrideManager.exitScope();
     }
     return null;
   }
 
   @Override
   public Void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    try {
-      overrideManager.enterScope();
-      super.visitTopLevelVariableDeclaration(node);
-    } finally {
-      HashMap<Element, Type> overrides = captureOverrides(node.getVariables());
-      overrideManager.exitScope();
-      for (Map.Entry<Element, Type> entry : overrides.entrySet()) {
-        overrideManager.setType(entry.getKey(), entry.getValue());
+    if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      try {
+        overrideManager.enterScope();
+        super.visitTopLevelVariableDeclaration(node);
+      } finally {
+        HashMap<Element, Type> overrides = captureOverrides(node.getVariables());
+        overrideManager.exitScope();
+        applyOverrides(overrides);
       }
+    } else {
+      super.visitTopLevelVariableDeclaration(node);
     }
     return null;
   }
@@ -576,6 +684,29 @@ public class ResolverVisitor extends ScopedVisitor {
     //
     // We don't visit type names or their children because they have already been resolved.
     //
+    return null;
+  }
+
+  @Override
+  public Void visitWhileStatement(WhileStatement node) {
+    if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      Expression condition = node.getCondition();
+      condition.accept(this);
+      Statement body = node.getBody();
+      if (body != null) {
+        try {
+          overrideManager.enterScope();
+          propagateTrueState(condition);
+          body.accept(this);
+        } finally {
+          overrideManager.exitScope();
+        }
+      }
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    } else {
+      super.visitWhileStatement(node);
+    }
     return null;
   }
 
@@ -616,6 +747,36 @@ public class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  @Override
+  protected void visitForEachStatementInScope(ForEachStatement node) {
+    if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
+      DeclaredIdentifier loopVariable = node.getLoopVariable();
+      loopVariable.accept(this);
+      Expression iterator = node.getIterator();
+      if (iterator != null) {
+        iterator.accept(this);
+        LocalVariableElement loopElement = loopVariable.getElement();
+        override(loopElement, loopElement.getType(), getIteratorElementType(iterator));
+      }
+      safelyVisit(node.getBody());
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    } else {
+      super.visitForEachStatementInScope(node);
+    }
+  }
+
+  /**
+   * Apply a set of overrides that were previously captured.
+   * 
+   * @param overrides the overrides to be applied
+   */
+  private void applyOverrides(HashMap<Element, Type> overrides) {
+    for (Map.Entry<Element, Type> entry : overrides.entrySet()) {
+      overrideManager.setType(entry.getKey(), entry.getValue());
+    }
+  }
+
   /**
    * Return a map from the elements for the variables in the given list that have their types
    * overridden to the overriding type.
@@ -639,6 +800,39 @@ public class ResolverVisitor extends ScopedVisitor {
       }
     }
     return overrides;
+  }
+
+  /**
+   * The given expression is the expression used to compute the iterator for a for-each statement.
+   * Attempt to compute the type of objects that will be assigned to the loop variable and return
+   * that type. Return {@code null} if the type could not be determined.
+   * 
+   * @param iterator the iterator for a for-each statement
+   * @return the type of objects that will be assigned to the loop variable
+   */
+  private Type getIteratorElementType(Expression iteratorExpression) {
+    Type expressionType = iteratorExpression.getStaticType();
+    if (expressionType instanceof InterfaceType) {
+      PropertyAccessorElement iterator = ((InterfaceType) expressionType).lookUpGetter(
+          "iterator",
+          getDefiningLibrary());
+      if (iterator == null) {
+        // TODO(brianwilkerson) Should we report this error?
+        return null;
+      }
+      Type iteratorType = iterator.getType().getReturnType();
+      if (iteratorType instanceof InterfaceType) {
+        PropertyAccessorElement current = ((InterfaceType) iteratorType).lookUpGetter(
+            "current",
+            getDefiningLibrary());
+        if (current == null) {
+          // TODO(brianwilkerson) Should we report this error?
+          return null;
+        }
+        return current.getType().getReturnType();
+      }
+    }
+    return null;
   }
 
   /**
