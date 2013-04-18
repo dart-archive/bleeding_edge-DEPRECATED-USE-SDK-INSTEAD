@@ -69,6 +69,26 @@ public class INIRewriteTest extends TestCase {
     assertArrayEquals(orig, merged);
   }
 
+  public void testMergePackageOverride() throws Exception {
+    String[] orig = {
+        "-consoleLog", "-data", "workspace", "--package-override-directory", "/usr/local/myapp",
+        "-vm", "/usr/local/buildtools/java/jdk-64/bin/java", "-vmargs",
+        "-Dosgi.requiredJavaVersion=1.6"};
+    String[] latest = {
+        "-consoleLog", "-data", "workspace", "-vmargs", "-Dosgi.requiredJavaVersion=1.6"};
+    String[] merged = INIRewriter.merge(orig, latest);
+
+    assertArrayEquals(orig, merged);
+
+    String[] orig2 = {
+        "-consoleLog", "-data", "workspace", "--package-override-directory", "/usr/local/myapp",
+        "-vmargs", "-Dosgi.requiredJavaVersion=1.6"};
+    String[] merged2 = INIRewriter.merge(orig2, latest);
+
+    assertArrayEquals(orig2, merged2);
+
+  }
+
   public void testMergePackageRoot() throws Exception {
     String[] orig = {
         "-consoleLog", "-data", "workspace", "--package-root", "/usr/local/myapp", "-vm",

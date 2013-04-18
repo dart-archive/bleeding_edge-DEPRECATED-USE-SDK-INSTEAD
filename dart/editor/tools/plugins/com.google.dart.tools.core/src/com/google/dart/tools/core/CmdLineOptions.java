@@ -31,11 +31,12 @@ import java.util.List;
  */
 public class CmdLineOptions {
 
+  public static final String PACKAGE_ROOT = "--package-root";
+  public static final String PACKAGE_OVERRIDE = "--package-override-directory";
+
   private static final String AUTO_EXIT = "--auto-exit";
   private static final String KILL_AFTER_PERF_OLD = "-kill-after-perf"; // deprecated
   private static final String OPEN = "--open";
-  private static final String PACKAGE_ROOT = "--package-root";
-  private static final String PACKAGE_OVERRIDE = "--package-override-directory";
   private static final String PERF = "--perf";
   private static final String PERF_OLD = "-perf"; // deprecated
   private static final String START_TIME = "--start-time";

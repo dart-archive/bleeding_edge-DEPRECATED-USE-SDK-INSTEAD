@@ -14,6 +14,7 @@
 package com.google.dart.tools.update.core.internal.jobs;
 
 import com.google.common.collect.Lists;
+import com.google.dart.tools.core.CmdLineOptions;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -34,8 +35,6 @@ public class INIRewriter {
   private static final String AGENT_FLAG = "-XX:-GoogleAgent";
 
   private static final String VM_ARGS_FLAG = "-vmargs";
-
-  private static final String PACKAGE_ROOT_FLAG = "--package-root";
 
   private static String[] EMPTY = new String[0];
 
@@ -63,14 +62,13 @@ public class INIRewriter {
       insertAfter(merged, VM_FLAG, orig.get(orig.indexOf(VM_FLAG) + 1));
     }
 
-    if (orig.contains(PACKAGE_ROOT_FLAG) && !latest.contains(PACKAGE_ROOT_FLAG)) {
-      if (merged.contains(VM_FLAG)) {
-        insertBefore(merged, VM_FLAG, PACKAGE_ROOT_FLAG);
-        insertAfter(merged, PACKAGE_ROOT_FLAG, orig.get(orig.indexOf(PACKAGE_ROOT_FLAG) + 1));
-      } else {
-        insertBefore(merged, VM_ARGS_FLAG, PACKAGE_ROOT_FLAG);
-        insertAfter(merged, PACKAGE_ROOT_FLAG, orig.get(orig.indexOf(PACKAGE_ROOT_FLAG) + 1));
-      }
+    if (orig.contains(CmdLineOptions.PACKAGE_ROOT) && !latest.contains(CmdLineOptions.PACKAGE_ROOT)) {
+      mergeFlag(orig, merged, CmdLineOptions.PACKAGE_ROOT);
+    }
+
+    if (orig.contains(CmdLineOptions.PACKAGE_OVERRIDE)
+        && !latest.contains(CmdLineOptions.PACKAGE_OVERRIDE)) {
+      mergeFlag(orig, merged, CmdLineOptions.PACKAGE_OVERRIDE);
     }
 
     if (orig.contains(AGENT_FLAG) && !latest.contains(AGENT_FLAG)) {
@@ -108,6 +106,16 @@ public class INIRewriter {
     }
 
     return lines;
+  }
+
+  private static void mergeFlag(List<String> orig, ArrayList<String> merged, String flag) {
+    if (merged.contains(VM_FLAG)) {
+      insertBefore(merged, VM_FLAG, flag);
+      insertAfter(merged, flag, orig.get(orig.indexOf(flag) + 1));
+    } else {
+      insertBefore(merged, VM_ARGS_FLAG, flag);
+      insertAfter(merged, flag, orig.get(orig.indexOf(flag) + 1));
+    }
   }
 
   private static void writeTo(List<String> lines, File file) throws IOException {
