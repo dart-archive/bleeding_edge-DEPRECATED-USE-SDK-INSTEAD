@@ -209,20 +209,54 @@ public class Context {
               }
             });
             if (hasHiding.get()) {
-              String newName = generateUniqueName(parameterName);
+              Set<String> used = getSuperMembersNames(node);
+              String newName = generateUniqueParameterName(used, parameterName);
               renameIdentifier(parameter.getIdentifier(), newName);
             }
           }
         }
         return super.visitMethodDeclaration(node);
       }
+
+      private String generateUniqueParameterName(Set<String> used, String name) {
+        int index = 2;
+        while (true) {
+          String newName = name + index;
+          if (!used.contains(newName)) {
+            return newName;
+          }
+          index++;
+        }
+      }
     });
   }
 
   public void ensureNoVariableNameReferenceFromInitializer(CompilationUnit unit) {
     unit.accept(new RecursiveASTVisitor<Void>() {
+      private Set<String> hierarchyNames;
+      private Set<String> methodNames;
       private String currentVariableName = null;
       private boolean hasNameReference = false;
+
+      @Override
+      public Void visitClassDeclaration(ClassDeclaration node) {
+        hierarchyNames = null;
+        try {
+          return super.visitClassDeclaration(node);
+        } finally {
+          hierarchyNames = null;
+        }
+      }
+
+      @Override
+      public Void visitMethodDeclaration(MethodDeclaration node) {
+        methodNames = null;
+        try {
+          return super.visitMethodDeclaration(node);
+        } finally {
+          methodNames = null;
+        }
+      }
 
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -241,13 +275,53 @@ public class Context {
             initializer.accept(this);
           }
           if (hasNameReference || forbiddenNames.contains(currentVariableName)) {
-            String newName = generateUniqueName(currentVariableName);
+            ensureHierarchyNames(node);
+            ensureMethodNames(node);
+            String newName = generateUniqueVariableName(currentVariableName);
             renameIdentifier(node.getName(), newName);
           }
         } finally {
           currentVariableName = oldVariableName;
         }
         return null;
+      }
+
+      private void ensureHierarchyNames(ASTNode node) {
+        if (hierarchyNames != null) {
+          return;
+        }
+        hierarchyNames = getSuperMembersNames(node);
+      }
+
+      private void ensureMethodNames(ASTNode node) {
+        methodNames = Sets.newHashSet();
+        MethodDeclaration method = node.getAncestor(MethodDeclaration.class);
+        if (method != null) {
+          method.accept(new RecursiveASTVisitor<Void>() {
+            @Override
+            public Void visitVariableDeclaration(VariableDeclaration node) {
+              methodNames.add(node.getName().getName());
+              return super.visitVariableDeclaration(node);
+            }
+          });
+        }
+      }
+
+      /**
+       * @return the new name for variable which does not conflict with name of any member in super
+       *         classes - {@link #hierarchyNames}.
+       */
+      private String generateUniqueVariableName(String name) {
+        int index = 2;
+        while (true) {
+          String newName = name + index;
+          if (!hierarchyNames.contains(newName) && !methodNames.contains(newName)
+              && !forbiddenNames.contains(newName)) {
+            methodNames.add(newName);
+            return newName;
+          }
+          index++;
+        }
       }
     });
   }
@@ -721,21 +795,26 @@ public class Context {
   }
 
   /**
-   * @return the globally unique name, based on the given one.
+   * @return the name of member declared in enclosing {@link ClassDeclaration} and its super
+   *         classes.
    */
-  private String generateUniqueName(String name) {
-    if (usedNames.contains(name) || forbiddenNames.contains(name)) {
-      int index = 2;
-      while (true) {
-        String newName = name + index;
-        if (!usedNames.contains(newName) && !forbiddenNames.contains(newName)) {
-          usedNames.add(newName);
-          return newName;
+  private Set<String> getSuperMembersNames(ASTNode node) {
+    Set<String> hierarchyNames = Sets.newHashSet();
+    ClassDeclaration classDeclaration = node.getAncestor(ClassDeclaration.class);
+    org.eclipse.jdt.core.dom.ITypeBinding binding = getNodeTypeBinding(classDeclaration);
+    if (binding != null) {
+      binding = binding.getSuperclass();
+      while (binding != null) {
+        for (org.eclipse.jdt.core.dom.IVariableBinding field : binding.getDeclaredFields()) {
+          hierarchyNames.add(field.getName());
         }
-        index++;
+        for (org.eclipse.jdt.core.dom.IMethodBinding method : binding.getDeclaredMethods()) {
+          hierarchyNames.add(method.getName());
+        }
+        binding = binding.getSuperclass();
       }
     }
-    return name;
+    return hierarchyNames;
   }
 
   /**
@@ -874,7 +953,6 @@ public class Context {
     }
   }
 
-  // XXX
   private void unwrapVarArgIfAlreadyArray(CompilationUnit unit) {
     unit.accept(new RecursiveASTVisitor<Void>() {
       @Override

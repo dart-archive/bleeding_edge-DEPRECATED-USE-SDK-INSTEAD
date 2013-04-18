@@ -1187,7 +1187,11 @@ public class SemanticTest extends AbstractSemanticTest {
             "package test;",
             "public class Test {",
             "  static int foo() {return 42;}",
-            "  static void bar() {",
+            "  static void barA() {",
+            "    int foo = foo();",
+            "    baz(foo);",
+            "  }",
+            "  static void barB() {",
             "    int foo = foo();",
             "    baz(foo);",
             "  }",
@@ -1202,11 +1206,103 @@ public class SemanticTest extends AbstractSemanticTest {
         toString(
             "class Test {",
             "  static int foo() => 42;",
-            "  static void bar() {",
+            "  static void barA() {",
+            "    int foo2 = foo();",
+            "    baz(foo2);",
+            "  }",
+            "  static void barB() {",
             "    int foo2 = foo();",
             "    baz(foo2);",
             "  }",
             "  static void baz(int p) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_giveUniqueName_variableInitializer_localNames() throws Exception {
+    File file = setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  static int foo() {return 42;}",
+            "  static void barA() {",
+            "    int foo2 = 2;",
+            "    int foo = foo();",
+            "    baz(foo);",
+            "    int foo3 = 3;",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFile(file);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  static int foo() => 42;",
+            "  static void barA() {",
+            "    int foo2 = 2;",
+            "    int foo4 = foo();",
+            "    baz(foo4);",
+            "    int foo3 = 3;",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_giveUniqueName_variableInitializer_onlyHierarchyNames() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class A {",
+            "  static int foo3;",
+            "}",
+            ""));
+    setFileLines(
+        "test/B.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class B {",
+            "  static int foo2;",
+            "}",
+            ""));
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test extends B {",
+            "  static int foo() {return 42;}",
+            "  static void bar() {",
+            "    int foo = foo();",
+            "    baz(foo);",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  static int foo3 = 0;",
+            "}",
+            "class B {",
+            "  static int foo2 = 0;",
+            "}",
+            "class Test extends B {",
+            "  static int foo() => 42;",
+            "  static void bar() {",
+            "    int foo3 = foo();",
+            "    baz(foo3);",
             "  }",
             "}"),
         getFormattedSource(unit));
