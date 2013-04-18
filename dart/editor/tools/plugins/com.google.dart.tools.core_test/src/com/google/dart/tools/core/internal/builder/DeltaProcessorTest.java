@@ -296,7 +296,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     project.assertNoCalls();
   }
 
-  public void test_traverse_package_added_canonical() throws Exception {
+  public void test_traverse_package_canonical() throws Exception {
     if (!FileUtilities2.isSymLinkSupported()) {
       System.out.println("Skipping " + getClass().getSimpleName()
           + " test_traverse_package_added_canonical");
@@ -312,6 +312,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
 
     projectContainer.setLocation(new Path(projDir.getAbsolutePath()));
 
+    // add package
     MockDelta delta = new MockDelta(projectContainer);
     delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1", ADDED);
 
@@ -328,6 +329,21 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
         new File(pkg1SomeDir, "build.dart"), new File(pkg1SomeDir, "bar.dart")};
 
     project.assertChanged(projectContainer, added, null, null, null);
+    project.assertNoCalls();
+
+    // remove package
+    FileUtilities2.deleteSymLink(new File(packagesDir, "pkg1"));
+    delta = new MockDelta(projectContainer);
+    delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1", REMOVED);
+
+    processor = new DeltaProcessor(project);
+    updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(delta);
+    updater.applyChanges();
+
+    File[] removed = new File[] {new File(packagesDir, "pkg1")};
+    project.assertChanged(projectContainer, null, null, null, removed);
     project.assertNoCalls();
   }
 
