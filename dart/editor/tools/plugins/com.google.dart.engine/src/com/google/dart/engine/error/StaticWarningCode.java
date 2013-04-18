@@ -331,6 +331,11 @@ public enum StaticWarningCode implements ErrorCode {
   UNDEFINED_CLASS("Undefined class '%s'"),
 
   /**
+   * Same as {@link #UNDEFINED_CLASS}, but to catch using "boolean" instead of "bool".
+   */
+  UNDEFINED_CLASS_BOOLEAN("Undefined class 'boolean'; did you mean 'bool'?"),
+
+  /**
    * 12.17 Getter Invocation: It is a static warning if there is no class <i>C</i> in the enclosing
    * lexical scope of <i>i</i>, or if <i>C</i> does not declare, implicitly or explicitly, a getter
    * named <i>m</i>.

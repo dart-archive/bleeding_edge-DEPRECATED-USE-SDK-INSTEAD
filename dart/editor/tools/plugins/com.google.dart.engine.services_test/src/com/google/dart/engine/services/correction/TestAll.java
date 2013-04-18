@@ -21,6 +21,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(CorrectionProcessorsTest.class);
     suite.addTestSuite(CorrectionProposalTest.class);
+    suite.addTestSuite(ProblemLocationTest.class);
     return suite;
   }
 }

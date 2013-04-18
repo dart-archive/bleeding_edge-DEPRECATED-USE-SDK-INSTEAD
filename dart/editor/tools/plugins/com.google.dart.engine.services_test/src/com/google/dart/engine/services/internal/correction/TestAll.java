@@ -25,6 +25,7 @@ public class TestAll {
     suite.addTestSuite(StatementAnalyzerTest.class);
     suite.addTestSuite(SourceBuilderTest.class);
     suite.addTestSuite(QuickAssistProcessorImplTest.class);
+    suite.addTestSuite(QuickFixProcessorImplTest.class);
     return suite;
   }
 }

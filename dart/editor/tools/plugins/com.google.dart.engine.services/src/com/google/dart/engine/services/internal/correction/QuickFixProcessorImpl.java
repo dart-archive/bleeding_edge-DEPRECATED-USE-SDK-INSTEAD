@@ -16,6 +16,8 @@ package com.google.dart.engine.services.internal.correction;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.services.assist.AssistContext;
@@ -39,27 +41,38 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private static final CorrectionProposal[] NO_PROPOSALS = {};
   private static final int DEFAULT_RELEVANCE = 50;
 
+  /**
+   * @return the {@link Edit} to replace {@link SourceRange} with "text".
+   */
+  private static Edit createReplaceEdit(SourceRange range, String text) {
+    return new Edit(range.getOffset(), range.getLength(), text);
+  }
+
   private final List<CorrectionProposal> proposals = Lists.newArrayList();
   private final List<Edit> textEdits = Lists.newArrayList();
   private ProblemLocation problem;
   private Source source;
-//  private CompilationUnit unit;
+  //  private CompilationUnit unit;
 //  private ASTNode node;
   private int selectionOffset;
   private int selectionLength;
-  private CorrectionUtils utils;
 
+  private CorrectionUtils utils;
   private int proposalRelevance = DEFAULT_RELEVANCE;
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
   private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
-  private final Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
 
 //  private SourceRange proposalEndRange = null;
+
+  private final Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
 
   @Override
   public CorrectionProposal[] computeProposals(AssistContext context, ProblemLocation problem)
       throws Exception {
     if (context == null) {
+      return NO_PROPOSALS;
+    }
+    if (problem == null) {
       return NO_PROPOSALS;
     }
     this.problem = problem;
@@ -73,9 +86,16 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     //
     final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
     try {
-      if (problem.getErrorCode() == ParserErrorCode.EXPECTED_TOKEN) {
+      ErrorCode errorCode = problem.getErrorCode();
+      if (errorCode == ParserErrorCode.EXPECTED_TOKEN) {
         addFix_insertSemicolon();
       }
+      if (errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN) {
+        addFix_boolInsteadOfBoolean();
+      }
+      // clean-up
+      resetProposalElements();
+      // write instrumentation
       instrumentation.metric("QuickFix-Offset", selectionOffset);
       instrumentation.metric("QuickFix-Length", selectionLength);
       instrumentation.metric("QuickFix-ProposalCount", proposals.size());
@@ -83,6 +103,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       for (int index = 0; index < proposals.size(); index++) {
         instrumentation.data("QuickFix-Proposal-" + index, proposals.get(index).getName());
       }
+      // done
       return proposals.toArray(new CorrectionProposal[proposals.size()]);
     } finally {
       instrumentation.log();
@@ -91,20 +112,33 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 
   @Override
   public boolean hasFix(ProblemLocation problem) {
-    return problem.getErrorCode() == ParserErrorCode.EXPECTED_TOKEN;
+    ErrorCode errorCode = problem.getErrorCode();
+    return errorCode == ParserErrorCode.EXPECTED_TOKEN
+        || errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN;
+  }
+
+  private void addFix_boolInsteadOfBoolean() {
+    addReplaceEdit(problem.getRange(), "bool");
+    addUnitCorrectionProposal("Replace 'boolean' with 'bool'");
   }
 
   private void addFix_insertSemicolon() {
-    if (!problem.getMessage().contains("';'")) {
-      return;
+    if (problem.getMessage().contains("';'")) {
+      int insertOffset = problem.getOffset() + problem.getLength();
+      addInsertEdit(insertOffset, ";");
+      addUnitCorrectionProposal("Insert ';'");
     }
-    int insertOffset = problem.getOffset() + problem.getLength();
-    addInsertEdit(insertOffset, ";");
-    addUnitCorrectionProposal("Insert ';'");
   }
 
   private void addInsertEdit(int offset, String text) {
     textEdits.add(createInsertEdit(offset, text));
+  }
+
+  /**
+   * Adds {@link Edit} to {@link #textEdits}.
+   */
+  private void addReplaceEdit(SourceRange range, String text) {
+    textEdits.add(createReplaceEdit(range, text));
   }
 
   /**

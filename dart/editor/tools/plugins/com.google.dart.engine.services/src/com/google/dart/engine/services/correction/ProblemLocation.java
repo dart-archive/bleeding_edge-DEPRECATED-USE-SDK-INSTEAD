@@ -17,6 +17,7 @@ package com.google.dart.engine.services.correction;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Information about problem, another presentation of {@link AnalysisError}.
@@ -60,5 +61,12 @@ public final class ProblemLocation {
    */
   public int getOffset() {
     return offset;
+  }
+
+  /**
+   * @return the {@link SourceRange} of the problem.
+   */
+  public SourceRange getRange() {
+    return new SourceRange(offset, length);
   }
 }

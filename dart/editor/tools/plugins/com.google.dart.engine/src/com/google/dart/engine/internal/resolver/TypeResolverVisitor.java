@@ -414,7 +414,11 @@ public class TypeResolverVisitor extends ScopedVisitor {
       } else {
         simpleIdentifier = ((PrefixedIdentifier) typeName).getPrefix();
       }
-      reportError(StaticWarningCode.UNDEFINED_CLASS, simpleIdentifier, simpleIdentifier.getName());
+      if (simpleIdentifier.getName().equals("boolean")) {
+        reportError(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, simpleIdentifier);
+      } else {
+        reportError(StaticWarningCode.UNDEFINED_CLASS, simpleIdentifier, simpleIdentifier.getName());
+      }
       setElement(typeName, dynamicType.getElement());
       typeName.setStaticType(dynamicType);
       node.setType(dynamicType);
