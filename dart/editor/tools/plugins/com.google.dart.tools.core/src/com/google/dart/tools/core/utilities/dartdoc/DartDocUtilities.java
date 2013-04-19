@@ -15,6 +15,7 @@
 package com.google.dart.tools.core.utilities.dartdoc;
 
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
@@ -206,6 +207,12 @@ public final class DartDocUtilities {
           if (line.startsWith(" ")) {
             line = line.substring(1);
           }
+        } else if (line.startsWith("///")) {
+          line = line.substring(3);
+
+          if (line.startsWith(" ")) {
+            line = line.substring(1);
+          }
         }
 
         if (line.length() == 0) {
@@ -289,7 +296,15 @@ public final class DartDocUtilities {
    */
   public static String getDartDocAsHtml(Element element) {
 
-    //TODO (pquitslund): add dartdoc support for elements
+    try {
+      String docString = element.computeDocumentationComment();
+      if (docString != null) {
+        return convertToHtml(cleanDartDoc(docString));
+      }
+    } catch (AnalysisException e) {
+      DartCore.logError(e);
+    }
+
     return null;
   }
 
