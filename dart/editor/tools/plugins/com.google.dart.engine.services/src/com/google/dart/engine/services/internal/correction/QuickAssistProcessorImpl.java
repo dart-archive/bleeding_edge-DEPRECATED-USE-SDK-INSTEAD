@@ -200,6 +200,10 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     if (declarationList == null) {
       return;
     }
+    // may be has type annotation already
+    if (declarationList.getType() != null) {
+      return;
+    }
     // prepare single VariableDeclaration
     List<VariableDeclaration> variables = declarationList.getVariables();
     if (variables.size() != 1) {

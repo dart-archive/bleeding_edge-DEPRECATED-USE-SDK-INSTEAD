@@ -44,12 +44,11 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_addTypeAnnotation_localVariable("var v = 1;", " = 1", "int v = 1;");
   }
 
-  // TODO(scheglov) fails because type of initializer resolved as <dynamic>
   public void test_addTypeAnnotation_local_OK_List() throws Exception {
-//    assert_addTypeAnnotation_localVariable(
-//        "var v = new List<String>();",
-//        " = new",
-//        "List<String> v = new List<String>();");
+    assert_addTypeAnnotation_localVariable(
+        "var v = new List<String>();",
+        " = new",
+        "List<String> v = new List<String>();");
   }
 
   public void test_addTypeAnnotation_local_OK_onInitializer() throws Exception {
@@ -62,6 +61,11 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
 
   public void test_addTypeAnnotation_local_OK_onVar() throws Exception {
     assert_addTypeAnnotation_localVariable("var v = 1;", "var ", "int v = 1;");
+  }
+
+  public void test_addTypeAnnotation_local_wrong_hasTypeAnnotation() throws Exception {
+    String source = "int v = 42;";
+    assert_addTypeAnnotation_localVariable(source, " = 42", source);
   }
 
   public void test_addTypeAnnotation_local_wrong_multiple() throws Exception {
