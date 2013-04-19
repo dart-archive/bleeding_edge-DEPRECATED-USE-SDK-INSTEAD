@@ -515,6 +515,12 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
+      for (InterfaceType mixin : supertype.getMixins()) {
+        element = mixin.getGetter(getterName);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
+      }
       supertype = supertype.getSuperclass();
     }
     return null;
@@ -538,6 +544,12 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
+      for (InterfaceType mixin : supertype.getMixins()) {
+        element = mixin.getMethod(methodName);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
+      }
       supertype = supertype.getSuperclass();
     }
     return null;
@@ -560,6 +572,12 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       element = supertype.getSetter(setterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
+      }
+      for (InterfaceType mixin : supertype.getMixins()) {
+        element = mixin.getSetter(setterName);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
       }
       supertype = supertype.getSuperclass();
     }

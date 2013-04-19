@@ -251,6 +251,23 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_method_fromSuperclassMixin() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  void m1() {}",
+        "}",
+        "class B with A {",
+        "}",
+        "class C extends B {",
+        "}",
+        "f(C c) {",
+        "  c.m1()",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_methodCascades() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
