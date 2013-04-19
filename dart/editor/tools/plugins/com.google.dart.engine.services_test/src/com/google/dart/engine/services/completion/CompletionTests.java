@@ -342,6 +342,22 @@ public class CompletionTests extends CompletionTestCase {
     test("var x = .!1;", "1-toString");
   }
 
+  public void test023() throws Exception {
+    test(//
+        src(//
+            "class Map{getKeys(){}}",
+            "class X {",
+            "  static x1(Map m) {",
+            "    m.!1getKeys;",
+            "  }",
+            "  x2(Map m) {",
+            "    m.!2getKeys;",
+            "  }",
+            "}"),
+        "1+getKeys",
+        "2+getKeys");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",

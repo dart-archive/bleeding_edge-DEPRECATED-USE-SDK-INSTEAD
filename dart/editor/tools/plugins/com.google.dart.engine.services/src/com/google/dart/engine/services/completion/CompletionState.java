@@ -91,7 +91,9 @@ class CompletionState {
   void sourceDeclarationIsStatic(boolean state) {
     isSourceDeclarationStatic = state;
     if (state) {
-      prohibitsInstanceReferences();
+      if (!areStaticReferencesProhibited) {
+        prohibitsInstanceReferences();
+      }
     }
   }
 }
