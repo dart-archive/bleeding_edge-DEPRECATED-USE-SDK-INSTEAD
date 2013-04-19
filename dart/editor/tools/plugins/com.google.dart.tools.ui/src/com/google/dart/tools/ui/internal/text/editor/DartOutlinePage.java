@@ -167,6 +167,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
   private final String contextMenuID;
   private DartEditor editor;
   private DartOutlineViewer viewer;
+  private boolean ignoreSelectionChangedEvent = false;
   private IPropertyChangeListener propertyChangeListener;
   private Menu contextMenu;
   private CompositeActionGroup actionGroups;
@@ -247,6 +248,9 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     viewer.addSelectionChangedListener(new ISelectionChangedListener() {
       @Override
       public void selectionChanged(SelectionChangedEvent event) {
+        if (ignoreSelectionChangedEvent) {
+          return;
+        }
         editor.doSelectionChanged(event.getSelection());
       }
     });
@@ -263,7 +267,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
       public IStatus runInUIThread(IProgressMonitor monitor) {
         if (viewer != null) {
           viewer.setInput(input);
-//          SWTUtil.setItemHeightForFont(viewer.getTree());
         }
         return Status.OK_STATUS;
       }
@@ -330,9 +333,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
   public void select(LightNodeElement element) {
     if (viewer != null) {
       ISelection newSelection = new StructuredSelection(element);
-      if (!Objects.equal(viewer.getSelection(), newSelection)) {
-        viewer.setSelection(newSelection);
-      }
+      setSelection(newSelection);
     }
   }
 
@@ -359,9 +360,16 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
   }
 
   @Override
-  public void setSelection(ISelection selection) {
+  public void setSelection(ISelection newSelection) {
     if (viewer != null) {
-      viewer.setSelection(selection);
+      if (!Objects.equal(viewer.getSelection(), newSelection)) {
+        ignoreSelectionChangedEvent = true;
+        try {
+          viewer.setSelection(newSelection);
+        } finally {
+          ignoreSelectionChangedEvent = false;
+        }
+      }
     }
   }
 
