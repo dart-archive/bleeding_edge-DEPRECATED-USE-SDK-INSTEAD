@@ -22,6 +22,7 @@ import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
+import org.eclipse.core.commands.Command;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -34,6 +35,8 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
 
 import java.util.List;
 
@@ -41,6 +44,23 @@ import java.util.List;
  * A toolbar action to enumerate a launch debug launch configurations.
  */
 public class DartRunAction extends DartRunAbstractAction implements IViewActionDelegate {
+
+  private static boolean runLastLaunch = initRunLastLaunch();
+
+  public static void setRunLastLaunch(boolean runLastLaunchValue) {
+    runLastLaunch = runLastLaunchValue;
+  }
+
+  private static boolean initRunLastLaunch() {
+
+    ICommandService cmdService = (ICommandService) PlatformUI.getWorkbench().getService(
+        ICommandService.class);
+    Command command = cmdService.getCommand(SetRunLastLaunchHandler.commandId);
+    if (command != null) {
+      return (Boolean) command.getState("org.eclipse.ui.commands.toggleState").getValue();
+    }
+    return false;
+  }
 
   public DartRunAction() {
     this(null, false);
@@ -56,7 +76,6 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
     setActionDefinitionId("com.google.dart.tools.debug.ui.run.selection");
     setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.png"));
     setToolTipText("Run");
-
   }
 
   @Override
@@ -71,6 +90,13 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
 
   @Override
   protected void doLaunch(UIInstrumentationBuilder instrumentation) {
+
+    // run last launch if user has checked the Run last action menu option
+    if (runLastLaunch) {
+      DartRunLastAction runLastAction = new DartRunLastAction();
+      runLastAction.run();
+      return;
+    }
     try {
       IResource resource = LaunchUtils.getSelectedResource(window);
 

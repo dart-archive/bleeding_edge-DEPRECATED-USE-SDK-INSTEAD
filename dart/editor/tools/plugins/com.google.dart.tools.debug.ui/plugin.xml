@@ -396,6 +396,17 @@
             id="com.google.dart.tools.debug.ui.remoteConnection"
             name="Remote Connection...">
       </command>
+      <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.SetRunLastLaunchHandler"
+            description="Run the last launch"
+            id="com.google.dart.tools.debug.ui.run.last.launch"
+            name="Always Run Last Launch">
+         <state
+               class="org.eclipse.ui.handlers.RegistryToggleState"
+               id="org.eclipse.ui.commands.toggleState">
+         </state>
+      </command>
    </extension>
    
    <!-- extension point="org.eclipse.ui.views">

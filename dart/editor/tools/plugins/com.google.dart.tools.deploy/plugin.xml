@@ -48,6 +48,11 @@
                style="push"
                tooltip="%runDescription">
          </command>
+         <command
+               commandId="com.google.dart.tools.debug.ui.run.last.launch"
+               label="Always Run Last Launch"
+               style="toggle">
+         </command>
       </menuContribution>
       <menuContribution
             allPopups="false"
