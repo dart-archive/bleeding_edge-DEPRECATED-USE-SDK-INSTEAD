@@ -308,7 +308,7 @@ public class ClassDeclaration extends CompilationUnitMember {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(getDocumentationComment(), visitor);
+    super.visitChildren(visitor);
     safelyVisitChild(name, visitor);
     safelyVisitChild(typeParameters, visitor);
     safelyVisitChild(extendsClause, visitor);
