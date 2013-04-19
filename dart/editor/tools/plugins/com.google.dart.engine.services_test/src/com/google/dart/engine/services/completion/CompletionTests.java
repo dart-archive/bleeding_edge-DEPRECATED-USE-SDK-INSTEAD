@@ -621,10 +621,11 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets046() throws Exception {
-    // TODO Enable once the indexer is fixed to properly handle library prefixes
+    // TODO Move to new TestCase that includes corelib analysis
     // Resolving dart:html takes between 2.5s and 30s; json, about 0.12s
 //    test(
 //        src(
+//            "library foo;",
 //            "import 'dart:json' as json;",
 //            "class JsonParserX{}",
 //            "f1() {var x=new json.!1}",

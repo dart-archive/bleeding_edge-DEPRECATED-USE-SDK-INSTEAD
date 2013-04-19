@@ -125,6 +125,10 @@ import java.util.Map;
  * <p>
  * Note: During development package-private methods are used to group element-specific completion
  * utilities.
+ * <p>
+ * TODO: Recognize when completion is requested in the middle of a multi-character operator.
+ * Re-write the AST as it would be if an identifier were present at the completion point then
+ * restart the analysis.
  * 
  * @coverage com.google.dart.engine.services.completion
  */
@@ -250,7 +254,10 @@ public class CompletionEngine {
     boolean isPrivateDisallowed = true;
 
     Filter(SimpleIdentifier ident) {
-      int loc = context.getSelectionOffset();
+      this(ident, context.getSelectionOffset());
+    }
+
+    Filter(SimpleIdentifier ident, int loc) {
       int pos = ident.getOffset();
       int len = loc - pos;
       if (len > 0) {
@@ -258,7 +265,7 @@ public class CompletionEngine {
         if (len <= name.length()) {
           prefix = name.substring(0, len);
         } else {
-          prefix = "";
+          prefix = name;
         }
       } else {
         prefix = "";
@@ -493,8 +500,7 @@ public class CompletionEngine {
           receiverType = typeOfContainingClass(node);
           analyzeDirectAccess(receiverType, node.getMethodName());
         } else {
-          receiverType = typeOf(expr);
-          analyzePrefixedAccess(receiverType, node.getMethodName());
+          dispatchPrefixAnalysis(node);
         }
       } else if (node.getTarget() == completionNode) {
         // { x!.y() } -- only reached when node.getTarget() is a simple identifier.
@@ -630,7 +636,19 @@ public class CompletionEngine {
           && isCompletionBetween(
               node.getLeftParenthesis().getEnd(),
               node.getRightParenthesis().getOffset())) {
-        analyzeLocalName(new Ident(node));
+        if (node.getParent() instanceof MethodInvocation) {
+          // or node.getParent().accept(this); ?
+          MethodInvocation invokeNode = (MethodInvocation) node.getParent();
+          SimpleIdentifier methodName = invokeNode.getMethodName();
+          requestor = new ProposalCollector(requestor);
+          dispatchPrefixAnalysis(invokeNode);
+          int len = context.getSelectionOffset() - methodName.getOffset();
+          for (CompletionProposal proposal : ((ProposalCollector) requestor).getProposals()) {
+            proposal.setReplacementLength(len - proposal.getCompletion().length());
+          }
+        } else {
+          analyzeLocalName(new Ident(node));
+        }
       }
       return null;
     }
@@ -888,9 +906,7 @@ public class CompletionEngine {
       Token period = node.getPeriod();
       if (period != null && isCompletionAfter(period.getEnd())) {
         // { x.!y() }
-        Expression expr = node.getTarget();
-        Type receiverType = typeOf(expr);
-        analyzePrefixedAccess(receiverType, node.getMethodName());
+        dispatchPrefixAnalysis(node);
       }
       return null;
     }
@@ -1441,6 +1457,24 @@ public class CompletionEngine {
     proposeNames(names, identifier);
   }
 
+  void dispatchPrefixAnalysis(MethodInvocation node) {
+    // This might be a library prefix on a top-level function
+    Expression expr = node.getTarget();
+    if (expr instanceof SimpleIdentifier) {
+      SimpleIdentifier ident = (SimpleIdentifier) expr;
+      if (ident.getElement() instanceof PrefixElement) {
+        prefixedAccess(ident, node.getMethodName());
+        return;
+      }
+    }
+    if (expr == null) {
+      analyzeLocalName(new Ident(node));
+    } else {
+      Type receiverType = typeOf(expr);
+      analyzePrefixedAccess(receiverType, node.getMethodName());
+    }
+  }
+
   void dispatchPrefixAnalysis(PrefixedIdentifier node, SimpleIdentifier identifier) {
     SimpleIdentifier receiverName = node.getPrefix();
     Element receiver = receiverName.getElement();
@@ -1593,7 +1627,9 @@ public class CompletionEngine {
   }
 
   void prefixedAccess(SimpleIdentifier libName, SimpleIdentifier identifier) {
-    filter = new Filter(identifier);
+    if (filter == null) {
+      filter = new Filter(identifier);
+    }
     libraries = librariesImportedByName(libName);
     NameCollector names = new NameCollector();
     names.addTopLevelNames();
