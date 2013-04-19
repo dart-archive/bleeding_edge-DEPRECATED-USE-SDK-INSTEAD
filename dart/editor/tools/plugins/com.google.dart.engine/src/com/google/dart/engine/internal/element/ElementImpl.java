@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
@@ -83,6 +84,15 @@ public abstract class ElementImpl implements Element {
   public ElementImpl(String name, int nameOffset) {
     this.name = StringUtilities.intern(name);
     this.nameOffset = nameOffset;
+  }
+
+  @Override
+  public String computeDocumentationComment() throws AnalysisException {
+    AnalysisContext context = getContext();
+    if (context == null) {
+      return null;
+    }
+    return context.computeDocumentationComment(this);
   }
 
   @Override

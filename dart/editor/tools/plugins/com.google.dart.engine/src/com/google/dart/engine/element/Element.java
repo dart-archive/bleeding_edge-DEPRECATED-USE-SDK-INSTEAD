@@ -14,6 +14,7 @@
 package com.google.dart.engine.element;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.source.Source;
 
 import java.util.Comparator;
@@ -59,6 +60,18 @@ public interface Element {
    * @return the value returned by the visitor as a result of visiting this element
    */
   public <R> R accept(ElementVisitor<R> visitor);
+
+  /**
+   * Return the documentation comment for this element as it appears in the original source
+   * (complete with the beginning and ending delimiters), or {@code null} if this element does not
+   * have a documentation comment associated with it. This can be a long-running operation if the
+   * information needed to access the comment is not cached.
+   * 
+   * @return this element's documentation comment
+   * @throws AnalysisException if the documentation comment could not be determined because the
+   *           analysis could not be performed
+   */
+  public String computeDocumentationComment() throws AnalysisException;
 
   /**
    * Return the element of the given class that most immediately encloses this element, or

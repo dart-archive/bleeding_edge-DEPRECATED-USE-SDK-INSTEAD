@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
@@ -63,6 +64,11 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
     return visitor.visitMultiplyDefinedElement(this);
+  }
+
+  @Override
+  public String computeDocumentationComment() throws AnalysisException {
+    return null;
   }
 
   @Override

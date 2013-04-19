@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -24,6 +25,7 @@ import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -33,7 +35,6 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.source.Source;
 
@@ -149,6 +150,11 @@ public abstract class ElementHandle implements Element {
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
     return getActualElement().accept(visitor);
+  }
+
+  @Override
+  public String computeDocumentationComment() throws AnalysisException {
+    return getActualElement().computeDocumentationComment();
   }
 
   @Override

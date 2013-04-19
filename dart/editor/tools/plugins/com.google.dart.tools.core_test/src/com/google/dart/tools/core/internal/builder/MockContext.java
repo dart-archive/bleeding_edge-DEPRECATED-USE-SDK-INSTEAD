@@ -197,6 +197,11 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public String computeDocumentationComment(Element element) throws AnalysisException {
+    return null;
+  }
+
+  @Override
   public AnalysisError[] computeErrors(Source source) throws AnalysisException {
     return AnalysisError.NO_ERRORS;
   }

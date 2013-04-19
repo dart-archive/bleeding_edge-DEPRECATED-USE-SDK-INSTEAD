@@ -88,6 +88,17 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public String computeDocumentationComment(Element element) throws AnalysisException {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeDocumentationComment");
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.computeDocumentationComment(element);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
   public AnalysisError[] computeErrors(Source source) throws AnalysisException {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeErrors");
     try {

@@ -70,6 +70,19 @@ public interface AnalysisContext {
   public void applyChanges(ChangeSet changeSet);
 
   /**
+   * Return the documentation comment for the given element as it appears in the original source
+   * (complete with the beginning and ending delimiters), or {@code null} if the element does not
+   * have a documentation comment associated with it. This can be a long-running operation if the
+   * information needed to access the comment is not cached.
+   * 
+   * @param element the element whose documentation comment is to be returned
+   * @return the element's documentation comment
+   * @throws AnalysisException if the documentation comment could not be determined because the
+   *           analysis could not be performed
+   */
+  public String computeDocumentationComment(Element element) throws AnalysisException;
+
+  /**
    * Return an array containing all of the errors associated with the given source. If the errors
    * are not already known then the source will be analyzed in order to determine the errors
    * associated with it.

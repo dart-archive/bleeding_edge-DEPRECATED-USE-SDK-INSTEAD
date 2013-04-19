@@ -111,6 +111,32 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNull(context.performAnalysisTask());
   }
 
+  public void test_computeDocumentationComment_none() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}"));
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    assertNotNull(libraryElement);
+    ClassElement classElement = libraryElement.getDefiningCompilationUnit().getTypes()[0];
+    assertNotNull(libraryElement);
+    assertNull(context.computeDocumentationComment(classElement));
+  }
+
+  public void test_computeDocumentationComment_one() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    String comment = "/** Comment */";
+    Source source = addSource("/test.dart", createSource(//
+        comment,
+        "class A {}"));
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    assertNotNull(libraryElement);
+    ClassElement classElement = libraryElement.getDefiningCompilationUnit().getTypes()[0];
+    assertNotNull(libraryElement);
+    assertEquals(comment, context.computeDocumentationComment(classElement));
+  }
+
   public void test_computeErrors_none() throws Exception {
     Source source = addSource("/lib.dart", "library lib;");
     AnalysisError[] errors = context.computeErrors(source);

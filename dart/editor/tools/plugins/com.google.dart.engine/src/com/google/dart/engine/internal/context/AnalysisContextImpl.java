@@ -14,10 +14,14 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AnnotatedNode;
+import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.PartOfDirective;
+import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
@@ -193,6 +197,54 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         sourceRemoved(source);
       }
     }
+  }
+
+  @Override
+  public String computeDocumentationComment(Element element) throws AnalysisException {
+    if (element == null) {
+      return null;
+    }
+    Source source = element.getSource();
+    if (source == null) {
+      return null;
+    }
+    final CharSequence[] contentHolder = new String[1];
+    try {
+      source.getContents(new Source.ContentReceiver() {
+        @Override
+        public void accept(CharBuffer contents, long modificationTime) {
+          contentHolder[0] = contents;
+        }
+
+        @Override
+        public void accept(String contents, long modificationTime) {
+          contentHolder[0] = contents;
+        }
+      });
+    } catch (Exception exception) {
+      throw new AnalysisException("Could not get contents of " + source.getFullName(), exception);
+    }
+    if (contentHolder[0] == null) {
+      return null;
+    }
+    CompilationUnit unit = parseCompilationUnit(source);
+    if (unit == null) {
+      return null;
+    }
+    NodeLocator locator = new NodeLocator(element.getNameOffset());
+    ASTNode nameNode = locator.searchWithin(unit);
+    while (nameNode != null) {
+      if (nameNode instanceof AnnotatedNode) {
+        Comment comment = ((AnnotatedNode) nameNode).getDocumentationComment();
+        if (comment == null) {
+          return null;
+        }
+        int offset = comment.getOffset();
+        return contentHolder[0].subSequence(offset, offset + comment.getLength()).toString();
+      }
+      nameNode = nameNode.getParent();
+    }
+    return null;
   }
 
   @Override

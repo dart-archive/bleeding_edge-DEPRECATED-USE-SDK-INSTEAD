@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element.member;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
@@ -49,6 +50,11 @@ public abstract class Member implements Element {
   public Member(Element baseElement, InterfaceType definingType) {
     this.baseElement = baseElement;
     this.definingType = definingType;
+  }
+
+  @Override
+  public String computeDocumentationComment() throws AnalysisException {
+    return baseElement.computeDocumentationComment();
   }
 
   @Override

@@ -16,6 +16,7 @@ package com.google.dart.tools.search.internal.ui;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -89,6 +90,11 @@ public abstract class FindAction_OLD extends InstrumentedSelectionDispatchAction
     }
 
     @Override
+    public String computeDocumentationComment() throws AnalysisException {
+      return null;
+    }
+
+    @Override
     public <E extends Element> E getAncestor(Class<E> elementClass) {
       return null;
     }
@@ -151,7 +157,6 @@ public abstract class FindAction_OLD extends InstrumentedSelectionDispatchAction
     @Override
     public void visitChildren(ElementVisitor<?> visitor) {
     }
-
   }
 
   // A dummy element that can't be selected in the UI
