@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text.correction;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
@@ -47,17 +48,18 @@ public class QuickAssistProcessor {
   static void addServiceProposals(List<ICompletionProposal> proposals,
       CorrectionProposal[] serviceProposals) {
     for (CorrectionProposal serviceProposal : serviceProposals) {
-      Image image = ServiceUtils.toLTK(serviceProposal.getImage());
+      CorrectionKind kind = serviceProposal.getKind();
+      Image image = ServiceUtils.toLTK(kind.getImage());
       // TODO(scheglov) why do we have several SourceChange-s in CorrectionProposal? 
       List<SourceChange> serviceChanges = serviceProposal.getChanges();
       if (serviceChanges.size() == 1) {
         SourceChange sourceChange = serviceChanges.get(0);
         TextChange textChange = ServiceUtils.toLTK(sourceChange);
         proposals.add(new CUCorrectionProposal(
-            serviceProposal.getName(),
+            kind.getName(),
             sourceChange.getSource(),
             textChange,
-            serviceProposal.getRelevance(),
+            kind.getRelevance(),
             image));
       }
     }

@@ -20,6 +20,7 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.ProblemLocation;
@@ -33,14 +34,6 @@ import java.util.List;
 public class QuickFixProcessorImplTest extends AbstractDartTest {
   private static final QuickFixProcessor PROCESSOR = CorrectionProcessors.getQuickFixProcessor();
 
-  /**
-   * @return <code>true</code> if given {@link CorrectionProposal} has required name.
-   */
-  private static boolean isProposal(CorrectionProposal proposal, String requiredName) {
-    String proposalName = proposal.getName();
-    return requiredName.equals(proposalName);
-  }
-
   private ProblemLocation problem;
 
   public void test_boolean() throws Exception {
@@ -50,7 +43,7 @@ public class QuickFixProcessorImplTest extends AbstractDartTest {
         "  boolean v;",
         "}");
     assert_runProcessor(
-        "Replace 'boolean' with 'bool'",
+        CorrectionKind.QF_REPLACE_BOOLEAN_WITH_BOOL,
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "main() {",
@@ -77,7 +70,7 @@ public class QuickFixProcessorImplTest extends AbstractDartTest {
         "  print()",
         "}");
     assert_runProcessor(
-        "Insert ';'",
+        CorrectionKind.QF_INSERT_SEMICOLON,
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "main() {",
@@ -108,12 +101,12 @@ public class QuickFixProcessorImplTest extends AbstractDartTest {
   /**
    * Asserts that running proposal with given name produces expected source.
    */
-  private void assert_runProcessor(String proposalName, String expectedSource) throws Exception {
+  private void assert_runProcessor(CorrectionKind kind, String expectedSource) throws Exception {
     CorrectionProposal[] proposals = getProposals();
     // find and apply required proposal
     String result = testCode;
     for (CorrectionProposal proposal : proposals) {
-      if (isProposal(proposal, proposalName)) {
+      if (proposal.getKind() == kind) {
         result = applyProposal(proposal);
         break;
       }

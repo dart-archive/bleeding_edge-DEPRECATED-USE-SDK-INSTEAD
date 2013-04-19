@@ -18,6 +18,7 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.correction.ProblemLocation;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.text.dart.CompletionProposalComparator;
 
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.quickassist.IQuickAssistInvocationContext;
@@ -87,6 +88,7 @@ public class DartCorrectionProcessor implements
       DartToolsPlugin.log(e);
     }
     // done
+    Collections.sort(proposals, new CompletionProposalComparator());
     return proposals.toArray(new ICompletionProposal[proposals.size()]);
   }
 

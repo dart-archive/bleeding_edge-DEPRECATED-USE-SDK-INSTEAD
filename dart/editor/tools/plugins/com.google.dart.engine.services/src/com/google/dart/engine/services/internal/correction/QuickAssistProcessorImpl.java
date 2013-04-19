@@ -50,7 +50,7 @@ import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.SourceChange;
-import com.google.dart.engine.services.correction.CorrectionImage;
+import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
 import com.google.dart.engine.services.internal.util.ExecutionUtils;
@@ -62,6 +62,24 @@ import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.SourceRange;
 
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_ADD_TYPE_ANNOTATION;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_BLOCK_BODY;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_EXPRESSION_BODY;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_EXCHANGE_OPERANDS;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_JOIN_VARIABLE_DECLARATION;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_REMOVE_TYPE_ANNOTATION;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_REPLACE_CONDITIONAL_WITH_IF_ELSE;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_REPLACE_IF_ELSE_WITH_CONDITIONAL;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_SPLIT_AND_CONDITION;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_SPLIT_VARIABLE_DECLARATION;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_SURROUND_WITH_BLOCK;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_SURROUND_WITH_DO_WHILE;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_SURROUND_WITH_FOR;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_SURROUND_WITH_FOR_IN;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_SURROUND_WITH_IF;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_SURROUND_WITH_TRY_CATCH;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_SURROUND_WITH_TRY_FINALLY;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_SURROUND_WITH_WHILE;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndLength;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndStart;
@@ -85,7 +103,6 @@ import java.util.Map.Entry;
  */
 public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   private static final CorrectionProposal[] NO_PROPOSALS = {};
-  private static final int DEFAULT_RELEVANCE = 30;
 
   /**
    * @return the {@link Edit} to replace {@link SourceRange} with "text".
@@ -131,7 +148,6 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   private int selectionLength;
   private CorrectionUtils utils;
 
-  private int proposalRelevance = DEFAULT_RELEVANCE;
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
   private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
   private final Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
@@ -168,7 +184,9 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       instrumentation.metric("QuickAssist-ProposalCount", proposals.size());
       instrumentation.data("QuickAssist-Source", utils.getText());
       for (int index = 0; index < proposals.size(); index++) {
-        instrumentation.data("QuickAssist-Proposal-" + index, proposals.get(index).getName());
+        instrumentation.data(
+            "QuickAssist-Proposal-" + index,
+            proposals.get(index).getKind().getName());
       }
       return proposals.toArray(new CorrectionProposal[proposals.size()]);
     } finally {
@@ -221,7 +239,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       }
     }
     // add proposal
-    addUnitCorrectionProposal("Add type annotation", CorrectionImage.IMG_CORRECTION_CHANGE);
+    addUnitCorrectionProposal(QA_ADD_TYPE_ANNOTATION);
   }
 
   // TODO(scheglov) implement later
@@ -304,7 +322,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
         + eol + prefix + "}";
     addReplaceEdit(rangeNode(body), newBodySource);
     // add proposal
-    addUnitCorrectionProposal("Convert to block body", CorrectionImage.IMG_CORRECTION_CHANGE);
+    addUnitCorrectionProposal(QA_CONVERT_INTO_BLOCK_BODY);
   }
 
   void addProposal_convertToExpressionFunctionBody() throws Exception {
@@ -335,9 +353,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     }
     addReplaceEdit(rangeNode(body), newBodySource);
     // add proposal
-    addUnitCorrectionProposal(
-        "Convert into using function with expression body",
-        CorrectionImage.IMG_CORRECTION_CHANGE);
+    addUnitCorrectionProposal(QA_CONVERT_INTO_EXPRESSION_BODY);
   }
 
   void addProposal_exchangeOperands() throws Exception {
@@ -370,7 +386,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       addReplaceEdit(rightRange, getSource(leftRange));
     }
     // add proposal
-    addUnitCorrectionProposal("Exchange operands", CorrectionImage.IMG_CORRECTION_CHANGE);
+    addUnitCorrectionProposal(QA_EXCHANGE_OPERANDS);
   }
 
   void addProposal_joinVariableDeclaration_onAssignment() throws Exception {
@@ -430,7 +446,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       addReplaceEdit(rangeEndStart(declNode, assignOffset), " ");
     }
     // add proposal
-    addUnitCorrectionProposal("Join variable declaration", CorrectionImage.IMG_CORRECTION_CHANGE);
+    addUnitCorrectionProposal(QA_JOIN_VARIABLE_DECLARATION);
   }
 
   void addProposal_joinVariableDeclaration_onDeclaration() throws Exception {
@@ -487,7 +503,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       addReplaceEdit(rangeEndStart(decl.getName(), assignOffset), " ");
     }
     // add proposal
-    addUnitCorrectionProposal("Join variable declaration", CorrectionImage.IMG_CORRECTION_CHANGE);
+    addUnitCorrectionProposal(QA_JOIN_VARIABLE_DECLARATION);
   }
 
   void addProposal_removeTypeAnnotation() throws Exception {
@@ -535,8 +551,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       addReplaceEdit(typeRange, "var ");
     }
     // add proposal
-    proposalRelevance -= 1;
-    addUnitCorrectionProposal("Remove type annotation", CorrectionImage.IMG_CORRECTION_CHANGE);
+    addUnitCorrectionProposal(QA_REMOVE_TYPE_ANNOTATION);
   }
 
   void addProposal_replaceConditionalWithIfElse() throws Exception {
@@ -624,9 +639,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
           indent));
     }
     // add proposal
-    addUnitCorrectionProposal(
-        "Replace conditional with 'if-else'",
-        CorrectionImage.IMG_CORRECTION_CHANGE);
+    addUnitCorrectionProposal(QA_REPLACE_CONDITIONAL_WITH_IF_ELSE);
   }
 
   void addProposal_replaceIfElseWithConditional() throws Exception {
@@ -677,9 +690,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       }
     }
     // add proposal
-    addUnitCorrectionProposal(
-        "Replace 'if-else' with conditional ('c ? x : y')",
-        CorrectionImage.IMG_CORRECTION_CHANGE);
+    addUnitCorrectionProposal(QA_REPLACE_IF_ELSE_WITH_CONDITIONAL);
   }
 
   void addProposal_splitAndCondition() throws Exception {
@@ -780,7 +791,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       textEdits.add(utils.createIndentEdit(linesRange, thenIndentOld, thenIndentNew));
     }
     // add proposal
-    addUnitCorrectionProposal("Split && condition", CorrectionImage.IMG_CORRECTION_CHANGE);
+    addUnitCorrectionProposal(QA_SPLIT_AND_CONDITION);
   }
 
   void addProposal_splitVariableDeclaration() throws Exception {
@@ -808,7 +819,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     SourceRange assignRange = rangeEndLength(statement, 0);
     addReplaceEdit(assignRange, eol + indent + assignSource);
     // add proposal
-    addUnitCorrectionProposal("Split variable declaration", CorrectionImage.IMG_CORRECTION_CHANGE);
+    addUnitCorrectionProposal(QA_SPLIT_VARIABLE_DECLARATION);
   }
 
   void addProposal_surroundWith() throws Exception {
@@ -849,7 +860,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       addInsertEdit(statementsRange.getEnd(), indentOld + "}" + eol);
       proposalEndRange = rangeEndLength(lastStatement, 0);
       // add proposal
-      addUnitCorrectionProposal("Surround with block", CorrectionImage.IMG_CORRECTION_CHANGE);
+      addUnitCorrectionProposal(QA_SURROUND_WITH_BLOCK);
     }
     // "if"
     {
@@ -874,7 +885,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       addInsertEdit(statementsRange.getEnd(), indentOld + "}" + eol);
       proposalEndRange = rangeEndLength(lastStatement, 0);
       // add proposal
-      addUnitCorrectionProposal("Surround with 'if'", CorrectionImage.IMG_CORRECTION_CHANGE);
+      addUnitCorrectionProposal(QA_SURROUND_WITH_IF);
     }
     // "while"
     {
@@ -899,7 +910,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       addInsertEdit(statementsRange.getEnd(), indentOld + "}" + eol);
       proposalEndRange = rangeEndLength(lastStatement, 0);
       // add proposal
-      addUnitCorrectionProposal("Surround with 'while'", CorrectionImage.IMG_CORRECTION_CHANGE);
+      addUnitCorrectionProposal(QA_SURROUND_WITH_WHILE);
     }
     // "for-in"
     {
@@ -930,7 +941,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       addInsertEdit(statementsRange.getEnd(), indentOld + "}" + eol);
       proposalEndRange = rangeEndLength(lastStatement, 0);
       // add proposal
-      addUnitCorrectionProposal("Surround with 'for-in'", CorrectionImage.IMG_CORRECTION_CHANGE);
+      addUnitCorrectionProposal(QA_SURROUND_WITH_FOR_IN);
     }
     // "for"
     {
@@ -973,7 +984,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       addInsertEdit(statementsRange.getEnd(), indentOld + "}" + eol);
       proposalEndRange = rangeEndLength(lastStatement, 0);
       // add proposal
-      addUnitCorrectionProposal("Surround with 'for'", CorrectionImage.IMG_CORRECTION_CHANGE);
+      addUnitCorrectionProposal(QA_SURROUND_WITH_FOR);
     }
     // "do-while"
     {
@@ -998,7 +1009,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       }
       proposalEndRange = rangeEndLength(lastStatement, 0);
       // add proposal
-      addUnitCorrectionProposal("Surround with 'do-while'", CorrectionImage.IMG_CORRECTION_CHANGE);
+      addUnitCorrectionProposal(QA_SURROUND_WITH_DO_WHILE);
     }
     // "try-catch"
     {
@@ -1042,7 +1053,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
         addInsertEdit(sb);
       }
       // add proposal
-      addUnitCorrectionProposal("Surround with 'try-catch'", CorrectionImage.IMG_CORRECTION_CHANGE);
+      addUnitCorrectionProposal(QA_SURROUND_WITH_TRY_CATCH);
     }
     // "try-finally"
     {
@@ -1075,9 +1086,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
         addInsertEdit(sb);
       }
       // add proposal
-      addUnitCorrectionProposal(
-          "Surround with 'try-finally'",
-          CorrectionImage.IMG_CORRECTION_CHANGE);
+      addUnitCorrectionProposal(QA_SURROUND_WITH_TRY_FINALLY);
     }
   }
 
@@ -1158,13 +1167,13 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   /**
    * Adds {@link CorrectionProposal} with single {@link SourceChange} to {@link #proposals}.
    */
-  private void addUnitCorrectionProposal(String name, CorrectionImage image) {
+  private void addUnitCorrectionProposal(CorrectionKind kind) {
     if (!textEdits.isEmpty()) {
-      CorrectionProposal proposal = new CorrectionProposal(image, name, proposalRelevance);
+      CorrectionProposal proposal = new CorrectionProposal(kind);
       proposal.setLinkedPositions(linkedPositions);
       proposal.setLinkedPositionProposals(linkedPositionProposals);
       // add change
-      SourceChange change = new SourceChange(name, source);
+      SourceChange change = new SourceChange(source.getShortName(), source);
       for (Edit edit : textEdits) {
         change.addEdit(edit);
       }
@@ -1218,7 +1227,6 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
 
   private void resetProposalElements() {
     textEdits.clear();
-    proposalRelevance = DEFAULT_RELEVANCE;
     linkedPositions.clear();
     positionStopEdits.clear();
     linkedPositionProposals.clear();

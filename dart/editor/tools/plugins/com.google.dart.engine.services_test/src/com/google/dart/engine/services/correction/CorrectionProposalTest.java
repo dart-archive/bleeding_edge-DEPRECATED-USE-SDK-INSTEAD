@@ -29,20 +29,12 @@ import java.util.Map;
 
 public class CorrectionProposalTest extends TestCase {
   public void test_access() throws Exception {
-    CorrectionProposal proposal = new CorrectionProposal(
-        CorrectionImage.IMG_CORRECTION_CHANGE,
-        "test",
-        42);
-    assertSame(CorrectionImage.IMG_CORRECTION_CHANGE, proposal.getImage());
-    assertEquals("test", proposal.getName());
-    assertEquals(42, proposal.getRelevance());
+    CorrectionProposal proposal = new CorrectionProposal(CorrectionKind.QA_ADD_TYPE_ANNOTATION);
+    assertSame(CorrectionKind.QA_ADD_TYPE_ANNOTATION, proposal.getKind());
   }
 
   public void test_changes() throws Exception {
-    CorrectionProposal proposal = new CorrectionProposal(
-        CorrectionImage.IMG_CORRECTION_CHANGE,
-        "test",
-        42);
+    CorrectionProposal proposal = new CorrectionProposal(CorrectionKind.QA_ADD_TYPE_ANNOTATION);
     // empty
     assertThat(proposal.getChanges()).isEmpty();
     //
@@ -54,10 +46,7 @@ public class CorrectionProposalTest extends TestCase {
   }
 
   public void test_linkedPositions() throws Exception {
-    CorrectionProposal proposal = new CorrectionProposal(
-        CorrectionImage.IMG_CORRECTION_CHANGE,
-        "test",
-        42);
+    CorrectionProposal proposal = new CorrectionProposal(CorrectionKind.QA_ADD_TYPE_ANNOTATION);
     Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
     Map<String, List<LinkedPositionProposal>> linkedPositions2 = Maps.newHashMap();
     proposal.setLinkedPositions(linkedPositions);

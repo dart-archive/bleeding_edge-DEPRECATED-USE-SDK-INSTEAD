@@ -17,6 +17,7 @@ package com.google.dart.engine.services.internal.correction;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
@@ -27,14 +28,6 @@ import java.util.List;
 
 public class QuickAssistProcessorImplTest extends AbstractDartTest {
   private static final QuickAssistProcessor PROCESSOR = CorrectionProcessors.getQuickAssistProcessor();
-
-  /**
-   * @return <code>true</code> if given {@link CorrectionProposal} has required name.
-   */
-  private static boolean isProposal(CorrectionProposal proposal, String requiredName) {
-    String proposalName = proposal.getName();
-    return requiredName.equals(proposalName);
-  }
 
   private int selectionOffset = 0;
   private int selectionLength = 0;
@@ -985,7 +978,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  }",
         "// end",
         "}");
-    assert_surroundsWith(initial, expected, "block");
+    assert_surroundsWith(initial, CorrectionKind.QA_SURROUND_WITH_BLOCK, expected);
   }
 
   public void test_surroundWith_doWhile() throws Exception {
@@ -1007,7 +1000,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  } while (condition);",
         "// end",
         "}");
-    assert_surroundsWith(initial, expected, "'do-while'");
+    assert_surroundsWith(initial, CorrectionKind.QA_SURROUND_WITH_DO_WHILE, expected);
   }
 
   public void test_surroundWith_for() throws Exception {
@@ -1029,7 +1022,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  }",
         "// end",
         "}");
-    assert_surroundsWith(initial, expected, "'for'");
+    assert_surroundsWith(initial, CorrectionKind.QA_SURROUND_WITH_FOR, expected);
   }
 
   public void test_surroundWith_forIn() throws Exception {
@@ -1051,7 +1044,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  }",
         "// end",
         "}");
-    assert_surroundsWith(initial, expected, "'for-in'");
+    assert_surroundsWith(initial, CorrectionKind.QA_SURROUND_WITH_FOR_IN, expected);
   }
 
   public void test_surroundWith_if() throws Exception {
@@ -1073,7 +1066,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  }",
         "// end",
         "}");
-    assert_surroundsWith(initial, expected, "'if'");
+    assert_surroundsWith(initial, CorrectionKind.QA_SURROUND_WITH_IF, expected);
   }
 
   public void test_surroundWith_tryCatch() throws Exception {
@@ -1097,7 +1090,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  }",
         "// end",
         "}");
-    assert_surroundsWith(initial, expected, "'try-catch'");
+    assert_surroundsWith(initial, CorrectionKind.QA_SURROUND_WITH_TRY_CATCH, expected);
   }
 
   public void test_surroundWith_tryFinally() throws Exception {
@@ -1121,7 +1114,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  }",
         "// end",
         "}");
-    assert_surroundsWith(initial, expected, "'try-finally'");
+    assert_surroundsWith(initial, CorrectionKind.QA_SURROUND_WITH_TRY_FINALLY, expected);
   }
 
   public void test_surroundWith_while() throws Exception {
@@ -1143,7 +1136,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  }",
         "// end",
         "}");
-    assert_surroundsWith(initial, expected, "'while'");
+    assert_surroundsWith(initial, CorrectionKind.QA_SURROUND_WITH_WHILE, expected);
   }
 
   /**
@@ -1162,7 +1155,11 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
 
   private void assert_addTypeAnnotation(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
-    assert_runProcessor("Add type annotation", initialSource, offsetPattern, expectedSource);
+    assert_runProcessor(
+        CorrectionKind.QA_ADD_TYPE_ANNOTATION,
+        initialSource,
+        offsetPattern,
+        expectedSource);
   }
 
   private void assert_addTypeAnnotation_classField(String initialDeclaration, String offsetPattern,
@@ -1214,7 +1211,11 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
 
   private void assert_convertToBlockBody(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
-    assert_runProcessor("Convert to block body", initialSource, offsetPattern, expectedSource);
+    assert_runProcessor(
+        CorrectionKind.QA_CONVERT_INTO_BLOCK_BODY,
+        initialSource,
+        offsetPattern,
+        expectedSource);
   }
 
   private void assert_convertToBlockBody_wrong(String initialSource, String offsetPattern)
@@ -1225,7 +1226,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   private void assert_convertToExpressionBody(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
-        "Convert into using function with expression body",
+        CorrectionKind.QA_CONVERT_INTO_EXPRESSION_BODY,
         initialSource,
         offsetPattern,
         expectedSource);
@@ -1240,7 +1241,11 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
       String offsetPattern, String expectedExpression) throws Exception {
     String initialSource = "var v = " + initialExpression + ";";
     String expectedSource = "var v = " + expectedExpression + ";";
-    assert_runProcessor("Exchange operands", initialSource, offsetPattern, expectedSource);
+    assert_runProcessor(
+        CorrectionKind.QA_EXCHANGE_OPERANDS,
+        initialSource,
+        offsetPattern,
+        expectedSource);
   }
 
   private void assert_exchangeBinaryExpressionArguments_wrong(String expression,
@@ -1250,7 +1255,11 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
 
   private void assert_joinVariableDeclaration(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
-    assert_runProcessor("Join variable declaration", initialSource, offsetPattern, expectedSource);
+    assert_runProcessor(
+        CorrectionKind.QA_JOIN_VARIABLE_DECLARATION,
+        initialSource,
+        offsetPattern,
+        expectedSource);
   }
 
   private void assert_joinVariableDeclaration_wrong(String expression, String offsetPattern)
@@ -1260,13 +1269,17 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
 
   private void assert_removeTypeAnnotation(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
-    assert_runProcessor("Remove type annotation", initialSource, offsetPattern, expectedSource);
+    assert_runProcessor(
+        CorrectionKind.QA_REMOVE_TYPE_ANNOTATION,
+        initialSource,
+        offsetPattern,
+        expectedSource);
   }
 
   private void assert_replaceConditionalWithIfElse(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
-        "Replace conditional with 'if-else'",
+        CorrectionKind.QA_REPLACE_CONDITIONAL_WITH_IF_ELSE,
         initialSource,
         offsetPattern,
         expectedSource);
@@ -1280,7 +1293,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   private void assert_replaceIfElseWithConditional(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
-        "Replace 'if-else' with conditional ('c ? x : y')",
+        CorrectionKind.QA_REPLACE_IF_ELSE_WITH_CONDITIONAL,
         initialSource,
         offsetPattern,
         expectedSource);
@@ -1294,7 +1307,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   /**
    * Asserts that running proposal with given name produces expected source.
    */
-  private void assert_runProcessor(String proposalName, String expectedSource) throws Exception {
+  private void assert_runProcessor(CorrectionKind kind, String expectedSource) throws Exception {
     // XXX used to see coverage of only one quick assist
 //    if (!proposalName.equals("Replace conditional with 'if-else'")) {
 //      return;
@@ -1303,7 +1316,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     // find and apply required proposal
     String result = testCode;
     for (CorrectionProposal proposal : proposals) {
-      if (isProposal(proposal, proposalName)) {
+      if (proposal.getKind() == kind) {
         result = applyProposal(proposal);
       }
     }
@@ -1314,16 +1327,20 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   /**
    * Asserts that running proposal with given name produces expected source.
    */
-  private void assert_runProcessor(String proposalName, String initialSource, String offsetPattern,
+  private void assert_runProcessor(CorrectionKind kind, String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     parseTestUnit(initialSource);
     selectionOffset = findOffset(offsetPattern);
-    assert_runProcessor(proposalName, expectedSource);
+    assert_runProcessor(kind, expectedSource);
   }
 
   private void assert_splitAndCondition(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
-    assert_runProcessor("Split && condition", initialSource, offsetPattern, expectedSource);
+    assert_runProcessor(
+        CorrectionKind.QA_SPLIT_AND_CONDITION,
+        initialSource,
+        offsetPattern,
+        expectedSource);
   }
 
   private void assert_splitAndCondition_wrong(String initialSource, String offsetPattern)
@@ -1333,7 +1350,11 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
 
   private void assert_splitVariableDeclaration(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
-    assert_runProcessor("Split variable declaration", initialSource, offsetPattern, expectedSource);
+    assert_runProcessor(
+        CorrectionKind.QA_SPLIT_VARIABLE_DECLARATION,
+        initialSource,
+        offsetPattern,
+        expectedSource);
   }
 
   private void assert_splitVariableDeclaration_wrong(String initialSource, String offsetPattern)
@@ -1341,11 +1362,11 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_splitVariableDeclaration(initialSource, offsetPattern, initialSource);
   }
 
-  private void assert_surroundsWith(String initialSource, String expectedSource, String surroundName)
+  private void assert_surroundsWith(String initialSource, CorrectionKind kind, String expectedSource)
       throws Exception {
     parseTestUnit(initialSource);
     setSelectionFromStartEndComments();
-    assert_runProcessor("Surround with " + surroundName, expectedSource);
+    assert_runProcessor(kind, expectedSource);
   }
 
   private CorrectionProposal[] getProposals() throws Exception {

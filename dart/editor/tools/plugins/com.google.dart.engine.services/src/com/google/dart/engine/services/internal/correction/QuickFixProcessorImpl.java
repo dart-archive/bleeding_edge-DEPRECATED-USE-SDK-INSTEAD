@@ -22,7 +22,7 @@ import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.SourceChange;
-import com.google.dart.engine.services.correction.CorrectionImage;
+import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.ProblemLocation;
 import com.google.dart.engine.services.correction.QuickFixProcessor;
@@ -39,7 +39,6 @@ import java.util.Map;
  */
 public class QuickFixProcessorImpl implements QuickFixProcessor {
   private static final CorrectionProposal[] NO_PROPOSALS = {};
-  private static final int DEFAULT_RELEVANCE = 50;
 
   /**
    * @return the {@link Edit} to replace {@link SourceRange} with "text".
@@ -58,7 +57,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private int selectionLength;
 
   private CorrectionUtils utils;
-  private int proposalRelevance = DEFAULT_RELEVANCE;
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
   private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
 
@@ -101,7 +99,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       instrumentation.metric("QuickFix-ProposalCount", proposals.size());
       instrumentation.data("QuickFix-Source", utils.getText());
       for (int index = 0; index < proposals.size(); index++) {
-        instrumentation.data("QuickFix-Proposal-" + index, proposals.get(index).getName());
+        instrumentation.data("QuickFix-Proposal-" + index, proposals.get(index).getKind().getName());
       }
       // done
       return proposals.toArray(new CorrectionProposal[proposals.size()]);
@@ -119,14 +117,14 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 
   private void addFix_boolInsteadOfBoolean() {
     addReplaceEdit(problem.getRange(), "bool");
-    addUnitCorrectionProposal("Replace 'boolean' with 'bool'");
+    addUnitCorrectionProposal(CorrectionKind.QF_REPLACE_BOOLEAN_WITH_BOOL);
   }
 
   private void addFix_insertSemicolon() {
     if (problem.getMessage().contains("';'")) {
       int insertOffset = problem.getOffset() + problem.getLength();
       addInsertEdit(insertOffset, ";");
-      addUnitCorrectionProposal("Insert ';'");
+      addUnitCorrectionProposal(CorrectionKind.QF_INSERT_SEMICOLON);
     }
   }
 
@@ -144,20 +142,13 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   /**
    * Adds {@link CorrectionProposal} with single {@link SourceChange} to {@link #proposals}.
    */
-  private void addUnitCorrectionProposal(String name) {
-    addUnitCorrectionProposal(name, CorrectionImage.IMG_CORRECTION_CHANGE);
-  }
-
-  /**
-   * Adds {@link CorrectionProposal} with single {@link SourceChange} to {@link #proposals}.
-   */
-  private void addUnitCorrectionProposal(String name, CorrectionImage image) {
+  private void addUnitCorrectionProposal(CorrectionKind kind) {
     if (!textEdits.isEmpty()) {
-      CorrectionProposal proposal = new CorrectionProposal(image, name, proposalRelevance);
+      CorrectionProposal proposal = new CorrectionProposal(kind);
       proposal.setLinkedPositions(linkedPositions);
       proposal.setLinkedPositionProposals(linkedPositionProposals);
       // add change
-      SourceChange change = new SourceChange(name, source);
+      SourceChange change = new SourceChange(source.getShortName(), source);
       for (Edit edit : textEdits) {
         change.addEdit(edit);
       }
@@ -175,7 +166,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 
   private void resetProposalElements() {
     textEdits.clear();
-    proposalRelevance = DEFAULT_RELEVANCE;
     linkedPositions.clear();
     positionStopEdits.clear();
     linkedPositionProposals.clear();

@@ -29,17 +29,13 @@ import java.util.Map;
  * TODO(scheglov) why do we have several SourceChange-s in CorrectionProposal?
  */
 public class CorrectionProposal {
-  private final CorrectionImage image;
-  private final String name;
-  private final int relevance;
+  private final CorrectionKind kind;
   private final List<SourceChange> changes = Lists.newArrayList();
   private Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
   private Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
 
-  public CorrectionProposal(CorrectionImage image, String name, int relevance) {
-    this.image = image;
-    this.name = name;
-    this.relevance = relevance;
+  public CorrectionProposal(CorrectionKind kind) {
+    this.kind = kind;
   }
 
   /**
@@ -57,10 +53,11 @@ public class CorrectionProposal {
   }
 
   /**
-   * @return the image to be displayed in the list of correction proposals.
+   * @return the {@link CorrectionKind} which contains presentation of this
+   *         {@link CorrectionProposal}.
    */
-  public CorrectionImage getImage() {
-    return image;
+  public CorrectionKind getKind() {
+    return kind;
   }
 
   /**
@@ -75,20 +72,6 @@ public class CorrectionProposal {
    */
   public Map<String, List<SourceRange>> getLinkedPositions() {
     return linkedPositions;
-  }
-
-  /**
-   * @return the string to be displayed in the list of correction proposals.
-   */
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * @return the relevance of this proposal - greater value, higher in the list of proposals.
-   */
-  public int getRelevance() {
-    return relevance;
   }
 
   /**
