@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.Combinator;
+import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
@@ -213,6 +214,76 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     LabelElementImpl labelElement = lookupLabel(node, labelNode);
     if (labelElement != null && labelElement.isOnSwitchMember()) {
       resolver.reportError(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitCommentReference(CommentReference node) {
+    Identifier identifier = node.getIdentifier();
+    if (identifier instanceof SimpleIdentifier) {
+      SimpleIdentifier simpleIdentifier = (SimpleIdentifier) identifier;
+      visitSimpleIdentifier(simpleIdentifier);
+      Element element = simpleIdentifier.getElement();
+      if (element != null) {
+        if (!element.getLibrary().equals(resolver.getDefiningLibrary())) {
+          // TODO(brianwilkerson) Report this error.
+        }
+        if (node.getNewKeyword() != null) {
+          if (element instanceof ClassElement) {
+            ConstructorElement constructor = ((ClassElement) element).getUnnamedConstructor();
+            recordResolution(simpleIdentifier, constructor);
+          } else {
+            // TODO(brianwilkerson) Report this error.
+          }
+        }
+      }
+    } else if (identifier instanceof PrefixedIdentifier) {
+      PrefixedIdentifier prefixedIdentifier = (PrefixedIdentifier) identifier;
+      SimpleIdentifier prefix = prefixedIdentifier.getPrefix();
+      SimpleIdentifier name = prefixedIdentifier.getIdentifier();
+      visitSimpleIdentifier(prefix);
+      Element element = prefix.getElement();
+      if (element != null) {
+        if (element instanceof PrefixElement) {
+          // TODO(brianwilkerson) The prefix needs to be resolved to the element for the import that
+          // defines the prefix, not the prefix's element.
+
+          // TODO(brianwilkerson) Report this error.
+          element = resolver.getNameScope().lookup(identifier, resolver.getDefiningLibrary());
+          recordResolution(name, element);
+          return null;
+        }
+        if (!element.getLibrary().equals(resolver.getDefiningLibrary())) {
+          // TODO(brianwilkerson) Report this error.
+        }
+        if (node.getNewKeyword() == null) {
+          if (element instanceof ClassElement) {
+            Element memberElement = lookupGetterOrMethod(
+                ((ClassElement) element).getType(),
+                name.getName());
+            if (memberElement == null) {
+              memberElement = ((ClassElement) element).getNamedConstructor(name.getName());
+            }
+            if (memberElement == null) {
+              reportGetterOrSetterNotFound(prefixedIdentifier, name, element.getName());
+            } else {
+              recordResolution(name, memberElement);
+            }
+          } else {
+            // TODO(brianwilkerson) Report this error.
+          }
+        } else {
+          if (element instanceof ClassElement) {
+            ConstructorElement constructor = ((ClassElement) element).getNamedConstructor(name.getName());
+            if (constructor != null) {
+              recordResolution(name, constructor);
+            }
+          } else {
+            // TODO(brianwilkerson) Report this error.
+          }
+        }
+      }
     }
     return null;
   }
@@ -1057,6 +1128,81 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     }
     return lookUpGetterInInterfaces(superclass, getterName, visitedInterfaces);
+  }
+
+  /**
+   * Look up the method or getter with the given name in the given type. Return the element
+   * representing the method or getter that was found, or {@code null} if there is no method or
+   * getter with the given name.
+   * 
+   * @param type the type in which the method or getter is defined
+   * @param memberName the name of the method or getter being looked up
+   * @return the element representing the method or getter that was found
+   */
+  private ExecutableElement lookupGetterOrMethod(Type type, String memberName) {
+    type = resolveTypeVariable(type);
+    if (type instanceof InterfaceType) {
+      InterfaceType interfaceType = (InterfaceType) type;
+      ExecutableElement member = interfaceType.lookUpMethod(
+          memberName,
+          resolver.getDefiningLibrary());
+      if (member != null) {
+        return member;
+      }
+      member = interfaceType.lookUpGetter(memberName, resolver.getDefiningLibrary());
+      if (member != null) {
+        return member;
+      }
+      return lookUpGetterOrMethodInInterfaces(
+          interfaceType,
+          memberName,
+          new HashSet<ClassElement>());
+    }
+    // TODO(brianwilkerson) Decide whether/how to represent members defined in 'dynamic'.
+    return null;
+  }
+
+  /**
+   * Look up the method or getter with the given name in the interfaces implemented by the given
+   * type, either directly or indirectly. Return the element representing the method or getter that
+   * was found, or {@code null} if there is no method or getter with the given name.
+   * 
+   * @param targetType the type in which the method or getter might be defined
+   * @param memberName the name of the method or getter being looked up
+   * @param visitedInterfaces a set containing all of the interfaces that have been examined, used
+   *          to prevent infinite recursion and to optimize the search
+   * @return the element representing the method or getter that was found
+   */
+  private ExecutableElement lookUpGetterOrMethodInInterfaces(InterfaceType targetType,
+      String memberName, HashSet<ClassElement> visitedInterfaces) {
+    // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the specification (titled
+    // "Inheritance and Overriding" under "Interfaces") describes a much more complex scheme for
+    // finding the inherited member. We need to follow that scheme. The code below should cover the
+    // 80% case.
+    ClassElement targetClass = targetType.getElement();
+    if (visitedInterfaces.contains(targetClass)) {
+      return null;
+    }
+    visitedInterfaces.add(targetClass);
+    ExecutableElement member = targetType.getMethod(memberName);
+    if (member != null) {
+      return member;
+    }
+    member = targetType.getGetter(memberName);
+    if (member != null) {
+      return member;
+    }
+    for (InterfaceType interfaceType : targetType.getInterfaces()) {
+      member = lookUpGetterOrMethodInInterfaces(interfaceType, memberName, visitedInterfaces);
+      if (member != null) {
+        return member;
+      }
+    }
+    InterfaceType superclass = targetType.getSuperclass();
+    if (superclass == null) {
+      return null;
+    }
+    return lookUpGetterInInterfaces(superclass, memberName, visitedInterfaces);
   }
 
   /**

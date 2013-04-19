@@ -550,6 +550,15 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN);
   }
 
+  public void test_undefinedIdentifier_commentReference() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "/** [m] [new B.c] */",
+        "class A {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER, StaticWarningCode.UNDEFINED_IDENTIFIER);
+  }
+
   public void test_undefinedIdentifier_initializer() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "var a = b;"));

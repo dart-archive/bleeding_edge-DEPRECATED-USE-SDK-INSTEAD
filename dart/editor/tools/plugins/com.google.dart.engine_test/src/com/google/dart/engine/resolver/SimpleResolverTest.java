@@ -58,6 +58,42 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_commentReference_class() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {}",
+        "/** [A] [new A] [A.n] [new A.n] [m] [f] */",
+        "class A {",
+        "  A() {}",
+        "  A.n() {}",
+        "  m() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_commentReference_parameter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  A() {}",
+        "  A.n() {}",
+        "  /** [e] [f] */",
+        "  m(e, f()) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_commentReference_singleLine() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "/// [A]",
+        "class A {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_empty() throws Exception {
     Source source = addSource("/test.dart", "");
     resolve(source);

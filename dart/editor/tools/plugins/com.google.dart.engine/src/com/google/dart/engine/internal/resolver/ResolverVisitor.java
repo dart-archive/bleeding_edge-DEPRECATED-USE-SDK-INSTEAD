@@ -20,7 +20,7 @@ import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ClassDeclaration;
-import com.google.dart.engine.ast.Comment;
+import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConditionalExpression;
@@ -248,11 +248,12 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   @Override
-  public Void visitComment(Comment node) {
-    // TODO(jwren) Implement resolution of comments.
+  public Void visitCommentReference(CommentReference node) {
     //
-    // We do not visit the comments as part of the ResolverVisitor as it requires a special scope.
+    // We do not visit the identifier because it needs to be visited in the context of the reference.
     //
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -751,12 +752,14 @@ public class ResolverVisitor extends ScopedVisitor {
   protected void visitForEachStatementInScope(ForEachStatement node) {
     if (StaticTypeAnalyzer.USE_TYPE_PROPAGATION) {
       DeclaredIdentifier loopVariable = node.getLoopVariable();
-      loopVariable.accept(this);
+      safelyVisit(loopVariable);
       Expression iterator = node.getIterator();
       if (iterator != null) {
         iterator.accept(this);
-        LocalVariableElement loopElement = loopVariable.getElement();
-        override(loopElement, loopElement.getType(), getIteratorElementType(iterator));
+        if (loopVariable != null) {
+          LocalVariableElement loopElement = loopVariable.getElement();
+          override(loopElement, loopElement.getType(), getIteratorElementType(iterator));
+        }
       }
       safelyVisit(node.getBody());
       node.accept(elementResolver);
