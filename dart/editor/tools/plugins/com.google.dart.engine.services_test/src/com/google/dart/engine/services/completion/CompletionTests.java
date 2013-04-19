@@ -358,6 +358,70 @@ public class CompletionTests extends CompletionTestCase {
         "2+getKeys");
   }
 
+  public void test024() throws Exception {
+    test(//
+        src(// Note lack of semicolon following completion location
+            "class List{factory List.from(Iterable other) {}}",
+            "class F {",
+            "  f() {",
+            "    new List.!1",
+            "  }",
+            "}"),
+        "1+from");
+  }
+
+  public void test025() throws Exception {
+    test(
+        src(
+            "class R {",
+            "  static R _m;",
+            "  static R m;",
+            "  f() {",
+            "    var a = !1m;",
+            "    var b = _!2m;",
+            "    var c = !3g();",
+            "  }",
+            "  static g() {",
+            "    var a = !4m;",
+            "    var b = _!5m;",
+            "    var c = !6g();",
+            "  }",
+            "}",
+            "class T {",
+            "  f() {",
+            "    R x;",
+            "    x.!7g();",
+            "    x.!8m;",
+            "    x._!9m;",
+            "  }",
+            "  static g() {",
+            "    var q = R._!Am;",
+            "    var g = R.!Bm;",
+            "    var h = R.!Cg();",
+            "  }",
+            "  h() {",
+            "    var q = R._!Dm;",
+            "    var g = R.!Em;",
+            "    var h = R.!Fg();",
+            "  }",
+            "}"),
+        "1+m",
+        "2+_m",
+        "3+g",
+        "4+m",
+        "5+_m",
+        "6+g",
+        "7-g",
+        "8-m",
+        "9-_m",
+        "A+_m",
+        "B+m",
+        "C+g",
+        "D+_m",
+        "E+m",
+        "F+g");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
@@ -720,17 +784,17 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets052() throws Exception {
-    // TODO Enable after type propagation is implemented. Not yet.
-//    String source = src(
-//        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
-//        "void r() {",
-//        "  List<String> values = ['a','b','c'];",
-//        "  for (var v in values) {",
-//        "    v.!1toUpperCase;",
-//        "    v.!2getKeys;",
-//        "  }",
-//        "}");
-//    test(source, "1+toUpperCase", "2-getKeys");
+    // Type propagation.
+    String source = src(
+        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+        "void r() {",
+        "  List<String> values = ['a','b','c'];",
+        "  for (var v in values) {",
+        "    v.!1toUpperCase;",
+        "    v.!2getKeys;",
+        "  }",
+        "}");
+    test(source, "1+toUpperCase", "2-getKeys");
   }
 
   public void testCommentSnippets053() throws Exception {
@@ -748,7 +812,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets054() throws Exception {
-    // TODO Enable after type propagation is implemented. Not yet.
+    // TODO Enable after type propagation is implemented.
 //    String source = src(
 //        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
 //        "void r() {",
@@ -1396,7 +1460,7 @@ public class CompletionTests extends CompletionTestCase {
     test("class Foo { int boo = 7; mth() { while (b!1) {} }}", "1+boo");
   }
 
-  // TODO Test for disallowed instance refs from within static methods. Improve proposals for optional params.
+  // TODO Improve proposals for optional params.
   public void testSingle() throws Exception {
     test("class A {int x; !2mth() {int y = this.x;}}class B{}", "2+B");
   }

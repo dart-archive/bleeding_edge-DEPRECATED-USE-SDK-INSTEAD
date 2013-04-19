@@ -738,6 +738,21 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitConstructorName(ConstructorName node) {
+      // { new A.!c(); }
+      TypeName typeName = node.getType();
+      if (typeName != null) {
+        Type type = typeName.getType();
+        Element typeElement = type.getElement();
+        if (typeElement instanceof ClassElement) {
+          ClassElement classElement = (ClassElement) typeElement;
+          constructorReference(classElement, node.getName());
+        }
+      }
+      return null;
+    }
+
+    @Override
     public Void visitContinueStatement(ContinueStatement node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
@@ -1465,6 +1480,12 @@ public class CompletionEngine {
       if (ident.getElement() instanceof PrefixElement) {
         prefixedAccess(ident, node.getMethodName());
         return;
+      } else if (ident.getElement() instanceof ClassElement) {
+        state.areInstanceReferencesProhibited = true;
+        state.areStaticReferencesProhibited = false;
+      } else {
+        state.areInstanceReferencesProhibited = false;
+        state.areStaticReferencesProhibited = true;
       }
     }
     if (expr == null) {
