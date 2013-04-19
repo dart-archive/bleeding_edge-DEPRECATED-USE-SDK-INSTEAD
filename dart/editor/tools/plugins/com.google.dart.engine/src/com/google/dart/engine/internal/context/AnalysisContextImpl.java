@@ -208,7 +208,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (source == null) {
       return null;
     }
-    final CharSequence[] contentHolder = new String[1];
+    final CharSequence[] contentHolder = new CharSequence[1];
     try {
       source.getContents(new Source.ContentReceiver() {
         @Override
