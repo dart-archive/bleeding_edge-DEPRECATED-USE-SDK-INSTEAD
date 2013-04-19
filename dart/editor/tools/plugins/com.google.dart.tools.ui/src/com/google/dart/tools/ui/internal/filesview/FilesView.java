@@ -518,7 +518,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   protected void fillInToolbar(IToolBarManager toolbar) {
     // Link with Editor
-
     linkWithEditorAction = new LinkWithEditorAction(getViewSite().getPage(), treeViewer);
 
     if (memento != null && memento.getBoolean(LINK_WITH_EDITOR_ID) != null) {
@@ -527,10 +526,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       linkWithEditorAction.setLinkWithEditor(true);
     }
 
-    // Collapse All
-
-    toolbar.add(new CollapseAllAction(treeViewer));
     toolbar.add(linkWithEditorAction);
+
+    // Collapse All
+    toolbar.add(new CollapseAllAction(treeViewer));
   }
 
   protected void handleDoubleClick(DoubleClickEvent event) {
