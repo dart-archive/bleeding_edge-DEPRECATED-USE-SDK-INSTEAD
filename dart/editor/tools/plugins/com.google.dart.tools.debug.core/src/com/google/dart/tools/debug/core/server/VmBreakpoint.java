@@ -21,8 +21,8 @@ public class VmBreakpoint {
   private VmLocation location;
   private int breakpointId;
 
-  VmBreakpoint(String url, int line, int breakpointId) {
-    this.location = VmLocation.createFrom(url, line);
+  VmBreakpoint(VmLocation location, int breakpointId) {
+    this.location = location;
     this.breakpointId = breakpointId;
   }
 
@@ -39,8 +39,8 @@ public class VmBreakpoint {
     return "[breakpoint " + getBreakpointId() + "," + getLocation() + "]";
   }
 
-  void updateInfo(String url, int line) {
-    location.updateInfo(url, line);
+  protected void updateLocation(VmLocation location) {
+    this.location = location;
   }
 
 }

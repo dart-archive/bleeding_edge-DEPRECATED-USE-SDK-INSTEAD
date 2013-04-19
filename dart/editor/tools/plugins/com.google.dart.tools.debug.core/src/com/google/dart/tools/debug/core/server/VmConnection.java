@@ -617,7 +617,7 @@ public class VmConnection {
    * @param callback
    * @throws IOException
    */
-  public void setBreakpoint(VmIsolate isolate, final String url, final int line,
+  public void setBreakpoint(final VmIsolate isolate, final String url, final int line,
       final BreakpointResolvedCallback callback) throws IOException {
     try {
       JSONObject request = new JSONObject();
@@ -633,13 +633,7 @@ public class VmConnection {
           if (!object.has("error")) {
             int breakpointId = JsonUtils.getInt(object.getJSONObject("result"), "breakpointId");
 
-            VmBreakpoint bp = new VmBreakpoint(url, line, breakpointId);
-
-            breakpoints.add(bp);
-
             if (callback != null) {
-              //callback.handleResolved(bp);
-
               breakpointCallbackMap.put(breakpointId, callback);
             }
           }
@@ -1015,7 +1009,7 @@ public class VmConnection {
     return isolateMap.get(isolateId);
   }
 
-  private void handleBreakpointResolved(int breakpointId, String url, int line) {
+  private void handleBreakpointResolved(int breakpointId, VmLocation location) {
     VmBreakpoint breakpoint = null;
 
     synchronized (breakpoints) {
@@ -1029,19 +1023,19 @@ public class VmConnection {
     }
 
     if (breakpoint == null) {
-      breakpoint = new VmBreakpoint(url, line, breakpointId);
+      breakpoint = new VmBreakpoint(location, breakpointId);
 
       breakpoints.add(breakpoint);
     } else {
-      breakpoint.updateInfo(url, line);
+      breakpoint.updateLocation(location);
+    }
 
-      BreakpointResolvedCallback callback = breakpointCallbackMap.get(breakpointId);
+    BreakpointResolvedCallback callback = breakpointCallbackMap.get(breakpointId);
 
-      if (callback != null) {
-        breakpointCallbackMap.remove(breakpointId);
+    if (callback != null) {
+      breakpointCallbackMap.remove(breakpointId);
 
-        callback.handleResolved(breakpoint);
-      }
+      callback.handleResolved(breakpoint);
     }
   }
 
@@ -1101,10 +1095,11 @@ public class VmConnection {
         // { "event": "breakpointResolved", "params": {"breakpointId": 2, "url": "file:///Users/devoncarew/tools/eclipse_37/eclipse/samples/time/time_server.dart", "line": 19 }}
 
         int breakpointId = params.optInt("breakpointId");
-        String url = VmUtils.vmUrlToEclipse(params.optString("url"));
-        int line = params.optInt("line");
+        int isolateId = params.optInt("isolateId");
+        VmIsolate isolate = getCreateIsolate(isolateId);
+        VmLocation location = VmLocation.createFrom(isolate, params.getJSONObject("location"));
 
-        handleBreakpointResolved(breakpointId, url, line);
+        handleBreakpointResolved(breakpointId, location);
       } else if (eventName.equals(EVENT_ISOLATE)) {
         // "{" event ":" isolate "," params ":" "{" reason ":" created "," id ":" Integer "}" "}"
         // "{" event ":" isolate "," params ":" "{" reason ":" shutdown "," id ":" Integer "}" "}"

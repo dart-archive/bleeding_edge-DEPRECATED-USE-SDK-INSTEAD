@@ -31,6 +31,7 @@ public class VmValue extends VmRef {
     VmValue value = new VmValue(isolate);
 
     value.objectId = obj.optInt("objectId");
+    value.classId = obj.optInt("classId");
     value.kind = obj.optString("kind");
     value.text = obj.optString("text");
     value.length = obj.optInt("length", 0);
@@ -44,6 +45,8 @@ public class VmValue extends VmRef {
 
   private int objectId;
 
+  private int classId;
+
   private int length;
 
   private VmObject vmObject;
@@ -53,7 +56,16 @@ public class VmValue extends VmRef {
   }
 
   /**
-   * @return one of "string", "integer", "object", "boolean".
+   * Returns the classId for this value. This is only valid if isObject() is true.
+   * 
+   * @return the classId for this value
+   */
+  public int getClassId() {
+    return classId;
+  }
+
+  /**
+   * @return one of "string", "number", "object", "boolean".
    */
   public String getKind() {
     return kind;
@@ -92,12 +104,17 @@ public class VmValue extends VmRef {
     return isObject() && (text == null || "null".equals(text));
   }
 
+  public boolean isNumber() {
+    return "number".equals(kind);
+  }
+
   public boolean isObject() {
     return "object".equals(getKind());
   }
 
   public boolean isPrimitive() {
-    return "integer".equals(kind) || "boolean".equals(kind) || "string".equals(kind);
+    return "number".equals(kind) || "integer".equals(kind) || "boolean".equals(kind)
+        || "string".equals(kind);
   }
 
   public boolean isString() {

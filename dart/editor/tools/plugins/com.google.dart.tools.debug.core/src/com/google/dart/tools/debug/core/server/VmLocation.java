@@ -24,32 +24,6 @@ import org.json.JSONObject;
  */
 public class VmLocation {
 
-  public static VmLocation createFrom(String url, final int lineNumber) {
-    VmLocation location = new VmLocation(null) {
-      private int line;
-
-      {
-        line = lineNumber;
-      }
-
-      @Override
-      public int getLineNumber(VmConnection connection) {
-        return line;
-      }
-
-      @Override
-      protected void updateInfo(String url, int lineNumber) {
-        super.updateInfo(url, lineNumber);
-
-        this.line = lineNumber;
-      }
-    };
-
-    location.url = url;
-
-    return location;
-  }
-
   static VmLocation createFrom(VmIsolate isolate, JSONObject object) throws JSONException {
     if (object == null) {
       return null;
@@ -104,10 +78,6 @@ public class VmLocation {
   @Override
   public String toString() {
     return "[" + url + ", tokenOffset=" + tokenOffset + "]";
-  }
-
-  protected void updateInfo(String url, int lineNumber) {
-    this.url = url;
   }
 
 }
