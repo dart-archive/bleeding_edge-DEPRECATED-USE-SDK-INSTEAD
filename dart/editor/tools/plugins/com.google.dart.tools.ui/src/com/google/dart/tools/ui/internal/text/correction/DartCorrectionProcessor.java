@@ -14,8 +14,8 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.engine.services.correction.ProblemLocation;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.text.dart.CompletionProposalComparator;
@@ -50,11 +50,11 @@ public class DartCorrectionProcessor implements
 
   @Override
   public boolean canFix(Annotation annotation) {
-    ProblemLocation location = DartCorrectionAssistant.createProblemLocation(annotation);
-    if (location == null) {
+    AnalysisError problem = assistant.getAnalysisError(annotation);
+    if (problem == null) {
       return false;
     }
-    return QuickFixProcessor.hasFix(location);
+    return QuickFixProcessor.hasFix(problem);
   }
 
   @Override
@@ -72,20 +72,20 @@ public class DartCorrectionProcessor implements
     }
     // prepare proposals
     List<ICompletionProposal> proposals = Lists.newArrayList();
-    // add Quick Assists
-    {
-      QuickAssistProcessor qaProcessor = new QuickAssistProcessor();
-      ICompletionProposal[] assistProposals = qaProcessor.getAssists(contextUI);
-      Collections.addAll(proposals, assistProposals);
-    }
     // add Quick Fixes
+    AnalysisError problemToFix = assistant.getProblemToFix();
     try {
-      QuickFixProcessor qaProcessor = new QuickFixProcessor();
-      ProblemLocation problem = assistant.getProblemLocationToFix();
-      ICompletionProposal[] fixProposals = qaProcessor.computeFix(contextUI, problem);
+      QuickFixProcessor qfProcessor = new QuickFixProcessor();
+      ICompletionProposal[] fixProposals = qfProcessor.computeFix(contextUI, problemToFix);
       Collections.addAll(proposals, fixProposals);
     } catch (Throwable e) {
       DartToolsPlugin.log(e);
+    }
+    // add Quick Assists
+    if (problemToFix == null) {
+      QuickAssistProcessor qaProcessor = new QuickAssistProcessor();
+      ICompletionProposal[] assistProposals = qaProcessor.getAssists(contextUI);
+      Collections.addAll(proposals, assistProposals);
     }
     // done
     Collections.sort(proposals, new CompletionProposalComparator());

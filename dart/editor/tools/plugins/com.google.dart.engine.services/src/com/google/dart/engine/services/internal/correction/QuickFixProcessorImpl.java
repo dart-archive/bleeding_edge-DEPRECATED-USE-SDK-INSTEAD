@@ -16,6 +16,7 @@ package com.google.dart.engine.services.internal.correction;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -24,12 +25,12 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProposal;
-import com.google.dart.engine.services.correction.ProblemLocation;
 import com.google.dart.engine.services.correction.QuickFixProcessor;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 
   private final List<CorrectionProposal> proposals = Lists.newArrayList();
   private final List<Edit> textEdits = Lists.newArrayList();
-  private ProblemLocation problem;
+  private AnalysisError problem;
   private Source source;
   //  private CompilationUnit unit;
 //  private ASTNode node;
@@ -59,13 +60,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private CorrectionUtils utils;
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
   private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
+  private final Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
 
 //  private SourceRange proposalEndRange = null;
 
-  private final Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
-
   @Override
-  public CorrectionProposal[] computeProposals(AssistContext context, ProblemLocation problem)
+  public CorrectionProposal[] computeProposals(AssistContext context, AnalysisError problem)
       throws Exception {
     if (context == null) {
       return NO_PROPOSALS;
@@ -109,14 +109,15 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   }
 
   @Override
-  public boolean hasFix(ProblemLocation problem) {
+  public boolean hasFix(AnalysisError problem) {
     ErrorCode errorCode = problem.getErrorCode();
     return errorCode == ParserErrorCode.EXPECTED_TOKEN
         || errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN;
   }
 
   private void addFix_boolInsteadOfBoolean() {
-    addReplaceEdit(problem.getRange(), "bool");
+    SourceRange range = SourceRangeFactory.rangeError(problem);
+    addReplaceEdit(range, "bool");
     addUnitCorrectionProposal(CorrectionKind.QF_REPLACE_BOOLEAN_WITH_BOOL);
   }
 

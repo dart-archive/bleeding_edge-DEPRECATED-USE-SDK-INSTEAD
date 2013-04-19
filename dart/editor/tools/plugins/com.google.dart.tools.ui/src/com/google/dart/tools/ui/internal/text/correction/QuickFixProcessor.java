@@ -14,9 +14,9 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
-import com.google.dart.engine.services.correction.ProblemLocation;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 
@@ -31,21 +31,21 @@ import java.util.List;
  */
 public class QuickFixProcessor {
   /**
-   * @param location the {@link ProblemLocation} to analyze, not {@code null}.
+   * @param problem the {@link AnalysisError} to analyze, not {@code null}.
    * @return {@code true} if {@link QuickFixProcessor} can produce {@link ICompletionProposal} to
    *         fix given problem.
    */
-  public static boolean hasFix(ProblemLocation location) {
-    return CorrectionProcessors.getQuickFixProcessor().hasFix(location);
+  public static boolean hasFix(AnalysisError problem) {
+    return CorrectionProcessors.getQuickFixProcessor().hasFix(problem);
   }
 
   /**
-   * Computes {@link ICompletionProposal}s which can fix some of the given {@link ProblemLocation}s.
+   * Computes {@link ICompletionProposal}s which can fix some of the given {@link AnalysisError}s.
    * 
    * @return the {@link ICompletionProposal}s, may be empty, but not {@code null}.
    */
   public ICompletionProposal[] computeFix(final AssistContextUI contextUI,
-      final ProblemLocation problem) {
+      final AnalysisError problem) {
     final List<ICompletionProposal> proposals = Lists.newArrayList();
     ExecutionUtils.runLog(new RunnableEx() {
       @Override

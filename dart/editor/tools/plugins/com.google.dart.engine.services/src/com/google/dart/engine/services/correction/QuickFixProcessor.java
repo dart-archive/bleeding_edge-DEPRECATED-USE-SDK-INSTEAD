@@ -22,14 +22,14 @@ import com.google.dart.engine.services.assist.AssistContext;
  */
 public interface QuickFixProcessor {
   /**
-   * @return the {@link CorrectionProposal}s which may fix given {@link ProblemLocation}.
+   * @return the {@link CorrectionProposal}s which may fix given {@link AnalysisError}.
    */
-  CorrectionProposal[] computeProposals(AssistContext context, ProblemLocation problem)
+  CorrectionProposal[] computeProposals(AssistContext context, AnalysisError problem)
       throws Exception;
 
   /**
    * @return the {@code true} if {@link QuickFixProcessor} can produce {@link CorrectionProposal}(s)
-   *         which may fix given {@link ProblemLocation}.
+   *         which may fix given {@link AnalysisError}.
    */
-  boolean hasFix(ProblemLocation problem);
+  boolean hasFix(AnalysisError problem);
 }

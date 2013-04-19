@@ -14,27 +14,25 @@
 
 package com.google.dart.engine.services.internal.correction;
 
-import com.google.common.collect.Lists;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.formatter.edit.Edit;
+import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
-import com.google.dart.engine.services.correction.ProblemLocation;
 import com.google.dart.engine.services.correction.QuickFixProcessor;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-import java.util.Collections;
 import java.util.List;
 
 public class QuickFixProcessorImplTest extends AbstractDartTest {
   private static final QuickFixProcessor PROCESSOR = CorrectionProcessors.getQuickFixProcessor();
 
-  private ProblemLocation problem;
+  private AnalysisError error;
 
   public void test_boolean() throws Exception {
     prepareProblemWithFix(
@@ -52,8 +50,10 @@ public class QuickFixProcessorImplTest extends AbstractDartTest {
   }
 
   public void test_computeProposals_noContext() throws Exception {
-    ProblemLocation emptyProblem = new ProblemLocation(null, 0, 0, "");
-    CorrectionProposal[] proposals = PROCESSOR.computeProposals(null, emptyProblem);
+    AnalysisError emptyError = new AnalysisError(
+        testSource,
+        ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
+    CorrectionProposal[] proposals = PROCESSOR.computeProposals(null, emptyError);
     assertThat(proposals).isEmpty();
   }
 
@@ -117,36 +117,29 @@ public class QuickFixProcessorImplTest extends AbstractDartTest {
 
   private CorrectionProposal[] getProposals() throws Exception {
     AssistContext context = new AssistContext(null, testUnit, 0, 0);
-    return PROCESSOR.computeProposals(context, problem);
+    return PROCESSOR.computeProposals(context, error);
   }
 
   /**
-   * Prepares single problem to fix and stores to {@link #problem}.
+   * Prepares single error to fix and stores to {@link #error}.
    */
   private void prepareProblem() {
-    List<AnalysisError> errors = Lists.newArrayList();
-    Collections.addAll(errors, testUnit.getParsingErrors());
-    Collections.addAll(errors, testUnit.getResolutionErrors());
+    AnalysisError[] errors = testUnit.getErrors();
     assertThat(errors).hasSize(1);
-    AnalysisError error = errors.get(0);
-    problem = new ProblemLocation(
-        error.getErrorCode(),
-        error.getOffset(),
-        error.getLength(),
-        error.getMessage());
+    error = errors[0];
   }
 
   /**
-   * Prepares {@link #problem} and checks that {@link QuickFixProcessor#hasFix(ProblemLocation)}.
+   * Prepares {@link #error} and checks that {@link QuickFixProcessor#hasFix(AnalysisError)}.
    */
   private void prepareProblemWithFix(String... lines) throws Exception {
     parseTestUnit(makeSource(lines));
     prepareProblem();
     {
-      boolean hasFix = PROCESSOR.hasFix(problem);
-      ErrorCode errorCode = problem.getErrorCode();
+      boolean hasFix = PROCESSOR.hasFix(error);
+      ErrorCode errorCode = error.getErrorCode();
       String errorCodeStr = errorCode.getClass().getSimpleName() + "." + errorCode;
-      assertTrue(errorCodeStr + " " + problem.getMessage(), hasFix);
+      assertTrue(errorCodeStr + " " + error.getMessage(), hasFix);
     }
   }
 }

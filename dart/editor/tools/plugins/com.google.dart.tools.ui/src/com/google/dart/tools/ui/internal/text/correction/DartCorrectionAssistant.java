@@ -14,11 +14,12 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
-import com.google.dart.engine.services.correction.ProblemLocation;
+import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.resources.IMarker;
@@ -31,65 +32,18 @@ import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
 import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.source.Annotation;
-import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
  * @coverage dart.editor.ui.correction
  */
 public class DartCorrectionAssistant extends QuickAssistAssistant {
-  /**
-   * @return the {@link ProblemLocation} created from the given {@link Annotation}. May be
-   *         {@code null}.
-   */
-  static ProblemLocation createProblemLocation(Annotation annotation) {
-    // prepare marker
-    if (!(annotation instanceof MarkerAnnotation)) {
-      return null;
-    }
-    IMarker marker = ((MarkerAnnotation) annotation).getMarker();
-    if (marker == null) {
-      return null;
-    }
-    // prepare ErrorCode
-    ErrorCode errorCode = DartCore.getErrorCode(marker);
-    if (errorCode == null) {
-      return null;
-    }
-    // prepare message
-    String message = marker.getAttribute(IMarker.MESSAGE, (String) null);
-    if (message == null) {
-      return null;
-    }
-    // prepare 'offset'
-    int offset;
-    {
-      offset = marker.getAttribute(IMarker.CHAR_START, -1);
-      if (offset == -1) {
-        return null;
-      }
-    }
-    // prepare 'length'
-    int length;
-    {
-      int end = marker.getAttribute(IMarker.CHAR_END, -1);
-      if (end == -1) {
-        return null;
-      }
-      length = end - offset;
-    }
-    // OK
-    return new ProblemLocation(errorCode, offset, length, message);
-  }
-
   private static IRegion getRegionOfInterest(ITextEditor editor, int invocationLocation)
       throws BadLocationException {
     IDocumentProvider documentProvider = editor.getDocumentProvider();
@@ -109,11 +63,12 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
   }
 
   private final DartEditor editor;
+
   private ITextViewer viewer;
   /**
-   * The {@link ProblemLocation} to propose fixes for.
+   * The {@link AnalysisError} to propose fixes for.
    */
-  private ProblemLocation problemLocationToFix;
+  private AnalysisError problemToFix;
 
   public DartCorrectionAssistant(ITextEditor editor) {
     Assert.isNotNull(editor);
@@ -134,10 +89,10 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
   }
 
   /**
-   * @return the {@link ProblemLocation} to compute fixes for.
+   * @return the {@link AnalysisError} to compute fixes for.
    */
-  public ProblemLocation getProblemLocationToFix() {
-    return problemLocationToFix;
+  public AnalysisError getProblemToFix() {
+    return problemToFix;
   }
 
   @Override
@@ -160,22 +115,56 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
   }
 
   /**
-   * Fills {@link #problemLocationToFix}.
+   * Finds {@link AnalysisError} corresponding to the given {@link Annotation}. May be {@code null}
+   * if underlying {@link DartEditor} has no resolved unit.
+   */
+  AnalysisError getAnalysisError(Annotation annotation) {
+    // prepare marker
+    if (!(annotation instanceof MarkerAnnotation)) {
+      return null;
+    }
+    IMarker marker = ((MarkerAnnotation) annotation).getMarker();
+    if (marker == null) {
+      return null;
+    }
+    int markerOffset = marker.getAttribute(IMarker.CHAR_START, -1);
+    int markerLength = marker.getAttribute(IMarker.CHAR_END, -1) - markerOffset;
+    // prepare ErrorCode
+    ErrorCode errorCode = DartCore.getErrorCode(marker);
+    if (errorCode == null) {
+      return null;
+    }
+    // prepare context
+    AssistContext context = editor.getAssistContext();
+    if (context == null) {
+      return null;
+    }
+    // find AnalysisError
+    AnalysisError[] errors = context.getCompilationUnit().getErrors();
+    for (AnalysisError error : errors) {
+      if (error.getErrorCode() == errorCode && error.getOffset() == markerOffset
+          && error.getLength() == markerLength) {
+        return error;
+      }
+    }
+    // not found
+    return null;
+  }
+
+  /**
+   * Fills {@link #problemToFix}.
    */
   private void prepareProblemsAtCaretLocation() {
-    problemLocationToFix = null;
+    problemToFix = null;
     try {
       Point selectedRange = viewer.getSelectedRange();
       int currOffset = selectedRange.x;
-      // prepare IAnnotationModel
-      IAnnotationModel model;
-      {
-        IEditorInput editorInput = editor.getEditorInput();
-        model = DartUI.getDocumentProvider().getAnnotationModel(editorInput);
-        if (model == null) {
-          return;
-        }
+      // prepare AssistContext
+      AssistContext context = editor.getAssistContext();
+      if (context == null) {
+        return;
       }
+      CompilationUnit unit = context.getCompilationUnit();
       // prepare current line range
       IRegion lineInfo = getRegionOfInterest(editor, currOffset);
       if (lineInfo == null) {
@@ -184,42 +173,30 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
       int rangeStart = lineInfo.getOffset();
       int rangeEnd = rangeStart + lineInfo.getLength();
 
-      List<ProblemLocation> allProblemLocations = Lists.newArrayList();
+      List<AnalysisError> allProblems = Lists.newArrayList();
       List<Position> allPositions = Lists.newArrayList();
-      @SuppressWarnings("unchecked")
-      Iterator<Annotation> iter = model.getAnnotationIterator();
-      while (iter.hasNext()) {
-        Annotation annotation = iter.next();
-        // prepare Annotation position
-        Position pos = model.getPosition(annotation);
-        if (pos == null) {
-          continue;
-        }
+      for (AnalysisError error : unit.getErrors()) {
+        Position pos = new Position(error.getOffset(), error.getLength());
         // check that Annotation is on the current line
         if (!isInside(pos.offset, rangeStart, rangeEnd)) {
           continue;
         }
-        // 
-        ProblemLocation problemLocation = createProblemLocation(annotation);
-        if (problemLocation == null) {
-          continue;
-        }
-        if (QuickFixProcessor.hasFix(problemLocation)) {
-          allProblemLocations.add(problemLocation);
+        // add only if has fix 
+        if (QuickFixProcessor.hasFix(error)) {
+          allProblems.add(error);
           allPositions.add(pos);
         }
       }
-      problemLocationToFix = null;
       // problem under caret
       for (int i = 0; i < allPositions.size(); i++) {
         Position pos = allPositions.get(i);
         if (pos.includes(currOffset)) {
-          problemLocationToFix = allProblemLocations.get(i);
+          problemToFix = allProblems.get(i);
           break;
         }
       }
       // problem after caret
-      if (problemLocationToFix == null) {
+      if (problemToFix == null) {
         int bestOffset = Integer.MAX_VALUE;
         for (int i = 0; i < allPositions.size(); i++) {
           Position pos = allPositions.get(i);
@@ -227,13 +204,13 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
             int offset = pos.offset - currOffset;
             if (offset < bestOffset) {
               bestOffset = offset;
-              problemLocationToFix = allProblemLocations.get(i);
+              problemToFix = allProblems.get(i);
             }
           }
         }
       }
       // problem before caret
-      if (problemLocationToFix == null) {
+      if (problemToFix == null) {
         int bestOffset = Integer.MAX_VALUE;
         for (int i = 0; i < allPositions.size(); i++) {
           Position pos = allPositions.get(i);
@@ -241,22 +218,22 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
             int offset = currOffset - pos.offset;
             if (offset < bestOffset) {
               bestOffset = offset;
-              problemLocationToFix = allProblemLocations.get(i);
+              problemToFix = allProblems.get(i);
             }
           }
         }
       }
       // not found
-      if (problemLocationToFix == null) {
+      if (problemToFix == null) {
         return;
       }
       // show problem
       {
-        int offset = problemLocationToFix.getOffset();
+        int offset = problemToFix.getOffset();
         viewer.setSelectedRange(offset, 0);
         viewer.revealRange(offset, 0);
       }
-    } catch (BadLocationException e) {
+    } catch (Throwable e) {
       DartToolsPlugin.log(e);
     }
   }

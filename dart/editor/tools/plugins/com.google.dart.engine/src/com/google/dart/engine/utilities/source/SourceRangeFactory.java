@@ -15,6 +15,7 @@ package com.google.dart.engine.utilities.source;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -123,6 +124,17 @@ public class SourceRangeFactory {
     int start = a.getEnd();
     int end = b.getOffset();
     return rangeStartEnd(start, end);
+  }
+
+  /**
+   * @return the {@link SourceRange} for given {@link AnalysisError}, or {@code null} if
+   *         {@code null} was given.
+   */
+  public static SourceRange rangeError(AnalysisError error) {
+    if (error != null) {
+      return new SourceRange(error.getOffset(), error.getLength());
+    }
+    return null;
   }
 
   /**
