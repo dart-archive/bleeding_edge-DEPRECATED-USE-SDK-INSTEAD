@@ -15,6 +15,18 @@
 package com.google.dart.tools.core.utilities.dartdoc;
 
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
+import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.element.visitor.SimpleElementVisitor;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartDocumentable;
@@ -36,6 +48,126 @@ import java.io.StringReader;
  * A utility class for dealing with Dart doc text.
  */
 public final class DartDocUtilities {
+
+  private static class DocumentingVisitor extends SimpleElementVisitor<String> {
+    @Override
+    public String visitClassElement(ClassElement element) {
+
+      LibraryElement library = element.getLibrary();
+
+      if (library != null) {
+        String libraryName = library.getName();
+        if (libraryName != null && libraryName.length() > 0) {
+          return getTypeName(element) + " - " + libraryName;
+        }
+      }
+
+      return getTypeName(element);
+    }
+
+    @Override
+    public String visitFieldElement(FieldElement element) {
+      return getTypeName(element) + " " + element.getName();
+    }
+
+    @Override
+    public String visitFunctionElement(com.google.dart.engine.element.FunctionElement element) {
+      return getDescription(element);
+    }
+
+    @Override
+    public String visitLocalVariableElement(LocalVariableElement element) {
+      return getTypeName(element) + " " + element.getName();
+    }
+
+    @Override
+    public String visitMethodElement(MethodElement element) {
+      return getDescription(element);
+    }
+
+    @Override
+    public String visitPropertyAccessorElement(PropertyAccessorElement element) {
+
+      if (element.isGetter()) {
+
+        String returnTypeName = getName(element.getType().getReturnType());
+
+        StringBuilder sb = new StringBuilder();
+        if (returnTypeName != null) {
+          sb.append(returnTypeName).append(' ');
+        }
+        sb.append("get ").append(element.getName());
+        return sb.toString();
+      }
+
+      if (element.isSetter()) {
+        return element.getName() + "(" + buildParams(element.getParameters()) + ")";
+      }
+
+      return getDescription(element);
+    }
+
+    @Override
+    public String visitTopLevelVariableElement(TopLevelVariableElement element) {
+      return getTypeName(element) + " " + element.getName();
+    }
+
+    private StringBuilder buildParams(ParameterElement[] parameters) {
+      StringBuilder buf = new StringBuilder();
+      for (int i = 0; i < parameters.length; i++) {
+        if (i > 0) {
+          buf.append(", ");
+        }
+
+        String typeName = getTypeName(parameters[i]);
+        String paramName = parameters[i].getName();
+
+        if (typeName.indexOf('(') != -1) {
+          // Instead of returning "void(var) callback", return "void callback(var)".
+          int index = typeName.indexOf('(');
+
+          buf.append(typeName.substring(0, index));
+          buf.append(" ");
+          buf.append(paramName);
+          buf.append(typeName.substring(index));
+        } else {
+          buf.append(typeName + " " + paramName);
+        }
+      }
+      return buf;
+    }
+
+    private String getDescription(ExecutableElement element) {
+
+      StringBuilder params = buildParams(element.getParameters());
+      String returnTypeName = getName(element.getType().getReturnType());
+
+      if (returnTypeName != null) {
+        return returnTypeName + " " + element.getName() + "(" + params + ")";
+      } else {
+        return element.getName() + "(" + params + ")";
+      }
+    }
+
+    private String getName(com.google.dart.engine.type.Type type) {
+      if (type != null) {
+        String name = type.getName();
+        if (name != null) {
+          return name;
+        }
+      }
+      return "dynamic";
+    }
+
+    private String getTypeName(ClassElement element) {
+      return getName(element.getType());
+    }
+
+    private String getTypeName(VariableElement element) {
+      return getName(element.getType());
+    }
+
+  }
 
   /**
    * Convert from a Dart doc string with slashes and stars to a plain text representation of the
@@ -149,6 +281,15 @@ public final class DartDocUtilities {
       return convertToHtml(dartDoc);
     }
 
+    return null;
+  }
+
+  /**
+   * Return the prettified DartDoc text for the given element.
+   */
+  public static String getDartDocAsHtml(Element element) {
+
+    //TODO (pquitslund): add dartdoc support for elements
     return null;
   }
 
@@ -277,10 +418,36 @@ public final class DartDocUtilities {
   }
 
   /**
+   * Return a one-line description of the given Element.
+   * 
+   * @param the element to document
+   * @return a String summarizing this element, or {@code null} if there is no suitable
+   *         documentation
+   */
+  public static String getTextSummary(Element element) {
+
+    if (element != null) {
+      String description = element.accept(new DocumentingVisitor());
+      if (description != null) {
+        return description;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * @return a one-line description of the given documentable DartElement
    */
   public static String getTextSummaryAsHtml(DartDocumentable documentable) {
     return convertToHtml(getTextSummary(documentable));
+  }
+
+  /**
+   * Return a one-line description of the given Element as html
+   */
+  public static String getTextSummaryAsHtml(Element element) {
+    return convertToHtml(getTextSummary(element));
   }
 
   private static String convertListItems(String[] lines) {
