@@ -344,7 +344,7 @@ def main():
     homegsutil = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
     gsu = gsutil.GsUtil(False, homegsutil,
       running_on_buildbot=running_on_buildbot)
-
+    InstallDartium(buildroot, buildout, buildos, gsu)
     if sdk_environment.has_key('JAVA_HOME'):
       print 'JAVA_HOME = {0}'.format(str(sdk_environment['JAVA_HOME']))
 
@@ -603,7 +603,7 @@ def InstallSdk(buildroot, buildout, buildos, sdk_dir):
 
 
 def InstallDartium(buildroot, buildout, buildos, gsu):
-  """Install Dartium into the RCP zip files.
+  """Install Dartium into the RCP zip files and upload a version of Dartium
 
   Args:
     buildroot: the boot of the build output
@@ -670,10 +670,15 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
           os.path.splitext(os.path.basename(dartiumFile))[0])
         if not os.path.exists(unzip_dir):
           os.makedirs(unzip_dir)
-        tmp_zip_file = os.path.join(tmp_dir, os.path.basename(dartiumFile))
+        # Always download as searchString.zip
+        basename = "%s.zip" % searchString
+        tmp_zip_file = os.path.join(tmp_dir, basename)
 
         if not os.path.exists(tmp_zip_file):
           gsu.Copy(dartiumFile, tmp_zip_file, False)
+   
+          # Upload dartium zip to make sure we have consistent dartium downloads
+          UploadFile(tmp_zip_file)
 
           # Dartium is unzipped into ~ unzip_dir/dartium-win-full-7665.7665
           dartium_zip = ziputils.ZipUtil(tmp_zip_file, buildos)
