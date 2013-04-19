@@ -22,9 +22,9 @@ import com.google.dart.engine.source.SourceContainer;
  */
 public class InvertedSourceContainer implements SourceContainer {
 
-  private final CompositeSourceContainer container;
+  private final SourceContainer container;
 
-  public InvertedSourceContainer(CompositeSourceContainer container) {
+  public InvertedSourceContainer(SourceContainer container) {
     this.container = container;
   }
 
@@ -33,4 +33,30 @@ public class InvertedSourceContainer implements SourceContainer {
     return !container.contains(source);
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof InvertedSourceContainer)) {
+      return false;
+    }
+    InvertedSourceContainer other = (InvertedSourceContainer) obj;
+    if (container == null) {
+      if (other.container != null) {
+        return false;
+      }
+    } else if (!container.equals(other.container)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return 31 + ((container == null) ? 0 : container.hashCode());
+  }
 }

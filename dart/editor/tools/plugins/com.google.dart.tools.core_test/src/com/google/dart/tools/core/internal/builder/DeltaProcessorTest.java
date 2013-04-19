@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.utilities.io.FileUtilities2;
@@ -81,36 +82,18 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
       calls.add(this, PUBSPEC_REMOVED, container);
     }
 
+    void assertChanged(IContainer pubFolderResource, ChangeSet expected) {
+      getContextFor(pubFolderResource).assertChanged(expected);
+    }
+
     void assertChanged(IContainer pubFolderResource, File[] added, File[] changed,
         File[] removedFiles, File[] removedDirs) {
-      MockContext context;
-      if (pubFolderResource != null) {
-        PubFolder pubFolder = getPubFolder(pubFolderResource);
-        assertNotNull(pubFolder);
-        assertSame(pubFolderResource, pubFolder.getResource());
-        context = (MockContext) pubFolder.getContext();
-      } else {
-        PubFolder pubFolder = getPubFolder(getResource());
-        assertNull(pubFolder);
-        context = (MockContext) getDefaultContext();
-      }
-      context.assertChanged(added, changed, removedFiles, removedDirs);
+      getContextFor(pubFolderResource).assertChanged(added, changed, removedFiles, removedDirs);
     }
 
     void assertChanged(IContainer pubFolderResource, IResource[] added, IResource[] changed,
         IResource[] removed) {
-      MockContext context;
-      if (pubFolderResource != null) {
-        PubFolder pubFolder = getPubFolder(pubFolderResource);
-        assertNotNull(pubFolder);
-        assertSame(pubFolderResource, pubFolder.getResource());
-        context = (MockContext) pubFolder.getContext();
-      } else {
-        PubFolder pubFolder = getPubFolder(getResource());
-        assertNull(pubFolder);
-        context = (MockContext) getDefaultContext();
-      }
-      context.assertChanged(added, changed, removed);
+      getContextFor(pubFolderResource).assertChanged(added, changed, removed);
     }
 
     void assertDiscardContextsIn(IContainer... expected) {
@@ -127,6 +110,13 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
       }
     }
 
+    void assertPackagesRemoved(MockProject pubContainer) {
+      PubFolder pubFolder = getPubFolder(pubContainer);
+      ChangeSet expected = new ChangeSet();
+      expected.removedContainer(pubFolder.getInvertedSourceContainer());
+      project.assertChanged(pubContainer, expected);
+    }
+
     void assertPubspecAdded(IContainer... expected) {
       for (IContainer container : expected) {
         calls.assertCall(this, PUBSPEC_ADDED, container);
@@ -137,6 +127,21 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
       for (IContainer container : expected) {
         calls.assertCall(this, PUBSPEC_REMOVED, container);
       }
+    }
+
+    private MockContext getContextFor(IContainer pubFolderResource) {
+      MockContext context;
+      if (pubFolderResource != null) {
+        PubFolder pubFolder = getPubFolder(pubFolderResource);
+        assertNotNull(pubFolder);
+        assertSame(pubFolderResource, pubFolder.getResource());
+        context = (MockContext) pubFolder.getContext();
+      } else {
+        PubFolder pubFolder = getPubFolder(getResource());
+        assertNull(pubFolder);
+        context = (MockContext) getDefaultContext();
+      }
+      return context;
     }
   }
 
@@ -296,10 +301,10 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     project.assertNoCalls();
   }
 
-  public void test_traverse_package_canonical() throws Exception {
+  public void test_traverse_package_added_removed_canonical() throws Exception {
     if (!FileUtilities2.isSymLinkSupported()) {
       System.out.println("Skipping " + getClass().getSimpleName()
-          + " test_traverse_package_added_canonical");
+          + " test_traverse_package_added_removed_canonical");
       return;
     }
 
@@ -342,8 +347,40 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     processor.traverse(delta);
     updater.applyChanges();
 
-    File[] removed = new File[] {new File(packagesDir, "pkg1")};
-    project.assertChanged(projectContainer, null, null, null, removed);
+    project.assertPackagesRemoved(projectContainer);
+    project.assertNoCalls();
+  }
+
+  public void test_traverse_package_directory_removed_canonical() throws Exception {
+    if (!FileUtilities2.isSymLinkSupported()) {
+      System.out.println("Skipping " + getClass().getSimpleName()
+          + " test_traverse_package_directory_removed_canonical");
+      return;
+    }
+
+    // Create symlink from /project/packages/pkg1 --> /pkg1
+    File projDir = FileUtilities2.createTempDir(projectContainer.getName());
+    File packagesDir = new File(projDir, "packages");
+    assertTrue(packagesDir.mkdir());
+    File pkg1Dir = FileUtilities2.createTempDir("pkg1").getCanonicalFile();
+    FileUtilities2.createSymLink(pkg1Dir, new File(packagesDir, "pkg1"));
+
+    projectContainer.setLocation(new Path(projDir.getAbsolutePath()));
+
+    MockFolder packages = projectContainer.getMockFolder(PACKAGES_DIRECTORY_NAME);
+    MockFolder pkg = packages.getMockFolder("pkg1");
+    MockFolder folder = (MockFolder) pkg.remove("some_folder");
+    MockDelta delta = new MockDelta(projectContainer);
+    delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1").add(folder, REMOVED);
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(delta);
+    updater.applyChanges();
+
+    File removedDir = new File(pkg1Dir, folder.getName());
+    project.assertChanged(projectContainer, null, null, null, new File[] {removedDir});
     project.assertNoCalls();
   }
 
@@ -364,6 +401,96 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     project.assertNoCalls();
   }
 
+  public void test_traverse_package_file_added_canonical() throws Exception {
+    if (!FileUtilities2.isSymLinkSupported()) {
+      System.out.println("Skipping " + getClass().getSimpleName()
+          + " test_traverse_package_file_added_canonical");
+      return;
+    }
+
+    // Create symlink from /project/packages/pkg1 --> /pkg1
+    File projDir = FileUtilities2.createTempDir(projectContainer.getName());
+    File packagesDir = new File(projDir, "packages");
+    assertTrue(packagesDir.mkdir());
+    File pkg1Dir = FileUtilities2.createTempDir("pkg1").getCanonicalFile();
+    FileUtilities2.createSymLink(pkg1Dir, new File(packagesDir, "pkg1"));
+
+    projectContainer.setLocation(new Path(projDir.getAbsolutePath()));
+
+    // Create delta with a added file in pkg1
+    MockFolder packages = projectContainer.getMockFolder(PACKAGES_DIRECTORY_NAME);
+    MockFolder pkg1 = packages.getMockFolder("pkg1");
+    MockFile file = pkg1.getMockFile("bar.dart");
+    MockDelta delta = new MockDelta(projectContainer);
+    delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1").add("bar.dart", ADDED);
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(delta);
+    updater.applyChanges();
+
+    File addedFile = new File(pkg1Dir, file.getName());
+    project.assertChanged(projectContainer, new File[] {addedFile}, null, null, null);
+    project.assertNoCalls();
+  }
+
+  public void test_traverse_package_file_added2() throws Exception {
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+
+    // Create delta with a added file in pkg1
+    MockFolder myApp = projectContainer.getMockFolder("myapp");
+    MockFolder packages = myApp.addFolder(PACKAGES_DIRECTORY_NAME);
+    MockFolder pkg1 = packages.addFolder("pkg1");
+    MockFile file = pkg1.addFile("bar.dart");
+    MockDelta delta = new MockDelta(projectContainer);
+    delta.add(myApp).add(PACKAGES_DIRECTORY_NAME).add("pkg1").add("bar.dart", ADDED);
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(delta);
+    updater.applyChanges();
+
+    project.assertChanged(myApp, new IResource[] {file}, null, null);
+  }
+
+  public void test_traverse_package_file_added2_canonical() throws Exception {
+    if (!FileUtilities2.isSymLinkSupported()) {
+      System.out.println("Skipping " + getClass().getSimpleName()
+          + " test_traverse_package_file_added_canonical2");
+      return;
+    }
+
+    // Create symlink from /project/myapp/packages/pkg1 --> /pkg1
+    File projDir = FileUtilities2.createTempDir(projectContainer.getName());
+    File myAppDir = new File(projDir, "myapp");
+    File packagesDir = new File(myAppDir, "packages");
+    assertTrue(packagesDir.mkdirs());
+    File pkg1Dir = FileUtilities2.createTempDir("pkg1").getCanonicalFile();
+    FileUtilities2.createSymLink(pkg1Dir, new File(packagesDir, "pkg1"));
+
+    projectContainer.setLocation(new Path(projDir.getAbsolutePath()));
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+
+    // Create delta with a added file in pkg1
+    MockFolder myApp = projectContainer.getMockFolder("myapp");
+    MockFolder packages = myApp.addFolder(PACKAGES_DIRECTORY_NAME);
+    MockFolder pkg1 = packages.addFolder("pkg1");
+    MockFile file = pkg1.addFile("bar.dart");
+    MockDelta delta = new MockDelta(projectContainer);
+    delta.add(myApp).add(PACKAGES_DIRECTORY_NAME).add("pkg1").add("bar.dart", ADDED);
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(delta);
+    updater.applyChanges();
+
+    File addedFile = new File(pkg1Dir, file.getName());
+    project.assertChanged(myApp, new File[] {addedFile}, null, null, null);
+  }
+
   public void test_traverse_package_file_changed() throws Exception {
     MockFolder packages = projectContainer.getMockFolder(PACKAGES_DIRECTORY_NAME);
     MockFolder pkg1 = packages.getMockFolder("pkg1");
@@ -378,6 +505,39 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     updater.applyChanges();
 
     project.assertChanged(projectContainer, null, new IResource[] {file}, null);
+    project.assertNoCalls();
+  }
+
+  public void test_traverse_package_file_changed_canonical() throws Exception {
+    if (!FileUtilities2.isSymLinkSupported()) {
+      System.out.println("Skipping " + getClass().getSimpleName()
+          + " test_traverse_package_file_changed_canonical");
+      return;
+    }
+
+    // Create symlink from /project/packages/pkg1 --> /pkg1
+    File projDir = FileUtilities2.createTempDir(projectContainer.getName());
+    File packagesDir = new File(projDir, "packages");
+    assertTrue(packagesDir.mkdir());
+    File pkg1Dir = FileUtilities2.createTempDir("pkg1").getCanonicalFile();
+    FileUtilities2.createSymLink(pkg1Dir, new File(packagesDir, "pkg1"));
+
+    projectContainer.setLocation(new Path(projDir.getAbsolutePath()));
+
+    MockFolder packages = projectContainer.getMockFolder(PACKAGES_DIRECTORY_NAME);
+    MockFolder pkg1 = packages.getMockFolder("pkg1");
+    MockFile file = pkg1.getMockFile("bar.dart");
+    MockDelta delta = new MockDelta(projectContainer);
+    delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1").add("bar.dart");
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(delta);
+    updater.applyChanges();
+
+    File changedFile = new File(pkg1Dir, file.getName());
+    project.assertChanged(projectContainer, null, new File[] {changedFile}, null, null);
     project.assertNoCalls();
   }
 
@@ -398,6 +558,39 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     project.assertNoCalls();
   }
 
+  public void test_traverse_package_file_removed_canonical() throws Exception {
+    if (!FileUtilities2.isSymLinkSupported()) {
+      System.out.println("Skipping " + getClass().getSimpleName()
+          + " test_traverse_package_file_removed_canonical");
+      return;
+    }
+
+    // Create symlink from /project/packages/pkg1 --> /pkg1
+    File projDir = FileUtilities2.createTempDir(projectContainer.getName());
+    File packagesDir = new File(projDir, "packages");
+    assertTrue(packagesDir.mkdir());
+    File pkg1Dir = FileUtilities2.createTempDir("pkg1").getCanonicalFile();
+    FileUtilities2.createSymLink(pkg1Dir, new File(packagesDir, "pkg1"));
+
+    projectContainer.setLocation(new Path(projDir.getAbsolutePath()));
+
+    MockFolder packages = projectContainer.getMockFolder(PACKAGES_DIRECTORY_NAME);
+    MockFolder pkg = packages.getMockFolder("pkg1");
+    MockFile file = (MockFile) pkg.remove("bar.dart");
+    MockDelta delta = new MockDelta(projectContainer);
+    delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1").add(file, REMOVED);
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(delta);
+    updater.applyChanges();
+
+    File removedFile = new File(pkg1Dir, file.getName());
+    project.assertChanged(projectContainer, null, null, new File[] {removedFile}, null);
+    project.assertNoCalls();
+  }
+
   public void test_traverse_package_removed() throws Exception {
     MockFolder packages = projectContainer.getMockFolder(PACKAGES_DIRECTORY_NAME);
     MockFolder pkg1 = (MockFolder) packages.remove("pkg1");
@@ -410,7 +603,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     processor.traverse(delta);
     updater.applyChanges();
 
-    project.assertChanged(projectContainer, null, null, new IResource[] {pkg1});
+    project.assertPackagesRemoved(projectContainer);
     project.assertNoCalls();
   }
 
@@ -446,7 +639,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     processor.traverse(delta);
     updater.applyChanges();
 
-    project.assertChanged(projectContainer, null, null, new IResource[] {packages});
+    project.assertPackagesRemoved(projectContainer);
     project.assertNoCalls();
   }
 

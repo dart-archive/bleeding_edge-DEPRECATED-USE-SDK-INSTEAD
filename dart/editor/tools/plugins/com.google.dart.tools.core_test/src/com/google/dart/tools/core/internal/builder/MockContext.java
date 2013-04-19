@@ -41,7 +41,7 @@ public class MockContext implements AnalysisContext {
 
   private final class ChangedCall extends Call {
     private ChangedCall(AnalysisContext target, ChangeSet expected) {
-      super(target, CHANGED, expected);
+      super(target, APPLY_CHANGES, expected);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class MockContext implements AnalysisContext {
     }
   }
 
-  private static final String CHANGED = "changed";
+  private static final String APPLY_CHANGES = "applyChanges";
   private static final String EXTRACT_CONTEXT = "extractContext";
   private static final String MERGE_CONTEXT = "mergeContext";
   private static final String SOURCE_CHANGED = "sourceChanged";
@@ -104,6 +104,10 @@ public class MockContext implements AnalysisContext {
   @Override
   public void applyChanges(ChangeSet changes) {
     calls.add(new ChangedCall(this, changes));
+  }
+
+  public void assertChanged(ChangeSet expected) {
+    calls.assertCall(new ChangedCall(this, expected));
   }
 
   public void assertChanged(File[] added, File[] changed, File[] removedFiles, File[] removedDirs) {
@@ -128,7 +132,7 @@ public class MockContext implements AnalysisContext {
         expected.removedContainer(new DirectoryBasedSourceContainer(dir));
       }
     }
-    calls.assertCall(new ChangedCall(this, expected));
+    assertChanged(expected);
   }
 
   public void assertChanged(IResource[] added, IResource[] changed, IResource[] removed) {

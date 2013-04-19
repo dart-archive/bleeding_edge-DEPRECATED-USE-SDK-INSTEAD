@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.analysis.model;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -44,4 +45,26 @@ public class CompositeSourceContainer implements SourceContainer {
     return false;
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof CompositeSourceContainer)) {
+      return false;
+    }
+    CompositeSourceContainer other = (CompositeSourceContainer) obj;
+    if (!Arrays.equals(containers, other.containers)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return 31 + Arrays.hashCode(containers);
+  }
 }

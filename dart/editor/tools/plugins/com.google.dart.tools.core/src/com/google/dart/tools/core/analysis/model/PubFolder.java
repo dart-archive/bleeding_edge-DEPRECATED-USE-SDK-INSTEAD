@@ -37,7 +37,9 @@ public interface PubFolder {
 
   /**
    * Answer a source container that can be used to determine which sources are not contained in the
-   * pub folder
+   * pub folder. Because the canonical location of a removed package is not available (the symlink
+   * has been removed), this "inverted" source container is used to remove sources from the
+   * associated context.
    */
   InvertedSourceContainer getInvertedSourceContainer();
 

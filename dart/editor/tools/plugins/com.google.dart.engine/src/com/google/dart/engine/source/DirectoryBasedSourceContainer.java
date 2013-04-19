@@ -87,4 +87,9 @@ public class DirectoryBasedSourceContainer implements SourceContainer {
   public int hashCode() {
     return path.hashCode();
   }
+
+  @Override
+  public String toString() {
+    return "SourceContainer[" + path + "]";
+  }
 }

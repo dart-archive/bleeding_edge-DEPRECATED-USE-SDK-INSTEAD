@@ -21,6 +21,7 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.internal.analysis.model.InvertedSourceContainer;
 
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
@@ -53,10 +54,13 @@ public class DeltaProcessor {
 
   private class Event implements SourceDeltaEvent, SourceContainerDeltaEvent {
 
-    private IResource resource;
-    private Source source;
     private IResourceProxy proxy;
+    private IResource resource;
+    private File canonicalPackageDir;
+    private IPath fullPackagePath;
+    private Source source;
     private SourceContainer sourceContainer;
+    private AnalysisContext packagesRemovedFromContext;
 
     @Override
     public AnalysisContext getContext() {
@@ -84,11 +88,9 @@ public class DeltaProcessor {
     @Override
     public Source getSource() {
       if (source == null) {
-        IPath location = getResource().getLocation();
-        if (location != null) {
-          source = new FileBasedSource(
-              context.getSourceFactory().getContentCache(),
-              location.toFile());
+        File file = getResourceFile();
+        if (file != null) {
+          source = new FileBasedSource(context.getSourceFactory().getContentCache(), file);
         } else {
           logNoLocation(getResource());
         }
@@ -99,9 +101,9 @@ public class DeltaProcessor {
     @Override
     public SourceContainer getSourceContainer() {
       if (sourceContainer == null) {
-        IPath location = getResource().getLocation();
-        if (location != null) {
-          sourceContainer = new DirectoryBasedSourceContainer(location.toFile());
+        File file = getResourceFile();
+        if (file != null) {
+          sourceContainer = new DirectoryBasedSourceContainer(file);
         } else {
           logNoLocation(getResource());
         }
@@ -111,19 +113,94 @@ public class DeltaProcessor {
 
     @Override
     public boolean isTopContainerInContext() {
-      return DeltaProcessor.this.isTopContainerInContext((IContainer) getResource());
+      if (resource != null || proxy != null) {
+        return DeltaProcessor.this.isTopContainerInContext((IContainer) getResource());
+      } else {
+        return false;
+      }
     }
 
-    void setProxy(IResourceProxy proxy) {
+    /**
+     * Answer the file associated with the given resource, ensuring that the file is canonical if it
+     * resides in a package.
+     * 
+     * @return the file or {@code null} if the resource location cannot be determined
+     */
+    File getResourceFile() {
+      if (fullPackagePath != null) {
+        IPath fullPath = getResource().getFullPath();
+        return new File(canonicalPackageDir, fullPath.makeRelativeTo(fullPackagePath).toString());
+      }
+      IPath location = getResource().getLocation();
+      if (location != null) {
+        return location.toFile();
+      }
+      return null;
+    }
+
+    /**
+     * Configure the event to represent that a package or the entire "packages" directory was
+     * removed. Because the original canonical location is lost (the symlink has been removed), we
+     * represent this by an {@link InvertedSourceContainer "inverted" source container} that
+     * contains everything *not* currently in the context's root folder or any of the existing
+     * canonical package folders. Because this effectively represents all removed packages, we only
+     * fire this event at most once per delta.
+     * 
+     * @return {@code true} if the
+     *         {@link DeltaListener#packageSourceContainerRemoved(SourceContainerDeltaEvent) package
+     *         removed event} should be fired, or {@code false} if it has already been fired earlier
+     *         when processing the current delta.
+     */
+    boolean setPackagesRemoved() {
+      this.proxy = null;
+      this.resource = null;
+      this.canonicalPackageDir = null;
+      this.fullPackagePath = null;
+      this.source = null;
+      this.sourceContainer = getPubFolder().getInvertedSourceContainer();
+      if (packagesRemovedFromContext == context) {
+        return false;
+      }
+      this.packagesRemovedFromContext = context;
+      return true;
+    }
+
+    /**
+     * Configure the event to represent the specified resource
+     * 
+     * @param proxy the resource proxy (not {@code null})
+     * @param canonicalPackageDir the canonical package directory or {@code null} if the resource is
+     *          not in a package directory
+     * @param fullPackagePath the full Eclipse path of the package directory (
+     *          {@link IResource#getFullPath()} or {@link IResourceProxy#requestFullPath()}) or null
+     *          if the resource is not in a package directory
+     */
+    void setProxy(IResourceProxy proxy, File canonicalPackageDir, IPath fullPackagePath) {
       this.proxy = proxy;
       this.resource = null;
+      this.canonicalPackageDir = canonicalPackageDir;
+      this.fullPackagePath = fullPackagePath;
       this.source = null;
+      this.sourceContainer = null;
     }
 
-    void setResource(IResource resource) {
+    /**
+     * Configure the event to represent the specified resource
+     * 
+     * @param resource the resource (not {@code null})
+     * @param canonicalPackageDir the canonical package directory or {@code null} if the resource is
+     *          not in a package directory
+     * @param fullPackagePath the full Eclipse path of the package directory (
+     *          {@link IResource#getFullPath()} or {@link IResourceProxy#requestFullPath()}) or null
+     *          if the resource is not in a package directory
+     */
+    void setResource(IResource resource, File canonicalPackageDir, IPath fullPackagePath) {
       this.proxy = null;
       this.resource = resource;
+      this.canonicalPackageDir = canonicalPackageDir;
+      this.fullPackagePath = fullPackagePath;
       this.source = null;
+      this.sourceContainer = null;
     }
   }
 
@@ -196,7 +273,7 @@ public class DeltaProcessor {
 
           // Notify listeners of changes to the pubspec.yaml file
           if (name.equals(PUBSPEC_FILE_NAME)) {
-            event.setResource(resource);
+            event.setResource(resource, null, null);
             switch (delta.getKind()) {
               case ADDED:
                 listener.pubspecAdded(event);
@@ -215,7 +292,7 @@ public class DeltaProcessor {
 
           // Notify context of Dart source that have been added, changed, or removed
           if (isDartLikeFileName(name) || isHTMLLikeFileName(name)) {
-            event.setResource(resource);
+            event.setResource(resource, null, null);
             switch (delta.getKind()) {
               case ADDED:
                 listener.sourceAdded(event);
@@ -252,7 +329,7 @@ public class DeltaProcessor {
             // Cache the context and traverse child resource changes
             return setContextFor((IContainer) resource);
           case REMOVED:
-            event.setResource(resource);
+            event.setResource(resource, null, null);
             listener.sourceContainerRemoved(event);
             return false;
           default:
@@ -276,8 +353,10 @@ public class DeltaProcessor {
     }
 
     switch (delta.getKind()) {
-      case ADDED:
 
+    // If the "packages" directory is added, then traverse each package individually
+    // because the canonical locations of each package differ
+      case ADDED:
         for (IResource child : ((IContainer) packagesContainer).members()) {
           try {
             processPackagesResources(
@@ -290,25 +369,59 @@ public class DeltaProcessor {
         }
 
         return;
-      case CHANGED:
+
         // Fall through to traverse child resource changes
+      case CHANGED:
         break;
+
+      // If all packages have been removed, then we issue a more general "packages removed" event
+      // because the symlinks have been removed and thus the canonical locations lost
       case REMOVED:
-        event.setResource(packagesContainer);
-        listener.packageSourceContainerRemoved(event);
+        if (event.setPackagesRemoved()) {
+          listener.packageSourceContainerRemoved(event);
+        }
         return;
       default:
         return;
     }
 
+    // Process each package delta in the "packages" directory
     for (IResourceDelta childDelta : delta.getAffectedChildren()) {
-      final File[] packageDirFile = new File[1];
-      try {
-        packageDirFile[0] = childDelta.getResource().getLocation().toFile().getCanonicalFile();
-      } catch (IOException e1) {
-        DartCore.logError(e1);
+
+      // If the package has been removed, then we issue a more general "packages removed" event
+      // because the symlink has been removed and thus the canonical location lost
+      if (childDelta.getKind() == IResourceDelta.REMOVED) {
+        IResource resource = childDelta.getResource();
+        String name = resource.getName();
+
+        // Ignore hidden resources and nested packages directories
+        if (name.startsWith(".") || name.equals(PACKAGES_DIRECTORY_NAME)) {
+          continue;
+        }
+
+        if (event.setPackagesRemoved()) {
+          listener.packageSourceContainerRemoved(event);
+        }
+        continue;
       }
-      final IPath packageDirPath = childDelta.getResource().getFullPath();
+
+      // Determine the canonical location of the package
+      IPath packageLocation = childDelta.getResource().getLocation();
+      if (packageLocation == null) {
+        logNoLocation(childDelta.getResource());
+        continue;
+      }
+      File packageDir;
+      try {
+        packageDir = packageLocation.toFile().getCanonicalFile();
+      } catch (IOException e) {
+        DartCore.logError(e);
+        continue;
+      }
+      final File canonicalPackageDir = packageDir;
+      final IPath fullPackagePath = childDelta.getResource().getFullPath();
+
+      // Traverse the package additions and changes
       childDelta.accept(new IResourceDeltaVisitor() {
         @Override
         public boolean visit(IResourceDelta delta) throws CoreException {
@@ -323,12 +436,7 @@ public class DeltaProcessor {
           // Notify context of any Dart source files that have been added, changed, or removed
           if (resource.getType() == IResource.FILE) {
             if (isDartLikeFileName(name)) {
-              event.setResource(resource);
-              if (packageDirFile[0] != null) {
-                event.source = new FileBasedSource(
-                    context.getSourceFactory().getContentCache(),
-                    new File(packageDirFile[0], getPath(packageDirPath, resource.getFullPath())));
-              }
+              event.setResource(resource, canonicalPackageDir, fullPackagePath);
               switch (delta.getKind()) {
                 case ADDED:
                   listener.packageSourceAdded(event);
@@ -349,20 +457,13 @@ public class DeltaProcessor {
           // Notify context of any package folders that were added or removed
           switch (delta.getKind()) {
             case ADDED:
-              try {
-                processPackagesResources(
-                    resource,
-                    resource.getLocation().toFile().getCanonicalFile(),
-                    resource.getFullPath());
-              } catch (IOException e) {
-                DartCore.logError(e);
-              }
+              processPackagesResources(resource, canonicalPackageDir, fullPackagePath);
               return false;
             case CHANGED:
               // Recursively visit changed resources
               return true;
             case REMOVED:
-              event.setResource(resource);
+              event.setResource(resource, canonicalPackageDir, fullPackagePath);
               listener.packageSourceContainerRemoved(event);
               return false;
             default:
@@ -377,13 +478,16 @@ public class DeltaProcessor {
    * Traverse added resources in the "packages" directory
    * 
    * @param resource the added resource (not {@code null})
+   * @param canonicalPackageDir the canonical package directory (not {@code null})
+   * @param fullPackagePath the full eclipse resource path of the package (
+   *          {@link IResource#getFullPath()} not {@code null})
    */
-  protected void processPackagesResources(IResource resource, final File packageDir,
-      final IPath packagePath) throws CoreException {
+  protected void processPackagesResources(IResource resource, final File canonicalPackageDir,
+      final IPath fullPackagePath) throws CoreException {
     resource.accept(new IResourceProxyVisitor() {
       @Override
       public boolean visit(IResourceProxy proxy) throws CoreException {
-        return visitPackagesProxy(proxy, proxy.getName(), packageDir, packagePath);
+        return visitPackagesProxy(proxy, proxy.getName(), canonicalPackageDir, fullPackagePath);
       }
     }, 0);
   }
@@ -407,9 +511,12 @@ public class DeltaProcessor {
    * 
    * @param proxy the resource proxy (not {@code null})
    * @param name the resource name (not {@code null})
+   * @param canonicalPackageDir the canonical package directory (not {@code null})
+   * @param fullPackagePath the full eclipse resource path of the package (
+   *          {@link IResource#getFullPath()} not {@code null})
    */
-  protected boolean visitPackagesProxy(IResourceProxy proxy, String name, File packageDir,
-      IPath packagePath) {
+  protected boolean visitPackagesProxy(IResourceProxy proxy, String name, File canonicalPackageDir,
+      IPath fullPackagePath) {
     // Ignore hidden resources and nested packages directories
     if (name.startsWith(".") || name.equals(PACKAGES_DIRECTORY_NAME)) {
       return false;
@@ -418,10 +525,7 @@ public class DeltaProcessor {
     // Notify context of any Dart source files that have been added
     if (proxy.getType() == FILE) {
       if (isDartLikeFileName(name)) {
-        event.setProxy(proxy);
-        event.source = new FileBasedSource(context.getSourceFactory().getContentCache(), new File(
-            packageDir,
-            getPath(packagePath, proxy.requestFullPath())));
+        event.setProxy(proxy, canonicalPackageDir, fullPackagePath);
         listener.packageSourceAdded(event);
       }
       return false;
@@ -448,14 +552,14 @@ public class DeltaProcessor {
 
       // Notify listener of new pubspec.yaml files
       if (name.equals(PUBSPEC_FILE_NAME)) {
-        event.setProxy(proxy);
+        event.setProxy(proxy, null, null);
         listener.pubspecAdded(event);
         return false;
       }
 
       // Notify listener of new source files
       if (isDartLikeFileName(name) || isHTMLLikeFileName(name)) {
-        event.setProxy(proxy);
+        event.setProxy(proxy, null, null);
         listener.sourceAdded(event);
         return false;
       }
@@ -467,8 +571,19 @@ public class DeltaProcessor {
     return setContextFor((IContainer) proxy.requestResource());
   }
 
-  private String getPath(IPath packagePath, IPath fullPath) {
-    return fullPath.makeRelativeTo(packagePath).toString();
+  /**
+   * Answer the canonical file in the given package
+   * 
+   * @param canonicalPackageDir the canonical package directory (not {@code null})
+   * @param fullPackagePath the full Eclipse path for the package (not {@code null},
+   *          {@link IResource#getFullPath()} or {@link IResourceProxy#requestFullPath()})
+   * @param fullFilePath the full Eclipse path for the file in the package (not {@code null},
+   *          {@link IResource#getFullPath()} or {@link IResourceProxy#requestFullPath()})
+   * @return the canonical file corresponding to the given Eclipse file (not {@code null})
+   */
+  private File getCanonicalFileInPackage(final File canonicalPackageDir,
+      final IPath fullPackagePath, IPath fullFilePath) {
+    return new File(canonicalPackageDir, fullFilePath.makeRelativeTo(fullPackagePath).toString());
   }
 
   /**
@@ -500,10 +615,10 @@ public class DeltaProcessor {
       pubFolder = newPubFolder;
       if (pubFolder != null) {
         context = pubFolder.getContext();
-        event.setResource(pubFolder.getResource());
+        event.setResource(pubFolder.getResource(), null, null);
       } else {
         context = project.getDefaultContext();
-        event.setResource(project.getResource());
+        event.setResource(project.getResource(), null, null);
       }
       listener.visitContext(event);
     }
