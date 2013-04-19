@@ -48,7 +48,7 @@ deps.update({
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
 })
 
-hooks[-1:-1] = [{
+hooks[0:0] = [{
     "pattern": ".",
     "action": ["python", "src/dartium_tools/export_overrides.py"],
   },
