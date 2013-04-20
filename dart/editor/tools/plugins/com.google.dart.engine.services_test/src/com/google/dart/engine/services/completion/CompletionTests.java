@@ -422,6 +422,10 @@ public class CompletionTests extends CompletionTestCase {
         "F+g");
   }
 
+  public void test026() throws Exception {
+    test("var aBcD; var x=ab!1", "1+aBcD");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",

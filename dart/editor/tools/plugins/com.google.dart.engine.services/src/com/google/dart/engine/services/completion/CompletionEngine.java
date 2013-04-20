@@ -273,6 +273,7 @@ public class CompletionEngine {
       if (prefix.length() >= 1) {
         isPrivateDisallowed = !Identifier.isPrivateName(prefix);
       }
+      prefix = prefix.toLowerCase();
     }
 
     boolean isPermitted(String name) {
@@ -291,7 +292,7 @@ public class CompletionEngine {
     boolean match(String name) {
       // Return true if the filter passes. Return false for private elements that should not be visible
       // in the current context, or for library elements that are not accessible in the context (NYI).
-      return isPermitted(name) && name.startsWith(prefix);
+      return isPermitted(name) && name.toLowerCase().startsWith(prefix);
     }
   }
 
