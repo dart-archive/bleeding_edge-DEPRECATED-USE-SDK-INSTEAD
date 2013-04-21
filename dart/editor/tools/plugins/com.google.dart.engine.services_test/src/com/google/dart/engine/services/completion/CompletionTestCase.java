@@ -18,9 +18,6 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 
 public class CompletionTestCase extends ResolverTestCase {
-
-  protected static final String NAME_OF_SOURCE_TO_ANALYZE = "/completionTest.dart";
-
   protected static String src(String... parts) {
     return Joiner.on('\n').join(parts);
   }
@@ -84,7 +81,7 @@ public class CompletionTestCase extends ResolverTestCase {
   }
 
   private CompilationUnit analyze(String content) throws AnalysisException {
-    Source source = addSource(NAME_OF_SOURCE_TO_ANALYZE, content);
+    Source source = addSource(content);
     LibraryElement library = resolve(source);
     return getAnalysisContext().resolveCompilationUnit(source, library);
   }

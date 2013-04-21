@@ -26,7 +26,7 @@ import com.google.dart.engine.source.Source;
 
 public class ConstantValueComputerTest extends ResolverTestCase {
   public void test_computeValues_cycle() throws Exception {
-    Source librarySource = addSource("/test.dart", createSource(//
+    Source librarySource = addSource(createSource(//
         "const int a = c;",
         "const int b = a;",
         "const int c = b;"));
@@ -47,7 +47,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   public void test_computeValues_dependentVariables() throws Exception {
-    Source librarySource = addSource("/test.dart", createSource(//
+    Source librarySource = addSource(createSource(//
         "const int b = a;",
         "const int a = 0;"));
     LibraryElement libraryElement = resolve(librarySource);
@@ -107,7 +107,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
   }
 
   public void test_computeValues_singleVariable() throws Exception {
-    Source librarySource = addSource("/test.dart", "const int a = 0;");
+    Source librarySource = addSource("const int a = 0;");
     LibraryElement libraryElement = resolve(librarySource);
     CompilationUnit unit = getAnalysisContext().resolveCompilationUnit(
         librarySource,

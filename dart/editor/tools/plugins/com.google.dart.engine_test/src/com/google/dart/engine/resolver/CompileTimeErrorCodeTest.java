@@ -20,7 +20,7 @@ import com.google.dart.engine.source.Source;
 
 public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void fail_ambiguousExport() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library L;",
         "export 'lib1.dart';",
         "export 'lib2.dart';"));
@@ -34,7 +34,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_ambiguousImport_function() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library L;",
         "import 'lib1.dart';",
         "import 'lib2.dart';",
@@ -49,7 +49,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_ambiguousImport_typeAnnotation() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library L;",
         "import 'lib1.dart';",
         "import 'lib2.dart';",
@@ -64,16 +64,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_compileTimeConstantRaisesException() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO Find an expression that would raise an exception
-        ));
+    Source source = addSource(createSource(//
+    // TODO Find an expression that would raise an exception
+    ));
     resolve(source);
     assertErrors(CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION);
     verify(source);
   }
 
   public void fail_constWithNonConstantArgument() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class T {",
         "  T(a) {};",
         "}",
@@ -84,7 +84,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_constWithNonType() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "int A;",
         "f() {",
         "  return const A();",
@@ -95,16 +95,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_constWithTypeParameters() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+    Source source = addSource(createSource(//
+    // TODO
+    ));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
     verify(source);
   }
 
   public void fail_constWithUndefinedConstructor() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  A(x) {}",
         "}",
@@ -117,7 +117,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_duplicateDefinition() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  int m = 0;",
         "  m(a) {}",
@@ -128,7 +128,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_duplicateMemberName() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x = 0;",
         "  int x() {}",
@@ -139,7 +139,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_duplicateMemberNameInstanceStatic() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  static int x;",
@@ -150,31 +150,31 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_duplicateNamedArgument() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f({a, a}) {}"));
+    Source source = addSource(createSource(//
+    "f({a, a}) {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT);
     verify(source);
   }
 
   public void fail_extendsOrImplementsDisallowedClass_extends_null() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A extends Null {}"));
+    Source source = addSource(createSource(//
+    "class A extends Null {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
   }
 
   public void fail_extendsOrImplementsDisallowedClass_implements_null() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements Null {}"));
+    Source source = addSource(createSource(//
+    "class A implements Null {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
   public void fail_finalNotInitialized_inConstructor() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final int x;",
         "  A() {}",
@@ -185,7 +185,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_getterAndMethodWithSameName() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  get x -> 0;",
         "  x(y) {}",
@@ -196,7 +196,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_importDuplicatedLibraryName() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library test;",
         "import 'lib1.dart';",
         "import 'lib2.dart';"));
@@ -210,25 +210,25 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_invalidConstructorName() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+    Source source = addSource(createSource(//
+    // TODO
+    ));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME);
     verify(source);
   }
 
   public void fail_invalidFactoryNameNotAClass() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+    Source source = addSource(createSource(//
+    // TODO
+    ));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS);
     verify(source);
   }
 
   public void fail_invalidOverrideDefaultValue() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  m([a = 0]) {}",
         "}",
@@ -241,7 +241,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_invalidOverrideNamed() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  m({a, b}) {}",
         "}",
@@ -254,7 +254,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_invalidOverridePositional() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  m([a, b]) {}",
         "}",
@@ -267,7 +267,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_invalidOverrideRequired() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  m(a) {}",
         "}",
@@ -280,7 +280,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_invalidReferenceToThis_staticMethod() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  static m() { return this; }",
         "}"));
@@ -290,23 +290,23 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_invalidReferenceToThis_topLevelFunction() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() { return this; }"));
+    Source source = addSource(createSource(//
+    "f() { return this; }"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
     verify(source);
   }
 
   public void fail_invalidReferenceToThis_variableInitializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "int x = this;"));
+    Source source = addSource(createSource(//
+    "int x = this;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
     verify(source);
   }
 
   public void fail_memberWithClassName() throws Exception { // field, getter, setter, method
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int A = 0;",
         "}"));
@@ -316,7 +316,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_mixinDeclaresConstructor() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  A() {}",
         "}",
@@ -327,7 +327,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_mixinInheritsFromNotObject() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class B extends A {}",
         "class C extends Object mixin B {}"));
@@ -338,7 +338,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void fail_mixinOfNonClass() throws Exception {
     // TODO(brianwilkerson) Compare with MIXIN_WITH_NON_CLASS_SUPERCLASS.
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "var A;",
         "class B extends Object mixin A {}"));
     resolve(source);
@@ -348,16 +348,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void fail_mixinOfNonMixin() throws Exception {
     // TODO(brianwilkerson) This might be covered by more specific errors.
-    Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+    Source source = addSource(createSource(//
+    // TODO
+    ));
     resolve(source);
     assertErrors(CompileTimeErrorCode.MIXIN_OF_NON_MIXIN);
     verify(source);
   }
 
   public void fail_mixinReferencesSuper() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  toString() -> super.toString();",
         "}",
@@ -369,7 +369,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void fail_mixinWithNonClassSuperclass() throws Exception {
     // TODO(brianwilkerson) Compare with MIXIN_OF_NON_CLASS.
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "int A;",
         "class B extends Object mixin A {}"));
     resolve(source);
@@ -378,7 +378,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_multipleSuperInitializers() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class B extends A {",
         "  B() : super(), super() {}",
@@ -389,23 +389,23 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_nonConstantDefaultValue_named() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f({x : 2 + 3}) {}"));
+    Source source = addSource(createSource(//
+    "f({x : 2 + 3}) {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
     verify(source);
   }
 
   public void fail_nonConstantDefaultValue_positional() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f([x = 2 + 3]) {}"));
+    Source source = addSource(createSource(//
+    "f([x = 2 + 3]) {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
     verify(source);
   }
 
   public void fail_nonConstMapAsExpressionStatement() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  {'a' : 0, 'b' : 1};",
         "}"));
@@ -415,7 +415,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_nonConstMapKey() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f(a) {",
         "  return const {a : 0};",
         "}"));
@@ -425,7 +425,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_nonConstValueInInitializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  static C;",
         "  int a;",
@@ -437,16 +437,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_objectCannotExtendAnotherClass() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO(brianwilkerson) Figure out how to mock Object
-        ));
+    Source source = addSource(createSource(//
+    // TODO(brianwilkerson) Figure out how to mock Object
+    ));
     resolve(source);
     assertErrors(CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS);
     verify(source);
   }
 
   public void fail_optionalParameterInOperator() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  operator +([p]) {}",
         "}"));
@@ -456,7 +456,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_overrideMissingNamedParameters() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  m(a, {b}) {}",
         "}",
@@ -469,7 +469,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_overrideMissingRequiredParameters() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  m(a) {}",
         "}",
@@ -482,7 +482,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_prefixCollidesWithTopLevelMembers() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "import 'dart:uri' as uri;",
         "var uri = null;"));
     resolve(source);
@@ -491,15 +491,15 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_privateOptionalParameter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f({_p : 0}) {}"));
+    Source source = addSource(createSource(//
+    "f({_p : 0}) {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
     verify(source);
   }
 
   public void fail_recursiveCompileTimeConstant() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "const x = y + 1;",
         "const y = x + 1;"));
     resolve(source);
@@ -508,24 +508,24 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_recursiveFactoryRedirect() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+    Source source = addSource(createSource(//
+    // TODO
+    ));
     resolve(source);
     assertErrors(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
     verify(source);
   }
 
   public void fail_recursiveFunctionTypeAlias_direct() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "typedef F(F f);"));
+    Source source = addSource(createSource(//
+    "typedef F(F f);"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.RECURSIVE_FUNCTION_TYPE_ALIAS);
     verify(source);
   }
 
   public void fail_recursiveFunctionTypeAlias_indirect() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "typedef F(G g);",
         "typedef G(F f);"));
     resolve(source);
@@ -534,15 +534,15 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_recursiveInterfaceInheritance_direct() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements A {}"));
+    Source source = addSource(createSource(//
+    "class A implements A {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
     verify(source);
   }
 
   public void fail_recursiveInterfaceInheritance_indirect() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A implements B {}",
         "class B implements A {}"));
     resolve(source);
@@ -551,16 +551,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_redirectToNonConstConstructor() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+    Source source = addSource(createSource(//
+    // TODO
+    ));
     resolve(source);
     assertErrors(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR);
     verify(source);
   }
 
   public void fail_referenceToDeclaredVariableInInitializer_getter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  int x = x + 1;",
         "}"));
@@ -570,7 +570,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_referenceToDeclaredVariableInInitializer_setter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  int x = x++;",
         "}"));
@@ -580,15 +580,15 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_reservedWordAsIdentifier() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "int class = 2;"));
+    Source source = addSource(createSource(//
+    "int class = 2;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.RESERVED_WORD_AS_IDENTIFIER);
     verify(source);
   }
 
   public void fail_returnInGenerativeConstructor() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  A() { return 0; }",
         "}"));
@@ -599,32 +599,32 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void fail_staticTopLevelFunction_topLevel() throws Exception {
     // I think this is more general than the error name implies.
-    Source source = addSource("/test.dart", createSource(//
-        "static f() {}"));
+    Source source = addSource(createSource(//
+    "static f() {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.STATIC_TOP_LEVEL_FUNCTION);
     verify(source);
   }
 
   public void fail_staticTopLevelVariable() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "static int x;"));
+    Source source = addSource(createSource(//
+    "static int x;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.STATIC_TOP_LEVEL_VARIABLE);
     verify(source);
   }
 
   public void fail_superInInvalidContext_factoryConstructor() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+    Source source = addSource(createSource(//
+    // TODO
+    ));
     resolve(source);
     assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
     verify(source);
   }
 
   public void fail_superInInvalidContext_instanceVariableInitializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  var a;",
         "}",
@@ -637,7 +637,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_superInInvalidContext_staticMethod() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  static m() {}",
         "}",
@@ -650,7 +650,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_superInInvalidContext_staticVariableInitializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  static a = 0;",
         "}",
@@ -663,7 +663,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_superInInvalidContext_topLevelFunction() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  super.f();",
         "}"));
@@ -673,24 +673,24 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_superInInvalidContext_variableInitializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "var v = super.v;"));
+    Source source = addSource(createSource(//
+    "var v = super.v;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
     verify(source);
   }
 
   public void fail_superInitializerInObject() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO(brianwilkerson) Figure out how to mock Object
-        ));
+    Source source = addSource(createSource(//
+    // TODO(brianwilkerson) Figure out how to mock Object
+    ));
     resolve(source);
     assertErrors(CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT);
     verify(source);
   }
 
   public void fail_typeArgumentsForNonGenericClass_creation_const() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "f(p) {",
         "  return const A<int>();",
@@ -701,7 +701,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_typeArgumentsForNonGenericClass_creation_new() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "f(p) {",
         "  return new A<int>();",
@@ -712,7 +712,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_typeArgumentsForNonGenericClass_typeCast() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "f(p) {",
         "  return p as A<int>;",
@@ -723,16 +723,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_undefinedConstructorInInitializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+    Source source = addSource(createSource(//
+    // TODO
+    ));
     resolve(source);
     assertErrors(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER);
     verify(source);
   }
 
   public void fail_uninitializedFinalField() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final int i;",
         "}"));
@@ -743,7 +743,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void fail_wrongNumberOfParametersForOperator() throws Exception {
     // Do we need _tooMany and _tooFew variants for every operator?
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  operator []=(i) {}",
         "}"));
@@ -753,23 +753,23 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_wrongNumberOfParametersForSetter_tooFew() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "set x() {}"));
+    Source source = addSource(createSource(//
+    "set x() {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
   }
 
   public void fail_wrongNumberOfParametersForSetter_tooMany() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "set x(a, b) {}"));
+    Source source = addSource(createSource(//
+    "set x(a, b) {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
   }
 
   public void fail_wrongNumberOfTypeArguments_creation_const_tooFew() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class C<K, V> {}",
         "f(p) {",
@@ -781,7 +781,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_wrongNumberOfTypeArguments_creation_const_tooMany() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class C<E> {}",
         "f(p) {",
@@ -793,7 +793,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_wrongNumberOfTypeArguments_creation_new_tooFew() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class C<K, V> {}",
         "f(p) {",
@@ -805,7 +805,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_wrongNumberOfTypeArguments_creation_new_tooMany() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class C<E> {}",
         "f(p) {",
@@ -817,7 +817,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_wrongNumberOfTypeArguments_typeTest_tooFew() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class C<K, V> {}",
         "f(p) {",
@@ -829,7 +829,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_wrongNumberOfTypeArguments_typeTest_tooMany() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class C<E> {}",
         "f(p) {",
@@ -841,7 +841,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_argumentDefinitionTestNonParameter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         " var v = 0;",
         " return ?v;",
@@ -852,7 +852,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_builtInIdentifierAsType() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  typedef x;",
         "}"));
@@ -864,7 +864,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_builtInIdentifierAsTypedefName_classTypeAlias() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class B {}",
         "typedef as = A with B;"));
@@ -874,31 +874,31 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_builtInIdentifierAsTypedefName_functionTypeAlias() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "typedef bool as();"));
+    Source source = addSource(createSource(//
+    "typedef bool as();"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     verify(source);
   }
 
   public void test_builtInIdentifierAsTypeName() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class as {}"));
+    Source source = addSource(createSource(//
+    "class as {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
     verify(source);
   }
 
   public void test_builtInIdentifierAsTypeVariableName() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A<as> {}"));
+    Source source = addSource(createSource(//
+    "class A<as> {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
     verify(source);
   }
 
   public void test_caseExpressionTypeImplementsEquals() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class IntWrapper {",
         "  final int value;",
         "  const IntWrapper(this.value);",
@@ -919,7 +919,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_conflictingConstructorNameAndMember_field() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  A.x() {}",
@@ -930,7 +930,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_conflictingConstructorNameAndMember_method() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  const A.x() {}",
         "  void x() {}",
@@ -941,7 +941,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_constConstructorWithNonFinalField() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  const A() {}",
@@ -952,7 +952,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_constEvalThrowsException() throws Exception { // Not compile-time constant
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class C {",
         "  const C() { throw null; }",
         "}",
@@ -963,7 +963,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_constFormalParameter_fieldFormalParameter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  var x;",
         "  A(const this.x) {}",
@@ -974,15 +974,15 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_constFormalParameter_simpleFormalParameter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f(const x) {}"));
+    Source source = addSource(createSource(//
+    "f(const x) {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_FORMAL_PARAMETER);
     verify(source);
   }
 
   public void test_constInitializedWithNonConstValue() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f(p) {",
         "  const C = p;",
         "}"));
@@ -992,7 +992,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_constWithInvalidTypeParameters() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  const A() {}",
         "}",
@@ -1003,7 +1003,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_constWithNonConst() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class T {",
         "  T(a, b, {c, d}) {}",
         "}",
@@ -1014,8 +1014,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_defaultValueInFunctionTypeAlias() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "typedef F([x = 0]);"));
+    Source source = addSource(createSource(//
+    "typedef F([x = 0]);"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS);
     verify(source);
@@ -1041,7 +1041,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_exportOfNonLibrary() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library L;",
         "export 'lib1.dart';"));
     addSource("/lib1.dart", createSource(//
@@ -1052,7 +1052,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_extendsNonClass_class() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "int A;",
         "class B extends A {}"));
     resolve(source);
@@ -1061,87 +1061,87 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_extendsOrImplementsDisallowedClass_extends_bool() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A extends bool {}"));
+    Source source = addSource(createSource(//
+    "class A extends bool {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
   }
 
   public void test_extendsOrImplementsDisallowedClass_extends_double() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A extends double {}"));
+    Source source = addSource(createSource(//
+    "class A extends double {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
   }
 
   public void test_extendsOrImplementsDisallowedClass_extends_int() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A extends int {}"));
+    Source source = addSource(createSource(//
+    "class A extends int {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
   }
 
   public void test_extendsOrImplementsDisallowedClass_extends_num() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A extends num {}"));
+    Source source = addSource(createSource(//
+    "class A extends num {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
   }
 
   public void test_extendsOrImplementsDisallowedClass_extends_String() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A extends String {}"));
+    Source source = addSource(createSource(//
+    "class A extends String {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
   }
 
   public void test_extendsOrImplementsDisallowedClass_implements_bool() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements bool {}"));
+    Source source = addSource(createSource(//
+    "class A implements bool {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
   public void test_extendsOrImplementsDisallowedClass_implements_double() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements double {}"));
+    Source source = addSource(createSource(//
+    "class A implements double {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
   public void test_extendsOrImplementsDisallowedClass_implements_int() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements int {}"));
+    Source source = addSource(createSource(//
+    "class A implements int {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
   public void test_extendsOrImplementsDisallowedClass_implements_num() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements num {}"));
+    Source source = addSource(createSource(//
+    "class A implements num {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
   public void test_extendsOrImplementsDisallowedClass_implements_String() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements String {}"));
+    Source source = addSource(createSource(//
+    "class A implements String {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
   public void test_fieldInitializedByMultipleInitializers() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  A() : x = 0, x = 1 {}",
@@ -1152,7 +1152,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializedByMultipleInitializers_multipleInits() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  A() : x = 0, x = 1, x = 2 {}",
@@ -1165,7 +1165,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializedByMultipleInitializers_multipleNames() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  int y;",
@@ -1179,7 +1179,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializedInInitializerAndDeclaration_const() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  const int x = 0;",
         "  A() : x = 1 {}",
@@ -1190,7 +1190,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializedInInitializerAndDeclaration_final() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final int x = 0;",
         "  A() : x = 1 {}",
@@ -1201,7 +1201,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializedInParameterAndInitializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  A(this.x) : x = 1 {}",
@@ -1212,7 +1212,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializerOutsideConstructor() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  m(this.x) {}",
@@ -1223,7 +1223,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializerOutsideConstructor_defaultParameter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  m([this.x]) {}",
@@ -1243,7 +1243,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
    * the broader code
    */
   public void test_finalInitializedInDeclarationAndConstructor_initializers() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final x = 0;",
         "  A() : x = 0 {}",
@@ -1255,7 +1255,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_finalInitializedInDeclarationAndConstructor_initializingFormal()
       throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final x = 0;",
         "  A(this.x) {}",
@@ -1266,7 +1266,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_finalInitializedMultipleTimes_initializers() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final x;",
         "  A() : x = 0, x = 0 {}",
@@ -1285,7 +1285,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
    * FINAL_INITIALIZED_MULTIPLE_TIMES, since it more specific, we use it instead of the broader code
    */
   public void test_finalInitializedMultipleTimes_initializingFormal_initializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final x;",
         "  A(this.x) : x = 0 {}",
@@ -1296,7 +1296,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_finalInitializedMultipleTimes_initializingFormals() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final x;",
         "  A(this.x, this.x) {}",
@@ -1307,7 +1307,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_finalNotInitialized_instanceField_const() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  const F;",
         "}"));
@@ -1317,7 +1317,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_finalNotInitialized_instanceField_const_static() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  static const F;",
         "}"));
@@ -1327,7 +1327,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_finalNotInitialized_instanceField_final() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final F;",
         "}"));
@@ -1337,7 +1337,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_finalNotInitialized_instanceField_final_static() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  static final F;",
         "}"));
@@ -1347,23 +1347,23 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_finalNotInitialized_library_const() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "const F;"));
+    Source source = addSource(createSource(//
+    "const F;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
     verify(source);
   }
 
   public void test_finalNotInitialized_library_final() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "final F;"));
+    Source source = addSource(createSource(//
+    "final F;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
     verify(source);
   }
 
   public void test_finalNotInitialized_local_const() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  const int x;",
         "}"));
@@ -1373,7 +1373,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_finalNotInitialized_local_final() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  final int x;",
         "}"));
@@ -1383,15 +1383,15 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_implementsDynamic() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements dynamic {}"));
+    Source source = addSource(createSource(//
+    "class A implements dynamic {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_DYNAMIC);
     verify(source);
   }
 
   public void test_implementsNonClass_class() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "int A;",
         "class B implements A {}"));
     resolve(source);
@@ -1400,7 +1400,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_implementsNonClass_typedef() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "int B;",
         "typedef C = A implements B;"));
@@ -1410,7 +1410,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_implementsRepeated() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class B implements A, A {}"));
     resolve(source);
@@ -1419,7 +1419,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_implementsRepeated_3times() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {} class C{}",
         "class B implements A, A, A, A {}"));
     resolve(source);
@@ -1431,15 +1431,15 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_implementsSelf() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements A {}"));
+    Source source = addSource(createSource(//
+    "class A implements A {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_SELF);
     verify(source);
   }
 
   public void test_importOfNonLibrary() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library lib;",
         "import 'part.dart';"));
     addSource("/part.dart", createSource(//
@@ -1450,7 +1450,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_inconsistentCaseExpressionTypes() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f(var p) {",
         "  switch (p) {",
         "    case 1:",
@@ -1465,7 +1465,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_inconsistentCaseExpressionTypes_repeated() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f(var p) {",
         "  switch (p) {",
         "    case 1:",
@@ -1484,7 +1484,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_initializerForNonExistant_initializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  A() : x = 0 {}",
         "}"));
@@ -1493,7 +1493,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_initializerForStaticField() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  static x;",
         "  A() : x = 0 {}",
@@ -1504,7 +1504,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_initializingFormalForNonExistantField() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  A(this.x) {}",
         "}"));
@@ -1514,7 +1514,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_initializingFormalForNonExistantField_notInEnclosingClass() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "int x;",
         "}",
@@ -1527,7 +1527,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_initializingFormalForNonExistantField_optional() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  A([this.x]) {}",
         "}"));
@@ -1537,7 +1537,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_initializingFormalForNonExistantField_static() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  static x;",
         "  A([this.x]) {}",
@@ -1548,7 +1548,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_invalidTypeArgumentForKey() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  m() {",
         "    return const <int, int>{}",
@@ -1560,7 +1560,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_invalidTypeArgumentInConstList() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A<E> {",
         "  m() {",
         "    return const <E>[]",
@@ -1572,7 +1572,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_invalidTypeArgumentInConstMap() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A<E> {",
         "  m() {",
         "    return const <String, E>{}",
@@ -1584,7 +1584,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_invalidUri_export() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library L;",
         "export 'unknown.dart';"));
     resolve(source);
@@ -1592,7 +1592,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_invalidUri_import() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library L;",
         "import 'unknown.dart';"));
     resolve(source);
@@ -1600,7 +1600,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_invalidUri_part() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library L;",
         "part 'unknown.dart';"));
     resolve(source);
@@ -1608,7 +1608,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_labelInOuterScope() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class int {}",
         "",
         "class A {",
@@ -1629,7 +1629,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_labelUndefined_break() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  x: while (true) {",
         "    break y;",
@@ -1641,7 +1641,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_labelUndefined_continue() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  x: while (true) {",
         "    continue y;",
@@ -1653,7 +1653,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_mixinOfNonClass_class() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "int A;",
         "class B with A {}"));
     resolve(source);
@@ -1662,7 +1662,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_mixinOfNonClass_typedef() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "int B;",
         "typedef C = A with B;"));
@@ -1674,8 +1674,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
   // through the ErrorVerifier, it is not a CompileTimeErrorCode.
   public void test_nativeFunctionBodyInNonSDKCode_function() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "int m(a) native 'string';"));
+    Source source = addSource(createSource(//
+    "int m(a) native 'string';"));
     resolve(source);
     assertErrors(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE);
     verify(source);
@@ -1684,7 +1684,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
   // through the ErrorVerifier, it is not a CompileTimeErrorCode.
   public void test_nativeFunctionBodyInNonSDKCode_method() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A{",
         "  static int m(a) native 'string';",
         "}"));
@@ -1694,7 +1694,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_newWithInvalidTypeParameters() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "f() { return new A<A>(); }"));
     resolve(source);
@@ -1703,7 +1703,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_nonConstCaseExpression() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f(int p, int q) {",
         "  switch (p) {",
         "    case 3 + q:",
@@ -1716,7 +1716,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_nonConstListElement() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f(a) {",
         "  return const [a];",
         "}"));
@@ -1726,7 +1726,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_nonConstMapValue() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f(a) {",
         "  return const {'a' : a};",
         "}"));
@@ -1736,7 +1736,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_partOfNonPart() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library l1;",
         "part 'l2.dart';"));
     addSource("/l2.dart", createSource(//
@@ -1747,7 +1747,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_rethrowOutsideCatch() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  rethrow;",
         "}"));
@@ -1757,8 +1757,8 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_uriWithInterpolation_constant() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "import 'stuff_$platform.dart';"));
+    Source source = addSource(createSource(//
+    "import 'stuff_$platform.dart';"));
     resolve(source);
     assertErrors(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
@@ -1767,7 +1767,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_uriWithInterpolation_nonConstant() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library lib;",
         "part '${'a'}.dart';"));
     resolve(source);

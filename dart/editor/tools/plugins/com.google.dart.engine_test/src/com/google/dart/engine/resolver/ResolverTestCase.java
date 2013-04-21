@@ -79,6 +79,16 @@ public class ResolverTestCase extends EngineTestCase {
   }
 
   /**
+   * Add a source file to the content provider.
+   * 
+   * @param contents the contents to be returned by the content provider for the specified file
+   * @return the source object representing the added file
+   */
+  protected Source addSource(String contents) {
+    return addSource("/test.dart", contents);
+  }
+
+  /**
    * Add a source file to the content provider. The file path should be absolute.
    * 
    * @param filePath the path of the file being added

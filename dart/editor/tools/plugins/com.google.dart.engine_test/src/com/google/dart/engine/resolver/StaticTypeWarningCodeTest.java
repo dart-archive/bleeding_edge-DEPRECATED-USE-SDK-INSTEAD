@@ -18,25 +18,25 @@ import com.google.dart.engine.source.Source;
 
 public class StaticTypeWarningCodeTest extends ResolverTestCase {
   public void fail_inaccessibleSetter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+    Source source = addSource(createSource(//
+    // TODO
+    ));
     resolve(source);
     assertErrors(StaticTypeWarningCode.INACCESSIBLE_SETTER);
     verify(source);
   }
 
   public void fail_inconsistentMethodInheritance() throws Exception { // This probably wants to be multiple messages.
-    Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+    Source source = addSource(createSource(//
+    // TODO
+    ));
     resolve(source);
     assertErrors(StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE);
     verify(source);
   }
 
   public void fail_nonTypeAsTypeArgument() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "int A;",
         "class B<E> {}",
         "f(B<A> b) {}"));
@@ -46,25 +46,25 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void fail_redirectWithInvalidTypeParameters() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+    Source source = addSource(createSource(//
+    // TODO
+    ));
     resolve(source);
     assertErrors(StaticTypeWarningCode.REDIRECT_WITH_INVALID_TYPE_PARAMETERS);
     verify(source);
   }
 
   public void fail_typeArgumentViolatesBounds() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+    Source source = addSource(createSource(//
+    // TODO
+    ));
     resolve(source);
     assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_VIOLATES_BOUNDS);
     verify(source);
   }
 
   public void test_invalidAssignment_instanceVariable() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "}",
@@ -78,7 +78,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_invalidAssignment_localVariable() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  int x;",
         "  x = '0';",
@@ -89,7 +89,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_invalidAssignment_staticVariable() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  static int x;",
         "}",
@@ -102,7 +102,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_invocationOfNonFunction_class() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  void m() {",
         "    A();",
@@ -113,7 +113,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_invocationOfNonFunction_localVariable() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  int x;",
         "  return x();",
@@ -124,7 +124,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_invocationOfNonFunction_ordinaryInvocation() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "}",
@@ -139,7 +139,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_invocationOfNonFunction_staticInvocation() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  static int get g => 0;",
         "  f() {",
@@ -152,15 +152,15 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_nonBoolCondition_conditional() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() { return 3 ? 2 : 1; }"));
+    Source source = addSource(createSource(//
+    "f() { return 3 ? 2 : 1; }"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
     verify(source);
   }
 
   public void test_nonBoolCondition_do() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  do {} while (3);",
         "}"));
@@ -170,7 +170,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_nonBoolCondition_if() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  if (3) return 2; else return 1;",
         "}"));
@@ -180,7 +180,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_nonBoolCondition_while() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  while (3) {}",
         "}"));
@@ -190,7 +190,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_nonBoolExpression() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  assert(0);",
         "}"));
@@ -200,15 +200,15 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_returnOfInvalidType_function() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "int f() { return '0'; }"));
+    Source source = addSource(createSource(//
+    "int f() { return '0'; }"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 
   public void test_returnOfInvalidType_localFunction() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  String m() {",
         "    int f() { return '0'; }",
@@ -220,7 +220,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_returnOfInvalidType_method() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int f() { return '0'; }",
         "}"));
@@ -230,7 +230,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_typeArgumentNotMatchingBounds_const() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class B {}",
         "class G<E extends A> {",
@@ -243,7 +243,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_typeArgumentNotMatchingBounds_new() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class B {}",
         "class G<E extends A> {}",
@@ -254,7 +254,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedFunction() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "void f() {",
         "  g();",
         "}"));
@@ -263,7 +263,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedGetter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class T {}",
         "f(T e) { return e.m; }"));
     resolve(source);
@@ -272,7 +272,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedGetter_static() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "var a = A.B;"));
     resolve(source);
@@ -281,7 +281,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedMethod() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  void m() {",
         "    n();",
@@ -292,7 +292,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedSetter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class T {}",
         "f(T e1) { e1.m = 0; }"));
     resolve(source);
@@ -301,7 +301,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedSetter_static() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "f() { A.B = 0;}"));
     resolve(source);
@@ -310,7 +310,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedSuperMethod() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class B extends A {",
         "  m() { return super.m(); }",
@@ -320,7 +320,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_wrongNumberOfTypeArguments_tooFew() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A<E, F> {}",
         "A<A> a = null;"));
     resolve(source);
@@ -329,7 +329,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_wrongNumberOfTypeArguments_tooMany() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A<E> {}",
         "A<A, A> a = null;"));
     resolve(source);

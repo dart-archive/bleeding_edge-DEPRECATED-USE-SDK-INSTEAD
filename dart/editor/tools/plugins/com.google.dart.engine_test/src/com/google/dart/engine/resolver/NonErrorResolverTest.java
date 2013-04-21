@@ -17,7 +17,7 @@ import com.google.dart.engine.source.Source;
 
 public class NonErrorResolverTest extends ResolverTestCase {
   public void test_argumentDefinitionTestNonParameter_formalParameter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f(var v) {",
         "  return ?v;",
         "}"));
@@ -27,7 +27,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_argumentDefinitionTestNonParameter_namedParameter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f({var v : 0}) {",
         "  return ?v;",
         "}"));
@@ -37,7 +37,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_argumentDefinitionTestNonParameter_optionalParameter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f([var v]) {",
         "  return ?v;",
         "}"));
@@ -47,7 +47,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_breakWithoutLabelInSwitch() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  void m(int i) {",
         "    switch (i) {",
@@ -62,7 +62,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_builtInIdentifierAsType_dynamic() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  dynamic x;",
         "}"));
@@ -72,7 +72,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_caseExpressionTypeImplementsEquals_int() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f(int i) {",
         "  switch(i) {",
         "    case(1) : return 1;",
@@ -85,7 +85,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_caseExpressionTypeImplementsEquals_Object() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class IntWrapper {",
         "  final int value;",
         "  const IntWrapper(this.value);",
@@ -103,7 +103,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_caseExpressionTypeImplementsEquals_String() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f(String s) {",
         "  switch(s) {",
         "    case('1') : return 1;",
@@ -116,7 +116,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_constConstructorWithNonFinalField_constInstanceVar() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  const int x = 0;",
         "  const A() {}",
@@ -127,7 +127,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_constConstructorWithNonFinalField_finalInstanceVar() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final int x = 0;",
         "  const A() {}",
@@ -138,7 +138,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_constConstructorWithNonFinalField_static() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  static int x;",
         "  const A() {}",
@@ -149,7 +149,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_constConstructorWithNonFinalField_syntheticField() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  const A();",
         "  set x(value) {}",
@@ -161,8 +161,8 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_defaultValueInFunctionTypeAlias() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "typedef F([x]);"));
+    Source source = addSource(createSource(//
+    "typedef F([x]);"));
     resolve(source);
     assertErrors();
     verify(source);
@@ -171,7 +171,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_duplicateDefinition_emptyName() throws Exception {
     // Note: This code has two FunctionElements '() {}' with an empty name, this tests that the
     // empty string is not put into the scope (more than once).
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "Map _globalMap = {",
         "  'a' : () {},",
         "  'b' : () {}",
@@ -182,15 +182,15 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_duplicateDefinition_getter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "bool get a => true;"));
+    Source source = addSource(createSource(//
+    "bool get a => true;"));
     resolve(source);
     assertNoErrors();
     verify(source);
   }
 
   public void test_exportOfNonLibrary_libraryDeclared() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library L;",
         "export 'lib1.dart';"));
     addSource("/lib1.dart", createSource(//
@@ -201,7 +201,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_exportOfNonLibrary_libraryNotDeclared() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library L;",
         "export 'lib1.dart';"));
     addSource("/lib1.dart", createSource(//
@@ -212,7 +212,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializedByMultipleInitializers() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  int y;",
@@ -224,7 +224,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x = 0;",
         "  A() : x = 1 {}",
@@ -235,7 +235,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializedInInitializerAndDeclaration_finalFieldNotSet() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final int x;",
         "  A() : x = 1 {}",
@@ -246,7 +246,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializerOutsideConstructor() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  A(this.x) {}",
@@ -257,7 +257,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializerOutsideConstructor_defaultParameters() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  A([this.x]) {}",
@@ -268,7 +268,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_finalInitializedInDeclarationAndConstructor_initializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final x;",
         "  A() : x = 1 {}",
@@ -280,7 +280,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
 
   public void test_finalInitializedInDeclarationAndConstructor_initializingFormal()
       throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final x;",
         "  A(this.x) {}",
@@ -291,7 +291,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_finalNotInitialized_atDeclaration() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final int x = 0;",
         "  A() {}",
@@ -302,7 +302,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_finalNotInitialized_fieldFormal() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final int x = 0;",
         "  A() {}",
@@ -313,7 +313,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_finalNotInitialized_initializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  final int x;",
         "  A() : x = 0 {}",
@@ -324,7 +324,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_importOfNonLibrary_libraryDeclared() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library lib;",
         "import 'part.dart';"));
     addSource("/part.dart", createSource(//
@@ -335,7 +335,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_importOfNonLibrary_libraryNotDeclared() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library lib;",
         "import 'part.dart';"));
     addSource("/part.dart", createSource(//
@@ -346,7 +346,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_inconsistentCaseExpressionTypes() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f(var p) {",
         "  switch (p) {",
         "    case 1:",
@@ -361,7 +361,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_initializingFormalForNonExistantField() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  A(this.x) {}",
@@ -372,7 +372,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidAssignment() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  var x;",
         "  var y;",
@@ -384,7 +384,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidAssignment_toDynamic() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  var g;",
         "  g = () => 0;",
@@ -395,7 +395,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidTypeArgumentInConstList() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A<E> {",
         "  m() {",
         "    return <E>[]",
@@ -407,7 +407,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invalidTypeArgumentInConstMap() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A<E> {",
         "  m() {",
         "    return <String, E>{}",
@@ -419,7 +419,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invocationOfNonFunction_dynamic() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  var f;",
         "}",
@@ -434,7 +434,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invocationOfNonFunction_getter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  var g;",
         "}",
@@ -448,7 +448,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_invocationOfNonFunction_localVariable() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  var g;",
         "  g();",
@@ -459,7 +459,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_newWithAbstractClass_factory() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "abstract class A {",
         "  factory A() { return new B(); }",
         "}",
@@ -475,7 +475,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_nonBoolExpression_assert_bool() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  assert(true);",
         "}"));
@@ -485,7 +485,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_nonBoolExpression_assert_functionType() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "bool makeAssertion() => true;",
         "f() {",
         "  assert(makeAssertion);",
@@ -496,7 +496,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_rethrowOutsideCatch() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  void m() {",
         "    try {} catch (e) {rethrow;}",
@@ -508,7 +508,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_returnOfInvalidType_dynamic() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class TypeError {}",
         "class A {",
         "  static void testLogicalOp() {",
@@ -527,7 +527,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_returnOfInvalidType_subtype() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class B extends A {}",
         "A f(B b) { return b; }"));
@@ -537,7 +537,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_returnOfInvalidType_supertype() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class B extends A {}",
         "B f(A a) { return a; }"));
@@ -547,7 +547,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_typeArgumentNotMatchingBounds_const() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class B extends A {}",
         "class G<E extends A> {",
@@ -560,7 +560,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_typeArgumentNotMatchingBounds_new() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class B extends A {}",
         "class G<E extends A> {}",
@@ -571,7 +571,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_undefinedGetter_typeSubstitution() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A<E> {",
         "  E element;",
         "}",
@@ -586,7 +586,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_undefinedIdentifier_hide() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library L;",
         "export 'lib1.dart' hide a;"));
     addSource("/lib1.dart", createSource(//
@@ -597,7 +597,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_undefinedIdentifier_show() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "library L;",
         "export 'lib1.dart' show a;"));
     addSource("/lib1.dart", createSource(//
@@ -608,7 +608,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_undefinedOperator_tilde() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "const A = 3;",
         "const B = ~((1 << A) - 1);"));
     resolve(source);

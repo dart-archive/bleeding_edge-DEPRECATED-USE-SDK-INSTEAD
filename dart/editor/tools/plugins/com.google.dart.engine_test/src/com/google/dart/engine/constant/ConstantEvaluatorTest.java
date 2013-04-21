@@ -371,7 +371,7 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
   }
 
   private EvaluationResult getExpressionValue(String contents) throws Exception {
-    Source source = addSource("/test.dart", "var x = " + contents + ";");
+    Source source = addSource("var x = " + contents + ";");
     LibraryElement library = resolve(source);
     CompilationUnit unit = getAnalysisContext().resolveCompilationUnit(source, library);
     assertNotNull(unit);

@@ -17,7 +17,7 @@ import com.google.dart.engine.source.Source;
 
 public class ErrorResolverTest extends ResolverTestCase {
   public void test_breakLabelOnSwitchMember() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  void m(int i) {",
         "    switch (i) {",
@@ -34,7 +34,7 @@ public class ErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_continueLabelOnSwitch() throws Exception {
-    Source source = addSource("/a.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  void m(int i) {",
         "    l: switch (i) {",

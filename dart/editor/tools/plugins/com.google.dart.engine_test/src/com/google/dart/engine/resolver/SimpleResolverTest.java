@@ -21,7 +21,7 @@ import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
   public void fail_staticInvocation() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  static int get g => (a,b) => 0;",
         "}",
@@ -36,7 +36,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_class_definesCall() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int call(int x) { return x; }",
         "}",
@@ -49,7 +49,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_class_extends_implements() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A extends B implements C {}",
         "class B {}",
         "class C {}"));
@@ -59,7 +59,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_commentReference_class() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {}",
         "/** [A] [new A] [A.n] [new A.n] [m] [f] */",
         "class A {",
@@ -73,7 +73,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_commentReference_parameter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  A() {}",
         "  A.n() {}",
@@ -86,7 +86,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_commentReference_singleLine() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "/// [A]",
         "class A {}"));
     resolve(source);
@@ -95,14 +95,14 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_empty() throws Exception {
-    Source source = addSource("/test.dart", "");
+    Source source = addSource("");
     resolve(source);
     assertNoErrors();
     verify(source);
   }
 
   public void test_extractedMethodAsConstant() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "abstract class Comparable<T> {",
         "  int compareTo(T other);",
         "  static int compare(Comparable a, Comparable b) => a.compareTo(b);",
@@ -116,7 +116,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_forEachLoops_nonConflicting() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  List list = [1,2,3];",
         "  for (int x in list) {}",
@@ -128,7 +128,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_forLoops_nonConflicting() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  for (int i = 0; i < 3; i++) {",
         "  }",
@@ -141,7 +141,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_functionTypeAlias() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "typedef bool P(e);",
         "class A {",
         "  P p;",
@@ -155,7 +155,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_getterAndSetterWithDifferentTypes() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int get f => 0;",
         "  void set f(String s) {}",
@@ -186,7 +186,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_indexExpression_typeParameters() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  List<int> a;",
         "  a[0];",
@@ -201,7 +201,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_indexExpression_typeParameters_invalidAssignmentWarning() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  List<List<int>> b;",
         "  b[0][0] = 'hi';",
@@ -212,7 +212,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_invoke_dynamicThroughGetter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  List get X => [() => 0];",
         "  m(A a) {",
@@ -225,7 +225,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_isValidMixin_badSuperclass() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A extends B {}",
         "class B {}"));
     LibraryElement library = resolve(source);
@@ -240,7 +240,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_isValidMixin_constructor() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  A() {}",
         "}"));
@@ -256,7 +256,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_isValidMixin_super() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  toString() {",
         "    return super.toString();",
@@ -274,8 +274,8 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_isValidMixin_valid() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {}"));
+    Source source = addSource(createSource(//
+    "class A {}"));
     LibraryElement library = resolve(source);
     assertNotNull(library);
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
@@ -288,7 +288,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_method_fromSuperclassMixin() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  void m1() {}",
         "}",
@@ -305,7 +305,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_methodCascades() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  void m1() {}",
         "  void m2() {}",
@@ -321,7 +321,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_methodCascades_withSetter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  String name;",
         "  void m1() {}",
@@ -340,7 +340,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_resolveAgainstNull() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f(var p) {",
         "  return null == p;",
         "}"));

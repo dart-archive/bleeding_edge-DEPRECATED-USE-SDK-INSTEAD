@@ -36,7 +36,7 @@ import com.google.dart.engine.type.InterfaceType;
 
 public class TypePropagationTest extends ResolverTestCase {
   public void test_as() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  bool get g => true;",
         "}",
@@ -63,7 +63,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_assert() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(var p) {",
         "  assert (p is A);",
@@ -83,7 +83,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_assignment() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  var v;",
         "  v = 0;",
@@ -101,7 +101,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_assignment_afterInitializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  var v = 0;",
         "  v = 1.0;",
@@ -119,7 +119,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_forEach() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(List<A> p) {",
         "  for (var e in p) {",
@@ -142,7 +142,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_initializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  var v = 0;",
         "  return v;",
@@ -159,7 +159,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_initializer_dereference() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "f() {",
         "  var v = 'String';",
         "  v.",
@@ -175,7 +175,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_is_conditional() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(var p) {",
         "  return (p is A) ? p : null;",
@@ -195,7 +195,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_is_if() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(var p) {",
         "  if (p is A) {",
@@ -220,7 +220,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_is_if_lessSpecific() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(A p) {",
         "  if (p is Object) {",
@@ -245,7 +245,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_is_if_logicalAnd() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(var p) {",
         "  if (p is A && p != null) {",
@@ -270,7 +270,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_is_postConditional() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(var p) {",
         "  A a = (p is A) ? p : throw null;",
@@ -290,7 +290,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_is_postIf() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(var p) {",
         "  if (p is A) {",
@@ -314,7 +314,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_is_subclass() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "class B extends A {",
         "  B m() => this;",
@@ -338,7 +338,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_is_while() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(var p) {",
         "  while (p is A) {",
@@ -361,7 +361,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_isNot_conditional() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(var p) {",
         "  return (p is! A) ? null : p;",
@@ -381,7 +381,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_isNot_if() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(var p) {",
         "  if (p is! A) {",
@@ -406,7 +406,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_isNot_if_logicalOr() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(var p) {",
         "  if (p is! A || null == p) {",
@@ -431,7 +431,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_isNot_postConditional() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(var p) {",
         "  A a = (p is! A) ? throw null : p;",
@@ -451,7 +451,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_isNot_postIf() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "class A {}",
         "A f(var p) {",
         "  if (p is! A) {",
@@ -473,7 +473,7 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_query() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
+    Source source = addSource(createSource(//
         "import 'dart:html';",
         "",
         "main() {",

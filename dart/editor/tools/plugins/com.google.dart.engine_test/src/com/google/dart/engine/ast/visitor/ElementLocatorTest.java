@@ -34,9 +34,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ElementLocatorTest extends ResolverTestCase {
-
-  private static final String SRC_FILE_NAME = "/test.dart";
-
   private static int getOffsetOfMatch(String contents, String pattern, int matchIndex) {
 
     if (matchIndex == 0) {
@@ -217,7 +214,7 @@ public class ElementLocatorTest extends ResolverTestCase {
    * @throws Exception if source cannot be verified
    */
   private CompilationUnit resolve(String... lines) throws Exception {
-    Source source = addSource(SRC_FILE_NAME, createSource(lines));
+    Source source = addSource(createSource(lines));
     LibraryElement library = resolve(source);
     assertNoErrors();
     verify(source);
