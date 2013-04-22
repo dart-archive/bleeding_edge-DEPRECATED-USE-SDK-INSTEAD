@@ -28,6 +28,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.SimpleElementVisitor;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartDocumentable;
@@ -120,10 +121,21 @@ public final class DartDocUtilities {
           buf.append(", ");
         }
 
-        String typeName = getTypeName(parameters[i]);
-        String paramName = parameters[i].getName();
+        ParameterElement param = parameters[i];
+
+        ParameterKind kind = param.getParameterKind();
+
+        if (kind == ParameterKind.NAMED) {
+          buf.append("{");
+        } else if (kind == ParameterKind.POSITIONAL) {
+          buf.append("[");
+        }
+
+        String typeName = getTypeName(param);
+        String paramName = param.getName();
 
         if (typeName.indexOf('(') != -1) {
+
           // Instead of returning "void(var) callback", return "void callback(var)".
           int index = typeName.indexOf('(');
 
@@ -134,6 +146,13 @@ public final class DartDocUtilities {
         } else {
           buf.append(typeName + " " + paramName);
         }
+
+        if (kind == ParameterKind.NAMED) {
+          buf.append("}");
+        } else if (kind == ParameterKind.POSITIONAL) {
+          buf.append("]");
+        }
+
       }
       return buf;
     }

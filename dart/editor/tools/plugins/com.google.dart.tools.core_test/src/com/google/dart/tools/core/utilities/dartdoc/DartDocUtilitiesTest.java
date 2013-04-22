@@ -62,6 +62,24 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
     assertEquals("My method\n", DartDocUtilities.getDartDocAsHtml(element));
   }
 
+  public void test_method_named_doc() throws Exception {
+    ASTNode id = findNodeIn("x", "void x({String named}) {}");
+    Element element = ElementLocator.locate(id);
+    assertEquals("void x({String named})", DartDocUtilities.getTextSummary(element));
+  }
+
+  public void test_method_named_doc_2() throws Exception {
+    ASTNode id = findNodeIn("x", "void x({String named}, int unnamed) {}");
+    Element element = ElementLocator.locate(id);
+    assertEquals("void x({String named}, int unnamed)", DartDocUtilities.getTextSummary(element));
+  }
+
+  public void test_method_optional_doc() throws Exception {
+    ASTNode id = findNodeIn("x", "void x([bool opt = false]) {}");
+    Element element = ElementLocator.locate(id);
+    assertEquals("void x([bool opt])", DartDocUtilities.getTextSummary(element));
+  }
+
   public void test_var_text() throws Exception {
     ASTNode id = findNodeIn("x", "int x;\n");
     Element element = ElementLocator.locate(id);
