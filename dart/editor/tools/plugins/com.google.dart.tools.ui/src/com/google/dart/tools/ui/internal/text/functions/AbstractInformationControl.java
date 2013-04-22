@@ -57,7 +57,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -457,22 +456,6 @@ public abstract class AbstractInformationControl extends PopupDialog implements
             if (!o.equals(fLastItem)) {
               fLastItem = (TreeItem) o;
               tree.setSelection(new TreeItem[] {fLastItem});
-            } else if (e.y < tree.getItemHeight() / 4) {
-              // Scroll up
-              Point p = tree.toDisplay(e.x, e.y);
-              Item item = fTreeViewer.scrollUp(p.x, p.y);
-              if (item instanceof TreeItem) {
-                fLastItem = (TreeItem) item;
-                tree.setSelection(new TreeItem[] {fLastItem});
-              }
-            } else if (e.y > tree.getBounds().height - tree.getItemHeight() / 4) {
-              // Scroll down
-              Point p = tree.toDisplay(e.x, e.y);
-              Item item = fTreeViewer.scrollDown(p.x, p.y);
-              if (item instanceof TreeItem) {
-                fLastItem = (TreeItem) item;
-                tree.setSelection(new TreeItem[] {fLastItem});
-              }
             }
           }
         }
