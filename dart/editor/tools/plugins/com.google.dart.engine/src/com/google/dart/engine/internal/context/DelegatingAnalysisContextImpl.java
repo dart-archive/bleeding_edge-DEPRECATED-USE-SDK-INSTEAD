@@ -41,7 +41,6 @@ import java.util.Map;
  * @coverage dart.engine
  */
 public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
-
   /**
    * This references the {@link InternalAnalysisContext} held onto by the {@link DartSdk} which is
    * used (instead of this {@link AnalysisContext}) for SDK sources. This field is set when
@@ -350,6 +349,11 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
     DartSdk sdk = factory.getDartSdk();
     if (sdk != null) {
       sdkAnalysisContext = (InternalAnalysisContext) sdk.getContext();
+      if (sdkAnalysisContext instanceof DelegatingAnalysisContextImpl) {
+        sdkAnalysisContext = null;
+        throw new IllegalStateException(
+            "The context provided by an SDK cannot itself be a delegating analysis context");
+      }
     } else {
       throw new IllegalStateException(
           "SourceFactorys provided to DelegatingAnalysisContextImpls must have a DartSdk associated with the provided SourceFactory.");
