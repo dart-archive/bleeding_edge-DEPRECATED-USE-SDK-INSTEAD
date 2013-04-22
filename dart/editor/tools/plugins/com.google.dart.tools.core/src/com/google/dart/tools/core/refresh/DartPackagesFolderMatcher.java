@@ -43,12 +43,17 @@ public class DartPackagesFolderMatcher extends AbstractFileInfoMatcher {
   @Override
   public boolean matches(IContainer parent, IFileInfo fileInfo) throws CoreException {
 
-    // suppress self link 
+    // suppress self link - test for self link only in pacakges that is next to pubspec.yaml
     // TODO(keertip): this does not work on Windows, replace it.
-    if (!DartCore.isWindows() && parent.getParent() != null
-        && parent.getParent().getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
-      if (DartCore.isSelfLinkedResource(parent.getProject(), parent)) {
-        return true;
+    if (!DartCore.isWindows() && parent.getParent() != null) {
+      IContainer gparent = parent.getParent();
+      if (gparent.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME) && gparent.getParent() != null) {
+        IContainer appDir = gparent.getParent();
+        if (appDir.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
+          if (DartCore.isSelfLinkedResource(parent.getProject(), parent)) {
+            return true;
+          }
+        }
       }
       return false;
     }
@@ -64,8 +69,6 @@ public class DartPackagesFolderMatcher extends AbstractFileInfoMatcher {
     }
 
     // If it's a system symlink, filter it out.
-    // TODO(keertip): this does not filter symlinks in web/packages etc on Windows. For now we
-    // need the resources to be shown in editor for debugging. Fix when debugging is fixed.
     if (isSymLinked(parent)) {
       return true;
     }
