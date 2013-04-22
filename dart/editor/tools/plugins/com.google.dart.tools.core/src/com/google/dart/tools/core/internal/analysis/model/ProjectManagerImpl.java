@@ -42,10 +42,7 @@ import com.google.dart.tools.core.model.DartIgnoreListener;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceProxy;
 import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -74,51 +71,11 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   private final ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
 
   /**
-   * A listener that updates the manager when a project is closed.
+   * A listener that updates the manager when a project is closed. In addition, this listener
+   * processes changes in packages directory because Eclipse builders do not receive deltas for
+   * changes in symlinked folders.
    */
-  private IResourceChangeListener
-
-  resourceChangeListener = new IResourceChangeListener() {
-    @Override
-    public void resourceChanged(IResourceChangeEvent event) {
-      IResourceDelta delta = event.getDelta();
-      if (delta != null) {
-        try {
-          delta.accept(new IResourceDeltaVisitor() {
-            @Override
-            public boolean visit(IResourceDelta delta) throws CoreException {
-              IResource res = delta.getResource();
-              if (res == null) {
-                return false;
-              }
-              if (res.getType() == IResource.ROOT) {
-                return true;
-              }
-              if (res.getType() == IResource.PROJECT) {
-                if (delta.getKind() == IResourceDelta.REMOVED) {
-                  removeProject((IProject) res);
-                  return false;
-                }
-                return true;
-              }
-              if (res.getType() == IResource.FOLDER) {
-                if (res.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
-                  if (res.getParent().findMember("pubspec.yaml") != null) {
-                    processPackageChanges(res, delta.getAffectedChildren());
-                  }
-                  return false;
-                }
-                return true;
-              }
-              return false;
-            }
-          });
-        } catch (CoreException e) {
-          DartCore.logError(e);
-        }
-      }
-    }
-  };
+  private IResourceChangeListener resourceChangeListener = new WorkspaceDeltaProcessor(this);
 
   private DartIgnoreListener ignoreListener = new DartIgnoreListener() {
 
@@ -331,6 +288,17 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
+  public void projectRemoved(IProject projectResource) {
+    Project result;
+    synchronized (projects) {
+      result = projects.remove(projectResource);
+    }
+    if (result != null) {
+      result.discardContextsIn(projectResource);
+    }
+  }
+
+  @Override
   public void removeProjectListener(ProjectListener listener) {
     synchronized (listeners) {
       listeners.remove(listener);
@@ -463,70 +431,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
           new AnalysisWorker(getProject(resource.getProject()), context).performAnalysisInBackground();
         }
       }
-    }
-  }
-
-  /**
-   * Process changes in the packages folder
-   */
-  private void processPackageChanges(IResource packagesDir, IResourceDelta[] deltas) {
-    final AnalysisContext context = getContext(packagesDir);
-    final ChangeSet changeSet = new ChangeSet();
-    final Boolean[] packageWasRemoved = new Boolean[1];
-    packageWasRemoved[0] = false;
-    try {
-      for (IResourceDelta delta : deltas) {
-        switch (delta.getKind()) {
-          case IResourceDelta.ADDED:
-          case IResourceDelta.CHANGED:
-            final File dirFile = delta.getResource().getLocation().toFile().getCanonicalFile();
-            final IPath dirPath = delta.getResource().getFullPath();
-            delta.accept(new IResourceDeltaVisitor() {
-              @Override
-              public boolean visit(IResourceDelta delta) throws CoreException {
-                IResource res = delta.getResource();
-                if (res instanceof IFile) {
-                  Source source;
-                  source = new FileBasedSource(
-                      context.getSourceFactory().getContentCache(),
-                      new File(dirFile, getPath(dirPath, res.getFullPath())));
-                  if (delta.getKind() == IResourceDelta.ADDED) {
-                    changeSet.added(source);
-                  } else {
-                    changeSet.changed(source);
-                  }
-                  return false;
-                }
-                return true;
-              }
-            });
-            break;
-          case IResourceDelta.REMOVED:
-            packageWasRemoved[0] = true;
-        }
-      }
-    } catch (Exception e) {
-      DartCore.logError(e);
-    }
-    if (packageWasRemoved[0]) {
-      changeSet.removedContainer(getPubFolder(packagesDir).getInvertedSourceContainer());
-    }
-    context.applyChanges(changeSet);
-    new AnalysisWorker(getProject(packagesDir.getProject()), context).performAnalysisInBackground();
-  }
-
-  /**
-   * Called by the {@link #resourceChangeListener} when a project has been removed.
-   * 
-   * @param projectResource the project that was removed
-   */
-  private void removeProject(IProject projectResource) {
-    Project result;
-    synchronized (projects) {
-      result = projects.remove(projectResource);
-    }
-    if (result != null) {
-      result.discardContextsIn(projectResource);
     }
   }
 }

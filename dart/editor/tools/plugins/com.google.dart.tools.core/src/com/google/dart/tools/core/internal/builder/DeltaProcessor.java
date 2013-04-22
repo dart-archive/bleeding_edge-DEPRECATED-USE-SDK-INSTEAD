@@ -572,21 +572,6 @@ public class DeltaProcessor {
   }
 
   /**
-   * Answer the canonical file in the given package
-   * 
-   * @param canonicalPackageDir the canonical package directory (not {@code null})
-   * @param fullPackagePath the full Eclipse path for the package (not {@code null},
-   *          {@link IResource#getFullPath()} or {@link IResourceProxy#requestFullPath()})
-   * @param fullFilePath the full Eclipse path for the file in the package (not {@code null},
-   *          {@link IResource#getFullPath()} or {@link IResourceProxy#requestFullPath()})
-   * @return the canonical file corresponding to the given Eclipse file (not {@code null})
-   */
-  private File getCanonicalFileInPackage(final File canonicalPackageDir,
-      final IPath fullPackagePath, IPath fullFilePath) {
-    return new File(canonicalPackageDir, fullFilePath.makeRelativeTo(fullPackagePath).toString());
-  }
-
-  /**
    * Return {@code true} if this container is a project or contains a pubspec.yaml
    */
   private boolean isTopContainerInContext(IContainer container) {

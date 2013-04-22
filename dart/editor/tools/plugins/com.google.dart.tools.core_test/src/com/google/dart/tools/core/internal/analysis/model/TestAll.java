@@ -19,10 +19,11 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(CompositeSourceContainerTest.class);
     suite.addTestSuite(ProjectImplTest.class);
     suite.addTestSuite(ProjectManagerImplTest.class);
     suite.addTestSuite(PubFolderImplTest.class);
-    suite.addTestSuite(CompositeSourceContainerTest.class);
+    suite.addTestSuite(WorkspaceDeltaProcessorTest.class);
     return suite;
   }
 }

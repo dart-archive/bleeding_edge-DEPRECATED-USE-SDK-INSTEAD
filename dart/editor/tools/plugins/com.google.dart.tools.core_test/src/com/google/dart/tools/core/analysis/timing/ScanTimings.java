@@ -298,6 +298,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public void projectRemoved(IProject projectResource) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void removeProjectListener(ProjectListener listener) {
       throw new UnsupportedOperationException();
     }

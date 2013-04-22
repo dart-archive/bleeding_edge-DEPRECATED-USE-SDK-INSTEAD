@@ -18,6 +18,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.internal.analysis.model.WorkspaceDeltaProcessor;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import org.eclipse.core.resources.IFile;
@@ -156,6 +157,13 @@ public interface ProjectManager extends ContextManager {
    * @param project the project that was analyzed (not {@code null})
    */
   void projectAnalyzed(Project project);
+
+  /**
+   * Called by the {@link WorkspaceDeltaProcessor} when a project has been removed.
+   * 
+   * @param projectResource the project that was removed
+   */
+  void projectRemoved(IProject projectResource);
 
   /**
    * Stop notifying the specified object when a project has been analyzed.
