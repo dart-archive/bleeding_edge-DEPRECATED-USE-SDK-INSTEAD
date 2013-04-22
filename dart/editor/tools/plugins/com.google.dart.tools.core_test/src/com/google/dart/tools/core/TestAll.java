@@ -65,6 +65,7 @@ public class TestAll {
     if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       suite.addTest(com.google.dart.tools.core.workingcopy.TestAll.suite());
     }
+    suite.addTest(com.google.dart.tools.core.utilities.dartdoc.TestAll.suite());
     return suite;
   }
 }
