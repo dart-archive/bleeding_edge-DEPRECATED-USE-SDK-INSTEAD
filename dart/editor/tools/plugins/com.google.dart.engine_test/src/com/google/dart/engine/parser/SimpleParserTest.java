@@ -1276,6 +1276,15 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(0, commentAndMetadata.getMetadata());
   }
 
+  public void test_parseCommentAndMetadata_singleLine() throws Exception {
+    CommentAndMetadata commentAndMetadata = parse("parseCommentAndMetadata", createSource(//
+        "/// 1",
+        "/// 2",
+        "void"));
+    assertNotNull(commentAndMetadata.getComment());
+    assertSize(0, commentAndMetadata.getMetadata());
+  }
+
   public void test_parseCommentReference_new_prefixed() throws Exception {
     CommentReference reference = parse("parseCommentReference", new Object[] {"new a.b", 7}, "");
     PrefixedIdentifier prefixedIdentifier = assertInstanceOf(
@@ -1366,6 +1375,19 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(reference);
     assertNotNull(reference.getIdentifier());
     assertEquals(35, reference.getOffset());
+  }
+
+  public void test_parseCommentReferences_skipEmbedded() throws Exception {
+    Token[] tokens = new Token[] {new StringToken(
+        TokenType.MULTI_LINE_COMMENT,
+        "/** [:xxx [a] yyy:] [b] zzz */",
+        3),};
+    List<CommentReference> references = parse("parseCommentReferences", new Object[] {tokens}, "");
+    assertSize(1, references);
+    CommentReference reference = references.get(0);
+    assertNotNull(reference);
+    assertNotNull(reference.getIdentifier());
+    assertEquals(24, reference.getOffset());
   }
 
   public void test_parseCompilationUnit_abstractAsPrefix_parameterized() throws Exception {

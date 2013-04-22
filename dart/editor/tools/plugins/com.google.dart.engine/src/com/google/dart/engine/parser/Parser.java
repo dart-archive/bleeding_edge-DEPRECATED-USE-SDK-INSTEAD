@@ -1659,24 +1659,46 @@ public class Parser {
    */
   private List<CommentReference> parseCommentReferences(Token[] tokens) {
     List<CommentReference> references = new ArrayList<CommentReference>();
+    boolean inCodeBlock = false;
     for (Token token : tokens) {
       String comment = token.getLexeme();
-      int leftIndex = comment.indexOf('[');
-      while (leftIndex >= 0) {
-        int rightIndex = comment.indexOf(']', leftIndex);
-        if (rightIndex >= 0) {
-          char firstChar = comment.charAt(leftIndex + 1);
-          if (firstChar != '\'' && firstChar != '"' && firstChar != ':') {
-            // TODO(brianwilkerson) Handle the case where there's a library reference
-            CommentReference reference = parseCommentReference(
-                comment.substring(leftIndex + 1, rightIndex),
-                token.getOffset() + leftIndex + 1);
-            if (reference != null) {
-              references.add(reference);
-            }
+      int rightIndex = 0;
+      if (inCodeBlock) {
+        rightIndex = comment.indexOf(":]");
+        if (rightIndex < 0) {
+          // Advance to the next token.
+          break;
+        }
+        rightIndex = rightIndex + 2;
+        inCodeBlock = false;
+      }
+      int length = comment.length();
+      int leftIndex = comment.indexOf('[', rightIndex);
+      while (leftIndex >= 0 && leftIndex + 1 < length) {
+        char firstChar = comment.charAt(leftIndex + 1);
+        if (firstChar == ':') {
+          rightIndex = comment.indexOf(":]", leftIndex);
+          if (rightIndex < 0) {
+            inCodeBlock = true;
+            // Advance to the next token.
+            break;
           }
+          rightIndex = rightIndex + 2;
         } else {
-          rightIndex = leftIndex + 1;
+          rightIndex = comment.indexOf(']', leftIndex);
+          if (rightIndex >= 0) {
+            if (firstChar != '\'' && firstChar != '"') {
+              // TODO(brianwilkerson) Handle the case where there's a library reference
+              CommentReference reference = parseCommentReference(
+                  comment.substring(leftIndex + 1, rightIndex),
+                  token.getOffset() + leftIndex + 1);
+              if (reference != null) {
+                references.add(reference);
+              }
+            }
+          } else {
+            rightIndex = leftIndex + 1;
+          }
         }
         leftIndex = comment.indexOf('[', rightIndex);
       }
