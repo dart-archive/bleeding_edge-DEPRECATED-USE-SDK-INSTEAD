@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.scope;
 
 import com.google.dart.engine.element.FunctionTypeAliasElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeVariableElement;
 
 /**
@@ -31,18 +32,30 @@ public class FunctionTypeScope extends EnclosedScope {
    */
   public FunctionTypeScope(Scope enclosingScope, FunctionTypeAliasElement typeElement) {
     super(new EnclosedScope(enclosingScope));
-    defineTypeParameters(typeElement);
+    defineTypeVariables(typeElement);
+    defineParameters(typeElement);
   }
 
   /**
-   * Define the type parameters for the function type alias.
+   * Define the parameters for the function type alias.
    * 
    * @param typeElement the element representing the type represented by this scope
    */
-  private void defineTypeParameters(FunctionTypeAliasElement typeElement) {
-    Scope parameterScope = getEnclosingScope();
-    for (TypeVariableElement parameter : typeElement.getTypeVariables()) {
-      parameterScope.define(parameter);
+  private void defineParameters(FunctionTypeAliasElement typeElement) {
+    for (ParameterElement parameter : typeElement.getParameters()) {
+      define(parameter);
+    }
+  }
+
+  /**
+   * Define the type variables for the function type alias.
+   * 
+   * @param typeElement the element representing the type represented by this scope
+   */
+  private void defineTypeVariables(FunctionTypeAliasElement typeElement) {
+    Scope typeVariableScope = getEnclosingScope();
+    for (TypeVariableElement typeVariable : typeElement.getTypeVariables()) {
+      typeVariableScope.define(typeVariable);
     }
   }
 }
