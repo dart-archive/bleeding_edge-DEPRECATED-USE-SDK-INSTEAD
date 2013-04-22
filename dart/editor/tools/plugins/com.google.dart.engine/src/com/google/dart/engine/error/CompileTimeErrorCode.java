@@ -694,7 +694,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 6.2.2 Optional Formals: It is a compile-time error if the name of a named optional parameter
    * begins with an '_' character.
    */
-  PRIVATE_OPTIONAL_PARAMETER(""),
+  PRIVATE_OPTIONAL_PARAMETER("Named optional parameters cannot start with an underscore"),
 
   /**
    * 12.1 Constants: It is a compile-time error if the value of a compile-time constant expression

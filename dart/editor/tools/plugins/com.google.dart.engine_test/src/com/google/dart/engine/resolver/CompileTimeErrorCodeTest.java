@@ -490,14 +490,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_privateOptionalParameter() throws Exception {
-    Source source = addSource(createSource(//
-    "f({_p : 0}) {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
-    verify(source);
-  }
-
   public void fail_recursiveCompileTimeConstant() throws Exception {
     Source source = addSource(createSource(//
         "const x = y + 1;",
@@ -1743,6 +1735,14 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library l2;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.PART_OF_NON_PART);
+    verify(source);
+  }
+
+  public void test_privateOptionalParameter() throws Exception {
+    Source source = addSource(createSource(//
+    "f({_p : 0}) {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
     verify(source);
   }
 

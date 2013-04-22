@@ -281,6 +281,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    checkForPrivateOptionalParameter(node);
+    return super.visitDefaultFormalParameter(node);
+  }
+
+  @Override
   public Void visitDoStatement(DoStatement node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitDoStatement(node);
@@ -1162,6 +1168,26 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       if (functionType.getTypeArguments().length == 0
           && !functionType.getReturnType().isAssignableTo(typeProvider.getBoolType())) {
         errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This checks for named optional parameters that begin with '_'.
+   * 
+   * @param node the default formal parameter to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#PRIVATE_OPTIONAL_PARAMETER
+   */
+  private boolean checkForPrivateOptionalParameter(DefaultFormalParameter node) {
+    Token separator = node.getSeparator();
+    if (separator != null && separator.getLexeme().equals(":")) {
+      NormalFormalParameter parameter = node.getParameter();
+      SimpleIdentifier name = parameter.getIdentifier();
+      if (!name.isSynthetic() && name.getName().startsWith("_")) {
+        errorReporter.reportError(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, node);
         return true;
       }
     }
