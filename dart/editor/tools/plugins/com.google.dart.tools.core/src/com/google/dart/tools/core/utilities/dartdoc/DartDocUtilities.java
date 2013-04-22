@@ -71,7 +71,12 @@ public final class DartDocUtilities {
     @Override
     public String visitConstructorElement(ConstructorElement element) {
       StringBuilder params = buildParams(element.getParameters());
-      return element.getType().getReturnType().getName() + "(" + params + ")";
+      String typeName = element.getType().getReturnType().getName();
+      String constructorName = element.getName();
+      if (constructorName != null && constructorName.length() != 0) {
+        typeName = typeName + "." + constructorName;
+      }
+      return typeName + "(" + params + ")";
     }
 
     @Override
