@@ -30,12 +30,14 @@ import java.util.Map;
  */
 public class CorrectionProposal {
   private final CorrectionKind kind;
+  private final String name;
   private final List<SourceChange> changes = Lists.newArrayList();
   private Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
   private Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
 
-  public CorrectionProposal(CorrectionKind kind) {
+  public CorrectionProposal(CorrectionKind kind, Object... arguments) {
     this.kind = kind;
+    this.name = String.format(kind.getName(), arguments);
   }
 
   /**
@@ -72,6 +74,13 @@ public class CorrectionProposal {
    */
   public Map<String, List<SourceRange>> getLinkedPositions() {
     return linkedPositions;
+  }
+
+  /**
+   * @return the name to display for user.
+   */
+  public String getName() {
+    return name;
   }
 
   /**

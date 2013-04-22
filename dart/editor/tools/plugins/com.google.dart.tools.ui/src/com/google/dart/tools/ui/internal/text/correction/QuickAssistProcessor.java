@@ -56,7 +56,7 @@ public class QuickAssistProcessor {
         SourceChange sourceChange = serviceChanges.get(0);
         TextChange textChange = ServiceUtils.toLTK(sourceChange);
         proposals.add(new CUCorrectionProposal(
-            kind.getName(),
+            serviceProposal.getName(),
             sourceChange.getSource(),
             textChange,
             kind.getRelevance(),

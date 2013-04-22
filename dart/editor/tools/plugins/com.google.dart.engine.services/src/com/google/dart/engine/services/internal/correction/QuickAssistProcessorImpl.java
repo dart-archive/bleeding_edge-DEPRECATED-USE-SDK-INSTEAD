@@ -184,9 +184,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       instrumentation.metric("QuickAssist-ProposalCount", proposals.size());
       instrumentation.data("QuickAssist-Source", utils.getText());
       for (int index = 0; index < proposals.size(); index++) {
-        instrumentation.data(
-            "QuickAssist-Proposal-" + index,
-            proposals.get(index).getKind().getName());
+        instrumentation.data("QuickAssist-Proposal-" + index, proposals.get(index).getName());
       }
       return proposals.toArray(new CorrectionProposal[proposals.size()]);
     } finally {

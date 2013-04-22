@@ -199,7 +199,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       instrumentation.metric("QuickFix-ProposalCount", proposals.size());
       instrumentation.data("QuickFix-Source", utils.getText());
       for (int index = 0; index < proposals.size(); index++) {
-        instrumentation.data("QuickFix-Proposal-" + index, proposals.get(index).getKind().getName());
+        instrumentation.data("QuickFix-Proposal-" + index, proposals.get(index).getName());
       }
       // done
       return proposals.toArray(new CorrectionProposal[proposals.size()]);
@@ -359,7 +359,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     String importSource = prefix + "import '" + importPath + "';" + suffix;
     addInsertEdit(offset, importSource);
     // add proposal
-    addUnitCorrectionProposal(libraryUnitElement.getSource(), kind);
+    addUnitCorrectionProposal(libraryUnitElement.getSource(), kind, importPath);
   }
 
   private void addFix_importLibrary_withElement(String name, ElementKind kind) throws Exception {
@@ -386,7 +386,10 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       // insert prefix
       SourceRange range = rangeStartLength(node, 0);
       addReplaceEdit(range, prefix.getName() + ".");
-      addUnitCorrectionProposal(CorrectionKind.QF_IMPORT_LIBRARY_PREFIX);
+      addUnitCorrectionProposal(
+          CorrectionKind.QF_IMPORT_LIBRARY_PREFIX,
+          libraryElement.getName(),
+          prefix.getName());
     }
     // check SDK libraries
     AnalysisContext context = unitLibraryElement.getContext();
@@ -858,16 +861,16 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   /**
    * Adds {@link CorrectionProposal} with single {@link SourceChange} to {@link #proposals}.
    */
-  private void addUnitCorrectionProposal(CorrectionKind kind) {
-    addUnitCorrectionProposal(source, kind);
+  private void addUnitCorrectionProposal(CorrectionKind kind, Object... arguments) {
+    addUnitCorrectionProposal(source, kind, arguments);
   }
 
   /**
    * Adds {@link CorrectionProposal} with single {@link SourceChange} to {@link #proposals}.
    */
-  private void addUnitCorrectionProposal(Source source, CorrectionKind kind) {
+  private void addUnitCorrectionProposal(Source source, CorrectionKind kind, Object... arguments) {
     if (!textEdits.isEmpty()) {
-      CorrectionProposal proposal = new CorrectionProposal(kind);
+      CorrectionProposal proposal = new CorrectionProposal(kind, arguments);
       proposal.setLinkedPositions(linkedPositions);
       proposal.setLinkedPositionProposals(linkedPositionProposals);
       // add change
