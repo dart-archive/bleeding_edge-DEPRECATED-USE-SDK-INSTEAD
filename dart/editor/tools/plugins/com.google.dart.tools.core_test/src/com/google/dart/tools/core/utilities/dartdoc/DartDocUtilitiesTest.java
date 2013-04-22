@@ -54,6 +54,15 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
     assertEquals("A", DartDocUtilities.getTextSummary(element));
   }
 
+  public void test_cons_text_summary() throws Exception {
+    ASTNode id = findNodeIn("A(", createSource(//
+        "class A { ",
+        "  A(String x){}",
+        "}"));
+    Element element = ElementLocator.locate(id);
+    assertEquals("A(String x)", DartDocUtilities.getTextSummary(element));
+  }
+
   public void test_method_doc() throws Exception {
     ASTNode id = findNodeIn("x", createSource(//
         "/// My method",

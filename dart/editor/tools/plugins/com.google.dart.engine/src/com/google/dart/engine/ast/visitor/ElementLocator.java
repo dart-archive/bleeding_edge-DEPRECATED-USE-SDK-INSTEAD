@@ -29,9 +29,11 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 
 /**
@@ -73,6 +75,22 @@ public class ElementLocator {
 
     @Override
     public Element visitIdentifier(Identifier node) {
+      ASTNode parent = node.getParent();
+      // Extra work to map Constructor Declarations to their associated Constructor Elements
+      if (parent instanceof ConstructorDeclaration) {
+        ConstructorDeclaration decl = (ConstructorDeclaration) parent;
+        Identifier returnType = decl.getReturnType();
+        if (returnType == node) {
+          SimpleIdentifier name = decl.getName();
+          if (name != null) {
+            return name.getElement();
+          }
+          Element element = node.getElement();
+          if (element instanceof ClassElement) {
+            return ((ClassElement) element).getUnnamedConstructor();
+          }
+        }
+      }
       return node.getElement();
     }
 

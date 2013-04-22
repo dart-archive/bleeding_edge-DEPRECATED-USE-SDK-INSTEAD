@@ -17,6 +17,7 @@ package com.google.dart.tools.core.utilities.dartdoc;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
@@ -65,6 +66,12 @@ public final class DartDocUtilities {
       }
 
       return getTypeName(element);
+    }
+
+    @Override
+    public String visitConstructorElement(ConstructorElement element) {
+      StringBuilder params = buildParams(element.getParameters());
+      return element.getType().getReturnType().getName() + "(" + params + ")";
     }
 
     @Override
