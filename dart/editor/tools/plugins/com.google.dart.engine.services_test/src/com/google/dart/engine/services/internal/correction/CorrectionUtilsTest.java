@@ -59,6 +59,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.formatter.edit.Edit;
+import com.google.dart.engine.services.internal.correction.CorrectionUtils.TopInsertDesc;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -399,6 +400,23 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     parseTestUnit("// aaa\r\n// bbb\r\n// ccc");
     CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals("\r\n", utils.getEndOfLine());
+  }
+
+  public void test_getExportedElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var myVariable;",
+        "myFunction() {}",
+        "class MyClass {}",
+        "");
+    // OK
+    assertNotNull(CorrectionUtils.getExportedElement(testLibraryElement, "myVariable"));
+    assertNotNull(CorrectionUtils.getExportedElement(testLibraryElement, "myFunction"));
+    assertNotNull(CorrectionUtils.getExportedElement(testLibraryElement, "MyClass"));
+    // no LibraryElement
+    assertNull(CorrectionUtils.getExportedElement(null, "MyClass"));
+    // no such name
+    assertNull(CorrectionUtils.getExportedElement(testLibraryElement, "OtherName"));
   }
 
   public void test_getIndent() throws Exception {
@@ -951,6 +969,48 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals("0123", utils.getText(rangeStartLength(3, 4)));
   }
 
+  public void test_getTopInsertDesc_emptyUnit() throws Exception {
+    parseTestUnit();
+    CorrectionUtils utils = getTestCorrectionUtils();
+    TopInsertDesc desc = utils.getTopInsertDesc();
+    assertEquals(0, desc.offset);
+    assertFalse(desc.insertEmptyLineBefore);
+    assertFalse(desc.insertEmptyLineAfter);
+  }
+
+  public void test_getTopInsertDesc_hashBang() throws Exception {
+    parseTestUnit(
+        "#!/bin/dart",
+        "",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {}");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    TopInsertDesc desc = utils.getTopInsertDesc();
+    assertEquals(findOffset("main()"), desc.offset);
+    assertTrue(desc.insertEmptyLineBefore);
+    assertTrue(desc.insertEmptyLineAfter);
+  }
+
+  public void test_getTopInsertDesc_hasUnitMembers() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {}");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    TopInsertDesc desc = utils.getTopInsertDesc();
+    assertEquals(findOffset("main()"), desc.offset);
+    assertTrue(desc.insertEmptyLineBefore);
+    assertTrue(desc.insertEmptyLineAfter);
+  }
+
+  public void test_getTopInsertDesc_leadingComments_noUnitMembers() throws Exception {
+    parseTestUnit("// filler filler filler filler filler filler filler filler filler filler");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    TopInsertDesc desc = utils.getTopInsertDesc();
+    assertEquals(testCode.length(), desc.offset);
+    assertTrue(desc.insertEmptyLineBefore);
+    assertFalse(desc.insertEmptyLineAfter);
+  }
+
   public void test_getTypeSource_Expression() throws Exception {
     parseTestUnit("// 0123456789");
     CorrectionUtils utils = getTestCorrectionUtils();
@@ -978,6 +1038,19 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     // Map<int, String>
     when(type.toString()).thenReturn("Map<int, String>");
     assertEquals("Map<int, String>", utils.getTypeSource(expression));
+  }
+
+  public void test_getTypeSource_Expression_importedWithPrefix() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async' as pref;",
+        "main() {",
+        "  pref.Future f = null;",
+        "}",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    SimpleIdentifier identifier = findIdentifier("f = ");
+    assertEquals("pref.Future", utils.getTypeSource(identifier));
   }
 
   public void test_getTypeSource_Type() throws Exception {

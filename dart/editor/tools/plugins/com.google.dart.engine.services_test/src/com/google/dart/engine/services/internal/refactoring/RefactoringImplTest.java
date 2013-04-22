@@ -16,7 +16,6 @@ package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
@@ -40,18 +39,9 @@ import java.util.List;
  */
 public abstract class RefactoringImplTest extends AbstractDartTest {
   /**
-   * @return the result of applying given {@link SourceChange} to the {@link #testCode}.
-   */
-  private static String getChangeResult(Source source, SourceChange change) throws Exception {
-    String sourceCode = CorrectionUtils.getSourceContent(source);
-    List<Edit> sourceEdits = change.getEdits();
-    return CorrectionUtils.applyReplaceEdits(sourceCode, sourceEdits);
-  }
-
-  /**
    * @return the {@link SourceChange} for the given {@link Source}.
    */
-  private static SourceChange getSourceChange(Change change, Source source) {
+  protected static SourceChange getSourceChange(Change change, Source source) {
     // may be SourceChange
     if (change instanceof SourceChange) {
       SourceChange sourceChange = (SourceChange) change;
@@ -71,6 +61,15 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
     }
     // not found
     return null;
+  }
+
+  /**
+   * @return the result of applying given {@link SourceChange} to the {@link #testCode}.
+   */
+  private static String getChangeResult(Source source, SourceChange change) throws Exception {
+    String sourceCode = CorrectionUtils.getSourceContent(source);
+    List<Edit> sourceEdits = change.getEdits();
+    return CorrectionUtils.applyReplaceEdits(sourceCode, sourceEdits);
   }
 
   protected final ProgressMonitor pm = new NullProgressMonitor();
@@ -139,7 +138,7 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
     }.start();
     searchEngine = SearchEngineFactory.createSearchEngine(index);
     // search for something, ensure that Index is running before we will try to stop it
-    searchEngine.searchReferences((ClassElement) null, null, null);
+    searchEngine.searchDeclarations("no-such-name", null, null);
   }
 
   @Override

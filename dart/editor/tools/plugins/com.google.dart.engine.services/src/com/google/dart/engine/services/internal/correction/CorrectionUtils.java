@@ -242,6 +242,18 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return {@link Element} exported from the given {@link LibraryElement}.
+   */
+  public static Element getExportedElement(LibraryElement library, String name) {
+    if (library == null) {
+      return null;
+    }
+    // TODO(scheglov) may be replace with some API for this
+    Namespace namespace = new NamespaceBuilder().createExportNamespace(library);
+    return namespace.getDefinedNames().get(name);
+  }
+
+  /**
    * @return the line prefix from the given source, i.e. basically just whitespace prefix of the
    *         given {@link String}.
    */
@@ -740,63 +752,6 @@ public class CorrectionUtils {
     return endOfLine;
   }
 
-//  /**
-//   * @return {@link TopInsertDesc}, description where to insert new directive or top-level
-//   *         declaration at the top of file.
-//   */
-//  public TopInsertDesc getTopInsertDesc() {
-//    // skip leading line comments
-//    int offset = 0;
-//    boolean insertEmptyLineBefore = false;
-//    boolean insertEmptyLineAfter = false;
-//    String source = getText();
-//    // skip hash-bang
-//    if (offset < source.length() - 2) {
-//      String linePrefix = getText(offset, 2);
-//      if (linePrefix.equals("#!")) {
-//        insertEmptyLineBefore = true;
-//        offset = getLineNext(offset);
-//        // skip empty lines to first line comment
-//        int emptyOffset = offset;
-//        while (emptyOffset < source.length() - 2) {
-//          int nextLineOffset = getLineNext(emptyOffset);
-//          String line = source.substring(emptyOffset, nextLineOffset);
-//          if (line.trim().isEmpty()) {
-//            emptyOffset = nextLineOffset;
-//            continue;
-//          } else if (line.startsWith("//")) {
-//            offset = emptyOffset;
-//            break;
-//          } else {
-//            break;
-//          }
-//        }
-//      }
-//    }
-//    // skip line comments
-//    while (offset < source.length() - 2) {
-//      String linePrefix = getText(offset, 2);
-//      if (linePrefix.equals("//")) {
-//        insertEmptyLineBefore = true;
-//        offset = getLineNext(offset);
-//      } else {
-//        break;
-//      }
-//    }
-//    // determine if empty line required
-//    int nextLineOffset = getLineNext(offset);
-//    String insertLine = source.substring(offset, nextLineOffset);
-//    if (!insertLine.trim().isEmpty()) {
-//      insertEmptyLineAfter = true;
-//    }
-//    // fill TopInsertDesc
-//    TopInsertDesc desc = new TopInsertDesc();
-//    desc.offset = offset;
-//    desc.insertEmptyLineBefore = insertEmptyLineBefore;
-//    desc.insertEmptyLineAfter = insertEmptyLineAfter;
-//    return desc;
-//  }
-
   /**
    * @return the default indentation with given level.
    */
@@ -1025,6 +980,63 @@ public class CorrectionUtils {
    */
   public String getText(SourceRange range) {
     return getText(range.getOffset(), range.getLength());
+  }
+
+  /**
+   * @return {@link TopInsertDesc}, description where to insert new directive or top-level
+   *         declaration at the top of file.
+   */
+  public TopInsertDesc getTopInsertDesc() {
+    // skip leading line comments
+    int offset = 0;
+    boolean insertEmptyLineBefore = false;
+    boolean insertEmptyLineAfter = false;
+    String source = getText();
+    // skip hash-bang
+    if (offset < source.length() - 2) {
+      String linePrefix = getText(offset, 2);
+      if (linePrefix.equals("#!")) {
+        insertEmptyLineBefore = true;
+        offset = getLineNext(offset);
+        // skip empty lines to first line comment
+        int emptyOffset = offset;
+        while (emptyOffset < source.length() - 2) {
+          int nextLineOffset = getLineNext(emptyOffset);
+          String line = source.substring(emptyOffset, nextLineOffset);
+          if (line.trim().isEmpty()) {
+            emptyOffset = nextLineOffset;
+            continue;
+          } else if (line.startsWith("//")) {
+            offset = emptyOffset;
+            break;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    // skip line comments
+    while (offset < source.length() - 2) {
+      String linePrefix = getText(offset, 2);
+      if (linePrefix.equals("//")) {
+        insertEmptyLineBefore = true;
+        offset = getLineNext(offset);
+      } else {
+        break;
+      }
+    }
+    // determine if empty line is required after
+    int nextLineOffset = getLineNext(offset);
+    String insertLine = source.substring(offset, nextLineOffset);
+    if (!insertLine.trim().isEmpty()) {
+      insertEmptyLineAfter = true;
+    }
+    // fill TopInsertDesc
+    TopInsertDesc desc = new TopInsertDesc();
+    desc.offset = offset;
+    desc.insertEmptyLineBefore = insertEmptyLineBefore;
+    desc.insertEmptyLineAfter = insertEmptyLineAfter;
+    return desc;
   }
 
   /**

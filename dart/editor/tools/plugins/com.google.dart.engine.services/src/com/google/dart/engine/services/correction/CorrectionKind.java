@@ -36,7 +36,12 @@ public enum CorrectionKind {
   QA_SURROUND_WITH_TRY_CATCH(30, "Surround with 'try-catch'"),
   QA_SURROUND_WITH_TRY_FINALLY(30, "Surround with 'try-finally'"),
   QA_SURROUND_WITH_WHILE(30, "Surround with 'while'"),
+  QF_IMPORT_LIBRARY_PREFIX(50, "Use imported library '{0}' with prefix '{1}'"),
+  QF_IMPORT_LIBRARY_PROJECT(50, "Import library '{0}'"),
+  QF_IMPORT_LIBRARY_SDK(50, "Import library '{0}'"),
   QF_INSERT_SEMICOLON(50, "Insert ';'"),
+  QF_REMOVE_PARAMETERS_IN_GETTER_DECLARATION(50, "Remove parameters in getter declaration"),
+  QF_REMOVE_PARENTHESIS_IN_GETTER_INVOCATION(50, "Remove parentheses in getter invocation"),
   QF_REPLACE_BOOLEAN_WITH_BOOL(50, "Replace 'boolean' with 'bool'");
 
   private final int relevance;

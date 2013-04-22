@@ -50,9 +50,9 @@ public class AbstractDartTest extends TestCase {
   protected final static String lineSeparator = System.getProperty("line.separator", "\n");
 
   private static final DartSdk defaultSdk = DirectoryBasedDartSdk.getDefaultSdk();
-  private static final SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
+  protected static final SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
       defaultSdk));
-  private static AnalysisContext ANALYSIS_CONTEXT;
+  protected static AnalysisContext analysisContext;
 
   /**
    * @return {@link ASTNode} which has required offset and type.
@@ -85,11 +85,7 @@ public class AbstractDartTest extends TestCase {
    * @return the resolved {@link CompilationUnit} for given Dart code.
    */
   public static CompilationUnit parseUnit(String path, String code) throws Exception {
-    // initialize AnslysisContext
-    if (ANALYSIS_CONTEXT == null) {
-      ANALYSIS_CONTEXT = AnalysisEngine.getInstance().createAnalysisContext();
-      ANALYSIS_CONTEXT.setSourceFactory(sourceFactory);
-    }
+    ensureAnalysisContext();
     // configure Source
     Source source = new FileBasedSource(
         sourceFactory.getContentCache(),
@@ -98,14 +94,24 @@ public class AbstractDartTest extends TestCase {
       sourceFactory.setContents(source, "");
       ChangeSet changeSet = new ChangeSet();
       changeSet.added(source);
-      ANALYSIS_CONTEXT.applyChanges(changeSet);
+      analysisContext.applyChanges(changeSet);
     }
     // update Source
-    ANALYSIS_CONTEXT.setContents(source, code);
+    analysisContext.setContents(source, code);
     // parse and resolve
-    LibraryElement library = ANALYSIS_CONTEXT.computeLibraryElement(source);
-    CompilationUnit libraryUnit = ANALYSIS_CONTEXT.resolveCompilationUnit(source, library);
+    LibraryElement library = analysisContext.computeLibraryElement(source);
+    CompilationUnit libraryUnit = analysisContext.resolveCompilationUnit(source, library);
     return libraryUnit;
+  }
+
+  /**
+   * Ensure that {@link #analysisContext} is initialized.
+   */
+  protected static void ensureAnalysisContext() {
+    if (analysisContext == null) {
+      analysisContext = AnalysisEngine.getInstance().createAnalysisContext();
+      analysisContext.setSourceFactory(sourceFactory);
+    }
   }
 
   protected static String makeSource(String... lines) {
@@ -266,9 +272,22 @@ public class AbstractDartTest extends TestCase {
 
   @Override
   protected void tearDown() throws Exception {
+    // reset SourceFactory
     for (Source source : sourceWithSetContent) {
       sourceFactory.setContents(source, null);
     }
+    // reset AnalysisContext
+    if (analysisContext != null) {
+      ChangeSet changeSet = new ChangeSet();
+      if (testSource != null) {
+        changeSet.removed(testSource);
+      }
+      for (Source source : sourceWithSetContent) {
+        changeSet.removed(source);
+      }
+      analysisContext.applyChanges(changeSet);
+    }
+    // continue
     super.tearDown();
   }
 }
