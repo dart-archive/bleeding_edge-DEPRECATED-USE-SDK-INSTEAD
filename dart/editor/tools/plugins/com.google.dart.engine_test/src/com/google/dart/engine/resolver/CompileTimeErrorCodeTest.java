@@ -579,16 +579,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_returnInGenerativeConstructor() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  A() { return 0; }",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR);
-    verify(source);
-  }
-
   public void fail_staticTopLevelFunction_topLevel() throws Exception {
     // I think this is more general than the error name implies.
     Source source = addSource(createSource(//
@@ -1753,6 +1743,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH);
+    verify(source);
+  }
+
+  public void test_returnInGenerativeConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() { return 0; }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR);
     verify(source);
   }
 

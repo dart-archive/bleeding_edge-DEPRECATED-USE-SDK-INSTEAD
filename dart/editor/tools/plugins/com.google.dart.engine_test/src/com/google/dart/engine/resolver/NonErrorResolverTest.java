@@ -507,6 +507,16 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_returnInGenerativeConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() { return; }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_returnOfInvalidType_dynamic() throws Exception {
     Source source = addSource(createSource(//
         "class TypeError {}",

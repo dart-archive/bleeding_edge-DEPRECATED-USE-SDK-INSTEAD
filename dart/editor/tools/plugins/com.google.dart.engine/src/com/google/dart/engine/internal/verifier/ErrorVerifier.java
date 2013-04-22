@@ -423,7 +423,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitReturnStatement(ReturnStatement node) {
-    checkForReturnOfInvalidType(node);
+    if (!checkForReturnInGenerativeConstructor(node)) {
+      checkForReturnOfInvalidType(node);
+    }
     return super.visitReturnStatement(node);
   }
 
@@ -1205,6 +1207,26 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (!isInCatchClause) {
       errorReporter.reportError(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, node);
       return true;
+    }
+    return false;
+  }
+
+  /**
+   * This checks that the return statement of the form <i>return e;</i> is not in a generative
+   * constructor.
+   * 
+   * @param node the return statement to evaluate
+   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#RETURN_IN_GENERATIVE_CONSTRUCTOR
+   */
+  private boolean checkForReturnInGenerativeConstructor(ReturnStatement node) {
+    Expression expression = node.getExpression();
+    if (expression != null && enclosingFunction instanceof ConstructorElement) {
+      ConstructorElement constructor = (ConstructorElement) enclosingFunction;
+      if (!constructor.isFactory()) {
+        errorReporter.reportError(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, expression);
+        return true;
+      }
     }
     return false;
   }

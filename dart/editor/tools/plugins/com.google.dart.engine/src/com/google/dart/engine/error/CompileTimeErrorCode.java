@@ -747,7 +747,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 13.11 Return: It is a compile-time error if a return statement of the form <i>return e;</i>
    * appears in a generative constructor.
    */
-  RETURN_IN_GENERATIVE_CONSTRUCTOR(""),
+  RETURN_IN_GENERATIVE_CONSTRUCTOR("Constructors cannot return a value"),
 
   /**
    * 6.1 Function Declarations: It is a compile-time error to preface a function declaration with
