@@ -25,7 +25,10 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IInformationControl;
+import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
@@ -34,6 +37,7 @@ import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
@@ -79,6 +83,7 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
     } else {
       this.editor = null;
     }
+    setInformationControlCreator(getInformationControlCreator());
   }
 
   /**
@@ -149,6 +154,21 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
     }
     // not found
     return null;
+  }
+
+  /**
+   * @return the {@link IInformationControlCreator} used to display prefix and help user to decide
+   *         which correction to choose.
+   */
+  private IInformationControlCreator getInformationControlCreator() {
+    return new IInformationControlCreator() {
+      @Override
+      public IInformationControl createInformationControl(Shell parent) {
+        return new DefaultInformationControl(
+            parent,
+            DartToolsPlugin.getAdditionalInfoAffordanceString());
+      }
+    };
   }
 
   /**
