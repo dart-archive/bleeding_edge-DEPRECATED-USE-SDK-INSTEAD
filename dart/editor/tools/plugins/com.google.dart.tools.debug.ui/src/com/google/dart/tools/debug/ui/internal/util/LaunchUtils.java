@@ -29,6 +29,7 @@ import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.dartium.DartiumLaunchShortcut;
+import com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -424,6 +425,15 @@ public class LaunchUtils {
       return (IResource) page.getActiveEditor().getEditorInput().getAdapter(IResource.class);
     }
 
+    return null;
+  }
+
+  public static ILaunchShortcut getServerLaunchShortcut() {
+    for (ILaunchShortcut shortcut : getAllLaunchShortcuts()) {
+      if (shortcut instanceof DartServerLaunchShortcut) {
+        return shortcut;
+      }
+    }
     return null;
   }
 

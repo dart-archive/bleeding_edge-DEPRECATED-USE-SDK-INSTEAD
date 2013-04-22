@@ -368,6 +368,13 @@
             id="com.google.dart.tools.debug.ui.run.browser"
             name="%runBrowserName">
       </command>
+       <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.RunInServerHandler"
+            description="Run"
+            id="com.google.dart.tools.debug.ui.run.server"
+            name="%runCommandName">
+      </command>
       <command
             categoryId="org.eclipse.ui.category.window"
             defaultHandler="com.google.dart.tools.debug.ui.launch.ManageLaunchesHandler"
@@ -426,7 +433,7 @@
             allPopups="true"
             locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
          <command
-               commandId="com.google.dart.tools.debug.ui.run.selection"
+               commandId="com.google.dart.tools.debug.ui.run.server"
                icon="icons/obj16/run_exc.png"
                style="push">
             <visibleWhen
