@@ -734,22 +734,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_wrongNumberOfParametersForSetter_tooFew() throws Exception {
-    Source source = addSource(createSource(//
-    "set x() {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
-    verify(source);
-  }
-
-  public void fail_wrongNumberOfParametersForSetter_tooMany() throws Exception {
-    Source source = addSource(createSource(//
-    "set x(a, b) {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
-    verify(source);
-  }
-
   public void fail_wrongNumberOfTypeArguments_creation_const_tooFew() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
@@ -1773,5 +1757,25 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.URI_WITH_INTERPOLATION);
     // We cannot verify resolution with an unresolvable URI: '${'a'}.dart'
+  }
+
+  public void test_wrongNumberOfParametersForSetter_tooFew() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set x() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    verify(source);
+  }
+
+  public void test_wrongNumberOfParametersForSetter_tooMany() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set x(a, b) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    verify(source);
   }
 }

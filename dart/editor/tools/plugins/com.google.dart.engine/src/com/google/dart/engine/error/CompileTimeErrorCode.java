@@ -832,8 +832,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 7.3 Setters: It is a compile-time error if a setter's formal parameter list does not include
    * exactly one required formal parameter <i>p</i>.
+   * 
+   * @param numberOfParameters the number of parameters found in the setter
    */
-  WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER(""),
+  WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER("Setters should declare exactly one parameter, %d found"),
 
   /**
    * 12.11 Instance Creation: It is a compile-time error if a constructor of a generic type with

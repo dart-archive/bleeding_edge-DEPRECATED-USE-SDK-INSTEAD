@@ -403,6 +403,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ExecutableElement previousFunction = enclosingFunction;
     try {
       enclosingFunction = node.getElement();
+      checkForWrongNumberOfParametersForSetter(node);
       return super.visitMethodDeclaration(node);
     } finally {
       enclosingFunction = previousFunction;
@@ -1293,6 +1294,33 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           }
         }
       }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies if the passed method declaration is a setter, that it has only one parameter.
+   * 
+   * @param node the method declaration to evaluate
+   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
+   */
+  private boolean checkForWrongNumberOfParametersForSetter(MethodDeclaration node) {
+    if (!node.isSetter()) {
+      return false;
+    }
+    FormalParameterList parameterList = node.getParameters();
+    if (parameterList == null) {
+      return false;
+    }
+    NodeList<FormalParameter> formalParameters = parameterList.getParameters();
+    int numberOfParameters = formalParameters.size();
+    if (numberOfParameters != 1) {
+      errorReporter.reportError(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+          node.getName(),
+          numberOfParameters);
+      return true;
     }
     return false;
   }

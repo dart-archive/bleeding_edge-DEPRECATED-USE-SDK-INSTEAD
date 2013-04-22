@@ -625,4 +625,14 @@ public class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify(source);
   }
+
+  public void test_wrongNumberOfParametersForSetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set x(a) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
 }
