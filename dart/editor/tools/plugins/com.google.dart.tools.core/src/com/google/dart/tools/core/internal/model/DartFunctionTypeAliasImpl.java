@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.internal.model.info.DartFunctionTypeAliasInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.model.DartElement;
@@ -20,7 +21,6 @@ import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import java.util.ArrayList;

@@ -22,7 +22,7 @@ import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.parser.Token;
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 
 /**

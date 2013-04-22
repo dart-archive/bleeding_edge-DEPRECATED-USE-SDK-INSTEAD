@@ -30,6 +30,7 @@ import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.SimpleElementVisitor;
 import com.google.dart.engine.utilities.dart.ParameterKind;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartDocumentable;
@@ -39,7 +40,6 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 

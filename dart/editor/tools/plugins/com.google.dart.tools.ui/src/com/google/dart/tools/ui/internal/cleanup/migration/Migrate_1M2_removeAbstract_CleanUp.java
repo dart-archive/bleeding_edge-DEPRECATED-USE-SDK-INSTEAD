@@ -19,7 +19,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.code.TokenUtils;
 

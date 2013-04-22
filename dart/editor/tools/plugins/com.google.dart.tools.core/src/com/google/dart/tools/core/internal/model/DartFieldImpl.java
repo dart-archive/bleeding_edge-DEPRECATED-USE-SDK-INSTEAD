@@ -13,13 +13,13 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.info.DartFieldInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Field;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 /**

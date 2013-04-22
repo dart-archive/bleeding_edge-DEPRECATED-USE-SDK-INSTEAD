@@ -17,9 +17,9 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartMethodInvocation;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.search.SearchEngineImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartClassTypeAlias;
@@ -32,7 +32,6 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
@@ -70,7 +69,7 @@ public class SearchEngineTest extends TestCase {
       String refMarker = refMarkers[i];
       int refOffset = source.indexOf(refMarker);
       assertThat(refOffset).describedAs(refMarker).isNotEqualTo(-1);
-      assertEquals(new SourceRangeImpl(refOffset, length), references.get(i).getSourceRange());
+      assertEquals(new SourceRange(refOffset, length), references.get(i).getSourceRange());
     }
   }
 

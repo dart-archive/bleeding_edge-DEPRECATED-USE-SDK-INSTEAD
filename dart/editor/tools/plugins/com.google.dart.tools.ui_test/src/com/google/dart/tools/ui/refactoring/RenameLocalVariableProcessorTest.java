@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
@@ -597,7 +597,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
           @Override
           public Object invoke(Object o, Method method, Object[] args) throws Throwable {
             if (method.getName().equals("getNameRange")) {
-              return new SourceRangeImpl(0, 0);
+              return new SourceRange(0, 0);
             }
             return method.invoke(actualVariable, args);
           }

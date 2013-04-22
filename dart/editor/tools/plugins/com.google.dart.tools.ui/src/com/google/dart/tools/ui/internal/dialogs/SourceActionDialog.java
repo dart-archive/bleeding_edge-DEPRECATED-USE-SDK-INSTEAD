@@ -14,10 +14,10 @@
 package com.google.dart.tools.ui.internal.dialogs;
 
 import com.google.dart.core.dom.Modifier;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;

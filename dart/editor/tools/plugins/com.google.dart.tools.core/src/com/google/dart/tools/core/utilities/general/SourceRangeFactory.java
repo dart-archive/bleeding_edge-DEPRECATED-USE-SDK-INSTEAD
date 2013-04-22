@@ -15,17 +15,16 @@ package com.google.dart.tools.core.utilities.general;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.engine.scanner.Token;
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
-import com.google.dart.tools.core.internal.util.SourceRangeUtils;
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 import java.util.List;
 
 public class SourceRangeFactory {
 
   public static SourceRange create(DartCompilationError error) {
-    return new SourceRangeImpl(error.getStartPosition(), error.getLength());
+    return new SourceRange(error.getStartPosition(), error.getLength());
   }
 
   /**
@@ -34,7 +33,8 @@ public class SourceRangeFactory {
    */
   public static SourceRange create(HasSourceInfo hasSourceInfo) {
     if (hasSourceInfo != null) {
-      return new SourceRangeImpl(hasSourceInfo);
+      SourceInfo sourceInfo = hasSourceInfo.getSourceInfo();
+      return new SourceRange(sourceInfo.getOffset(), sourceInfo.getLength());
     }
     return null;
   }
@@ -73,8 +73,8 @@ public class SourceRangeFactory {
    * @return the {@link SourceRange} which start at end of "a" and ends at end of "b".
    */
   public static SourceRange forEndEnd(SourceRange a, SourceRange b) {
-    int start = SourceRangeUtils.getEnd(a);
-    int end = SourceRangeUtils.getEnd(b);
+    int start = a.getEnd();
+    int end = b.getEnd();
     return forStartEnd(start, end);
   }
 
@@ -83,7 +83,7 @@ public class SourceRangeFactory {
    */
   public static SourceRange forEndLength(HasSourceInfo startInfo, int length) {
     int start = startInfo.getSourceInfo().getEnd();
-    return new SourceRangeImpl(start, length);
+    return new SourceRange(start, length);
   }
 
   public static SourceRange forEndLength(SourceRange a, int length) {
@@ -112,7 +112,7 @@ public class SourceRangeFactory {
    * @return the {@link SourceRange} which start at the end of "a" and ends at the start of "b".
    */
   public static SourceRange forEndStart(SourceRange a, SourceRange b) {
-    int start = SourceRangeUtils.getEnd(a);
+    int start = a.getEnd();
     int end = b.getOffset();
     return forStartEnd(start, end);
   }
@@ -139,11 +139,11 @@ public class SourceRangeFactory {
    */
   public static SourceRange forStartEnd(int start, HasSourceInfo b) {
     int end = b.getSourceInfo().getEnd();
-    return new SourceRangeImpl(start, end - start);
+    return new SourceRange(start, end - start);
   }
 
   public static SourceRange forStartEnd(int start, int end) {
-    return new SourceRangeImpl(start, end - start);
+    return new SourceRange(start, end - start);
   }
 
   /**
@@ -152,7 +152,7 @@ public class SourceRangeFactory {
   public static SourceRange forStartEnd(SourceRange a, HasSourceInfo b) {
     int start = a.getOffset();
     int end = b.getSourceInfo().getEnd();
-    return new SourceRangeImpl(start, end - start);
+    return new SourceRange(start, end - start);
   }
 
   /**
@@ -168,7 +168,7 @@ public class SourceRangeFactory {
    */
   public static SourceRange forStartEnd(SourceRange a, SourceRange b) {
     int start = a.getOffset();
-    int end = SourceRangeUtils.getEnd(b);
+    int end = b.getEnd();
     return forStartEnd(start, end);
   }
 
@@ -183,11 +183,11 @@ public class SourceRangeFactory {
    */
   public static SourceRange forStartLength(HasSourceInfo a, int length) {
     int start = a.getSourceInfo().getOffset();
-    return new SourceRangeImpl(start, length);
+    return new SourceRange(start, length);
   }
 
   public static SourceRange forStartLength(int start, int length) {
-    return new SourceRangeImpl(start, length);
+    return new SourceRange(start, length);
   }
 
   public static SourceRange forStartLength(SourceRange a, int length) {

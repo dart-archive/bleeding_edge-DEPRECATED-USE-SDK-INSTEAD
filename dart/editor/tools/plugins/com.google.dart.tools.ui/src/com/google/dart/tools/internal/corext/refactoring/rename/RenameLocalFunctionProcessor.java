@@ -13,10 +13,10 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;

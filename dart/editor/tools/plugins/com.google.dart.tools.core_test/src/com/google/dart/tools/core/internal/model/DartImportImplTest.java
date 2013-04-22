@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.common.base.Joiner;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartImport;
@@ -154,9 +155,7 @@ public class DartImportImplTest extends TestCase {
         assertEquals(unitTest, importA.getAncestor(CompilationUnit.class));
         {
           String s = "#import('LibA.dart');";
-          assertEquals(
-              new SourceRangeImpl(sourceTest.indexOf(s), s.length()),
-              importA.getSourceRange());
+          assertEquals(new SourceRange(sourceTest.indexOf(s), s.length()), importA.getSourceRange());
         }
       }
       // "LibB.dart"
@@ -171,9 +170,7 @@ public class DartImportImplTest extends TestCase {
         assertEquals(unitTest, importB.getAncestor(CompilationUnit.class));
         {
           String s = "#import('LibB.dart');";
-          assertEquals(
-              new SourceRangeImpl(sourceTest.indexOf(s), s.length()),
-              importB.getSourceRange());
+          assertEquals(new SourceRange(sourceTest.indexOf(s), s.length()), importB.getSourceRange());
         }
       }
     } finally {
@@ -275,20 +272,16 @@ public class DartImportImplTest extends TestCase {
         assertEquals(unitTest, importA.getParent());
         assertEquals(unitTest, importA.getCompilationUnit());
         // name range
-        assertEquals(new SourceRangeImpl(sourceTest.indexOf("'aaa');"), 5), importA.getNameRange());
+        assertEquals(new SourceRange(sourceTest.indexOf("'aaa');"), 5), importA.getNameRange());
         // source range
         {
           String s = "#import('LibA.dart', prefix: 'aaa');";
-          assertEquals(
-              new SourceRangeImpl(sourceTest.indexOf(s), s.length()),
-              importA.getSourceRange());
+          assertEquals(new SourceRange(sourceTest.indexOf(s), s.length()), importA.getSourceRange());
         }
         // URI range
         {
           String s = "'LibA.dart'";
-          assertEquals(
-              new SourceRangeImpl(sourceTest.indexOf(s), s.length()),
-              importA.getUriRange());
+          assertEquals(new SourceRange(sourceTest.indexOf(s), s.length()), importA.getUriRange());
         }
       }
       // "bbb" = "LibB.dart"
@@ -298,20 +291,16 @@ public class DartImportImplTest extends TestCase {
         assertEquals("bbb", importB.getPrefix());
         assertEquals(unitTest, importA.getCompilationUnit());
         // name range
-        assertEquals(new SourceRangeImpl(sourceTest.indexOf("'bbb');"), 5), importB.getNameRange());
+        assertEquals(new SourceRange(sourceTest.indexOf("'bbb');"), 5), importB.getNameRange());
         // source range
         {
           String s = "#import('LibB.dart', prefix: 'bbb');";
-          assertEquals(
-              new SourceRangeImpl(sourceTest.indexOf(s), s.length()),
-              importB.getSourceRange());
+          assertEquals(new SourceRange(sourceTest.indexOf(s), s.length()), importB.getSourceRange());
         }
         // URI range
         {
           String s = "'LibB.dart'";
-          assertEquals(
-              new SourceRangeImpl(sourceTest.indexOf(s), s.length()),
-              importB.getUriRange());
+          assertEquals(new SourceRange(sourceTest.indexOf(s), s.length()), importB.getUriRange());
         }
       }
     } finally {

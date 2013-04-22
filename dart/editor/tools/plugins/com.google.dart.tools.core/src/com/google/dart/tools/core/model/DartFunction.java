@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.model;
 
+import com.google.dart.engine.utilities.source.SourceRange;
+
 /**
  * The interface <code>DartFunction</code> defines the behavior of elements representing the
  * definition of a function within Dart source code.

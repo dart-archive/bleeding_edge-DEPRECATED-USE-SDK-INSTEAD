@@ -20,9 +20,8 @@ import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariableStatement;
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
 
@@ -42,8 +41,8 @@ public final class ExtractUtilsTest extends AbstractDartTest {
         "}",
         "");
     DartUnit unitNode = DartCompilerUtilities.resolveUnit(testUnit);
-    assertFalse(ExtractUtils.covers(new SourceRangeImpl(0, 1), unitNode));
-    assertTrue(ExtractUtils.covers(new SourceRangeImpl(0, 1000), unitNode));
+    assertFalse(ExtractUtils.covers(new SourceRange(0, 1), unitNode));
+    assertTrue(ExtractUtils.covers(new SourceRange(0, 1000), unitNode));
   }
 
   /**

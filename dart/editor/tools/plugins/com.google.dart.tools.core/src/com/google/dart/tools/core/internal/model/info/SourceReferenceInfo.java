@@ -13,8 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model.info;
 
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Instances of the class <code>SourceReferenceInfo</code> implement element info for
@@ -34,7 +33,7 @@ public class SourceReferenceInfo extends DartElementInfo {
   }
 
   public SourceRange getSourceRange() {
-    return new SourceRangeImpl(sourceRangeStart, sourceRangeEnd - sourceRangeStart);
+    return new SourceRange(sourceRangeStart, sourceRangeEnd - sourceRangeStart);
   }
 
   public void setSourceRangeEnd(int end) {

@@ -26,6 +26,7 @@ import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.dom.visitor.SafeDartNodeTraverser;
@@ -49,7 +50,6 @@ import com.google.dart.tools.core.model.DartPart;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.ElementChangedEvent;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
@@ -760,12 +760,12 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           return null;
         }
         // prepare SourceRanges
-        SourceRange sourceRange = new SourceRangeImpl(
+        SourceRange sourceRange = new SourceRange(
             node.getSourceInfo().getOffset(),
             node.getSourceInfo().getLength());
         SourceRange uriRange = sourceRange;
         if (uriNode != null) {
-          uriRange = new SourceRangeImpl(
+          uriRange = new SourceRange(
               uriNode.getSourceInfo().getOffset(),
               uriNode.getSourceInfo().getLength());
         }
@@ -776,18 +776,14 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         if (prefixNode != null) {
           prefix = prefixNode.getName();
           SourceInfo prefixSourceInfo = prefixNode.getSourceInfo();
-          nameRange = new SourceRangeImpl(
-              prefixSourceInfo.getOffset(),
-              prefixSourceInfo.getLength());
+          nameRange = new SourceRange(prefixSourceInfo.getOffset(), prefixSourceInfo.getLength());
         }
         {
           DartStringLiteral prefixLiteral = node.getOldPrefix();
           if (prefixLiteral != null) {
             prefix = prefixLiteral.getValue();
             SourceInfo prefixSourceInfo = prefixLiteral.getSourceInfo();
-            nameRange = new SourceRangeImpl(
-                prefixSourceInfo.getOffset(),
-                prefixSourceInfo.getLength());
+            nameRange = new SourceRange(prefixSourceInfo.getOffset(), prefixSourceInfo.getLength());
           }
         }
         // prepare LibrarySource

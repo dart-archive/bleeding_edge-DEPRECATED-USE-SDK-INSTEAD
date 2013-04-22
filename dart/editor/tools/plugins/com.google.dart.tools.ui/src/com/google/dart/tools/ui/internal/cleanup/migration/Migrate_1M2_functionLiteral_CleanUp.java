@@ -18,7 +18,7 @@ import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartTypeNode;
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 
 /**

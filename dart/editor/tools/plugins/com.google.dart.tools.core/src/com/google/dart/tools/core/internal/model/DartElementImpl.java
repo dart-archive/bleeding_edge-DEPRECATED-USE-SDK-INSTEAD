@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
@@ -30,7 +31,6 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.OpenableElement;
 import com.google.dart.tools.core.model.ParentElement;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 

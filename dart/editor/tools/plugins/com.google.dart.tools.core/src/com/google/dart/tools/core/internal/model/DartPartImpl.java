@@ -14,9 +14,9 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.common.base.Objects;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartPart;
-import com.google.dart.tools.core.model.SourceRange;
 
 /**
  * Information about "part" declaration.

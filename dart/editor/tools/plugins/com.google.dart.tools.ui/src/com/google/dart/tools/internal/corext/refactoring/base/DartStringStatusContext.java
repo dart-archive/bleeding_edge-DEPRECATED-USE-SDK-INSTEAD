@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.base;
 
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;

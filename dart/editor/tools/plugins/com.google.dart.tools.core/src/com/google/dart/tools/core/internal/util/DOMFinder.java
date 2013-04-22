@@ -21,10 +21,10 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.internal.model.SourceReferenceImpl;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 
 /**

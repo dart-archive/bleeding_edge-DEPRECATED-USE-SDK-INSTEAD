@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.cleanup.style;
 
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_IF_STATEMENT_ELSE;
-import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
-
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartForInStatement;
@@ -26,6 +23,9 @@ import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.ui.internal.cleanup.migration.AbstractMigrateCleanUp;
+
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_IF_STATEMENT_ELSE;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 
 /**
  * Use/not-use block is control statements.

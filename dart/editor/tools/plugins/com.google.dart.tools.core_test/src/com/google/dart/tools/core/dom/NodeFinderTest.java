@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.dom;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
@@ -26,6 +24,8 @@ import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
 import junit.framework.TestCase;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.List;
 

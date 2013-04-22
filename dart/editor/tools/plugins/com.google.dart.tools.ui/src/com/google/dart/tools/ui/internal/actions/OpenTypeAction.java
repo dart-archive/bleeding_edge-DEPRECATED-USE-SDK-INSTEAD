@@ -15,13 +15,13 @@ package com.google.dart.tools.ui.internal.actions;
 
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
-import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartUIMessages;
 import com.google.dart.tools.ui.internal.dialogs.OpenTypeSelectionDialog;
-import com.google.dart.tools.ui.internal.text.DartStatusConstants;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
+import com.google.dart.tools.ui.internal.text.DartStatusConstants;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.resources.IWorkspaceRoot;

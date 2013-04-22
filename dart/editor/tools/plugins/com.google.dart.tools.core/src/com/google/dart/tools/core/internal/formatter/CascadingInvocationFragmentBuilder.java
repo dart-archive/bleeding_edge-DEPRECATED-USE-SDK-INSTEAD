@@ -13,11 +13,11 @@
  */
 package com.google.dart.tools.core.internal.formatter;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartFunctionObjectInvocation;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 

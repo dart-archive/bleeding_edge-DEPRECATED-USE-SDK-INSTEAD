@@ -13,8 +13,7 @@
  */
 package com.google.dart.tools.core.internal.util;
 
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 import junit.framework.TestCase;
 
@@ -26,7 +25,7 @@ public class SourceRangeUtilsTest extends TestCase {
    * Test for {@link SourceRangeUtils#contains(SourceRange, int)}
    */
   public void test_contains() throws Exception {
-    SourceRange r = new SourceRangeImpl(0, 3);
+    SourceRange r = new SourceRange(0, 3);
     assertFalse(SourceRangeUtils.contains(r, -1));
     assertTrue(SourceRangeUtils.contains(r, 0));
     assertTrue(SourceRangeUtils.contains(r, 1));
@@ -38,58 +37,52 @@ public class SourceRangeUtilsTest extends TestCase {
    * Test for {@link SourceRangeUtils#covers(SourceRange, SourceRange)}
    */
   public void test_covers() throws Exception {
-    SourceRange thisRange = new SourceRangeImpl(5, 10);
+    SourceRange thisRange = new SourceRange(5, 10);
     // ends before
-    assertFalse(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(0, 3)));
+    assertFalse(SourceRangeUtils.covers(thisRange, new SourceRange(0, 3)));
     // starts after
-    assertFalse(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(20, 3)));
+    assertFalse(SourceRangeUtils.covers(thisRange, new SourceRange(20, 3)));
     // only intersects
-    assertFalse(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(0, 10)));
-    assertFalse(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(10, 10)));
+    assertFalse(SourceRangeUtils.covers(thisRange, new SourceRange(0, 10)));
+    assertFalse(SourceRangeUtils.covers(thisRange, new SourceRange(10, 10)));
     // covers
-    assertTrue(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(5, 10)));
-    assertTrue(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(6, 9)));
-    assertTrue(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(6, 8)));
+    assertTrue(SourceRangeUtils.covers(thisRange, new SourceRange(5, 10)));
+    assertTrue(SourceRangeUtils.covers(thisRange, new SourceRange(6, 9)));
+    assertTrue(SourceRangeUtils.covers(thisRange, new SourceRange(6, 8)));
   }
 
   /**
    * Test for {@link SourceRangeUtils#getEnd(SourceRange)}.
    */
   public void test_getEnd() throws Exception {
-    assertEquals(8, SourceRangeUtils.getEnd(new SourceRangeImpl(5, 3)));
+    assertEquals(8, SourceRangeUtils.getEnd(new SourceRange(5, 3)));
   }
 
   /**
    * Test for {@link SourceRangeUtils#getExpanded(SourceRange, int)}.
    */
   public void test_getExpanded() throws Exception {
-    assertEquals(
-        new SourceRangeImpl(5, 3),
-        SourceRangeUtils.getExpanded(new SourceRangeImpl(5, 3), 0));
-    assertEquals(
-        new SourceRangeImpl(3, 7),
-        SourceRangeUtils.getExpanded(new SourceRangeImpl(5, 3), 2));
-    assertEquals(
-        new SourceRangeImpl(6, 1),
-        SourceRangeUtils.getExpanded(new SourceRangeImpl(5, 3), -1));
+    assertEquals(new SourceRange(5, 3), SourceRangeUtils.getExpanded(new SourceRange(5, 3), 0));
+    assertEquals(new SourceRange(3, 7), SourceRangeUtils.getExpanded(new SourceRange(5, 3), 2));
+    assertEquals(new SourceRange(6, 1), SourceRangeUtils.getExpanded(new SourceRange(5, 3), -1));
   }
 
   /**
    * Test for {@link SourceRangeUtils#intersects(SourceRange, SourceRange)}
    */
   public void test_intersects() throws Exception {
-    SourceRange a = new SourceRangeImpl(5, 3);
+    SourceRange a = new SourceRange(5, 3);
     // ends before
-    assertFalse(SourceRangeUtils.intersects(a, new SourceRangeImpl(0, 5)));
+    assertFalse(SourceRangeUtils.intersects(a, new SourceRange(0, 5)));
     // begins after
-    assertFalse(SourceRangeUtils.intersects(a, new SourceRangeImpl(8, 5)));
+    assertFalse(SourceRangeUtils.intersects(a, new SourceRange(8, 5)));
     // begins on same offset
-    assertTrue(SourceRangeUtils.intersects(a, new SourceRangeImpl(5, 1)));
+    assertTrue(SourceRangeUtils.intersects(a, new SourceRange(5, 1)));
     // begins inside, ends inside
-    assertTrue(SourceRangeUtils.intersects(a, new SourceRangeImpl(6, 1)));
+    assertTrue(SourceRangeUtils.intersects(a, new SourceRange(6, 1)));
     // begins inside, ends after
-    assertTrue(SourceRangeUtils.intersects(a, new SourceRangeImpl(6, 10)));
+    assertTrue(SourceRangeUtils.intersects(a, new SourceRange(6, 10)));
     // begins before, ends after
-    assertTrue(SourceRangeUtils.intersects(a, new SourceRangeImpl(0, 10)));
+    assertTrue(SourceRangeUtils.intersects(a, new SourceRange(0, 10)));
   }
 }

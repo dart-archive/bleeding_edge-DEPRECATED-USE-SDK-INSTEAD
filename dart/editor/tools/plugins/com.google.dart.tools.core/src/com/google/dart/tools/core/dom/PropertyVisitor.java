@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.core.dom;
 
-import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartNode;
 
 import java.util.List;
 

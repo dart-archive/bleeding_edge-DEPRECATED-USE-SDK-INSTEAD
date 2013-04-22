@@ -13,11 +13,11 @@
  */
 package com.google.dart.tools.core.internal.compiler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * A listener for validating that zero or more specific errors occurred during a compilation.

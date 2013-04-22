@@ -15,8 +15,8 @@ package com.google.dart.tools.ui.internal.text.correction.proposals;
 
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.dom.rewrite.TrackedNodePosition;
-import com.google.dart.tools.core.model.SourceRange;
 
 /**
  * Factory for {@link TrackedNodePosition}.

@@ -13,11 +13,6 @@
  */
 package com.google.dart.tools.core.utilities.ast;
 
-import java.util.Collection;
-import java.util.List;
-
-import junit.framework.TestCase;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
@@ -27,6 +22,11 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+
+import junit.framework.TestCase;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Test for {@link DynamicTypesFinder}.

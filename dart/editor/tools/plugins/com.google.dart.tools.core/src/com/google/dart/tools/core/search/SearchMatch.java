@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.core.search;
 
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.SourceRange;
 
 import java.text.Collator;
 import java.util.Comparator;

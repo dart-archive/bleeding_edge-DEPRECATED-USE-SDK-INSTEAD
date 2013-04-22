@@ -30,16 +30,15 @@ import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.core.utilities.ast.NameOccurrencesFinder;
@@ -1549,10 +1548,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private static final class SourceReferenceAdapter implements SourceReference {
 
-    private final SourceRangeImpl sourceRange;
+    private final SourceRange sourceRange;
 
     private SourceReferenceAdapter(com.google.dart.engine.element.Element element) {
-      sourceRange = new SourceRangeImpl(element.getNameOffset(), element.getName().length());
+      sourceRange = new SourceRange(element.getNameOffset(), element.getName().length());
     }
 
     @Override
@@ -2382,13 +2381,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   /**
-   * @return the input {@link IFile}, may be <code>null</code> if different kind of input.
-   */
-  public IFile getInputResourceFile() {
-    return inputResourceFile;
-  }
-
-  /**
    * @return the {@link Project} corresponding to this editor, may be {@code null}.
    */
   public Project getInputProject() {
@@ -2397,6 +2389,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return DartCore.getProjectManager().getProject(resourceProject);
     }
     return null;
+  }
+
+  /**
+   * @return the input {@link IFile}, may be <code>null</code> if different kind of input.
+   */
+  public IFile getInputResourceFile() {
+    return inputResourceFile;
   }
 
   /**

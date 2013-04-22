@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.refactoring.AbstractDartTest;
@@ -27,6 +25,8 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 import java.lang.reflect.Method;
 

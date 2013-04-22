@@ -24,8 +24,8 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.resolver.TypeVariableElement;
 import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.dom.NodeFinder;
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
@@ -40,7 +40,6 @@ import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.MatchQuality;
@@ -371,7 +370,7 @@ public class RenameAnalyzeUtil {
               SourceInfo sourceInfo = node.getSourceInfo();
               int offset = sourceInfo.getOffset();
               int length = sourceInfo.getLength();
-              references.add(new SourceRangeImpl(offset, length));
+              references.add(new SourceRange(offset, length));
             }
             return null;
           }

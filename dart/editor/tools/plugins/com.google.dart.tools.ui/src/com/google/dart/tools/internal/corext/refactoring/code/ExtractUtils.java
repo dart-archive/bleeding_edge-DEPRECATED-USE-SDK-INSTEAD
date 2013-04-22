@@ -29,12 +29,11 @@ import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.buffer.Buffer;
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
@@ -95,7 +94,7 @@ public class ExtractUtils {
    * @return <code>true</code> if given {@link SourceRange} covers given {@link DartNode}.
    */
   public static boolean covers(SourceRange r, DartNode node) {
-    return SourceRangeUtils.covers(r, new SourceRangeImpl(node));
+    return SourceRangeUtils.covers(r, SourceRangeFactory.create(node));
   }
 
   /**
@@ -252,7 +251,7 @@ public class ExtractUtils {
     DartExpression last = operands.get(operands.size() - 1);
     int offset = first.getSourceInfo().getOffset();
     int length = last.getSourceInfo().getEnd() - offset;
-    return new SourceRangeImpl(offset, length);
+    return new SourceRange(offset, length);
   }
 
   /**

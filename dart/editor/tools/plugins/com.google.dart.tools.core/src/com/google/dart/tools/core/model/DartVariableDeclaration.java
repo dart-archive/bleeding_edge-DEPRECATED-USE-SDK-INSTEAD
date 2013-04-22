@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.model;
 
+import com.google.dart.engine.utilities.source.SourceRange;
+
 /**
  * The interface <code>DartVariableDeclaration</code> defines the behavior of elements representing
  * a variable defined within another element. Variables can be defined in {@link DartFunction

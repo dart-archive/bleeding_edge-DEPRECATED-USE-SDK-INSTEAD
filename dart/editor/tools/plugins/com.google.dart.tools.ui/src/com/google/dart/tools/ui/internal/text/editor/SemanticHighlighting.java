@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.ui.DartUI;
 
 import org.eclipse.jface.resource.ColorRegistry;

@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.util.DartSourceString;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.internal.buffer.DocumentAdapter;
@@ -24,7 +25,6 @@ import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModelStatusConstants;
 import com.google.dart.tools.core.model.SourceFileElement;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.problem.ProblemRequestor;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
@@ -174,7 +174,7 @@ public abstract class SourceFileElementImpl<E> extends OpenableElementImpl imple
     if (buffer == null) {
       return null;
     }
-    return new SourceRangeImpl(0, buffer.getLength());
+    return new SourceRange(0, buffer.getLength());
   }
 
   @Override

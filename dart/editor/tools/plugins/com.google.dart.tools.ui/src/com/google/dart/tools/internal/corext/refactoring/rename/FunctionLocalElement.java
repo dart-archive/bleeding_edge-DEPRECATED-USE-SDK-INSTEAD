@@ -13,12 +13,12 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.model.SourceRange;
 
 import org.eclipse.core.runtime.Assert;
 

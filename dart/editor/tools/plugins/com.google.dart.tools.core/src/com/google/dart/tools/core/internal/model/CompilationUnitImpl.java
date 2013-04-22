@@ -38,6 +38,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.completion.CompletionRequestor;
@@ -163,7 +164,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
               fieldInfo.setSourceRangeStart(fieldNode.getSourceInfo().getOffset());
               fieldInfo.setSourceRangeEnd(fieldNode.getSourceInfo().getEnd());
               captureDartDoc(fieldNode, typeInfo);
-              fieldInfo.setNameRange(new SourceRangeImpl(fieldNode.getName()));
+              fieldInfo.setNameRange(SourceRangeFactory.create(fieldNode.getName()));
               fieldInfo.setTypeName(extractTypeName(fieldListNode.getTypeNode(), false));
               fieldInfo.setModifiers(fieldNode.getModifiers());
               children.add(fieldImpl);
@@ -199,7 +200,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
           DartMethodInfo methodInfo = new DartMethodInfo();
           methodInfo.setSourceRangeStart(typeName.getSourceInfo().getOffset());
           methodInfo.setSourceRangeEnd(typeName.getSourceInfo().getEnd());
-          methodInfo.setNameRange(new SourceRangeImpl(typeName));
+          methodInfo.setNameRange(SourceRangeFactory.create(typeName));
           methodInfo.setModifiers(Modifiers.NONE);
           methodInfo.setConstructor(true);
           methodInfo.setImplicit(true);
@@ -215,7 +216,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       typeInfo.setSourceRangeStart(node.getSourceInfo().getOffset());
       typeInfo.setSourceRangeEnd(node.getSourceInfo().getEnd());
       captureDartDoc(node, typeInfo);
-      typeInfo.setNameRange(new SourceRangeImpl(node.getName()));
+      typeInfo.setNameRange(SourceRangeFactory.create(node.getName()));
       typeInfo.setChildren(DartElementImpl.toArray(children));
       topLevelElements.add(typeImpl);
       return null;
@@ -240,7 +241,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       typeInfo.setSourceRangeStart(node.getSourceInfo().getOffset());
       typeInfo.setSourceRangeEnd(node.getSourceInfo().getEnd());
       captureDartDoc(node, typeInfo);
-      typeInfo.setNameRange(new SourceRangeImpl(node.getName()));
+      typeInfo.setNameRange(SourceRangeFactory.create(node.getName()));
       typeInfo.setChildren(DartElementImpl.toArray(children));
       topLevelElements.add(typeImpl);
       return null;
@@ -264,7 +265,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
           variableInfo.setSourceRangeStart(fieldNode.getSourceInfo().getOffset());
           variableInfo.setSourceRangeEnd(fieldNode.getSourceInfo().getEnd());
           captureDartDoc(fieldNode, variableInfo);
-          variableInfo.setNameRange(new SourceRangeImpl(fieldNode.getName()));
+          variableInfo.setNameRange(SourceRangeFactory.create(fieldNode.getName()));
           char[] typeName = extractTypeName(node.getTypeNode(), false);
           typeName = typeName == null ? CharOperation.NO_CHAR : typeName;
           variableInfo.setTypeName(typeName);
@@ -302,7 +303,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       aliasInfo.setSourceRangeEnd(node.getSourceInfo().getEnd());
       // misc
       captureDartDoc(node, aliasInfo);
-      aliasInfo.setNameRange(new SourceRangeImpl(node.getName()));
+      aliasInfo.setNameRange(SourceRangeFactory.create(node.getName()));
       aliasInfo.setReturnTypeName(extractTypeName(node.getReturnTypeNode(), false));
       // type parameters
       addTypeParameters(node.getTypeParameters(), aliasImpl, children);
@@ -349,8 +350,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       functionInfo.setSourceRangeStart(start);
       functionInfo.setSourceRangeEnd(node.getSourceInfo().getEnd());
       captureDartDoc(node, functionInfo);
-      functionInfo.setNameRange(functionNameNode == null ? null : new SourceRangeImpl(
-          functionNameNode));
+      functionInfo.setNameRange(functionNameNode == null ? null
+          : SourceRangeFactory.create(functionNameNode));
       functionInfo.setReturnTypeName(extractTypeName(node.getFunction().getReturnTypeNode(), false));
 
       List<DartElementImpl> functionChildren = getParameters(functionImpl, node.getFunction());
@@ -398,7 +399,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         DartTypeParameterInfo typeParameterInfo = new DartTypeParameterInfo();
         typeParameterInfo.setSourceRangeStart(typeParameterNode.getSourceInfo().getOffset());
         typeParameterInfo.setSourceRangeEnd(typeParameterNode.getSourceInfo().getEnd());
-        typeParameterInfo.setNameRange(new SourceRangeImpl(typeParameterNode.getName()));
+        typeParameterInfo.setNameRange(SourceRangeFactory.create(typeParameterNode.getName()));
         {
           DartTypeNode boundType = typeParameterNode.getBound();
           if (boundType != null) {
@@ -457,7 +458,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       methodInfo.setSourceRangeStart(methodNode.getSourceInfo().getOffset());
       methodInfo.setSourceRangeEnd(methodNode.getSourceInfo().getEnd());
       captureDartDoc(methodNode, methodInfo);
-      methodInfo.setNameRange(new SourceRangeImpl(methodNode.getName()));
+      methodInfo.setNameRange(SourceRangeFactory.create(methodNode.getName()));
       methodInfo.setModifiers(methodNode.getModifiers());
       boolean isConstructor = isConstructor(className, methodNode);
       methodInfo.setConstructor(isConstructor);
@@ -563,7 +564,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       // captureDartDoc(node, functionInfo);
       DartIdentifier name = node.getName();
       if (name != null) {
-        functionInfo.setNameRange(new SourceRangeImpl(name));
+        functionInfo.setNameRange(SourceRangeFactory.create(name));
       }
       functionInfo.setReturnTypeName(extractTypeName(node.getFunction().getReturnTypeNode(), false));
 
@@ -638,7 +639,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         variableInfo.setSourceRangeStart(variable.getSourceInfo().getOffset());
         variableInfo.setSourceRangeEnd(variable.getSourceInfo().getEnd());
         captureDartDoc(variable, variableInfo);
-        variableInfo.setNameRange(new SourceRangeImpl(
+        variableInfo.setNameRange(new SourceRange(
             variableName.getSourceInfo().getOffset(),
             variableName.getSourceInfo().getLength()));
         variableInfo.setParameter(false);
@@ -702,7 +703,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     protected void captureDartDoc(DartDeclaration<?> node, DeclarationElementInfo info) {
       DartComment docComment = node.getDartDoc();
       if (docComment != null) {
-        info.setDartDocRange(new SourceRangeImpl(docComment));
+        info.setDartDocRange(SourceRangeFactory.create(docComment));
       }
     }
 

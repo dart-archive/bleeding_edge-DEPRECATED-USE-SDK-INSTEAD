@@ -13,8 +13,7 @@
  */
 package com.google.dart.tools.core.internal.util;
 
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Utilities for {@link SourceRange} checks.
@@ -53,14 +52,14 @@ public class SourceRangeUtils {
    * @return the expanded instance of {@link SourceRange}, which has the same center.
    */
   public static SourceRange getExpanded(SourceRange s, int delta) {
-    return new SourceRangeImpl(s.getOffset() - delta, delta + s.getLength() + delta);
+    return new SourceRange(s.getOffset() - delta, delta + s.getLength() + delta);
   }
 
   /**
    * @return the instance of {@link SourceRange} with end moved on "delta".
    */
   public static SourceRange getMoveEnd(SourceRange s, int delta) {
-    return new SourceRangeImpl(s.getOffset(), s.getLength() + delta);
+    return new SourceRange(s.getOffset(), s.getLength() + delta);
   }
 
   /**

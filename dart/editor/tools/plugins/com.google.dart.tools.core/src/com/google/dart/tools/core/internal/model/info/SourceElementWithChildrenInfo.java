@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.core.internal.model.info;
 
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.SourceRange;
 
 /**
  * Instances of the class <code>DeclarationElementInfo</code> define the behavior of elements that

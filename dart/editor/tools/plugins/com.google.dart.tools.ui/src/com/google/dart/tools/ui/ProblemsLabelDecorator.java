@@ -13,10 +13,10 @@
  */
 package com.google.dart.tools.ui;
 
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.internal.viewsupport.IProblemChangedListener;

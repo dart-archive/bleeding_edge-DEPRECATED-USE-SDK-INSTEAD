@@ -15,8 +15,8 @@ package com.google.dart.tools.ui.internal.text.correction.proposals;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.dom.rewrite.TrackedNodePosition;
-import com.google.dart.tools.core.model.SourceRange;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.graphics.Image;

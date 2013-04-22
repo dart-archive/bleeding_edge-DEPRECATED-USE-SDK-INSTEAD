@@ -13,8 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model.info;
 
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Instances of the class <code>DartFunctionInfo</code> represent the information known about a Dart
@@ -70,7 +69,7 @@ public class DartFunctionInfo extends DeclarationElementInfo {
    * @return the {@link SourceRange} in which this function is visible.
    */
   public SourceRange getVisibleRange() {
-    return new SourceRangeImpl(visibleStart, visibleEnd - visibleStart + 1);
+    return new SourceRange(visibleStart, visibleEnd - visibleStart + 1);
   }
 
   public void setOptionalParametersClosingGroupChar(int parametersOptionalClose) {

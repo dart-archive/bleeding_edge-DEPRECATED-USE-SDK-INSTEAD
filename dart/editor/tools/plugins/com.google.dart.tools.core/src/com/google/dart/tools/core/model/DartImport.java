@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.model;
 
+import com.google.dart.engine.utilities.source.SourceRange;
+
 import java.net.URI;
 
 /**

@@ -15,8 +15,8 @@ package com.google.dart.tools.ui.internal.text.editor.selectionactions;
 
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.SelectionAnalyzer;

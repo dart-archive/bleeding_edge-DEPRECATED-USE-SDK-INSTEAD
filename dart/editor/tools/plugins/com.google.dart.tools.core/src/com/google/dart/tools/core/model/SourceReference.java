@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.core.model;
 
+import com.google.dart.engine.internal.element.member.Member;
+import com.google.dart.engine.utilities.source.SourceRange;
+
 /**
  * The interface <code>SourceReference</code> defines the behavior common to Dart elements that have
  * associated source code. This set consists of <code>CompilationUnit</code>, <code>Type</code>,

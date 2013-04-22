@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.common.base.Joiner;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -47,7 +48,7 @@ public class DartTypeParameterImplTest extends TestCase {
       assertEquals(type, typeParameter.getParent());
       assertEquals("String", typeParameter.getBoundName());
       assertEquals(
-          new SourceRangeImpl(unit.getSource().indexOf("A extends"), 1),
+          new SourceRange(unit.getSource().indexOf("A extends"), 1),
           typeParameter.getNameRange());
       // use getHandleIdentifier() and DartCore.create()
       {
@@ -80,7 +81,7 @@ public class DartTypeParameterImplTest extends TestCase {
         assertEquals(type, typeParameterA.getParent());
         assertEquals(null, typeParameterA.getBoundName());
         assertEquals(
-            new SourceRangeImpl(unit.getSource().indexOf("A,"), 1),
+            new SourceRange(unit.getSource().indexOf("A,"), 1),
             typeParameterA.getNameRange());
         // use getHandleIdentifier() and DartCore.create()
         {
@@ -97,7 +98,7 @@ public class DartTypeParameterImplTest extends TestCase {
         assertEquals(type, typeParameterB.getParent());
         assertEquals("String", typeParameterB.getBoundName());
         assertEquals(
-            new SourceRangeImpl(unit.getSource().indexOf("B extends"), 1),
+            new SourceRange(unit.getSource().indexOf("B extends"), 1),
             typeParameterB.getNameRange());
         // use getHandleIdentifier() and DartCore.create()
         {

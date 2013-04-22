@@ -17,9 +17,9 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.ui.DartDoc2HTMLTextReader;
 import com.google.dart.tools.ui.DartDocContentAccess;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartDoc2HTMLTextReader;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 

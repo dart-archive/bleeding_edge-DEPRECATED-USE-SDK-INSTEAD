@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStringStatusContext;
 import com.google.dart.tools.ui.DartToolsPlugin;

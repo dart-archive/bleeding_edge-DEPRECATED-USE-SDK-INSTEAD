@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.dom.rewrite;
 
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 

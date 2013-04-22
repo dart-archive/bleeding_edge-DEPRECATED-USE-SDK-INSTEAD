@@ -15,9 +15,9 @@ package com.google.dart.tools.ui.internal.text.editor.selectionactions;
 
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
@@ -88,17 +88,7 @@ public abstract class StructureSelectionAction extends Action {
 
   static SourceRange newSourceRange(final int offset, final int length) {
     DartX.todo();
-    return new SourceRange() {
-      @Override
-      public int getLength() {
-        return length;
-      }
-
-      @Override
-      public int getOffset() {
-        return offset;
-      }
-    };
+    return new SourceRange(offset, length);
   }
 
   private static SourceRange createSourceRange(ITextSelection ts) {

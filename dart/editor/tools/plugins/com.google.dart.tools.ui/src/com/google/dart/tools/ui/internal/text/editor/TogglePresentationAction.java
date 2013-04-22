@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.IWorkingCopyManager;
-import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 

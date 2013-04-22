@@ -14,7 +14,7 @@
 package com.google.dart.tools.core.internal.model.info;
 
 import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Instances of the class <code>DeclarationElementInfo</code> define the behavior of elements that

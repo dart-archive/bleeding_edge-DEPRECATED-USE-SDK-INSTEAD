@@ -6,7 +6,8 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.DartCore;
 
-import static com.google.dart.tools.core.analysis.AnalysisUtility.*;
+import static com.google.dart.tools.core.analysis.AnalysisUtility.isSdkLibrary;
+import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 
 import java.io.File;
 import java.net.URI;

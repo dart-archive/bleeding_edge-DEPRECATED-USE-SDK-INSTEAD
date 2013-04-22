@@ -19,8 +19,8 @@ import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartDocContentAccess;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartUI;
-import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.DartUIMessages;
+import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 

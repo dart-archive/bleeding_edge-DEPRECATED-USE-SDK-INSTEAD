@@ -24,10 +24,10 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.Token;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 
 /**
  * Provisional API: This class/interface is part of an interim API that is still under development

@@ -13,16 +13,16 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 import com.google.common.base.Joiner;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.test.util.TestProject;
 
 import junit.framework.TestCase;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Test for {@link DartFunctionImpl}.

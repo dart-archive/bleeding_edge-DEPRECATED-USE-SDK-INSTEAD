@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.search;
 
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Index;
@@ -28,7 +29,6 @@ import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.search.listener.CountingSearchListener;
 import com.google.dart.tools.core.internal.search.listener.FilteredSearchListener;
 import com.google.dart.tools.core.internal.search.listener.GatheringSearchListener;
@@ -47,7 +47,6 @@ import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.ParentElement;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.search.MatchKind;
 import com.google.dart.tools.core.search.MatchQuality;
@@ -142,7 +141,7 @@ public class SearchEngineImpl implements SearchEngine {
         CompilationUnit unit = getCompilationUnit(targetElement.getResource());
         if (unit != null) {
           DartElement dartElement = findElement(unit, targetElement);
-          SourceRange range = new SourceRangeImpl(location.getOffset(), location.getLength());
+          SourceRange range = new SourceRange(location.getOffset(), location.getLength());
           MatchQuality quality = element.getResource() != IndexConstants.DYNAMIC
               ? MatchQuality.EXACT : MatchQuality.NAME;
           SearchMatch match = new SearchMatch(quality, matchKind, dartElement, range);

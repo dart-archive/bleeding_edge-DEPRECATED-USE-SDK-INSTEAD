@@ -22,7 +22,7 @@ import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
 import com.google.dart.tools.internal.corext.refactoring.code.TokenUtils;

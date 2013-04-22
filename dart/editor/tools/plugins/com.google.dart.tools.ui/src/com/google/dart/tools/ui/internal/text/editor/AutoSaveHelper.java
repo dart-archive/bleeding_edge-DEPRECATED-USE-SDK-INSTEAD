@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.MapMaker;
-import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;

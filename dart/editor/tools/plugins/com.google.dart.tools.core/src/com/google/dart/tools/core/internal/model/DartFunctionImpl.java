@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.info.DartFunctionInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
@@ -22,7 +23,6 @@ import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModifiers;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import java.util.ArrayList;
@@ -93,14 +93,14 @@ public class DartFunctionImpl extends SourceReferenceImpl implements DartFunctio
   public SourceRange getOptionalParametersClosingGroupChar() throws DartModelException {
     DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
     int offset = info.getOptionalParametersClosingGroupChar();
-    return offset == -1 ? null : new SourceRangeImpl(offset, 1);
+    return offset == -1 ? null : new SourceRange(offset, 1);
   }
 
   @Override
   public SourceRange getOptionalParametersOpeningGroupChar() throws DartModelException {
     DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
     int offset = info.getOptionalParametersOpeningGroupChar();
-    return offset == -1 ? null : new SourceRangeImpl(offset, 1);
+    return offset == -1 ? null : new SourceRange(offset, 1);
   }
 
   @Override
@@ -117,13 +117,13 @@ public class DartFunctionImpl extends SourceReferenceImpl implements DartFunctio
   @Override
   public SourceRange getParametersCloseParen() throws DartModelException {
     DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
-    return new SourceRangeImpl(info.getParametersCloseParen(), 1);
+    return new SourceRange(info.getParametersCloseParen(), 1);
   }
 
   @Override
   public SourceRange getParametersOpenParen() throws DartModelException {
     DartFunctionInfo info = (DartFunctionInfo) getElementInfo();
-    return new SourceRangeImpl(info.getParametersOpenParen(), 1);
+    return new SourceRange(info.getParametersOpenParen(), 1);
   }
 
   @Override

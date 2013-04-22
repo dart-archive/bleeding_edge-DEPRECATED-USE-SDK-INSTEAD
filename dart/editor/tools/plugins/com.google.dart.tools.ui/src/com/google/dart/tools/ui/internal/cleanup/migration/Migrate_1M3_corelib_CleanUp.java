@@ -40,8 +40,8 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_CleanUp.MethodSpec;
 

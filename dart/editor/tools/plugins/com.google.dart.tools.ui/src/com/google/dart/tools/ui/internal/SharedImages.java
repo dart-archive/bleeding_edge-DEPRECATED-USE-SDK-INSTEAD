@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.internal;
 
-import com.google.dart.tools.ui.ISharedImages;
 import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.ISharedImages;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;

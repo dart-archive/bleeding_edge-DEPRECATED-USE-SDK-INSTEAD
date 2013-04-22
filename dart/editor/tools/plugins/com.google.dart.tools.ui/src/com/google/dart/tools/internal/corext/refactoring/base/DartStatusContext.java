@@ -14,12 +14,11 @@
 package com.google.dart.tools.internal.corext.refactoring.base;
 
 import com.google.dart.compiler.common.HasSourceInfo;
-import com.google.dart.tools.core.internal.model.SourceRangeImpl;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
@@ -116,7 +115,7 @@ public abstract class DartStatusContext extends RefactoringStatusContext {
         } catch (DartModelException e) {
         }
       }
-      return new SourceRangeImpl(0, 0);
+      return new SourceRange(0, 0);
     }
   }
 

@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.model;
 
+import com.google.dart.engine.utilities.source.SourceRange;
+
 import java.net.URI;
 
 /**
@@ -22,14 +24,14 @@ public interface DartPart {
   DartPart[] EMPTY_ARRAY = new DartPart[0];
 
   /**
-   * @return the {@link DartLibrary} defining {@link CompilationUnit}.
-   */
-  CompilationUnit getUnit();
-
-  /**
    * @return the {@link SourceRange} of the {@link DartPart}, not <code>null</code>.
    */
   SourceRange getSourceRange();
+
+  /**
+   * @return the {@link DartLibrary} defining {@link CompilationUnit}.
+   */
+  CompilationUnit getUnit();
 
   /**
    * @return the {@link SourceRange} of the {@link URI}, not <code>null</code>.

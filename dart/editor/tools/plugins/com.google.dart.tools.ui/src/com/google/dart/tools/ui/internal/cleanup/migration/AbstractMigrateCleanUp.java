@@ -14,9 +14,9 @@
 package com.google.dart.tools.ui.internal.cleanup.migration;
 
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.fix.CompilationUnitFix;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;

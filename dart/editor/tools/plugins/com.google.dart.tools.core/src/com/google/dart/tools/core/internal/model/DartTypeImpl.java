@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.util.StringInterner;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
@@ -27,7 +28,6 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeHierarchy;
 import com.google.dart.tools.core.model.TypeMember;

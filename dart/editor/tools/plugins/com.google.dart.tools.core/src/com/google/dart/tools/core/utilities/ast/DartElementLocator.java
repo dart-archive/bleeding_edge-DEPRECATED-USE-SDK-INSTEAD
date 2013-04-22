@@ -37,14 +37,13 @@ import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.VariableElement;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 
@@ -390,7 +389,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
         for (DartImport imprt : imports) {
           // on URI of library - return defining Unit of imported Library
           SourceRange uriRange = imprt.getUriRange();
-          if (SourceRangeUtils.contains(uriRange, startOffset)) {
+          if (uriRange.contains(startOffset)) {
             resolvedElement = null;
             foundElement = imprt.getLibrary().getDefiningCompilationUnit();
             wordRegion = new Region(uriRange.getOffset(), uriRange.getLength());
@@ -399,7 +398,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
           }
           // on #import directive - return DartImport element
           SourceRange sourceRange = imprt.getSourceRange();
-          if (SourceRangeUtils.contains(sourceRange, startOffset)) {
+          if (sourceRange.contains(startOffset)) {
             resolvedElement = null;
             foundElement = imprt;
             wordRegion = new Region(sourceRange.getOffset(), sourceRange.getLength());
