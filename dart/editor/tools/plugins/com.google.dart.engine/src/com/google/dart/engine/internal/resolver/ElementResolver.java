@@ -646,11 +646,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
                 methodName,
                 methodName.getName());
           } else {
-            resolver.reportError(
-                StaticTypeWarningCode.UNDEFINED_METHOD,
-                methodName,
-                methodName.getName(),
-                targetTypeName);
+            if (!doesClassDeclareNoSuchMethod(targetType.getElement())) {
+              resolver.reportError(
+                  StaticTypeWarningCode.UNDEFINED_METHOD,
+                  methodName,
+                  methodName.getName(),
+                  targetTypeName);
+            }
           }
         }
         return null;
@@ -1000,6 +1002,29 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * Return {@code true} if the passed {@link Element} is a {@link ClassElement} that declares a
+   * method "noSuchMethod".
+   * 
+   * @param element the {@link Element} to evaluate
+   * @return {@code true} if the passed {@link Element} is a {@link ClassElement} that declares a
+   *         method "noSuchMethod"
+   */
+  private boolean doesClassDeclareNoSuchMethod(Element element) {
+    if (element == null) {
+      return false;
+    }
+    if (!(element instanceof ClassElementImpl)) {
+      return false;
+    }
+    ClassElementImpl classElement = (ClassElementImpl) element;
+    MethodElement method = classElement.getMethod("noSuchMethod");
+    if (method == null) {
+      return false;
+    }
+    return true;
   }
 
   /**

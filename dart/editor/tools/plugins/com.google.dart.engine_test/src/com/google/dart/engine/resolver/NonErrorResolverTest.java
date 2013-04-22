@@ -617,6 +617,18 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_undefinedMethod_noSuchMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  noSuchMethod() {}",
+        "}",
+        "f() {",
+        "  (new A()).someMethod();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+  }
+
   public void test_undefinedOperator_tilde() throws Exception {
     Source source = addSource(createSource(//
         "const A = 3;",
