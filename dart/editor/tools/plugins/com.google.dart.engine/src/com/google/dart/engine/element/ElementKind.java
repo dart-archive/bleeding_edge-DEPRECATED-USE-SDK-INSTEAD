@@ -45,13 +45,37 @@ public enum ElementKind {
   TYPE_VARIABLE("type variable"),
   UNIVERSE("<universe>");
 
+  /**
+   * Return the kind of the given element, or {@link #ERROR} if the element is {@code null}. This is
+   * a utility method that can reduce the need for null checks in other places.
+   * 
+   * @param element the element whose kind is to be returned
+   * @return the kind of the given element
+   */
+  public static ElementKind of(Element element) {
+    if (element == null) {
+      return ERROR;
+    }
+    return element.getKind();
+  }
+
+  /**
+   * The name displayed in the UI for this kind of element.
+   */
   private final String displayName;
 
+  /**
+   * Initialize a newly created element kind to have the given display name.
+   * 
+   * @param displayName the name displayed in the UI for this kind of element
+   */
   private ElementKind(String displayName) {
     this.displayName = displayName;
   }
 
   /**
+   * Return the name displayed in the UI for this kind of element.
+   * 
    * @return the name of this {@link ElementKind} to display in UI.
    */
   public String getDisplayName() {
