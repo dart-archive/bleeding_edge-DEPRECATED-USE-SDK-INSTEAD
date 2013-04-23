@@ -1143,7 +1143,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets075() throws Exception {
-    test("p(x)=>0;var E;f()=>!1p(!2E);", "1+p", "2+E");
+    test("p(x)=>0;var E;f(q)=>!1p(!2E);", "1+p", "2+E");
   }
 
   public void testCommentSnippets076() throws Exception {

@@ -2139,7 +2139,6 @@ public class CompletionEngine {
     for (List<Element> uniques : names.getNames()) {
       Element element = uniques.get(0);
       switch (element.getKind()) {
-        case PARAMETER:
         case FUNCTION:
         case GETTER:
         case METHOD:
@@ -2148,6 +2147,7 @@ public class CompletionEngine {
           pExecutable(candidate, identifier);
           break;
         case LOCAL_VARIABLE:
+        case PARAMETER:
         case TOP_LEVEL_VARIABLE:
           VariableElement var = (VariableElement) element;
           pExecutable(var, identifier);
