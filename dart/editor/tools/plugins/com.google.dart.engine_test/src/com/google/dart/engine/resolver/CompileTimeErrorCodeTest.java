@@ -480,16 +480,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_optionalParameterInOperator() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  operator +([p]) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR);
-    verify(source);
-  }
-
   public void fail_overrideMissingNamedParameters() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1733,6 +1723,26 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+    verify(source);
+  }
+
+  public void test_optionalParameterInOperator_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  operator +({p}) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR);
+    verify(source);
+  }
+
+  public void test_optionalParameterInOperator_positional() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  operator +([p]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR);
     verify(source);
   }
 

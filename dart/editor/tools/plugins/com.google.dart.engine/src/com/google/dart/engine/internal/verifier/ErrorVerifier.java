@@ -403,7 +403,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ExecutableElement previousFunction = enclosingFunction;
     try {
       enclosingFunction = node.getElement();
-      checkForWrongNumberOfParametersForSetter(node);
+      if (node.isSetter()) {
+        checkForWrongNumberOfParametersForSetter(node);
+      } else if (node.isOperator()) {
+        checkForOptionalParameterInOperator(node);
+      }
       return super.visitMethodDeclaration(node);
     } finally {
       enclosingFunction = previousFunction;
@@ -1178,6 +1182,34 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This verifies the passed operator-method declaration, does not have an optional parameter.
+   * <p>
+   * This method assumes that the method declaration was tested to be an operator declaration before
+   * being called.
+   * 
+   * @param node the method declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#OPTIONAL_PARAMETER_IN_OPERATOR
+   */
+  private boolean checkForOptionalParameterInOperator(MethodDeclaration node) {
+    FormalParameterList parameterList = node.getParameters();
+    if (parameterList == null) {
+      return false;
+    }
+    boolean foundError = false;
+    NodeList<FormalParameter> formalParameters = parameterList.getParameters();
+    for (FormalParameter formalParameter : formalParameters) {
+      if (formalParameter.getKind().isOptional()) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR,
+            formalParameter);
+        foundError = true;
+      }
+    }
+    return foundError;
+  }
+
+  /**
    * This checks for named optional parameters that begin with '_'.
    * 
    * @param node the default formal parameter to evaluate
@@ -1299,16 +1331,15 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This verifies if the passed method declaration is a setter, that it has only one parameter.
+   * This verifies if the passed setter method declaration, has only one parameter.
+   * <p>
+   * This method assumes that the method declaration was tested to be a setter before being called.
    * 
    * @param node the method declaration to evaluate
    * @return return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
    */
   private boolean checkForWrongNumberOfParametersForSetter(MethodDeclaration node) {
-    if (!node.isSetter()) {
-      return false;
-    }
     FormalParameterList parameterList = node.getParameters();
     if (parameterList == null) {
       return false;

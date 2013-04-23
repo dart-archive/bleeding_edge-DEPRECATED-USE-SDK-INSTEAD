@@ -660,7 +660,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 7.1.1 Operators: It is a compile-time error to declare an optional parameter in an operator.
    */
-  OPTIONAL_PARAMETER_IN_OPERATOR(""),
+  OPTIONAL_PARAMETER_IN_OPERATOR("Optional parameters are not allowed when defining an operator"),
 
   /**
    * 8 Interfaces: It is a compile-time error if an interface member <i>m1</i> overrides an

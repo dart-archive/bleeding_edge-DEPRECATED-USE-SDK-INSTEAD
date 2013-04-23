@@ -495,6 +495,16 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_optionalParameterInOperator_required() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  operator +(p) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_rethrowOutsideCatch() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
