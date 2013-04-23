@@ -99,7 +99,7 @@ public class RunPubJob extends Job {
         args.add("/bin/bash");
         args.add("--login");
         args.add("-c");
-        args.add(pubFile.getAbsolutePath() + " " + command);
+        args.add("\"" + pubFile.getAbsolutePath() + "\"" + " " + command);
       } else {
         args.add(pubFile.getAbsolutePath());
         args.add(command);
