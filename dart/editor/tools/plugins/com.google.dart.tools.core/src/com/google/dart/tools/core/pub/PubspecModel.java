@@ -42,6 +42,8 @@ public class PubspecModel {
   private String sdkVersion;
   private String documentation;
 
+  private boolean errorOnParse = false;
+
   private ArrayList<DependencyObject> dependencies;
 
   private String comments;
@@ -128,6 +130,10 @@ public class PubspecModel {
 
   public boolean isDirty() {
     return isDirty;
+  }
+
+  public boolean isErrorOnParse() {
+    return errorOnParse;
   }
 
   public void remove(DependencyObject[] dependencyObjects, boolean notify) {
@@ -325,40 +331,45 @@ public class PubspecModel {
 
   @SuppressWarnings("unchecked")
   private void setValuesFromMap(Map<String, Object> pubspecMap) {
-    name = (String) pubspecMap.get(PubspecConstants.NAME);
-    version = (String) ((pubspecMap.get(PubspecConstants.VERSION) != null)
-        ? pubspecMap.get(PubspecConstants.VERSION) : EMPTY_STRING);
-    author = (String) ((pubspecMap.get(PubspecConstants.AUTHOR) != null)
-        ? pubspecMap.get(PubspecConstants.AUTHOR) : EMPTY_STRING);
-    if (pubspecMap.get(PubspecConstants.AUTHORS) != null) {
-      List<String> authors = (List<String>) pubspecMap.get(PubspecConstants.AUTHORS);
-      author = authors.get(0);
-      for (int i = 1; i < authors.size(); i++) {
-        author += "," + authors.get(i);
+    if (pubspecMap != null) {
+      name = (String) pubspecMap.get(PubspecConstants.NAME);
+      version = (String) ((pubspecMap.get(PubspecConstants.VERSION) != null)
+          ? pubspecMap.get(PubspecConstants.VERSION) : EMPTY_STRING);
+      author = (String) ((pubspecMap.get(PubspecConstants.AUTHOR) != null)
+          ? pubspecMap.get(PubspecConstants.AUTHOR) : EMPTY_STRING);
+      if (pubspecMap.get(PubspecConstants.AUTHORS) != null) {
+        List<String> authors = (List<String>) pubspecMap.get(PubspecConstants.AUTHORS);
+        author = authors.get(0);
+        for (int i = 1; i < authors.size(); i++) {
+          author += "," + authors.get(i);
+        }
       }
-    }
-    if (pubspecMap.get(PubspecConstants.ENVIRONMENT) != null) {
-      Map<String, Object> env = (Map<String, Object>) pubspecMap.get(PubspecConstants.ENVIRONMENT);
-      sdkVersion = (String) env.get(PubspecConstants.SDK_VERSION);
-    } else {
-      sdkVersion = EMPTY_STRING;
-    }
+      if (pubspecMap.get(PubspecConstants.ENVIRONMENT) != null) {
+        Map<String, Object> env = (Map<String, Object>) pubspecMap.get(PubspecConstants.ENVIRONMENT);
+        sdkVersion = (String) env.get(PubspecConstants.SDK_VERSION);
+      } else {
+        sdkVersion = EMPTY_STRING;
+      }
 
-    description = (String) ((pubspecMap.get(PubspecConstants.DESCRIPTION) != null)
-        ? pubspecMap.get(PubspecConstants.DESCRIPTION) : EMPTY_STRING);
-    homepage = (String) ((pubspecMap.get(PubspecConstants.HOMEPAGE) != null)
-        ? pubspecMap.get(PubspecConstants.HOMEPAGE) : EMPTY_STRING);
-    documentation = (String) ((pubspecMap.get(PubspecConstants.DOCUMENTATION) != null)
-        ? pubspecMap.get(PubspecConstants.DOCUMENTATION) : EMPTY_STRING);
-    add(
-        processDependencies(
-            (Map<String, Object>) pubspecMap.get(PubspecConstants.DEPENDENCIES),
-            false),
-        IModelListener.REFRESH);
-    add(
-        processDependencies(
-            (Map<String, Object>) pubspecMap.get(PubspecConstants.DEV_DEPENDENCIES),
-            true),
-        IModelListener.REFRESH);
+      description = (String) ((pubspecMap.get(PubspecConstants.DESCRIPTION) != null)
+          ? pubspecMap.get(PubspecConstants.DESCRIPTION) : EMPTY_STRING);
+      homepage = (String) ((pubspecMap.get(PubspecConstants.HOMEPAGE) != null)
+          ? pubspecMap.get(PubspecConstants.HOMEPAGE) : EMPTY_STRING);
+      documentation = (String) ((pubspecMap.get(PubspecConstants.DOCUMENTATION) != null)
+          ? pubspecMap.get(PubspecConstants.DOCUMENTATION) : EMPTY_STRING);
+      add(
+          processDependencies(
+              (Map<String, Object>) pubspecMap.get(PubspecConstants.DEPENDENCIES),
+              false),
+          IModelListener.REFRESH);
+      add(
+          processDependencies(
+              (Map<String, Object>) pubspecMap.get(PubspecConstants.DEV_DEPENDENCIES),
+              true),
+          IModelListener.REFRESH);
+      errorOnParse = false;
+    } else {
+      errorOnParse = true;
+    }
   }
 }

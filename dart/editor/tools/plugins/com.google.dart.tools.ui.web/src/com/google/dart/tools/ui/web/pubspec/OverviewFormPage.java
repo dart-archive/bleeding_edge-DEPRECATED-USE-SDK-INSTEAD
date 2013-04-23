@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
@@ -62,9 +63,7 @@ import org.eclipse.ui.forms.widgets.TableWrapLayout;
 public class OverviewFormPage extends FormPage implements IModelListener {
 
   private static String NAME_MESSAGE_KEY = "nameMessage";
-
   private static String VERSION_MESSAGE_KEY = "versionMessage";
-
   private static String SDK_VERSION_MESSAGE_KEY = "sdkVersionMessage";
 
   private Control lastFocusControl;
@@ -402,7 +401,12 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     });
     ignoreModify = true;
     updateInfoSection();
-
+    if (model.isErrorOnParse()) {
+      MessageDialog.openError(
+          null,
+          "Pubspec Editor",
+          "Looks like the pubspec.yaml is corrupted. Switch to the Source tab to fix.");
+    }
   }
 
   private void setTextDirty() {
