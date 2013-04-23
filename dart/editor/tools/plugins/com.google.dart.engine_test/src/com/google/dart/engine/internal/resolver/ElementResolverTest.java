@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
@@ -74,6 +75,7 @@ import static com.google.dart.engine.ast.ASTFactory.breakStatement;
 import static com.google.dart.engine.ast.ASTFactory.constructorName;
 import static com.google.dart.engine.ast.ASTFactory.continueStatement;
 import static com.google.dart.engine.ast.ASTFactory.exportDirective;
+import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
 import static com.google.dart.engine.ast.ASTFactory.hideCombinator;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.importDirective;
@@ -94,6 +96,7 @@ import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
 import static com.google.dart.engine.element.ElementFactory.exportFor;
 import static com.google.dart.engine.element.ElementFactory.fieldElement;
+import static com.google.dart.engine.element.ElementFactory.fieldFormalParameter;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
 import static com.google.dart.engine.element.ElementFactory.importFor;
 import static com.google.dart.engine.element.ElementFactory.library;
@@ -266,6 +269,19 @@ public class ElementResolverTest extends EngineTestCase {
     directive.setElement(exportFor(library(definingLibrary.getContext(), "lib")));
     resolveNode(directive);
     listener.assertNoErrors();
+  }
+
+  public void test_visitFieldFormalParameter() throws Exception {
+    InterfaceType intType = typeProvider.getIntType();
+    String fieldName = "f";
+    ClassElementImpl classA = classElement("A");
+    classA.setFields(new FieldElement[] {fieldElement(fieldName, false, false, false, intType)});
+
+    FieldFormalParameter parameter = fieldFormalParameter(fieldName);
+    parameter.getIdentifier().setElement(fieldFormalParameter(parameter.getIdentifier()));
+
+    resolveInClass(parameter, classA);
+    assertSame(intType, parameter.getElement().getType());
   }
 
   public void test_visitImportDirective_noCombinators_noPrefix() {

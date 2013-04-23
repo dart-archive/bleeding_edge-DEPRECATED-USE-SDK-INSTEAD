@@ -371,7 +371,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         if (!fieldElement.isSynthetic()) {
           ParameterElement parameterElement = node.getElement();
           if (parameterElement instanceof FieldFormalParameterElementImpl) {
-            ((FieldFormalParameterElementImpl) parameterElement).setField(fieldElement);
+            FieldFormalParameterElementImpl fieldFormal = (FieldFormalParameterElementImpl) parameterElement;
+            fieldFormal.setField(fieldElement);
+            if (fieldFormal.getType() == null) {
+              fieldFormal.setType(fieldElement.getType());
+            }
             if (fieldElement.isStatic()) {
               resolver.reportError(
                   CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,

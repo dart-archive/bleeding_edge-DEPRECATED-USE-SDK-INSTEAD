@@ -20,6 +20,7 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.ExportElementImpl;
 import com.google.dart.engine.internal.element.FieldElementImpl;
+import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
@@ -127,6 +128,10 @@ public final class ElementFactory {
     }
 
     return field;
+  }
+
+  public static FieldFormalParameterElementImpl fieldFormalParameter(Identifier name) {
+    return new FieldFormalParameterElementImpl(name);
   }
 
   public static FunctionElementImpl functionElement(String functionName) {
