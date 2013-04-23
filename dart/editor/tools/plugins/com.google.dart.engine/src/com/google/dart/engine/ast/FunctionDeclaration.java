@@ -14,6 +14,8 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -143,6 +145,24 @@ public class FunctionDeclaration extends CompilationUnitMember {
    */
   public TypeName getReturnType() {
     return returnType;
+  }
+
+  /**
+   * Return {@code true} if this function declares a getter.
+   * 
+   * @return {@code true} if this function declares a getter
+   */
+  public boolean isGetter() {
+    return propertyKeyword != null && ((KeywordToken) propertyKeyword).getKeyword() == Keyword.GET;
+  }
+
+  /**
+   * Return {@code true} if this function declares a setter.
+   * 
+   * @return {@code true} if this function declares a setter
+   */
+  public boolean isSetter() {
+    return propertyKeyword != null && ((KeywordToken) propertyKeyword).getKeyword() == Keyword.SET;
   }
 
   /**
