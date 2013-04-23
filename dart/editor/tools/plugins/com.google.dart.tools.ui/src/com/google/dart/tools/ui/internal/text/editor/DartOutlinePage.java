@@ -206,6 +206,8 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     ColoredViewersManager.install(viewer);
     viewer.setContentProvider(LightNodeElements.newTreeContentProvider());
     viewer.setLabelProvider(LightNodeElements.LABEL_PROVIDER);
+    // TODO(devoncarew): I'd like to use this but opening dart:html is too slow w/ this setting.
+    //viewer.setAutoExpandLevel(2);
     SWTUtil.bindJFaceResourcesFontToControl(tree);
     // install listeners added before UI creation
     {
@@ -257,8 +259,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     viewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
-        editor.doSelectionChanged(event.getSelection());
-        getSite().getPage().activate(editor);
+        toggleExpansion(event.getSelection());
       }
     });
     // schedule update in 100ms from now, to make impression that editor opens instantaneously
@@ -369,6 +370,20 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
         } finally {
           ignoreSelectionChangedEvent = false;
         }
+      }
+    }
+  }
+
+  protected void toggleExpansion(ISelection selection) {
+    if (selection instanceof IStructuredSelection) {
+      Object sel = ((IStructuredSelection) selection).getFirstElement();
+
+      boolean expanded = viewer.getExpandedState(sel);
+
+      if (expanded) {
+        viewer.collapseToLevel(sel, 1);
+      } else {
+        viewer.expandToLevel(sel, 1);
       }
     }
   }
