@@ -116,9 +116,13 @@ import com.google.dart.engine.type.Type;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The analysis engine for code completion.
@@ -1785,13 +1789,26 @@ public class CompletionEngine {
   }
 
   private LibraryElement[] currentLibraryList() {
-    // TODO Figure out the correct list.
+    Set<LibraryElement> libraries = new HashSet<LibraryElement>();
     LibraryElement curLib = getCurrentLibrary();
-    LibraryElement[] impLibs = curLib.getImportedLibraries();
-    LibraryElement[] libs = new LibraryElement[impLibs.length + 1];
-    libs[0] = curLib;
-    System.arraycopy(impLibs, 0, libs, 1, impLibs.length);
-    return libs;
+    libraries.add(curLib);
+    List<LibraryElement> queue = new LinkedList<LibraryElement>();
+    Collections.addAll(queue, curLib.getImportedLibraries());
+    currentLibraryLister(queue, libraries);
+    return libraries.toArray(new LibraryElement[libraries.size()]);
+  }
+
+  private void currentLibraryLister(List<LibraryElement> queue, Set<LibraryElement> libraries) {
+    while (!queue.isEmpty()) {
+      LibraryElement sourceLib = queue.remove(0);
+      libraries.add(sourceLib);
+      LibraryElement[] expLibs = sourceLib.getExportedLibraries();
+      for (LibraryElement lib : expLibs) {
+        if (!libraries.contains(lib)) {
+          queue.add(lib);
+        }
+      }
+    }
   }
 
   private Element[] extractElementsFromSearchMatches(List<SearchMatch> matches) {

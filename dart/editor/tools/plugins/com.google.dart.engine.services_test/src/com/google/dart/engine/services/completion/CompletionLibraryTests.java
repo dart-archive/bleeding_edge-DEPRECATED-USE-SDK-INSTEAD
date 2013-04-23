@@ -66,4 +66,58 @@ public class CompletionLibraryTests extends CompletionTestCase {
     // TODO Include corelib analysis
 //    test("var PHI;main(){PHI=5.3;PHI.abs().!1 Object x;}", "1+abs");
   }
+
+  public void test006() throws Exception {
+    // Exercise import and export handling.
+    // Libraries are define in partial order of increasing dependency.
+    addLib(//
+        "/exp2a.dart",
+        src(//
+            "library exp2a;",
+            "e2a() {}",
+            ""));
+    addLib(//
+        "/exp1b.dart",
+        src(//
+            "library exp1b;",
+            "e1b() {}",
+            ""));
+    addLib(//
+        "/exp1a.dart",
+        src(//
+            "library exp1a;",
+            "export 'exp1b.dart';",
+            "e1a() {}",
+            ""));
+    addLib(//
+        "/imp1.dart",
+        src(//
+            "library imp1;",
+            "export 'exp1a.dart';",
+            "i1() {}",
+            ""));
+    addLib(//
+        "/imp2.dart",
+        src(//
+            "library imp2;",
+            "export 'exp2a.dart';",
+            "i2() {}",
+            ""));
+    test(//
+        src(//
+            "import 'imp1.dart';",
+            "import 'imp2.dart';",
+            "main() {!1",
+            "  i1();",
+            "  i2();",
+            "  e1a();",
+            "  e1b();",
+            "  e2a();",
+            "}"),
+        "1+i1",
+        "1+i2",
+        "1+e1a",
+        "1+e2a",
+        "1+e1b");
+  }
 }
