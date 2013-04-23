@@ -639,9 +639,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets034() throws Exception {
-    // Type propagation.
-    // TODO Move to new TestCase that includes corelib analysis (this works in the editor)
-//    test("t2() {var q=[0],z=q.!1length;q.!2clear();}", "1+length", "1+isEmpty", "2+clear");
+    // Moved to CompletionLibraryTests
   }
 
   public void testCommentSnippets035() throws Exception {
@@ -700,27 +698,11 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets045() throws Exception {
-    // TODO Move to new TestCase that includes corelib analysis
-//    test("class X{var q; f() {q.!1a!2}}", "1+end", "2+abs", "2-end");
+    // Moved to CompletionLibraryTests
   }
 
   public void testCommentSnippets046() throws Exception {
-    // TODO Move to new TestCase that includes corelib analysis
-    // Resolving dart:html takes between 2.5s and 30s; json, about 0.12s
-//    test(
-//        src(
-//            "library foo;",
-//            "import 'dart:json' as json;",
-//            "class JsonParserX{}",
-//            "f1() {var x=new json.!1}",
-//            "f2() {var x=new json.JsonPa!2}",
-//            "f3() {var x=new json.JsonParser!3}"),
-//        "1+JsonParser",
-//        "1-JsonParserX",
-//        "2+JsonParser",
-//        "2-JsonParserX",
-//        "3+JsonParser",
-//        "3-JsonParserX");
+    // Moved to CompletionLibraryTests
   }
 
   public void testCommentSnippets047() throws Exception {
@@ -763,7 +745,7 @@ public class CompletionTests extends CompletionTestCase {
             "}"),
         "1+xdr",
         "1+xa",
-        "1-xdr.a",
+        "1+xdr.a",
         "1+xdr.b",
         "2-xa",
         "2-xdr",
@@ -816,7 +798,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets054() throws Exception {
-    // TODO Enable after type propagation is implemented.
+    // TODO Enable after type propagation is fully implemented.
 //    String source = src(
 //        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
 //        "void r() {",
@@ -908,9 +890,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets062() throws Exception {
-    // TODO Enable after type propagation is implemented. Not yet.
-    // TODO Move to new TestCase that includes corelib analysis
-//    test("var PHI;main(){PHI=5.3;PHI.abs().!1 Object x;}", "1+abs");
+    // Moved to CompletionLibraryTests
   }
 
   public void testCommentSnippets063() throws Exception {

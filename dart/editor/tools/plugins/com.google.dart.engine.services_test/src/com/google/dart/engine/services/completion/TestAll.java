@@ -30,6 +30,7 @@ public class TestAll {
       }
     };
     suite.addTestSuite(CompletionTests.class);
+    suite.addTestSuite(CompletionLibraryTests.class);
     return suite;
   }
 }

@@ -1626,7 +1626,7 @@ public class CompletionEngine {
     // Complete identifier when it refers to a named constructor defined in classElement.
     filter = new Filter(identifier);
     for (ConstructorElement cons : classElement.getConstructors()) {
-      if (state.isCompileTimeConstantRequired == cons.isConst()
+      if ((state.isCompileTimeConstantRequired ? cons.isConst() : true)
           && filter.isPermitted(cons.getName())) {
         pNamedConstructor(classElement, cons, identifier);
       }
@@ -1757,7 +1757,7 @@ public class CompletionEngine {
 
   private SearchScope constructSearchScope() {
     if (libraries == null) {
-      libraries = new LibraryElement[] {getCurrentLibrary()};
+      libraries = currentLibraryList();
     }
     if (libraries != null) {
       return SearchScopeFactory.createLibraryScope(libraries);
@@ -1782,6 +1782,16 @@ public class CompletionEngine {
 
   private CompletionProposal createProposal(ProposalKind kind) {
     return factory.createCompletionProposal(kind, completionLocation() - filter.prefix.length());
+  }
+
+  private LibraryElement[] currentLibraryList() {
+    // TODO Figure out the correct list.
+    LibraryElement curLib = getCurrentLibrary();
+    LibraryElement[] impLibs = curLib.getImportedLibraries();
+    LibraryElement[] libs = new LibraryElement[impLibs.length + 1];
+    libs[0] = curLib;
+    System.arraycopy(impLibs, 0, libs, 1, impLibs.length);
+    return libs;
   }
 
   private Element[] extractElementsFromSearchMatches(List<SearchMatch> matches) {

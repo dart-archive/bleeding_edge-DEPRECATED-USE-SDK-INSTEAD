@@ -22,8 +22,8 @@ public class CompletionTestCase extends ResolverTestCase {
     return Joiner.on('\n').join(parts);
   }
 
-  private Index index;
-  private SearchEngine searchEngine;
+  protected Index index;
+  protected SearchEngine searchEngine;
 
   @Override
   public void setUp() {
@@ -36,6 +36,13 @@ public class CompletionTestCase extends ResolverTestCase {
       }
     }.start();
     searchEngine = SearchEngineFactory.createSearchEngine(index);
+  }
+
+  protected void addLib(String path, String sourceString) throws Exception {
+    Source source = addSource(path, sourceString);
+    LibraryElement library = resolve(source);
+    CompilationUnit cu = getAnalysisContext().resolveCompilationUnit(source, library);
+    index.indexUnit(getAnalysisContext(), cu);
   }
 
   /**
