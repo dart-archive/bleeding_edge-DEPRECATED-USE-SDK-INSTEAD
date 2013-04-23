@@ -869,6 +869,19 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Return true if directory contains a "packages" directory and a "pubspec.yaml" file
+   */
+  public static boolean isApplicationDirectory(IContainer container) {
+    if (container.getLocation() == null) {
+      return false;
+    }
+
+    File directory = container.getLocation().toFile();
+
+    return isApplicationDirectory(directory);
+  }
+
+  /**
    * Answer {@code true} if the specified resource is a build.dart file and exists either in a
    * project or in a folder containing a pubspec file.
    * 
