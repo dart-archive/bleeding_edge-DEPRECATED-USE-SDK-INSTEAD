@@ -2055,6 +2055,11 @@
             id="com.google.dart.tools.ui.commands.pubUpdate"
             name="Pub Update">
       </command>
+      <command
+            defaultHandler="com.google.dart.tools.ui.internal.handlers.RunScriptHandler"
+            id="com.google.dart.tools.ui.run.script.command"
+            name="Run Script">
+      </command>
    </extension>
       
    <extension

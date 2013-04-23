@@ -642,6 +642,10 @@ public class DartCore extends Plugin implements DartSdkListener {
     return DartModelManager.getInstance().getDefaultOptions();
   }
 
+  public static File getEclipseInstallationDirectory() {
+    return new File(Platform.getInstallLocation().getURL().getFile());
+  }
+
   /**
    * Return the workspace root default charset encoding.
    * 
@@ -1071,11 +1075,13 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static boolean isSelfLinkedResource(IContainer resource, IResource linkedResource) {
 
     try {
+      //     if (linkedResource.getParent().getParent() == resource) {
       String resourcePath = resource.getLocation().toFile().getCanonicalPath();
       String linkPath = linkedResource.getLocation().toFile().getCanonicalPath();
       if (linkPath.startsWith(resourcePath)) {
         return true;
       }
+      //     }
     } catch (IOException e) {
       return false;
     }
@@ -1419,10 +1425,6 @@ public class DartCore extends Plugin implements DartSdkListener {
       logError(e);
     }
 
-  }
-
-  private static File getEclipseInstallationDirectory() {
-    return new File(Platform.getInstallLocation().getURL().getFile());
   }
 
   private static void instrumentationLogErrorImpl(String message, Throwable exception) {

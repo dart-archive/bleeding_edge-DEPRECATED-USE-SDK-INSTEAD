@@ -93,6 +93,31 @@
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+O">
       </key>
+       <key
+            commandId="com.google.dart.tools.ui.run.script.command"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M2+F1">
+      </key>
+       <key
+            commandId="com.google.dart.tools.ui.run.script.command"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M2+F2">
+      </key>
+       <key
+            commandId="com.google.dart.tools.ui.run.script.command"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M2+F3">
+      </key>
+       <key
+            commandId="com.google.dart.tools.ui.run.script.command"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M2+F4">
+      </key>
+       <key
+            commandId="com.google.dart.tools.ui.run.script.command"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M2+F5">
+      </key>
       <key
             commandId="com.google.dart.tools.ui.omnibox"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
