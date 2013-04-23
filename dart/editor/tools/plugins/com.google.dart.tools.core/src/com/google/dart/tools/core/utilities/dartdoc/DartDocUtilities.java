@@ -128,6 +128,10 @@ public final class DartDocUtilities {
 
     private StringBuilder buildParams(ParameterElement[] parameters) {
       StringBuilder buf = new StringBuilder();
+
+      // Closing ']' or '}' in case of optional params
+      String endGroup = "";
+
       for (int i = 0; i < parameters.length; i++) {
         if (i > 0) {
           buf.append(", ");
@@ -137,10 +141,15 @@ public final class DartDocUtilities {
 
         ParameterKind kind = param.getParameterKind();
 
-        if (kind == ParameterKind.NAMED) {
-          buf.append("{");
-        } else if (kind == ParameterKind.POSITIONAL) {
-          buf.append("[");
+        // Start group of optional params
+        if (endGroup.length() == 0) {
+          if (kind == ParameterKind.NAMED) {
+            buf.append("{");
+            endGroup = "}";
+          } else if (kind == ParameterKind.POSITIONAL) {
+            buf.append("[");
+            endGroup = "]";
+          }
         }
 
         String typeName = getTypeName(param);
@@ -159,13 +168,11 @@ public final class DartDocUtilities {
           buf.append(typeName + " " + paramName);
         }
 
-        if (kind == ParameterKind.NAMED) {
-          buf.append("}");
-        } else if (kind == ParameterKind.POSITIONAL) {
-          buf.append("]");
-        }
-
       }
+
+      // Close optional list
+      buf.append(endGroup);
+
       return buf;
     }
 
