@@ -65,7 +65,7 @@ public class CssAutoIndentStrategy extends WebEditorAutoIndentStrategy {
         // Insert \n, indent, and '}', then back up the caret position.
         String eol = getEol(document, command.offset);
 
-        String closingBracket = eol + wsStart + "}";
+        String closingBracket = eol + wsStart /* + "}"*/;
 
         buf.append(closingBracket);
 

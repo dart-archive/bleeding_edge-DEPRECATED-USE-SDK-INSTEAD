@@ -127,14 +127,14 @@ public class ResourceServer implements IResourceResolver {
 
     String template = CharStreams.toString(new InputStreamReader(in));
 
-    List<IFile> files = getAllHtmlFiles();
+    List<IFile> files = getAllExecutableFiles();
 
     // Sort by project name, then html file name
     Collections.sort(files, new Comparator<IFile>() {
       @Override
       public int compare(IFile o1, IFile o2) {
-        String str1 = o1.getFullPath().toPortableString();
-        String str2 = o2.getFullPath().toPortableString();
+        String str1 = o1.getFullPath().toString();
+        String str2 = o2.getFullPath().toString();
 
         return str1.compareToIgnoreCase(str2);
       }
@@ -154,8 +154,8 @@ public class ResourceServer implements IResourceResolver {
         builder.append("<div class=\"app\"><table><tr>");
         builder.append("<td rowspan=2>" + hrefStart
             + "<img src=\"dart_16_16.gif\" width=16 height=16></a></td>");
-        builder.append("<td class=\"title\">" + hrefStart
-            + webSafe(file.getFullPath().toOSString()) + "</a></td</tr>");
+        builder.append("<td class=\"title\">" + hrefStart + webSafe(file.getFullPath().toString())
+            + "</a></td</tr>");
         builder.append("</table></div>");
       }
 
@@ -174,7 +174,7 @@ public class ResourceServer implements IResourceResolver {
     }
   }
 
-  private List<IFile> getAllHtmlFiles() {
+  private List<IFile> getAllExecutableFiles() {
     final List<IFile> files = new ArrayList<IFile>();
 
     for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
@@ -183,8 +183,14 @@ public class ResourceServer implements IResourceResolver {
           project.accept(new IResourceVisitor() {
             @Override
             public boolean visit(IResource resource) throws CoreException {
-              if (resource instanceof IFile && DartCore.isHTMLLikeFileName(resource.getName())) {
-                files.add((IFile) resource);
+              if (resource instanceof IFile) {
+                IFile file = (IFile) resource;
+
+                if (DartCore.isHTMLLikeFileName(file.getName())) {
+                  files.add(file);
+                } else if ("crx".equals(file.getFileExtension())) {
+                  files.add(file);
+                }
               }
 
               return true;
