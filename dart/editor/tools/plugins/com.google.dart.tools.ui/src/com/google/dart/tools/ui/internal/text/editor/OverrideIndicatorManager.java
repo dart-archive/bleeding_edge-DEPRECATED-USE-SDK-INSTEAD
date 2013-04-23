@@ -27,7 +27,7 @@ import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.Messages;
-import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
+import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener_OLD;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.runtime.Assert;
@@ -48,7 +48,7 @@ import java.util.Map;
 /**
  * Manages the override and overwrite indicators for the given Dart element and annotation model.
  */
-class OverrideIndicatorManager implements IDartReconcilingListener {
+class OverrideIndicatorManager implements IDartReconcilingListener_OLD {
   /**
    * Overwrite and override indicator annotation.
    */

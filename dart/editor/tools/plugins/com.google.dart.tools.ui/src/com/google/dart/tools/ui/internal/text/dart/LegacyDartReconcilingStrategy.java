@@ -54,16 +54,16 @@ public class LegacyDartReconcilingStrategy implements IReconcilingStrategy,
   private IProgressMonitor fProgressMonitor;
   private boolean fNotify = true;
 
-  private IDartReconcilingListener fJavaReconcilingListener;
+  private IDartReconcilingListener_OLD fJavaReconcilingListener;
   private boolean fIsJavaReconcilingListener;
 
   public LegacyDartReconcilingStrategy(ITextEditor editor) {
     fEditor = editor;
     fManager = DartToolsPlugin.getDefault().getWorkingCopyManager();
     fDocumentProvider = DartToolsPlugin.getDefault().getCompilationUnitDocumentProvider();
-    fIsJavaReconcilingListener = fEditor instanceof IDartReconcilingListener;
+    fIsJavaReconcilingListener = fEditor instanceof IDartReconcilingListener_OLD;
     if (fIsJavaReconcilingListener) {
-      fJavaReconcilingListener = (IDartReconcilingListener) fEditor;
+      fJavaReconcilingListener = (IDartReconcilingListener_OLD) fEditor;
     }
   }
 

@@ -16,6 +16,8 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.SimpleIdentifier;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -25,7 +27,8 @@ import org.eclipse.jface.text.IDocument;
  */
 public final class SemanticToken {
 
-  private DartNode node;
+  private DartNode nodeOld;
+  private ASTNode node;
   private IDocument document;
 
   /**
@@ -38,28 +41,50 @@ public final class SemanticToken {
   }
 
   /**
-   * @return the {@link DartNode}.
+   * @return the {@link ASNode}.
    */
-  public DartNode getNode() {
+  public ASTNode getNode() {
     return node;
+  }
+
+  /**
+   * @return the {@link SimpleIdentifier}.
+   */
+  public SimpleIdentifier getNodeIdentifier() {
+    return (SimpleIdentifier) node;
   }
 
   /**
    * @return the {@link DartIdentifier}.
    */
-  public DartIdentifier getNodeIdentifier() {
-    return (DartIdentifier) node;
+  public DartIdentifier getNodeIdentifierOld() {
+    return (DartIdentifier) nodeOld;
+  }
+
+  /**
+   * @return the {@link DartNode}.
+   */
+  public DartNode getNodeOld() {
+    return nodeOld;
   }
 
   /**
    * @return the source associated with this token
    */
   public String getSource() {
-    SourceInfo sourceInfo = node.getSourceInfo();
-    try {
-      return document.get(sourceInfo.getOffset(), sourceInfo.getLength());
-    } catch (BadLocationException e) {
-      return null;
+    if (node != null) {
+      try {
+        return document.get(node.getOffset(), node.getLength());
+      } catch (BadLocationException e) {
+        return null;
+      }
+    } else {
+      SourceInfo sourceInfo = nodeOld.getSourceInfo();
+      try {
+        return document.get(sourceInfo.getOffset(), sourceInfo.getLength());
+      } catch (BadLocationException e) {
+        return null;
+      }
     }
   }
 
@@ -70,8 +95,21 @@ public final class SemanticToken {
    * </p>
    */
   void clear() {
-    node = null;
+    nodeOld = null;
     document = null;
+  }
+
+  /**
+   * Update this token with the given AST node.
+   * <p>
+   * NOTE: Allowed to be used by {@link SemanticHighlightingReconciler} only.
+   * </p>
+   * 
+   * @param node the {@link ASTNode}
+   */
+  void update(ASTNode node) {
+    clear();
+    this.node = node;
   }
 
   /**
@@ -84,6 +122,6 @@ public final class SemanticToken {
    */
   void update(DartNode node) {
     clear();
-    this.node = node;
+    this.nodeOld = node;
   }
 }

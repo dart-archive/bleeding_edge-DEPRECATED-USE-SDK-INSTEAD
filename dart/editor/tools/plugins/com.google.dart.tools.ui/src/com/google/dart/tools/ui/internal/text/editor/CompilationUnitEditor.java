@@ -49,6 +49,7 @@ import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingContext;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
+import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener_OLD;
 import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
 import com.google.dart.tools.ui.internal.text.functions.DartHeuristicScanner;
 import com.google.dart.tools.ui.internal.text.functions.SmartBackspaceManager;
@@ -150,7 +151,7 @@ import java.util.Stack;
 /**
  * Dart code editor.
  */
-public class CompilationUnitEditor extends DartEditor implements IDartReconcilingListener {
+public class CompilationUnitEditor extends DartEditor implements IDartReconcilingListener_OLD {
   class AdaptedSourceViewer extends DartSourceViewer {
 
     public AdaptedSourceViewer(Composite parent, IVerticalRuler verticalRuler,
@@ -1100,6 +1101,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   /**
    * Reconciling listeners.
    */
+  private ListenerList fReconcilingListeners_OLD = new ListenerList(ListenerList.IDENTITY);
   private ListenerList fReconcilingListeners = new ListenerList(ListenerList.IDENTITY);
 
   /**
@@ -1142,9 +1144,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     DartToolsPlugin.getDefault().getASTProvider().aboutToBeReconciled(getInputDartElement());
 
     // Notify listeners
-    Object[] listeners = fReconcilingListeners.getListeners();
+    Object[] listeners = fReconcilingListeners_OLD.getListeners();
     for (int i = 0, length = listeners.length; i < length; ++i) {
-      ((IDartReconcilingListener) listeners[i]).aboutToBeReconciled();
+      ((IDartReconcilingListener_OLD) listeners[i]).aboutToBeReconciled();
     }
   }
 
@@ -1166,6 +1168,13 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
           });
         }
       });
+      // notify listeners
+      {
+        Object[] listeners = fReconcilingListeners.getListeners();
+        for (int i = 0, length = listeners.length; i < length; ++i) {
+          ((IDartReconcilingListener) listeners[i]).reconciled(unit);
+        }
+      }
     }
   }
 
@@ -1341,9 +1350,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     dartPlugin.getASTProvider().reconciled(ast, getInputDartElement(), progressMonitor);
 
     // Notify listeners
-    Object[] listeners = fReconcilingListeners.getListeners();
+    Object[] listeners = fReconcilingListeners_OLD.getListeners();
     for (int i = 0, length = listeners.length; i < length; ++i) {
-      ((IDartReconcilingListener) listeners[i]).reconciled(ast, forced, progressMonitor);
+      ((IDartReconcilingListener_OLD) listeners[i]).reconciled(ast, forced, progressMonitor);
     }
 
     // Update Outline page selection
@@ -1763,7 +1772,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       return;
     }
 
-    addReconcileListener(fOverrideIndicatorManager);
+    addReconcileListener_OLD(fOverrideIndicatorManager);
   }
 
   /*
@@ -1910,7 +1919,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   @Override
   protected void uninstallOverrideIndicator() {
     if (fOverrideIndicatorManager != null) {
-      removeReconcileListener(fOverrideIndicatorManager);
+      removeReconcileListener_OLD(fOverrideIndicatorManager);
     }
     super.uninstallOverrideIndicator();
   }
@@ -1956,6 +1965,17 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   }
 
   /**
+   * Adds the given listener. Has no effect if an identical listener was not already registered.
+   * 
+   * @param listener The reconcile listener to be added
+   */
+  final void addReconcileListener_OLD(IDartReconcilingListener_OLD listener) {
+    synchronized (fReconcilingListeners_OLD) {
+      fReconcilingListeners_OLD.add(listener);
+    }
+  }
+
+  /**
    * Removes the given listener. Has no effect if an identical listener was not already registered.
    * 
    * @param listener the reconcile listener to be removed
@@ -1963,6 +1983,17 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   final void removeReconcileListener(IDartReconcilingListener listener) {
     synchronized (fReconcilingListeners) {
       fReconcilingListeners.remove(listener);
+    }
+  }
+
+  /**
+   * Removes the given listener. Has no effect if an identical listener was not already registered.
+   * 
+   * @param listener the reconcile listener to be removed
+   */
+  final void removeReconcileListener_OLD(IDartReconcilingListener_OLD listener) {
+    synchronized (fReconcilingListeners_OLD) {
+      fReconcilingListeners_OLD.remove(listener);
     }
   }
 

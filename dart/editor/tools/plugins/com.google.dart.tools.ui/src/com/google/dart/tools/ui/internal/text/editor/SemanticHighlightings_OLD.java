@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,40 +15,40 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.AsExpression;
-import com.google.dart.engine.ast.CatchClause;
-import com.google.dart.engine.ast.ClassDeclaration;
-import com.google.dart.engine.ast.Combinator;
-import com.google.dart.engine.ast.ConstructorDeclaration;
-import com.google.dart.engine.ast.DoubleLiteral;
-import com.google.dart.engine.ast.ExportDirective;
-import com.google.dart.engine.ast.FieldDeclaration;
-import com.google.dart.engine.ast.FunctionDeclaration;
-import com.google.dart.engine.ast.ImplementsClause;
-import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.IntegerLiteral;
-import com.google.dart.engine.ast.LibraryDirective;
-import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.PartDirective;
-import com.google.dart.engine.ast.PartOfDirective;
-import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.TryStatement;
-import com.google.dart.engine.ast.TypeAlias;
-import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.VariableDeclarationList;
-import com.google.dart.engine.ast.VariableDeclarationStatement;
-import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.MethodElement;
-import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.PropertyInducingElement;
-import com.google.dart.engine.element.TypeVariableElement;
-import com.google.dart.engine.scanner.Token;
+import com.google.dart.compiler.ast.DartBinaryExpression;
+import com.google.dart.compiler.ast.DartCatchBlock;
+import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
+import com.google.dart.compiler.ast.DartDoubleLiteral;
+import com.google.dart.compiler.ast.DartExportDirective;
+import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFieldDefinition;
+import com.google.dart.compiler.ast.DartFunctionExpression;
+import com.google.dart.compiler.ast.DartFunctionTypeAlias;
+import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartImportDirective;
+import com.google.dart.compiler.ast.DartIntegerLiteral;
+import com.google.dart.compiler.ast.DartLibraryDirective;
+import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPartOfDirective;
+import com.google.dart.compiler.ast.DartSourceDirective;
+import com.google.dart.compiler.ast.DartStringLiteral;
+import com.google.dart.compiler.ast.DartTryStatement;
+import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartVariable;
+import com.google.dart.compiler.ast.ImportCombinator;
+import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.compiler.parser.Token;
+import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.ElementKind;
+import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.LibraryElement;
+import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.engine.utilities.source.SourceRangeFactory;
+import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
+import com.google.dart.tools.core.utilities.ast.DynamicTypesFinder;
+import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.text.IDartColorConstants;
@@ -65,7 +65,7 @@ import java.util.List;
  * 
  * @coverage dart.editor.ui.text.highlighting
  */
-public class SemanticHighlightings {
+public class SemanticHighlightings_OLD {
 
   /**
    * Highlights build-in identifiers - "abstract", "as", "dynamic", "typedef", etc.
@@ -74,9 +74,9 @@ public class SemanticHighlightings {
 
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
-      SimpleIdentifier node = token.getNodeIdentifier();
+      DartIdentifier node = token.getNodeIdentifierOld();
       // "dynamic" as type
-      if (node.getParent() instanceof TypeName) {
+      if (node.getParent() instanceof DartTypeNode) {
         String name = node.getName();
         if ("dynamic".equals(name)) {
           return true;
@@ -89,126 +89,80 @@ public class SemanticHighlightings {
     @Override
     public List<SourceRange> consumesMulti(SemanticToken token) {
       List<SourceRange> result = null;
-      // prepare ASTNode
-      ASTNode node = token.getNode();
+      // prepare DartNode
+      DartNode node = token.getNodeOld();
       // typedef
-      if (node instanceof TypeAlias) {
-        TypeAlias typeAlias = (TypeAlias) node;
-        Token keyword = typeAlias.getKeyword();
-        result = addPosition(result, keyword);
+      if (node instanceof DartFunctionTypeAlias || node instanceof DartClassTypeAlias) {
+        result = addStartPosition(result, token, "typedef");
       }
       // as
-      if (node instanceof AsExpression) {
-        AsExpression asExpression = (AsExpression) node;
-        Token asOperator = asExpression.getAsOperator();
-        result = addPosition(result, asOperator);
+      if (node instanceof DartBinaryExpression) {
+        DartBinaryExpression binary = (DartBinaryExpression) node;
+        if (binary.getOperator() == Token.AS) {
+          return ImmutableList.of(SourceRangeFactory.forStartLength(
+              binary.getOperatorOffset(),
+              "as".length()));
+        }
       }
       // field modifiers
-      if (node instanceof FieldDeclaration) {
-        FieldDeclaration fieldDecl = (FieldDeclaration) node;
-        Token staticKeyword = fieldDecl.getKeyword();
-        if (staticKeyword != null) {
-          result = addPosition(result, staticKeyword);
-        }
-      }
-      // function modifiers
-      if (node instanceof FunctionDeclaration) {
-        FunctionDeclaration function = (FunctionDeclaration) node;
-        {
-          Token keyword = function.getExternalKeyword();
-          if (keyword != null) {
-            result = addPosition(result, keyword);
-          }
-        }
-        {
-          Token keyword = function.getPropertyKeyword();
-          if (keyword != null) {
-            result = addPosition(result, keyword);
-          }
-        }
-      }
-      // class
-      if (node instanceof ClassDeclaration) {
-        ClassDeclaration clazz = (ClassDeclaration) node;
-        // "abstract"
-        {
-          Token keyword = clazz.getAbstractKeyword();
-          if (keyword != null) {
-            result = addPosition(result, keyword);
-          }
-        }
-        // implements
-        {
-          ImplementsClause implementsClause = clazz.getImplementsClause();
-          if (implementsClause != null) {
-            Token keyword = implementsClause.getKeyword();
-            if (keyword != null) {
-              result = addPosition(result, keyword);
-            }
-          }
-        }
-      }
-      // constructor modifiers
-      if (node instanceof ConstructorDeclaration) {
-        ConstructorDeclaration method = (ConstructorDeclaration) node;
-        {
-          Token keyword = method.getExternalKeyword();
-          if (keyword != null) {
-            result = addPosition(result, keyword);
-          }
-        }
-        {
-          Token keyword = method.getConstKeyword();
-          if (keyword != null) {
-            result = addPosition(result, keyword);
-          }
-        }
-        {
-          Token keyword = method.getFactoryKeyword();
-          if (keyword != null) {
-            result = addPosition(result, keyword);
-          }
+      if (node instanceof DartFieldDefinition) {
+        DartFieldDefinition fieldDef = (DartFieldDefinition) node;
+        List<DartField> fields = fieldDef.getFields();
+        if (!fields.isEmpty() && fields.get(0).getModifiers().isStatic()) {
+          result = addStartPosition(result, token, "static");
         }
       }
       // method modifiers
-      if (node instanceof MethodDeclaration) {
-        MethodDeclaration method = (MethodDeclaration) node;
+      if (node instanceof DartMethodDefinition) {
+        DartMethodDefinition method = (DartMethodDefinition) node;
+        if (method.getModifiers().isAbstract()) {
+          result = addStartPosition(result, token, "abstract");
+        }
+        if (method.getModifiers().isExternal()) {
+          result = addStartPosition(result, token, "external");
+        }
+        if (method.getModifiers().isFactory()) {
+          result = addStartPosition(result, token, "factory");
+        }
+        if (method.getModifiers().isGetter()) {
+          result = addMethodModifierPosition(result, token, method, "get");
+        }
+        if (method.getModifiers().isOperator()) {
+          result = addMethodModifierPosition(result, token, method, "operator");
+        }
+        if (method.getModifiers().isSetter()) {
+          result = addMethodModifierPosition(result, token, method, "set");
+        }
+        if (method.getModifiers().isStatic()) {
+          result = addStartPosition(result, token, "static");
+        }
+      }
+      // class
+      if (node instanceof DartClass) {
+        DartClass clazz = (DartClass) node;
+        // implements
         {
-          Token keyword = method.getExternalKeyword();
-          if (keyword != null) {
-            result = addPosition(result, keyword);
+          int implementsOffset = clazz.getImplementsOffset();
+          if (implementsOffset != -1) {
+            result = addPosition(result, implementsOffset, "implements".length());
           }
         }
-        {
-          Token keyword = method.getModifierKeyword();
-          if (keyword != null) {
-            result = addPosition(result, keyword);
-          }
-        }
-        {
-          Token keyword = method.getOperatorKeyword();
-          if (keyword != null) {
-            result = addPosition(result, keyword);
-          }
-        }
-        {
-          Token keyword = method.getPropertyKeyword();
-          if (keyword != null) {
-            result = addPosition(result, keyword);
-          }
+        // "abstract"
+        if (clazz.getModifiers().isAbstract()) {
+          result = addStartPosition(result, token, "abstract");
         }
       }
       // try {} on
-      if (node instanceof TryStatement) {
-        TryStatement tryStatement = (TryStatement) node;
-        for (CatchClause catchClause : tryStatement.getCatchClauses()) {
-          {
-            Token onToken = catchClause.getOnKeyword();
-            if (onToken != null) {
-              result = addPosition(result, onToken);
-            }
+      if (node instanceof DartTryStatement) {
+        List<SourceRange> onTokens = Lists.newArrayList();
+        DartTryStatement onStatement = (DartTryStatement) node;
+        for (DartCatchBlock catchBlock : onStatement.getCatchBlocks()) {
+          int onOffset = catchBlock.getOnTokenOffset();
+          if (onOffset != -1) {
+            onTokens.add(SourceRangeFactory.forStartLength(onOffset, "on".length()));
           }
         }
+        return onTokens;
       }
       // done
       return result;
@@ -239,6 +193,41 @@ public class SemanticHighlightings {
       return true;
     }
 
+    /**
+     * Attempts to find special method modifier position - "get", "set" or "operator", which can be
+     * not right at the start of the method, but after optional return type.
+     */
+    private List<SourceRange> addMethodModifierPosition(List<SourceRange> positions,
+        SemanticToken token, DartMethodDefinition method, String modifierName) {
+      String source = token.getSource();
+      int offset = method.getSourceInfo().getOffset();
+      // skip return type
+      DartTypeNode returnType = method.getFunction().getReturnTypeNode();
+      if (returnType != null) {
+        int typeOffset = returnType.getSourceInfo().getEnd() - offset;
+        offset += typeOffset;
+        source = source.substring(typeOffset);
+      }
+      // skip whitespace
+      {
+        String trimSource = StringUtils.stripStart(source, null);
+        offset += source.length() - trimSource.length();
+        source = trimSource;
+      }
+      // find modifier
+      int index = source.indexOf(modifierName);
+      if (index == 0) {
+        positions = addPosition(positions, offset, modifierName.length());
+      }
+      return positions;
+    }
+
+    private List<SourceRange> addPosition(List<SourceRange> positions, int start, int length) {
+      SourceRange range = SourceRangeFactory.forStartLength(start, length);
+      positions = addPosition(positions, range);
+      return positions;
+    }
+
     private List<SourceRange> addPosition(List<SourceRange> positions, SourceRange range) {
       if (positions == null) {
         positions = Lists.newArrayList();
@@ -247,15 +236,29 @@ public class SemanticHighlightings {
       return positions;
     }
 
-    private List<SourceRange> addPosition(List<SourceRange> positions, Token token) {
-      return addPosition(positions, SourceRangeFactory.rangeToken(token));
+    /**
+     * Adds position of token source has <code>str</code> exactly at the start.
+     */
+    private List<SourceRange> addStartPosition(List<SourceRange> positions, SemanticToken token,
+        String str) {
+      DartNode node = token.getNodeOld();
+      String source = token.getSource();
+      if (source != null) {
+        int index = source.indexOf(str);
+        if (index == 0) {
+          int start = node.getSourceInfo().getOffset() + index;
+          int length = str.length();
+          positions = addPosition(positions, start, length);
+        }
+      }
+      return positions;
     }
   }
 
   private static class ClassHighlighting extends DefaultSemanticHighlighting {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
-      SimpleIdentifier node = token.getNodeIdentifier();
+      DartIdentifier node = token.getNodeIdentifierOld();
       // ignore "void" and "dynamic" - they are reserved word and built-in identifier
       {
         String name = node.getName();
@@ -264,7 +267,7 @@ public class SemanticHighlightings {
         }
       }
       // highlight type name in declaration and use
-      if (node.getElement() instanceof ClassElement) {
+      if (ElementKind.of(node.getElement()) == ElementKind.CLASS) {
         return true;
       }
       // no
@@ -323,54 +326,52 @@ public class SemanticHighlightings {
 
   /**
    * Semantic highlighting deprecated elements.
-   * <p>
-   * TODO(scheglov) add support for @deprecated
    */
-//  private static final class DeprecatedElementHighlighting extends DefaultSemanticHighlighting {
-//    @Override
-//    public boolean consumes(SemanticToken token) {
-//      ASTNode node = token.getNode();
-//      if (node instanceof StringLiteral && node.getParent() instanceof ImportDirective) {
-//        Element element = node.getElement();
-//        return element != null && element.getMetadata() != null
-//            && element.getMetadata().isDeprecated();
-//      }
-//      return false;
-//    }
-//
-//    @Override
-//    public boolean consumesIdentifier(SemanticToken token) {
-//      DartIdentifier node = token.getNodeIdentifierOld();
-//      Element element = node.getElement();
-//      return element != null && element.getMetadata() != null
-//          && element.getMetadata().isDeprecated();
-//    }
-//
-//    @Override
-//    public RGB getDefaultDefaultTextColor() {
-//      return new RGB(0, 0, 0);
-//    }
-//
-//    @Override
-//    public String getDisplayName() {
-//      return DartEditorMessages.SemanticHighlighting_deprecatedElement;
-//    }
-//
-//    @Override
-//    public String getPreferenceKey() {
-//      return DEPRECATED_ELEMENT;
-//    }
-//
-//    @Override
-//    public boolean isEnabledByDefault() {
-//      return true;
-//    }
-//
-//    @Override
-//    public boolean isStrikethroughByDefault() {
-//      return true;
-//    }
-//  }
+  private static final class DeprecatedElementHighlighting extends DefaultSemanticHighlighting {
+    @Override
+    public boolean consumes(SemanticToken token) {
+      DartNode node = token.getNodeOld();
+      if (node instanceof DartStringLiteral && node.getParent() instanceof DartImportDirective) {
+        Element element = node.getElement();
+        return element != null && element.getMetadata() != null
+            && element.getMetadata().isDeprecated();
+      }
+      return false;
+    }
+
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifierOld();
+      Element element = node.getElement();
+      return element != null && element.getMetadata() != null
+          && element.getMetadata().isDeprecated();
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(0, 0, 0);
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_deprecatedElement;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return DEPRECATED_ELEMENT;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+
+    @Override
+    public boolean isStrikethroughByDefault() {
+      return true;
+    }
+  }
 
   /**
    * Highlights directives - "library", "import", "part of", etc.
@@ -379,31 +380,33 @@ public class SemanticHighlightings {
     @Override
     public List<SourceRange> consumesMulti(SemanticToken token) {
       List<SourceRange> result = null;
-      ASTNode node = token.getNode();
-      if (node instanceof LibraryDirective) {
+      DartNode node = token.getNodeOld();
+      if (node instanceof DartLibraryDirective) {
         result = addPosition(result, token, "#library");
         result = addPosition(result, token, "library");
       }
-      if (node instanceof ImportDirective) {
+      if (node instanceof DartImportDirective) {
         result = addPosition(result, token, "#import");
         result = addPosition(result, token, "import");
         result = addPosition(result, token, "show");
         result = addPosition(result, token, "hide");
       }
-      if (node instanceof ExportDirective) {
-        ExportDirective export = (ExportDirective) node;
+      if (node instanceof DartExportDirective) {
+        DartExportDirective export = (DartExportDirective) node;
         result = addPosition(result, token, "export");
-        for (Combinator combinator : export.getCombinators()) {
-          result.add(SourceRangeFactory.rangeStartLength(combinator, "show".length()));
+        for (ImportCombinator combinator : export.getCombinators()) {
+          result.add(SourceRangeFactory.forStartLength(combinator, "show".length()));
         }
       }
-      if (node instanceof PartDirective) {
+      if (node instanceof DartSourceDirective) {
         result = addPosition(result, token, "#source");
         result = addPosition(result, token, "part");
       }
-      if (node instanceof PartOfDirective) {
-        PartOfDirective partOf = (PartOfDirective) node;
-        return ImmutableList.of(SourceRangeFactory.rangeStartEnd(partOf, partOf.getOfToken()));
+      if (node instanceof DartPartOfDirective) {
+        DartPartOfDirective partOf = (DartPartOfDirective) node;
+        int offset = partOf.getSourceInfo().getOffset();
+        int length = partOf.getOfOffset() + "of".length() - offset;
+        return ImmutableList.of(SourceRangeFactory.forStartLength(offset, length));
       }
       return result;
     }
@@ -434,83 +437,82 @@ public class SemanticHighlightings {
     }
 
     private List<SourceRange> addPosition(List<SourceRange> result, SemanticToken token, String str) {
-      ASTNode node = token.getNode();
+      DartNode node = token.getNodeOld();
       int index = token.getSource().indexOf(str);
       if (index == 0) {
-        int start = node.getOffset() + index;
+        int start = node.getSourceInfo().getOffset() + index;
         int length = str.length();
         if (result == null) {
           result = Lists.newArrayList();
         }
-        result.add(SourceRangeFactory.rangeStartLength(start, length));
+        result.add(SourceRangeFactory.forStartLength(start, length));
         return result;
       }
       return result;
     }
   }
 
-//  /**
-//   * Semantic highlighting for variables with dynamic types.
-//   */
-//  private static final class DynamicTypeHighlighting extends DefaultSemanticHighlighting {
-//
-//    @Override
-//    public boolean consumesIdentifier(SemanticToken token) {
-//      DartIdentifier node = token.getNodeIdentifierOld();
-//      return DynamicTypesFinder.isDynamic(node);
-//    }
-//
-//    @Override
-//    public RGB getDefaultDefaultTextColor() {
-//      return new RGB(0x80, 0x00, 0xCC);
-//    }
-//
-//    @Override
-//    public String getDisplayName() {
-//      return DartEditorMessages.SemanticHighlighting_dynamicType;
-//    }
-//
-//    @Override
-//    public String getPreferenceKey() {
-//      return DYNAMIC_TYPE;
-//    }
-//
-//    @Override
-//    public boolean isEnabledByDefault() {
-//      return true;
-//    }
-//  }
+  /**
+   * Semantic highlighting for variables with dynamic types.
+   */
+  private static final class DynamicTypeHighlighting extends DefaultSemanticHighlighting {
+
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifierOld();
+      return DynamicTypesFinder.isDynamic(node);
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(0x80, 0x00, 0xCC);
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_dynamicType;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return DYNAMIC_TYPE;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
 
   /**
    * Semantic highlighting for fields.
    */
   private static class FieldHighlighting extends DefaultSemanticHighlighting {
+
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
-      SimpleIdentifier node = token.getNodeIdentifier();
+      DartIdentifier node = token.getNodeIdentifierOld();
       Element element = node.getElement();
-      boolean isField = element instanceof PropertyInducingElement
-          || element instanceof PropertyAccessorElement;
+      boolean isField = ElementKind.of(element) == ElementKind.FIELD;
       if (isField) {
-        // TODO(scheglov) is this still actual?
-//        /*
-//         * Annotations should not be highlighted the same as fields.
-//         * This whole block needs better support from the model.
-//         * The initial @ should have the same presentation as the annotation
-//         * but that's not handled here.
-//         */
-//        if (element.getEnclosingElement() instanceof LibraryElement) {
-//          LibraryElement lib = (LibraryElement) element.getEnclosingElement();
-//          LibraryUnit libUnit = lib.getLibraryUnit();
-//          if (libUnit != null && META_LIB_NAME.equals(libUnit.getName())) {
-//            String name = element.getName();
-//            for (String annotation : META_NAMES) {
-//              if (annotation.equals(name)) {
-//                return false;
-//              }
-//            }
-//          }
-//        }
+        /*
+         * Annotations should not be highlighted the same as fields.
+         * This whole block needs better support from the model.
+         * The initial @ should have the same presentation as the annotation
+         * but that's not handled here.
+         */
+        if (element.getEnclosingElement() instanceof LibraryElement) {
+          LibraryElement lib = (LibraryElement) element.getEnclosingElement();
+          LibraryUnit libUnit = lib.getLibraryUnit();
+          if (libUnit != null && META_LIB_NAME.equals(libUnit.getName())) {
+            String name = element.getName();
+            for (String annotation : META_NAMES) {
+              if (annotation.equals(name)) {
+                return false;
+              }
+            }
+          }
+        }
       }
       return isField;
     }
@@ -537,23 +539,18 @@ public class SemanticHighlightings {
   }
 
   private static class GetterDeclarationHighlighting extends MethodDeclarationHighlighting {
+
     @Override
     public boolean consumes(SemanticToken token) {
-      ASTNode node = token.getNode();
+      DartNode node = token.getNodeOld();
       {
-        MethodDeclaration method = getParentMethod(node);
-        if (method != null && method.isGetter()) {
-          return true;
+        DartMethodDefinition parentMethod = getParentMethod(node);
+        if (parentMethod != null && parentMethod.getName() == node) {
+          if (parentMethod.getElement().getModifiers().isGetter()) {
+            return true;
+          }
         }
       }
-      // TODO(scheglov) no FunctionDeclaration.isGetter() API
-      // https://code.google.com/p/dart/issues/detail?id=10134
-//      {
-//        FunctionDeclaration function = getParentFunction(node);
-//        if (function != null && function.isGetter()) {
-//          return true;
-//        }
-//      }
       return false;
     }
 
@@ -574,12 +571,15 @@ public class SemanticHighlightings {
   }
 
   private static class LocalVariableDeclarationHighlighting extends DefaultSemanticHighlighting {
+
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
-      SimpleIdentifier node = token.getNodeIdentifier();
-      return node.getParent() instanceof VariableDeclaration
-          && node.getParent().getParent() instanceof VariableDeclarationList
-          && node.getParent().getParent().getParent() instanceof VariableDeclarationStatement;
+      DartIdentifier node = token.getNodeIdentifierOld();
+      if (node.getParent() instanceof DartVariable) {
+        DartVariable parent = (DartVariable) node.getParent();
+        return parent.getName() == node;
+      }
+      return false;
     }
 
     @Override
@@ -604,11 +604,12 @@ public class SemanticHighlightings {
   }
 
   private static class LocalVariableHighlighting extends DefaultSemanticHighlighting {
+
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
-      SimpleIdentifier node = token.getNodeIdentifier();
+      DartIdentifier node = token.getNodeIdentifierOld();
       Element element = node.getElement();
-      return element != null && element.getKind() == ElementKind.LOCAL_VARIABLE;
+      return ElementKind.of(element) == ElementKind.VARIABLE;
     }
 
     @Override
@@ -633,40 +634,31 @@ public class SemanticHighlightings {
   }
 
   private static class MethodDeclarationHighlighting extends DefaultSemanticHighlighting {
-    static FunctionDeclaration getParentFunction(ASTNode node) {
-      if (node.getParent() instanceof FunctionDeclaration) {
-        FunctionDeclaration method = (FunctionDeclaration) node.getParent();
-        if (method.getName() == node) {
-          return method;
-        }
-      }
-      return null;
-    }
 
-    static MethodDeclaration getParentMethod(ASTNode node) {
-      if (node.getParent() instanceof MethodDeclaration) {
-        MethodDeclaration method = (MethodDeclaration) node.getParent();
-        if (method.getName() == node) {
-          return method;
-        }
+    static DartMethodDefinition getParentMethod(DartNode node) {
+      DartMethodDefinition parentMethod = null;
+      if (node.getParent() instanceof DartMethodDefinition) {
+        parentMethod = (DartMethodDefinition) node.getParent();
       }
-      return null;
+      if (node.getParent() instanceof DartField) {
+        DartField field = (DartField) node.getParent();
+        parentMethod = field.getAccessor();
+      }
+      return parentMethod;
     }
 
     @Override
     public boolean consumes(SemanticToken token) {
-      ASTNode node = token.getNode();
+      DartNode node = token.getNodeOld();
       {
-        MethodDeclaration method = getParentMethod(node);
-        if (method != null) {
+        DartMethodDefinition parentMethod = getParentMethod(node);
+        if (parentMethod != null && parentMethod.getName() == node) {
           return true;
         }
       }
-      {
-        FunctionDeclaration function = getParentFunction(node);
-        if (function != null) {
-          return true;
-        }
+      if (node.getParent() instanceof DartFunctionExpression
+          && ((DartFunctionExpression) node.getParent()).getName() == node) {
+        return true;
       }
       return false;
     }
@@ -693,11 +685,12 @@ public class SemanticHighlightings {
   }
 
   private static class MethodHighlighting extends DefaultSemanticHighlighting {
+
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
-      SimpleIdentifier node = token.getNodeIdentifier();
+      DartIdentifier node = token.getNodeIdentifierOld();
       Element element = node.getElement();
-      return element instanceof MethodElement;
+      return ElementKind.of(element) == ElementKind.METHOD;
     }
 
     @Override
@@ -717,10 +710,11 @@ public class SemanticHighlightings {
   }
 
   private static class NumberHighlighting extends DefaultSemanticHighlighting {
+
     @Override
     public boolean consumes(SemanticToken token) {
-      ASTNode node = token.getNode();
-      return node instanceof IntegerLiteral || node instanceof DoubleLiteral;
+      DartNode node = token.getNodeOld();
+      return node instanceof DartIntegerLiteral || node instanceof DartDoubleLiteral;
     }
 
     @Override
@@ -745,21 +739,19 @@ public class SemanticHighlightings {
   }
 
   private static class ParameterHighlighting extends DefaultSemanticHighlighting {
+
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
-      SimpleIdentifier node = token.getNodeIdentifier();
+      DartIdentifier node = token.getNodeIdentifierOld();
       Element element = node.getElement();
-      // TODO(scheglov) use ElementKind.of()
-      // https://code.google.com/p/dart/issues/detail?id=10135
-      if (element != null && element.getKind() == ElementKind.PARAMETER) {
+      if (ElementKind.of(element) == ElementKind.PARAMETER) {
         return true;
       }
-      // TODO(scheglov)
-//      if (PropertyDescriptorHelper.getLocationInParent(node) == PropertyDescriptorHelper.DART_NAMED_EXPRESSION_NAME) {
-//        if (PropertyDescriptorHelper.getLocationInParent(node.getParent()) == PropertyDescriptorHelper.DART_INVOCATION_ARGS) {
-//          return true;
-//        }
-//      }
+      if (PropertyDescriptorHelper.getLocationInParent(node) == PropertyDescriptorHelper.DART_NAMED_EXPRESSION_NAME) {
+        if (PropertyDescriptorHelper.getLocationInParent(node.getParent()) == PropertyDescriptorHelper.DART_INVOCATION_ARGS) {
+          return true;
+        }
+      }
       return false;
     }
 
@@ -785,11 +777,19 @@ public class SemanticHighlightings {
   }
 
   private static class SetterDeclarationHighlighting extends MethodDeclarationHighlighting {
+
     @Override
     public boolean consumes(SemanticToken token) {
-      ASTNode node = token.getNode();
-      MethodDeclaration method = getParentMethod(node);
-      return method != null && method.isSetter();
+      DartNode node = token.getNodeOld();
+      {
+        DartMethodDefinition parentMethod = getParentMethod(node);
+        if (parentMethod != null && parentMethod.getName() == node) {
+          if (parentMethod.getElement().getModifiers().isSetter()) {
+            return true;
+          }
+        }
+      }
+      return false;
     }
 
     @Override
@@ -814,13 +814,13 @@ public class SemanticHighlightings {
   private static class StaticFieldHighlighting extends FieldHighlighting {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
-      SimpleIdentifier node = token.getNodeIdentifier();
+      DartIdentifier node = token.getNodeIdentifierOld();
       Element element = node.getElement();
-      if (element instanceof PropertyInducingElement) {
-        return ((PropertyInducingElement) element).isStatic();
+      if (element == null || element.isDynamic()) {
+        return false;
       }
-      if (element instanceof PropertyAccessorElement) {
-        return ((PropertyAccessorElement) element).isStatic();
+      if (element instanceof FieldElement) {
+        return ((FieldElement) element).isStatic();
       }
       return false;
     }
@@ -843,11 +843,18 @@ public class SemanticHighlightings {
   }
 
   private static class StaticMethodDeclarationHighlighting extends MethodDeclarationHighlighting {
+
     @Override
     public boolean consumes(SemanticToken token) {
-      ASTNode node = token.getNode();
-      MethodDeclaration method = getParentMethod(node);
-      return method != null && method.isStatic();
+      DartNode node = token.getNodeOld();
+      DartMethodDefinition parentMethod = getParentMethod(node);
+      if (parentMethod == null || parentMethod.getName() != node) {
+        return false;
+      }
+      if (!parentMethod.getModifiers().isStatic()) {
+        return false;
+      }
+      return parentMethod.getName() == node;
     }
 
     @Override
@@ -872,14 +879,12 @@ public class SemanticHighlightings {
   }
 
   private static class StaticMethodHighlighting extends MethodHighlighting {
+
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
-      SimpleIdentifier node = token.getNodeIdentifier();
+      DartIdentifier node = token.getNodeIdentifierOld();
       Element element = node.getElement();
-      if (element instanceof MethodElement) {
-        return ((MethodElement) element).isStatic();
-      }
-      return false;
+      return ElementKind.of(element) == ElementKind.METHOD && element.getModifiers().isStatic();
     }
 
     @Override
@@ -906,8 +911,12 @@ public class SemanticHighlightings {
   private static class TypeVariableHighlighting extends DefaultSemanticHighlighting {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
-      SimpleIdentifier node = token.getNodeIdentifier();
-      return node.getElement() instanceof TypeVariableElement;
+      DartIdentifier node = token.getNodeIdentifierOld();
+      if (ElementKind.of(node.getElement()) == ElementKind.TYPE_VARIABLE) {
+        return true;
+      }
+      // no
+      return false;
     }
 
     @Override
@@ -1228,17 +1237,11 @@ public class SemanticHighlightings {
   public static SemanticHighlighting[] getSemanticHighlightings() {
     if (SEMANTIC_HIGHTLIGHTINGS == null) {
       SEMANTIC_HIGHTLIGHTINGS = new SemanticHighlighting[] {
-          new DirectiveHighlighting(),
-          new BuiltInHighlighting(),
-          // TODO(scheglov)
-//          new DeprecatedElementHighlighting() 
-          new GetterDeclarationHighlighting(),
-          new SetterDeclarationHighlighting(),
-          new StaticFieldHighlighting(),
-          new FieldHighlighting(),
-          // TODO(scheglov)
-          //, new DynamicTypeHighlighting()
-          new ClassHighlighting(), new TypeVariableHighlighting(), new NumberHighlighting(),
+          new DirectiveHighlighting(), new BuiltInHighlighting(),
+          new DeprecatedElementHighlighting(), new GetterDeclarationHighlighting(),
+          new SetterDeclarationHighlighting(), new StaticFieldHighlighting(),
+          new FieldHighlighting(), new DynamicTypeHighlighting(), new ClassHighlighting(),
+          new TypeVariableHighlighting(), new NumberHighlighting(),
           new LocalVariableDeclarationHighlighting(), new LocalVariableHighlighting(),
           new ParameterHighlighting(), new StaticMethodDeclarationHighlighting(),
           new StaticMethodHighlighting(), new MethodDeclarationHighlighting(),
@@ -1335,7 +1338,7 @@ public class SemanticHighlightings {
   /**
    * Do not instantiate
    */
-  private SemanticHighlightings() {
+  private SemanticHighlightings_OLD() {
   }
 
   public RGB getDefaultDefaultTextColor() {

@@ -427,7 +427,7 @@ public final class ASTProvider {
    * Informs that reconciling for the given element is about to be started.
    * 
    * @param javaElement the Java element
-   * @see com.google.dart.tools.ui.IDartReconcilingListener.java.IJavaReconcilingListener#aboutToBeReconciled()
+   * @see com.google.dart.tools.ui.IDartReconcilingListener_OLD.java.IJavaReconcilingListener#aboutToBeReconciled()
    */
   void aboutToBeReconciled(DartElement javaElement) {
 

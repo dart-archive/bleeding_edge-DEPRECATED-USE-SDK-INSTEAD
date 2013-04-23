@@ -13,16 +13,27 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.compiler.ast.DartUnit;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+
 /**
- * Interface of an object participating in reconciling.
- * 
- * @deprecated as of 3.0 use {@link IDartReconcilingListener_OLD}
+ * Interface of an object listening to Java reconciling.
  */
-@Deprecated
-public interface IReconcilingParticipant {
+public interface IDartReconcilingListener_OLD {
+
+  /**
+   * Called before reconciling is started.
+   */
+  void aboutToBeReconciled();
 
   /**
    * Called after reconciling has been finished.
+   * 
+   * @param ast the compilation unit AST or <code>null</code> if the working copy was consistent or
+   *          reconciliation has been cancelled
+   * @param forced <code>true</code> iff this reconciliation was forced
+   * @param progressMonitor the progress monitor
    */
-  void reconciled();
+  void reconciled(DartUnit ast, boolean forced, IProgressMonitor progressMonitor);
 }

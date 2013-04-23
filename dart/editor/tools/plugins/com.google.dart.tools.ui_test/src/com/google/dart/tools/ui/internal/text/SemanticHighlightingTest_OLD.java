@@ -1,5 +1,5 @@
 /*
- * Copyright 2013, the Dart project authors.
+ * Copyright 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,16 +14,19 @@
 package com.google.dart.tools.ui.internal.text;
 
 import com.google.common.collect.Maps;
-import com.google.dart.engine.source.Source;
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.tools.core.test.util.TestUtilities;
+import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlighting;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.HighlightedPosition;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.Highlighting;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingPresenter;
-import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingReconciler;
+import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingReconciler_OLD;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightings;
+import com.google.dart.tools.ui.refactoring.AbstractDartTest;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -37,8 +40,7 @@ import java.util.Map;
 /**
  * Test for {@link SemanticHighlightings}.
  */
-public class SemanticHighlightingTest extends
-    com.google.dart.engine.internal.index.AbstractDartTest {
+public class SemanticHighlightingTest_OLD extends AbstractDartTest {
   private static final Map<Highlighting, SemanticHighlighting> styleToHighlighting = Maps.newHashMap();
   private static final SemanticHighlighting[] highlighters = SemanticHighlightings.getSemanticHighlightings();
   private static final Highlighting[] styles = new Highlighting[highlighters.length];
@@ -60,14 +62,24 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.BUILT_IN, "abstract class");
   }
 
+  public void test_builtIn_abstract_method() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  abstract m();",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "abstract m()");
+  }
+
   public void test_builtIn_as_operator() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
-        "  0 as String;",
+        "  0 as Foo;",
         "}",
         "");
-    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "as String");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "as Foo");
   }
 
   public void test_builtIn_as_variableName() throws Exception {
@@ -78,16 +90,6 @@ public class SemanticHighlightingTest extends
         "}",
         "");
     assertNoWordPosition(SemanticHighlightings.BUILT_IN, "as = 0");
-  }
-
-  public void test_builtIn_const_constructor() throws Exception {
-    preparePositions(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  const A();",
-        "}",
-        "");
-    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "const A();");
   }
 
   public void test_builtIn_dynamic_type() throws Exception {
@@ -108,16 +110,6 @@ public class SemanticHighlightingTest extends
         "}",
         "");
     assertNoWordPosition(SemanticHighlightings.BUILT_IN, "dynamic = 0;");
-  }
-
-  public void test_builtIn_external_constructor() throws Exception {
-    preparePositions(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  external A();",
-        "}",
-        "");
-    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "external A();");
   }
 
   public void test_builtIn_external_function() throws Exception {
@@ -188,14 +180,6 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.BUILT_IN, "get value => 0;");
   }
 
-  public void test_builtIn_get_topLevel() throws Exception {
-    preparePositions(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "get value => 0;",
-        "");
-    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "get value => 0;");
-  }
-
   public void test_builtIn_get_variableName() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -209,7 +193,6 @@ public class SemanticHighlightingTest extends
   public void test_builtIn_implements() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class I {}",
         "class A implements I {",
         "}",
         "");
@@ -236,7 +219,6 @@ public class SemanticHighlightingTest extends
         "  } on E1 catch (e) {",
         "  } on E2 catch (e) {",
         "  }",
-        "}",
         "");
     assertHasWordPosition(SemanticHighlightings.BUILT_IN, "on E1");
     assertHasWordPosition(SemanticHighlightings.BUILT_IN, "on E2");
@@ -292,14 +274,6 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.BUILT_IN, "set value(x)");
   }
 
-  public void test_builtIn_set_topLevel() throws Exception {
-    preparePositions(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "set value(x) {}",
-        "");
-    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "set value(x)");
-  }
-
   public void test_builtIn_set_variableName() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -324,7 +298,7 @@ public class SemanticHighlightingTest extends
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  static m() {}",
+        "  static m();",
         "}",
         "");
     assertHasWordPosition(SemanticHighlightings.BUILT_IN, "static m()");
@@ -365,62 +339,51 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.CLASS, "A .ZERO");
   }
 
-  // TODO(scheglov)
-//  public void test_deprecated() throws Exception {
-//    preparePositions(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "const deprecated = 0;",
-//        "class A {",
-//        "  @deprecated",
-//        "  m () {}",
-//        "}",
-//        "main() {",
-//        "  A.m ();",
-//        "  print(A.m );",
-//        "}",
-//        "");
-//    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "m () {}");
-//    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "m ();");
-//    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "m );");
-//  }
+  public void test_deprecated() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const deprecated = 0;",
+        "class A {",
+        "  @deprecated",
+        "  m () {}",
+        "}",
+        "main() {",
+        "  A.m ();",
+        "  print(A.m );",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "m () {}");
+    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "m ();");
+    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "m );");
+  }
 
-  // TODO(scheglov)
-//  public void test_deprecated_libraryImport() throws Exception {
-//    setUnitContent(
-//        "ModernLib.dart",
-//        formatLines(
-//            "// filler filler filler filler filler filler filler filler filler filler",
-//            "library modernLib;",
-//            ""));
-//    setUnitContent(
-//        "DeprecatedLib.dart",
-//        formatLines(
-//            "// filler filler filler filler filler filler filler filler filler filler",
-//            "@deprecated",
-//            "library deprecatedLib;",
-//            "const deprecated = 0;",
-//            ""));
-//    preparePositions(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "library App;",
-//        "import 'ModernLib.dart';",
-//        "import 'DeprecatedLib.dart';",
-//        "");
-//    TestUtilities.processAllDeltaChanges();
-//    String search = "'DeprecatedLib.dart'";
-//    assertHasPosition(SemanticHighlightings.DEPRECATED_ELEMENT, findOffset(search), search.length());
-//  }
+  public void test_deprecated_libraryImport() throws Exception {
+    setUnitContent(
+        "ModernLib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library modernLib;",
+            ""));
+    setUnitContent(
+        "DeprecatedLib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "@deprecated",
+            "library deprecatedLib;",
+            "const deprecated = 0;",
+            ""));
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library App;",
+        "import 'ModernLib.dart';",
+        "import 'DeprecatedLib.dart';",
+        "");
+    TestUtilities.processAllDeltaChanges();
+    String search = "'DeprecatedLib.dart'";
+    assertHasPosition(SemanticHighlightings.DEPRECATED_ELEMENT, findOffset(search), search.length());
+  }
 
   public void test_directive_export() throws Exception {
-    setFileContent(
-        "Lib.dart",
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "library lib;",
-            "class A {}",
-            "class B {}",
-            "class C {}",
-            "class D {}"));
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
         "export 'Lib.dart' show A, B hide C, D;",
@@ -431,16 +394,19 @@ public class SemanticHighlightingTest extends
   }
 
   public void test_directive_import() throws Exception {
-    setFileContent(
-        "Lib.dart",
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "library lib;"));
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'Lib.dart';",
         "");
     assertHasWordPosition(SemanticHighlightings.DIRECTIVE, "import 'Lib.dart';");
+  }
+
+  public void test_directive_import_deprecated() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#import('Lib.dart');",
+        "");
+    assertHasPosition(SemanticHighlightings.DIRECTIVE, findOffset("#import"), "#import".length());
   }
 
   public void test_directive_import_variableName() throws Exception {
@@ -461,14 +427,28 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.DIRECTIVE, "library MyLib;");
   }
 
-  public void test_directive_part() throws Exception {
-    setFileContent("utils.dart", "part of app;");
+  public void test_directive_library_deprecated() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "library app;",
+        "#library('MyLib');",
+        "");
+    assertHasPosition(SemanticHighlightings.DIRECTIVE, findOffset("#library"), "#library".length());
+  }
+
+  public void test_directive_part() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "part 'utils.dart';",
         "");
     assertHasWordPosition(SemanticHighlightings.DIRECTIVE, "part 'utils.dart';");
+  }
+
+  public void test_directive_part_deprecated() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#source('utils.dart');",
+        "");
+    assertHasPosition(SemanticHighlightings.DIRECTIVE, findOffset("#source"), "#source".length());
   }
 
   public void test_directive_part_variableName() throws Exception {
@@ -482,54 +462,31 @@ public class SemanticHighlightingTest extends
   }
 
   public void test_directive_partOf() throws Exception {
-    Source libSource = setFileContent(
-        "App.dart",
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "library app;",
-            "part 'Test.dart';",
-            ""));
-    Source unitSource = setFileContent(
-        "Test.dart",
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "part of app;",
-            ""));
-    parseTestUnits(libSource, unitSource);
-    preparePositions();
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "part of MyLib;",
+        "");
     assertHasPosition(SemanticHighlightings.DIRECTIVE, findOffset("part of"), "part of".length());
   }
 
   public void test_directive_partOf2() throws Exception {
-    Source libSource = setFileContent(
-        "App.dart",
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "library app;",
-            "part 'Test.dart';",
-            ""));
-    Source unitSource = setFileContent(
-        "Test.dart",
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "part  of app;",
-            ""));
-    parseTestUnits(libSource, unitSource);
-    preparePositions();
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "part  of MyLib;",
+        "");
     assertHasPosition(SemanticHighlightings.DIRECTIVE, findOffset("part  of"), "part  of".length());
   }
 
-  // TODO(scheglov) implement this
-//  public void test_dynamic() throws Exception {
-//    preparePositions(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "f(dynParameter ) {",
-//        "  var dynVar = dynParameter ;",
-//        "}",
-//        "");
-//    assertHasWordPosition(SemanticHighlightings.DYNAMIC_TYPE, "dynVar = ");
-//    assertHasWordPosition(SemanticHighlightings.DYNAMIC_TYPE, "dynParameter ;");
-//  }
+  public void test_dynamic() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f(dynParameter ) {",
+        "  var dynVar = dynParameter ;",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.DYNAMIC_TYPE, "dynVar = ");
+    assertHasWordPosition(SemanticHighlightings.DYNAMIC_TYPE, "dynParameter ;");
+  }
 
   public void test_field_member() throws Exception {
     preparePositions(
@@ -548,19 +505,29 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.FIELD, "field );");
   }
 
-  public void test_getter_member() throws Exception {
+  public void test_field_topLevel() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  int get prop => 42;",
-        "}",
+        "int field ;",
         "main() {",
-        "  A a = new A();",
-        "  print(a.prop );",
+        "  field = 0;",
+        "  print(field );",
         "}",
         "");
-    assertHasWordPosition(SemanticHighlightings.GETTER_DECLARATION, "prop =>");
-    assertHasWordPosition(SemanticHighlightings.FIELD, "prop );");
+    assertHasWordPosition(SemanticHighlightings.FIELD, "field ;");
+    assertHasWordPosition(SemanticHighlightings.FIELD, "field =");
+    assertHasWordPosition(SemanticHighlightings.FIELD, "field );");
+  }
+
+  public void test_getterDeclaration() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "get myGetter => 0;",
+        "main() {",
+        "  print(myGetter );",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.GETTER_DECLARATION, "myGetter => 0");
   }
 
   public void test_localVariable() throws Exception {
@@ -598,18 +565,6 @@ public class SemanticHighlightingTest extends
     // reference
     assertHasWordPosition(SemanticHighlightings.METHOD, "m );");
   }
-
-  // TODO(scheglov) no FunctionDeclaration.isGetter() API
-//  public void test_getterDeclaration_function() throws Exception {
-//    preparePositions(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "get myGetter => 0;",
-//        "main() {",
-//        "  print(myGetter );",
-//        "}",
-//        "");
-//    assertHasWordPosition(SemanticHighlightings.GETTER_DECLARATION, "myGetter => 0");
-//  }
 
   public void test_number() throws Exception {
     preparePositions(
@@ -650,21 +605,6 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.PARAMETER_VARIABLE, "p : 0);");
   }
 
-  public void test_setter_member() throws Exception {
-    preparePositions(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  set prop (x) {}",
-        "}",
-        "main() {",
-        "  A a = new A();",
-        "  a.prop = 0;",
-        "}",
-        "");
-    assertHasWordPosition(SemanticHighlightings.SETTER_DECLARATION, "prop (x)");
-    assertHasWordPosition(SemanticHighlightings.FIELD, "prop = 0");
-  }
-
   public void test_staticField_member() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -679,20 +619,6 @@ public class SemanticHighlightingTest extends
         "");
     assertHasWordPosition(SemanticHighlightings.STATIC_FIELD, "field = 0;");
     assertHasWordPosition(SemanticHighlightings.STATIC_FIELD, "field = 1;");
-    assertHasWordPosition(SemanticHighlightings.STATIC_FIELD, "field );");
-  }
-
-  public void test_staticField_topLevel() throws Exception {
-    preparePositions(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "int field ;",
-        "main() {",
-        "  field = 0;",
-        "  print(field );",
-        "}",
-        "");
-    assertHasWordPosition(SemanticHighlightings.STATIC_FIELD, "field ;");
-    assertHasWordPosition(SemanticHighlightings.STATIC_FIELD, "field =");
     assertHasWordPosition(SemanticHighlightings.STATIC_FIELD, "field );");
   }
 
@@ -779,8 +705,9 @@ public class SemanticHighlightingTest extends
   }
 
   private void preparePositions() throws Exception {
-    final IDocument document = new Document(testCode);
-    SemanticHighlightingReconciler reconciler = new SemanticHighlightingReconciler();
+    final IDocument document = new Document(testUnit.getSource());
+    ExtractUtils utils = new ExtractUtils(testUnit);
+    SemanticHighlightingReconciler_OLD reconciler = new SemanticHighlightingReconciler_OLD();
     // configure
     ReflectionUtils.setField(reconciler, "fSourceViewer", Proxy.newProxyInstance(
         getClass().getClassLoader(),
@@ -798,10 +725,11 @@ public class SemanticHighlightingTest extends
     ReflectionUtils.setField(reconciler, "fJobHighlightings", styles);
     ReflectionUtils.setField(reconciler, "fJobPresenter", new SemanticHighlightingPresenter());
     // call "reconcilePositions"
+    Object args = new DartNode[] {utils.getUnitNode()};
     ReflectionUtils.invokeMethod(
         reconciler,
-        "reconcilePositions(com.google.dart.engine.ast.CompilationUnit)",
-        testUnit);
+        "reconcilePositions(com.google.dart.compiler.ast.DartNode[])",
+        args);
     // get result
     positions = ReflectionUtils.getFieldObject(reconciler, "fAddedPositions");
     // touch "default"
@@ -821,7 +749,7 @@ public class SemanticHighlightingTest extends
   }
 
   private void preparePositions(String... lines) throws Exception {
-    parseTestUnit(lines);
+    setTestUnitContent(lines);
     preparePositions();
   }
 }

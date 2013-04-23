@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,15 +13,31 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
+import com.google.dart.compiler.ast.DartComment;
+import com.google.dart.compiler.ast.DartDoubleLiteral;
+import com.google.dart.compiler.ast.DartExportDirective;
+import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartFieldDefinition;
+import com.google.dart.compiler.ast.DartFunctionTypeAlias;
+import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartImportDirective;
+import com.google.dart.compiler.ast.DartIntegerLiteral;
+import com.google.dart.compiler.ast.DartLibraryDirective;
+import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPartOfDirective;
+import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartSourceDirective;
+import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
+import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener_OLD;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.HighlightedPosition;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.Highlighting;
 
@@ -43,27 +59,123 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Semantic highlighting reconciler - Background thread implementation.
  */
-public class SemanticHighlightingReconciler implements IDartReconcilingListener,
+public class SemanticHighlightingReconciler_OLD implements IDartReconcilingListener_OLD,
     ITextInputListener, SemanticHighlightingReconciler_I {
 
   /**
    * Collects positions from the AST.
    */
-  private class PositionCollector extends GeneralizingASTVisitor<Void> {
+  private class PositionCollector extends ASTVisitor<Void> {
+
     /**
      * Cache tokens for performance.
      */
     private final SemanticToken token = new SemanticToken();
 
     @Override
-    public Void visitNode(ASTNode node) {
+    public Void visitClass(DartClass node) {
       processNode(token, node);
-      return super.visitNode(node);
+      return super.visitClass(node);
+    }
+
+    @Override
+    public Void visitClassTypeAlias(DartClassTypeAlias node) {
+      processNode(token, node);
+      return super.visitClassTypeAlias(node);
+    }
+
+    @Override
+    public Void visitComment(DartComment node) {
+      // don't change highlighting in comments
+      return null;
+    }
+
+    @Override
+    public Void visitDoubleLiteral(DartDoubleLiteral node) {
+      processNode(token, node);
+      return null;
+    }
+
+    @Override
+    public Void visitExportDirective(DartExportDirective node) {
+      processNode(token, node);
+      return super.visitExportDirective(node);
+    }
+
+    @Override
+    public Void visitExpression(DartExpression node) {
+      processNode(token, node);
+      return super.visitExpression(node);
+    }
+
+    @Override
+    public Void visitFieldDefinition(DartFieldDefinition node) {
+      processNode(token, node);
+      return super.visitFieldDefinition(node);
+    }
+
+    @Override
+    public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
+      processNode(token, node);
+      return super.visitFunctionTypeAlias(node);
+    }
+
+    @Override
+    public Void visitIdentifier(DartIdentifier node) {
+      processNode(token, node);
+      return null;
+    }
+
+    @Override
+    public Void visitImportDirective(DartImportDirective node) {
+      processNode(token, node);
+      return super.visitImportDirective(node);
+    }
+
+    @Override
+    public Void visitIntegerLiteral(DartIntegerLiteral node) {
+      processNode(token, node);
+      return null;
+    }
+
+    @Override
+    public Void visitLibraryDirective(DartLibraryDirective node) {
+      processNode(token, node);
+      return super.visitLibraryDirective(node);
+    }
+
+    @Override
+    public Void visitMethodDefinition(DartMethodDefinition node) {
+      processNode(token, node);
+      return super.visitMethodDefinition(node);
+    }
+
+    @Override
+    public Void visitPartOfDirective(DartPartOfDirective node) {
+      processNode(token, node);
+      return super.visitPartOfDirective(node);
+    }
+
+    @Override
+    public Void visitPropertyAccess(DartPropertyAccess node) {
+      processNode(token, node);
+      return super.visitPropertyAccess(node);
+    }
+
+    @Override
+    public Void visitSourceDirective(DartSourceDirective node) {
+      processNode(token, node);
+      return super.visitSourceDirective(node);
+    }
+
+    @Override
+    public Void visitStatement(DartStatement node) {
+      processNode(token, node);
+      return super.visitStatement(node);
     }
 
     /**
@@ -227,6 +339,11 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   private Highlighting[] fJobHighlightings;
 
   @Override
+  public void aboutToBeReconciled() {
+    // Do nothing
+  }
+
+  @Override
   public void inputDocumentAboutToBeChanged(IDocument oldInput, IDocument newInput) {
     synchronized (fJobLock) {
       if (fJob != null) {
@@ -264,8 +381,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     fSourceViewer = sourceViewer;
 
     if (fEditor instanceof CompilationUnitEditor) {
-      ((CompilationUnitEditor) fEditor).addReconcileListener(this);
-      scheduleJob();
+      ((CompilationUnitEditor) fEditor).addReconcileListener_OLD(this);
     } else if (fEditor == null) {
       fSourceViewer.addTextInputListener(this);
       scheduleJob();
@@ -273,9 +389,9 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   }
 
   @Override
-  public void reconciled(CompilationUnit ast) {
+  public void reconciled(DartUnit ast, boolean forced, IProgressMonitor progressMonitor) {
     // don't update semantic highlighting if there are parsing problems to avoid "flashing"
-    if (ast != null && ast.getParsingErrors().length != 0) {
+    if (ast != null && ast.hasParseErrors()) {
       return;
     }
 
@@ -296,12 +412,21 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
         return;
       }
 
-      fJobPresenter.setCanceled(false);
+      fJobPresenter.setCanceled(progressMonitor.isCanceled());
+
+      if (ast == null || ast.getLibrary() == null || fJobPresenter.isCanceled()) {
+        return;
+      }
+
+      DartNode[] subtrees = getAffectedSubtrees(ast);
+      if (subtrees.length == 0) {
+        return;
+      }
 
       startReconcilingPositions();
 
       if (!fJobPresenter.isCanceled()) {
-        reconcilePositions(ast);
+        reconcilePositions(subtrees);
       }
 
       TextPresentation textPresentation = null;
@@ -343,7 +468,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
 
     if (fEditor != null) {
       if (fEditor instanceof CompilationUnitEditor) {
-        ((CompilationUnitEditor) fEditor).removeReconcileListener(this);
+        ((CompilationUnitEditor) fEditor).removeReconcileListener_OLD(this);
       } else {
         fSourceViewer.removeTextInputListener(this);
       }
@@ -356,29 +481,32 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     fPresenter = null;
   }
 
-  // XXX
-//  /**
-//   * @param node Root node
-//   * @return Array of subtrees that may be affected by past document changes
-//   */
-//  private DartNode[] getAffectedSubtrees(DartNode node) {
-//    // TODO: only return nodes which are affected by document changes - would
-//    // require an 'anchor' concept for taking distant effects into account
-//    return new DartNode[] {node};
-//  }
+  /**
+   * @param node Root node
+   * @return Array of subtrees that may be affected by past document changes
+   */
+  private DartNode[] getAffectedSubtrees(DartNode node) {
+    // TODO: only return nodes which are affected by document changes - would
+    // require an 'anchor' concept for taking distant effects into account
+    return new DartNode[] {node};
+  }
 
-  private final void processNode(SemanticToken token, ASTNode node) {
-    ISourceViewer sourceViewer = this.fSourceViewer;
-    if (sourceViewer == null) {
-      return;
-    }
-    IDocument document = sourceViewer.getDocument();
-    if (document == null) {
-      return;
-    }
-    // update token
+  private final void processNode(SemanticToken token, DartNode node) {
     token.update(node);
-    token.attachSource(document);
+    token.attachSource(fSourceViewer.getDocument());
+    // sometimes node has wrong source range; log problem
+    if (token.getSource() == null) {
+      IDocument document = fSourceViewer.getDocument();
+      if (node != null && document != null) {
+        SourceInfo sourceInfo = node.getSourceInfo();
+        if (sourceInfo != null) {
+          DartToolsPlugin.log("Bad node: " + node.getClass().getName() + " offset:"
+              + sourceInfo.getOffset() + " len:" + sourceInfo.getLength() + " in document: "
+              + document.getLength());
+        }
+      }
+      return;
+    }
     // try SemanticHighlighting instances
     for (int i = 0, n = fJobSemanticHighlightings.length; i < n; i++) {
       if (fJobHighlightings[i].isEnabled()) {
@@ -399,14 +527,14 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
         }
         // try single position
         boolean consumes;
-        if (node instanceof SimpleIdentifier) {
+        if (node instanceof DartIdentifier) {
           consumes = semanticHighlighting.consumesIdentifier(token);
         } else {
           consumes = semanticHighlighting.consumes(token);
         }
         if (consumes) {
-          int offset = node.getOffset();
-          int length = node.getLength();
+          int offset = node.getSourceInfo().getOffset();
+          int length = node.getSourceInfo().getLength();
           if (offset > -1 && length > 0) {
             fCollector.addPosition(offset, length, fJobHighlightings[i]);
           }
@@ -422,13 +550,17 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
    * 
    * @param subtrees the AST subtrees
    */
-  private void reconcilePositions(CompilationUnit unit) {
+  private void reconcilePositions(DartNode[] subtrees) {
     // copy fRemovedPositions into removedPositions and removedPositionsDeleted
     removedPositions = fRemovedPositions.toArray(new Position[fRemovedPositions.size()]);
     Arrays.sort(removedPositions, positionsComparator);
     removedPositionsDeleted = new boolean[removedPositions.length];
 
-    unit.accept(fCollector);
+    // FIXME: remove positions not covered by subtrees
+    for (int i = 0, n = subtrees.length; i < n; i++) {
+      // subtrees[i].accept(fCollector);
+      subtrees[i].accept(fCollector);
+    }
 
     // copy removedPositions and removedPositionsDeleted into fRemovedPositions
     fRemovedPositions = new ArrayList<Position>(removedPositions.length);
@@ -457,7 +589,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
    * model.
    */
   private void scheduleJob() {
-//    final DartElement element = fEditor.getInputDartElement();
+    final DartElement element = fEditor.getInputDartElement();
 
     synchronized (fJobLock) {
       final Job oldJob = fJob;
@@ -466,52 +598,39 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
         fJob = null;
       }
 
-      fJob = new Job(DartEditorMessages.SemanticHighlighting_job) {
-        @Override
-        protected IStatus run(IProgressMonitor monitor) {
-          if (oldJob != null) {
-            try {
-              oldJob.join();
-            } catch (InterruptedException e) {
-              DartToolsPlugin.log(e);
-              return Status.CANCEL_STATUS;
-            }
-          }
-          if (monitor.isCanceled()) {
-            return Status.CANCEL_STATUS;
-          }
-          // prepare CompilationUnit
-          CompilationUnit unit = null;
-          {
-            DartEditor editor = fEditor;
-            if (editor == null) {
-              return Status.CANCEL_STATUS;
-            }
-            while (!monitor.isCanceled()) {
-              unit = fEditor.getInputUnit();
-              if (unit != null) {
-                break;
+      if (element != null) {
+        fJob = new Job(DartEditorMessages.SemanticHighlighting_job) {
+          @Override
+          protected IStatus run(IProgressMonitor monitor) {
+            if (oldJob != null) {
+              try {
+                oldJob.join();
+              } catch (InterruptedException e) {
+                DartToolsPlugin.log(e);
+                return Status.CANCEL_STATUS;
               }
-              Uninterruptibles.sleepUninterruptibly(50, TimeUnit.MILLISECONDS);
             }
-          }
-          // if has CompilationUnit, do reconcile
-          if (unit != null) {
-            reconciled(unit);
-          }
-          // done
-          synchronized (fJobLock) {
-            // allow the job to be gc'ed
-            if (fJob == this) {
-              fJob = null;
+            if (monitor.isCanceled()) {
+              return Status.CANCEL_STATUS;
             }
+            DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(
+                element,
+                ASTProvider.WAIT_YES,
+                monitor);
+            reconciled(ast, false, monitor);
+            synchronized (fJobLock) {
+              // allow the job to be gc'ed
+              if (fJob == this) {
+                fJob = null;
+              }
+            }
+            return Status.OK_STATUS;
           }
-          return Status.OK_STATUS;
-        }
-      };
-      fJob.setSystem(true);
-      fJob.setPriority(Job.DECORATE);
-      fJob.schedule();
+        };
+        fJob.setSystem(true);
+        fJob.setPriority(Job.DECORATE);
+        fJob.schedule();
+      }
     }
   }
 

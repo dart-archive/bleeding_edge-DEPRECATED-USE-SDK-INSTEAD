@@ -251,7 +251,32 @@ public class AbstractDartTest extends TestCase {
     testUnitElement = testUnit.getElement();
     testLibraryElement = testUnitElement.getEnclosingElement();
     if (verifyNoTestUnitErrors) {
-      assertThat(testUnit.getParsingErrors()).isEmpty();
+      assertThat(testUnit.getParsingErrors()).describedAs(testCode).isEmpty();
+      assertThat(testUnit.getResolutionErrors()).isEmpty();
+    }
+  }
+
+  /**
+   * Sets {@link #testUnit} with mocked {@link Source} which has given code.
+   */
+  protected final void parseTestUnits(Source... sources) throws Exception {
+    Source librarySource = sources[0];
+    testSource = sources[1];
+    testCode = sourceFactory.getContentCache().getContents(testSource);
+    // fill AnalysisContext
+    {
+      ChangeSet changeSet = new ChangeSet();
+      for (Source source : sources) {
+        changeSet.added(source);
+      }
+      analysisContext.applyChanges(changeSet);
+    }
+    //
+    testLibraryElement = analysisContext.computeLibraryElement(librarySource);
+    testUnit = analysisContext.resolveCompilationUnit(testSource, testLibraryElement);
+    testUnitElement = testUnit.getElement();
+    if (verifyNoTestUnitErrors) {
+      assertThat(testUnit.getParsingErrors()).describedAs(testCode).isEmpty();
       assertThat(testUnit.getResolutionErrors()).isEmpty();
     }
   }

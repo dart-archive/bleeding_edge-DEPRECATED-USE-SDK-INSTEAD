@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,18 +11,17 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.internal.text.dart;
 
-/**
- * Interface of an object participating in reconciling.
- * 
- * @deprecated as of 3.0 use {@link IDartReconcilingListener_OLD}
- */
-@Deprecated
-public interface IReconcilingParticipant {
+package com.google.dart.tools.ui.internal.text.editor;
 
-  /**
-   * Called after reconciling has been finished.
-   */
-  void reconciled();
+import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.Highlighting;
+
+public interface SemanticHighlightingReconciler_I {
+  void install(DartEditor editor, DartSourceViewer sourceViewer,
+      SemanticHighlightingPresenter presenter, SemanticHighlighting[] semanticHighlightings,
+      Highlighting[] highlightings);
+
+  void refresh();
+
+  void uninstall();
 }

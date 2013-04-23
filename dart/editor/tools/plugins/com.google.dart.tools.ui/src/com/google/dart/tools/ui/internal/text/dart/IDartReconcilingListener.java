@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,27 +13,16 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.compiler.ast.DartUnit;
-
-import org.eclipse.core.runtime.IProgressMonitor;
+import com.google.dart.engine.ast.CompilationUnit;
 
 /**
- * Interface of an object listening to Java reconciling.
+ * Interface of an object listening to Dart reconciling.
  */
 public interface IDartReconcilingListener {
-
   /**
-   * Called before reconciling is started.
-   */
-  void aboutToBeReconciled();
-
-  /**
-   * Called after reconciling has been finished.
+   * Called after reconciling has been finished and resolved {@link CompilationUnit} is ready.
    * 
-   * @param ast the compilation unit AST or <code>null</code> if the working copy was consistent or
-   *          reconciliation has been cancelled
-   * @param forced <code>true</code> iff this reconciliation was forced
-   * @param progressMonitor the progress monitor
+   * @param unit the resolved {@link CompilationUnit}, not null.
    */
-  void reconciled(DartUnit ast, boolean forced, IProgressMonitor progressMonitor);
+  void reconciled(CompilationUnit unit);
 }
