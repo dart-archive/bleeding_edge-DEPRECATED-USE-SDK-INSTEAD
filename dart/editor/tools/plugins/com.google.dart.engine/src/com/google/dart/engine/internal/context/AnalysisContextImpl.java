@@ -1521,7 +1521,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
       } else if (sourceEntry instanceof HtmlEntry) {
         HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
-        CacheState resolvedUnitState = htmlEntry.getState(DartEntry.RESOLVED_UNIT);
+        CacheState resolvedUnitState = htmlEntry.getState(HtmlEntry.RESOLVED_UNIT);
         if (resolvedUnitState == CacheState.INVALID) {
           try {
             resolveHtmlUnit(entry.getKey());
