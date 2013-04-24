@@ -41,7 +41,7 @@
     <searchResultIndication color="#CC6633" />
     <selectionBackground color="#c0c0c0" />
     <selectionForeground color="#FFFFFF" />
-    <setter color="#00002C0" />
+    <setter color="#0200C0" />
     <singleLineComment color="#417e60" />
     <sourceHoverBackground color="#EEEEEE" />
     <staticField color="#0000C0" />
