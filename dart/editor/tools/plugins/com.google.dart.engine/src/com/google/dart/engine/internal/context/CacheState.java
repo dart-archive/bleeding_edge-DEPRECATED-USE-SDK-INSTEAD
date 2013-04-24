@@ -18,19 +18,57 @@ package com.google.dart.engine.internal.context;
  */
 public enum CacheState {
   /**
-   * A state representing the fact that the data was up-to-date but flushed from the cache in order
-   * to control memory usage.
+   * The data is not in the cache and the last time an attempt was made to compute the data an
+   * exception occurred, making it pointless to attempt.
+   * <p>
+   * Valid Transitions:
+   * <ul>
+   * <li>{@link #INVALID} if a source was modified that might cause the data to be computable</li>
+   * </ul>
+   */
+  ERROR,
+
+  /**
+   * The data is not in the cache because it was flushed from the cache in order to control memory
+   * usage. If the data is recomputed, results do not need to be reported.
+   * <p>
+   * Valid Transitions:
+   * <ul>
+   * <li>{@link #IN_PROCESS} if the data is being recomputed</li>
+   * <li>{@link #INVALID} if a source was modified that causes the data to need to be recomputed</li>
+   * </ul>
    */
   FLUSHED,
 
   /**
-   * A state representing the fact that the data was removed from the cache because it was invalid
-   * and needs to be recomputed.
+   * The data might or might not be in the cache but is in the process of being recomputed.
+   * <p>
+   * Valid Transitions:
+   * <ul>
+   * <li>{@link #ERROR} if an exception occurred while trying to compute the data</li>
+   * <li>{@link #VALID} if the data was successfully computed and stored in the cache</li>
+   * </ul>
+   */
+  IN_PROCESS,
+
+  /**
+   * The data is not in the cache and needs to be recomputed so that results can be reported.
+   * <p>
+   * Valid Transitions:
+   * <ul>
+   * <li>{@link #IN_PROCESS} if an attempt is being made to recompute the data</li>
+   * </ul>
    */
   INVALID,
 
   /**
-   * A state representing the fact that the data is in the cache and valid.
+   * The data is in the cache and up-to-date.
+   * <p>
+   * Valid Transitions:
+   * <ul>
+   * <li>{@link #FLUSHED} if the data is removed in order to manage memory usage</li>
+   * <li>{@link #INVALID} if a source was modified in such a way as to invalidate the previous data</li>
+   * </ul>
    */
   VALID;
 }
