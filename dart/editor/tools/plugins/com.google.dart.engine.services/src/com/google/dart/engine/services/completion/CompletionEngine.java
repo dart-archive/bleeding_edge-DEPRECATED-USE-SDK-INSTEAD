@@ -1358,7 +1358,7 @@ public class CompletionEngine {
           continue;
         }
       }
-      pName(candidate);
+      proposeName(candidate, identifier);
     }
     if (state.areLiteralsAllowed) {
       pNull();
@@ -1410,7 +1410,7 @@ public class CompletionEngine {
     Collection<List<Element>> uniqueNames = collectIdentifiersVisibleAt(identifier);
     for (List<Element> uniques : uniqueNames) {
       Element candidate = uniques.get(0);
-      pName(candidate);
+      proposeName(candidate, identifier);
     }
   }
 
@@ -2152,29 +2152,33 @@ public class CompletionEngine {
     return kind;
   }
 
+  private void proposeName(Element element, SimpleIdentifier identifier) {
+    switch (element.getKind()) {
+      case FUNCTION:
+      case GETTER:
+      case METHOD:
+      case SETTER:
+        ExecutableElement candidate = (ExecutableElement) element;
+        pExecutable(candidate, identifier);
+        break;
+      case LOCAL_VARIABLE:
+      case PARAMETER:
+      case TOP_LEVEL_VARIABLE:
+        VariableElement var = (VariableElement) element;
+        pExecutable(var, identifier);
+        break;
+      case CLASS:
+        pName(element);
+        break;
+      default:
+        break;
+    }
+  }
+
   private void proposeNames(NameCollector names, SimpleIdentifier identifier) {
     for (List<Element> uniques : names.getNames()) {
       Element element = uniques.get(0);
-      switch (element.getKind()) {
-        case FUNCTION:
-        case GETTER:
-        case METHOD:
-        case SETTER:
-          ExecutableElement candidate = (ExecutableElement) element;
-          pExecutable(candidate, identifier);
-          break;
-        case LOCAL_VARIABLE:
-        case PARAMETER:
-        case TOP_LEVEL_VARIABLE:
-          VariableElement var = (VariableElement) element;
-          pExecutable(var, identifier);
-          break;
-        case CLASS:
-          pName(element);
-          break;
-        default:
-          break;
-      }
+      proposeName(element, identifier);
     }
   }
 
