@@ -144,17 +144,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_fieldInitializerWithInvalidType() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  int x;",
-        "  A(String this.x) {}",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.FIELD_INITIALIZER_WITH_INVALID_TYPE);
-    verify(source);
-  }
-
   public void fail_incorrectNumberOfArguments_tooFew() throws Exception {
     Source source = addSource(createSource(//
         "f(a, b) -> 0;",
@@ -504,6 +493,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     "var m = {'a' : 0, 'b' : 1, 'a' : 2};"));
     resolve(source);
     assertErrors(StaticWarningCode.EQUAL_KEYS_IN_MAP);
+    verify(source);
+  }
+
+  public void test_fieldInitializerWithInvalidType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int x;",
+        "  A(String this.x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.FIELD_INITIALIZER_WITH_INVALID_TYPE);
     verify(source);
   }
 

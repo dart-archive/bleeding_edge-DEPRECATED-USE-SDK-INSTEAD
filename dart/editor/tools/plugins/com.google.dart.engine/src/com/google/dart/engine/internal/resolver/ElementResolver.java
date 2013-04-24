@@ -373,14 +373,25 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           if (parameterElement instanceof FieldFormalParameterElementImpl) {
             FieldFormalParameterElementImpl fieldFormal = (FieldFormalParameterElementImpl) parameterElement;
             fieldFormal.setField(fieldElement);
-            if (fieldFormal.getType() == null) {
-              fieldFormal.setType(fieldElement.getType());
+            Type declaredType = fieldFormal.getType();
+            Type fieldType = fieldElement.getType();
+            if (node.getType() == null) {
+              fieldFormal.setType(fieldType);
             }
             if (fieldElement.isStatic()) {
               resolver.reportError(
                   CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
                   node,
                   fieldName);
+            } else if (declaredType != null && fieldType != null
+                && !declaredType.isAssignableTo(fieldType)) {
+              // TODO(brianwilkerson) We should implement a displayName() method for types that will
+              // work nicely with function types and then use that below.
+              resolver.reportError(
+                  StaticWarningCode.FIELD_INITIALIZER_WITH_INVALID_TYPE,
+                  node,
+                  declaredType.getName(),
+                  fieldType.getName());
             }
           }
         }

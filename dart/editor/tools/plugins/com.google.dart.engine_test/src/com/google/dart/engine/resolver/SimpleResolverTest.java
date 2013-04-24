@@ -115,6 +115,17 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_fieldFormalParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int x;",
+        "  A(this.x) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_forEachLoops_nonConflicting() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
