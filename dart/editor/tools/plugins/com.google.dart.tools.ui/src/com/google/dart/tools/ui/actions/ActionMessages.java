@@ -350,6 +350,7 @@ public final class ActionMessages extends NLS {
   public static String RemoveFromClasspathAction_Removing;
   public static String RemoveFromClasspathAction_exception_dialog_title;
   public static String RemoveFromClasspathAction_Problems_occurred;
+  public static String RunPubAction_savePubspecMessage;
   public static String RunPubAction_fileNotFound;
   public static String RunPubAction_fail;
   public static String RunPubAction_publish_missing_requirements;

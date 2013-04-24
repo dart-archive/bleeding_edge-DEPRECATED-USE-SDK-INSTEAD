@@ -199,7 +199,13 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
     if (resource != null) {
       IEditorPart editor = EditorUtility.isOpenInEditor(resource);
       if (editor != null && editor.isDirty()) {
-        editor.doSave(new NullProgressMonitor());
+        if (MessageDialog.openQuestion(
+            getShell(),
+            NLS.bind(ActionMessages.RunPubAction_commandText, command),
+            ActionMessages.RunPubAction_savePubspecMessage)) {
+
+          editor.doSave(new NullProgressMonitor());
+        }
       }
     }
   }
