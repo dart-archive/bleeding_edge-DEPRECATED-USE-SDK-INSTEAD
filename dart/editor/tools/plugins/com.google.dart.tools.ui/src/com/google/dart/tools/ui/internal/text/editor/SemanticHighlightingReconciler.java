@@ -488,7 +488,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
               return Status.CANCEL_STATUS;
             }
             while (!monitor.isCanceled()) {
-              unit = fEditor.getInputUnit();
+              unit = editor.getInputUnit();
               if (unit != null) {
                 break;
               }
