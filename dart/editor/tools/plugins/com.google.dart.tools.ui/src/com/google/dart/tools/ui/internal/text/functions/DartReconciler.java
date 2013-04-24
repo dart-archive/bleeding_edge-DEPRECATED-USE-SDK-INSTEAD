@@ -318,10 +318,12 @@ public class DartReconciler extends MonoReconciler {
         // update read-only flag
         updateReadOnlyFlag();
         // process EditorState
+        boolean hasPendingEditorState;
         {
           // prepare EditorState to apply
           loopEditorState = null;
           synchronized (editorStateLock) {
+            hasPendingEditorState = editorState != null;
             if (editorState != null && System.currentTimeMillis() - editorState.time > 100) {
               loopEditorState = editorState;
               editorState = null;
@@ -337,13 +339,15 @@ public class DartReconciler extends MonoReconciler {
           }
         }
         // may be resolved
-        CompilationUnit unitNode = getResolvedUnit(false);
-        if (unitNode != null) {
-          CompilationUnitElement unitElement = unitNode.getElement();
-          if (unitElement != null) {
-            if (unitElement != previousUnitElement) {
-              previousUnitElement = unitElement;
-              editor.applyCompilationUnitElement(unitNode);
+        if (!hasPendingEditorState) {
+          CompilationUnit unitNode = getResolvedUnit(false);
+          if (unitNode != null) {
+            CompilationUnitElement unitElement = unitNode.getElement();
+            if (unitElement != null) {
+              if (unitElement != previousUnitElement) {
+                previousUnitElement = unitElement;
+                editor.applyCompilationUnitElement(unitNode);
+              }
             }
           }
         }
