@@ -148,8 +148,12 @@ public enum StaticWarningCode implements ErrorCode {
   /**
    * 7.6.1 Generative Constructors: An initializing formal has the form <i>this.id</i>. It is a
    * static warning if the static type of <i>id</i> is not assignable to <i>T<sub>id</sub></i>.
+   * 
+   * @param parameterType the name of the type of the field formal parameter
+   * @param fieldType the name of the type of the field
    */
-  FIELD_INITIALIZER_WITH_INVALID_TYPE(""),
+  FIELD_INITIALIZER_WITH_INVALID_TYPE(
+      "The parameter type '%s' is incompatable with the field type '%s'"),
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;
