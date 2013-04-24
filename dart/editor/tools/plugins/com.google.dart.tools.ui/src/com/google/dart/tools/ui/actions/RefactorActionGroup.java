@@ -32,6 +32,7 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
   private ExtractLocalAction extractLocalAction;
   private ExtractMethodAction extractMethodAction;
   private InlineAction inlineAction;
+  private ConvertMethodToGetterAction convertMethodToGetterAction;
 
   public RefactorActionGroup(DartEditor editor) {
     super(editor);
@@ -39,17 +40,24 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
     extractLocalAction = new ExtractLocalAction(editor);
     extractMethodAction = new ExtractMethodAction(editor);
     inlineAction = new InlineAction(editor);
+    convertMethodToGetterAction = new ConvertMethodToGetterAction(editor);
     initActions();
     editor.setAction("RenameElement", renameAction);
-    addActions(renameAction, extractLocalAction, extractMethodAction, inlineAction);
+    addActions(
+        renameAction,
+        extractLocalAction,
+        extractMethodAction,
+        inlineAction,
+        convertMethodToGetterAction);
     addActionDartSelectionListeners();
   }
 
   public RefactorActionGroup(IWorkbenchSite site) {
     super(site);
     renameAction = new RenameAction(site);
+    convertMethodToGetterAction = new ConvertMethodToGetterAction(site);
     initActions();
-    addActions(renameAction);
+    addActions(renameAction, convertMethodToGetterAction);
     addActionSelectionListeners();
   }
 
@@ -60,6 +68,7 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
     extractLocalAction = null;
     extractMethodAction = null;
     inlineAction = null;
+    convertMethodToGetterAction = null;
   }
 
   @Override
@@ -69,6 +78,9 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
     actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_LOCAL, extractLocalAction);
     actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_METHOD, extractMethodAction);
     actionBars.setGlobalActionHandler(JdtActionConstants.INLINE, inlineAction);
+    actionBars.setGlobalActionHandler(
+        JdtActionConstants.CONVERT_METHOD_TO_GETTER,
+        convertMethodToGetterAction);
   }
 
   @Override
@@ -97,6 +109,10 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
     if (inlineAction != null) {
       inlineAction.setActionDefinitionId(DartEditorActionDefinitionIds.INLINE);
       inlineAction.setId(DartEditorActionDefinitionIds.INLINE);
+    }
+    if (convertMethodToGetterAction != null) {
+      convertMethodToGetterAction.setActionDefinitionId(DartEditorActionDefinitionIds.CONVERT_METHOD_TO_GETTER);
+      convertMethodToGetterAction.setId(DartEditorActionDefinitionIds.CONVERT_METHOD_TO_GETTER);
     }
   }
 }

@@ -905,13 +905,6 @@
                retarget="true"
                menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
                id="com.google.dart.tools.ui.actions.ConvertGetterToMethod">
-         </action>
-         <action
-             definitionId="com.google.dart.tools.ui.edit.text.dart.convertMethodToGetter"
-               label="%Refactoring.convertMethodToGetterAction.label"
-               retarget="true"
-               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
-               id="com.google.dart.tools.ui.actions.ConvertMethodToGetter">
          </action>-->
           <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.constant"
@@ -920,6 +913,14 @@
                menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
                id="org.eclipse.wst.jsdt.ui.actions.ExtractConstant">
          </action>-->
+
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.dart.convertMethodToGetter"
+               label="%Refactoring.convertMethodToGetterAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
+               id="com.google.dart.tools.ui.actions.ConvertMethodToGetter">
+         </action>
          <action
              definitionId="com.google.dart.tools.ui.edit.text.dart.inline"
                label="%Refactoring.inlineAction.label"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,18 +13,19 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
+import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
+import com.google.dart.tools.internal.corext.refactoring.code.ConvertMethodToGetterRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
-import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
-import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionCommandHandler;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
 import com.google.dart.tools.ui.internal.text.correction.ICommandAccess;
-import com.google.dart.tools.ui.internal.text.editor.DartSelection;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
 import org.eclipse.jface.text.contentassist.IContextInformation;
@@ -34,37 +35,32 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
 /**
- * A quick assist proposal that starts the Rename refactoring.
+ * A quick assist proposal that starts the {@link ConvertMethodToGetterRefactoring}.
  * 
  * @coverage dart.editor.ui.correction
  */
-public class ConvertMethodToGetterRefactoringProposal implements IDartCompletionProposal,
+public class ConvertMethodToGetterRefactoringProposal_OLD implements IDartCompletionProposal,
     ICompletionProposalExtension6, ICommandAccess {
-  private final ConvertMethodToGetterAction action;
-  private final DartSelection selection;
-  private final String label;
-  private final int relevance;
 
-  public ConvertMethodToGetterRefactoringProposal(ConvertMethodToGetterAction action,
-      DartSelection selection) {
-    this.action = action;
-    this.selection = selection;
+  private final DartEditor editor;
+  private final DartFunction function;
+  private final int relevance;
+  private final String label;
+
+  public ConvertMethodToGetterRefactoringProposal_OLD(DartEditor editor, DartFunction function,
+      int relevance) {
+    Assert.isNotNull(editor);
+    this.editor = editor;
+    this.function = function;
+    this.relevance = relevance;
     this.label = CorrectionMessages.ConvertMethodToGetterRefactoringProposal_name;
-    this.relevance = 9;
   }
 
   @Override
   public void apply(IDocument document) {
-    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(this.getClass());
-    try {
-      action.doRun(selection, null, instrumentation);
-      instrumentation.metric("Apply", "Completed");
-    } catch (RuntimeException e) {
-      instrumentation.record(e);
-      throw e;
-    } finally {
-      instrumentation.log();
-    }
+    RefactoringExecutionStarter_OLD.startConvertMethodToGetterRefactoring(
+        function,
+        editor.getSite().getShell());
   }
 
   @Override

@@ -48,7 +48,7 @@ public class RefactoringFactory {
    *         {@link Element} into getter.
    */
   public static ConvertMethodToGetterRefactoring createConvertMethodToGetterRefactoring(
-      SearchEngine searchEngine, ExecutableElement element) throws Exception {
+      SearchEngine searchEngine, ExecutableElement element) {
     return new ConvertMethodToGetterRefactoringImpl(searchEngine, element);
   }
 

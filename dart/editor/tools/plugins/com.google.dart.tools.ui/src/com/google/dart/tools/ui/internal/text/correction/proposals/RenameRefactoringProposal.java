@@ -42,14 +42,14 @@ public class RenameRefactoringProposal implements IDartCompletionProposal,
     ICompletionProposalExtension6, ICommandAccess {
   private final RenameDartElementAction action;
   private final DartSelection selection;
-  private final String fLabel;
-  private final int fRelevance;
+  private final String label;
+  private final int relevance;
 
   public RenameRefactoringProposal(RenameDartElementAction action, DartSelection selection) {
     this.action = action;
     this.selection = selection;
-    fLabel = CorrectionMessages.RenameRefactoringProposal_name;
-    fRelevance = 8;
+    this.label = CorrectionMessages.RenameRefactoringProposal_name;
+    this.relevance = 8;
   }
 
   @Override
@@ -87,9 +87,9 @@ public class RenameRefactoringProposal implements IDartCompletionProposal,
     if (shortCutString != null) {
       return Messages.format(
           CorrectionMessages.ChangeCorrectionProposal_name_with_shortcut,
-          new String[] {fLabel, shortCutString});
+          new String[] {label, shortCutString});
     }
-    return fLabel;
+    return label;
   }
 
   @Override
@@ -99,7 +99,7 @@ public class RenameRefactoringProposal implements IDartCompletionProposal,
 
   @Override
   public int getRelevance() {
-    return fRelevance;
+    return relevance;
   }
 
   @Override
@@ -109,12 +109,12 @@ public class RenameRefactoringProposal implements IDartCompletionProposal,
 
   @Override
   public StyledString getStyledDisplayString() {
-    StyledString str = new StyledString(fLabel);
+    StyledString str = new StyledString(label);
     String shortCutString = CorrectionCommandHandler.getShortCutString(getCommandId());
     if (shortCutString != null) {
       String decorated = Messages.format(
           CorrectionMessages.ChangeCorrectionProposal_name_with_shortcut,
-          new String[] {fLabel, shortCutString});
+          new String[] {label, shortCutString});
       return StyledCellLabelProvider.styleDecoratedString(
           decorated,
           StyledString.QUALIFIER_STYLER,

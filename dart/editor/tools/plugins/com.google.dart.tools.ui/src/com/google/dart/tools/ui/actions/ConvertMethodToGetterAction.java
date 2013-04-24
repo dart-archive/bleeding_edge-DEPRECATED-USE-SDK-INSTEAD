@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,141 +13,137 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.services.refactoring.ConvertMethodToGetterRefactoring;
+import com.google.dart.engine.services.refactoring.RefactoringFactory;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.actions.ActionUtil;
-import com.google.dart.tools.ui.internal.actions.SelectionConverter;
+import com.google.dart.tools.ui.internal.refactoring.ConvertMethodToGetterWizard;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
+import com.google.dart.tools.ui.internal.refactoring.ServiceConvertMethodToGetterRefactoring;
+import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
-import com.google.dart.tools.ui.internal.util.DartModelUtil;
+import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * Converts no-arguments method into getter.
+ * {@link Action} for "Convert Method To Getter" refactoring.
  */
-public class ConvertMethodToGetterAction extends InstrumentedSelectionDispatchAction {
-
-  private DartEditor fEditor;
+public class ConvertMethodToGetterAction extends AbstractDartSelectionAction {
+  /**
+   * @return the {@link ConvertMethodToGetterRefactoring} to process given {@link Element}, may be
+   *         {@code null} if {@link Element} cannot be processed.
+   */
+  private static ConvertMethodToGetterRefactoring newRefactoring(Element element) {
+    // prepare ExecutableElement
+    if (!(element instanceof FunctionElement || element instanceof MethodElement)) {
+      return null;
+    }
+    ExecutableElement executableElement = (ExecutableElement) element;
+    // create ConvertMethodToGetterRefactoring
+    SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
+    return RefactoringFactory.createConvertMethodToGetterRefactoring(
+        searchEngine,
+        executableElement);
+  }
 
   public ConvertMethodToGetterAction(DartEditor editor) {
-    super(editor.getEditorSite());
-    setText(RefactoringMessages.ConvertMethodToGetterAction_title);
-    fEditor = editor;
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(
-        this,
-        DartHelpContextIds.CONVERT_METHOD_TO_GETTER_ACTION);
-    setEnabled(SelectionConverter.getInputAsCompilationUnit(fEditor) != null);
+    super(editor);
   }
 
   public ConvertMethodToGetterAction(IWorkbenchSite site) {
     super(site);
-    setText(RefactoringMessages.ConvertMethodToGetterAction_title);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(
-        this,
-        DartHelpContextIds.CONVERT_METHOD_TO_GETTER_ACTION);
   }
 
   @Override
-  public void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
-
-    if (!ActionUtil.isEditable(fEditor)) {
-      instrumentation.metric("Problem", "Editor not editable");
-      return;
-    }
-
-    CompilationUnit cu = SelectionConverter.getInputAsCompilationUnit(fEditor);
-    instrumentation.record(cu);
-
-    try {
-      DartFunction function = DartModelUtil.findFunction(cu, selection.getOffset());
-      boolean success = RefactoringExecutionStarter_OLD.startConvertMethodToGetterRefactoring(
-          function,
-          getShell());
-      if (success) {
-        return;
-      }
-      instrumentation.metric(
-          "Problem",
-          "RefactoringExecutionStarter.startConvertGetterToMethodRefactoring False");
-
-    } catch (Throwable e) {
-      instrumentation.record(e);
-    }
-
-    instrumentation.metric("Problem", "No valid selection, showing dialog");
-    MessageDialog.openInformation(
-        getShell(),
-        RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
-        RefactoringMessages.ConvertMethodToGetterAction_select);
-  }
-
-  @Override
-  public void selectionChanged(DartTextSelection selection) {
-    try {
-      setEnabled(RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(selection));
-    } catch (DartModelException e) {
-      setEnabled(false);
-    }
+  public void selectionChanged(DartSelection selection) {
+    Element element = getSelectionElement(selection);
+    selectionChanged(element);
   }
 
   @Override
   public void selectionChanged(IStructuredSelection selection) {
-    try {
-      setEnabled(RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(selection));
-    } catch (DartModelException e) {
-      setEnabled(false);
-    }
+    Element element = getSelectionElement(selection);
+    selectionChanged(element);
   }
 
   @Override
-  public void selectionChanged(ITextSelection selection) {
-    setEnabled(true);
+  protected void doRun(DartSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
+    Element element = getSelectionElement(selection);
+    doRun(element);
   }
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
+    Element element = getSelectionElement(selection);
+    doRun(element);
+  }
 
+  @Override
+  protected void init() {
+    setText(RefactoringMessages.ConvertMethodToGetterAction_title);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        this,
+        DartHelpContextIds.CONVERT_METHOD_TO_GETTER_ACTION);
+  }
+
+  /**
+   * Runs refactoring wizard to process given {@link Element}.
+   */
+  private void doRun(Element element) {
+    if (!RefactoringUtils.waitReadyForRefactoring()) {
+      return;
+    }
+    ConvertMethodToGetterRefactoring serviceRefactoring = newRefactoring(element);
+    if (serviceRefactoring == null) {
+      return;
+    }
     try {
-      Object element = selection.getFirstElement();
-      if (element instanceof DartFunction) {
-        DartFunction function = (DartFunction) element;
-
-        if (!RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(function)) {
-          instrumentation.metric("Problem", "RefactoringAvailabilityTester Returned false");
-        }
-        boolean success = RefactoringExecutionStarter_OLD.startConvertMethodToGetterRefactoring(
-            function,
-            getShell());
-
-        if (success) {
-          return;
-        }
-
-        instrumentation.metric(
-            "Problem",
-            "RefactoringExecutionStarter.startConvertMethodToGetterRefactoring returned False");
-
-      }
-    } catch (DartModelException e) {
-      ExceptionHandler.handle(
-          e,
+      ServiceConvertMethodToGetterRefactoring ltkRefactoring = new ServiceConvertMethodToGetterRefactoring(
+          serviceRefactoring);
+      new RefactoringStarter().activate(
+          new ConvertMethodToGetterWizard(ltkRefactoring),
           getShell(),
           RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
-          RefactoringMessages.InlineMethodAction_unexpected_exception);
+          RefactoringSaveHelper.SAVE_ALL);
+      // TODO(scheglov) may be SAVE_NOTHING
+    } catch (Throwable e) {
+      ExceptionHandler.handle(
+          e,
+          getText(),
+          "Unexpected exception occurred. See the error log for more details.");
     }
+  }
+
+  /**
+   * Updates enablement for given {@link Element}.
+   */
+  private void selectionChanged(Element element) {
+    ConvertMethodToGetterRefactoring refactoring = newRefactoring(element);
+    if (refactoring != null) {
+      try {
+        if (!refactoring.checkAllConditions(null).hasError()) {
+          setEnabled(true);
+          return;
+        }
+      } catch (Throwable e) {
+      }
+    }
+    setEnabled(false);
   }
 }
