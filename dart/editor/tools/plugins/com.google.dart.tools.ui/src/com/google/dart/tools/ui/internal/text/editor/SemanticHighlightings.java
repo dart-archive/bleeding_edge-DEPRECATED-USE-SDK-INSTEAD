@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -23,6 +24,7 @@ import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.ImplementsClause;
@@ -47,6 +49,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -66,6 +69,41 @@ import java.util.List;
  * @coverage dart.editor.ui.text.highlighting
  */
 public class SemanticHighlightings {
+
+  /**
+   * Semantic highlighting for annotations.
+   */
+  private static class AnnotationHighlighting extends DefaultSemanticHighlighting {
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      SimpleIdentifier node = token.getNodeIdentifier();
+      if (node.getParent() instanceof Annotation) {
+        Annotation ann = (Annotation) node.getParent();
+        return ann.getName() == node;
+      }
+      return false;
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return defaultFieldColor();
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_annotation;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return ANNOTATION;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
 
   /**
    * Highlights build-in identifiers - "abstract", "as", "dynamic", "typedef", etc.
@@ -321,11 +359,11 @@ public class SemanticHighlightings {
     }
   }
 
-  /**
-   * Semantic highlighting deprecated elements.
-   * <p>
-   * TODO(scheglov) add support for @deprecated
-   */
+//  /**
+//   * Semantic highlighting deprecated elements.
+//   * <p>
+//   * TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=10161
+//   */
 //  private static final class DeprecatedElementHighlighting extends DefaultSemanticHighlighting {
 //    @Override
 //    public boolean consumes(SemanticToken token) {
@@ -340,10 +378,20 @@ public class SemanticHighlightings {
 //
 //    @Override
 //    public boolean consumesIdentifier(SemanticToken token) {
-//      DartIdentifier node = token.getNodeIdentifierOld();
+//      SimpleIdentifier node = token.getNodeIdentifier();
 //      Element element = node.getElement();
-//      return element != null && element.getMetadata() != null
-//          && element.getMetadata().isDeprecated();
+//      if (element != null) {
+//        com.google.dart.engine.element.Annotation[] annotations = element.getMetadata();
+//        for (com.google.dart.engine.element.Annotation annotation : annotations) {
+//          Element annotationElement = annotation.getElement();
+//          if (annotationElement != null) {
+//            if (annotationElement.getName().equals("deprecated")) {
+//              return true;
+//            }
+//          }
+//        }
+//      }
+//      return false;
 //    }
 //
 //    @Override
@@ -449,37 +497,45 @@ public class SemanticHighlightings {
     }
   }
 
-//  /**
-//   * Semantic highlighting for variables with dynamic types.
-//   */
-//  private static final class DynamicTypeHighlighting extends DefaultSemanticHighlighting {
-//
-//    @Override
-//    public boolean consumesIdentifier(SemanticToken token) {
-//      DartIdentifier node = token.getNodeIdentifierOld();
-//      return DynamicTypesFinder.isDynamic(node);
-//    }
-//
-//    @Override
-//    public RGB getDefaultDefaultTextColor() {
-//      return new RGB(0x80, 0x00, 0xCC);
-//    }
-//
-//    @Override
-//    public String getDisplayName() {
-//      return DartEditorMessages.SemanticHighlighting_dynamicType;
-//    }
-//
-//    @Override
-//    public String getPreferenceKey() {
-//      return DYNAMIC_TYPE;
-//    }
-//
-//    @Override
-//    public boolean isEnabledByDefault() {
-//      return true;
-//    }
-//  }
+  /**
+   * Semantic highlighting for variables with dynamic types.
+   */
+  private static final class DynamicTypeHighlighting extends DefaultSemanticHighlighting {
+    private static Type typeOf(Expression expr) {
+      Type type = expr.getPropagatedType();
+      if (type == null) {
+        type = expr.getStaticType();
+      }
+      return type;
+    }
+
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      SimpleIdentifier node = token.getNodeIdentifier();
+      Type type = typeOf(node);
+      return type != null && type.isDynamic();
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(0x80, 0x00, 0xCC);
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_dynamicType;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return DYNAMIC_TYPE;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
 
   /**
    * Semantic highlighting for fields.
@@ -489,30 +545,8 @@ public class SemanticHighlightings {
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
       Element element = node.getElement();
-      boolean isField = element instanceof PropertyInducingElement
+      return element instanceof PropertyInducingElement
           || element instanceof PropertyAccessorElement;
-      if (isField) {
-        // TODO(scheglov) is this still actual?
-//        /*
-//         * Annotations should not be highlighted the same as fields.
-//         * This whole block needs better support from the model.
-//         * The initial @ should have the same presentation as the annotation
-//         * but that's not handled here.
-//         */
-//        if (element.getEnclosingElement() instanceof LibraryElement) {
-//          LibraryElement lib = (LibraryElement) element.getEnclosingElement();
-//          LibraryUnit libUnit = lib.getLibraryUnit();
-//          if (libUnit != null && META_LIB_NAME.equals(libUnit.getName())) {
-//            String name = element.getName();
-//            for (String annotation : META_NAMES) {
-//              if (annotation.equals(name)) {
-//                return false;
-//              }
-//            }
-//          }
-//        }
-      }
-      return isField;
     }
 
     @Override
@@ -546,14 +580,12 @@ public class SemanticHighlightings {
           return true;
         }
       }
-      // TODO(scheglov) no FunctionDeclaration.isGetter() API
-      // https://code.google.com/p/dart/issues/detail?id=10134
-//      {
-//        FunctionDeclaration function = getParentFunction(node);
-//        if (function != null && function.isGetter()) {
-//          return true;
-//        }
-//      }
+      {
+        FunctionDeclaration function = getParentFunction(node);
+        if (function != null && function.isGetter()) {
+          return true;
+        }
+      }
       return false;
     }
 
@@ -608,7 +640,7 @@ public class SemanticHighlightings {
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
       Element element = node.getElement();
-      return element != null && element.getKind() == ElementKind.LOCAL_VARIABLE;
+      return ElementKind.of(element) == ElementKind.LOCAL_VARIABLE;
     }
 
     @Override
@@ -749,18 +781,7 @@ public class SemanticHighlightings {
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
       Element element = node.getElement();
-      // TODO(scheglov) use ElementKind.of()
-      // https://code.google.com/p/dart/issues/detail?id=10135
-      if (element != null && element.getKind() == ElementKind.PARAMETER) {
-        return true;
-      }
-      // TODO(scheglov)
-//      if (PropertyDescriptorHelper.getLocationInParent(node) == PropertyDescriptorHelper.DART_NAMED_EXPRESSION_NAME) {
-//        if (PropertyDescriptorHelper.getLocationInParent(node.getParent()) == PropertyDescriptorHelper.DART_INVOCATION_ARGS) {
-//          return true;
-//        }
-//      }
-      return false;
+      return ElementKind.of(element) == ElementKind.PARAMETER;
     }
 
     @Override
@@ -788,8 +809,19 @@ public class SemanticHighlightings {
     @Override
     public boolean consumes(SemanticToken token) {
       ASTNode node = token.getNode();
-      MethodDeclaration method = getParentMethod(node);
-      return method != null && method.isSetter();
+      {
+        MethodDeclaration method = getParentMethod(node);
+        if (method != null && method.isSetter()) {
+          return true;
+        }
+      }
+      {
+        FunctionDeclaration function = getParentFunction(node);
+        if (function != null && function.isSetter()) {
+          return true;
+        }
+      }
+      return false;
     }
 
     @Override
@@ -929,66 +961,6 @@ public class SemanticHighlightings {
   private static final RGB KEY_WORD_COLOR = PreferenceConverter.getColor(
       DartToolsPlugin.getDefault().getPreferenceStore(),
       IDartColorConstants.JAVA_KEYWORD);
-
-//  /**
-//   * Semantic highlighting for top level members.
-//   */
-//  private static class TopLevelMemberHighlighting extends DefaultSemanticHighlighting {
-//    @Override
-//    public boolean consumesIdentifier(SemanticToken token) {
-//      DartIdentifier node = token.getNodeIdentifier();
-//      NodeElement element = node.getElement();
-//
-//      if (element == null || element instanceof ClassElement
-//          || element instanceof LibraryPrefixElement) {
-//        return false;
-//      }
-//
-//      DartNode parent = node.getParent();
-//      if (parent instanceof DartDeclaration<?>) {
-//        if (((DartDeclaration<?>) parent).getName().equals(node)) {
-//          return false;
-//        }
-//      }
-//
-//      return element.getEnclosingElement() instanceof LibraryElement;
-//    }
-//
-//    @Override
-//    public RGB getDefaultDefaultTextColor() {
-//      return new RGB(0x40, 0x40, 0x40);
-//    }
-//
-//    @Override
-//    public String getDisplayName() {
-//      return DartEditorMessages.SemanticHighlighting_topLevelMember;
-//    }
-//
-//    @Override
-//    public String getPreferenceKey() {
-//      return TOP_LEVEL_MEMBER;
-//    }
-//
-//    @Override
-//    public boolean isBoldByDefault() {
-//      return true;
-//    }
-//
-//    @Override
-//    public boolean isEnabledByDefault() {
-//      return true;
-//    }
-//
-//    @Override
-//    public boolean isItalicByDefault() {
-//      return false;
-//    }
-//
-//  }
-
-  // Constants used to distinguish annotations from fields.
-  private static final String[] META_NAMES = {"deprecated", "override"};
-  private static final String META_LIB_NAME = "meta";
 
   /**
    * A named preference part that controls the highlighting of deprecated elements.
@@ -1231,18 +1203,14 @@ public class SemanticHighlightings {
           new DirectiveHighlighting(),
           new BuiltInHighlighting(),
           // TODO(scheglov)
-//          new DeprecatedElementHighlighting() 
-          new GetterDeclarationHighlighting(),
-          new SetterDeclarationHighlighting(),
-          new StaticFieldHighlighting(),
-          new FieldHighlighting(),
-          // TODO(scheglov)
-          //, new DynamicTypeHighlighting()
-          new ClassHighlighting(), new TypeVariableHighlighting(), new NumberHighlighting(),
-          new LocalVariableDeclarationHighlighting(), new LocalVariableHighlighting(),
-          new ParameterHighlighting(), new StaticMethodDeclarationHighlighting(),
-          new StaticMethodHighlighting(), new MethodDeclarationHighlighting(),
-          new MethodHighlighting()};
+//          new DeprecatedElementHighlighting(), 
+          new GetterDeclarationHighlighting(), new SetterDeclarationHighlighting(),
+          new AnnotationHighlighting(), new StaticFieldHighlighting(), new FieldHighlighting(),
+          new DynamicTypeHighlighting(), new ClassHighlighting(), new TypeVariableHighlighting(),
+          new NumberHighlighting(), new LocalVariableDeclarationHighlighting(),
+          new LocalVariableHighlighting(), new ParameterHighlighting(),
+          new StaticMethodDeclarationHighlighting(), new StaticMethodHighlighting(),
+          new MethodDeclarationHighlighting(), new MethodHighlighting()};
     }
     return SEMANTIC_HIGHTLIGHTINGS;
   }

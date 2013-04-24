@@ -95,6 +95,7 @@ final class DartEditorMessages extends NLS {
   public static String OverrideIndicatorManager_open_error_title;
   public static String OverrideIndicatorManager_open_error_message;
   public static String OverrideIndicatorManager_open_error_messageHasLogEntry;
+  public static String SemanticHighlighting_annotation;
   public static String SemanticHighlighting_field;
   public static String SemanticHighlighting_getter;
   public static String SemanticHighlighting_job;

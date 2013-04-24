@@ -51,6 +51,16 @@ public class SemanticHighlightingTest extends
 
   private List<HighlightedPosition> positions;
 
+  public void test_annotation() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const myAnnotation = 0;",
+        "@myAnnotation // marker",
+        "var topLevelVar;",
+        "");
+    assertHasWordPosition(SemanticHighlightings.ANNOTATION, "myAnnotation // marker");
+  }
+
   public void test_builtIn_abstract_class() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -365,23 +375,25 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.CLASS, "A .ZERO");
   }
 
-  // TODO(scheglov)
+  // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=10161
 //  public void test_deprecated() throws Exception {
+//    setFileContent(
+//        "meta.dart",
+//        makeSource(
+//            "// filler filler filler filler filler filler filler filler filler filler",
+//            "library meta;",
+//            "const deprecated = 42;",
+//            ""));
 //    preparePositions(
 //        "// filler filler filler filler filler filler filler filler filler filler",
-//        "const deprecated = 0;",
-//        "class A {",
-//        "  @deprecated",
-//        "  m () {}",
-//        "}",
+//        "@deprecated",
+//        "class A {}",
 //        "main() {",
-//        "  A.m ();",
-//        "  print(A.m );",
+//        "  A a;",
 //        "}",
 //        "");
-//    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "m () {}");
-//    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "m ();");
-//    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "m );");
+//    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "A {}");
+//    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "A a;");
 //  }
 
   // TODO(scheglov)
@@ -519,17 +531,16 @@ public class SemanticHighlightingTest extends
     assertHasPosition(SemanticHighlightings.DIRECTIVE, findOffset("part  of"), "part  of".length());
   }
 
-  // TODO(scheglov) implement this
-//  public void test_dynamic() throws Exception {
-//    preparePositions(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "f(dynParameter ) {",
-//        "  var dynVar = dynParameter ;",
-//        "}",
-//        "");
-//    assertHasWordPosition(SemanticHighlightings.DYNAMIC_TYPE, "dynVar = ");
-//    assertHasWordPosition(SemanticHighlightings.DYNAMIC_TYPE, "dynParameter ;");
-//  }
+  public void test_dynamic() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f(dynParameter ) {",
+        "  var dynVar = dynParameter ;",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.DYNAMIC_TYPE, "dynVar = ");
+    assertHasWordPosition(SemanticHighlightings.DYNAMIC_TYPE, "dynParameter ;");
+  }
 
   public void test_field_member() throws Exception {
     preparePositions(
@@ -548,7 +559,18 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.FIELD, "field );");
   }
 
-  public void test_getter_member() throws Exception {
+  public void test_getterDeclaration_function() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "get myGetter => 0;",
+        "main() {",
+        "  print(myGetter );",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.GETTER_DECLARATION, "myGetter => 0");
+  }
+
+  public void test_getterDeclaration_member() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -599,18 +621,6 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.METHOD, "m );");
   }
 
-  // TODO(scheglov) no FunctionDeclaration.isGetter() API
-//  public void test_getterDeclaration_function() throws Exception {
-//    preparePositions(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "get myGetter => 0;",
-//        "main() {",
-//        "  print(myGetter );",
-//        "}",
-//        "");
-//    assertHasWordPosition(SemanticHighlightings.GETTER_DECLARATION, "myGetter => 0");
-//  }
-
   public void test_number() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -650,7 +660,20 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.PARAMETER_VARIABLE, "p : 0);");
   }
 
-  public void test_setter_member() throws Exception {
+  public void test_setterDeclaration_function() throws Exception {
+    // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=10167
+    verifyNoTestUnitErrors = false;
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "set mySetter (x) {}",
+        "main() {",
+        "  mySetter = 0;",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.SETTER_DECLARATION, "mySetter (x)");
+  }
+
+  public void test_setterDeclaration_member() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
