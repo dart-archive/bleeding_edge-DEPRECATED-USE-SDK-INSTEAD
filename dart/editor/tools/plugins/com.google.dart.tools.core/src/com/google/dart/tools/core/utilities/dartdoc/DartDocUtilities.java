@@ -27,6 +27,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
+import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.SimpleElementVisitor;
 import com.google.dart.engine.utilities.dart.ParameterKind;
@@ -70,7 +71,7 @@ public final class DartDocUtilities {
 
     @Override
     public String visitConstructorElement(ConstructorElement element) {
-      StringBuilder params = buildParams(element.getParameters());
+      StringBuilder params = describeParams(element.getParameters());
       String typeName = element.getType().getReturnType().getName();
       String constructorName = element.getName();
       if (constructorName != null && constructorName.length() != 0) {
@@ -100,6 +101,11 @@ public final class DartDocUtilities {
     }
 
     @Override
+    public String visitParameterElement(ParameterElement element) {
+      return getDescription(element);
+    }
+
+    @Override
     public String visitPropertyAccessorElement(PropertyAccessorElement element) {
 
       if (element.isGetter()) {
@@ -115,7 +121,7 @@ public final class DartDocUtilities {
       }
 
       if (element.isSetter()) {
-        return element.getName() + "(" + buildParams(element.getParameters()) + ")";
+        return element.getName() + "(" + describeParams(element.getParameters()) + ")";
       }
 
       return getDescription(element);
@@ -126,7 +132,22 @@ public final class DartDocUtilities {
       return getTypeName(element) + " " + element.getName();
     }
 
-    private StringBuilder buildParams(ParameterElement[] parameters) {
+    @Override
+    public String visitTypeVariableElement(TypeVariableElement element) {
+      StringBuilder sb = new StringBuilder();
+
+      sb.append("<");
+      sb.append(element.getType().getName());
+      com.google.dart.engine.type.Type bound = element.getBound();
+      if (bound != null) {
+        sb.append(" extends ").append(bound.getName());
+      }
+      sb.append(">");
+
+      return sb.toString();
+    }
+
+    private StringBuilder describeParams(ParameterElement[] parameters) {
       StringBuilder buf = new StringBuilder();
 
       // Closing ']' or '}' in case of optional params
@@ -152,21 +173,7 @@ public final class DartDocUtilities {
           }
         }
 
-        String typeName = getTypeName(param);
-        String paramName = param.getName();
-
-        if (typeName.indexOf('(') != -1) {
-
-          // Instead of returning "void(var) callback", return "void callback(var)".
-          int index = typeName.indexOf('(');
-
-          buf.append(typeName.substring(0, index));
-          buf.append(" ");
-          buf.append(paramName);
-          buf.append(typeName.substring(index));
-        } else {
-          buf.append(typeName + " " + paramName);
-        }
+        buf.append(getDescription(param));
 
       }
 
@@ -178,7 +185,7 @@ public final class DartDocUtilities {
 
     private String getDescription(ExecutableElement element) {
 
-      StringBuilder params = buildParams(element.getParameters());
+      StringBuilder params = describeParams(element.getParameters());
       String returnTypeName = getName(element.getType().getReturnType());
 
       if (returnTypeName != null) {
@@ -186,6 +193,29 @@ public final class DartDocUtilities {
       } else {
         return element.getName() + "(" + params + ")";
       }
+    }
+
+    private String getDescription(ParameterElement param) {
+
+      StringBuilder buf = new StringBuilder();
+
+      String typeName = getTypeName(param);
+      String paramName = param.getName();
+
+      if (typeName.indexOf('(') != -1) {
+
+        // Instead of returning "void(var) callback", return "void callback(var)".
+        int index = typeName.indexOf('(');
+
+        buf.append(typeName.substring(0, index));
+        buf.append(" ");
+        buf.append(paramName);
+        buf.append(typeName.substring(index));
+      } else {
+        buf.append(typeName + " " + paramName);
+      }
+
+      return buf.toString();
     }
 
     private String getName(com.google.dart.engine.type.Type type) {

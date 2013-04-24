@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
@@ -73,6 +74,12 @@ public class NewSelectionConverter {
     }
 
     ASTNode node = new NodeLocator(caret).searchWithin(cu);
+
+    // Don't traverse parents when mapping String literals
+    if (node instanceof StringLiteral) {
+      return ElementLocator.locate(node);
+    }
+
     while (node != null) {
       Element element = ElementLocator.locate(node);
       if (element != null) {
