@@ -104,16 +104,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_concreteClassWithAbstractMember() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m();",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER);
-    verify(source);
-  }
-
   public void fail_conflictingInstanceGetterAndSuperclassMember() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -483,6 +473,16 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.UNDEFINED_STATIC_METHOD_OR_GETTER);
+    verify(source);
+  }
+
+  public void test_concreteClassWithAbstractMember() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m();",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER);
     verify(source);
   }
 

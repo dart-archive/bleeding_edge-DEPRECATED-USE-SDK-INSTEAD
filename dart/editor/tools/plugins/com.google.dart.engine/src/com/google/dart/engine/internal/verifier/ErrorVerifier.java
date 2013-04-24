@@ -155,6 +155,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean isInSystemLibrary;
 
   /**
+   * The class containing the AST nodes being visited, or {@code null} if we are not in the scope of
+   * a class.
+   */
+  private ClassElement enclosingClass;
+
+  /**
    * The method or function that we are currently visiting, or {@code null} if we are not inside a
    * method or function.
    */
@@ -227,7 +233,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
+    ClassElement outerClass = enclosingClass;
     try {
+      enclosingClass = node.getElement();
       checkForBuiltInIdentifierAsName(
           node.getName(),
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
@@ -247,6 +255,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return super.visitClassDeclaration(node);
     } finally {
       initialFieldElementsMap = null;
+      enclosingClass = outerClass;
     }
   }
 
@@ -408,6 +417,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       } else if (node.isOperator()) {
         checkForOptionalParameterInOperator(node);
       }
+      checkForConcreteClassWithAbstractMember(node);
       return super.visitMethodDeclaration(node);
     } finally {
       enclosingFunction = previousFunction;
@@ -711,6 +721,27 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           return true;
         }
       }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed method declaration is abstract only if the enclosing class is
+   * also abstract.
+   * 
+   * @param node the method declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+   */
+  private boolean checkForConcreteClassWithAbstractMember(MethodDeclaration node) {
+    if (node.isAbstract() && enclosingClass != null && !enclosingClass.isAbstract()) {
+      SimpleIdentifier methodName = node.getName();
+      errorReporter.reportError(
+          StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+          methodName,
+          methodName.getName(),
+          enclosingClass.getName());
+      return true;
     }
     return false;
   }

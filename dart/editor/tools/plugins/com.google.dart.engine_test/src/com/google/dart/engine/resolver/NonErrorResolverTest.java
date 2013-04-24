@@ -115,6 +115,16 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_concreteClassWithAbstractMember() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  m();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_constConstructorWithNonFinalField_constInstanceVar() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

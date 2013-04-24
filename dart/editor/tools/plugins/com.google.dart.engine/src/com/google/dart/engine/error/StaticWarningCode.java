@@ -105,7 +105,7 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.4 Abstract Instance Members: It is a static warning if an abstract member is declared or
    * inherited in a concrete class.
    */
-  CONCRETE_CLASS_WITH_ABSTRACT_MEMBER(""),
+  CONCRETE_CLASS_WITH_ABSTRACT_MEMBER("'%s' must have a method body because '%s' is not abstract"),
 
   /**
    * 7.2 Getters: It is a static warning if a class <i>C</i> declares an instance getter named
