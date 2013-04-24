@@ -124,7 +124,9 @@ public class PubspecModel {
     clearModelFields();
     if (yamlString != null) {
       comments = getComments(yamlString);
-      setValuesFromMap(PubYamlUtils.parsePubspecYamlToMap(yamlString));
+      if (!yamlString.isEmpty()) {
+        setValuesFromMap(PubYamlUtils.parsePubspecYamlToMap(yamlString));
+      }
     }
   }
 
