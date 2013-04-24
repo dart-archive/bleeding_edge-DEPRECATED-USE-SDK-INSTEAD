@@ -8,17 +8,17 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "148305",
+  "webkit_revision": "148757",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "11177",
+  "nacl_revision": "11208",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "11040",  # native_client/DEPS: tools_rev
   "gtm_revision": "608",
 
-  "libjingle_revision": "305",
+  "libjingle_revision": "307",
   "libphonenumber_revision": "456",
   "libvpx_revision": "192165",
   "lss_revision": "20",
@@ -29,25 +29,25 @@ vars = {
   "ffmpeg_hash": "b377d75784d29f35d84abb51f54f06ef6ccc7903",
 
   "sfntly_revision": "134",
-  "skia_revision": "8637",
+  "skia_revision": "8756",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "14226",
+  "v8_revision": "14336",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "3765",
+  "webrtc_revision": "3853",
   "jsoncpp_revision": "248",
   "nss_revision": "191424",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarm_client
   # and whatever else without interference from each other.
-  "swarm_revision": "193231",
+  "swarm_revision": "194930",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
-  "openssl_revision": "191822",
+  "openssl_revision": "194187",
 
   "ios_webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   # Three lines of non-changing comments so that
@@ -58,10 +58,10 @@ vars = {
 
 deps = {
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1139",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1146",
 
   "src/googleurl":
-    (Var("googlecode_url") % "google-url") + "/trunk@185",
+    (Var("googlecode_url") % "google-url") + "/trunk@183",
 
   "src/sandbox/linux/seccomp-legacy":
     (Var("googlecode_url") % "seccompsandbox") + "/trunk@189",
@@ -76,10 +76,10 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@410",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@2040",
+    (Var("googlecode_url") % "angleproject") + "/trunk@2184",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@251",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@255",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -105,7 +105,7 @@ deps = {
 
   "src/third_party/cacheinvalidation/src":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src@296",
+    "/trunk/src@298",
 
   "src/third_party/leveldatabase/src":
     (Var("googlecode_url") % "leveldb") + "/trunk@72",
@@ -117,7 +117,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@115",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1611",
+    (Var("googlecode_url") % "gyp") + "/trunk@1617",
 
   "src/tools/swarm_client":
     "/trunk/tools/swarm_client@" + Var("swarm_revision"),
@@ -182,7 +182,7 @@ deps = {
     (Var("googlecode_url") % "bidichecker") + "/trunk/lib@4",
 
   "src/third_party/v8-i18n":
-    (Var("googlecode_url") % "v8-i18n") + "/trunk@171",
+    (Var("googlecode_url") % "v8-i18n") + "/trunk@174",
 
   # When roll to another webgl conformance tests revision, please goto
   # chrome/test/gpu and run generate_webgl_conformance_test_list.py.
@@ -212,15 +212,6 @@ deps = {
     Var("webkit_revision"),
   "src/content/test/data/layout_tests/LayoutTests/http/tests/websocket/tests":
     Var("webkit_trunk") + "/LayoutTests/http/tests/websocket/tests@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/platform/chromium/fast/workers":
-    Var("webkit_trunk") + "/LayoutTests/platform/chromium/fast/workers@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/platform/chromium/fast/files":
-    Var("webkit_trunk") + "/LayoutTests/platform/chromium/fast/files@" +
-    Var("webkit_revision"),
-  "src/content/test/data/layout_tests/LayoutTests/platform/chromium/fast/events":
-    Var("webkit_trunk") + "/LayoutTests/platform/chromium/fast/events@" +
     Var("webkit_revision"),
   "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/fast/events":
     Var("webkit_trunk") + "/LayoutTests/platform/chromium-win/fast/events@" +
@@ -315,7 +306,7 @@ deps = {
     (Var("googlecode_url") % "libyuv") + "/trunk@618",
 
   "src/third_party/smhasher/src":
-    (Var("googlecode_url") % "smhasher") + "/trunk@147",
+    (Var("googlecode_url") % "smhasher") + "/trunk@148",
 
   "src/third_party/libphonenumber/src/phonenumbers":
      (Var("googlecode_url") % "libphonenumber") +
@@ -331,10 +322,10 @@ deps = {
     "/trunk/deps/third_party/undoview@119694",
 
   "src/tools/deps2git":
-    "/trunk/tools/deps2git@181098",
+    "/trunk/tools/deps2git@194189",
 
   "src/third_party/webpagereplay":
-    (Var("googlecode_url") % "web-page-replay") + "/trunk@506",
+    (Var("googlecode_url") % "web-page-replay") + "/trunk@511",
 
   "src/third_party/pywebsocket/src":
     (Var("googlecode_url") % "pywebsocket") + "/trunk/src@662",
@@ -453,8 +444,6 @@ deps_os = {
     "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/fast/workers": None,
     "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/http/tests/workers": None,
     "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/storage/domstorage": None,
-    "src/content/test/data/layout_tests/LayoutTests/platform/chromium/fast/events": None,
-    "src/content/test/data/layout_tests/LayoutTests/platform/chromium/fast/workers": None,
     "src/content/test/data/layout_tests/LayoutTests/storage/indexeddb": None,
     "src/content/test/data/layout_tests/LayoutTests/storage/domstorage": None,
     "src/chrome/test/data/perf/canvas_bench": None,
@@ -563,7 +552,7 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@5d39f60ce99c9133ff5932446ba46a51bf0c2b70",
+      "@3fabe2002eae665cd108685376d6a07ccbebe533",
 
     # Note that this is different from Android's freetype repo.
     "src/third_party/freetype2/src":
@@ -583,7 +572,7 @@ deps_os = {
   "android": {
     "src/third_party/android_tools":
       Var("chromium_git") + "/android_tools.git" +
-      "@02d3db3c400baa959883006dc697c6cbd70c5194",
+      "@6c57b3397787c23888f9ded9f6a0c0c3f3fdc3a5",
 
     "src/third_party/aosp":
       "/trunk/deps/third_party/aosp@148330",
