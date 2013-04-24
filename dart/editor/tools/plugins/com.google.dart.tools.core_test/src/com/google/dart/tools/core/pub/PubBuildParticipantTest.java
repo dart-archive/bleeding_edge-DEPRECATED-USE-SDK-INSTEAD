@@ -19,7 +19,6 @@ import com.google.dart.tools.core.internal.builder.TestProjects;
 import com.google.dart.tools.core.mock.MockContainer;
 import com.google.dart.tools.core.mock.MockDelta;
 import com.google.dart.tools.core.mock.MockFile;
-import com.google.dart.tools.core.mock.MockFolder;
 
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
@@ -137,22 +136,12 @@ public class PubBuildParticipantTest extends TestCase {
     MockContainer project = newEmptyProject();
     MockFile file = new MockFile(project, PUBSPEC_FILE_NAME);
     project.add(file);
-
+    MockFile lockFile = new MockFile(project, PUBSPEC_LOCK_FILE_NAME);
+    project.add(lockFile);
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);
     target.assertRunPub(project);
     target.assertProcessPubspecFile(file);
-    target.assertProcessLockFile(null);
-  }
-
-  // Assert lock file is processed when changed
-  public void test_build_full_pub_lockFile() throws Exception {
-    Target target = new Target();
-    MockContainer project = newEmptyProject();
-    MockFile file = new MockFile(project, PUBSPEC_LOCK_FILE_NAME);
-    project.add(file);
-    target.build(new BuildEvent(project, null, MONITOR), MONITOR);
-    target.assertProcessLockFile(file);
-    target.assertRunPub(null);
+    target.assertProcessLockFile(lockFile);
   }
 
   // Assert pub is not run on pubspec.yaml in folder under "packages" directory hierarchy
@@ -172,13 +161,15 @@ public class PubBuildParticipantTest extends TestCase {
     MockContainer project = TestProjects.newPubProject1();
 
     MockFile file = new MockFile(project, PUBSPEC_FILE_NAME);
+    MockFile lockFile = new MockFile(project, PUBSPEC_LOCK_FILE_NAME);
+    project.add(lockFile);
     MockDelta delta = new MockDelta(project);
     delta.add(file, ADDED);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertRunPub(project);
     target.assertProcessPubspecFile(file);
-    target.assertProcessLockFile(null);
+    target.assertProcessLockFile(lockFile);
   }
 
   // Assert pub is run when pubspec.yaml has changed
@@ -187,13 +178,15 @@ public class PubBuildParticipantTest extends TestCase {
     MockContainer project = TestProjects.newPubProject1();
 
     MockFile file = new MockFile(project, PUBSPEC_FILE_NAME);
+    MockFile lockFile = new MockFile(project, PUBSPEC_LOCK_FILE_NAME);
+    project.add(lockFile);
     MockDelta delta = new MockDelta(project);
     delta.add(file);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertRunPub(project);
     target.assertProcessPubspecFile(file);
-    target.assertProcessLockFile(null);
+    target.assertProcessLockFile(lockFile);
   }
 
   // Assert pub is not run on pubspec.yaml in file under "packages" directory hierarchy
@@ -240,18 +233,6 @@ public class PubBuildParticipantTest extends TestCase {
     target.assertRunPub(null);
     target.assertProcessPubspecFile(null);
     target.assertProcessLockFile(null);
-  }
-
-  // Assert lock file is processed when not in project root
-  public void test_build_pub_lockFile_notInProjectRoot() throws Exception {
-    Target target = new Target();
-    MockContainer project = newEmptyProject();
-    MockFolder myApp = project.addFolder("myapp");
-    MockFile file = new MockFile(myApp, PUBSPEC_LOCK_FILE_NAME);
-    myApp.add(file);
-    target.build(new BuildEvent(project, null, MONITOR), MONITOR);
-    target.assertProcessLockFile(file);
-    target.assertRunPub(null);
   }
 
 }

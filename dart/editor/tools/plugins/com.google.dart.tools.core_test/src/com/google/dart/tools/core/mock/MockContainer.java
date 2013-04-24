@@ -131,6 +131,11 @@ public abstract class MockContainer extends MockResource implements IContainer {
 
   @Override
   public IResource findMember(String name) {
+    for (IResource child : children) {
+      if (child.getName().equals(name)) {
+        return child;
+      }
+    }
     return null;
   }
 
