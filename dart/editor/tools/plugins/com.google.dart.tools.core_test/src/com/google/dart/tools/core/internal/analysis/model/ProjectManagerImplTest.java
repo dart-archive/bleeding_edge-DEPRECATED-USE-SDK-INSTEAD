@@ -18,7 +18,6 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -371,14 +370,7 @@ public class ProjectManagerImplTest extends TestCase {
     rootContainer = new MockWorkspaceRoot();
     projectContainer = TestProjects.newPubProject3(rootContainer);
     rootContainer.add(projectContainer);
-//    expectedSdk = mock(DartSdk.class);
-//    when(expectedSdk.mapDartUri("dart:core")).thenReturn(new File("dart-core-mock.dart"));
-    expectedSdk = new DirectoryBasedDartSdk(new File("ignore")) {
-      @Override
-      public Source mapDartUri(ContentCache contentCache, String uri) {
-        return new FileBasedSource(contentCache, new File(uri));
-      }
-    };
+    expectedSdk = DirectoryBasedDartSdk.getDefaultSdk();
     manager = new MockProjectManagerImpl(rootContainer, expectedSdk, ignoreManager);
     context = new MockContextForTest();
   }

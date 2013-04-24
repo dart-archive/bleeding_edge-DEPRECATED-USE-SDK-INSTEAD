@@ -18,9 +18,7 @@ import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
-import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -172,12 +170,7 @@ public class WorkspaceDeltaProcessorTest extends TestCase {
     rootContainer = new MockWorkspaceRoot();
     projectContainer = TestProjects.newPubProject3(rootContainer);
     rootContainer.add(projectContainer);
-    DartSdk sdk = new DirectoryBasedDartSdk(new File("ignore")) {
-      @Override
-      public Source mapDartUri(ContentCache contentCache, String uri) {
-        return new FileBasedSource(contentCache, new File(uri));
-      }
-    };
+    DartSdk sdk = DirectoryBasedDartSdk.getDefaultSdk();
     manager = new MockProjectManagerImpl(rootContainer, sdk, new DartIgnoreManager());
     project = new MockProjectImpl(projectContainer, sdk, manager.getIndex());
     processor = new Target(manager);
