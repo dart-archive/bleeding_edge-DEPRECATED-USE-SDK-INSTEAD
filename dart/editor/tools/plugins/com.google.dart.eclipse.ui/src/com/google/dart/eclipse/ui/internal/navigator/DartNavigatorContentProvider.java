@@ -163,7 +163,9 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
-        viewer.refresh();
+        if (!viewer.getControl().isDisposed()) {
+          viewer.refresh();
+        }
       }
     });
   }
