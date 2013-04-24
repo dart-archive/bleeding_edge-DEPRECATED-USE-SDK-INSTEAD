@@ -21,6 +21,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
@@ -58,7 +59,7 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   }
 
   @Override
-  public void addSourceInfo(Source source, SourceInfo info) {
+  public void addSourceInfo(Source source, SourceEntry info) {
     if (source.isInSystemLibrary()) {
       sdkAnalysisContext.addSourceInfo(source, info);
     } else {
@@ -288,20 +289,22 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   }
 
   @Override
-  public void recordResolutionErrors(Source source, AnalysisError[] errors, LineInfo lineInfo) {
+  public void recordResolutionErrors(Source source, Source librarySource, AnalysisError[] errors,
+      LineInfo lineInfo) {
     if (source.isInSystemLibrary()) {
-      sdkAnalysisContext.recordResolutionErrors(source, errors, lineInfo);
+      sdkAnalysisContext.recordResolutionErrors(source, librarySource, errors, lineInfo);
     } else {
-      super.recordResolutionErrors(source, errors, lineInfo);
+      super.recordResolutionErrors(source, librarySource, errors, lineInfo);
     }
   }
 
   @Override
-  public void recordResolvedCompilationUnit(Source source, CompilationUnit unit) {
+  public void recordResolvedCompilationUnit(Source source, Source librarySource,
+      CompilationUnit unit) {
     if (source.isInSystemLibrary()) {
-      sdkAnalysisContext.recordResolvedCompilationUnit(source, unit);
+      sdkAnalysisContext.recordResolvedCompilationUnit(source, librarySource, unit);
     } else {
-      super.recordResolvedCompilationUnit(source, unit);
+      super.recordResolvedCompilationUnit(source, librarySource, unit);
     }
   }
 

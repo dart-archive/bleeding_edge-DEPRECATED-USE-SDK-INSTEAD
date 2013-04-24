@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
@@ -36,7 +37,7 @@ public interface InternalAnalysisContext extends AnalysisContext {
    * @param source the source to be added
    * @param info the information about the source
    */
-  public void addSourceInfo(Source source, SourceInfo info);
+  public void addSourceInfo(Source source, SourceEntry info);
 
   /**
    * Return an AST structure corresponding to the given source, but ensure that the structure has
@@ -94,16 +95,22 @@ public interface InternalAnalysisContext extends AnalysisContext {
    * to the cache.
    * 
    * @param source the source with which the information is associated
+   * @param librarySource the source of the defining compilation unit of the library in which the
+   *          source was resolved
    * @param errors the resolution errors associated with the source
    * @param lineInfo the line information associated with the source
    */
-  public void recordResolutionErrors(Source source, AnalysisError[] errors, LineInfo lineInfo);
+  public void recordResolutionErrors(Source source, Source librarySource, AnalysisError[] errors,
+      LineInfo lineInfo);
 
   /**
    * Give the resolved compilation unit associated with the given source, add the unit to the cache.
    * 
    * @param source the source with which the unit is associated
+   * @param librarySource the source of the defining compilation unit of the library in which the
+   *          source was resolved
    * @param unit the compilation unit associated with the source
    */
-  public void recordResolvedCompilationUnit(Source source, CompilationUnit unit);
+  public void recordResolvedCompilationUnit(Source source, Source librarySource,
+      CompilationUnit unit);
 }

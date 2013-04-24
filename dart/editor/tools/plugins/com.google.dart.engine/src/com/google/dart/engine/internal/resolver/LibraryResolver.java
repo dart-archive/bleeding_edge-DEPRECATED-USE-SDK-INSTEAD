@@ -656,20 +656,21 @@ public class LibraryResolver {
   private void recordResults() throws AnalysisException {
     HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();
     for (Library library : librariesInCycles) {
-      recordResults(library.getLibrarySource(), library.getDefiningCompilationUnit());
+      Source librarySource = library.getLibrarySource();
+      recordResults(librarySource, librarySource, library.getDefiningCompilationUnit());
       for (Source source : library.getCompilationUnitSources()) {
-        recordResults(source, library.getAST(source));
+        recordResults(source, librarySource, library.getAST(source));
       }
       elementMap.put(library.getLibrarySource(), library.getLibraryElement());
     }
     analysisContext.recordLibraryElements(elementMap);
   }
 
-  private void recordResults(Source source, CompilationUnit unit) {
+  private void recordResults(Source source, Source librarySource, CompilationUnit unit) {
     AnalysisError[] errors = recordingErrorListener.getErrors(source);
     unit.setResolutionErrors(errors);
-    analysisContext.recordResolvedCompilationUnit(source, unit);
-    analysisContext.recordResolutionErrors(source, errors, unit.getLineInfo());
+    analysisContext.recordResolvedCompilationUnit(source, librarySource, unit);
+    analysisContext.recordResolutionErrors(source, librarySource, errors, unit.getLineInfo());
   }
 
   /**

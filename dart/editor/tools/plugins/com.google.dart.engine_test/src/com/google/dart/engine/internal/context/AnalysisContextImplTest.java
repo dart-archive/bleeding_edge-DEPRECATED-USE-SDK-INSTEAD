@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.context.AnalysisContextFactory;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -437,8 +438,12 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_parseCompilationUnit_nonExistentSource() throws Exception {
     Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile("/test.dart"));
-    CompilationUnit unit = context.parseCompilationUnit(source);
-    assertNull(unit);
+    try {
+      context.parseCompilationUnit(source);
+      fail("Expected AnalysisException because file does not exist");
+    } catch (AnalysisException exception) {
+      // Expected result
+    }
   }
 
   public void test_parseHtmlUnit_noErrors() throws Exception {

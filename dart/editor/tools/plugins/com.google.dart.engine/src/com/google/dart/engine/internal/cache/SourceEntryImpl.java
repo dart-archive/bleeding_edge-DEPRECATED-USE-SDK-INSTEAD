@@ -89,7 +89,7 @@ public abstract class SourceEntryImpl implements SourceEntry {
    */
   public void setState(DataDescriptor<?> descriptor, CacheState state) {
     if (descriptor == LINE_INFO) {
-      lineInfo = updatedValue(state, lineInfo);
+      lineInfo = updatedValue(state, lineInfo, null);
       lineInfoState = state;
     } else {
       throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
@@ -128,9 +128,10 @@ public abstract class SourceEntryImpl implements SourceEntry {
    * 
    * @param state the state to which the data is being transitioned
    * @param currentValue the value of the data before the transition
+   * @param defaultValue the value to be used if the current value is to be removed from the cache
    * @return the value of the data that should be kept in the cache
    */
-  protected <E> E updatedValue(CacheState state, E currentValue) {
+  protected <E> E updatedValue(CacheState state, E currentValue, E defaultValue) {
     if (state == CacheState.VALID) {
       throw new IllegalArgumentException("Use setValue() to set the state to VALID");
     } else if (state == CacheState.IN_PROCESS) {
@@ -139,6 +140,6 @@ public abstract class SourceEntryImpl implements SourceEntry {
       //
       return currentValue;
     }
-    return null;
+    return defaultValue;
   }
 }

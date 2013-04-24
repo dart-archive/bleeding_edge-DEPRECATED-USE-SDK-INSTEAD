@@ -12,6 +12,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
@@ -72,7 +73,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public void addSourceInfo(Source source, SourceInfo info) {
+  public void addSourceInfo(Source source, SourceEntry info) {
     basis.addSourceInfo(source, info);
   }
 
@@ -486,13 +487,15 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public void recordResolutionErrors(Source source, AnalysisError[] errors, LineInfo lineInfo) {
-    basis.recordResolutionErrors(source, errors, lineInfo);
+  public void recordResolutionErrors(Source source, Source librarySource, AnalysisError[] errors,
+      LineInfo lineInfo) {
+    basis.recordResolutionErrors(source, librarySource, errors, lineInfo);
   }
 
   @Override
-  public void recordResolvedCompilationUnit(Source source, CompilationUnit unit) {
-    basis.recordResolvedCompilationUnit(source, unit);
+  public void recordResolvedCompilationUnit(Source source, Source librarySource,
+      CompilationUnit unit) {
+    basis.recordResolvedCompilationUnit(source, librarySource, unit);
   }
 
   @Override

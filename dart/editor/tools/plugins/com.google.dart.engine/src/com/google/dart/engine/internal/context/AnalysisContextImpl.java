@@ -43,6 +43,11 @@ import com.google.dart.engine.html.parser.HtmlParser;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.html.scanner.HtmlScanner;
 import com.google.dart.engine.internal.builder.HtmlUnitBuilder;
+import com.google.dart.engine.internal.cache.DartEntry;
+import com.google.dart.engine.internal.cache.DartEntryImpl;
+import com.google.dart.engine.internal.cache.HtmlEntry;
+import com.google.dart.engine.internal.cache.HtmlEntryImpl;
+import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
@@ -118,7 +123,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * A table mapping the sources known to the context to the information known about the source.
    */
-  private final HashMap<Source, SourceInfo> sourceMap = new HashMap<Source, SourceInfo>();
+  private final HashMap<Source, SourceEntry> sourceMap = new HashMap<Source, SourceEntry>();
 
   /**
    * A table mapping sources to the change notices that are waiting to be returned related to that
@@ -167,7 +172,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
-  public void addSourceInfo(Source source, SourceInfo info) {
+  public void addSourceInfo(Source source, SourceEntry info) {
     sourceMap.put(source, info);
   }
 
@@ -250,19 +255,26 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public AnalysisError[] computeErrors(Source source) throws AnalysisException {
     synchronized (cacheLock) {
-      CompilationUnitInfo info = getCompilationUnitInfo(source);
-      if (info == null) {
+      DartEntry dartEntry = getDartEntry(source);
+      if (dartEntry == null) {
         return AnalysisError.NO_ERRORS;
       }
-      if (info.hasInvalidParseErrors()) {
+      CacheState parseErrorsState = dartEntry.getState(DartEntry.PARSE_ERRORS);
+      if (parseErrorsState != CacheState.VALID && parseErrorsState != CacheState.ERROR) {
         parseCompilationUnit(source);
       }
-      if (info.hasInvalidResolutionErrors()) {
-        // TODO(brianwilkerson) Decide whether to resolve the source against all libraries or
-        // whether to add a librarySource parameter to this method.
-        // resolveCompilationUnit(source);
+      Source[] libraries = getLibrariesContaining(source);
+      for (Source librarySource : libraries) {
+        CacheState resolutionErrorsState = dartEntry.getState(
+            DartEntry.RESOLUTION_ERRORS,
+            librarySource);
+        if (resolutionErrorsState != CacheState.VALID && resolutionErrorsState != CacheState.ERROR) {
+          // TODO(brianwilkerson) Decide whether to resolve the source against all libraries or
+          // whether to add a librarySource parameter to this method.
+          // resolveCompilationUnit(source, librarySource);
+        }
       }
-      return info.getAllErrors();
+      return dartEntry.getAllErrors();
     }
   }
 
@@ -272,23 +284,23 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return null;
     }
     synchronized (cacheLock) {
-      HtmlUnitInfo htmlUnitInfo = getHtmlUnitInfo(source);
-      if (htmlUnitInfo == null) {
+      HtmlEntry htmlEntry = getHtmlEntry(source);
+      if (htmlEntry == null) {
         return null;
       }
-      HtmlElement element = htmlUnitInfo.getElement();
+      HtmlElement element = htmlEntry.getValue(HtmlEntry.ELEMENT);
       if (element == null) {
-        HtmlUnit unit = htmlUnitInfo.getResolvedUnit();
+        HtmlUnit unit = htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT);
         if (unit == null) {
-          unit = htmlUnitInfo.getParsedUnit();
+          unit = htmlEntry.getValue(HtmlEntry.PARSED_UNIT);
           if (unit == null) {
             unit = parseHtmlUnit(source);
           }
         }
         HtmlUnitBuilder builder = new HtmlUnitBuilder(this);
         element = builder.buildHtmlElement(source, unit);
-        htmlUnitInfo.setResolvedUnit(unit);
-        htmlUnitInfo.setElement(element);
+        ((HtmlEntryImpl) htmlEntry).setValue(HtmlEntry.RESOLVED_UNIT, unit);
+        ((HtmlEntryImpl) htmlEntry).setValue(HtmlEntry.ELEMENT, element);
       }
       return element;
     }
@@ -297,13 +309,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public SourceKind computeKindOf(Source source) {
     synchronized (cacheLock) {
-      SourceInfo sourceInfo = getSourceInfo(source);
-      if (sourceInfo == null) {
+      SourceEntry sourceEntry = getSourceEntry(source);
+      if (sourceEntry == null) {
         return SourceKind.UNKNOWN;
-      } else if (sourceInfo == DartInfo.getPendingInstance()) {
-        sourceInfo = internalComputeKindOf(source);
+      } else if (sourceEntry instanceof DartEntry) {
+        DartEntry dartEntry = (DartEntry) sourceEntry;
+        CacheState sourceKindState = dartEntry.getState(DartEntry.SOURCE_KIND);
+        if (sourceKindState != CacheState.VALID && sourceKindState != CacheState.ERROR) {
+          internalComputeKindOf(source);
+        }
       }
-      return sourceInfo.getKind();
+      return sourceEntry.getKind();
     }
   }
 
@@ -313,20 +329,21 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return null;
     }
     synchronized (cacheLock) {
-      LibraryInfo libraryInfo = getLibraryInfo(source);
-      if (libraryInfo == null) {
+      DartEntry dartEntry = getDartEntry(source);
+      if (dartEntry == null) {
         return null;
       }
-      LibraryElement element = libraryInfo.getElement();
+      LibraryElement element = dartEntry.getValue(DartEntry.ELEMENT);
       if (element == null) {
         if (computeKindOf(source) != SourceKind.LIBRARY) {
-          return null;
+          throw new AnalysisException("Cannot compute library element for non-library: "
+              + source.getFullName());
         }
         LibraryResolver resolver = new LibraryResolver(this);
         try {
           element = resolver.resolveLibrary(source, true);
           if (element != null) {
-            libraryInfo.setElement(element);
+            ((DartEntryImpl) dartEntry).setValue(DartEntry.ELEMENT, element);
           }
         } catch (AnalysisException exception) {
           AnalysisEngine.getInstance().getLogger().logError(
@@ -341,21 +358,18 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public LineInfo computeLineInfo(Source source) throws AnalysisException {
     synchronized (cacheLock) {
-      SourceInfo sourceInfo = getSourceInfo(source);
-      if (sourceInfo == null) {
+      SourceEntry sourceEntry = getSourceEntry(source);
+      if (sourceEntry == null) {
         return null;
       }
-      LineInfo lineInfo = sourceInfo.getLineInfo();
+      LineInfo lineInfo = sourceEntry.getValue(SourceEntry.LINE_INFO);
       if (lineInfo == null) {
-        if (sourceInfo == DartInfo.getPendingInstance()) {
-          sourceInfo = internalComputeKindOf(source);
-        }
-        if (sourceInfo instanceof HtmlUnitInfo) {
+        if (sourceEntry instanceof HtmlEntry) {
           parseHtmlUnit(source);
-          lineInfo = sourceInfo.getLineInfo();
-        } else if (sourceInfo instanceof CompilationUnitInfo) {
+          lineInfo = sourceEntry.getValue(SourceEntry.LINE_INFO);
+        } else if (sourceEntry instanceof DartEntry) {
           parseCompilationUnit(source);
-          lineInfo = sourceInfo.getLineInfo();
+          lineInfo = sourceEntry.getValue(SourceEntry.LINE_INFO);
         }
       }
       return lineInfo;
@@ -365,19 +379,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public CompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException {
     synchronized (cacheLock) {
-      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
-      if (compilationUnitInfo == null) {
+      DartEntry dartEntry = getDartEntry(source);
+      if (dartEntry == null) {
         return null;
       }
-      CompilationUnit unit = compilationUnitInfo.getParsedCompilationUnit();
-      if (unit == null) {
-        unit = compilationUnitInfo.getResolvedCompilationUnit();
-      }
+      CompilationUnit unit = dartEntry.getAnyParsedCompilationUnit();
       if (unit != null) {
         return (CompilationUnit) unit.accept(new ASTCloner());
       }
-      unit = internalParseCompilationUnit(compilationUnitInfo, source);
-      compilationUnitInfo.clearParsedUnit();
+      unit = internalParseCompilationUnit(((DartEntryImpl) dartEntry), source);
+      ((DartEntryImpl) dartEntry).setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
       return unit;
     }
   }
@@ -395,11 +406,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
     synchronized (cacheLock) {
       // Move sources in the specified directory to the new context
-      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+      for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
         Source source = entry.getKey();
         if (container.contains(source)) {
           sourcesToRemove.add(source);
-          newContext.addSourceInfo(source, entry.getValue().copy());
+          newContext.addSourceInfo(source, entry.getValue().getWritableCopy());
         }
       }
 
@@ -444,23 +455,25 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public AnalysisErrorInfo getErrors(Source source) {
     synchronized (cacheLock) {
-      SourceInfo info = getSourceInfo(source);
-      if (info instanceof CompilationUnitInfo) {
-        CompilationUnitInfo compilationUnitInfo = (CompilationUnitInfo) info;
+      SourceEntry sourceEntry = getSourceEntry(source);
+      if (sourceEntry instanceof DartEntry) {
+        DartEntry dartEntry = (DartEntry) sourceEntry;
         return new AnalysisErrorInfoImpl(
-            compilationUnitInfo.getAllErrors(),
-            compilationUnitInfo.getLineInfo());
+            dartEntry.getAllErrors(),
+            dartEntry.getValue(SourceEntry.LINE_INFO));
       }
-      return new AnalysisErrorInfoImpl(AnalysisError.NO_ERRORS, info.getLineInfo());
+      return new AnalysisErrorInfoImpl(
+          AnalysisError.NO_ERRORS,
+          sourceEntry.getValue(SourceEntry.LINE_INFO));
     }
   }
 
   @Override
   public HtmlElement getHtmlElement(Source source) {
     synchronized (cacheLock) {
-      SourceInfo info = getSourceInfo(source);
-      if (info instanceof HtmlUnitInfo) {
-        return ((HtmlUnitInfo) info).getElement();
+      SourceEntry sourceEntry = getSourceEntry(source);
+      if (sourceEntry instanceof HtmlEntry) {
+        return ((HtmlEntry) sourceEntry).getValue(HtmlEntry.ELEMENT);
       }
       return null;
     }
@@ -473,9 +486,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       switch (getKindOf(source)) {
         case LIBRARY:
         default:
-          for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+          for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
             if (entry.getValue().getKind() == SourceKind.HTML) {
-              if (contains(((HtmlUnitInfo) entry.getValue()).getLibrarySources(), source)) {
+              Source[] referencedLibraries = ((HtmlEntry) entry.getValue()).getValue(HtmlEntry.REFERENCED_LIBRARIES);
+              if (contains(referencedLibraries, source)) {
                 htmlSources.add(entry.getKey());
               }
             }
@@ -483,9 +497,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           break;
         case PART:
           Source[] librarySources = getLibrariesContaining(source);
-          for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+          for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
             if (entry.getValue().getKind() == SourceKind.HTML) {
-              if (containsAny(((HtmlUnitInfo) entry.getValue()).getLibrarySources(), librarySources)) {
+              Source[] referencedLibraries = ((HtmlEntry) entry.getValue()).getValue(HtmlEntry.REFERENCED_LIBRARIES);
+              if (containsAny(referencedLibraries, librarySources)) {
                 htmlSources.add(entry.getKey());
               }
             }
@@ -507,11 +522,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public SourceKind getKindOf(Source source) {
     synchronized (cacheLock) {
-      SourceInfo sourceInfo = getSourceInfo(source);
-      if (sourceInfo == null) {
+      SourceEntry sourceEntry = getSourceEntry(source);
+      if (sourceEntry == null) {
         return SourceKind.UNKNOWN;
       }
-      return sourceInfo.getKind();
+      return sourceEntry.getKind();
     }
   }
 
@@ -521,10 +536,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     // either directly or indirectly.
     ArrayList<Source> sources = new ArrayList<Source>();
     synchronized (cacheLock) {
-      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+      for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
         Source source = entry.getKey();
-        SourceInfo info = entry.getValue();
-        if (info.getKind() == SourceKind.LIBRARY && !source.isInSystemLibrary()) {
+        SourceEntry sourceEntry = entry.getValue();
+        if (sourceEntry.getKind() == SourceKind.LIBRARY && !source.isInSystemLibrary()) {
           sources.add(source);
         }
       }
@@ -538,10 +553,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     // directly or indirectly.
     ArrayList<Source> sources = new ArrayList<Source>();
     synchronized (cacheLock) {
-      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+      for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
         Source source = entry.getKey();
-        SourceInfo info = entry.getValue();
-        if (info.getKind() == SourceKind.LIBRARY && !source.isInSystemLibrary()) {
+        SourceEntry sourceEntry = entry.getValue();
+        if (sourceEntry.getKind() == SourceKind.LIBRARY && !source.isInSystemLibrary()) {
           sources.add(source);
         }
       }
@@ -553,9 +568,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public Source[] getLibrariesContaining(Source source) {
     synchronized (cacheLock) {
       ArrayList<Source> librarySources = new ArrayList<Source>();
-      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+      for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
         if (entry.getValue().getKind() == SourceKind.LIBRARY) {
-          if (contains(((LibraryInfo) entry.getValue()).getUnitSources(), source)) {
+          if (contains(((DartEntry) entry.getValue()).getValue(DartEntry.INCLUDED_PARTS), source)) {
             librarySources.add(entry.getKey());
           }
         }
@@ -570,9 +585,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public LibraryElement getLibraryElement(Source source) {
     synchronized (cacheLock) {
-      SourceInfo info = getSourceInfo(source);
-      if (info instanceof LibraryInfo) {
-        return ((LibraryInfo) info).getElement();
+      SourceEntry sourceEntry = getSourceEntry(source);
+      if (sourceEntry instanceof DartEntry) {
+        return ((DartEntry) sourceEntry).getValue(DartEntry.ELEMENT);
       }
       return null;
     }
@@ -586,9 +601,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public LineInfo getLineInfo(Source source) {
     synchronized (cacheLock) {
-      SourceInfo info = getSourceInfo(source);
-      if (info != null) {
-        return info.getLineInfo();
+      SourceEntry sourceEntry = getSourceEntry(source);
+      if (sourceEntry != null) {
+        return sourceEntry.getValue(SourceEntry.LINE_INFO);
       }
       return null;
     }
@@ -600,15 +615,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     // API of the interface.
     Source source = library.getDefiningCompilationUnit().getSource();
     synchronized (cacheLock) {
-      LibraryInfo libraryInfo = getLibraryInfo(source);
-      if (libraryInfo == null) {
+      DartEntry dartEntry = getDartEntry(source);
+      if (dartEntry == null) {
         return null;
       }
-      Namespace namespace = libraryInfo.getPublicNamespace();
+      Namespace namespace = dartEntry.getValue(DartEntry.PUBLIC_NAMESPACE);
       if (namespace == null) {
         NamespaceBuilder builder = new NamespaceBuilder();
         namespace = builder.createPublicNamespace(library);
-        libraryInfo.setPublicNamespace(namespace);
+        ((DartEntryImpl) dartEntry).setValue(DartEntry.PUBLIC_NAMESPACE, namespace);
       }
       return namespace;
     }
@@ -619,11 +634,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     // TODO(brianwilkerson) Rename this to not start with 'get'. Note that this is not part of the
     // API of the interface.
     synchronized (cacheLock) {
-      LibraryInfo libraryInfo = getLibraryInfo(source);
-      if (libraryInfo == null) {
+      DartEntry dartEntry = getDartEntry(source);
+      if (dartEntry == null) {
         return null;
       }
-      Namespace namespace = libraryInfo.getPublicNamespace();
+      Namespace namespace = dartEntry.getValue(DartEntry.PUBLIC_NAMESPACE);
       if (namespace == null) {
         LibraryElement library = computeLibraryElement(source);
         if (library == null) {
@@ -631,7 +646,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
         NamespaceBuilder builder = new NamespaceBuilder();
         namespace = builder.createPublicNamespace(library);
-        libraryInfo.setPublicNamespace(namespace);
+        ((DartEntryImpl) dartEntry).setValue(DartEntry.PUBLIC_NAMESPACE, namespace);
       }
       return namespace;
     }
@@ -649,13 +664,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public CompilationUnit getResolvedCompilationUnit(Source unitSource, Source librarySource) {
     synchronized (cacheLock) {
       accessed(unitSource);
-      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(unitSource);
-      if (compilationUnitInfo == null) {
+      DartEntry dartEntry = getDartEntry(unitSource);
+      if (dartEntry == null) {
         return null;
       }
-      // TODO(brianwilkerson) This doesn't ensure that the compilation unit was resolved in the
-      // context of the specified library.
-      return compilationUnitInfo.getResolvedCompilationUnit();
+      return dartEntry.getValue(DartEntry.RESOLVED_UNIT, librarySource);
     }
   }
 
@@ -666,26 +679,33 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public boolean isClientLibrary(Source librarySource) {
-    SourceInfo sourceInfo = getSourceInfo(librarySource);
-    if (sourceInfo instanceof LibraryInfo) {
-      LibraryInfo libraryInfo = (LibraryInfo) sourceInfo;
-      if (libraryInfo.hasInvalidLaunchable() || libraryInfo.hasInvalidClientServer()) {
+    SourceEntry sourceEntry = getSourceEntry(librarySource);
+    if (sourceEntry instanceof DartEntry) {
+      DartEntry dartEntry = (DartEntry) sourceEntry;
+      CacheState isClientState = dartEntry.getState(DartEntry.IS_CLIENT);
+      CacheState isLaunchableState = dartEntry.getState(DartEntry.IS_LAUNCHABLE);
+      if (isClientState == CacheState.INVALID || isClientState == CacheState.ERROR
+          || isLaunchableState == CacheState.INVALID || isLaunchableState == CacheState.ERROR) {
         return false;
       }
-      return libraryInfo.isLaunchable() && libraryInfo.isClient();
+      return dartEntry.getValue(DartEntry.IS_CLIENT) && dartEntry.getValue(DartEntry.IS_LAUNCHABLE);
     }
     return false;
   }
 
   @Override
   public boolean isServerLibrary(Source librarySource) {
-    SourceInfo sourceInfo = getSourceInfo(librarySource);
-    if (sourceInfo instanceof LibraryInfo) {
-      LibraryInfo libraryInfo = (LibraryInfo) sourceInfo;
-      if (libraryInfo.hasInvalidLaunchable() || libraryInfo.hasInvalidClientServer()) {
+    SourceEntry sourceEntry = getSourceEntry(librarySource);
+    if (sourceEntry instanceof DartEntry) {
+      DartEntry dartEntry = (DartEntry) sourceEntry;
+      CacheState isClientState = dartEntry.getState(DartEntry.IS_CLIENT);
+      CacheState isLaunchableState = dartEntry.getState(DartEntry.IS_LAUNCHABLE);
+      if (isClientState == CacheState.INVALID || isClientState == CacheState.ERROR
+          || isLaunchableState == CacheState.INVALID || isLaunchableState == CacheState.ERROR) {
         return false;
       }
-      return libraryInfo.isLaunchable() && libraryInfo.isServer();
+      return !dartEntry.getValue(DartEntry.IS_CLIENT)
+          && dartEntry.getValue(DartEntry.IS_LAUNCHABLE);
     }
     return false;
   }
@@ -693,14 +713,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public void mergeContext(AnalysisContext context) {
     synchronized (cacheLock) {
-      for (Map.Entry<Source, SourceInfo> entry : ((AnalysisContextImpl) context).sourceMap.entrySet()) {
+      for (Map.Entry<Source, SourceEntry> entry : ((AnalysisContextImpl) context).sourceMap.entrySet()) {
         Source newSource = entry.getKey();
-        SourceInfo existingInfo = getSourceInfo(newSource);
-        if (existingInfo == null) {
+        SourceEntry existingEntry = getSourceEntry(newSource);
+        if (existingEntry == null) {
           // TODO(brianwilkerson) Decide whether we really need to copy the info.
-          sourceMap.put(newSource, entry.getValue().copy());
+          sourceMap.put(newSource, entry.getValue().getWritableCopy());
         } else {
-          // TODO(brianwilkerson) Decide whether/how to merge the info's.
+          // TODO(brianwilkerson) Decide whether/how to merge the entries.
         }
       }
     }
@@ -710,16 +730,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public CompilationUnit parseCompilationUnit(Source source) throws AnalysisException {
     synchronized (cacheLock) {
       accessed(source);
-      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
-      if (compilationUnitInfo == null) {
+      DartEntry dartEntry = getDartEntry(source);
+      if (dartEntry == null) {
         return null;
       }
-      CompilationUnit unit = compilationUnitInfo.getResolvedCompilationUnit();
+      CompilationUnit unit = dartEntry.getAnyParsedCompilationUnit();
       if (unit == null) {
-        unit = compilationUnitInfo.getParsedCompilationUnit();
-        if (unit == null) {
-          unit = internalParseCompilationUnit(compilationUnitInfo, source);
-        }
+        unit = internalParseCompilationUnit((DartEntryImpl) dartEntry, source);
       }
       return unit;
     }
@@ -729,19 +746,23 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public HtmlUnit parseHtmlUnit(Source source) throws AnalysisException {
     synchronized (cacheLock) {
       accessed(source);
-      HtmlUnitInfo htmlUnitInfo = getHtmlUnitInfo(source);
-      if (htmlUnitInfo == null) {
+      HtmlEntry htmlEntry = getHtmlEntry(source);
+      if (htmlEntry == null) {
         return null;
       }
-      HtmlUnit unit = htmlUnitInfo.getResolvedUnit();
+      HtmlUnit unit = htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT);
       if (unit == null) {
-        unit = htmlUnitInfo.getParsedUnit();
+        unit = htmlEntry.getValue(HtmlEntry.PARSED_UNIT);
         if (unit == null) {
           HtmlParseResult result = new HtmlParser(source).parse(scanHtml(source));
           unit = result.getHtmlUnit();
-          htmlUnitInfo.setLineInfo(new LineInfo(result.getLineStarts()));
-          htmlUnitInfo.setParsedUnit(unit);
-          htmlUnitInfo.setLibrarySources(getLibrarySources(source, unit));
+          ((HtmlEntryImpl) htmlEntry).setValue(
+              SourceEntry.LINE_INFO,
+              new LineInfo(result.getLineStarts()));
+          ((HtmlEntryImpl) htmlEntry).setValue(HtmlEntry.PARSED_UNIT, unit);
+          ((HtmlEntryImpl) htmlEntry).setValue(
+              HtmlEntry.REFERENCED_LIBRARIES,
+              getLibrarySources(source, unit));
         }
       }
       return unit;
@@ -774,42 +795,48 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         //
         // Cache the element in the library's info.
         //
-        LibraryInfo libraryInfo = getLibraryInfo(librarySource);
-        if (libraryInfo != null) {
-          libraryInfo.setElement(library);
-          libraryInfo.setLaunchable(library.getEntryPoint() != null);
-          libraryInfo.setClient(isClient(library, htmlSource, new HashSet<LibraryElement>()));
+        DartEntryImpl dartEntry = (DartEntryImpl) getDartEntry(librarySource);
+        if (dartEntry != null) {
+          dartEntry.setValue(DartEntry.ELEMENT, library);
+          dartEntry.setValue(DartEntry.IS_LAUNCHABLE, library.getEntryPoint() != null);
+          dartEntry.setValue(
+              DartEntry.IS_CLIENT,
+              isClient(library, htmlSource, new HashSet<LibraryElement>()));
           ArrayList<Source> unitSources = new ArrayList<Source>();
           unitSources.add(librarySource);
           for (CompilationUnitElement part : library.getParts()) {
             Source partSource = part.getSource();
             unitSources.add(partSource);
           }
-          libraryInfo.setUnitSources(unitSources.toArray(new Source[unitSources.size()]));
+          dartEntry.setValue(
+              DartEntry.INCLUDED_PARTS,
+              unitSources.toArray(new Source[unitSources.size()]));
         }
       }
     }
   }
 
   @Override
-  public void recordResolutionErrors(Source source, AnalysisError[] errors, LineInfo lineInfo) {
+  public void recordResolutionErrors(Source source, Source librarySource, AnalysisError[] errors,
+      LineInfo lineInfo) {
     synchronized (cacheLock) {
-      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
-      if (compilationUnitInfo != null) {
-        compilationUnitInfo.setLineInfo(lineInfo);
-        compilationUnitInfo.setResolutionErrors(errors);
+      DartEntryImpl dartEntry = (DartEntryImpl) getDartEntry(source);
+      if (dartEntry != null) {
+        dartEntry.setValue(SourceEntry.LINE_INFO, lineInfo);
+        dartEntry.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
       }
-      getNotice(source).setErrors(compilationUnitInfo.getAllErrors(), lineInfo);
+      getNotice(source).setErrors(dartEntry.getAllErrors(), lineInfo);
     }
   }
 
   @Override
-  public void recordResolvedCompilationUnit(Source source, CompilationUnit unit) {
+  public void recordResolvedCompilationUnit(Source source, Source librarySource,
+      CompilationUnit unit) {
     synchronized (cacheLock) {
-      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
-      if (compilationUnitInfo != null) {
-        compilationUnitInfo.setResolvedCompilationUnit(unit);
-        compilationUnitInfo.clearParsedUnit();
+      DartEntryImpl dartEntry = (DartEntryImpl) getDartEntry(source);
+      if (dartEntry != null) {
+        dartEntry.setValue(DartEntry.RESOLVED_UNIT, librarySource, unit);
+        dartEntry.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
         getNotice(source).setCompilationUnit(unit);
       }
     }
@@ -829,18 +856,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       throws AnalysisException {
     synchronized (cacheLock) {
       accessed(unitSource);
-      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(unitSource);
-      if (compilationUnitInfo == null) {
+      DartEntry dartEntry = getDartEntry(unitSource);
+      if (dartEntry == null) {
         return null;
       }
-      // TODO(brianwilkerson) This doesn't ensure that the compilation unit was resolved in the
-      // context of the specified library.
-      CompilationUnit unit = compilationUnitInfo.getResolvedCompilationUnit();
+      CompilationUnit unit = dartEntry.getValue(DartEntry.RESOLVED_UNIT, librarySource);
       if (unit == null) {
         disableCacheRemoval();
         try {
           LibraryElement libraryElement = computeLibraryElement(librarySource);
-          unit = compilationUnitInfo.getResolvedCompilationUnit();
+          unit = dartEntry.getValue(DartEntry.RESOLVED_UNIT, librarySource);
           if (unit == null && libraryElement != null) {
             Source coreLibrarySource = libraryElement.getContext().getSourceFactory().forUri(
                 DartSdk.DART_CORE);
@@ -886,7 +911,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             // Capture the results.
             //
             unitAST.setResolutionErrors(errorListener.getErrors());
-            compilationUnitInfo.setResolvedCompilationUnit(unitAST);
+            ((DartEntryImpl) dartEntry).setValue(DartEntry.RESOLVED_UNIT, librarySource, unitAST);
             unit = unitAST;
           }
         } finally {
@@ -901,16 +926,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public HtmlUnit resolveHtmlUnit(Source unitSource) throws AnalysisException {
     synchronized (cacheLock) {
       accessed(unitSource);
-      HtmlUnitInfo htmlUnitInfo = getHtmlUnitInfo(unitSource);
-      if (htmlUnitInfo == null) {
+      HtmlEntry htmlEntry = getHtmlEntry(unitSource);
+      if (htmlEntry == null) {
         return null;
       }
-      HtmlUnit unit = htmlUnitInfo.getResolvedUnit();
+      HtmlUnit unit = htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT);
       if (unit == null) {
         disableCacheRemoval();
         try {
           computeHtmlElement(unitSource);
-          unit = htmlUnitInfo.getResolvedUnit();
+          unit = htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT);
           if (unit == null) {
             // There is currently no difference between the parsed and resolved forms of an HTML
             // unit. This code needs to change if resolution ever modifies the AST.
@@ -945,20 +970,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       factory.setContext(this);
       sourceFactory = factory;
-      for (SourceInfo sourceInfo : sourceMap.values()) {
-        if (sourceInfo instanceof HtmlUnitInfo) {
-          ((HtmlUnitInfo) sourceInfo).invalidateResolvedUnit();
-        } else if (sourceInfo instanceof CompilationUnitInfo) {
-          CompilationUnitInfo compilationUnitInfo = (CompilationUnitInfo) sourceInfo;
-          compilationUnitInfo.invalidateResolvedUnit();
-          compilationUnitInfo.invalidateResolutionErrors();
-          if (sourceInfo instanceof LibraryInfo) {
-            LibraryInfo libraryInfo = (LibraryInfo) sourceInfo;
-            libraryInfo.invalidateElement();
-            libraryInfo.invalidatePublicNamespace();
-            libraryInfo.invalidateLaunchable();
-            libraryInfo.invalidateClientServer();
-          }
+      for (SourceEntry sourceEntry : sourceMap.values()) {
+        if (sourceEntry instanceof HtmlEntry) {
+          ((HtmlEntryImpl) sourceEntry).setState(HtmlEntry.RESOLVED_UNIT, CacheState.INVALID);
+        } else if (sourceEntry instanceof DartEntry) {
+          ((DartEntryImpl) sourceEntry).invalidateAllResolutionInformation();
         }
       }
     }
@@ -990,13 +1006,18 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
     if (cacheRemovalCount == 0 && recentlyUsed.size() >= MAX_CACHE_SIZE) {
       Source removedSource = recentlyUsed.remove(0);
-      SourceInfo sourceInfo = sourceMap.get(removedSource);
-      if (sourceInfo instanceof HtmlUnitInfo) {
-        ((HtmlUnitInfo) sourceInfo).clearParsedUnit();
-        ((HtmlUnitInfo) sourceInfo).clearResolvedUnit();
-      } else if (sourceInfo instanceof CompilationUnitInfo) {
-        ((CompilationUnitInfo) sourceInfo).clearParsedUnit();
-        ((CompilationUnitInfo) sourceInfo).clearResolvedUnit();
+      SourceEntry sourceEntry = sourceMap.get(removedSource);
+      if (sourceEntry instanceof HtmlEntry) {
+        ((HtmlEntryImpl) sourceEntry).setState(HtmlEntry.PARSED_UNIT, CacheState.FLUSHED);
+        ((HtmlEntryImpl) sourceEntry).setState(HtmlEntry.RESOLVED_UNIT, CacheState.FLUSHED);
+      } else if (sourceEntry instanceof DartEntry) {
+        ((DartEntryImpl) sourceEntry).setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+        for (Source librarySource : getLibrariesContaining(source)) {
+          ((DartEntryImpl) sourceEntry).setState(
+              DartEntry.RESOLVED_UNIT,
+              librarySource,
+              CacheState.FLUSHED);
+        }
       }
     }
     recentlyUsed.add(source);
@@ -1057,16 +1078,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param source the source for which an information object is being created
    * @return the source information object that was created
    */
-  private SourceInfo createSourceInfo(Source source) {
+  private SourceEntry createSourceEntry(Source source) {
     String name = source.getShortName();
     if (AnalysisEngine.isHtmlFileName(name)) {
-      HtmlUnitInfo info = new HtmlUnitInfo();
-      sourceMap.put(source, info);
-      return info;
+      HtmlEntry htmlEntry = new HtmlEntryImpl();
+      sourceMap.put(source, htmlEntry);
+      return htmlEntry;
     } else if (AnalysisEngine.isDartFileName(name)) {
-      DartInfo info = DartInfo.getPendingInstance();
-      sourceMap.put(source, info);
-      return info;
+      DartEntry dartEntry = new DartEntryImpl();
+      sourceMap.put(source, dartEntry);
+      return dartEntry;
     }
     return null;
   }
@@ -1089,13 +1110,18 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (cacheRemovalCount == 0) {
       while (recentlyUsed.size() >= MAX_CACHE_SIZE) {
         Source removedSource = recentlyUsed.remove(0);
-        SourceInfo sourceInfo = sourceMap.get(removedSource);
-        if (sourceInfo instanceof HtmlUnitInfo) {
-          ((HtmlUnitInfo) sourceInfo).clearParsedUnit();
-          ((HtmlUnitInfo) sourceInfo).clearResolvedUnit();
-        } else if (sourceInfo instanceof CompilationUnitInfo) {
-          ((CompilationUnitInfo) sourceInfo).clearParsedUnit();
-          ((CompilationUnitInfo) sourceInfo).clearResolvedUnit();
+        SourceEntry sourceEntry = sourceMap.get(removedSource);
+        if (sourceEntry instanceof HtmlEntry) {
+          ((HtmlEntryImpl) sourceEntry).setState(HtmlEntry.PARSED_UNIT, CacheState.FLUSHED);
+          ((HtmlEntryImpl) sourceEntry).setState(HtmlEntry.RESOLVED_UNIT, CacheState.FLUSHED);
+        } else if (sourceEntry instanceof DartEntry) {
+          ((DartEntryImpl) sourceEntry).setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+          for (Source librarySource : getLibrariesContaining(removedSource)) {
+            ((DartEntryImpl) sourceEntry).setState(
+                DartEntry.RESOLVED_UNIT,
+                librarySource,
+                CacheState.FLUSHED);
+          }
         }
       }
     }
@@ -1135,19 +1161,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param source the source for which information is being sought
    * @return the compilation unit information associated with the given source
    */
-  private CompilationUnitInfo getCompilationUnitInfo(Source source) {
-    SourceInfo sourceInfo = getSourceInfo(source);
-    if (sourceInfo == null) {
-      sourceInfo = new CompilationUnitInfo();
-      sourceMap.put(source, sourceInfo);
-      return (CompilationUnitInfo) sourceInfo;
-    } else if (sourceInfo instanceof CompilationUnitInfo) {
-      return (CompilationUnitInfo) sourceInfo;
-    } else if (sourceInfo == DartInfo.getPendingInstance()) {
-      sourceInfo = internalComputeKindOf(source);
-      if (sourceInfo instanceof CompilationUnitInfo) {
-        return (CompilationUnitInfo) sourceInfo;
-      }
+  private DartEntry getDartEntry(Source source) {
+    SourceEntry sourceEntry = getSourceEntry(source);
+    if (sourceEntry == null) {
+      sourceEntry = new DartEntryImpl();
+      sourceMap.put(source, sourceEntry);
+      return (DartEntry) sourceEntry;
+    } else if (sourceEntry instanceof DartEntry) {
+      return (DartEntry) sourceEntry;
     }
     return null;
   }
@@ -1164,42 +1185,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param source the source for which information is being sought
    * @return the HTML unit information associated with the given source
    */
-  private HtmlUnitInfo getHtmlUnitInfo(Source source) {
-    SourceInfo sourceInfo = getSourceInfo(source);
-    if (sourceInfo == null) {
-      sourceInfo = new HtmlUnitInfo();
-      sourceMap.put(source, sourceInfo);
-      return (HtmlUnitInfo) sourceInfo;
-    } else if (sourceInfo instanceof HtmlUnitInfo) {
-      return (HtmlUnitInfo) sourceInfo;
-    }
-    return null;
-  }
-
-  /**
-   * Return the library information associated with the given source, or {@code null} if the source
-   * is not known to this context. This method should be used to access the library information
-   * rather than accessing the library map directly because sources in the SDK are implicitly part
-   * of every analysis context and are therefore only added to the map when first accessed.
-   * <p>
-   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
-   * 
-   * @param source the source for which information is being sought
-   * @return the library information associated with the given source
-   */
-  private LibraryInfo getLibraryInfo(Source source) {
-    SourceInfo sourceInfo = getSourceInfo(source);
-    if (sourceInfo == null) {
-      sourceInfo = new LibraryInfo();
-      sourceMap.put(source, sourceInfo);
-      return (LibraryInfo) sourceInfo;
-    } else if (sourceInfo instanceof LibraryInfo) {
-      return (LibraryInfo) sourceInfo;
-    } else if (sourceInfo == DartInfo.getPendingInstance()) {
-      sourceInfo = internalComputeKindOf(source);
-      if (sourceInfo instanceof LibraryInfo) {
-        return (LibraryInfo) sourceInfo;
-      }
+  private HtmlEntry getHtmlEntry(Source source) {
+    SourceEntry sourceEntry = getSourceEntry(source);
+    if (sourceEntry == null) {
+      sourceEntry = new HtmlEntryImpl();
+      sourceMap.put(source, sourceEntry);
+      return (HtmlEntry) sourceEntry;
+    } else if (sourceEntry instanceof HtmlEntry) {
+      return (HtmlEntry) sourceEntry;
     }
     return null;
   }
@@ -1272,12 +1265,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param source the source for which information is being sought
    * @return the source information associated with the given source
    */
-  private SourceInfo getSourceInfo(Source source) {
-    SourceInfo sourceInfo = sourceMap.get(source);
-    if (sourceInfo == null) {
-      sourceInfo = createSourceInfo(source);
+  private SourceEntry getSourceEntry(Source source) {
+    SourceEntry sourceEntry = sourceMap.get(source);
+    if (sourceEntry == null) {
+      sourceEntry = createSourceEntry(source);
     }
-    return sourceInfo;
+    return sourceEntry;
   }
 
   /**
@@ -1289,7 +1282,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private Source[] getSources(SourceKind kind) {
     ArrayList<Source> sources = new ArrayList<Source>();
     synchronized (cacheLock) {
-      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+      for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
         if (entry.getValue().getKind() == kind) {
           sources.add(entry.getKey());
         }
@@ -1319,14 +1312,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Compute the kind of the given source. This method should only be invoked when the kind is not
-   * already known. In such a case the source is currently being represented by a {@link DartInfo}.
-   * After this method has run the source will be represented by a new information object that is
-   * appropriate to the computed kind of the source.
+   * already known.
    * 
    * @param source the source for which a kind is to be computed
    * @return the new source info that was created to represent the source
    */
-  private SourceInfo internalComputeKindOf(Source source) {
+  private DartEntry internalComputeKindOf(Source source) {
     try {
       accessed(source);
       RecordingErrorListener errorListener = new RecordingErrorListener();
@@ -1337,26 +1328,29 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       AnalysisError[] errors = errorListener.getErrors(source);
       unit.setParsingErrors(errors);
       unit.setLineInfo(lineInfo);
-      CompilationUnitInfo sourceInfo;
+
+      DartEntryImpl dartEntry = (DartEntryImpl) sourceMap.get(source);
       if (hasPartOfDirective(unit)) {
-        sourceInfo = new CompilationUnitInfo();
+        dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
       } else {
-        sourceInfo = new LibraryInfo();
+        dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
       }
-      sourceInfo.setLineInfo(lineInfo);
-      sourceInfo.setParsedCompilationUnit(unit);
-      sourceInfo.setParseErrors(errors);
-      sourceMap.put(source, sourceInfo);
-      return sourceInfo;
+      dartEntry.setValue(SourceEntry.LINE_INFO, lineInfo);
+      dartEntry.setValue(DartEntry.PARSED_UNIT, unit);
+      dartEntry.setValue(DartEntry.PARSE_ERRORS, errors);
+      return dartEntry;
     } catch (AnalysisException exception) {
-      DartInfo sourceInfo = DartInfo.getErrorInstance();
-      sourceMap.put(source, sourceInfo);
-      return sourceInfo;
+      DartEntryImpl dartEntry = (DartEntryImpl) sourceMap.get(source);
+      dartEntry.setState(DartEntry.SOURCE_KIND, CacheState.ERROR);
+      dartEntry.setState(SourceEntry.LINE_INFO, CacheState.ERROR);
+      dartEntry.setState(DartEntry.PARSED_UNIT, CacheState.ERROR);
+      dartEntry.setState(DartEntry.PARSE_ERRORS, CacheState.ERROR);
+      return dartEntry;
     }
   }
 
-  private CompilationUnit internalParseCompilationUnit(CompilationUnitInfo compilationUnitInfo,
-      Source source) throws AnalysisException {
+  private CompilationUnit internalParseCompilationUnit(DartEntryImpl dartEntry, Source source)
+      throws AnalysisException {
     accessed(source);
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ScanResult scanResult = internalScan(source, errorListener);
@@ -1366,9 +1360,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     AnalysisError[] errors = errorListener.getErrors(source);
     unit.setParsingErrors(errors);
     unit.setLineInfo(lineInfo);
-    compilationUnitInfo.setLineInfo(lineInfo);
-    compilationUnitInfo.setParsedCompilationUnit(unit);
-    compilationUnitInfo.setParseErrors(errors);
+    if (dartEntry.getState(DartEntry.SOURCE_KIND) == CacheState.INVALID) {
+      if (hasPartOfDirective(unit)) {
+        dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
+      } else {
+        dartEntry.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+      }
+    }
+    dartEntry.setValue(SourceEntry.LINE_INFO, lineInfo);
+    dartEntry.setValue(DartEntry.PARSED_UNIT, unit);
+    dartEntry.setValue(DartEntry.PARSE_ERRORS, errors);
     // TODO(brianwilkerson) Find out whether clients want notification when part of the errors are
     // available.
 //    ChangeNoticeImpl notice = getNotice(source);
@@ -1411,23 +1412,18 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * invalidate any results that are dependent on the result of resolving that library.
    * 
    * @param librarySource the source of the library being invalidated
-   * @param libraryInfo the information for the library being invalidated
+   * @param libraryEntry the cache entry for the library being invalidated
    */
-  private void invalidateLibraryResolution(Source librarySource, LibraryInfo libraryInfo) {
+  private void invalidateLibraryResolution(Source librarySource, DartEntryImpl libraryEntry) {
     // TODO(brianwilkerson) This could be optimized. There's no need to flush all of these caches if
     // the public namespace hasn't changed, which will be a fairly common case.
-    if (libraryInfo != null) {
-      libraryInfo.invalidateElement();
-      libraryInfo.invalidateLaunchable();
-      libraryInfo.invalidatePublicNamespace();
-      libraryInfo.invalidateResolutionErrors();
-      libraryInfo.invalidateResolvedUnit();
-      for (Source unitSource : libraryInfo.getUnitSources()) {
-        CompilationUnitInfo partInfo = getCompilationUnitInfo(unitSource);
-        partInfo.invalidateResolutionErrors();
-        partInfo.invalidateResolvedUnit();
+    if (libraryEntry != null) {
+      for (Source unitSource : libraryEntry.getValue(DartEntry.INCLUDED_PARTS)) {
+        DartEntryImpl partEntry = (DartEntryImpl) getDartEntry(unitSource);
+        partEntry.invalidateAllResolutionInformation();
       }
-      libraryInfo.invalidateUnitSources();
+      libraryEntry.invalidateAllResolutionInformation();
+      libraryEntry.setState(DartEntry.INCLUDED_PARTS, CacheState.INVALID);
     }
   }
 
@@ -1470,40 +1466,32 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private boolean performSingleAnalysisTask() {
     //
-    // Look for a source whose kind is not known.
-    //
-    for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
-      SourceInfo sourceInfo = entry.getValue();
-      if (sourceInfo == DartInfo.getPendingInstance()) {
-        internalComputeKindOf(entry.getKey());
-        return true;
-      }
-    }
-    //
     // Look for a source that needs to be parsed.
     //
-    for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
-      SourceInfo sourceInfo = entry.getValue();
-      if (sourceInfo instanceof CompilationUnitInfo) {
-        CompilationUnitInfo unitInfo = (CompilationUnitInfo) sourceInfo;
-        if (unitInfo.hasInvalidParsedUnit()) {
+    for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
+      SourceEntry sourceEntry = entry.getValue();
+      if (sourceEntry instanceof DartEntry) {
+        DartEntry dartEntry = (DartEntry) sourceEntry;
+        CacheState parsedUnitState = dartEntry.getState(DartEntry.PARSED_UNIT);
+        if (parsedUnitState == CacheState.INVALID) {
           try {
             parseCompilationUnit(entry.getKey());
           } catch (AnalysisException exception) {
-            unitInfo.setParsedCompilationUnit(null);
+            ((DartEntryImpl) dartEntry).setState(DartEntry.PARSED_UNIT, CacheState.ERROR);
             AnalysisEngine.getInstance().getLogger().logError(
                 "Could not parse " + entry.getKey().getFullName(),
                 exception);
           }
           return true;
         }
-      } else if (sourceInfo instanceof HtmlUnitInfo) {
-        HtmlUnitInfo unitInfo = (HtmlUnitInfo) sourceInfo;
-        if (unitInfo.hasInvalidParsedUnit()) {
+      } else if (sourceEntry instanceof HtmlEntry) {
+        HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+        CacheState parsedUnitState = htmlEntry.getState(HtmlEntry.PARSED_UNIT);
+        if (parsedUnitState == CacheState.INVALID) {
           try {
             parseHtmlUnit(entry.getKey());
           } catch (AnalysisException exception) {
-            unitInfo.setParsedUnit(null);
+            ((HtmlEntryImpl) htmlEntry).setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
             AnalysisEngine.getInstance().getLogger().logError(
                 "Could not parse " + entry.getKey().getFullName(),
                 exception);
@@ -1515,28 +1503,30 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     //
     // Look for a library that needs to be resolved.
     //
-    for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
-      SourceInfo sourceInfo = entry.getValue();
-      if (sourceInfo instanceof LibraryInfo) {
-        LibraryInfo libraryInfo = (LibraryInfo) sourceInfo;
-        if (libraryInfo.hasInvalidElement()) {
+    for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
+      SourceEntry sourceEntry = entry.getValue();
+      if (sourceEntry instanceof DartEntry && sourceEntry.getKind() == SourceKind.LIBRARY) {
+        DartEntry dartEntry = (DartEntry) sourceEntry;
+        CacheState elementState = dartEntry.getState(DartEntry.ELEMENT);
+        if (elementState == CacheState.INVALID) {
           try {
             computeLibraryElement(entry.getKey());
           } catch (AnalysisException exception) {
-            libraryInfo.setElement(null);
+            ((DartEntryImpl) dartEntry).setState(DartEntry.ELEMENT, CacheState.ERROR);
             AnalysisEngine.getInstance().getLogger().logError(
                 "Could not resolve " + entry.getKey().getFullName(),
                 exception);
           }
           return true;
         }
-      } else if (sourceInfo instanceof HtmlUnitInfo) {
-        HtmlUnitInfo unitInfo = (HtmlUnitInfo) sourceInfo;
-        if (unitInfo.hasInvalidResolvedUnit()) {
+      } else if (sourceEntry instanceof HtmlEntry) {
+        HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+        CacheState resolvedUnitState = htmlEntry.getState(DartEntry.RESOLVED_UNIT);
+        if (resolvedUnitState == CacheState.INVALID) {
           try {
             resolveHtmlUnit(entry.getKey());
           } catch (AnalysisException exception) {
-            unitInfo.setResolvedUnit(null);
+            ((HtmlEntryImpl) htmlEntry).setState(HtmlEntry.RESOLVED_UNIT, CacheState.ERROR);
             AnalysisEngine.getInstance().getLogger().logError(
                 "Could not resolve " + entry.getKey().getFullName(),
                 exception);
@@ -1564,9 +1554,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param source the source that has been added
    */
   private void sourceAvailable(Source source) {
-    SourceInfo existingInfo = sourceMap.get(source);
-    if (existingInfo == null) {
-      createSourceInfo(source);
+    SourceEntry sourceEntry = sourceMap.get(source);
+    if (sourceEntry == null) {
+      createSourceEntry(source);
     }
   }
 
@@ -1576,23 +1566,27 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param source the source that has been changed
    */
   private void sourceChanged(Source source) {
-    SourceInfo sourceInfo = sourceMap.get(source);
-    if (sourceInfo instanceof HtmlUnitInfo) {
-      HtmlUnitInfo htmlUnitInfo = (HtmlUnitInfo) sourceInfo;
-      htmlUnitInfo.invalidateElement();
-      htmlUnitInfo.invalidateLineInfo();
-      htmlUnitInfo.invalidateParsedUnit();
-      htmlUnitInfo.invalidateResolvedUnit();
-    } else if (sourceInfo instanceof LibraryInfo) {
-      LibraryInfo libraryInfo = (LibraryInfo) sourceInfo;
-      invalidateLibraryResolution(source, libraryInfo);
-      sourceMap.put(source, DartInfo.getPendingInstance());
-    } else if (sourceInfo instanceof CompilationUnitInfo) {
-      for (Source librarySource : getLibrariesContaining(source)) {
-        LibraryInfo libraryInfo = getLibraryInfo(librarySource);
-        invalidateLibraryResolution(librarySource, libraryInfo);
+    SourceEntry sourceEntry = sourceMap.get(source);
+    if (sourceEntry instanceof HtmlEntry) {
+      HtmlEntryImpl htmlEntry = (HtmlEntryImpl) sourceEntry;
+      htmlEntry.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
+      htmlEntry.setState(HtmlEntry.LINE_INFO, CacheState.INVALID);
+      htmlEntry.setState(HtmlEntry.PARSED_UNIT, CacheState.INVALID);
+      htmlEntry.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.INVALID);
+      htmlEntry.setState(HtmlEntry.RESOLVED_UNIT, CacheState.INVALID);
+    } else if (sourceEntry instanceof DartEntry) {
+      DartEntryImpl dartEntry = (DartEntryImpl) sourceEntry;
+      Source[] containingLibraries = getLibrariesContaining(source);
+      invalidateLibraryResolution(source, dartEntry);
+      dartEntry.setState(DartEntry.INCLUDED_PARTS, CacheState.INVALID);
+      dartEntry.setState(SourceEntry.LINE_INFO, CacheState.INVALID);
+      dartEntry.setState(DartEntry.PARSE_ERRORS, CacheState.INVALID);
+      dartEntry.setState(DartEntry.PARSED_UNIT, CacheState.INVALID);
+      dartEntry.setState(DartEntry.SOURCE_KIND, CacheState.INVALID);
+      for (Source librarySource : containingLibraries) {
+        DartEntryImpl libraryEntry = (DartEntryImpl) getDartEntry(librarySource);
+        invalidateLibraryResolution(librarySource, libraryEntry);
       }
-      sourceMap.put(source, DartInfo.getPendingInstance());
     }
   }
 
@@ -1605,11 +1599,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     // TODO(brianwilkerson) Determine whether the source should be removed (that is, whether
     // there are no additional dependencies on the source), and if so remove all information
     // about the source.
-    CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
-    if (compilationUnitInfo != null) {
+    DartEntry dartEntry = getDartEntry(source);
+    if (dartEntry != null) {
       for (Source librarySource : getLibrariesContaining(source)) {
-        LibraryInfo libraryInfo = getLibraryInfo(librarySource);
-        invalidateLibraryResolution(librarySource, libraryInfo);
+        DartEntryImpl libraryEntry = (DartEntryImpl) getDartEntry(librarySource);
+        invalidateLibraryResolution(librarySource, libraryEntry);
       }
     }
     sourceMap.remove(source);

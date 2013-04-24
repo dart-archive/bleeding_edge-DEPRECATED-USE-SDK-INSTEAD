@@ -44,7 +44,7 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    * The list of libraries referenced in the HTML, or {@code null} if the list is not currently
    * cached. Note that this list does not include libraries defined directly within the HTML file.
    */
-  private Source[] referencedLibraries;
+  private Source[] referencedLibraries = Source.EMPTY_ARRAY;
 
   /**
    * The state of the cached parsed and resolved HTML unit.
@@ -117,16 +117,16 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   @Override
   public void setState(DataDescriptor<?> descriptor, CacheState state) {
     if (descriptor == ELEMENT) {
-      element = updatedValue(state, element);
+      element = updatedValue(state, element, null);
       elementState = state;
     } else if (descriptor == PARSED_UNIT) {
-      parsedUnit = updatedValue(state, parsedUnit);
+      parsedUnit = updatedValue(state, parsedUnit, null);
       parsedUnitState = state;
     } else if (descriptor == REFERENCED_LIBRARIES) {
-      referencedLibraries = updatedValue(state, referencedLibraries);
+      referencedLibraries = updatedValue(state, referencedLibraries, Source.EMPTY_ARRAY);
       referencedLibrariesState = state;
     } else if (descriptor == RESOLVED_UNIT) {
-      resolvedUnit = updatedValue(state, resolvedUnit);
+      resolvedUnit = updatedValue(state, resolvedUnit, null);
       resolvedUnitState = state;
     } else {
       super.setState(descriptor, state);
@@ -142,7 +142,7 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       parsedUnit = (HtmlUnit) value;
       parsedUnitState = CacheState.VALID;
     } else if (descriptor == REFERENCED_LIBRARIES) {
-      referencedLibraries = (Source[]) value;
+      referencedLibraries = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
       referencedLibrariesState = CacheState.VALID;
     } else if (descriptor == RESOLVED_UNIT) {
       resolvedUnit = (HtmlUnit) value;
@@ -158,6 +158,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     HtmlEntryImpl other = (HtmlEntryImpl) entry;
     parsedUnitState = other.parsedUnitState;
     parsedUnit = other.parsedUnit;
+    referencedLibrariesState = other.referencedLibrariesState;
+    referencedLibraries = other.referencedLibraries;
     resolvedUnitState = other.resolvedUnitState;
     resolvedUnit = other.resolvedUnit;
     elementState = other.elementState;
