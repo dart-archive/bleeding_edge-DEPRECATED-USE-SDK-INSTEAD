@@ -474,6 +474,34 @@ public class Parser {
   }
 
   /**
+   * Given that we have just found bracketed text within a comment, look to see whether that text is
+   * followed by a parenthesized link address.
+   * 
+   * @param comment the comment text in which the bracketed text was found
+   * @param rightIndex the index of the right bracket
+   * @return {@code true} if the bracketed text is followed by a link address
+   */
+  private boolean isLinkText(String comment, int rightIndex) {
+    //
+    // TODO(brianwilkerson) I believe that the opening parenthesis needs to immediately follow the
+    // closing square bracket, but we should verify this.
+    //
+    int length = comment.length();
+    int index = rightIndex + 1;
+    return index < length && comment.charAt(index) == '(';
+//    while (index < length) {
+//      char currentChar = comment.charAt(index);
+//      if (currentChar == '(') {
+//        return true;
+//      } else if (!Character.isWhitespace(currentChar)) {
+//        return false;
+//      }
+//      index++;
+//    }
+//    return false;
+  }
+
+  /**
    * Return {@code true} if the given token appears to be the beginning of an operator declaration.
    * 
    * @param startToken the token that might be the start of an operator declaration
@@ -1688,12 +1716,15 @@ public class Parser {
           rightIndex = comment.indexOf(']', leftIndex);
           if (rightIndex >= 0) {
             if (firstChar != '\'' && firstChar != '"') {
-              // TODO(brianwilkerson) Handle the case where there's a library reference
-              CommentReference reference = parseCommentReference(
-                  comment.substring(leftIndex + 1, rightIndex),
-                  token.getOffset() + leftIndex + 1);
-              if (reference != null) {
-                references.add(reference);
+              if (isLinkText(comment, rightIndex)) {
+                // TODO(brianwilkerson) Handle the case where there's a library URI in the link text.
+              } else {
+                CommentReference reference = parseCommentReference(
+                    comment.substring(leftIndex + 1, rightIndex),
+                    token.getOffset() + leftIndex + 1);
+                if (reference != null) {
+                  references.add(reference);
+                }
               }
             }
           } else {

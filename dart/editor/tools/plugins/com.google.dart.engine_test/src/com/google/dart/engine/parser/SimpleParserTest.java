@@ -1390,6 +1390,19 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(24, reference.getOffset());
   }
 
+  public void test_parseCommentReferences_skipLinked() throws Exception {
+    Token[] tokens = new Token[] {new StringToken(
+        TokenType.MULTI_LINE_COMMENT,
+        "/** [a](http://www.google.com) [b] zzz */",
+        3),};
+    List<CommentReference> references = parse("parseCommentReferences", new Object[] {tokens}, "");
+    assertSize(1, references);
+    CommentReference reference = references.get(0);
+    assertNotNull(reference);
+    assertNotNull(reference.getIdentifier());
+    assertEquals(35, reference.getOffset());
+  }
+
   public void test_parseCompilationUnit_abstractAsPrefix_parameterized() throws Exception {
     CompilationUnit unit = parse(
         "parseCompilationUnit",
