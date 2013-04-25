@@ -333,8 +333,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
 
   public void select(LightNodeElement element) {
     if (viewer != null) {
-      ISelection newSelection = new StructuredSelection(element);
-      setSelection(newSelection);
+      setSelection(new StructuredSelection(element));
     }
   }
 
@@ -366,7 +365,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
       if (!Objects.equal(viewer.getSelection(), newSelection)) {
         ignoreSelectionChangedEvent = true;
         try {
-          viewer.setSelection(newSelection);
+          viewer.setSelection(newSelection, true);
         } finally {
           ignoreSelectionChangedEvent = false;
         }
