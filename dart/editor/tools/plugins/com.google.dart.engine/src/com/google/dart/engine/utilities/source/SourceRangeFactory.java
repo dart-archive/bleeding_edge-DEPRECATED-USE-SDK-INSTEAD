@@ -259,6 +259,14 @@ public class SourceRangeFactory {
     return rangeStartEnd(start, end);
   }
 
+  /**
+   * @return the {@link SourceRange} which start at start of "a" and ends at "end".
+   */
+  public static SourceRange rangeStartEnd(Token a, int end) {
+    int start = a.getOffset();
+    return rangeStartEnd(start, end);
+  }
+
   public static SourceRange rangeStartEnd(Token a, Token b) {
     int start = a.getOffset();
     int end = b.getEnd();

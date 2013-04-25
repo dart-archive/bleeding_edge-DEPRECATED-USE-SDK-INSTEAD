@@ -27,8 +27,10 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.internal.refactoring.ConvertGetterToMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.ConvertMethodToGetterRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.ExtractMethodRefactoringImpl;
@@ -43,6 +45,15 @@ import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefa
  * Factory for creating {@link Refactoring} instances.
  */
 public class RefactoringFactory {
+  /**
+   * @return the {@link ConvertGetterToMethodRefactoring} the {@link MethodDeclaration} of the given
+   *         {@link PropertyAccessorElement} into normal method.
+   */
+  public static ConvertGetterToMethodRefactoring createConvertGetterToMethodRefactoring(
+      SearchEngine searchEngine, PropertyAccessorElement element) {
+    return new ConvertGetterToMethodRefactoringImpl(searchEngine, element);
+  }
+
   /**
    * @return the {@link ConvertMethodToGetterRefactoring} the {@link MethodDeclaration} of the given
    *         {@link Element} into getter.

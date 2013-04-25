@@ -16,6 +16,7 @@ package com.google.dart.engine.utilities.source;
 import com.google.common.collect.ImmutableList;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.scanner.Token;
 
 import junit.framework.TestCase;
@@ -80,6 +81,13 @@ public class SourceRangeFactoryTest extends TestCase {
     assertRangeEnd(range, 10 + 1, 20 + 2);
   }
 
+  public void test_rangeEndEnd_RN() throws Exception {
+    SourceRange a = new SourceRange(10, 1);
+    ASTNode b = mockNode(20, 2);
+    SourceRange range = SourceRangeFactory.rangeEndEnd(a, b);
+    assertRangeEnd(range, 10 + 1, 20 + 2);
+  }
+
   public void test_rangeEndEnd_RR() throws Exception {
     SourceRange a = new SourceRange(10, 1);
     SourceRange b = new SourceRange(20, 2);
@@ -124,6 +132,19 @@ public class SourceRangeFactoryTest extends TestCase {
     SourceRange b = new SourceRange(20, 2);
     SourceRange range = SourceRangeFactory.rangeEndStart(a, b);
     assertRangeEnd(range, 10 + 1, 20);
+  }
+
+  public void test_rangeError() throws Exception {
+    AnalysisError error = mock(AnalysisError.class);
+    when(error.getOffset()).thenReturn(1);
+    when(error.getLength()).thenReturn(10);
+    SourceRange range = SourceRangeFactory.rangeError(error);
+    assertRange(range, 1, 10);
+  }
+
+  public void test_rangeError_null() throws Exception {
+    SourceRange range = SourceRangeFactory.rangeError(null);
+    assertNull(range);
   }
 
   public void test_rangeFromBase_NI() throws Exception {
@@ -192,6 +213,13 @@ public class SourceRangeFactoryTest extends TestCase {
     assertRangeEnd(range, 10, 20 + 2);
   }
 
+  public void test_rangeStartEnd_NT() throws Exception {
+    ASTNode a = mockNode(10, 1);
+    Token b = mockToken(20, 2);
+    SourceRange range = SourceRangeFactory.rangeStartEnd(a, b);
+    assertRangeEnd(range, 10, 20 + 2);
+  }
+
   public void test_rangeStartEnd_RI() throws Exception {
     SourceRange a = new SourceRange(10, 1);
     SourceRange range = SourceRangeFactory.rangeStartEnd(a, 22);
@@ -210,6 +238,13 @@ public class SourceRangeFactoryTest extends TestCase {
     SourceRange b = new SourceRange(20, 2);
     SourceRange range = SourceRangeFactory.rangeStartEnd(a, b);
     assertRangeEnd(range, 10, 20 + 2);
+  }
+
+  public void test_rangeStartEnd_TI() throws Exception {
+    Token a = mockToken(10, 1);
+    int b = 22;
+    SourceRange range = SourceRangeFactory.rangeStartEnd(a, b);
+    assertRangeEnd(range, 10, 22);
   }
 
   public void test_rangeStartEnd_TN() throws Exception {
