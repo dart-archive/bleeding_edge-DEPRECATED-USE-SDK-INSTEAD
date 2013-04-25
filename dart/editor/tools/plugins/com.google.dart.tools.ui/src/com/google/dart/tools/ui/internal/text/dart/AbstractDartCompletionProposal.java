@@ -27,7 +27,6 @@ import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartTextTools;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
-import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.FileLocator;
@@ -864,8 +863,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
    * @return <code>true</code> if camel case matching is enabled
    */
   protected boolean isCamelCaseMatching() {
-    String value = JavaScriptCore.getOption(JavaScriptCore.CODEASSIST_CAMEL_CASE_MATCH);
-    return JavaScriptCore.ENABLED.equals(value);
+    return true;
   }
 
   /**
