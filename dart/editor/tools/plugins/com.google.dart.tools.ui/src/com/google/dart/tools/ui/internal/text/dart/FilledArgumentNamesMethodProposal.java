@@ -122,6 +122,8 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
       buffer.append(SPACE);
     }
 
+    boolean hasNamed = fProposal.hasNamedParameters();
+    int positionalCount = fProposal.getPositionalParameterCount();
     for (int i = 0; i != count; i++) {
       if (i != 0) {
         if (prefs.beforeComma) {
@@ -136,6 +138,10 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
       fArgumentOffsets[i] = buffer.length();
       buffer.append(parameterNames[i]);
       fArgumentLengths[i] = parameterNames[i].length;
+      if (hasNamed && i >= positionalCount) {
+        buffer.append(':');
+        fArgumentLengths[i]++;
+      }
     }
 
     if (prefs.beforeClosingParen) {

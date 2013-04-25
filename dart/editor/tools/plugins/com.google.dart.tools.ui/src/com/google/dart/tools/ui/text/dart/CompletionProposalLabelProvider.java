@@ -550,10 +550,10 @@ public class CompletionProposalLabelProvider {
           buffer.append(' ');
         }
         if (i == positionalCount) {
-          if (hasOptional) { // check hasOptional first because hasNamed implies hasOptional
-            buffer.append('[');
-          } else if (hasNamed) {
+          if (hasNamed) { // check hasNamed first because hasOptional implies hasNamed
             buffer.append('{');
+          } else if (hasOptional) {
+            buffer.append('[');
           }
         }
         if (!Arrays.equals(Signature.ANY, parameterTypes[i])) {
@@ -565,10 +565,10 @@ public class CompletionProposalLabelProvider {
           buffer.append(parameterNames[i]);
         }
       }
-      if (hasOptional) {
-        buffer.append(']');
-      } else if (hasNamed) {
+      if (hasNamed) {
         buffer.append('}');
+      } else if (hasOptional) {
+        buffer.append(']');
       }
     }
     return buffer;
