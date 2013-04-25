@@ -21,32 +21,26 @@ import com.google.dart.engine.utilities.source.SourceRange;
 
 import junit.framework.TestCase;
 
-import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
 import java.util.Map;
 
 public class CorrectionProposalTest extends TestCase {
-  public void test_access() throws Exception {
-    CorrectionProposal proposal = new CorrectionProposal(CorrectionKind.QA_ADD_TYPE_ANNOTATION);
-    assertSame(CorrectionKind.QA_ADD_TYPE_ANNOTATION, proposal.getKind());
-  }
+  private final SourceChange change = mock(SourceChange.class);
 
-  public void test_changes() throws Exception {
-    CorrectionProposal proposal = new CorrectionProposal(CorrectionKind.QA_ADD_TYPE_ANNOTATION);
-    // empty
-    assertThat(proposal.getChanges()).isEmpty();
-    //
-    SourceChange changeA = mock(SourceChange.class);
-    SourceChange changeB = mock(SourceChange.class);
-    proposal.addChange(changeA);
-    proposal.addChange(changeB);
-    assertThat(proposal.getChanges()).containsExactly(changeA, changeB);
+  public void test_access() throws Exception {
+    CorrectionProposal proposal = new CorrectionProposal(
+        change,
+        CorrectionKind.QA_ADD_TYPE_ANNOTATION);
+    assertSame(CorrectionKind.QA_ADD_TYPE_ANNOTATION, proposal.getKind());
+    assertSame(change, proposal.getChange());
   }
 
   public void test_linkedPositions() throws Exception {
-    CorrectionProposal proposal = new CorrectionProposal(CorrectionKind.QA_ADD_TYPE_ANNOTATION);
+    CorrectionProposal proposal = new CorrectionProposal(
+        change,
+        CorrectionKind.QA_ADD_TYPE_ANNOTATION);
     Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
     Map<String, List<LinkedPositionProposal>> linkedPositions2 = Maps.newHashMap();
     proposal.setLinkedPositions(linkedPositions);

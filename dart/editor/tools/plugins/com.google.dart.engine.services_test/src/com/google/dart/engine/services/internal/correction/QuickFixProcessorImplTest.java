@@ -259,9 +259,10 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     CorrectionProposal proposal = findProposal(CorrectionKind.QF_IMPORT_LIBRARY_PROJECT);
     assertNotNull(proposal);
     // we have "fix", note that preview is for library
-    SourceChange compositeChange = proposal.getChanges().get(0);
+    SourceChange appChange = proposal.getChange();
+    assertSame(appSource, appChange.getSource());
     assertChangeResult(
-        compositeChange,
+        appChange,
         appSource,
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
@@ -270,8 +271,6 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "import 'LibA.dart';",
             "part 'Test.dart';",
             ""));
-    // unit itself is not changed
-    assertNull(getSourceChange(compositeChange, partSource));
   }
 
   public void test_importLibrary_withType_hasImportWithPrefix() throws Exception {
@@ -389,11 +388,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
    *         the {@link #testCode}.
    */
   private String applyProposal(CorrectionProposal proposal) {
-    List<SourceChange> changes = proposal.getChanges();
-    assertThat(changes).hasSize(1);
-    SourceChange change = changes.get(0);
-    assertSame(testSource, change.getSource());
-    // prepare edits
+    SourceChange change = proposal.getChange();
     List<Edit> edits = change.getEdits();
     return CorrectionUtils.applyReplaceEdits(testCode, edits);
   }

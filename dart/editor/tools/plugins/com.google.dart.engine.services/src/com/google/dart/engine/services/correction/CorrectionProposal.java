@@ -14,7 +14,6 @@
 
 package com.google.dart.engine.services.correction;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.internal.correction.LinkedPositionProposal;
@@ -25,33 +24,25 @@ import java.util.Map;
 
 /**
  * Proposal for single source file change.
- * <p>
- * TODO(scheglov) why do we have several SourceChange-s in CorrectionProposal?
  */
 public class CorrectionProposal {
+  private final SourceChange change;
   private final CorrectionKind kind;
   private final String name;
-  private final List<SourceChange> changes = Lists.newArrayList();
   private Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
   private Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
 
-  public CorrectionProposal(CorrectionKind kind, Object... arguments) {
+  public CorrectionProposal(SourceChange change, CorrectionKind kind, Object... arguments) {
+    this.change = change;
     this.kind = kind;
     this.name = String.format(kind.getName(), arguments);
   }
 
   /**
-   * Adds {@link SourceChange} to perform.
+   * @return the {@link SourceChange} to perform.
    */
-  public void addChange(SourceChange change) {
-    changes.add(change);
-  }
-
-  /**
-   * @return the {@link SourceChange}s to perform.
-   */
-  public List<SourceChange> getChanges() {
-    return changes;
+  public SourceChange getChange() {
+    return change;
   }
 
   /**

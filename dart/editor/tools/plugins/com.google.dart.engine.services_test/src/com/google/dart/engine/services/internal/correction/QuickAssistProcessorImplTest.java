@@ -1148,11 +1148,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
    *         the {@link #testCode}.
    */
   private String applyProposal(CorrectionProposal proposal) {
-    List<SourceChange> changes = proposal.getChanges();
-    assertThat(changes).hasSize(1);
-    SourceChange change = changes.get(0);
-    assertSame(testSource, change.getSource());
-    // prepare edits
+    SourceChange change = proposal.getChange();
     List<Edit> edits = change.getEdits();
     return CorrectionUtils.applyReplaceEdits(testCode, edits);
   }

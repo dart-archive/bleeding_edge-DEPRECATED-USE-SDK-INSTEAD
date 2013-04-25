@@ -52,18 +52,14 @@ public class QuickAssistProcessor {
     for (CorrectionProposal serviceProposal : serviceProposals) {
       CorrectionKind kind = serviceProposal.getKind();
       Image image = ServiceUtils.toLTK(kind.getImage());
-      // TODO(scheglov) why do we have several SourceChange-s in CorrectionProposal? 
-      List<SourceChange> serviceChanges = serviceProposal.getChanges();
-      if (serviceChanges.size() == 1) {
-        SourceChange sourceChange = serviceChanges.get(0);
-        TextChange textChange = ServiceUtils.toLTK(sourceChange);
-        proposals.add(new CUCorrectionProposal(
-            serviceProposal.getName(),
-            sourceChange.getSource(),
-            textChange,
-            kind.getRelevance(),
-            image));
-      }
+      SourceChange serviceChange = serviceProposal.getChange();
+      TextChange textChange = ServiceUtils.toLTK(serviceChange);
+      proposals.add(new CUCorrectionProposal(
+          serviceProposal.getName(),
+          serviceChange.getSource(),
+          textChange,
+          kind.getRelevance(),
+          image));
     }
   }
 

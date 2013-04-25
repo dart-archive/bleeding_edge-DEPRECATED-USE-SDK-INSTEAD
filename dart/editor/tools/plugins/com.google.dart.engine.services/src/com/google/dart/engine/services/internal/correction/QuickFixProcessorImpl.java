@@ -870,15 +870,15 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
    */
   private void addUnitCorrectionProposal(Source source, CorrectionKind kind, Object... arguments) {
     if (!textEdits.isEmpty()) {
-      CorrectionProposal proposal = new CorrectionProposal(kind, arguments);
-      proposal.setLinkedPositions(linkedPositions);
-      proposal.setLinkedPositionProposals(linkedPositionProposals);
-      // add change
+      // prepare SourceChange
       SourceChange change = new SourceChange(source.getShortName(), source);
       for (Edit edit : textEdits) {
         change.addEdit(edit);
       }
-      proposal.addChange(change);
+      // create CorrectionProposal
+      CorrectionProposal proposal = new CorrectionProposal(change, kind, arguments);
+      proposal.setLinkedPositions(linkedPositions);
+      proposal.setLinkedPositionProposals(linkedPositionProposals);
       // done
       proposals.add(proposal);
     }

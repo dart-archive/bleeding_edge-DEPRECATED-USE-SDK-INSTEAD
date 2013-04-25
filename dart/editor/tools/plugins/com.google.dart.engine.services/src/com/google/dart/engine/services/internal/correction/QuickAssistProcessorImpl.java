@@ -1169,17 +1169,17 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   /**
    * Adds {@link CorrectionProposal} with single {@link SourceChange} to {@link #proposals}.
    */
-  private void addUnitCorrectionProposal(CorrectionKind kind) {
+  private void addUnitCorrectionProposal(CorrectionKind kind, Object... arguments) {
     if (!textEdits.isEmpty()) {
-      CorrectionProposal proposal = new CorrectionProposal(kind);
-      proposal.setLinkedPositions(linkedPositions);
-      proposal.setLinkedPositionProposals(linkedPositionProposals);
-      // add change
+      // prepare SourceChange
       SourceChange change = new SourceChange(source.getShortName(), source);
       for (Edit edit : textEdits) {
         change.addEdit(edit);
       }
-      proposal.addChange(change);
+      // create CorrectionProposal
+      CorrectionProposal proposal = new CorrectionProposal(change, kind, arguments);
+      proposal.setLinkedPositions(linkedPositions);
+      proposal.setLinkedPositionProposals(linkedPositionProposals);
       // done
       proposals.add(proposal);
     }
