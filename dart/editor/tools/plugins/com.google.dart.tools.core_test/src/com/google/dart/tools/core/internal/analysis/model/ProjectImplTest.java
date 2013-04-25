@@ -195,18 +195,6 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 //    assertTrue(sources.length == 1);
   }
 
-  public void test_getLibraries() {
-    IContainer container = projectContainer.getFolder("web");
-    LibraryElement[] libraries = project.getLibraries(container);
-    assertTrue(libraries.length == 0);
-    MockFolder folder = projectContainer.getMockFolder("web");
-    MockFile file = new MockFile(folder, "libraryA.dart", "library libraryA;\n\n main(){}");
-    folder.add(file);
-    libraries = project.getLibraries(container);
-    assertTrue(libraries.length == 1);
-    assertTrue(libraries[0].getName().equals("libraryA"));
-  }
-
   public void test_getLibrarySources() {
     // TODO(keertip): make this more meaningful
     MockFolder folder = projectContainer.getMockFolder("web");

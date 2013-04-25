@@ -61,20 +61,6 @@ public interface ProjectManager extends ContextManager {
   Index getIndex();
 
   /**
-   * Answer with all the library sources for the given project that can be launched on the browser
-   * 
-   * @return library sources for the given project that can be launched on the browser
-   */
-  Source[] getLaunchableClientLibrarySources(IProject project);
-
-  /**
-   * Answer with all the library sources for the given project that can be launched on the VM
-   * 
-   * @return library sources for the given project that can be launched on the VM
-   */
-  Source[] getLaunchableServerLibrarySources(IProject project);
-
-  /**
    * Answer with all the library sources that the given file is part of or is the library file
    * 
    * @return the {@link Source}[] for all the libraries that the given file is part of or is the

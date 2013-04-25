@@ -49,7 +49,6 @@ import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
@@ -148,24 +147,12 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
-  public Source[] getLaunchableClientLibrarySources(IProject project) {
-    Project prj = getProject(project);
-    return prj.getLaunchableClientLibrarySources();
-  }
-
-  @Override
   public Source[] getLaunchableServerLibrarySources() {
     List<Source> sources = new ArrayList<Source>();
     for (Project project : getProjects()) {
       sources.addAll(Arrays.asList(project.getLaunchableServerLibrarySources()));
     }
     return sources.toArray(new Source[sources.size()]);
-  }
-
-  @Override
-  public Source[] getLaunchableServerLibrarySources(IProject project) {
-    Project prj = getProject(project);
-    return prj.getLaunchableServerLibrarySources();
   }
 
   @Override
@@ -345,10 +332,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         DartCore.logError(e);
       }
     }
-  }
-
-  private String getPath(IPath dirPath, IPath fullPath) {
-    return fullPath.makeRelativeTo(dirPath).toString();
   }
 
   private IResource getResourceFromPath(String path) {

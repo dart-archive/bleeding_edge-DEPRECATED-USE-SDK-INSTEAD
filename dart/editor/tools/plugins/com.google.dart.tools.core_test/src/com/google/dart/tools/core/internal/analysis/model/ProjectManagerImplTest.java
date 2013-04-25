@@ -215,17 +215,6 @@ public class ProjectManagerImplTest extends TestCase {
 //    assertTrue(sources[0].equals(libSources[0]));
   }
 
-  public void test_getLibraries() {
-    Project actual = manager.getProject(projectContainer);
-    MockFolder mockFolder = projectContainer.getMockFolder("web");
-    MockFile file = new MockFile(mockFolder, "libraryA.dart", "library libraryA;\n\n main(){}");
-    mockFolder.add(file);
-    LibraryElement[] libraries = manager.getLibraries(mockFolder);
-    LibraryElement[] elements = actual.getLibraries(mockFolder);
-    assertEquals(elements.length, libraries.length);
-    assertEquals(elements[0], libraries[0]);
-  }
-
   public void test_getLibrarySources() {
     MockFolder mockFolder = projectContainer.getMockFolder("web");
     MockFile file = new MockFile(mockFolder, "libraryA.dart", "library libraryA;\n\n main(){}");
@@ -235,7 +224,6 @@ public class ProjectManagerImplTest extends TestCase {
     assertEquals(1, sources.length);
     assertEquals(sources.length, libraries.length);
     assertEquals(sources[0].getShortName(), libraries[0].getShortName());
-
   }
 
   public void test_getProject() {

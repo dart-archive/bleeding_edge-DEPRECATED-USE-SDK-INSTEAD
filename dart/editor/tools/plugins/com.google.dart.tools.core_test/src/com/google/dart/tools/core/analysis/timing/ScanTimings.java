@@ -17,7 +17,6 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.Relationship;
@@ -46,7 +45,6 @@ import com.google.dart.tools.core.mock.MockWorkspace;
 
 import junit.framework.TestCase;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -156,11 +154,6 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
-    public HtmlElement getHtmlElement(IFile file) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public IResource getHtmlFileForLibrary(Source source) {
       throw new UnsupportedOperationException();
     }
@@ -181,22 +174,7 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
-    public Source[] getLaunchableClientLibrarySources(IProject project) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Source[] getLaunchableServerLibrarySources() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Source[] getLaunchableServerLibrarySources(IProject project) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public LibraryElement[] getLibraries(IContainer container) {
       throw new UnsupportedOperationException();
     }
 
