@@ -29,7 +29,9 @@ import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
+import com.google.dart.engine.services.correction.CreateFileCorrectionProposal;
 import com.google.dart.engine.services.correction.QuickFixProcessor;
+import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.services.internal.refactoring.RefactoringImplTest;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -46,7 +48,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   private static final QuickFixProcessor PROCESSOR = CorrectionProcessors.getQuickFixProcessor();
 
   private AnalysisError error;
-  private CorrectionProposal resultProposal;
+  private SourceCorrectionProposal resultProposal;
   private String resultCode;
 
   public void test_boolean() throws Exception {
@@ -123,6 +125,38 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     assertEquals(
         ImmutableMap.of("NAME", getResultRanges("Test v =", "Test {")),
         resultProposal.getLinkedPositions());
+  }
+
+  public void test_createPart() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library app;",
+        "part 'my_part.dart';",
+        "");
+    CreateFileCorrectionProposal proposal = (CreateFileCorrectionProposal) findProposal(CorrectionKind.QF_CREATE_PART);
+    assertEquals("/my_part.dart", proposal.getFile().getPath());
+    {
+      String eol = getTestCorrectionUtils().getEndOfLine();
+      assertEquals("part of app;" + eol + eol, proposal.getContent());
+    }
+  }
+
+  public void test_createPart_absoluteUri() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library app;",
+        "part 'package:my_part.dart';",
+        "");
+    assertNoFix(CorrectionKind.QF_CREATE_PART);
+  }
+
+  public void test_createPart_badUri() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library app;",
+        "part 'invalid uri';",
+        "");
+    assertNoFix(CorrectionKind.QF_CREATE_PART);
   }
 
   public void test_expectedToken_semicolon() throws Exception {
@@ -286,7 +320,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     analysisContext.computeLibraryElement(libSource);
     // prepare proposal
     prepareProblemWithFix();
-    CorrectionProposal proposal = findProposal(CorrectionKind.QF_IMPORT_LIBRARY_PROJECT);
+    SourceCorrectionProposal proposal = (SourceCorrectionProposal) findProposal(CorrectionKind.QF_IMPORT_LIBRARY_PROJECT);
     assertNotNull(proposal);
     // we have "fix", note that preview is for library
     SourceChange appChange = proposal.getChange();
@@ -414,10 +448,9 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   }
 
   /**
-   * @return the result of applying {@link CorrectionProposal} with single {@link SourceChange} to
-   *         the {@link #testCode}.
+   * @return the result of applying {@link SourceCorrectionProposal} to the {@link #testCode}.
    */
-  private String applyProposal(CorrectionProposal proposal) {
+  private String applyProposal(SourceCorrectionProposal proposal) {
     SourceChange change = proposal.getChange();
     List<Edit> edits = change.getEdits();
     return CorrectionUtils.applyReplaceEdits(testCode, edits);
@@ -428,8 +461,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
    * {@link #resultProposal} and {@link #resultCode}.
    */
   private void assert_runProcessor(CorrectionKind kind, String expectedSource) throws Exception {
-    resultProposal = findProposal(kind);
-    assertNotNull(resultProposal);
+    resultProposal = (SourceCorrectionProposal) findProposal(kind);
     resultCode = applyProposal(resultProposal);
     assertEquals(expectedSource, resultCode);
   }

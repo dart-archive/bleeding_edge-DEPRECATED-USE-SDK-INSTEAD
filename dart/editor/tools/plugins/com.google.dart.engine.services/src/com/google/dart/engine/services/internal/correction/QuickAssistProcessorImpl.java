@@ -53,6 +53,7 @@ import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
+import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.services.internal.util.ExecutionUtils;
 import com.google.dart.engine.services.internal.util.RunnableEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
@@ -1116,8 +1117,8 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       for (Edit edit : textEdits) {
         change.addEdit(edit);
       }
-      // create CorrectionProposal
-      CorrectionProposal proposal = new CorrectionProposal(change, kind, arguments);
+      // create SourceCorrectionProposal
+      SourceCorrectionProposal proposal = new SourceCorrectionProposal(change, kind, arguments);
       proposal.setLinkedPositions(linkedPositions);
       proposal.setLinkedPositionProposals(linkedPositionProposals);
       // done

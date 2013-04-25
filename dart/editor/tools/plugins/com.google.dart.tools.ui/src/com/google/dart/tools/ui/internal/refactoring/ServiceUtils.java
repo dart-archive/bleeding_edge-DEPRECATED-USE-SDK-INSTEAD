@@ -19,25 +19,34 @@ import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionImage;
+import com.google.dart.engine.services.correction.CorrectionKind;
+import com.google.dart.engine.services.correction.CreateFileCorrectionProposal;
+import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
 import com.google.dart.engine.services.status.RefactoringStatusEntry;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedPositions;
+import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.ltk.core.refactoring.TextChange;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 
 import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * Utilities to create LTK wrapper around Engine Services objects.
@@ -130,6 +139,40 @@ public class ServiceUtils {
   public static org.eclipse.ltk.core.refactoring.RefactoringStatus toLTK(Throwable e) {
     IStatus status = createRuntimeStatus(e);
     return org.eclipse.ltk.core.refactoring.RefactoringStatus.create(status);
+  }
+
+  /**
+   * @return the {@link IDartCompletionProposal} for the given {@link CreateFileCorrectionProposal}.
+   */
+  public static IDartCompletionProposal toUI(CreateFileCorrectionProposal fileProposal) {
+    return new com.google.dart.tools.ui.internal.text.correction.proposals.CreateFileCorrectionProposal(
+        fileProposal.getKind().getRelevance(),
+        fileProposal.getName(),
+        fileProposal.getFile(),
+        fileProposal.getContent());
+  }
+
+  /**
+   * @return the {@link LinkedCorrectionProposal} for the given {@link SourceCorrectionProposal}.
+   */
+  public static LinkedCorrectionProposal toUI(SourceCorrectionProposal sourceProposal) {
+    CorrectionKind kind = sourceProposal.getKind();
+    Image image = ServiceUtils.toLTK(kind.getImage());
+    SourceChange sourceChange = sourceProposal.getChange();
+    TextChange textChange = ServiceUtils.toLTK(sourceChange);
+    LinkedCorrectionProposal uiProposal = new LinkedCorrectionProposal(
+        sourceProposal.getName(),
+        sourceChange.getSource(),
+        textChange,
+        kind.getRelevance(),
+        image);
+    for (Entry<String, List<SourceRange>> entry : sourceProposal.getLinkedPositions().entrySet()) {
+      String group = entry.getKey();
+      for (SourceRange position : entry.getValue()) {
+        uiProposal.addLinkedPosition(TrackedPositions.forRange(position), false, group);
+      }
+    }
+    return uiProposal;
   }
 
   /**

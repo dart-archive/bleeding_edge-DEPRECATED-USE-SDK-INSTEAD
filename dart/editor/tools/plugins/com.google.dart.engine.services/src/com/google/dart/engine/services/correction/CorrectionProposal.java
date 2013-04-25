@@ -14,78 +14,30 @@
 
 package com.google.dart.engine.services.correction;
 
-import com.google.common.collect.Maps;
-import com.google.dart.engine.services.change.SourceChange;
-import com.google.dart.engine.services.internal.correction.LinkedPositionProposal;
-import com.google.dart.engine.utilities.source.SourceRange;
-
-import java.util.List;
-import java.util.Map;
-
 /**
- * Proposal for single source file change.
+ * Proposal for some change.
  */
 public class CorrectionProposal {
-  private final SourceChange change;
   private final CorrectionKind kind;
   private final String name;
-  private Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
-  private Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
 
-  public CorrectionProposal(SourceChange change, CorrectionKind kind, Object... arguments) {
-    this.change = change;
+  public CorrectionProposal(CorrectionKind kind, Object... arguments) {
     this.kind = kind;
     this.name = String.format(kind.getName(), arguments);
-  }
-
-  /**
-   * @return the {@link SourceChange} to perform.
-   */
-  public SourceChange getChange() {
-    return change;
   }
 
   /**
    * @return the {@link CorrectionKind} which contains presentation of this
    *         {@link CorrectionProposal}.
    */
-  public CorrectionKind getKind() {
+  public final CorrectionKind getKind() {
     return kind;
-  }
-
-  /**
-   * @return the {@link Map} or position IDs to their proposals.
-   */
-  public Map<String, List<LinkedPositionProposal>> getLinkedPositionProposals() {
-    return linkedPositionProposals;
-  }
-
-  /**
-   * @return the {@link Map} of position IDs to their locations.
-   */
-  public Map<String, List<SourceRange>> getLinkedPositions() {
-    return linkedPositions;
   }
 
   /**
    * @return the name to display for user.
    */
-  public String getName() {
+  public final String getName() {
     return name;
-  }
-
-  /**
-   * Sets {@link Map} of position IDs to their proposals.
-   */
-  public void setLinkedPositionProposals(
-      Map<String, List<LinkedPositionProposal>> linkedPositionProposals) {
-    this.linkedPositionProposals = Maps.newHashMap(linkedPositionProposals);
-  }
-
-  /**
-   * Sets the {@link Map} or position IDs to their locations.
-   */
-  public void setLinkedPositions(Map<String, List<SourceRange>> linkedPositions) {
-    this.linkedPositions = Maps.newHashMap(linkedPositions);
   }
 }

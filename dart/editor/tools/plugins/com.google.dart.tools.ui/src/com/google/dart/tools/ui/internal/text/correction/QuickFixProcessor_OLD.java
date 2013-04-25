@@ -80,7 +80,7 @@ import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.ISharedImages;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal_OLD;
-import com.google.dart.tools.ui.internal.text.correction.proposals.CreateFileCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.CreateFileCorrectionProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.SourceBuilder;
 import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedNodeProposal;
@@ -422,7 +422,7 @@ public class QuickFixProcessor_OLD implements IQuickFixProcessor {
           }
           // add proposal
           String label = "Create file \"" + newFile.getFullPath() + "\"";
-          proposals.add(new CreateFileCorrectionProposal(proposalRelevance, label, newFile, source));
+          proposals.add(new CreateFileCorrectionProposal_OLD(proposalRelevance, label, newFile, source));
         }
       }
     }

@@ -16,10 +16,20 @@ package com.google.dart.engine.services.correction;
 
 import junit.framework.TestCase;
 
-public class CorrectionProposalTest extends TestCase {
+import java.io.File;
+
+public class CreateFileCorrectionProposalTest extends TestCase {
+  private final File file = new File("/Test.dart");
+  private final String content = "test file content";
+
   public void test_access() throws Exception {
-    CorrectionProposal proposal = new CorrectionProposal(CorrectionKind.QA_ADD_TYPE_ANNOTATION);
-    assertSame(CorrectionKind.QA_ADD_TYPE_ANNOTATION, proposal.getKind());
-    assertNotNull(proposal.getName());
+    CreateFileCorrectionProposal proposal = new CreateFileCorrectionProposal(
+        file,
+        content,
+        CorrectionKind.QF_CREATE_PART,
+        file);
+    assertSame(CorrectionKind.QF_CREATE_PART, proposal.getKind());
+    assertEquals(file, proposal.getFile());
+    assertEquals(content, proposal.getContent());
   }
 }

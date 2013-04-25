@@ -21,6 +21,7 @@ import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
+import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -1144,10 +1145,9 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   }
 
   /**
-   * @return the result of applying {@link CorrectionProposal} with single {@link SourceChange} to
-   *         the {@link #testCode}.
+   * @return the result of applying {@link SourceCorrectionProposal} to the {@link #testCode}.
    */
-  private String applyProposal(CorrectionProposal proposal) {
+  private String applyProposal(SourceCorrectionProposal proposal) {
     SourceChange change = proposal.getChange();
     List<Edit> edits = change.getEdits();
     return CorrectionUtils.applyReplaceEdits(testCode, edits);
@@ -1317,7 +1317,8 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     String result = testCode;
     for (CorrectionProposal proposal : proposals) {
       if (proposal.getKind() == kind) {
-        result = applyProposal(proposal);
+        assertThat(proposal).isInstanceOf(SourceCorrectionProposal.class);
+        result = applyProposal((SourceCorrectionProposal) proposal);
       }
     }
     // assert result

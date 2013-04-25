@@ -15,11 +15,10 @@ package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.engine.services.change.SourceChange;
-import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
-import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.services.correction.CreateFileCorrectionProposal;
+import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.actions.ConvertGetterToMethodAction;
@@ -28,20 +27,15 @@ import com.google.dart.tools.ui.internal.refactoring.ServiceUtils;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
-import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal;
-import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedPositions;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.ltk.core.refactoring.TextChange;
-import org.eclipse.swt.graphics.Image;
 
 import java.util.List;
-import java.util.Map.Entry;
 
 /**
  * Standard {@link IQuickAssistProcessor} for Dart.
@@ -55,23 +49,14 @@ public class QuickAssistProcessor {
   static void addServiceProposals(List<ICompletionProposal> proposals,
       CorrectionProposal[] serviceProposals) {
     for (CorrectionProposal serviceProposal : serviceProposals) {
-      CorrectionKind kind = serviceProposal.getKind();
-      Image image = ServiceUtils.toLTK(kind.getImage());
-      SourceChange sourceChange = serviceProposal.getChange();
-      TextChange textChange = ServiceUtils.toLTK(sourceChange);
-      LinkedCorrectionProposal uiProposal = new LinkedCorrectionProposal(
-          serviceProposal.getName(),
-          sourceChange.getSource(),
-          textChange,
-          kind.getRelevance(),
-          image);
-      for (Entry<String, List<SourceRange>> entry : serviceProposal.getLinkedPositions().entrySet()) {
-        String group = entry.getKey();
-        for (SourceRange position : entry.getValue()) {
-          uiProposal.addLinkedPosition(TrackedPositions.forRange(position), false, group);
-        }
+      if (serviceProposal instanceof SourceCorrectionProposal) {
+        SourceCorrectionProposal sourceProposal = (SourceCorrectionProposal) serviceProposal;
+        proposals.add(ServiceUtils.toUI(sourceProposal));
       }
-      proposals.add(uiProposal);
+      if (serviceProposal instanceof CreateFileCorrectionProposal) {
+        CreateFileCorrectionProposal fileProposal = (CreateFileCorrectionProposal) serviceProposal;
+        proposals.add(ServiceUtils.toUI(fileProposal));
+      }
     }
   }
 

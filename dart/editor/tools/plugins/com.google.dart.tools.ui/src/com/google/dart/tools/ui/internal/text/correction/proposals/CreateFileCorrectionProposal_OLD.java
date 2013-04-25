@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,42 +13,36 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
-import com.google.dart.engine.source.FileBasedSource;
-import com.google.dart.engine.source.Source;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.text.correction.ICommandAccess;
-import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.CoreUtility;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 
 /**
- * Correction proposal for creating new {@link File}.
+ * Correction proposal for creating new {@link IFile}.
  * 
  * @coverage dart.editor.ui.correction
  */
-public class CreateFileCorrectionProposal implements IDartCompletionProposal, ICommandAccess {
+public class CreateFileCorrectionProposal_OLD implements IDartCompletionProposal, ICommandAccess {
 
   private final int relevance;
   private final String label;
-  private final File file;
+  private final IFile file;
   private final String content;
 
-  public CreateFileCorrectionProposal(int relevance, String label, File file, String content) {
+  public CreateFileCorrectionProposal_OLD(int relevance, String label, IFile file, String content) {
     this.relevance = relevance;
     this.label = label;
     this.file = file;
@@ -60,28 +54,16 @@ public class CreateFileCorrectionProposal implements IDartCompletionProposal, IC
     ExecutionUtils.runLog(new RunnableEx() {
       @Override
       public void run() throws Exception {
-        // prepare IFile
-        IFile newFile;
-        {
-          Source source = new FileBasedSource(null, file);
-          IResource resource = DartCore.getProjectManager().getResource(source);
-          if (!(resource instanceof IFile)) {
-            return;
-          }
-          newFile = (IFile) resource;
-        }
         // ensure that folder with 'newFile' exists
         {
-          IContainer container = newFile.getParent();
+          IContainer container = file.getParent();
           if (container instanceof IFolder && !container.exists()) {
-            CoreUtility.createFolder((IFolder) container, true, true, null);
+            CoreUtility.createFolder((IFolder) container, true, false, null);
           }
         }
         // do create
-        newFile.create(new ByteArrayInputStream(content.getBytes("UTF-8")), true, null);
-        newFile.setCharset("UTF-8", null);
-        // open editor
-        EditorUtility.openInEditor(newFile);
+        file.create(new ByteArrayInputStream(content.getBytes("UTF-8")), true, null);
+        file.setCharset("UTF-8", null);
       }
     });
   }
@@ -108,7 +90,7 @@ public class CreateFileCorrectionProposal implements IDartCompletionProposal, IC
 
   @Override
   public Image getImage() {
-    return DartPluginImages.get(DartPluginImages.IMG_CORRECTION_ADD);
+    return DartPluginImages.get(DartPluginImages.IMG_CORRECTION_LINKED_RENAME);
   }
 
   @Override

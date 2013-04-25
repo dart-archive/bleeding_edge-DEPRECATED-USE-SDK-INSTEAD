@@ -14,12 +14,33 @@
 
 package com.google.dart.engine.services.correction;
 
-import junit.framework.TestCase;
+import java.io.File;
 
-public class CorrectionProposalTest extends TestCase {
-  public void test_access() throws Exception {
-    CorrectionProposal proposal = new CorrectionProposal(CorrectionKind.QA_ADD_TYPE_ANNOTATION);
-    assertSame(CorrectionKind.QA_ADD_TYPE_ANNOTATION, proposal.getKind());
-    assertNotNull(proposal.getName());
+/**
+ * {@link CorrectionProposal} to create new file.
+ */
+public class CreateFileCorrectionProposal extends CorrectionProposal {
+  private final File file;
+  private final String content;
+
+  public CreateFileCorrectionProposal(File file, String content, CorrectionKind kind,
+      Object... arguments) {
+    super(kind, arguments);
+    this.file = file;
+    this.content = content;
+  }
+
+  /**
+   * @return the content for the created file.
+   */
+  public String getContent() {
+    return content;
+  }
+
+  /**
+   * @return the {@link File} to create.
+   */
+  public File getFile() {
+    return file;
   }
 }

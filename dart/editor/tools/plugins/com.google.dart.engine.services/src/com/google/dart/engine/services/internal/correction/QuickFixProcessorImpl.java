@@ -26,7 +26,9 @@ import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -48,7 +50,9 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProposal;
+import com.google.dart.engine.services.correction.CreateFileCorrectionProposal;
 import com.google.dart.engine.services.correction.QuickFixProcessor;
+import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils.TopInsertDesc;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -181,7 +185,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     try {
       ErrorCode errorCode = problem.getErrorCode();
       if (errorCode == CompileTimeErrorCode.INVALID_URI) {
-        addFix_createMissingPart();
+        addFix_createPart();
       }
       if (errorCode == ParserErrorCode.EXPECTED_TOKEN) {
         addFix_insertSemicolon();
@@ -353,47 +357,36 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
-  private void addFix_createMissingPart() throws Exception {
-    // TODO(scheglov) complete implementation after first CorrectionProposal CL
-//    if (node instanceof SimpleStringLiteral && node.getParent() instanceof PartDirective) {
-//      SimpleStringLiteral uriLiteral = (SimpleStringLiteral) node;
-////      PartDirective directive = (PartDirective) node.getParent();
-////    DartSourceDirective directive = (DartSourceDirective) node;
-//      String uriString = uriLiteral.getValue();
-//      File newFile;
-//      try {
-//        URI uri = URI.create(uriString);
-//        if (uri.isAbsolute()) {
-//          return;
-//        }
-//        URI unitLibraryUri = unitLibraryFolder.toURI();
-////        String relative = unitLibraryUri.relativize(uri).getPath();
-//        newFile = new File(unitLibraryFolder, uriString);
-//      } catch (IllegalArgumentException e) {
-//        return;
-//      }
-////    if (uri.getScheme() == null) {
-////      IContainer unitContainer = unit.getResource().getParent();
-////      IFile newFile = unitContainer.getFile(new Path(uriString));
-//      if (!newFile.exists()) {
-//        // prepare new source
-//        String source;
-//        {
-//          String eol = utils.getEndOfLine();
-////          String libraryName = unit.getLibrary().getLibraryDirectiveName();
-////          libraryName = Migrate_1M1_library_CleanUp.mapLibraryName(libraryName);
-//          String libraryName = unitLibraryElement.getName();
-//          source = "part of " + libraryName + ";" + eol + eol;
-//        }
-//        // add proposal
-//        addUnitCorrectionProposal(
-//            unitLibraryElement.getSource(),
-//            CorrectionKind.QF_CREATE_PART,
-//            uriString);
-////        String label = "Create file '" + uriString + "'";
-////        proposals.add(new CreateFileCorrectionProposal(proposalRelevance, label, newFile, source));
-//      }
-//    }
+  private void addFix_createPart() throws Exception {
+    if (node instanceof SimpleStringLiteral && node.getParent() instanceof PartDirective) {
+      SimpleStringLiteral uriLiteral = (SimpleStringLiteral) node;
+      String uriString = uriLiteral.getValue();
+      File newFile;
+      try {
+        URI uri = URI.create(uriString);
+        if (uri.isAbsolute()) {
+          return;
+        }
+        newFile = new File(unitLibraryFolder, uriString);
+      } catch (IllegalArgumentException e) {
+        return;
+      }
+      if (!newFile.exists()) {
+        // prepare new source
+        String source;
+        {
+          String eol = utils.getEndOfLine();
+          String libraryName = unitLibraryElement.getName();
+          source = "part of " + libraryName + ";" + eol + eol;
+        }
+        // add proposal
+        proposals.add(new CreateFileCorrectionProposal(
+            newFile,
+            source,
+            CorrectionKind.QF_CREATE_PART,
+            uriString));
+      }
+    }
   }
 
   private void addFix_importLibrary(CorrectionKind kind, String importPath) throws Exception {
@@ -942,8 +935,8 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       for (Edit edit : textEdits) {
         change.addEdit(edit);
       }
-      // create CorrectionProposal
-      CorrectionProposal proposal = new CorrectionProposal(change, kind, arguments);
+      // create SourceCorrectionProposal
+      SourceCorrectionProposal proposal = new SourceCorrectionProposal(change, kind, arguments);
       proposal.setLinkedPositions(linkedPositions);
       proposal.setLinkedPositionProposals(linkedPositionProposals);
       // done
