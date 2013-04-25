@@ -202,13 +202,13 @@ Alternately, you can run the Ant script outside Eclipse
 by defining the "eclipse.home" property to point to your Eclipse installation
 
 Next, install Dartium (Chromium with an embedded Dart VM) into the "dart-sdk" directory.
-http://www.dartlang.org/dartium/index.html
+http://www.dartlang.org/tools/dartium/
 
 Linux:
   <eclipse-install-dir>/chromium/
 
 Mac:
-  <eclipse-install-dir>/Chromium.app
+  <eclipse-install-dir>/chromium/Chromium.app
 
 Windows
   <eclipse-install-dir>/chromium/chromium.exe
