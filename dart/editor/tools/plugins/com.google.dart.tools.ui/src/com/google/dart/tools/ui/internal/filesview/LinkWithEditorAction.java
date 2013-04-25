@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.common.base.Objects;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.ActionMessages;
@@ -29,6 +30,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -176,7 +178,21 @@ public class LinkWithEditorAction extends PartEventAction implements ISelectionC
     Object currentSelection = getCurrentSelection();
 
     if (file != null && !file.equals(currentSelection)) {
-      treeViewer.setSelection(new StructuredSelection(file), true);
+      final StructuredSelection fileSelection = new StructuredSelection(file);
+      // Set selection now.
+      treeViewer.setSelection(fileSelection, true);
+      // We refresh viewer in UI async, so when file was just created, we cannot find it yet.
+      // So, set selection in UI async too.
+      if (!Objects.equal(treeViewer.getSelection(), fileSelection)) {
+        Display.getCurrent().asyncExec(new Runnable() {
+          @Override
+          public void run() {
+            if (!treeViewer.getControl().isDisposed()) {
+              treeViewer.setSelection(fileSelection, true);
+            }
+          }
+        });
+      }
     }
   }
 
