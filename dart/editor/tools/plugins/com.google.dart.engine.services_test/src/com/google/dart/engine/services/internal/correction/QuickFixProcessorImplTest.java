@@ -134,7 +134,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "part 'my_part.dart';",
         "");
     CreateFileCorrectionProposal proposal = (CreateFileCorrectionProposal) findProposal(CorrectionKind.QF_CREATE_PART);
-    assertEquals("/my_part.dart", proposal.getFile().getPath());
+    assertThat(proposal.getFile().getPath()).endsWith("my_part.dart");
     {
       String eol = getTestCorrectionUtils().getEndOfLine();
       assertEquals("part of app;" + eol + eol, proposal.getContent());
