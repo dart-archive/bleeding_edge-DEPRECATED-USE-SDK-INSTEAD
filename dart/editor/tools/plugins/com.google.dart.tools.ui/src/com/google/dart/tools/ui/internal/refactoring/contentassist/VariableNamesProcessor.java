@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.internal.refactoring.contentassist;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUIMessages;
-import com.google.dart.tools.ui.internal.text.dart.DartCompletionProposal;
+import com.google.dart.tools.ui.internal.text.completion.DartCompletionProposal;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 
 import org.eclipse.core.runtime.Assert;

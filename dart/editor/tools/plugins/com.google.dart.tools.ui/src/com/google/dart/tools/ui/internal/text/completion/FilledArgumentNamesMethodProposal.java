@@ -11,10 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.internal.text.dart;
+package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.text.dart.DartTextMessages;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorHighlightingSynchronizer;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;

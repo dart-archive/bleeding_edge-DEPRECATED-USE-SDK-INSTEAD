@@ -18,7 +18,7 @@ import org.eclipse.osgi.util.NLS;
 /**
  * Helper class to get NLSed messages.
  */
-final class DartTextMessages extends NLS {
+public class DartTextMessages extends NLS {
 
   private static final String BUNDLE_NAME = DartTextMessages.class.getName();
 

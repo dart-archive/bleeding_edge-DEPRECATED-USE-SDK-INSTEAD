@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.internal.text.dart;
+package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.tools.core.formatter.CodeFormatter;
 import com.google.dart.tools.core.model.DartConventions;
@@ -23,6 +23,8 @@ import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.JavaPreferencesSettings;
+import com.google.dart.tools.ui.internal.text.dart.DartTextMessages;
+import com.google.dart.tools.ui.internal.text.dart.ImportRewrite;
 import com.google.dart.tools.ui.internal.util.CodeFormatterUtil;
 import com.google.dart.tools.ui.internal.util.Strings;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;

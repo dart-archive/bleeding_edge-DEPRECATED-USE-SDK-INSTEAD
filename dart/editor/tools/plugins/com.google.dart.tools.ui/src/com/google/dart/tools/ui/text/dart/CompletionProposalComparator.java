@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.text.dart;
 
-import com.google.dart.tools.ui.internal.text.dart.AbstractDartCompletionProposal;
+import com.google.dart.tools.ui.internal.text.completion.AbstractDartCompletionProposal;
 
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.templates.TemplateProposal;

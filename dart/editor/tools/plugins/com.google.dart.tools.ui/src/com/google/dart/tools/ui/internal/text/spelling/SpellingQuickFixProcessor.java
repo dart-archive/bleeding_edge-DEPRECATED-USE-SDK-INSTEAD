@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.internal.text.spelling;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.ui.internal.text.dart.DartCompletionProposal;
+import com.google.dart.tools.ui.internal.text.completion.DartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;

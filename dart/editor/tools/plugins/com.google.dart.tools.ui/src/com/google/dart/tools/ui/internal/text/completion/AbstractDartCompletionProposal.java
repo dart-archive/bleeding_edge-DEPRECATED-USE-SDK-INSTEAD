@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.internal.text.dart;
+package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
@@ -21,6 +21,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
+import com.google.dart.tools.ui.internal.text.dart.SmartSemicolonAutoEditStrategy;
 import com.google.dart.tools.ui.internal.text.html.BrowserInformationControl;
 import com.google.dart.tools.ui.internal.text.html.HTMLPrinter;
 import com.google.dart.tools.ui.text.DartPartitions;

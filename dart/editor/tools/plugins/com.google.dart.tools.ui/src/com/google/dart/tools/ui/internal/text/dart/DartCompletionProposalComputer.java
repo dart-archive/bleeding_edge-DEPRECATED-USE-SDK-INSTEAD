@@ -20,6 +20,8 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.PreferenceConstants;
+import com.google.dart.tools.ui.internal.text.completion.DartMethodCompletionProposal;
+import com.google.dart.tools.ui.internal.text.completion.FillArgumentNamesCompletionProposalCollector;
 import com.google.dart.tools.ui.internal.text.functions.DartHeuristicScanner;
 import com.google.dart.tools.ui.internal.text.functions.Symbols;
 import com.google.dart.tools.ui.text.dart.CompletionProposalCollector;
