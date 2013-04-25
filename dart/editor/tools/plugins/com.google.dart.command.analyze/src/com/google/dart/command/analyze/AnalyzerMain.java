@@ -14,6 +14,7 @@
 package com.google.dart.command.analyze;
 
 import com.google.dart.command.analyze.BatchRunner.BatchRunnerInvocation;
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
@@ -129,8 +130,13 @@ public class AnalyzerMain {
           System.exit(result.ordinal());
         }
       }
+    } catch (AnalysisException exception) {
+      System.err.println("Error: " + exception.getMessage());
+
+      crashAndExit();
     } catch (Throwable t) {
       t.printStackTrace();
+
       crashAndExit();
     }
   }
@@ -152,7 +158,15 @@ public class AnalyzerMain {
     File sourceFile = new File(options.getSourceFile());
 
     if (!sourceFile.exists()) {
-      System.out.println(PROGRAM_NAME + ": file not found: " + sourceFile);
+      System.out.println("File not found: " + sourceFile);
+      System.out.println();
+      showUsage(options, System.out);
+      return ErrorSeverity.ERROR;
+    }
+
+    // TODO: also support analyzing html files (via AnalysisEngine.isHtmlFileName())
+    if (!AnalysisEngine.isDartFileName(sourceFile.getName())) {
+      System.out.println(sourceFile + " is not a Dart file");
       System.out.println();
       showUsage(options, System.out);
       return ErrorSeverity.ERROR;

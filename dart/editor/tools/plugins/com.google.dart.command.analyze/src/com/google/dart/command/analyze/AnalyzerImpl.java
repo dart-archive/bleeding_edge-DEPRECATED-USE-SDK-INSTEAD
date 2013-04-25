@@ -17,6 +17,7 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
@@ -34,7 +35,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Scans, parses, and analyzes a library.
@@ -88,6 +91,11 @@ class AnalyzerImpl {
           new DartUriResolver(sdk),
           new FileUriResolver(),
           new PackageUriResolver(options.getPackageRootPath()));
+    } else if (getPackageDirectoryFor(sourceFile) != null) {
+      sourceFactory = new SourceFactory(
+          new DartUriResolver(sdk),
+          new FileUriResolver(),
+          new PackageUriResolver(getPackageDirectoryFor(sourceFile)));
     } else {
       sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     }
@@ -97,14 +105,12 @@ class AnalyzerImpl {
     Source librarySource = new FileBasedSource(contentCache, sourceFile);
     LibraryElement library = context.computeLibraryElement(librarySource);
 
+    @SuppressWarnings("unused")
     CompilationUnit unit = context.resolveCompilationUnit(librarySource, library);
 
-    // TODO: implement options.getShowSdkWarnings() && library.getName().startsWith("dart.")
+    Set<Source> sources = getAllSources(library, options.getShowSdkWarnings());
 
-    // TODO: this needs to be changed to collect all errors from this library and referenced
-    // libraries (modulo the --show-sdk-warnings flag).
-
-    errors.addAll(Arrays.asList(unit.getErrors()));
+    getAllErrors(context, sources, errors);
 
     return getMaxErrorSeverity(errors);
   }
@@ -133,6 +139,75 @@ class AnalyzerImpl {
       ioe.printStackTrace();
 
       return false;
+    }
+  }
+
+  Set<Source> getAllSources(LibraryElement library, boolean includeSdkSources) {
+    Set<CompilationUnitElement> units = new HashSet<CompilationUnitElement>();
+    Set<LibraryElement> libraries = new HashSet<LibraryElement>();
+    Set<Source> sources = new HashSet<Source>();
+
+    addLibrary(library, libraries, units, sources, includeSdkSources);
+
+    return sources;
+  }
+
+  private void addCompilationUnit(CompilationUnitElement unit, Set<LibraryElement> libraries,
+      Set<CompilationUnitElement> units, Set<Source> sources) {
+    if (unit == null || units.contains(unit)) {
+      return;
+    }
+
+    units.add(unit);
+
+    sources.add(unit.getSource());
+  }
+
+  private void addLibrary(LibraryElement library, Set<LibraryElement> libraries,
+      Set<CompilationUnitElement> units, Set<Source> sources, boolean includeSdkSources) {
+    if (library == null || libraries.contains(library)) {
+      return;
+    }
+
+    // Skip SDK libraries.
+    if (!includeSdkSources && library.getName().startsWith("dart.")) {
+      return;
+    }
+
+    libraries.add(library);
+
+    // add compilation units
+    addCompilationUnit(library.getDefiningCompilationUnit(), libraries, units, sources);
+
+    for (CompilationUnitElement child : library.getParts()) {
+      addCompilationUnit(child, libraries, units, sources);
+    }
+
+    // add referenced libraries
+    for (LibraryElement child : library.getImportedLibraries()) {
+      addLibrary(child, libraries, units, sources, includeSdkSources);
+    }
+
+    for (LibraryElement child : library.getExportedLibraries()) {
+      addLibrary(child, libraries, units, sources, includeSdkSources);
+    }
+  }
+
+  private void getAllErrors(AnalysisContext context, Set<Source> sources, List<AnalysisError> errors) {
+    for (Source source : sources) {
+      AnalysisError[] sourceErrors = context.getErrors(source).getErrors();
+
+      errors.addAll(Arrays.asList(sourceErrors));
+    }
+  }
+
+  private File getPackageDirectoryFor(File sourceFile) {
+    File packagesDir = new File(sourceFile.getParentFile(), "packages");
+
+    if (packagesDir.exists()) {
+      return packagesDir;
+    } else {
+      return null;
     }
   }
 

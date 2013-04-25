@@ -137,6 +137,11 @@ public class AnalyzerOptions {
   @Option(name = "--show-sdk-warnings")
   private boolean showSdkWarnings = false;
 
+  // TODO(devoncarew): we need to implement this
+  @SuppressWarnings("unused")
+  @Option(name = "--show-package-warnings")
+  private boolean showPackageWarnings = false;
+
   @Option(name = "--fatal-warnings")
   private boolean warningsAreFatal = false;
 
@@ -207,7 +212,7 @@ public class AnalyzerOptions {
   }
 
   /**
-   * Returns the list of files passed to the analyzer.
+   * Returns the file passed to the analyzer.
    */
   public String getSourceFile() {
     return sourceFile;
