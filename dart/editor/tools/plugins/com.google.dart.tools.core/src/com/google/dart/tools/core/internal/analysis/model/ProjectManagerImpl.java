@@ -31,6 +31,7 @@ import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
@@ -237,6 +238,11 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
       }
     }
     return null;
+  }
+
+  @Override
+  public ResourceMap getResourceMap(IResource resource) {
+    return getProject(resource.getProject()).getResourceMap(resource);
   }
 
   @Override

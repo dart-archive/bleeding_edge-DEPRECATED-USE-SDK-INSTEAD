@@ -41,17 +41,7 @@ import java.util.List;
 /**
  * Represents a project or folder within a project containing a pubspec file
  */
-public class PubFolderImpl implements PubFolder {
-
-  /**
-   * The container of the pubspec file (not {@code null})
-   */
-  private final IContainer container;
-
-  /**
-   * The analysis context used when analyzing sources contained in the receiver
-   */
-  private final AnalysisContext context;
+public class PubFolderImpl extends PubResourceMapImpl implements PubFolder {
 
   /**
    * The Dart SDK used when constructing the context.
@@ -64,14 +54,8 @@ public class PubFolderImpl implements PubFolder {
   private PubspecModel pubspec;
 
   public PubFolderImpl(IContainer container, AnalysisContext context, DartSdk sdk) {
-    this.container = container;
-    this.context = context;
+    super(container, context);
     this.sdk = sdk;
-  }
-
-  @Override
-  public AnalysisContext getContext() {
-    return context;
   }
 
   @Override
@@ -87,11 +71,6 @@ public class PubFolderImpl implements PubFolder {
       pubspec = new PubspecModel(getContents(reader));
     }
     return pubspec;
-  }
-
-  @Override
-  public IContainer getResource() {
-    return container;
   }
 
   @Override

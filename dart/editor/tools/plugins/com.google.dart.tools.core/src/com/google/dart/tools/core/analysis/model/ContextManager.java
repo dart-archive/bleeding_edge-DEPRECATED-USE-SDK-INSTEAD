@@ -111,6 +111,15 @@ public interface ContextManager {
   IResource getResource(Source source);
 
   /**
+   * Answer the bi-directional map for translating between sources and resources for the specified
+   * resource.
+   * 
+   * @param resource the resource (not {@code null})
+   * @return the resource map (not {@code null})
+   */
+  ResourceMap getResourceMap(IResource resource);
+
+  /**
    * Answer the source for the specified file
    * 
    * @param file the file (not {@code null})

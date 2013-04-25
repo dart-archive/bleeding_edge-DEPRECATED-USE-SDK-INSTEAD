@@ -13,12 +13,10 @@
  */
 package com.google.dart.tools.core.analysis.model;
 
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.tools.core.internal.analysis.model.InvertedSourceContainer;
 import com.google.dart.tools.core.pub.PubspecModel;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.CoreException;
 
 import java.io.IOException;
@@ -26,14 +24,7 @@ import java.io.IOException;
 /**
  * Represents a project or folder within a project containing a pubspec file
  */
-public interface PubFolder {
-
-  /**
-   * Answer the analysis context used for analyzing sources contained within the receiver
-   * 
-   * @return the analysis context (not {@code null})
-   */
-  AnalysisContext getContext();
+public interface PubFolder extends ResourceMap {
 
   /**
    * Answer a source container that can be used to determine which sources are not contained in the
@@ -49,13 +40,6 @@ public interface PubFolder {
    * @return the pubspec model (not {@code null}
    */
   PubspecModel getPubspec() throws CoreException, IOException;
-
-  /**
-   * Answer the container associated with the receiver and containing the pubspec file
-   * 
-   * @return the container (not {@code null})
-   */
-  IContainer getResource();
 
   /**
    * Answer the {@link DartSdk} used when constructing the analysis context.

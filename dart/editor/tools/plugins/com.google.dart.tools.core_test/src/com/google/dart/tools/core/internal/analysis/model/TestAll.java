@@ -23,6 +23,8 @@ public class TestAll {
     suite.addTestSuite(ProjectImplTest.class);
     suite.addTestSuite(ProjectManagerImplTest.class);
     suite.addTestSuite(PubFolderImplTest.class);
+    suite.addTestSuite(PubResourceMapImplTest.class);
+    suite.addTestSuite(SimpleResourceMapImplTest.class);
     suite.addTestSuite(WorkspaceDeltaProcessorTest.class);
     return suite;
   }

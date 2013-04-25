@@ -114,7 +114,7 @@ public class MockFile extends MockResource implements IFile {
 
   @Override
   public String getCharset() throws CoreException {
-    return null;
+    return "UTF-8";
   }
 
   @Override
@@ -192,6 +192,10 @@ public class MockFile extends MockResource implements IFile {
   @Override
   public void setContents(InputStream source, int updateFlags, IProgressMonitor monitor)
       throws CoreException {
+  }
+
+  public void setContents(String contents) {
+    this.contents = contents;
   }
 
   private Call newDeleteMarkerCall() {

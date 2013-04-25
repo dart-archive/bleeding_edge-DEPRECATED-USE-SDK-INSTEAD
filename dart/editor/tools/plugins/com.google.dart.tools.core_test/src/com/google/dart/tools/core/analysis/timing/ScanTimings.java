@@ -32,6 +32,7 @@ import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
@@ -254,6 +255,11 @@ public class ScanTimings extends TestCase {
 
     @Override
     public IResource getResource(Source source) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ResourceMap getResourceMap(IResource resource) {
       throw new UnsupportedOperationException();
     }
 

@@ -15,6 +15,7 @@ import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.internal.builder.DeltaAdapter;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.ResourceDeltaEvent;
@@ -118,6 +119,12 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * field.
    */
   private AnalysisContext defaultContext;
+
+  /**
+   * The default resource map for this project (not {@code null}). This resource map is only used if
+   * no pubspec or package root is defined.
+   */
+  private ResourceMap defaultResourceMap;
 
   /**
    * The Dart SDK used when constructing the default context.
@@ -282,6 +289,14 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     }
     // TODO (danrubel): Handle mapped subfolders
     return null;
+  }
+
+  @Override
+  public ResourceMap getResourceMap(IResource resource) {
+    synchronized (pubFolders) {
+      PubFolder pubFolder = getPubFolder(resource);
+      return pubFolder != null ? pubFolder : defaultResourceMap;
+    }
   }
 
   @Override
@@ -520,6 +535,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     }
     boolean hasPubspec = projectResource.getFile(PUBSPEC_FILE_NAME).exists();
     defaultContext = initContext(factory.createContext(), projectResource, sdk, hasPubspec);
+    defaultResourceMap = new SimpleResourceMapImpl(projectResource, defaultContext);
     createPubFolders(projectResource);
   }
 
