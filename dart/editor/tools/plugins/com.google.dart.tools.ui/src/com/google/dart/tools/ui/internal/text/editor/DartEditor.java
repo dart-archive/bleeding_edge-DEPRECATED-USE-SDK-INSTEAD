@@ -2622,11 +2622,18 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   /**
    * {@link DartReconciler} calls this method when input {@link IFile} read-only state is changed.
+   * <p>
+   * Called from background {@link DartReconciler} thread.
    */
   public void setEditables(boolean isEditable) {
     this.isEditable = isEditable;
     isEditableStateKnown = true;
-    updateState(getEditorInput());
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        updateState(getEditorInput());
+      }
+    });
   }
 
   public void setPreferences(IPreferenceStore store) {
