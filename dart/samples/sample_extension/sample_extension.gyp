@@ -34,6 +34,11 @@
             'OTHER_LDFLAGS': [ '-undefined', 'dynamic_lookup' ],
           },
         }],
+        ['OS=="linux"', {
+          'cflags': [
+            '-fPIC',
+          ],
+        }],
       ],
     },
   ],
