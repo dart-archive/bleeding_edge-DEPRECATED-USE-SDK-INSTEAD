@@ -45,7 +45,7 @@ public class CorrectionProposalTest extends TestCase {
     Map<String, List<LinkedPositionProposal>> linkedPositions2 = Maps.newHashMap();
     proposal.setLinkedPositions(linkedPositions);
     proposal.setLinkedPositionProposals(linkedPositions2);
-    assertSame(linkedPositions, proposal.getLinkedPositions());
-    assertSame(linkedPositions2, proposal.getLinkedPositionProposals());
+    assertEquals(linkedPositions, proposal.getLinkedPositions());
+    assertEquals(linkedPositions2, proposal.getLinkedPositionProposals());
   }
 }
