@@ -244,66 +244,6 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     addUnitCorrectionProposal(QA_ADD_TYPE_ANNOTATION);
   }
 
-  // TODO(scheglov) implement later
-//  void addProposal_convertGetterToMethodRefactoring() throws CoreException {
-//    if (!RefactoringAvailabilityTester.isConvertGetterToMethodAvailable(selectionFunction)) {
-//      return;
-//    }
-//    // we need DartEditor
-//    if (context instanceof AssistContext) {
-//      IEditorPart editor = ((AssistContext) context).getEditor();
-//      if (editor instanceof DartEditor) {
-//        DartEditor dartEditor = (DartEditor) editor;
-//        // add proposal
-//        ICommandAccess proposal = new ConvertGetterToMethodRefactoringProposal(
-//            dartEditor,
-//            selectionFunction,
-//            proposalRelevance);
-//        proposals.add(proposal);
-//      }
-//    }
-//  }
-
-  // TODO(scheglov) implement later
-//  void addProposal_convertMethodToGetterRefactoring() throws CoreException {
-//    if (!RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(selectionFunction)) {
-//      return;
-//    }
-//    // we need DartEditor
-//    if (context instanceof AssistContext) {
-//      IEditorPart editor = ((AssistContext) context).getEditor();
-//      if (editor instanceof DartEditor) {
-//        DartEditor dartEditor = (DartEditor) editor;
-//        // add proposal
-//        ICommandAccess proposal = new ConvertMethodToGetterRefactoringProposal(
-//            dartEditor,
-//            selectionFunction,
-//            proposalRelevance);
-//        proposals.add(proposal);
-//      }
-//    }
-//  }
-
-  // TODO(scheglov) implement later
-//  void addProposal_ConvertOptionalParametersToNamedRefactoring() throws CoreException {
-//    if (!RefactoringAvailabilityTester.isConvertOptionalParametersToNamedAvailable(selectionFunction)) {
-//      return;
-//    }
-//    // we need DartEditor
-//    if (context instanceof AssistContext) {
-//      IEditorPart editor = ((AssistContext) context).getEditor();
-//      if (editor instanceof DartEditor) {
-//        DartEditor dartEditor = (DartEditor) editor;
-//        // add proposal
-//        ICommandAccess proposal = new ConvertOptionalParametersToNamedRefactoringProposal(
-//            dartEditor,
-//            selectionFunction,
-//            proposalRelevance);
-//        proposals.add(proposal);
-//      }
-//    }
-//  }
-
   void addProposal_convertToBlockFunctionBody() throws Exception {
     FunctionBody body = getEnclosingFunctionBody();
     // prepare expression body

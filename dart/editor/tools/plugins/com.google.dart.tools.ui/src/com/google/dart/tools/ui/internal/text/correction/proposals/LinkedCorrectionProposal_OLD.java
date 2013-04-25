@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
-import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.dom.rewrite.TrackedNodePosition;
+import com.google.dart.tools.core.model.CompilationUnit;
 
 import org.eclipse.ltk.core.refactoring.TextChange;
 import org.eclipse.swt.graphics.Image;
@@ -23,10 +23,11 @@ import org.eclipse.swt.graphics.Image;
  * A proposal for quick fixes and quick assists that applies change and enters the linked mode when
  * the proposal is set up.
  */
-public class LinkedCorrectionProposal extends CUCorrectionProposal {
-  public LinkedCorrectionProposal(String name, Source source, TextChange change, int relevance,
-      Image image) {
-    super(name, source, change, relevance, image);
+public class LinkedCorrectionProposal_OLD extends CUCorrectionProposal_OLD {
+
+  public LinkedCorrectionProposal_OLD(String name, CompilationUnit cu, TextChange change,
+      int relevance, Image image) {
+    super(name, cu, change, relevance, image);
   }
 
   /**
@@ -41,6 +42,19 @@ public class LinkedCorrectionProposal extends CUCorrectionProposal {
   public void addLinkedPosition(TrackedNodePosition position, boolean isFirst, String groupID) {
     getLinkedProposalModel().getPositionGroup(groupID, true).addPosition(position, isFirst);
   }
+
+//  /**
+//   * Adds a linked position proposal to the group with the given id.
+//   * 
+//   * @param groupID The id of the group that should present the proposal
+//   * @param type The binding to use as type name proposal.
+//   */
+//  public void addLinkedPositionProposal(String groupID, ITypeBinding type) {
+//    getLinkedProposalModel().getPositionGroup(groupID, true).addProposal(
+//        type,
+//        getCompilationUnit(),
+//        10);
+//  }
 
   /**
    * Adds a linked position proposal to the group with the given id.

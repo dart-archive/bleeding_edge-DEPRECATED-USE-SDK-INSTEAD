@@ -62,7 +62,7 @@ import com.google.dart.tools.ui.internal.text.Selection;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertOptionalParametersToNamedRefactoringProposal;
-import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.SourceBuilder;
 import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedNodeProposal;
@@ -170,7 +170,7 @@ public class QuickAssistProcessor_OLD implements IQuickAssistProcessor {
   private final Map<SourceRange, TextEdit> positionStopEdits = Maps.newHashMap();
   private final Map<String, List<TrackedNodeProposal>> linkedPositionProposals = Maps.newHashMap();
   private SourceRange proposalEndRange = null;
-  private LinkedCorrectionProposal proposal;
+  private LinkedCorrectionProposal_OLD proposal;
 
   @Override
   public synchronized IDartCompletionProposal[] getAssists(IInvocationContext context,
@@ -1202,7 +1202,7 @@ public class QuickAssistProcessor_OLD implements IQuickAssistProcessor {
   }
 
   /**
-   * Adds new {@link LinkedCorrectionProposal} using {@link #unit} and {@link #textEdits}.
+   * Adds new {@link LinkedCorrectionProposal_OLD} using {@link #unit} and {@link #textEdits}.
    */
   private void addUnitCorrectionProposal(String label, Image image) {
     // sort edits
@@ -1222,7 +1222,7 @@ public class QuickAssistProcessor_OLD implements IQuickAssistProcessor {
     }
     // add proposal
     if (!textEdits.isEmpty()) {
-      proposal = new LinkedCorrectionProposal(label, unit, change, proposalRelevance, image);
+      proposal = new LinkedCorrectionProposal_OLD(label, unit, change, proposalRelevance, image);
       addLinkedPositionsToProposal();
       if (proposalEndRange != null) {
         proposalEndRange = translateRangeAfterTextEdits(proposalEndRange);

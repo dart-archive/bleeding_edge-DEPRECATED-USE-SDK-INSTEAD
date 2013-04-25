@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.ImportDirective;
@@ -35,6 +36,7 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
@@ -59,12 +61,14 @@ import com.google.dart.engine.utilities.source.SourceRange;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndStart;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeError;
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNode;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartLength;
 
 import java.io.File;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.lang.model.type.TypeKind;
 
@@ -123,6 +127,8 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private Source source;
   private CompilationUnit unit;
   private LibraryElement unitLibraryElement;
+  private File unitLibraryFile;
+  private File unitLibraryFolder;
   private ASTNode node;
   private int selectionOffset;
   private int selectionLength;
@@ -161,6 +167,11 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (unitLibraryElement == null) {
         return NO_PROPOSALS;
       }
+      unitLibraryFile = getSourceFile(unitLibraryElement.getSource());
+      if (unitLibraryFile == null) {
+        return NO_PROPOSALS;
+      }
+      unitLibraryFolder = unitLibraryFile.getParentFile();
     }
     // prepare CorrectionUtils
     utils = new CorrectionUtils(unit);
@@ -169,6 +180,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
     try {
       ErrorCode errorCode = problem.getErrorCode();
+      if (errorCode == CompileTimeErrorCode.INVALID_URI) {
+        addFix_createMissingPart();
+      }
       if (errorCode == ParserErrorCode.EXPECTED_TOKEN) {
         addFix_insertSemicolon();
       }
@@ -177,6 +191,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
       if (errorCode == StaticWarningCode.UNDEFINED_CLASS) {
         addFix_importLibrary_withType();
+        addFix_createClass();
       }
       if (errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN) {
         addFix_boolInsteadOfBoolean();
@@ -211,19 +226,15 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   @Override
   public boolean hasFix(AnalysisError problem) {
     ErrorCode errorCode = problem.getErrorCode();
-    return errorCode == ParserErrorCode.EXPECTED_TOKEN
+//    System.out.println(errorCode.getClass() + " " + errorCode);
+    return errorCode == CompileTimeErrorCode.INVALID_URI
+        || errorCode == ParserErrorCode.EXPECTED_TOKEN
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
         || errorCode == StaticWarningCode.UNDEFINED_CLASS
         || errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN
         || errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER
         || errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION
         || errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION;
-  }
-
-  private void addFix_boolInsteadOfBoolean() {
-    SourceRange range = rangeError(problem);
-    addReplaceEdit(range, "bool");
-    addUnitCorrectionProposal(CorrectionKind.QF_REPLACE_BOOLEAN_WITH_BOOL);
   }
 
   // TODO(scheglov) implement this
@@ -300,31 +311,90 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 //    }
 //  }
 
-  // TODO(scheglov) implement this
-//  private void addFix_createMissingPart() throws Exception {
-//    if (node instanceof DartSourceDirective) {
-//      DartSourceDirective directive = (DartSourceDirective) node;
-//      String uriString = directive.getSourceUri().getValue();
-//      URI uri = URI.create(uriString);
-//      if (uri.getScheme() == null) {
-//        IContainer unitContainer = unit.getResource().getParent();
-//        IFile newFile = unitContainer.getFile(new Path(uriString));
-//        if (!newFile.exists()) {
-//          // prepare new source
-//          String source;
-//          {
-//            String eol = utils.getEndOfLine();
-//            String libraryName = unit.getLibrary().getLibraryDirectiveName();
-//            libraryName = Migrate_1M1_library_CleanUp.mapLibraryName(libraryName);
-//            source = "part of " + libraryName + ";" + eol + eol;
-//          }
-//          // add proposal
-//          String label = "Create file \"" + newFile.getFullPath() + "\"";
-//          proposals.add(new CreateFileCorrectionProposal(proposalRelevance, label, newFile, source));
+  private void addFix_boolInsteadOfBoolean() {
+    SourceRange range = rangeError(problem);
+    addReplaceEdit(range, "bool");
+    addUnitCorrectionProposal(CorrectionKind.QF_REPLACE_BOOLEAN_WITH_BOOL);
+  }
+
+  private void addFix_createClass() {
+    if (mayBeTypeIdentifier(node)) {
+      String name = ((SimpleIdentifier) node).getName();
+      // prepare environment
+      String eol = utils.getEndOfLine();
+      CompilationUnitMember enclosingMember = node.getAncestor(CompilationUnitMember.class);
+      int offset = enclosingMember.getEnd();
+      String prefix = "";
+      // prepare source
+      SourceBuilder sb = new SourceBuilder(offset);
+      {
+        sb.append(eol + eol);
+        sb.append(prefix);
+        // "class"
+        sb.append("class ");
+        // append name
+        {
+          sb.startPosition("NAME");
+          sb.append(name);
+          sb.endPosition();
+        }
+        // no members
+        sb.append(" {");
+        sb.append(eol);
+        sb.append("}");
+      }
+      // insert source
+      addInsertEdit(offset, sb.toString());
+      // add linked positions
+      addLinkedPosition("NAME", rangeNode(node));
+      addLinkedPositions(sb);
+      // add proposal
+      addUnitCorrectionProposal(CorrectionKind.QF_CREATE_CLASS, name);
+    }
+  }
+
+  private void addFix_createMissingPart() throws Exception {
+    // TODO(scheglov) complete implementation after first CorrectionProposal CL
+//    if (node instanceof SimpleStringLiteral && node.getParent() instanceof PartDirective) {
+//      SimpleStringLiteral uriLiteral = (SimpleStringLiteral) node;
+////      PartDirective directive = (PartDirective) node.getParent();
+////    DartSourceDirective directive = (DartSourceDirective) node;
+//      String uriString = uriLiteral.getValue();
+//      File newFile;
+//      try {
+//        URI uri = URI.create(uriString);
+//        if (uri.isAbsolute()) {
+//          return;
 //        }
+//        URI unitLibraryUri = unitLibraryFolder.toURI();
+////        String relative = unitLibraryUri.relativize(uri).getPath();
+//        newFile = new File(unitLibraryFolder, uriString);
+//      } catch (IllegalArgumentException e) {
+//        return;
+//      }
+////    if (uri.getScheme() == null) {
+////      IContainer unitContainer = unit.getResource().getParent();
+////      IFile newFile = unitContainer.getFile(new Path(uriString));
+//      if (!newFile.exists()) {
+//        // prepare new source
+//        String source;
+//        {
+//          String eol = utils.getEndOfLine();
+////          String libraryName = unit.getLibrary().getLibraryDirectiveName();
+////          libraryName = Migrate_1M1_library_CleanUp.mapLibraryName(libraryName);
+//          String libraryName = unitLibraryElement.getName();
+//          source = "part of " + libraryName + ";" + eol + eol;
+//        }
+//        // add proposal
+//        addUnitCorrectionProposal(
+//            unitLibraryElement.getSource(),
+//            CorrectionKind.QF_CREATE_PART,
+//            uriString);
+////        String label = "Create file '" + uriString + "'";
+////        proposals.add(new CreateFileCorrectionProposal(proposalRelevance, label, newFile, source));
 //      }
 //    }
-//  }
+  }
 
   private void addFix_importLibrary(CorrectionKind kind, String importPath) throws Exception {
     CompilationUnitElement libraryUnitElement = unitLibraryElement.getDefiningCompilationUnit();
@@ -418,16 +488,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         addFix_importLibrary(CorrectionKind.QF_IMPORT_LIBRARY_SDK, libraryUri);
       }
     }
-    // prepare base URI
-    URI baseUri;
-    {
-      CompilationUnitElement libraryUnitElement = unitLibraryElement.getDefiningCompilationUnit();
-      File unitFile = getSourceFile(libraryUnitElement.getSource());
-      if (unitFile == null) {
-        return;
-      }
-      baseUri = unitFile.getParentFile().toURI();
-    }
     // check project libraries
     {
       Source[] librarySources = context.getLibrarySources();
@@ -455,7 +515,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
           continue;
         }
         // add import
-        String relative = baseUri.relativize(libraryFile.toURI()).getPath();
+        URI unitLibraryUri = unitLibraryFolder.toURI();
+        URI libraryUri = libraryFile.toURI();
+        String relative = unitLibraryUri.relativize(libraryUri).getPath();
         addFix_importLibrary(CorrectionKind.QF_IMPORT_LIBRARY_PROJECT, relative);
       }
     }
@@ -513,158 +575,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
     }
   }
-
-  // TODO(scheglov) implement this
-//  private void addFix_unresolvedClass_create() {
-//    if (mayBeTypeIdentifier(node)) {
-//      String name = ((DartIdentifier) node).getName();
-//      // prepare environment
-//      String eol = utils.getEndOfLine();
-//      DartClassMember<?> enclosingMember = ASTNodes.getAncestor(node, DartClassMember.class);
-//      String prefix = utils.getNodePrefix(enclosingMember);
-//      SourceRange range = SourceRangeFactory.forEndLength(enclosingMember, 0);
-//      //
-//      SourceBuilder sb = new SourceBuilder(range);
-//      {
-//        sb.append(eol + eol);
-//        sb.append(prefix);
-//        // "class"
-//        sb.append("class ");
-//        // append name
-//        {
-//          sb.startPosition("NAME");
-//          sb.append(name);
-//          sb.endPosition();
-//        }
-//        // no members
-//        sb.append(" {");
-//        sb.append(eol);
-//        sb.append("}");
-//      }
-//      // insert source
-//      addReplaceEdit(range, sb.toString());
-//      // add linked positions
-//      // TODO(scheglov) disabled, caused exception in old model, don't know why
-////      addLinkedPosition("NAME", TrackedPositions.forNode(node));
-//      addLinkedPositions(sb);
-//      // add proposal
-//      addUnitCorrectionProposal(
-//          unit,
-//          TextFileChange.FORCE_SAVE,
-//          Messages.format(CorrectionMessages.QuickFixProcessor_createClass, name),
-//          DartPluginImages.get(DartPluginImages.IMG_OBJS_CLASS));
-//    }
-//  }
-
-  // TODO(scheglov) implement this
-//  private void addFix_unresolvedClass_useSimilar() {
-//    if (mayBeTypeIdentifier(node)) {
-//      String name = ((DartIdentifier) node).getName();
-//      ClosestElementFinder finder = new ClosestElementFinder(ClassElement.class, name);
-//      // find closest element
-//      {
-//        DartUnit enclosingUnit = ASTNodes.getAncestor(node, DartUnit.class);
-//        LibraryElement enclosingLibrary = enclosingUnit.getLibrary().getElement();
-//        finder.update(enclosingLibrary.getImportScope().getElements().values());
-//        finder.update(enclosingLibrary.getScope().getElements().values());
-//      }
-//      // if we have close enough element, suggest to use it
-//      if (finder != null && finder.distance < 5) {
-//        String closestName = finder.element.getName();
-//        addReplaceEdit(SourceRangeFactory.create(node), closestName);
-//        // add proposal
-//        if (closestName != null) {
-//          proposalRelevance += 1;
-//          addUnitCorrectionProposal(
-//              Messages.format(CorrectionMessages.QuickFixProcessor_changeTo, closestName),
-//              DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
-//        }
-//      }
-//    }
-//  }
-
-  // TODO(scheglov) implement this
-//  private void addFix_unresolvedMethodCreate() throws Exception {
-//    if (node instanceof DartIdentifier && node.getParent() instanceof DartInvocation) {
-//      String name = ((DartIdentifier) node).getName();
-//      DartInvocation invocation = (DartInvocation) node.getParent();
-//      // prepare environment
-//      String eol = utils.getEndOfLine();
-//      CompilationUnit targetUnit;
-//      String prefix;
-//      SourceRange range;
-//      String sourcePrefix;
-//      String sourceSuffix;
-//      boolean staticModifier = false;
-//      if (invocation instanceof DartUnqualifiedInvocation) {
-//        targetUnit = unit;
-//        DartClassMember<?> enclosingMember = ASTNodes.getAncestor(node, DartClassMember.class);
-//        staticModifier = enclosingMember.getModifiers().isStatic();
-//        prefix = utils.getNodePrefix(enclosingMember);
-//        range = SourceRangeFactory.forEndLength(enclosingMember, 0);
-//        sourcePrefix = eol + eol;
-//        sourceSuffix = "";
-//      } else {
-//        SourceInfo targetSourceInfo;
-//        {
-//          DartExpression targetExpression = ((DartMethodInvocation) invocation).getRealTarget();
-//          staticModifier = ElementKind.of(targetExpression.getElement()) == ElementKind.CLASS;
-//          Element targetElement = getTypeElement(targetExpression);
-//          targetSourceInfo = targetElement.getSourceInfo();
-//          Source targetSource = targetSourceInfo.getSource();
-//          IResource targetResource = ResourceUtil.getResource(targetSource);
-//          targetUnit = (CompilationUnit) DartCore.create(targetResource);
-//        }
-//        prefix = "  ";
-//        range = SourceRangeFactory.forStartLength(targetSourceInfo.getEnd() - 1, 0);
-//        sourcePrefix = eol;
-//        sourceSuffix = eol;
-//      }
-//      //
-//      SourceBuilder sb = new SourceBuilder(range);
-//      {
-//        sb.append(sourcePrefix);
-//        sb.append(prefix);
-//        // may be "static"
-//        if (staticModifier) {
-//          sb.append("static ");
-//        }
-//        // may be return type
-//        {
-//          Type type = addFix_unresolvedMethodCreate_getReturnType(invocation);
-//          if (type != null) {
-//            sb.startPosition("RETURN_TYPE");
-//            sb.append(ExtractUtils.getTypeSource(type));
-//            sb.endPosition();
-//            sb.append(" ");
-//          }
-//        }
-//        // append name
-//        {
-//          sb.startPosition("NAME");
-//          sb.append(name);
-//          sb.endPosition();
-//        }
-//        addFix_unresolvedMethodCreate_parameters(sb, invocation);
-//        sb.append(") {" + eol + prefix + "}");
-//        sb.append(sourceSuffix);
-//      }
-//      // insert source
-//      addReplaceEdit(range, sb.toString());
-//      // add linked positions
-//      // TODO(scheglov) disabled, caused exception in old model, don't know why
-////      if (Objects.equal(targetUnit, unit)) {
-////        addLinkedPosition("NAME", TrackedPositions.forNode(node));
-////      }
-//      addLinkedPositions(sb);
-//      // add proposal
-//      addUnitCorrectionProposal(
-//          targetUnit,
-//          TextFileChange.FORCE_SAVE,
-//          Messages.format(CorrectionMessages.QuickFixProcessor_createMethod, name),
-//          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
-//    }
-//  }
 
   /**
    * @return the possible return {@link Type}, may be <code>null</code> if can not be identified.
@@ -847,6 +757,163 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     textEdits.add(createInsertEdit(offset, text));
   }
 
+  /**
+   * Adds single linked position to the group.
+   */
+  private void addLinkedPosition(String group, SourceRange position) {
+    List<SourceRange> positions = linkedPositions.get(group);
+    if (positions == null) {
+      positions = Lists.newArrayList();
+      linkedPositions.put(group, positions);
+    }
+    positions.add(position);
+  }
+
+  // TODO(scheglov) use or remove
+//  private void addLinkedPositionProposal(String group, CorrectionImage icon, String text) {
+//    LinkedPositionProposal proposal = new LinkedPositionProposal(icon, text);
+//    addLinkedPositionProposal(group, proposal);
+//  }
+
+  private void addLinkedPositionProposal(String group, LinkedPositionProposal proposal) {
+    List<LinkedPositionProposal> nodeProposals = linkedPositionProposals.get(group);
+    if (nodeProposals == null) {
+      nodeProposals = Lists.newArrayList();
+      linkedPositionProposals.put(group, nodeProposals);
+    }
+    nodeProposals.add(proposal);
+  }
+
+  // TODO(scheglov) implement this
+//  private void addFix_unresolvedClass_useSimilar() {
+//    if (mayBeTypeIdentifier(node)) {
+//      String name = ((DartIdentifier) node).getName();
+//      ClosestElementFinder finder = new ClosestElementFinder(ClassElement.class, name);
+//      // find closest element
+//      {
+//        DartUnit enclosingUnit = ASTNodes.getAncestor(node, DartUnit.class);
+//        LibraryElement enclosingLibrary = enclosingUnit.getLibrary().getElement();
+//        finder.update(enclosingLibrary.getImportScope().getElements().values());
+//        finder.update(enclosingLibrary.getScope().getElements().values());
+//      }
+//      // if we have close enough element, suggest to use it
+//      if (finder != null && finder.distance < 5) {
+//        String closestName = finder.element.getName();
+//        addReplaceEdit(SourceRangeFactory.create(node), closestName);
+//        // add proposal
+//        if (closestName != null) {
+//          proposalRelevance += 1;
+//          addUnitCorrectionProposal(
+//              Messages.format(CorrectionMessages.QuickFixProcessor_changeTo, closestName),
+//              DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+//        }
+//      }
+//    }
+//  }
+
+  // TODO(scheglov) implement this
+//  private void addFix_unresolvedMethodCreate() throws Exception {
+//    if (node instanceof DartIdentifier && node.getParent() instanceof DartInvocation) {
+//      String name = ((DartIdentifier) node).getName();
+//      DartInvocation invocation = (DartInvocation) node.getParent();
+//      // prepare environment
+//      String eol = utils.getEndOfLine();
+//      CompilationUnit targetUnit;
+//      String prefix;
+//      SourceRange range;
+//      String sourcePrefix;
+//      String sourceSuffix;
+//      boolean staticModifier = false;
+//      if (invocation instanceof DartUnqualifiedInvocation) {
+//        targetUnit = unit;
+//        DartClassMember<?> enclosingMember = ASTNodes.getAncestor(node, DartClassMember.class);
+//        staticModifier = enclosingMember.getModifiers().isStatic();
+//        prefix = utils.getNodePrefix(enclosingMember);
+//        range = SourceRangeFactory.forEndLength(enclosingMember, 0);
+//        sourcePrefix = eol + eol;
+//        sourceSuffix = "";
+//      } else {
+//        SourceInfo targetSourceInfo;
+//        {
+//          DartExpression targetExpression = ((DartMethodInvocation) invocation).getRealTarget();
+//          staticModifier = ElementKind.of(targetExpression.getElement()) == ElementKind.CLASS;
+//          Element targetElement = getTypeElement(targetExpression);
+//          targetSourceInfo = targetElement.getSourceInfo();
+//          Source targetSource = targetSourceInfo.getSource();
+//          IResource targetResource = ResourceUtil.getResource(targetSource);
+//          targetUnit = (CompilationUnit) DartCore.create(targetResource);
+//        }
+//        prefix = "  ";
+//        range = SourceRangeFactory.forStartLength(targetSourceInfo.getEnd() - 1, 0);
+//        sourcePrefix = eol;
+//        sourceSuffix = eol;
+//      }
+//      //
+//      SourceBuilder sb = new SourceBuilder(range);
+//      {
+//        sb.append(sourcePrefix);
+//        sb.append(prefix);
+//        // may be "static"
+//        if (staticModifier) {
+//          sb.append("static ");
+//        }
+//        // may be return type
+//        {
+//          Type type = addFix_unresolvedMethodCreate_getReturnType(invocation);
+//          if (type != null) {
+//            sb.startPosition("RETURN_TYPE");
+//            sb.append(ExtractUtils.getTypeSource(type));
+//            sb.endPosition();
+//            sb.append(" ");
+//          }
+//        }
+//        // append name
+//        {
+//          sb.startPosition("NAME");
+//          sb.append(name);
+//          sb.endPosition();
+//        }
+//        addFix_unresolvedMethodCreate_parameters(sb, invocation);
+//        sb.append(") {" + eol + prefix + "}");
+//        sb.append(sourceSuffix);
+//      }
+//      // insert source
+//      addReplaceEdit(range, sb.toString());
+//      // add linked positions
+//      // TODO(scheglov) disabled, caused exception in old model, don't know why
+////      if (Objects.equal(targetUnit, unit)) {
+////        addLinkedPosition("NAME", TrackedPositions.forNode(node));
+////      }
+//      addLinkedPositions(sb);
+//      // add proposal
+//      addUnitCorrectionProposal(
+//          targetUnit,
+//          TextFileChange.FORCE_SAVE,
+//          Messages.format(CorrectionMessages.QuickFixProcessor_createMethod, name),
+//          DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+//    }
+//  }
+
+  /**
+   * Adds positions from the given {@link SourceBuilder} to the {@link #linkedPositions}.
+   */
+  private void addLinkedPositions(SourceBuilder builder) {
+    // positions
+    for (Entry<String, List<SourceRange>> linkedEntry : builder.getLinkedPositions().entrySet()) {
+      String group = linkedEntry.getKey();
+      for (SourceRange position : linkedEntry.getValue()) {
+        addLinkedPosition(group, position);
+      }
+    }
+    // proposals for positions
+    for (Entry<String, List<LinkedPositionProposal>> entry : builder.getLinkedProposals().entrySet()) {
+      String group = entry.getKey();
+      for (LinkedPositionProposal proposal : entry.getValue()) {
+        addLinkedPositionProposal(group, proposal);
+      }
+    }
+  }
+
   private void addRemoveEdit(SourceRange range) {
     textEdits.add(createRemoveEdit(range));
   }
@@ -880,6 +947,8 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       proposal.setLinkedPositions(linkedPositions);
       proposal.setLinkedPositionProposals(linkedPositionProposals);
       // done
+      proposal.setLinkedPositions(linkedPositions);
+      proposal.setLinkedPositionProposals(linkedPositionProposals);
       proposals.add(proposal);
     }
     // reset

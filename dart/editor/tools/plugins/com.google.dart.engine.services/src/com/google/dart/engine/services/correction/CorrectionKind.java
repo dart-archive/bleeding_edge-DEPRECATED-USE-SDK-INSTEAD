@@ -36,6 +36,8 @@ public enum CorrectionKind {
   QA_SURROUND_WITH_TRY_CATCH(30, "Surround with 'try-catch'"),
   QA_SURROUND_WITH_TRY_FINALLY(30, "Surround with 'try-finally'"),
   QA_SURROUND_WITH_WHILE(30, "Surround with 'while'"),
+  QF_CREATE_CLASS(50, CorrectionImage.IMG_CORRECTION_CLASS, "Create class '%s'"),
+  QF_CREATE_PART(50, "Create part '%s'"),
   QF_IMPORT_LIBRARY_PREFIX(51, "Use imported library '%s' with prefix '%s'"),
   QF_IMPORT_LIBRARY_PROJECT(50, "Import library '%s'"),
   QF_IMPORT_LIBRARY_SDK(50, "Import library '%s'"),

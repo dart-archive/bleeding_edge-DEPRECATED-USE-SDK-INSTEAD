@@ -65,7 +65,7 @@ public class SourceBuilder {
   }
 
   /**
-   * @return the "end position" for the {@link LinkedCorrectionProposal}, may be <code>-1</code> if
+   * @return the "end position" for the {@link LinkedCorrectionProposal_OLD}, may be <code>-1</code> if
    *         not set in this {@link SourceBuilder}.
    */
   public int getEndPosition() {
@@ -92,7 +92,7 @@ public class SourceBuilder {
   }
 
   /**
-   * Marks current position as "end position" of the {@link LinkedCorrectionProposal}.
+   * Marks current position as "end position" of the {@link LinkedCorrectionProposal_OLD}.
    */
   public void setEndPosition() {
     endPosition = buffer.length();

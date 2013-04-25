@@ -275,6 +275,10 @@ public class EditorUtility {
 
   public static IEditorInput getEditorInput(Object input) {
 
+    if (input instanceof Source) {
+      return getEditorInput((Source) input);
+    }
+
     if (input instanceof Element) {
       return getEditorInput((Element) input);
     }
@@ -764,10 +768,19 @@ public class EditorUtility {
     }
 
     Source source = cu.getSource();
+    return getEditorInput(source);
+  }
+
+  private static IEditorInput getEditorInput(Source source) {
+    {
+      IResource resource = DartCore.getProjectManager().getResource(source);
+      // TODO(scheglov) clean up when ProjectManager will return IFile
+      if (resource instanceof IFile) {
+        return new FileEditorInput((IFile) resource);
+      }
+    }
     URI uri = new File(source.getFullName()).toURI();
-
     IFileStore fileStore = EFS.getLocalFileSystem().getStore(uri);
-
     return new FileStoreEditorInput(fileStore);
   }
 

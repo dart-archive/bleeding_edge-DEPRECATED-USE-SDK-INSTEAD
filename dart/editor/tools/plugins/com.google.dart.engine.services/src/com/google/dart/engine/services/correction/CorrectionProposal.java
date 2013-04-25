@@ -79,13 +79,13 @@ public class CorrectionProposal {
    */
   public void setLinkedPositionProposals(
       Map<String, List<LinkedPositionProposal>> linkedPositionProposals) {
-    this.linkedPositionProposals = linkedPositionProposals;
+    this.linkedPositionProposals = Maps.newHashMap(linkedPositionProposals);
   }
 
   /**
    * Sets the {@link Map} or position IDs to their locations.
    */
   public void setLinkedPositions(Map<String, List<SourceRange>> linkedPositions) {
-    this.linkedPositions = linkedPositions;
+    this.linkedPositions = Maps.newHashMap(linkedPositions);
   }
 }

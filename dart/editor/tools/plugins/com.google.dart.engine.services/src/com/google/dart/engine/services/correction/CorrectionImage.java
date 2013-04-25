@@ -18,5 +18,6 @@ package com.google.dart.engine.services.correction;
  * Enumeration of images used by correction processors.
  */
 public enum CorrectionImage {
-  IMG_CORRECTION_CHANGE;
+  IMG_CORRECTION_CHANGE,
+  IMG_CORRECTION_CLASS;
 }

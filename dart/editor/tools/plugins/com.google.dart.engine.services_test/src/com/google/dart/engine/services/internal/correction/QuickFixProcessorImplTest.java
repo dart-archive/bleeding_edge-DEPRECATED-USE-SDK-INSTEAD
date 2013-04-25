@@ -14,6 +14,8 @@
 
 package com.google.dart.engine.services.internal.correction;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -30,6 +32,9 @@ import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.QuickFixProcessor;
 import com.google.dart.engine.services.internal.refactoring.RefactoringImplTest;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.SourceRange;
+
+import org.apache.commons.lang3.StringUtils;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -41,6 +46,8 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   private static final QuickFixProcessor PROCESSOR = CorrectionProcessors.getQuickFixProcessor();
 
   private AnalysisError error;
+  private CorrectionProposal resultProposal;
+  private String resultCode;
 
   public void test_boolean() throws Exception {
     prepareProblemWithFix(
@@ -97,6 +104,27 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     assertThat(proposals).isEmpty();
   }
 
+  public void test_createClass() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Test v = null;",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CLASS,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  Test v = null;",
+            "}",
+            "",
+            "class Test {",
+            "}"));
+    assertEquals(
+        ImmutableMap.of("NAME", getResultRanges("Test v =", "Test {")),
+        resultProposal.getLinkedPositions());
+  }
+
   public void test_expectedToken_semicolon() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -137,7 +165,9 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "  _PrivateName v = null;",
         "}",
         "");
-    assertNoFix();
+    assertNoFix(CorrectionKind.QF_IMPORT_LIBRARY_PREFIX);
+    assertNoFix(CorrectionKind.QF_IMPORT_LIBRARY_PROJECT);
+    assertNoFix(CorrectionKind.QF_IMPORT_LIBRARY_SDK);
   }
 
   public void test_importLibrary_withTopLevelFunction() throws Exception {
@@ -394,19 +424,19 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   }
 
   /**
-   * Asserts that running proposal with given name produces expected source.
+   * Asserts that running proposal with given name produces expected source. Fills
+   * {@link #resultProposal} and {@link #resultCode}.
    */
   private void assert_runProcessor(CorrectionKind kind, String expectedSource) throws Exception {
-    CorrectionProposal proposal = findProposal(kind);
-    assertNotNull(proposal);
-    String result = applyProposal(proposal);
-    assertEquals(expectedSource, result);
+    resultProposal = findProposal(kind);
+    assertNotNull(resultProposal);
+    resultCode = applyProposal(resultProposal);
+    assertEquals(expectedSource, resultCode);
   }
 
-  private void assertNoFix() throws Exception {
-    prepareProblem();
-    CorrectionProposal[] proposals = getProposals();
-    assertThat(proposals).isEmpty();
+  private void assertNoFix(CorrectionKind kind) throws Exception {
+    CorrectionProposal proposal = findProposal(kind);
+    assertNull(proposal);
   }
 
   /**
@@ -434,6 +464,27 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   private CorrectionProposal[] getProposals() throws Exception {
     AssistContext context = new AssistContext(null, testUnit, 0, 0);
     return PROCESSOR.computeProposals(context, error);
+  }
+
+  /**
+   * @return the {@link SourceRange} of "wordPattern" in {@link #resultCode}.
+   */
+  private SourceRange getResultRange(String wordPattern) {
+    int offset = resultCode.indexOf(wordPattern);
+    assertThat(offset).describedAs(wordPattern + " in " + resultCode).isPositive();
+    String word = StringUtils.substringBefore(wordPattern, " ");
+    return new SourceRange(offset, word.length());
+  }
+
+  /**
+   * @return the {@link SourceRange}s of "wordPatterns" in {@link #resultCode}.
+   */
+  private List<SourceRange> getResultRanges(String... wordPatterns) {
+    List<SourceRange> ranges = Lists.newArrayList();
+    for (String wordPattern : wordPatterns) {
+      ranges.add(getResultRange(wordPattern));
+    }
+    return ranges;
   }
 
   /**

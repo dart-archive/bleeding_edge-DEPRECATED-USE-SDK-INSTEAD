@@ -81,7 +81,7 @@ import com.google.dart.tools.ui.ISharedImages;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CreateFileCorrectionProposal;
-import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.SourceBuilder;
 import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedNodeProposal;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
@@ -232,7 +232,7 @@ public class QuickFixProcessor_OLD implements IQuickFixProcessor {
   private final List<TextEdit> textEdits = Lists.newArrayList();
   private final Map<String, List<TrackedNodePosition>> linkedPositions = Maps.newHashMap();
   private final Map<String, List<TrackedNodeProposal>> linkedPositionProposals = Maps.newHashMap();
-  private LinkedCorrectionProposal proposal;
+  private LinkedCorrectionProposal_OLD proposal;
 
   @Override
   public IDartCompletionProposal[] getCorrections(IInvocationContext context,
@@ -982,7 +982,7 @@ public class QuickFixProcessor_OLD implements IQuickFixProcessor {
     }
     // add proposal
     if (!textEdits.isEmpty()) {
-      proposal = new LinkedCorrectionProposal(label, unit, change, proposalRelevance, image);
+      proposal = new LinkedCorrectionProposal_OLD(label, unit, change, proposalRelevance, image);
       addLinkedPositionsToProposal();
       proposals.add(proposal);
     }

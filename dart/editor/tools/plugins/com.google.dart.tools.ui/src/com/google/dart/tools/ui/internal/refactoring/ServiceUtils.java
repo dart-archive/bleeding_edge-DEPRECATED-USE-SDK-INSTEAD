@@ -78,6 +78,8 @@ public class ServiceUtils {
     switch (imageId) {
       case IMG_CORRECTION_CHANGE:
         return DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE);
+      case IMG_CORRECTION_CLASS:
+        return DartPluginImages.get(DartPluginImages.IMG_OBJS_CLASS);
     }
     return null;
   }
