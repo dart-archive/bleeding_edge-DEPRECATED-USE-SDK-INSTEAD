@@ -230,8 +230,8 @@ public class AnalysisWorker {
         if (backgroundJob == null) {
           backgroundJob = new BackgroundAnalysisJob();
           backgroundJob.setPriority(Job.BUILD);
-          backgroundJob.schedule();
         }
+        backgroundJob.schedule();
       }
     }
   }
