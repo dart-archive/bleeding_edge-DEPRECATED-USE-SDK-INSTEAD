@@ -33,6 +33,7 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
   private ExtractMethodAction extractMethodAction;
   private InlineAction inlineAction;
   private ConvertMethodToGetterAction convertMethodToGetterAction;
+  private ConvertGetterToMethodAction convertGetterToMethodAction;
 
   public RefactorActionGroup(DartEditor editor) {
     super(editor);
@@ -41,6 +42,7 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
     extractMethodAction = new ExtractMethodAction(editor);
     inlineAction = new InlineAction(editor);
     convertMethodToGetterAction = new ConvertMethodToGetterAction(editor);
+    convertGetterToMethodAction = new ConvertGetterToMethodAction(editor);
     initActions();
     editor.setAction("RenameElement", renameAction);
     addActions(
@@ -48,7 +50,8 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
         extractLocalAction,
         extractMethodAction,
         inlineAction,
-        convertMethodToGetterAction);
+        convertMethodToGetterAction,
+        convertGetterToMethodAction);
     addActionDartSelectionListeners();
   }
 
@@ -56,8 +59,9 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
     super(site);
     renameAction = new RenameAction(site);
     convertMethodToGetterAction = new ConvertMethodToGetterAction(site);
+    convertGetterToMethodAction = new ConvertGetterToMethodAction(site);
     initActions();
-    addActions(renameAction, convertMethodToGetterAction);
+    addActions(renameAction, convertMethodToGetterAction, convertGetterToMethodAction);
     addActionSelectionListeners();
   }
 
@@ -69,6 +73,7 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
     extractMethodAction = null;
     inlineAction = null;
     convertMethodToGetterAction = null;
+    convertGetterToMethodAction = null;
   }
 
   @Override
@@ -81,6 +86,9 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
     actionBars.setGlobalActionHandler(
         JdtActionConstants.CONVERT_METHOD_TO_GETTER,
         convertMethodToGetterAction);
+    actionBars.setGlobalActionHandler(
+        JdtActionConstants.CONVERT_GETTER_TO_METHOD,
+        convertGetterToMethodAction);
   }
 
   @Override
@@ -98,21 +106,5 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
   private void initActions() {
     renameAction.setActionDefinitionId(DartEditorActionDefinitionIds.RENAME_ELEMENT);
     renameAction.setId(DartEditorActionDefinitionIds.RENAME_ELEMENT);
-    if (extractLocalAction != null) {
-      extractLocalAction.setActionDefinitionId(DartEditorActionDefinitionIds.EXTRACT_LOCAL_VARIABLE);
-      extractLocalAction.setId(DartEditorActionDefinitionIds.EXTRACT_LOCAL_VARIABLE);
-    }
-    if (extractMethodAction != null) {
-      extractMethodAction.setActionDefinitionId(DartEditorActionDefinitionIds.EXTRACT_METHOD);
-      extractMethodAction.setId(DartEditorActionDefinitionIds.EXTRACT_METHOD);
-    }
-    if (inlineAction != null) {
-      inlineAction.setActionDefinitionId(DartEditorActionDefinitionIds.INLINE);
-      inlineAction.setId(DartEditorActionDefinitionIds.INLINE);
-    }
-    if (convertMethodToGetterAction != null) {
-      convertMethodToGetterAction.setActionDefinitionId(DartEditorActionDefinitionIds.CONVERT_METHOD_TO_GETTER);
-      convertMethodToGetterAction.setId(DartEditorActionDefinitionIds.CONVERT_METHOD_TO_GETTER);
-    }
   }
 }

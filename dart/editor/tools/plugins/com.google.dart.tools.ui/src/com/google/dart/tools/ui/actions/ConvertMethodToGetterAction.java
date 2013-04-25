@@ -97,6 +97,11 @@ public class ConvertMethodToGetterAction extends AbstractDartSelectionAction {
   @Override
   protected void init() {
     setText(RefactoringMessages.ConvertMethodToGetterAction_title);
+    {
+      String id = DartEditorActionDefinitionIds.CONVERT_METHOD_TO_GETTER;
+      setId(id);
+      setActionDefinitionId(id);
+    }
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         this,
         DartHelpContextIds.CONVERT_METHOD_TO_GETTER_ACTION);

@@ -305,7 +305,7 @@ public class RefactorActionGroup_OLD extends ActionGroup {
         DartEditorActionDefinitionIds.CONVERT_METHOD_TO_GETTER);
     editor.setAction("ConvertMethodToGetter", fConvertMethodToGetterAction); //$NON-NLS-1$
 
-    fConvertGetterToMethodAction = new ConvertGetterToMethodAction(editor);
+    fConvertGetterToMethodAction = new ConvertGetterToMethodAction_OLD(editor);
     initUpdatingAction(
         fConvertGetterToMethodAction,
         provider,
@@ -419,7 +419,7 @@ public class RefactorActionGroup_OLD extends ActionGroup {
         selection,
         DartEditorActionDefinitionIds.CONVERT_METHOD_TO_GETTER);
 
-    fConvertGetterToMethodAction = new ConvertGetterToMethodAction(fSite);
+    fConvertGetterToMethodAction = new ConvertGetterToMethodAction_OLD(fSite);
     initUpdatingAction(
         fConvertGetterToMethodAction,
         fSelectionProvider,

@@ -93,6 +93,11 @@ public class ExtractMethodAction extends AbstractDartSelectionAction {
   @Override
   protected void init() {
     setText(RefactoringMessages.ExtractMethodAction_label);
+    {
+      String id = DartEditorActionDefinitionIds.EXTRACT_METHOD;
+      setId(id);
+      setActionDefinitionId(id);
+    }
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         this,
         DartHelpContextIds.EXTRACT_METHOD_ACTION);

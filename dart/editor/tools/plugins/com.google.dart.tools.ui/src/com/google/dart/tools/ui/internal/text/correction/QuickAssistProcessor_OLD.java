@@ -59,7 +59,7 @@ import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.text.Selection;
-import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertOptionalParametersToNamedRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal_OLD;
@@ -290,7 +290,7 @@ public class QuickAssistProcessor_OLD implements IQuickAssistProcessor {
       if (editor instanceof DartEditor) {
         DartEditor dartEditor = (DartEditor) editor;
         // add proposal
-        ICommandAccess proposal = new ConvertGetterToMethodRefactoringProposal(
+        ICommandAccess proposal = new ConvertGetterToMethodRefactoringProposal_OLD(
             dartEditor,
             selectionFunction,
             proposalRelevance);

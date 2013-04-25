@@ -71,6 +71,11 @@ public class InlineAction extends AbstractDartSelectionAction {
   @Override
   protected void init() {
     setText(RefactoringMessages.InlineAction_Inline);
+    {
+      String id = DartEditorActionDefinitionIds.INLINE;
+      setId(id);
+      setActionDefinitionId(id);
+    }
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.INLINE_ACTION);
   }
 

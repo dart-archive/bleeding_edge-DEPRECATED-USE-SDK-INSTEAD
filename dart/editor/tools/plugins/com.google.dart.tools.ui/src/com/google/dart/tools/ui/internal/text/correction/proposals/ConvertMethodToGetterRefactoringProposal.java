@@ -13,58 +13,20 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
-import com.google.dart.tools.internal.corext.refactoring.util.Messages;
-import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
-import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
-import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.text.correction.CorrectionCommandHandler;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
-import com.google.dart.tools.ui.internal.text.correction.ICommandAccess;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
-import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
-
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
-import org.eclipse.jface.text.contentassist.IContextInformation;
-import org.eclipse.jface.viewers.StyledCellLabelProvider;
-import org.eclipse.jface.viewers.StyledString;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 
 /**
- * A quick assist proposal that starts the Rename refactoring.
+ * A quick assist proposal that runs {@link ConvertMethodToGetterAction}.
  * 
  * @coverage dart.editor.ui.correction
  */
-public class ConvertMethodToGetterRefactoringProposal implements IDartCompletionProposal,
-    ICompletionProposalExtension6, ICommandAccess {
-  private final ConvertMethodToGetterAction action;
-  private final DartSelection selection;
-  private final String label;
-  private final int relevance;
-
+public class ConvertMethodToGetterRefactoringProposal extends AbstractActionProposal {
   public ConvertMethodToGetterRefactoringProposal(ConvertMethodToGetterAction action,
       DartSelection selection) {
-    this.action = action;
-    this.selection = selection;
-    this.label = CorrectionMessages.ConvertMethodToGetterRefactoringProposal_name;
-    this.relevance = 9;
-  }
-
-  @Override
-  public void apply(IDocument document) {
-    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(this.getClass());
-    try {
-      action.doRun(selection, null, instrumentation);
-      instrumentation.metric("Apply", "Completed");
-    } catch (RuntimeException e) {
-      instrumentation.record(e);
-      throw e;
-    } finally {
-      instrumentation.log();
-    }
+    super(action, CorrectionMessages.ConvertMethodToGetterRefactoringProposal_name, selection);
   }
 
   @Override
@@ -78,49 +40,7 @@ public class ConvertMethodToGetterRefactoringProposal implements IDartCompletion
   }
 
   @Override
-  public IContextInformation getContextInformation() {
-    return null;
-  }
-
-  @Override
-  public String getDisplayString() {
-    String shortCutString = CorrectionCommandHandler.getShortCutString(getCommandId());
-    if (shortCutString != null) {
-      return Messages.format(
-          CorrectionMessages.ChangeCorrectionProposal_name_with_shortcut,
-          new String[] {label, shortCutString});
-    }
-    return label;
-  }
-
-  @Override
-  public Image getImage() {
-    return DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE);
-  }
-
-  @Override
   public int getRelevance() {
-    return relevance;
-  }
-
-  @Override
-  public Point getSelection(IDocument document) {
-    return null;
-  }
-
-  @Override
-  public StyledString getStyledDisplayString() {
-    StyledString str = new StyledString(label);
-    String shortCutString = CorrectionCommandHandler.getShortCutString(getCommandId());
-    if (shortCutString != null) {
-      String decorated = Messages.format(
-          CorrectionMessages.ChangeCorrectionProposal_name_with_shortcut,
-          new String[] {label, shortCutString});
-      return StyledCellLabelProvider.styleDecoratedString(
-          decorated,
-          StyledString.QUALIFIER_STYLER,
-          str);
-    }
-    return str;
+    return 9;
   }
 }

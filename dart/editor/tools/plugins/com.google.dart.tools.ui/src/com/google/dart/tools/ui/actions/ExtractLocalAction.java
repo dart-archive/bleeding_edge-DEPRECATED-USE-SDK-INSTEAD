@@ -93,6 +93,11 @@ public class ExtractLocalAction extends AbstractDartSelectionAction {
   @Override
   protected void init() {
     setText(RefactoringMessages.ExtractLocalAction_label);
+    {
+      String id = DartEditorActionDefinitionIds.EXTRACT_LOCAL_VARIABLE;
+      setId(id);
+      setActionDefinitionId(id);
+    }
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.EXTRACT_LOCAL_ACTION);
   }
 }

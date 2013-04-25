@@ -22,9 +22,11 @@ import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
+import com.google.dart.tools.ui.actions.ConvertGetterToMethodAction;
 import com.google.dart.tools.ui.actions.ConvertMethodToGetterAction;
 import com.google.dart.tools.ui.internal.refactoring.ServiceUtils;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
+import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal;
@@ -76,7 +78,6 @@ public class QuickAssistProcessor {
   private AssistContext context;
   private DartEditor editor;
   private DartSelection selection;
-
   private List<ICompletionProposal> proposals;
 
   public synchronized ICompletionProposal[] getAssists(AssistContextUI contextUI) {
@@ -88,6 +89,7 @@ public class QuickAssistProcessor {
       @Override
       public void run() throws Exception {
         // add refactoring proposals
+        addProposal_convertGetterToMethodRefactoring();
         addProposal_convertMethodToGetterRefactoring();
         addProposal_renameRefactoring();
         // ask services
@@ -111,7 +113,15 @@ public class QuickAssistProcessor {
     return contextUI.getContext() != null;
   }
 
-  void addProposal_convertMethodToGetterRefactoring() throws CoreException {
+  private void addProposal_convertGetterToMethodRefactoring() throws CoreException {
+    ConvertGetterToMethodAction action = new ConvertGetterToMethodAction(editor);
+    action.update(selection);
+    if (action.isEnabled()) {
+      proposals.add(new ConvertGetterToMethodRefactoringProposal(action, selection));
+    }
+  }
+
+  private void addProposal_convertMethodToGetterRefactoring() throws CoreException {
     ConvertMethodToGetterAction action = new ConvertMethodToGetterAction(editor);
     action.update(selection);
     if (action.isEnabled()) {
@@ -119,7 +129,7 @@ public class QuickAssistProcessor {
     }
   }
 
-  void addProposal_renameRefactoring() throws CoreException {
+  private void addProposal_renameRefactoring() throws CoreException {
     RenameDartElementAction action = new RenameDartElementAction(editor);
     action.update(selection);
     if (action.isEnabled()) {
