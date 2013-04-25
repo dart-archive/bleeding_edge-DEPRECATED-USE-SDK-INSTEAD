@@ -81,6 +81,8 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.internal.type.DynamicTypeImpl;
+import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
@@ -438,9 +440,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitReturnStatement(ReturnStatement node) {
-    if (!checkForReturnInGenerativeConstructor(node)) {
-      checkForReturnOfInvalidType(node);
-    }
+    checkForAllReturnStatementErrorCodes(node);
     return super.visitReturnStatement(node);
   }
 
@@ -620,6 +620,62 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 //      }
 //    }
     return foundError;
+  }
+
+  /**
+   * This checks that the return statement of the form <i>return e;</i> is not in a generative
+   * constructor.
+   * <p>
+   * This checks that return statements without expressions are not in a generative constructor and
+   * the return type is not assignable to {@code null}; that is, we don't have {@code return;} if
+   * the enclosing method has a return type.
+   * <p>
+   * This checks that the return type matches the type of the declared return type in the enclosing
+   * method or function.
+   * 
+   * @param node the return statement to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#RETURN_IN_GENERATIVE_CONSTRUCTOR
+   * @see StaticWarningCode#RETURN_WITHOUT_VALUE
+   * @see StaticTypeWarningCode#RETURN_OF_INVALID_TYPE
+   */
+  private boolean checkForAllReturnStatementErrorCodes(ReturnStatement node) {
+    FunctionType functionType = enclosingFunction == null ? null : enclosingFunction.getType();
+    Type expectedReturnType = functionType == null ? DynamicTypeImpl.getInstance()
+        : functionType.getReturnType();
+    Expression returnExpression = node.getExpression();
+    boolean isGenerativeConstructor = enclosingFunction instanceof ConstructorElement
+        && !((ConstructorElement) enclosingFunction).isFactory();
+    if (returnExpression != null) {
+      // RETURN_IN_GENERATIVE_CONSTRUCTOR
+      if (isGenerativeConstructor) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
+            returnExpression);
+        return true;
+      }
+      // RETURN_OF_INVALID_TYPE
+      if (!expectedReturnType.isVoid()) {
+        Type actualReturnType = getType(returnExpression);
+        if (!actualReturnType.isAssignableTo(expectedReturnType)) {
+          errorReporter.reportError(
+              StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+              returnExpression,
+              actualReturnType.getName(),
+              expectedReturnType.getName(),
+              enclosingFunction.getName());
+          return true;
+        }
+      }
+    } else {
+      // RETURN_WITHOUT_VALUE
+      if (!isGenerativeConstructor
+          && !VoidTypeImpl.getInstance().isAssignableTo(expectedReturnType)) {
+        errorReporter.reportError(StaticWarningCode.RETURN_WITHOUT_VALUE, node);
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -1271,53 +1327,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (!isInCatchClause) {
       errorReporter.reportError(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, node);
       return true;
-    }
-    return false;
-  }
-
-  /**
-   * This checks that the return statement of the form <i>return e;</i> is not in a generative
-   * constructor.
-   * 
-   * @param node the return statement to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#RETURN_IN_GENERATIVE_CONSTRUCTOR
-   */
-  private boolean checkForReturnInGenerativeConstructor(ReturnStatement node) {
-    Expression expression = node.getExpression();
-    if (expression != null && enclosingFunction instanceof ConstructorElement) {
-      ConstructorElement constructor = (ConstructorElement) enclosingFunction;
-      if (!constructor.isFactory()) {
-        errorReporter.reportError(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, expression);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * This checks that the return type matches the type of the declared return type in the enclosing
-   * method or function.
-   * 
-   * @param node the return statement to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
-   * @see StaticTypeWarningCode#RETURN_OF_INVALID_TYPE
-   */
-  private boolean checkForReturnOfInvalidType(ReturnStatement node) {
-    FunctionType functionType = enclosingFunction == null ? null : enclosingFunction.getType();
-    Type expectedReturnType = functionType == null ? null : functionType.getReturnType();
-    Expression returnExpression = node.getExpression();
-    if (expectedReturnType != null && !expectedReturnType.isVoid() && returnExpression != null) {
-      Type actualReturnType = getType(returnExpression);
-      if (!actualReturnType.isAssignableTo(expectedReturnType)) {
-        errorReporter.reportError(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-            returnExpression,
-            actualReturnType.getName(),
-            expectedReturnType.getName(),
-            enclosingFunction.getName());
-        return true;
-      }
     }
     return false;
   }

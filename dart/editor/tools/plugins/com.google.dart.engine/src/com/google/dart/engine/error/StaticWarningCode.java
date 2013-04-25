@@ -318,7 +318,7 @@ public enum StaticWarningCode implements ErrorCode {
    * <li>The return type of <i>f</i> may not be assigned to void.
    * </ol>
    */
-  RETURN_WITHOUT_VALUE(""),
+  RETURN_WITHOUT_VALUE("Missing return value after 'return'"),
 
   /**
    * 13.9 Switch: It is a static warning if the type of <i>e</i> may not be assigned to the type of

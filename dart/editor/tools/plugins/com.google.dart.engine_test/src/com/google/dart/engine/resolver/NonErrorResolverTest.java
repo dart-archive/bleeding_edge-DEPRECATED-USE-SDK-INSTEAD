@@ -576,6 +576,22 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_returnWithoutValue_noReturnType() throws Exception {
+    Source source = addSource(createSource(//
+    "f() { return; }"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_returnWithoutValue_void() throws Exception {
+    Source source = addSource(createSource(//
+    "void f() { return; }"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_typeArgumentNotMatchingBounds_const() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",

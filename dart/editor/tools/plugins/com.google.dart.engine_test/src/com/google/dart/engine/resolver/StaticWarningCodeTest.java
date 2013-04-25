@@ -395,14 +395,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_returnWithoutValue() throws Exception {
-    Source source = addSource(createSource(//
-    "int f() { return; }"));
-    resolve(source);
-    assertErrors(StaticWarningCode.RETURN_WITHOUT_VALUE);
-    verify(source);
-  }
-
   public void fail_switchExpressionNotAssignable() throws Exception {
     Source source = addSource(createSource(//
         "f(int p) {",
@@ -526,6 +518,14 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "part of lub;"));
     resolve(source);
     assertErrors(StaticWarningCode.PART_OF_DIFFERENT_LIBRARY);
+    verify(source);
+  }
+
+  public void test_returnWithoutValue() throws Exception {
+    Source source = addSource(createSource(//
+    "int f() { return; }"));
+    resolve(source);
+    assertErrors(StaticWarningCode.RETURN_WITHOUT_VALUE);
     verify(source);
   }
 
