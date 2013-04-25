@@ -552,7 +552,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
 
   public void test_undefinedIdentifier_commentReference() throws Exception {
     Source source = addSource(createSource(//
-        "/** [m] [new B.c] */",
+        "/** [m] xxx [new B.c] */",
         "class A {",
         "}"));
     resolve(source);

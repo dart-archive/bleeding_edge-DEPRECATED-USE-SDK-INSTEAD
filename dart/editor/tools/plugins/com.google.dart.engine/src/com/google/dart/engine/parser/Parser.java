@@ -347,6 +347,25 @@ public class Parser {
   }
 
   /**
+   * Search the given list of ranges for a range that contains the given index. Return the range
+   * that was found, or {@code null} if none of the ranges contain the index.
+   * 
+   * @param ranges the ranges to be searched
+   * @param index the index contained in the returned range
+   * @return the range that was found
+   */
+  private int[] findRange(List<int[]> ranges, int index) {
+    for (int[] range : ranges) {
+      if (range[0] <= index && index <= range[1]) {
+        return range;
+      } else if (index < range[0]) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Advance to the next token in the token stream, making it the new current token.
    * 
    * @return the token that was current before this method was invoked
@@ -355,6 +374,49 @@ public class Parser {
     Token token = currentToken;
     advance();
     return token;
+  }
+
+  /**
+   * Return a list of the ranges of characters in the given comment string that should be treated as
+   * code blocks.
+   * 
+   * @param comment the comment being processed
+   * @return the ranges of characters that should be treated as code blocks
+   */
+  private List<int[]> getCodeBlockRanges(String comment) {
+    ArrayList<int[]> ranges = new ArrayList<int[]>();
+    int length = comment.length();
+    int index = 0;
+    if (comment.startsWith("/**") || comment.startsWith("///")) {
+      index = 3;
+    }
+    while (index < length) {
+      char currentChar = comment.charAt(index);
+      if (currentChar == '\r' || currentChar == '\n') {
+        index = index + 1;
+        while (index < length && Character.isWhitespace(comment.charAt(index))) {
+          index = index + 1;
+        }
+        if (comment.startsWith("*     ", index)) {
+          int end = index + 6;
+          while (end < length && comment.charAt(end) != '\r' && comment.charAt(end) != '\n') {
+            end = end + 1;
+          }
+          ranges.add(new int[] {index, end});
+          index = end;
+        }
+      } else if (comment.startsWith("[:", index)) {
+        int end = comment.indexOf(":]", index + 2);
+        if (end < 0) {
+          end = length;
+        }
+        ranges.add(new int[] {index, end});
+        index = end + 1;
+      } else {
+        index = index + 1;
+      }
+    }
+    return ranges;
   }
 
   /**
@@ -475,30 +537,34 @@ public class Parser {
 
   /**
    * Given that we have just found bracketed text within a comment, look to see whether that text is
-   * followed by a parenthesized link address.
+   * (a) followed by a parenthesized link address, (b) followed by a colon, or (c) followed by
+   * optional whitespace and another square bracket.
+   * <p>
+   * This method uses the syntax described by the <a
+   * href="http://daringfireball.net/projects/markdown/syntax">markdown</a> project.
    * 
    * @param comment the comment text in which the bracketed text was found
    * @param rightIndex the index of the right bracket
    * @return {@code true} if the bracketed text is followed by a link address
    */
   private boolean isLinkText(String comment, int rightIndex) {
-    //
-    // TODO(brianwilkerson) I believe that the opening parenthesis needs to immediately follow the
-    // closing square bracket, but we should verify this.
-    //
     int length = comment.length();
     int index = rightIndex + 1;
-    return index < length && comment.charAt(index) == '(';
-//    while (index < length) {
-//      char currentChar = comment.charAt(index);
-//      if (currentChar == '(') {
-//        return true;
-//      } else if (!Character.isWhitespace(currentChar)) {
-//        return false;
-//      }
-//      index++;
-//    }
-//    return false;
+    if (index >= length) {
+      return false;
+    }
+    char nextChar = comment.charAt(index);
+    if (nextChar == '(' || nextChar == ':') {
+      return true;
+    }
+    while (Character.isWhitespace(nextChar)) {
+      index = index + 1;
+      if (index >= length) {
+        return false;
+      }
+      nextChar = comment.charAt(index);
+    }
+    return nextChar == '[';
   }
 
   /**
@@ -1232,6 +1298,13 @@ public class Parser {
       reportError(ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.getWithKeyword());
     }
     //
+    // Look for and skip over the extra-lingual 'native' specification.
+    //
+    if (matches(NATIVE) && matches(peek(), TokenType.STRING)) {
+      advance();
+      advance();
+    }
+    //
     // Parse the body of the class.
     //
     Token leftBracket = null;
@@ -1624,49 +1697,43 @@ public class Parser {
       StringScanner scanner = new StringScanner(null, referenceSource, listener);
       scanner.setSourceStart(1, 1, sourceOffset);
       Token firstToken = scanner.tokenize();
-      if (!errorFound[0]) {
-        Token newKeyword = null;
-        if (matches(firstToken, Keyword.NEW)) {
-          newKeyword = firstToken;
-          firstToken = firstToken.getNext();
-        }
-        if (matchesIdentifier(firstToken)) {
-          Token secondToken = firstToken.getNext();
-          Token thirdToken = secondToken.getNext();
-          Token nextToken;
-          Identifier identifier;
-          if (matches(secondToken, TokenType.PERIOD) && matchesIdentifier(thirdToken)) {
-            identifier = new PrefixedIdentifier(
-                new SimpleIdentifier(firstToken),
-                secondToken,
-                new SimpleIdentifier(thirdToken));
-            nextToken = thirdToken.getNext();
-          } else {
-            identifier = new SimpleIdentifier(firstToken);
-            nextToken = firstToken.getNext();
-          }
-          if (nextToken.getType() != TokenType.EOF) {
-            // TODO(brianwilkerson) Determine whether this should really be reported in these cases.
-            // reportError(ParserErrorCode.INVALID_COMMENT_REFERENCE);
-          }
-          return new CommentReference(newKeyword, identifier);
-        } else if (matches(firstToken, Keyword.THIS) || matches(firstToken, Keyword.NULL)
-            || matches(firstToken, Keyword.TRUE) || matches(firstToken, Keyword.FALSE)) {
-          // TODO(brianwilkerson) If we want to support this we will need to extend the definition
-          // of CommentReference to take an expression rather than an identifier. For now we just
-          // ignore it to reduce the number of errors produced, but that's probably not a valid
-          // long term approach.
-          return null;
-        } else if (matches(firstToken, TokenType.STRING)) {
-          // This is a valid link to a URI and should be ignored
+      if (errorFound[0]) {
+        return null;
+      }
+      Token newKeyword = null;
+      if (matches(firstToken, Keyword.NEW)) {
+        newKeyword = firstToken;
+        firstToken = firstToken.getNext();
+      }
+      if (matchesIdentifier(firstToken)) {
+        Token secondToken = firstToken.getNext();
+        Token thirdToken = secondToken.getNext();
+        Token nextToken;
+        Identifier identifier;
+        if (matches(secondToken, TokenType.PERIOD) && matchesIdentifier(thirdToken)) {
+          identifier = new PrefixedIdentifier(
+              new SimpleIdentifier(firstToken),
+              secondToken,
+              new SimpleIdentifier(thirdToken));
+          nextToken = thirdToken.getNext();
         } else {
-          // TODO(brianwilkerson) Determine whether this should really be reported in these cases.
-          // reportError(ParserErrorCode.INVALID_COMMENT_REFERENCE);
+          identifier = new SimpleIdentifier(firstToken);
+          nextToken = firstToken.getNext();
         }
+        if (nextToken.getType() != TokenType.EOF) {
+          return null;
+        }
+        return new CommentReference(newKeyword, identifier);
+      } else if (matches(firstToken, Keyword.THIS) || matches(firstToken, Keyword.NULL)
+          || matches(firstToken, Keyword.TRUE) || matches(firstToken, Keyword.FALSE)) {
+        // TODO(brianwilkerson) If we want to support this we will need to extend the definition
+        // of CommentReference to take an expression rather than an identifier. For now we just
+        // ignore it to reduce the number of errors produced, but that's probably not a valid
+        // long term approach.
+        return null;
       }
     } catch (Exception exception) {
-      // TODO(brianwilkerson) Determine whether this should really be reported in these cases.
-      // reportError(ParserErrorCode.INVALID_COMMENT_REFERENCE);
+      // Ignored because we assume that it wasn't a real comment reference.
     }
     return null;
   }
@@ -1687,34 +1754,17 @@ public class Parser {
    */
   private List<CommentReference> parseCommentReferences(Token[] tokens) {
     List<CommentReference> references = new ArrayList<CommentReference>();
-    boolean inCodeBlock = false;
     for (Token token : tokens) {
       String comment = token.getLexeme();
-      int rightIndex = 0;
-      if (inCodeBlock) {
-        rightIndex = comment.indexOf(":]");
-        if (rightIndex < 0) {
-          // Advance to the next token.
-          break;
-        }
-        rightIndex = rightIndex + 2;
-        inCodeBlock = false;
-      }
       int length = comment.length();
-      int leftIndex = comment.indexOf('[', rightIndex);
+      List<int[]> codeBlockRanges = getCodeBlockRanges(comment);
+      int leftIndex = comment.indexOf('[');
       while (leftIndex >= 0 && leftIndex + 1 < length) {
-        char firstChar = comment.charAt(leftIndex + 1);
-        if (firstChar == ':') {
-          rightIndex = comment.indexOf(":]", leftIndex);
-          if (rightIndex < 0) {
-            inCodeBlock = true;
-            // Advance to the next token.
-            break;
-          }
-          rightIndex = rightIndex + 2;
-        } else {
-          rightIndex = comment.indexOf(']', leftIndex);
+        int[] range = findRange(codeBlockRanges, leftIndex);
+        if (range == null) {
+          int rightIndex = comment.indexOf(']', leftIndex);
           if (rightIndex >= 0) {
+            char firstChar = comment.charAt(leftIndex + 1);
             if (firstChar != '\'' && firstChar != '"') {
               if (isLinkText(comment, rightIndex)) {
                 // TODO(brianwilkerson) Handle the case where there's a library URI in the link text.
@@ -1730,8 +1780,10 @@ public class Parser {
           } else {
             rightIndex = leftIndex + 1;
           }
+          leftIndex = comment.indexOf('[', rightIndex);
+        } else {
+          leftIndex = comment.indexOf('[', range[1] + 1);
         }
-        leftIndex = comment.indexOf('[', rightIndex);
       }
     }
     return references;
@@ -2813,8 +2865,10 @@ public class Parser {
         return new BlockFunctionBody(parseBlock());
       } else if (matches(NATIVE)) {
         Token nativeToken = getAndAdvance();
-        StringLiteral stringLiteral = parseStringLiteral();
-        // TODO (jwren) missing generated errors if the string literal is not a SimpleStringLiteral
+        StringLiteral stringLiteral = null;
+        if (matches(TokenType.STRING)) {
+          stringLiteral = parseStringLiteral();
+        }
         return new NativeFunctionBody(nativeToken, stringLiteral, expect(TokenType.SEMICOLON));
       } else {
         // Invalid function body

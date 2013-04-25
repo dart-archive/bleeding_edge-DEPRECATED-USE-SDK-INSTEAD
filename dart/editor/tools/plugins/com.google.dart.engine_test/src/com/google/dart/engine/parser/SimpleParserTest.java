@@ -1377,7 +1377,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(35, reference.getOffset());
   }
 
-  public void test_parseCommentReferences_skipEmbedded() throws Exception {
+  public void test_parseCommentReferences_skipCodeBlock_bracketed() throws Exception {
     Token[] tokens = new Token[] {new StringToken(
         TokenType.MULTI_LINE_COMMENT,
         "/** [:xxx [a] yyy:] [b] zzz */",
@@ -1388,6 +1388,32 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(reference);
     assertNotNull(reference.getIdentifier());
     assertEquals(24, reference.getOffset());
+  }
+
+  public void test_parseCommentReferences_skipCodeBlock_spaces() throws Exception {
+    Token[] tokens = new Token[] {new StringToken(
+        TokenType.MULTI_LINE_COMMENT,
+        "/**\n *     a[i]\n * xxx [i] zzz\n */",
+        3),};
+    List<CommentReference> references = parse("parseCommentReferences", new Object[] {tokens}, "");
+    assertSize(1, references);
+    CommentReference reference = references.get(0);
+    assertNotNull(reference);
+    assertNotNull(reference.getIdentifier());
+    assertEquals(27, reference.getOffset());
+  }
+
+  public void test_parseCommentReferences_skipLinkDefinition() throws Exception {
+    Token[] tokens = new Token[] {new StringToken(
+        TokenType.MULTI_LINE_COMMENT,
+        "/** [a]: http://www.google.com (Google) [b] zzz */",
+        3),};
+    List<CommentReference> references = parse("parseCommentReferences", new Object[] {tokens}, "");
+    assertSize(1, references);
+    CommentReference reference = references.get(0);
+    assertNotNull(reference);
+    assertNotNull(reference.getIdentifier());
+    assertEquals(44, reference.getOffset());
   }
 
   public void test_parseCommentReferences_skipLinked() throws Exception {
@@ -1401,6 +1427,19 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(reference);
     assertNotNull(reference.getIdentifier());
     assertEquals(35, reference.getOffset());
+  }
+
+  public void test_parseCommentReferences_skipReferenceLink() throws Exception {
+    Token[] tokens = new Token[] {new StringToken(
+        TokenType.MULTI_LINE_COMMENT,
+        "/** [a][c] [b] zzz */",
+        3),};
+    List<CommentReference> references = parse("parseCommentReferences", new Object[] {tokens}, "");
+    assertSize(1, references);
+    CommentReference reference = references.get(0);
+    assertNotNull(reference);
+    assertNotNull(reference.getIdentifier());
+    assertEquals(15, reference.getOffset());
   }
 
   public void test_parseCompilationUnit_abstractAsPrefix_parameterized() throws Exception {
