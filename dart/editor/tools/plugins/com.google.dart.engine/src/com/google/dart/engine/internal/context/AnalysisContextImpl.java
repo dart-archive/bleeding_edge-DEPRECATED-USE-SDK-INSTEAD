@@ -204,17 +204,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       for (Source source : removedSources) {
         sourceRemoved(source);
       }
-      if (addedDartSource) {
-        // TODO(brianwilkerson) This is hugely inefficient, but we need to re-analyze any libraries
-        // that might have been referencing the not-yet-existing source that was just added. Longer
-        // term we need to keep track of which libraries are referencing non-existing sources and
-        // only re-analyze those libraries.
-        for (SourceEntry sourceEntry : sourceMap.values()) {
-          if (sourceEntry instanceof DartEntry) {
-            ((DartEntryImpl) sourceEntry).invalidateAllResolutionInformation();
-          }
-        }
-      }
+//      if (addedDartSource) {
+//        // TODO(brianwilkerson) This is hugely inefficient, but we need to re-analyze any libraries
+//        // that might have been referencing the not-yet-existing source that was just added. Longer
+//        // term we need to keep track of which libraries are referencing non-existing sources and
+//        // only re-analyze those libraries.
+//        for (SourceEntry sourceEntry : sourceMap.values()) {
+//          if (sourceEntry instanceof DartEntry) {
+//            ((DartEntryImpl) sourceEntry).invalidateAllResolutionInformation();
+//          }
+//        }
+//      }
     }
   }
 
