@@ -192,14 +192,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       //
       // Then determine which cached results are no longer valid.
       //
+      boolean addedDartSource = false;
       for (Source source : changeSet.getAdded()) {
-        sourceAvailable(source);
+        if (sourceAvailable(source)) {
+          addedDartSource = true;
+        }
       }
       for (Source source : changeSet.getChanged()) {
         sourceChanged(source);
       }
       for (Source source : removedSources) {
         sourceRemoved(source);
+      }
+      if (addedDartSource) {
+        // TODO(brianwilkerson) This is hugely inefficient, but we need to re-analyze any libraries
+        // that might have been referencing the not-yet-existing source that was just added. Longer
+        // term we need to keep track of which libraries are referencing non-existing sources and
+        // only re-analyze those libraries.
+        for (SourceEntry sourceEntry : sourceMap.values()) {
+          if (sourceEntry instanceof DartEntry) {
+            ((DartEntryImpl) sourceEntry).invalidateAllResolutionInformation();
+          }
+        }
       }
     }
   }
@@ -1549,15 +1563,20 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Create an entry for the newly added source. Return {@code true} if the new source is a Dart
+   * file.
+   * <p>
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
    * @param source the source that has been added
+   * @return {@code true} if the new source is a Dart file
    */
-  private void sourceAvailable(Source source) {
+  private boolean sourceAvailable(Source source) {
     SourceEntry sourceEntry = sourceMap.get(source);
     if (sourceEntry == null) {
-      createSourceEntry(source);
+      sourceEntry = createSourceEntry(source);
     }
+    return sourceEntry instanceof DartEntry;
   }
 
   /**
