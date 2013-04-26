@@ -477,7 +477,8 @@ public class BrowserManager {
         throw new CoreException(new Status(
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,
-            "Could not launch browser - process terminated while trying to connect"
+            "Could not launch browser - process terminated while trying to connect. "
+                + "Try closing any running Dartium instances."
                 + getProcessStreamMessage(dartiumOutput.toString())));
       }
 
