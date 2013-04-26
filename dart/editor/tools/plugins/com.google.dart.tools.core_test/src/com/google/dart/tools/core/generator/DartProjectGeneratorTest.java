@@ -28,23 +28,6 @@ import static org.junit.Assert.assertArrayEquals;
 
 public class DartProjectGeneratorTest extends TestCase {
 
-  public void test_DartProjectGenerator_execute() throws CoreException {
-    final String projectName = "DartProjectGeneratorTest";
-    final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
-    assertFalse(project.exists());
-    final DartProjectGenerator generator = new DartProjectGenerator();
-    generator.setName(projectName);
-    assertTrue(generator.validate().isOK());
-    generator.execute(new NullProgressMonitor());
-    assertTrue(project.exists());
-    IProjectDescription description = project.getDescription();
-    assertEquals(projectName, description.getName());
-    assertArrayEquals(new String[] {DartCore.DART_PROJECT_NATURE}, description.getNatureIds());
-    assertEquals(1, description.getBuildSpec().length);
-    ICommand command = description.getBuildSpec()[0];
-    assertEquals(DartCore.DART_BUILDER_ID, command.getBuilderName());
-  }
-
   public void test_DartProjectGenerator_getSuggestedLibraryPath_complex() throws Exception {
     testSuggestedLibraryPath("baz.bar", false, "bar.dart");
   }
@@ -99,6 +82,23 @@ public class DartProjectGeneratorTest extends TestCase {
 
   public void test_DartProjectGenerator_validate_good() {
     testValidate("foo", true);
+  }
+
+  public void xxx_test_DartProjectGenerator_execute() throws CoreException {
+    final String projectName = "DartProjectGeneratorTest";
+    final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+    assertFalse(project.exists());
+    final DartProjectGenerator generator = new DartProjectGenerator();
+    generator.setName(projectName);
+    assertTrue(generator.validate().isOK());
+    generator.execute(new NullProgressMonitor());
+    assertTrue(project.exists());
+    IProjectDescription description = project.getDescription();
+    assertEquals(projectName, description.getName());
+    assertArrayEquals(new String[] {DartCore.DART_PROJECT_NATURE}, description.getNatureIds());
+    assertEquals(1, description.getBuildSpec().length);
+    ICommand command = description.getBuildSpec()[0];
+    assertEquals(DartCore.DART_BUILDER_ID, command.getBuilderName());
   }
 
   private void testSuggestedLibraryPath(String projName, boolean isApplication, String expected) {

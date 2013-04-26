@@ -18,12 +18,10 @@ import com.google.common.io.CharStreams;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 
@@ -37,14 +35,12 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -88,11 +84,13 @@ public class TestProject {
 
   private final DartProject dartProject;
 
+  static int testCount = 0;
+
   /**
    * Creates new {@link DartProject} with name "Test".
    */
   public TestProject() throws Exception {
-    this("Test");
+    this("test_project_" + (testCount++));
   }
 
   /**
@@ -105,23 +103,27 @@ public class TestProject {
     workspace.run(new IWorkspaceRunnable() {
       @Override
       public void run(IProgressMonitor monitor) throws CoreException {
-        // delete project
+        // delete the project
         if (project.exists()) {
           TestUtilities.deleteProject(project);
         }
-        // create project
-        {
-          project.create(null);
-          project.open(null);
-        }
-        // set nature
-        {
+
+        // create the project
+        ProgressMonitorLatch latch = new ProgressMonitorLatch();
+        try {
           IProjectDescription description = workspace.newProjectDescription(projectName);
           description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
-          project.setDescription(description, null);
+          project.create(description, latch);
+          latch.await();
+
+          latch = new ProgressMonitorLatch();
+          project.open(latch);
+          latch.await();
+        } finally {
+          latch.setCanceled(true);
         }
       }
-    }, null);
+    }, workspace.getRoot(), 0, null);
 
     if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       // remember DartProject
@@ -148,17 +150,6 @@ public class TestProject {
    * Disposes allocated resources and deletes project.
    */
   public void dispose() throws Exception {
-    // notify AnalysisServer
-    {
-      IPath location = project.getLocation();
-      if (location != null) {
-        AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-        server.discard(location.toFile());
-      }
-    }
-    // we need to close, because in the other case DelteProcessor for some reason closes it,
-    // but at the time when we create (!!!) new project
-
     try {
       if (project.exists()) {
         // Removed the close, this was causing test failures -test_DartModelImpl_getUnreferencedLibraries(),
@@ -167,6 +158,7 @@ public class TestProject {
       }
     } catch (Throwable e) {
     }
+
     // do dispose
     TestUtilities.deleteProject(project);
   }
@@ -226,15 +218,10 @@ public class TestProject {
       file.create(stream, true, null);
       file.setCharset("UTF-8", null);
     }
-    // notify AnalysisServer
-    {
-      AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-      File javaFile = file.getLocation().toFile();
-      server.scan(javaFile, 5000);
-      server.changed(javaFile);
-    }
+
     // wait for changes
     TestUtilities.processAllDeltaChanges();
+
     // done
     return file;
   }
