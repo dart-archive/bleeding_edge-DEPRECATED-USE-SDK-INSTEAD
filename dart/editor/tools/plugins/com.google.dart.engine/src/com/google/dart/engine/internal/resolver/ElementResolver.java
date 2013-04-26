@@ -275,7 +275,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           }
         } else {
           if (element instanceof ClassElement) {
-            ConstructorElement constructor = ((ClassElement) element).getNamedConstructor(name.getName());
+            ConstructorElement constructor = ((ClassElement) element).getNamedConstructor(
+                name.getName());
             if (constructor != null) {
               recordResolution(name, constructor);
             }
@@ -295,7 +296,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ClassElement enclosingClass = resolver.getEnclosingClass();
     fieldElement = ((ClassElementImpl) enclosingClass).getField(fieldName.getName());
     if (fieldElement == null) {
-      resolver.reportError(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD, node, fieldName);
+      resolver.reportError(
+          CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD,
+          node,
+          fieldName);
     } else if (!fieldElement.isSynthetic()) {
       recordResolution(fieldName, fieldElement);
       if (fieldElement.isStatic()) {
@@ -540,32 +544,32 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           // the function name is a prefixed identifier. Consider re-writing the AST.
           final String name = ((SimpleIdentifier) target).getName() + "." + methodName;
           Identifier functionName = new Identifier() {
-            @Override
+              @Override
             public <R> R accept(ASTVisitor<R> visitor) {
               return null;
             }
 
-            @Override
+              @Override
             public Token getBeginToken() {
               return null;
             }
 
-            @Override
+              @Override
             public Element getElement() {
               return null;
             }
 
-            @Override
+              @Override
             public Token getEndToken() {
               return null;
             }
 
-            @Override
+              @Override
             public String getName() {
               return name;
             }
 
-            @Override
+              @Override
             public void visitChildren(ASTVisitor<?> visitor) {
             }
           };
@@ -878,29 +882,32 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     if (memberElement == null) {
-      if (identifier.inSetterContext()) {
-        resolver.reportError(
-            StaticWarningCode.UNDEFINED_SETTER,
-            identifier,
-            identifier.getName(),
-            targetType.getName());
-      } else if (identifier.inGetterContext()) {
-        resolver.reportError(
-            StaticWarningCode.UNDEFINED_GETTER,
-            identifier,
-            identifier.getName(),
-            targetType.getName());
-      } else {
-        resolver.reportError(
-            StaticWarningCode.UNDEFINED_IDENTIFIER,
-            identifier,
-            identifier.getName());
-      }
+      if (!doesClassDeclareNoSuchMethod(targetType.getElement())) {
+        if (identifier.inSetterContext()) {
+          resolver.reportError(
+              StaticWarningCode.UNDEFINED_SETTER,
+              identifier,
+              identifier.getName(),
+              targetType.getName());
+        } else if (identifier.inGetterContext()) {
+          resolver.reportError(
+              StaticWarningCode.UNDEFINED_GETTER,
+              identifier,
+              identifier.getName(),
+              targetType.getName());
+        } else {
+          System.out.println("two " + identifier.getName());
+          resolver.reportError(
+              StaticWarningCode.UNDEFINED_IDENTIFIER,
+              identifier,
+              identifier.getName());
+        }
 //    } else if (!memberElement.isStatic()) {
 //      reportError(
 //          ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
 //          identifier,
 //          identifier.getName());
+      }
     } else {
       recordResolution(identifier, memberElement);
     }
@@ -970,7 +977,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     if (element == null) {
       // TODO(brianwilkerson) Recover from this error.
-      resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, node.getName());
+      if (!doesClassDeclareNoSuchMethod(enclosingClass)) {
+        resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, node.getName());
+      }
     }
     recordResolution(node, element);
     return null;
@@ -1035,7 +1044,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return false;
     }
     ClassElementImpl classElement = (ClassElementImpl) element;
-    MethodElement method = classElement.getMethod("noSuchMethod");
+    MethodElement method = classElement.lookUpMethod("noSuchMethod", resolver.getDefiningLibrary());
     if (method == null) {
       return false;
     }
@@ -1101,7 +1110,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return true;
     } else if (type instanceof InterfaceType) {
       ClassElement classElement = ((InterfaceType) type).getElement();
-      MethodElement methodElement = classElement.lookUpMethod("call", resolver.getDefiningLibrary());
+      MethodElement methodElement = classElement.lookUpMethod(
+          "call",
+          resolver.getDefiningLibrary());
       return methodElement != null;
     }
     return false;
@@ -1142,8 +1153,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    *          to prevent infinite recursion and to optimize the search
    * @return the element representing the getter that was found
    */
-  private PropertyAccessorElement lookUpGetterInInterfaces(InterfaceType targetType,
-      String getterName, HashSet<ClassElement> visitedInterfaces) {
+  private PropertyAccessorElement lookUpGetterInInterfaces(
+      InterfaceType targetType, String getterName, HashSet<ClassElement> visitedInterfaces) {
     // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the specification (titled
     // "Inheritance and Overriding" under "Interfaces") describes a much more complex scheme for
     // finding the inherited member. We need to follow that scheme. The code below should cover the
@@ -1213,8 +1224,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    *          to prevent infinite recursion and to optimize the search
    * @return the element representing the method or getter that was found
    */
-  private ExecutableElement lookUpGetterOrMethodInInterfaces(InterfaceType targetType,
-      String memberName, HashSet<ClassElement> visitedInterfaces) {
+  private ExecutableElement lookUpGetterOrMethodInInterfaces(
+      InterfaceType targetType, String memberName, HashSet<ClassElement> visitedInterfaces) {
     // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the specification (titled
     // "Inheritance and Overriding" under "Interfaces") describes a much more complex scheme for
     // finding the inherited member. We need to follow that scheme. The code below should cover the
@@ -1277,7 +1288,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       } else {
         labelElement = (LabelElementImpl) labelScope.lookup(labelNode);
         if (labelElement == null) {
-          resolver.reportError(CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, labelNode.getName());
+          resolver.reportError(
+              CompileTimeErrorCode.LABEL_UNDEFINED,
+              labelNode,
+              labelNode.getName());
         } else {
           recordResolution(labelNode, labelElement);
         }
@@ -1329,8 +1343,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    *          to prevent infinite recursion and to optimize the search
    * @return the element representing the method that was found
    */
-  private MethodElement lookUpMethodInInterfaces(InterfaceType targetType, String methodName,
-      HashSet<ClassElement> visitedInterfaces) {
+  private MethodElement lookUpMethodInInterfaces(
+      InterfaceType targetType, String methodName, HashSet<ClassElement> visitedInterfaces) {
     // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the specification (titled
     // "Inheritance and Overriding" under "Interfaces") describes a much more complex scheme for
     // finding the inherited member. We need to follow that scheme. The code below should cover the
@@ -1392,8 +1406,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    *          to prevent infinite recursion and to optimize the search
    * @return the element representing the setter that was found
    */
-  private PropertyAccessorElement lookUpSetterInInterfaces(InterfaceType targetType,
-      String setterName, HashSet<ClassElement> visitedInterfaces) {
+  private PropertyAccessorElement lookUpSetterInInterfaces(
+      InterfaceType targetType, String setterName, HashSet<ClassElement> visitedInterfaces) {
     // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the specification (titled
     // "Inheritance and Overriding" under "Interfaces") describes a much more complex scheme for
     // finding the inherited member. We need to follow that scheme. The code below should cover the
@@ -1452,8 +1466,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         return TokenType.TILDE_SLASH;
     }
     // Internal error: Unmapped assignment operator.
-    AnalysisEngine.getInstance().getLogger().logError(
-        "Failed to map " + operator.getLexeme() + " to it's corresponding operator");
+    AnalysisEngine.getInstance().getLogger()
+        .logError("Failed to map " + operator.getLexeme() + " to it's corresponding operator");
     return operator;
   }
 
@@ -1470,20 +1484,23 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Report the {@link StaticTypeWarningCode}s <code>UNDEFINED_SETTER</code> and
-   * <code>UNDEFINED_GETTER</code>.
+   * Report the {@link StaticTypeWarningCode}s <code>UNDEFINED_SETTER</code> and <code>UNDEFINED_GETTER</code>.
    * 
    * @param node the prefixed identifier that gives the context to determine if the error on the
    *          undefined identifier is a getter or a setter
    * @param identifier the identifier in the passed prefix identifier
    * @param typeName the name of the type of the left hand side of the passed prefixed identifier
    */
-  private void reportGetterOrSetterNotFound(PrefixedIdentifier node, SimpleIdentifier identifier,
-      String typeName) {
+  private void reportGetterOrSetterNotFound(
+      PrefixedIdentifier node, SimpleIdentifier identifier, String typeName) {
+    Type targetType = getType(node);
+    if (targetType != null && doesClassDeclareNoSuchMethod(targetType.getElement())) {
+      return;
+    }
     // TODO(jwren) This needs to be modified to also generate the error code StaticTypeWarningCode.INACCESSIBLE_SETTER
     boolean isSetterContext = node.getIdentifier().inSetterContext();
-    ErrorCode errorCode = isSetterContext ? StaticTypeWarningCode.UNDEFINED_SETTER
-        : StaticTypeWarningCode.UNDEFINED_GETTER;
+    ErrorCode errorCode = isSetterContext
+        ? StaticTypeWarningCode.UNDEFINED_SETTER : StaticTypeWarningCode.UNDEFINED_GETTER;
     resolver.reportError(errorCode, identifier, identifier.getName(), typeName);
   }
 
