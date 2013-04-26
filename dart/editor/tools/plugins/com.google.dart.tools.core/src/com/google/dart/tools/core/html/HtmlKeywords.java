@@ -40,7 +40,7 @@ public class HtmlKeywords {
 
   private static Set<String> SELF_CLOSING = new HashSet<String>(Arrays.asList(new String[] {
       "area", "base", "basefont", "br", "col", "frame", "hr", "img", "input", "link", "meta",
-      "param", "!", "h1", "h2", "h3", "h4", "h5", "h6"}));
+      "param", "!"}));
 
   static {
     init();

@@ -208,7 +208,7 @@ public class HtmlCustomPartitionScanner implements IPartitionTokenScanner {
     // Skip over any tokens that should not be returned. currentToken is assumed to be the fake
     // token created before the first real token.
     HtmlToken nextToken = start;
-    while (nextToken != nextToken.next && nextToken.next.offset <= offset) {
+    while (nextToken.next != null && nextToken != nextToken.next && nextToken.next.offset <= offset) {
       nextToken = nextToken.next;
     }
     start = nextToken;
