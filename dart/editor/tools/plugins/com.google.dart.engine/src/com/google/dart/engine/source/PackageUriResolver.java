@@ -97,13 +97,13 @@ public class PackageUriResolver extends UriResolver {
         return new FileBasedSource(contentCache, getCanonicalFile(
             packagesDirectory,
             pkgName,
-            relPath));
+            relPath), UriKind.PACKAGE_URI);
       }
     }
     return new FileBasedSource(contentCache, getCanonicalFile(
         packagesDirectories[0],
         pkgName,
-        relPath));
+        relPath), UriKind.PACKAGE_URI);
   }
 
   /**

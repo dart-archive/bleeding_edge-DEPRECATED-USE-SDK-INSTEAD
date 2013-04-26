@@ -207,7 +207,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   public void test_getElement() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
-    LibraryElement core = context.computeLibraryElement(sourceFactory.fromEncoding("dart:core"));
+    LibraryElement core = context.computeLibraryElement(sourceFactory.forUri("dart:core"));
     assertNotNull(core);
     ClassElement classObject = findClass(core.getDefiningCompilationUnit(), "Object");
     assertNotNull(classObject);

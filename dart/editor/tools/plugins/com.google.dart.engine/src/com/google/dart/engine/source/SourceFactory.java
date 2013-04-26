@@ -17,6 +17,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DartSdk;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -90,7 +91,19 @@ public class SourceFactory {
    * @see Source#getEncoding()
    */
   public Source fromEncoding(String encoding) {
-    return forUri(encoding);
+    if (encoding.length() < 2) {
+      throw new IllegalArgumentException("Invalid encoding length");
+    }
+    UriKind kind = UriKind.fromEncoding(encoding.charAt(0));
+    if (kind == null) {
+      throw new IllegalArgumentException("Invalid source kind in encoding");
+    }
+    try {
+      URI uri = new URI(encoding.substring(1));
+      return new FileBasedSource(contentCache, new File(uri), kind);
+    } catch (Exception exception) {
+      throw new IllegalArgumentException("Invalid URI in encoding");
+    }
   }
 
   /**

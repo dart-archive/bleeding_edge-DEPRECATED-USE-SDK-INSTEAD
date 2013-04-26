@@ -39,14 +39,14 @@ public class FileBasedSource implements Source {
   private final File file;
 
   /**
-   * The cached URI of the {@link #file}.
+   * The cached encoding for this source.
    */
-  private final String fileUriString;
+  private final String encoding;
 
   /**
-   * A flag indicating whether this source is in one of the system libraries.
+   * The kind of URI from which this source was originally derived.
    */
-  private final boolean inSystemLibrary;
+  private final UriKind uriKind;
 
   /**
    * The character set used to decode bytes into characters.
@@ -61,7 +61,7 @@ public class FileBasedSource implements Source {
    * @param file the file represented by this source
    */
   public FileBasedSource(ContentCache contentCache, File file) {
-    this(contentCache, file, false);
+    this(contentCache, file, UriKind.FILE_URI);
   }
 
   /**
@@ -69,13 +69,13 @@ public class FileBasedSource implements Source {
    * 
    * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
-   * @param inSystemLibrary {@code true} if this source is in one of the system libraries
+   * @param flags {@code true} if this source is in one of the system libraries
    */
-  public FileBasedSource(ContentCache contentCache, File file, boolean inSystemLibrary) {
+  public FileBasedSource(ContentCache contentCache, File file, UriKind uriKind) {
     this.contentCache = contentCache;
     this.file = file;
-    this.inSystemLibrary = inSystemLibrary;
-    this.fileUriString = file.toURI().toString();
+    this.uriKind = uriKind;
+    this.encoding = uriKind.getEncoding() + file.toURI().toString();
   }
 
   @Override
@@ -133,7 +133,7 @@ public class FileBasedSource implements Source {
 
   @Override
   public String getEncoding() {
-    return fileUriString;
+    return encoding;
   }
 
   @Override
@@ -156,20 +156,25 @@ public class FileBasedSource implements Source {
   }
 
   @Override
+  public UriKind getUriKind() {
+    return uriKind;
+  }
+
+  @Override
   public int hashCode() {
     return file.hashCode();
   }
 
   @Override
   public boolean isInSystemLibrary() {
-    return inSystemLibrary;
+    return uriKind == UriKind.DART_URI;
   }
 
   @Override
   public Source resolveRelative(URI containedUri) {
     try {
       URI resolvedUri = getFile().toURI().resolve(containedUri).normalize();
-      return new FileBasedSource(contentCache, new File(resolvedUri), isInSystemLibrary());
+      return new FileBasedSource(contentCache, new File(resolvedUri), uriKind);
     } catch (Exception exception) {
       // Fall through to return null
     }

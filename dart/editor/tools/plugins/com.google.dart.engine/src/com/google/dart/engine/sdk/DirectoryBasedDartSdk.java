@@ -25,6 +25,7 @@ import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
 
@@ -371,7 +372,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
     return new FileBasedSource(
         contentCache,
         new File(getLibraryDirectory(), library.getPath()),
-        true);
+        UriKind.DART_URI);
   }
 
   /**

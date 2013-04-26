@@ -132,7 +132,7 @@ public class FileBasedSourceTest extends TestCase {
   public void test_system() {
     ContentCache contentCache = new ContentCache();
     File file = createFile("/does/not/exist.dart");
-    FileBasedSource source = new FileBasedSource(contentCache, file, true);
+    FileBasedSource source = new FileBasedSource(contentCache, file, UriKind.DART_URI);
     assertNotNull(source);
     assertEquals(file.getAbsolutePath(), source.getFullName());
     assertTrue(source.isInSystemLibrary());

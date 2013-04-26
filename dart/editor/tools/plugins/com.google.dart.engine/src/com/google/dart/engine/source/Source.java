@@ -118,6 +118,16 @@ public interface Source {
   public String getShortName();
 
   /**
+   * Return the kind of URI from which this source was originally derived. If this source was
+   * created from an absolute URI, then the returned kind will reflect the scheme of the absolute
+   * URI. If it was created from a relative URI, then the returned kind will be the same as the kind
+   * of the source against which the relative URI was resolved.
+   * 
+   * @return the kind of URI from which this source was originally derived
+   */
+  public UriKind getUriKind();
+
+  /**
    * Return a hash code for this source.
    * 
    * @return a hash code for this source
