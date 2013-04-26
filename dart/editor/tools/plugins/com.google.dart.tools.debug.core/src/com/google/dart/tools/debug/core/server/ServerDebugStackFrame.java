@@ -15,9 +15,6 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.compiler.PackageLibraryManager;
-import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.source.FileBasedSource;
-import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
@@ -29,6 +26,7 @@ import com.google.dart.tools.debug.core.util.IDartStackFrame;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.core.util.IVariableResolver;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -38,7 +36,6 @@ import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.core.model.IWatchExpressionListener;
 
-import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -331,18 +328,10 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   private URI resolvePackageUri(IResource resource, URI uri) {
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       if (resource != null) {
-        AnalysisContext context = DartCore.getProjectManager().getContext(resource);
+        IFile file = DartCore.getProjectManager().resolvePackageUri(resource, uri.toString());
 
-        if (context != null) {
-          Source source = context.getSourceFactory().forUri(uri.toString());
-
-          if (source instanceof FileBasedSource) {
-            FileBasedSource fileSource = (FileBasedSource) source;
-
-            File file = new File(fileSource.getFullName());
-
-            return file.toURI();
-          }
+        if (file != null) {
+          return file.getLocation().toFile().toURI();
         }
       }
     } else {

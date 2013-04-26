@@ -14,9 +14,6 @@
 
 package com.google.dart.tools.debug.ui.internal.view;
 
-import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.source.FileBasedSource;
-import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
@@ -41,7 +38,6 @@ import org.eclipse.ui.console.IPatternMatchListener;
 import org.eclipse.ui.console.PatternMatchEvent;
 import org.eclipse.ui.console.TextConsole;
 
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -322,21 +318,12 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
       IResource resource = getResource();
 
       if (resource != null) {
-        AnalysisContext context = DartCore.getProjectManager().getContext(resource);
+        IFile file = DartCore.getProjectManager().resolvePackageUri(resource, url);
 
-        if (context != null) {
-          // TODO: this will resolve most package: urls to files outside of the workspace (in the
-          // pub cache). This is not what we want; we want to be able to open the associated
-          // resource. Possibly an enhancement for ProjectManager?
-          Source source = context.getSourceFactory().forUri(url);
-
-          if (source instanceof FileBasedSource) {
-            FileBasedSource fileSource = (FileBasedSource) source;
-
-            File file = new File(fileSource.getFullName());
-
-            return file.toURI().toString();
-          }
+        if (file != null) {
+          return file.getLocation().toFile().toURI().toString();
+        } else {
+          return null;
         }
       }
 

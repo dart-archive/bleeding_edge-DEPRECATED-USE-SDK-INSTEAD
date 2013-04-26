@@ -302,6 +302,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public IFile resolvePackageUri(IResource relativeTo, String uri) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void start() {
       throw new UnsupportedOperationException();
     }

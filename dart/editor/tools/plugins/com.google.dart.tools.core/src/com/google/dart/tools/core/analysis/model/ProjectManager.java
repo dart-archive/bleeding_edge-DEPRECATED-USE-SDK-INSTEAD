@@ -143,6 +143,15 @@ public interface ProjectManager extends ContextManager {
   void removeProjectListener(ProjectListener listener);
 
   /**
+   * Use the getResourceMap() method to locate a workspace resource for the given package uri.
+   * 
+   * @param relativeTo the resource to use to locate an analysis context
+   * @param uri a package: uri
+   * @return
+   */
+  IFile resolvePackageUri(IResource relativeTo, String uri);
+
+  /**
    * Start background analysis such as updating the index.
    */
   void start();
