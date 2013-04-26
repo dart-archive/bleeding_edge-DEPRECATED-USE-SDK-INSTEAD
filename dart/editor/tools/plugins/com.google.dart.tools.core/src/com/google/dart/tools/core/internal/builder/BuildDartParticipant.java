@@ -305,12 +305,13 @@ public class BuildDartParticipant implements BuildParticipant {
       args.add("--package-root=" + path);
     }
 
-    // --use-script-snapshot
+    // If we have a snapshot, use that.
     if (snapshotCompiler != null && snapshotCompiler.getDestFile().exists()) {
-      args.add("--use-script-snapshot=" + snapshotCompiler.getDestFile().getPath());
+      args.add(snapshotCompiler.getDestFile().getPath());
+    } else {
+      args.add(builderFile.getName());
     }
 
-    args.add(builderFile.getName());
     args.addAll(buildArgs);
 
     Map<String, String> env = builder.environment();

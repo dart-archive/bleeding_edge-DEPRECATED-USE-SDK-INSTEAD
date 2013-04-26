@@ -58,6 +58,35 @@ public class SnapshotCompilerTest extends TestCase {
     assertEquals("foo.snapshot", destFile.getName());
   }
 
+  public void testExecute() throws Exception {
+    SnapshotCompiler compiler = new SnapshotCompiler();
+
+    PlainTestProject project = new PlainTestProject("fooBar");
+
+    try {
+      IFile file = project.setFileContent("foo.dart", "void main() { print('foo'); }");
+      File sourceFile = file.getLocation().toFile();
+      File destFile = SnapshotCompiler.createDestFileName(sourceFile);
+
+      IStatus result = compiler.compile(sourceFile, destFile);
+
+      if (result.getCode() != IStatus.OK) {
+        System.err.print(result.getCode() + ": " + result.getMessage());
+      }
+
+      assertEquals(IStatus.OK, result.getCode());
+      assertEquals(true, destFile.exists());
+
+      // Make sure we wrote out some content.
+      assertTrue(destFile.length() > 100);
+
+      // TODO(devoncarew): verify that the vm can run the snapshot
+
+    } finally {
+      project.dispose();
+    }
+  }
+
   public void testIsAvailable() {
     SnapshotCompiler compiler = new SnapshotCompiler();
 
