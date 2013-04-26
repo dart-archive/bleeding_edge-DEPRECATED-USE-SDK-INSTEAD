@@ -16,13 +16,11 @@ package com.google.dart.tools.core.internal.analysis.model;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
-import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
-import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -53,7 +51,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 
-public class ProjectImplTest extends AbstractDartCoreTest {
+public class ProjectImplTest extends ContextManagerImplTest {
 
   private final class MockContextForTest extends MockContext {
 
@@ -76,13 +74,11 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   private MockFolder subContainer;
   private MockFolder appContainer;
   private MockFolder subAppContainer;
-  private Project project;
   private File[] packageRoots = new File[0];
 
-  private DartSdk expectedSdk;
   private Index index;
 
-  public void assertUriResolvedToPackageRoot(IPath expectedPackageRoot) {
+  public void assertUriResolvedToPackageRoot(Project project, IPath expectedPackageRoot) {
     IPath expected = expectedPackageRoot != null ? expectedPackageRoot.append("foo").append(
         "foo.dart") : null;
 
@@ -106,6 +102,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
    * Verify context removed from index when folder containing pubspec is discarded
    */
   public void test_discardContextsIn_project() {
+    ProjectImpl project = newTarget();
     assertEquals(1, project.getPubFolders().length);
     PubFolder pubFolder = project.getPubFolder(projectContainer);
     assertNotNull(pubFolder);
@@ -125,6 +122,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
    * and does not contains a pubspec
    */
   public void test_discardContextsIn_project_web() {
+    ProjectImpl project = newTarget();
     assertEquals(1, project.getPubFolders().length);
     PubFolder pubFolder = project.getPubFolder(projectContainer);
     assertNotNull(pubFolder);
@@ -138,6 +136,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_getContext_folder() {
+    ProjectImpl project = newTarget();
     projectContainer.remove(PUBSPEC_FILE_NAME);
 
     MockContext context1 = (MockContext) project.getContext(projectContainer);
@@ -158,6 +157,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_getContext_project() {
+    ProjectImpl project = newTarget();
     MockContext context1 = (MockContext) project.getContext(projectContainer);
     assertNotNull(context1);
     assertSame(context1, project.getDefaultContext());
@@ -171,6 +171,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_getLaunchableClientLibrarySources() {
+    ProjectImpl project = newTarget();
     // TODO(keertip): complete implementation when API is available 
     Source[] sources = project.getLaunchableClientLibrarySources();
     assertTrue(sources.length == 0);
@@ -185,6 +186,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_getLaunchableServerLibrarySources() {
+    ProjectImpl project = newTarget();
     // TODO(keertip): complete implementation when API is available
     Source[] sources = project.getLaunchableServerLibrarySources();
     assertTrue(sources.length == 0);
@@ -196,6 +198,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_getLibrarySources() {
+    ProjectImpl project = newTarget();
     // TODO(keertip): make this more meaningful
     MockFolder folder = projectContainer.getMockFolder("web");
     MockFile file = new MockFile(folder, "libraryA.dart", "library libraryA;\n\n main(){}");
@@ -237,10 +240,12 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_getResource() {
+    ProjectImpl project = newTarget();
     assertSame(projectContainer, project.getResource());
   }
 
   public void test_getResource_Source() {
+    ProjectImpl project = newTarget();
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
     File file = resource.getLocation().toFile();
     Source source = new FileBasedSource(
@@ -250,10 +255,12 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_getResource_Source_null() {
+    ProjectImpl project = newTarget();
     assertNull(project.getResource(null));
   }
 
   public void test_getResource_Source_outside() {
+    ProjectImpl project = newTarget();
     File file = new File("/does/not/exist.dart");
     Source source = new FileBasedSource(
         project.getDefaultContext().getSourceFactory().getContentCache(),
@@ -261,37 +268,37 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertNull(project.getResource(source));
   }
 
-  public void test_getSdk() throws Exception {
-    final DartSdk sdk = project.getSdk();
-    assertNotNull(sdk);
-    assertSame(expectedSdk, sdk);
-  }
-
   public void test_packageRoots_ignored() throws Exception {
+    ProjectImpl project = newTarget();
     packageRoots = new File[] {new Path("/does/not/exist").toFile()};
 
-    assertUriResolvedToPackageRoot(projectContainer.getLocation().append(PACKAGES_DIRECTORY_NAME));
+    assertUriResolvedToPackageRoot(
+        project,
+        projectContainer.getLocation().append(PACKAGES_DIRECTORY_NAME));
   }
 
   public void test_packageRoots_not_set() throws Exception {
+    ProjectImpl project = newTarget();
     projectContainer.remove(PUBSPEC_FILE_NAME);
     appContainer.remove(PUBSPEC_FILE_NAME);
     subAppContainer.remove(PUBSPEC_FILE_NAME);
     packageRoots = new File[] {};
 
-    assertUriDoesNotResolve();
+    assertUriDoesNotResolve(project);
   }
 
   public void test_packageRoots_set() throws Exception {
+    ProjectImpl project = newTarget();
     projectContainer.remove(PUBSPEC_FILE_NAME);
     appContainer.remove(PUBSPEC_FILE_NAME);
     subAppContainer.remove(PUBSPEC_FILE_NAME);
     packageRoots = new File[] {new Path("/does/not/exist").toFile()};
 
-    assertUriResolvedToPackageRoot(new Path(packageRoots[0].getPath()));
+    assertUriResolvedToPackageRoot(project, new Path(packageRoots[0].getPath()));
   }
 
   public void test_pubFolder_folder() {
+    ProjectImpl project = newTarget();
     projectContainer.remove(PUBSPEC_FILE_NAME);
 
     assertNull(project.getPubFolder(projectContainer));
@@ -312,6 +319,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_pubFolder_none() {
+    ProjectImpl project = newTarget();
     projectContainer.remove(PUBSPEC_FILE_NAME);
     appContainer.remove(PUBSPEC_FILE_NAME);
     subAppContainer.remove(PUBSPEC_FILE_NAME);
@@ -329,6 +337,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_pubFolder_project() {
+    ProjectImpl project = newTarget();
     // Simulate traversal in which the top level pubspec is visited last
     projectContainer.add(projectContainer.remove(PUBSPEC_FILE_NAME));
 
@@ -349,6 +358,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_pubspecAdded_folder() {
+    ProjectImpl project = newTarget();
     projectContainer.remove(PUBSPEC_FILE_NAME);
     appContainer.remove(PUBSPEC_FILE_NAME);
     subAppContainer.remove(PUBSPEC_FILE_NAME);
@@ -375,6 +385,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_pubspecAdded_folder_ignored() {
+    ProjectImpl project = newTarget();
     appContainer.remove(PUBSPEC_FILE_NAME);
     subAppContainer.remove(PUBSPEC_FILE_NAME);
 
@@ -390,6 +401,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_pubspecAdded_project() {
+    ProjectImpl project = newTarget();
     projectContainer.remove(PUBSPEC_FILE_NAME);
     appContainer.remove(PUBSPEC_FILE_NAME);
     subAppContainer.remove(PUBSPEC_FILE_NAME);
@@ -400,7 +412,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     defaultContext.assertExtracted(null);
     defaultContext.assertMergedContext(null);
     assertFactoryInitialized(projectContainer, defaultContext);
-    assertUriResolvedToPackageRoot(new Path(packageRoots[0].getPath()));
+    assertUriResolvedToPackageRoot(project, new Path(packageRoots[0].getPath()));
 
     projectContainer.addFile(PUBSPEC_FILE_NAME);
     project.pubspecAdded(projectContainer);
@@ -414,10 +426,13 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     defaultContext.assertExtracted(null);
     defaultContext.assertMergedContext(null);
     assertFactoryInitialized(projectContainer, defaultContext);
-    assertUriResolvedToPackageRoot(projectContainer.getLocation().append(PACKAGES_DIRECTORY_NAME));
+    assertUriResolvedToPackageRoot(
+        project,
+        projectContainer.getLocation().append(PACKAGES_DIRECTORY_NAME));
   }
 
   public void test_pubspecAdded_project_replacing_folder() {
+    ProjectImpl project = newTarget();
     projectContainer.remove(PUBSPEC_FILE_NAME);
     subAppContainer.remove(PUBSPEC_FILE_NAME);
 
@@ -450,6 +465,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
    * Verify index is updated when pubspec is removed
    */
   public void test_pubspecRemoved_folder() {
+    ProjectImpl project = newTarget();
     projectContainer.remove(PUBSPEC_FILE_NAME);
 
     assertEquals(1, project.getPubFolders().length);
@@ -472,6 +488,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
    * context does not change
    */
   public void test_pubspecRemoved_project_to_folder() {
+    ProjectImpl project = newTarget();
     subAppContainer.remove(PUBSPEC_FILE_NAME);
 
     assertEquals(1, project.getPubFolders().length);
@@ -490,6 +507,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   }
 
   public void test_pubspecRemoved_project_to_none() {
+    ProjectImpl project = newTarget();
     appContainer.remove(PUBSPEC_FILE_NAME);
     subAppContainer.remove(PUBSPEC_FILE_NAME);
     packageRoots = new File[] {new Path("/does/not/exist").toFile()};
@@ -497,25 +515,20 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertEquals(1, project.getPubFolders().length);
     PubFolder pubFolder = project.getPubFolder(projectContainer);
     assertNotNull(pubFolder);
-    assertUriResolvedToPackageRoot(projectContainer.getLocation().append(PACKAGES_DIRECTORY_NAME));
+    assertUriResolvedToPackageRoot(
+        project,
+        projectContainer.getLocation().append(PACKAGES_DIRECTORY_NAME));
 
     projectContainer.remove(PUBSPEC_FILE_NAME);
     project.pubspecRemoved(projectContainer);
 
     assertEquals(0, project.getPubFolders().length);
-    assertUriResolvedToPackageRoot(new Path(packageRoots[0].getPath()));
+    assertUriResolvedToPackageRoot(project, new Path(packageRoots[0].getPath()));
   }
 
   @Override
-  protected void setUp() throws Exception {
-    projectContainer = TestProjects.newPubProject3();
-    webContainer = projectContainer.getMockFolder("web");
-    subContainer = webContainer.getMockFolder("sub");
-    appContainer = projectContainer.getMockFolder("myapp");
-    subAppContainer = appContainer.getMockFolder("subApp");
-    expectedSdk = mock(DartSdk.class);
-    index = mock(Index.class);
-    project = new ProjectImpl(projectContainer, expectedSdk, index, new AnalysisContextFactory() {
+  protected ProjectImpl newTarget() {
+    return new ProjectImpl(projectContainer, sdk, index, new AnalysisContextFactory() {
       @Override
       public AnalysisContext createContext() {
         return new MockContextForTest();
@@ -526,6 +539,17 @@ public class ProjectImplTest extends AbstractDartCoreTest {
         return packageRoots;
       }
     });
+  }
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    projectContainer = TestProjects.newPubProject3();
+    webContainer = projectContainer.getMockFolder("web");
+    subContainer = webContainer.getMockFolder("sub");
+    appContainer = projectContainer.getMockFolder("myapp");
+    subAppContainer = appContainer.getMockFolder("subApp");
+    index = mock(Index.class);
   }
 
   private void assertDartSdkFactoryInitialized(MockContainer container, AnalysisContext context) {
@@ -557,11 +581,9 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertEquals("doesNotExist3", parent3.getName());
   }
 
-  private void assertUriDoesNotResolve() {
-
+  private void assertUriDoesNotResolve(Project project) {
     SourceFactory factory = project.getDefaultContext().getSourceFactory();
     Source source = factory.forUri("package:foo/foo.dart");
     assertNull(source);
   }
-
 }

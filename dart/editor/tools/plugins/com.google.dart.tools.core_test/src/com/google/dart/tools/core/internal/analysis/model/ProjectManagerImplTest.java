@@ -17,14 +17,12 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
-import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
-import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
 import com.google.dart.tools.core.internal.builder.MockContext;
@@ -37,8 +35,6 @@ import com.google.dart.tools.core.mock.MockWorkspaceRoot;
 
 import static com.google.dart.engine.element.ElementFactory.library;
 
-import junit.framework.TestCase;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -47,7 +43,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProjectManagerImplTest extends TestCase {
+public class ProjectManagerImplTest extends ContextManagerImplTest {
 
   private final class MockContextForTest extends MockContext {
 
@@ -126,7 +122,7 @@ public class ProjectManagerImplTest extends TestCase {
         if (projectUnderTest == null) {
           projectUnderTest = new ProjectImpl(
               projectContainer,
-              expectedSdk,
+              sdk,
               getIndex(),
               new AnalysisContextFactory() {
                 @Override
@@ -143,12 +139,11 @@ public class ProjectManagerImplTest extends TestCase {
 
   private MockWorkspaceRoot rootContainer;
   private MockProject projectContainer;
-  private ProjectManager manager;
-  private DartSdk expectedSdk;
   private DartIgnoreManager ignoreManager = new DartIgnoreManager();
   private MockContext context;
 
   public void test_getContext() {
+    MockProjectManagerImpl manager = newTarget();
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
     Project project = manager.getProject(projectContainer);
     AnalysisContext expected = project.getContext(resource);
@@ -158,6 +153,7 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_getHtmlFileForLibrary() {
+//    MockProjectManagerImpl manager = newTarget();
     //TODO(keertip): finish when context api has been implemented
     MockFolder mockFolder = projectContainer.getMockFolder("web");
     MockFile file = new MockFile(mockFolder, "libraryA.dart", "library libraryA;\n\n main(){}");
@@ -175,16 +171,19 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_getIgnoreManager() throws Exception {
+    MockProjectManagerImpl manager = newTarget();
     assertSame(ignoreManager, manager.getIgnoreManager());
   }
 
   public void test_getIndex() throws Exception {
+    MockProjectManagerImpl manager = newTarget();
     Index index = manager.getIndex();
     assertNotNull(index);
     assertSame(index, manager.getIndex());
   }
 
   public void test_getLaunchableClientLibrarySources() {
+    MockProjectManagerImpl manager = newTarget();
     // TODO(keertip): complete implementation when API is available 
     Source[] sources = manager.getLaunchableClientLibrarySources();
     assertTrue(sources.length == 0);
@@ -202,6 +201,7 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_getLaunchableServerLibrarySources() {
+    MockProjectManagerImpl manager = newTarget();
     // TODO(keertip): complete implementation when API is available
     Source[] sources = manager.getLaunchableServerLibrarySources();
     assertTrue(sources.length == 0);
@@ -216,6 +216,7 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_getLibrarySources() {
+    MockProjectManagerImpl manager = newTarget();
     MockFolder mockFolder = projectContainer.getMockFolder("web");
     MockFile file = new MockFile(mockFolder, "libraryA.dart", "library libraryA;\n\n main(){}");
     mockFolder.add(file);
@@ -227,12 +228,14 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_getProject() {
+    MockProjectManagerImpl manager = newTarget();
     Project actual = manager.getProject(projectContainer);
     assertNotNull(actual);
     assertSame(projectContainer, actual.getResource());
   }
 
   public void test_getProjects() {
+    MockProjectManagerImpl manager = newTarget();
     Project[] actual = manager.getProjects();
     assertNotNull(actual);
     assertEquals(1, actual.length);
@@ -241,6 +244,7 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_getPubFolder() {
+    MockProjectManagerImpl manager = newTarget();
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
     Project project = manager.getProject(projectContainer);
     PubFolder expected = project.getPubFolder(resource);
@@ -250,6 +254,7 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_getPubFolder_project() {
+    MockProjectManagerImpl manager = newTarget();
     IResource resource = projectContainer;
     Project project = manager.getProject(projectContainer);
     PubFolder expected = project.getPubFolder(resource);
@@ -259,10 +264,12 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_getResource() {
+    MockProjectManagerImpl manager = newTarget();
     assertSame(rootContainer, manager.getResource());
   }
 
   public void test_getResource_Source() {
+    MockProjectManagerImpl manager = newTarget();
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
     File file = resource.getLocation().toFile();
     Project project = manager.getProject(projectContainer);
@@ -273,10 +280,12 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_getResource_Source_null() {
+    MockProjectManagerImpl manager = newTarget();
     assertNull(manager.getResource(null));
   }
 
   public void test_getResource_Source_outside() {
+    MockProjectManagerImpl manager = newTarget();
     File file = new File("/does/not/exist.dart");
     Project project = manager.getProject(projectContainer);
     Source source = new FileBasedSource(
@@ -285,13 +294,9 @@ public class ProjectManagerImplTest extends TestCase {
     assertNull(manager.getResource(source));
   }
 
-  public void test_getSdk() throws Exception {
-    final DartSdk sdk = manager.getSdk();
-    assertNotNull(sdk);
-    assertSame(expectedSdk, sdk);
-  }
-
+  @Override
   public void test_getSdkContext() throws Exception {
+    MockProjectManagerImpl manager = newTarget();
     AnalysisContext sdkContext = manager.getSdkContext();
     assertNotNull(sdkContext);
     SourceFactory factory = sdkContext.getSourceFactory();
@@ -305,6 +310,7 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_isClientLibrary() {
+    MockProjectManagerImpl manager = newTarget();
     MockFolder mockFolder = projectContainer.getMockFolder("web");
     MockFile file = new MockFile(
         mockFolder,
@@ -323,6 +329,7 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_isServerLibrary() {
+    MockProjectManagerImpl manager = newTarget();
     MockFolder mockFolder = projectContainer.getMockFolder("web");
     MockFile serverFile = new MockFile(
         mockFolder,
@@ -341,6 +348,7 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_listener() throws Exception {
+    MockProjectManagerImpl manager = newTarget();
     Project project = manager.getProject(projectContainer);
     MockProjectListener listener = new MockProjectListener();
     manager.addProjectListener(listener);
@@ -350,16 +358,21 @@ public class ProjectManagerImplTest extends TestCase {
   }
 
   public void test_newSearchEngine() throws Exception {
+    MockProjectManagerImpl manager = newTarget();
     assertNotNull(manager.newSearchEngine());
   }
 
   @Override
+  protected MockProjectManagerImpl newTarget() {
+    return new MockProjectManagerImpl(rootContainer, sdk, ignoreManager);
+  }
+
+  @Override
   protected void setUp() throws Exception {
+    super.setUp();
     rootContainer = new MockWorkspaceRoot();
     projectContainer = TestProjects.newPubProject3(rootContainer);
     rootContainer.add(projectContainer);
-    expectedSdk = DirectoryBasedDartSdk.getDefaultSdk();
-    manager = new MockProjectManagerImpl(rootContainer, expectedSdk, ignoreManager);
     context = new MockContextForTest();
   }
 }

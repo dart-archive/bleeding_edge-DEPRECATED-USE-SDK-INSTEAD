@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2013, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.AnalysisEngine;
@@ -127,11 +140,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   private ResourceMap defaultResourceMap;
 
   /**
-   * The Dart SDK used when constructing the default context.
-   */
-  private final DartSdk sdk;
-
-  /**
    * The index which is updated when contexts are discarded (not {@code null}).
    */
   private final Index index;
@@ -155,12 +163,12 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * @param factory the factory used to construct new analysis contexts (not {@code null})
    */
   public ProjectImpl(IProject resource, DartSdk sdk, Index index, AnalysisContextFactory factory) {
+    super(sdk);
     if (resource == null | factory == null | sdk == null) {
       throw new IllegalArgumentException();
     }
     this.projectResource = resource;
     this.index = index;
-    this.sdk = sdk;
     this.factory = factory;
   }
 
@@ -300,11 +308,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   @Override
-  public DartSdk getSdk() {
-    return sdk;
-  }
-
-  @Override
   public void pubspecAdded(IContainer container) {
     synchronized (pubFolders) {
       if (!isInitialized()) {
@@ -317,6 +320,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       }
 
       // Create and cache a new pub folder
+      DartSdk sdk = getSdk();
       PubFolderImpl pubFolder = new PubFolderImpl(container, createContext(container, sdk), sdk);
       pubFolders.put(container.getFullPath(), pubFolder);
 
@@ -356,7 +360,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
         defaultContext.mergeContext(context);
         index.removeContext(context);
       } else {
-        initContext(defaultContext, projectResource, sdk, false);
+        initContext(defaultContext, projectResource, getSdk(), false);
       }
 
       // Traverse container to find pubspec files that were overshadowed by the one just removed
@@ -405,6 +409,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
         IPath path = container.getFullPath();
         // Pub folders do not nest, so don't create a folder if a parent folder already exists
         if (getParentPubFolder(path) == null) {
+          DartSdk sdk = getSdk();
           pubFolders.put(path, new PubFolderImpl(container, createContext(container, sdk), sdk));
         }
       }
@@ -534,7 +539,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       return;
     }
     boolean hasPubspec = projectResource.getFile(PUBSPEC_FILE_NAME).exists();
-    defaultContext = initContext(factory.createContext(), projectResource, sdk, hasPubspec);
+    defaultContext = initContext(factory.createContext(), projectResource, getSdk(), hasPubspec);
     defaultResourceMap = new SimpleResourceMapImpl(projectResource, defaultContext);
     createPubFolders(projectResource);
   }

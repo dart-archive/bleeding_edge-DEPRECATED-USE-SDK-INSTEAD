@@ -262,6 +262,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public AnalysisWorker[] getWorkers() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean isClientLibrary(Source librarySource) {
       throw new UnsupportedOperationException();
     }
@@ -303,6 +308,11 @@ public class ScanTimings extends TestCase {
 
     @Override
     public void stop() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void stopWorkers(AnalysisContext context) {
       throw new UnsupportedOperationException();
     }
   }

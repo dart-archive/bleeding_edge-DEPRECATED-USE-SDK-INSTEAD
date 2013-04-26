@@ -13,9 +13,7 @@
  */
 package com.google.dart.tools.core.analysis.model;
 
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
-import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.internal.analysis.model.WorkspaceDeltaProcessor;
@@ -97,20 +95,6 @@ public interface ProjectManager extends ContextManager {
    * @return the Eclipse workspace (not {@code null})
    */
   IWorkspaceRoot getResource();
-
-  /**
-   * Answer the {@link DartSdk} default Dart SDK
-   * 
-   * @return the sdk (not {@code null})
-   */
-  DartSdk getSdk();
-
-  /**
-   * Answer the context containing analysis of sources in the SDK.
-   * 
-   * @return the context (not {@code null})
-   */
-  AnalysisContext getSdkContext();
 
   /**
    * Answer if the given source is known to be the defining compilation unit of a library that can

@@ -15,6 +15,7 @@ package com.google.dart.tools.core.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
@@ -29,7 +30,7 @@ import org.eclipse.core.resources.IResource;
 public interface ContextManager {
 
   /**
-   * Add the given {@link AnalysisWorker} to the project's list of active workers.
+   * Add the given {@link AnalysisWorker} to the context's list of active workers.
    * 
    * @param worker the analysis worker
    */
@@ -101,6 +102,20 @@ public interface ContextManager {
   ResourceMap getResourceMap(IResource resource);
 
   /**
+   * Answer the {@link DartSdk} associated with this manager.
+   * 
+   * @return the sdk (not {@code null})
+   */
+  DartSdk getSdk();
+
+  /**
+   * Answer the context containing analysis of sources in the SDK.
+   * 
+   * @return the context (not {@code null})
+   */
+  AnalysisContext getSdkContext();
+
+  /**
    * Answer the source for the specified file
    * 
    * @param file the file (not {@code null})
@@ -118,9 +133,23 @@ public interface ContextManager {
   SourceKind getSourceKind(IFile file);
 
   /**
+   * Answer the context's list of active workers.
+   * 
+   * @return the list (not {@code null}, contains no {@code null}s)
+   */
+  AnalysisWorker[] getWorkers();
+
+  /**
    * Remove the {@link AnalysisWorker} from the project's active workers list.
    * 
    * @param analysisWorker
    */
   void removeWorker(AnalysisWorker analysisWorker);
+
+  /**
+   * Stop workers for the specified context.
+   * 
+   * @param context the context
+   */
+  void stopWorkers(AnalysisContext context);
 }

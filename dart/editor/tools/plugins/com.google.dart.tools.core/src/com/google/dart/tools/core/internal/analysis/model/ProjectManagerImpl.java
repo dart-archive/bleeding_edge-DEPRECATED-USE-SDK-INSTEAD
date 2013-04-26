@@ -66,7 +66,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   private final IWorkspaceRoot resource;
   private final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
   private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
-  private final DartSdk sdk;
   private final DartIgnoreManager ignoreManager;
   private final ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
 
@@ -93,8 +92,8 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   };
 
   public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, DartIgnoreManager ignoreManager) {
+    super(sdk);
     this.resource = resource;
-    this.sdk = sdk;
     this.ignoreManager = ignoreManager;
   }
 
@@ -184,7 +183,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
           result = new ProjectImpl(resource, new DirectoryBasedDartSdk(
               resource.getLocation().toFile()));
         } else {
-          result = new ProjectImpl(resource, sdk);
+          result = new ProjectImpl(resource, getSdk());
         }
         projects.put(resource, result);
       }
@@ -230,16 +229,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   @Override
   public ResourceMap getResourceMap(IResource resource) {
     return getProject(resource.getProject()).getResourceMap(resource);
-  }
-
-  @Override
-  public DartSdk getSdk() {
-    return sdk;
-  }
-
-  @Override
-  public AnalysisContext getSdkContext() {
-    return sdk.getContext();
   }
 
   @Override

@@ -41,11 +41,21 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
     FileBasedSource source2 = new FileBasedSource(contentCache, file2);
     MockFile res1 = pkg1Container.addFile("file1.dart");
     MockFile res2 = pkg2Container.addFile("file2.dart");
+    FileBasedSource source1a = new FileBasedSource(contentCache, res1.getLocation().toFile());
+    FileBasedSource source2b = new FileBasedSource(contentCache, res2.getLocation().toFile());
 
     PubResourceMapImpl map = newTarget();
     map.getResource(source1);
     assertSame(res1, map.getResource(source1));
     assertSame(res2, map.getResource(source2));
+    assertSame(res1, map.getResource(source1a));
+    assertSame(res2, map.getResource(source2b));
+
+    FileUtilities2.deleteSymLink(new File(packagesDir, "pkg2"));
+    assertSame(res1, map.getResource(source1));
+    assertSame(null, map.getResource(source2));
+    assertSame(res1, map.getResource(source1a));
+    assertSame(res2, map.getResource(source2b));
   }
 
   public void test_getSource_fromPackageResource() throws Exception {

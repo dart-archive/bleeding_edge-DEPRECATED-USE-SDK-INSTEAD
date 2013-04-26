@@ -16,14 +16,15 @@ package com.google.dart.tools.core.internal.analysis.model;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ContextManager;
+import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IPath;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,16 @@ public abstract class ContextManagerImpl implements ContextManager {
   /**
    * A list of active {@link AnalysisWorker} workers for this project.
    */
-  private List<AnalysisWorker> workers = new ArrayList<AnalysisWorker>();
+  private final List<AnalysisWorker> workers = new ArrayList<AnalysisWorker>();
+
+  /**
+   * The Dart SDK used when constructing the default context.
+   */
+  private final DartSdk sdk;
+
+  public ContextManagerImpl(DartSdk sdk) {
+    this.sdk = sdk;
+  }
 
   @Override
   public void addWorker(AnalysisWorker worker) {
@@ -48,18 +58,13 @@ public abstract class ContextManagerImpl implements ContextManager {
 
   @Override
   public LibraryElement getLibraryElement(IFile file) {
-    AnalysisContext context = getContext(file);
-    if (context != null) {
-      IPath location = file.getLocation();
-      if (location != null) {
-        Source source = new FileBasedSource(
-            context.getSourceFactory().getContentCache(),
-            location.toFile());
-        try {
-          return context.computeLibraryElement(source);
-        } catch (AnalysisException exception) {
-          return null;
-        }
+    ResourceMap map = getResourceMap(file);
+    Source source = map.getSource(file);
+    if (source != null) {
+      try {
+        return map.getContext().computeLibraryElement(source);
+      } catch (AnalysisException e) {
+        DartCore.logError("Failed to compute library element: " + file, e);
       }
     }
     return null;
@@ -67,47 +72,44 @@ public abstract class ContextManagerImpl implements ContextManager {
 
   @Override
   public LibraryElement getLibraryElementOrNull(IFile file) {
-    AnalysisContext context = getContext(file);
-    if (context != null) {
-      IPath location = file.getLocation();
-      if (location != null) {
-        Source source = new FileBasedSource(
-            context.getSourceFactory().getContentCache(),
-            location.toFile());
-        return context.getLibraryElement(source);
-      }
+    ResourceMap map = getResourceMap(file);
+    Source source = map.getSource(file);
+    if (source != null) {
+      return map.getContext().getLibraryElement(source);
     }
     return null;
+  }
+
+  @Override
+  public DartSdk getSdk() {
+    return sdk;
+  }
+
+  @Override
+  public AnalysisContext getSdkContext() {
+    return sdk.getContext();
   }
 
   @Override
   public Source getSource(IFile file) {
-    Source source = null;
-    AnalysisContext context = getContext(file);
-    if (context != null) {
-      IPath location = file.getLocation();
-      if (location != null) {
-        source = new FileBasedSource(
-            context.getSourceFactory().getContentCache(),
-            location.toFile());
-      }
-    }
-    return source;
+    return getResourceMap(file).getSource(file);
   }
 
   @Override
   public SourceKind getSourceKind(IFile file) {
-    AnalysisContext context = getContext(file);
-    if (context != null) {
-      IPath location = file.getLocation();
-      if (location != null) {
-        Source source = new FileBasedSource(
-            context.getSourceFactory().getContentCache(),
-            location.toFile());
-        return context.getKindOf(source);
-      }
+    ResourceMap map = getResourceMap(file);
+    Source source = map.getSource(file);
+    if (source != null) {
+      return map.getContext().getKindOf(source);
     }
     return null;
+  }
+
+  @Override
+  public AnalysisWorker[] getWorkers() {
+    synchronized (workers) {
+      return workers.toArray(new AnalysisWorker[workers.size()]);
+    }
   }
 
   @Override
@@ -117,17 +119,9 @@ public abstract class ContextManagerImpl implements ContextManager {
     }
   }
 
-  /**
-   * Stop workers for the specified context.
-   * 
-   * @param context the context
-   */
-  protected void stopWorkers(AnalysisContext context) {
-    AnalysisWorker[] workerArray;
-    synchronized (workers) {
-      workerArray = workers.toArray(new AnalysisWorker[workers.size()]);
-    }
-    for (AnalysisWorker worker : workerArray) {
+  @Override
+  public void stopWorkers(AnalysisContext context) {
+    for (AnalysisWorker worker : getWorkers()) {
       if (worker.getContext() == context) {
         worker.stop();
       }
