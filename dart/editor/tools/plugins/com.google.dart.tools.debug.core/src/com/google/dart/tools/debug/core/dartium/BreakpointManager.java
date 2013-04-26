@@ -215,7 +215,8 @@ class BreakpointManager implements IBreakpointListener {
       int packagesIndex = regex.indexOf(PACKAGES_DIRECTORY_PATH);
 
       if (packagesIndex != -1) {
-        regex = regex.substring(packagesIndex);
+        // convert xxx/packages/foo/foo.dart to *foo/foo.dart
+        regex = regex.substring(packagesIndex + PACKAGES_DIRECTORY_PATH.length());
       } else if (isInSelfLinkedLib(breakpoint.getFile())) {
         // Check if source is located in the "lib" directory; if there is a link to it from the 
         // packages directory breakpoint should be /packages/...
@@ -224,7 +225,7 @@ class BreakpointManager implements IBreakpointListener {
         if (packageName != null) {
           // Create a breakpoint for self-links.
           int libIndex = regex.lastIndexOf(LIB_DIRECTORY_PATH);
-          String packageRegex = "packages/" + packageName + "/"
+          String packageRegex = packageName + "/"
               + regex.substring(libIndex + LIB_DIRECTORY_PATH.length());
 
           debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(

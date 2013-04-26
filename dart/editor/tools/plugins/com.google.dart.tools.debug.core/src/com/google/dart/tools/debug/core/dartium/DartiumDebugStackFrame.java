@@ -13,7 +13,10 @@
  */
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue.ValueCallback;
 import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
 import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
@@ -31,6 +34,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitScope;
 import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
@@ -358,6 +362,10 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
         return url;
       }
 
+      if (url.startsWith("package:")) {
+        return resolvePackageUrl(url);
+      }
+
       try {
         return URI.create(url).getPath();
       } catch (IllegalArgumentException iae) {
@@ -450,6 +458,27 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     } else {
       return null;
     }
+  }
+
+  private IProject getProject() {
+    DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
+        getDebugTarget().getLaunch().getLaunchConfiguration());
+
+    return wrapper.getProject();
+  }
+
+  private String resolvePackageUrl(String url) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      if (getProject() != null) {
+        IFile file = DartCore.getProjectManager().resolvePackageUri(getProject(), url);
+
+        if (file != null) {
+          return file.getLocation().toFile().toString();
+        }
+      }
+    }
+
+    return null;
   }
 
 }
