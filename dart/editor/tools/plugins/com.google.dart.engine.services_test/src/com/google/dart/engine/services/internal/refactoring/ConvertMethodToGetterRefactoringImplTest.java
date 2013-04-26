@@ -76,6 +76,34 @@ public class ConvertMethodToGetterRefactoringImplTest extends RefactoringImplTes
         "}");
   }
 
+  public void test_ignoreSetter() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() => 42;",
+        "  set test(x) {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.test = 0;",
+        "  var v = a.test();",
+        "}");
+    selectionElement = findIdentifierElement("test() => 42");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  get test => 42;",
+        "  set test(x) {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.test = 0;",
+        "  var v = a.test;",
+        "}");
+  }
+
   public void test_initialConditions_bad_alreadyGetter() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

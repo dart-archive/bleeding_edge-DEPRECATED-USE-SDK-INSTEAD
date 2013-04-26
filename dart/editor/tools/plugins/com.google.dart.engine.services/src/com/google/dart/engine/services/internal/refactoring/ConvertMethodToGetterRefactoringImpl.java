@@ -153,7 +153,7 @@ public class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl implem
     Set<Element> updateElements = Sets.newHashSet();
     for (ClassElement superClass : hierarchyClasses) {
       for (Element child : getChildren(superClass, element.getName())) {
-        if (!child.isSynthetic()) {
+        if (child instanceof MethodElement && !child.isSynthetic()) {
           updateElements.add(child);
         }
       }

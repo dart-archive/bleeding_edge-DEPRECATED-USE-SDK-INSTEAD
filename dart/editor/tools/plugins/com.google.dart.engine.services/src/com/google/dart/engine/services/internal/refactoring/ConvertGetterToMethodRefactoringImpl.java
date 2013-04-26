@@ -139,8 +139,11 @@ public class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implem
     Set<Element> updateElements = Sets.newHashSet();
     for (ClassElement superClass : hierarchyClasses) {
       for (Element child : getChildren(superClass, element.getName())) {
-        if (!child.isSynthetic()) {
-          updateElements.add(child);
+        if (child instanceof PropertyAccessorElement && !child.isSynthetic()) {
+          PropertyAccessorElement accessor = (PropertyAccessorElement) child;
+          if (accessor.isGetter()) {
+            updateElements.add(child);
+          }
         }
       }
     }
