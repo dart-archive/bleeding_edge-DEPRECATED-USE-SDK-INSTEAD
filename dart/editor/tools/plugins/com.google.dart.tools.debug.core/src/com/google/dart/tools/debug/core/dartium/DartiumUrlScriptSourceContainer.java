@@ -18,6 +18,7 @@ import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.core.DebugPlugin;
@@ -45,11 +46,24 @@ public class DartiumUrlScriptSourceContainer extends AbstractSourceContainer {
       return EMPTY;
     }
 
-    Path path = new Path(name);
-    for (int i = path.segmentCount() - 1; i >= 0; i--) {
-      IResource resource = project.findMember(path.removeFirstSegments(i));
-      if (resource != null) {
-        return new Object[] {resource};
+    Object[] resources = findResource(name, project);
+    if (resources != EMPTY) {
+      return resources;
+    }
+
+    // check in a connected project, for e.g a project with the generated files
+    // project would likely be named "projectName-gen" or "projectName-1" etc 
+    IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+    for (IProject project2 : projects) {
+      String projectName = project2.getName();
+      if (projectName.lastIndexOf("-") != -1) {
+        projectName = projectName.substring(0, projectName.indexOf("-"));
+      }
+      if (projectName.equals(project.getName()) && project2 != project) {
+        resources = findResource(name, project2);
+        if (resources != EMPTY) {
+          return resources;
+        }
       }
     }
 
@@ -64,6 +78,17 @@ public class DartiumUrlScriptSourceContainer extends AbstractSourceContainer {
   @Override
   public ISourceContainerType getType() {
     return getSourceContainerType(TYPE_ID);
+  }
+
+  private Object[] findResource(String name, IProject project) {
+    Path path = new Path(name);
+    for (int i = path.segmentCount() - 1; i >= 0; i--) {
+      IResource resource = project.findMember(path.removeFirstSegments(i));
+      if (resource != null) {
+        return new Object[] {resource};
+      }
+    }
+    return EMPTY;
   }
 
 }
