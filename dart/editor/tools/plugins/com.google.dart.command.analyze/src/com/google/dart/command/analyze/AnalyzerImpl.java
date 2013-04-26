@@ -30,6 +30,7 @@ import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.PackageUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.source.UriKind;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -108,7 +109,7 @@ class AnalyzerImpl {
     @SuppressWarnings("unused")
     CompilationUnit unit = context.resolveCompilationUnit(librarySource, library);
 
-    Set<Source> sources = getAllSources(library, options.getShowSdkWarnings());
+    Set<Source> sources = getAllSources(library);
 
     getAllErrors(context, sources, errors);
 
@@ -142,12 +143,12 @@ class AnalyzerImpl {
     }
   }
 
-  Set<Source> getAllSources(LibraryElement library, boolean includeSdkSources) {
+  Set<Source> getAllSources(LibraryElement library) {
     Set<CompilationUnitElement> units = new HashSet<CompilationUnitElement>();
     Set<LibraryElement> libraries = new HashSet<LibraryElement>();
     Set<Source> sources = new HashSet<Source>();
 
-    addLibrary(library, libraries, units, sources, includeSdkSources);
+    addLibrary(library, libraries, units, sources);
 
     return sources;
   }
@@ -164,13 +165,20 @@ class AnalyzerImpl {
   }
 
   private void addLibrary(LibraryElement library, Set<LibraryElement> libraries,
-      Set<CompilationUnitElement> units, Set<Source> sources, boolean includeSdkSources) {
+      Set<CompilationUnitElement> units, Set<Source> sources) {
     if (library == null || libraries.contains(library)) {
       return;
     }
 
-    // Skip SDK libraries.
-    if (!includeSdkSources && library.getName().startsWith("dart.")) {
+    UriKind uriKind = library.getSource().getUriKind();
+
+    // Optionally skip package: libraries.
+    if (!options.getShowPackageWarnings() && uriKind == UriKind.PACKAGE_URI) {
+      return;
+    }
+
+    // Optionally skip SDK libraries.
+    if (!options.getShowSdkWarnings() && uriKind == UriKind.DART_URI) {
       return;
     }
 
@@ -185,11 +193,11 @@ class AnalyzerImpl {
 
     // add referenced libraries
     for (LibraryElement child : library.getImportedLibraries()) {
-      addLibrary(child, libraries, units, sources, includeSdkSources);
+      addLibrary(child, libraries, units, sources);
     }
 
     for (LibraryElement child : library.getExportedLibraries()) {
-      addLibrary(child, libraries, units, sources, includeSdkSources);
+      addLibrary(child, libraries, units, sources);
     }
   }
 

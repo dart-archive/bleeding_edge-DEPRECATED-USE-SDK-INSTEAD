@@ -130,17 +130,16 @@ public class AnalyzerOptions {
   usage = "The path to the package root")
   private File packageRootPath = null;
 
+  @Option(name = "--show-package-warnings",//
+  usage = "Show warnings from package: imports")
+  private boolean showPackageWarnings = false;
+
   @Option(name = "--batch", //
   aliases = {"-batch"})
   private boolean batch = false;
 
   @Option(name = "--show-sdk-warnings")
   private boolean showSdkWarnings = false;
-
-  // TODO(devoncarew): we need to implement this
-  @SuppressWarnings("unused")
-  @Option(name = "--show-package-warnings")
-  private boolean showPackageWarnings = false;
 
   @Option(name = "--fatal-warnings")
   private boolean warningsAreFatal = false;
@@ -195,6 +194,13 @@ public class AnalyzerOptions {
    */
   public File getSdkIndexLocation() {
     return sdkIndexLocation;
+  }
+
+  /**
+   * @return whether SDK warnings should be reported
+   */
+  public boolean getShowPackageWarnings() {
+    return showPackageWarnings;
   }
 
   /**
