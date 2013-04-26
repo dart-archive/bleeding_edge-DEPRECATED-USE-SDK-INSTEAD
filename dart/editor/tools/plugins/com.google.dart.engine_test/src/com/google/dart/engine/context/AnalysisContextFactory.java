@@ -19,6 +19,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.DelegatingAnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
@@ -52,16 +53,15 @@ public final class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   public static AnalysisContextImpl contextWithCore() {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
-        DirectoryBasedDartSdk.getDefaultSdk()), new FileUriResolver());
-    context.setSourceFactory(sourceFactory);
+    AnalysisContextImpl sdkContext = (AnalysisContextImpl) DirectoryBasedDartSdk.getDefaultSdk().getContext();
+    SourceFactory sourceFactory = sdkContext.getSourceFactory();
     //
     // dart:core
     //
     TestTypeProvider provider = new TestTypeProvider();
     CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
+    sdkContext.setContents(coreSource, "");
     coreUnit.setSource(coreSource);
     coreUnit.setTypes(new ClassElement[] {
         provider.getBoolType().getElement(), provider.getDoubleType().getElement(),
@@ -70,7 +70,7 @@ public final class AnalysisContextFactory {
         provider.getNumType().getElement(), provider.getObjectType().getElement(),
         provider.getStackTraceType().getElement(), provider.getStringType().getElement(),
         provider.getTypeType().getElement()});
-    LibraryElementImpl coreLibrary = new LibraryElementImpl(context, libraryIdentifier(
+    LibraryElementImpl coreLibrary = new LibraryElementImpl(sdkContext, libraryIdentifier(
         "dart",
         "core"));
     coreLibrary.setDefiningCompilationUnit(coreUnit);
@@ -79,6 +79,7 @@ public final class AnalysisContextFactory {
     //
     CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
+    sdkContext.setContents(htmlSource, "");
     htmlUnit.setSource(htmlSource);
     ClassElementImpl elementElement = classElement("Element");
     InterfaceType elementType = elementElement.getType();
@@ -101,7 +102,7 @@ public final class AnalysisContextFactory {
     TopLevelVariableElementImpl document = topLevelVariableElement("document");
     document.setType(htmlDocumentElement.getType());
     htmlUnit.setTopLevelVariables(new TopLevelVariableElement[] {document});
-    LibraryElementImpl htmlLibrary = new LibraryElementImpl(context, libraryIdentifier(
+    LibraryElementImpl htmlLibrary = new LibraryElementImpl(sdkContext, libraryIdentifier(
         "dart",
         "dom",
         "html"));
@@ -110,10 +111,12 @@ public final class AnalysisContextFactory {
     HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();
     elementMap.put(coreSource, coreLibrary);
     elementMap.put(htmlSource, htmlLibrary);
+    sdkContext.recordLibraryElements(elementMap);
 
-    context.setContents(coreSource, "");
-    context.setContents(htmlSource, "");
-    context.recordLibraryElements(elementMap);
+    AnalysisContextImpl context = new DelegatingAnalysisContextImpl();
+    sourceFactory = new SourceFactory(new DartUriResolver(
+        sdkContext.getSourceFactory().getDartSdk()), new FileUriResolver());
+    context.setSourceFactory(sourceFactory);
     return context;
   }
 
