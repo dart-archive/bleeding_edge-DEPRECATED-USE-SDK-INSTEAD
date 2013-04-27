@@ -185,10 +185,16 @@ public class AbstractDartTest extends TestCase {
   protected Source addSource(String filePath, String contents) {
     ensureAnalysisContext();
     Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
+    // add Source to the context
     sourceFactory.setContents(source, contents);
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
-    analysisContext.applyChanges(changeSet);
+    {
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.added(source);
+      analysisContext.applyChanges(changeSet);
+    }
+    // remember Source to remove from the context later
+    sourceWithSetContent.add(source);
+    // done
     return source;
   }
 
@@ -342,9 +348,8 @@ public class AbstractDartTest extends TestCase {
    * @return the {@link Source} which corresponds given path.
    */
   protected final Source setFileContent(String path, String content) {
-    FileBasedSource source = new FileBasedSource(
-        sourceFactory.getContentCache(),
-        FileUtilities2.createFile("/" + path));
+    FileBasedSource source = new FileBasedSource(sourceFactory.getContentCache(), createFile("/"
+        + path));
     sourceWithSetContent.add(source);
     sourceFactory.setContents(source, content);
     return source;

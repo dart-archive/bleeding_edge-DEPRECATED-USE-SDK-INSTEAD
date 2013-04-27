@@ -261,7 +261,6 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "}");
   }
 
-  // XXX
   public void test_createChange_ClassElement_multipleUnits() throws Exception {
     testCode = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
