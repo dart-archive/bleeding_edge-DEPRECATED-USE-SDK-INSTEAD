@@ -14,7 +14,6 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.Source;
@@ -264,7 +263,7 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
 
   // XXX
   public void test_createChange_ClassElement_multipleUnits() throws Exception {
-    indexTestUnit(
+    testCode = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library libA;",
         "class Test {",
@@ -279,15 +278,17 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "  Test t1 = new Test();",
         "  Test t2 = new Test.named();",
         "}");
-    CompilationUnit unitB = indexUnit(
+    Source libA = addSource(testCode);
+    Source sourceB = addSource(
         "/B.dart",
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "import 'Test.dart';",
+            "import 'test.dart';",
             "main() {",
             "  Test t = new Test();",
             "}"));
-    Source sourceB = unitB.getElement().getSource();
+    indexTestUnit(libA);
+    indexUnit(sourceB);
     // configure refactoring
     createRenameRefactoring("Test {");
     assertEquals("Rename Class", refactoring.getRefactoringName());
@@ -318,7 +319,7 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         sourceB,
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "import 'Test.dart';",
+            "import 'test.dart';",
             "main() {",
             "  NewName t = new NewName();",
             "}"));

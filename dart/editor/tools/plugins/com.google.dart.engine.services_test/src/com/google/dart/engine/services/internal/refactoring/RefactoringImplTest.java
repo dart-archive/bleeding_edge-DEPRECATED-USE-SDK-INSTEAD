@@ -97,12 +97,31 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   }
 
   /**
+   * Resolve and index the given source.
+   */
+  protected final void indexTestUnit(Source source) throws Exception {
+    parseTestUnit(source);
+    AnalysisContext context = testUnit.getElement().getContext();
+    index.indexUnit(context, testUnit);
+  }
+
+  /**
    * Parses and index given source lines.
    */
   protected final void indexTestUnit(String... lines) throws Exception {
     parseTestUnit(lines);
     AnalysisContext context = testUnit.getElement().getContext();
     index.indexUnit(context, testUnit);
+  }
+
+  /**
+   * Resolve and index the given source.
+   */
+  protected final CompilationUnit indexUnit(Source source) throws Exception {
+    CompilationUnit unit = parseUnit(source);
+    AnalysisContext context = unit.getElement().getContext();
+    index.indexUnit(context, unit);
+    return unit;
   }
 
   /**

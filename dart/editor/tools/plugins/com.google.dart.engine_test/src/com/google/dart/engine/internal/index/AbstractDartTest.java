@@ -37,6 +37,8 @@ import com.google.dart.engine.utilities.io.FileUtilities2;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
 import junit.framework.TestCase;
 
 import org.apache.commons.lang3.StringUtils;
@@ -79,6 +81,16 @@ public class AbstractDartTest extends TestCase {
    */
   public static String[] formatLines(String... lines) {
     return lines;
+  }
+
+  /**
+   * @return the resolved {@link CompilationUnit} for given source.
+   */
+  public static CompilationUnit parseUnit(Source source) throws Exception {
+    // parse and resolve
+    LibraryElement library = analysisContext.computeLibraryElement(source);
+    CompilationUnit libraryUnit = analysisContext.resolveCompilationUnit(source, library);
+    return libraryUnit;
   }
 
   /**
@@ -144,12 +156,41 @@ public class AbstractDartTest extends TestCase {
   }
 
   private final Set<Source> sourceWithSetContent = Sets.newHashSet();
+
   protected boolean verifyNoTestUnitErrors = true;
+
   protected String testCode;
   protected Source testSource;
   protected CompilationUnit testUnit;
   protected CompilationUnitElement testUnitElement;
   protected LibraryElement testLibraryElement;
+
+  /**
+   * Add a source file to the content provider.
+   * 
+   * @param contents the contents to be returned by the content provider for the specified file
+   * @return the source object representing the added file
+   */
+  protected Source addSource(String contents) {
+    return addSource("/test.dart", contents);
+  }
+
+  /**
+   * Add a source file to the content provider. The file path should be absolute.
+   * 
+   * @param filePath the path of the file being added
+   * @param contents the contents to be returned by the content provider for the specified file
+   * @return the source object representing the added file
+   */
+  protected Source addSource(String filePath, String contents) {
+    ensureAnalysisContext();
+    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
+    sourceFactory.setContents(source, contents);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    analysisContext.applyChanges(changeSet);
+    return source;
+  }
 
   /**
    * @return the {@link Element} if there is {@link SimpleIdentifier} at position of "search", not
@@ -239,6 +280,20 @@ public class AbstractDartTest extends TestCase {
    */
   protected final SimpleIdentifier findSimpleIdentifier(String pattern) {
     return findNode(pattern, SimpleIdentifier.class);
+  }
+
+  /**
+   * Sets {@link #testUnit} with mocked {@link Source} which has given code.
+   */
+  protected final void parseTestUnit(Source source) throws Exception {
+    testUnit = parseUnit(source);
+    testSource = testUnit.getElement().getSource();
+    testUnitElement = testUnit.getElement();
+    testLibraryElement = testUnitElement.getEnclosingElement();
+    if (verifyNoTestUnitErrors) {
+      assertThat(testUnit.getParsingErrors()).describedAs(testCode).isEmpty();
+      assertThat(testUnit.getResolutionErrors()).isEmpty();
+    }
   }
 
   /**

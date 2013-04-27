@@ -219,7 +219,6 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
       ChangeSet changeSet = new ChangeSet();
       changeSet.added(libSource);
       analysisContext.applyChanges(changeSet);
-      analysisContext.computeLibraryElement(libSource);
     }
     // process unit
     prepareProblemWithFix(
@@ -228,6 +227,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "  myFunction();",
         "}",
         "");
+    analysisContext.computeLibraryElement(libSource);
     assert_runProcessor(
         CorrectionKind.QF_IMPORT_LIBRARY_PROJECT,
         makeSource(
@@ -256,7 +256,6 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
       ChangeSet changeSet = new ChangeSet();
       changeSet.added(libSource);
       analysisContext.applyChanges(changeSet);
-      analysisContext.computeLibraryElement(libSource);
     }
     // process unit
     prepareProblemWithFix(
@@ -265,6 +264,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "  myTopLevelVariable = null;",
         "}",
         "");
+    analysisContext.computeLibraryElement(libSource);
     assert_runProcessor(
         CorrectionKind.QF_IMPORT_LIBRARY_PROJECT,
         makeSource(

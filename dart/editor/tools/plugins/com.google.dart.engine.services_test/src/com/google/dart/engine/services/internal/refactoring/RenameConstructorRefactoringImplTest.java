@@ -113,7 +113,7 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
   }
 
   public void test_createChange_multipleUnits() throws Exception {
-    indexTestUnit(
+    testCode = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library libA;",
         "class A {",
@@ -126,14 +126,17 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "main() {",
         "  new A.test();",
         "}");
-    CompilationUnit unitB = indexUnit(
+    Source libA = addSource(testCode);
+    Source libB = addSource(
         "/B.dart",
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "import 'Test.dart';",
+            "import 'test.dart';",
             "main() {",
             "  new A.test();",
             "}"));
+    indexTestUnit(libA);
+    CompilationUnit unitB = indexUnit(libB);
     Source sourceB = unitB.getElement().getSource();
     // configure refactoring
     createRenameRefactoring("test() {} // marker");
@@ -163,7 +166,7 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         sourceB,
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "import 'Test.dart';",
+            "import 'test.dart';",
             "main() {",
             "  new A.newName();",
             "}"));
