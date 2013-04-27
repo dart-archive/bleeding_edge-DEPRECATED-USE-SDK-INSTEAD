@@ -1934,15 +1934,17 @@ public class SemanticTest extends AbstractSemanticTest {
         toString(
             "// filler filler filler filler filler filler filler filler filler filler",
             "package test;",
-            "public class A {",
-            "  A(Object o, int ...args) {",
+            "public class Test {",
+            "  Test(String o, int ...args) {",
             "  }",
-            "  A(int ...args) {",
-            "    this(args);",
+            "  Test(int ...args) {",
+            "    this(null, args);",
             "  }",
-            "  void main() {",
-            "    new A(null, 1, 2, 3);",
-            "    new A(1, 2, 3);",
+            "  void main(int ...args) {",
+            "    new Test(null, 1, 2, 3);",
+            "    new Test(1, 2, 3);",
+            "    new Test(null, args);",
+            "    new Test(args);",
             "  }",
             "}"));
     Context context = new Context();
@@ -1951,21 +1953,59 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class A {",
-            "  A.con1(Object o, List<int> args) {",
+            "class Test {",
+            "  Test.con1(String o, List<int> args) {",
             "    _jtd_constructor_0_impl(o, args);",
             "  }",
-            "  _jtd_constructor_0_impl(Object o, List<int> args) {",
+            "  _jtd_constructor_0_impl(String o, List<int> args) {",
             "  }",
-            "  A.con2(List<int> args) {",
+            "  Test.con2(List<int> args) {",
             "    _jtd_constructor_1_impl(args);",
             "  }",
             "  _jtd_constructor_1_impl(List<int> args) {",
-            "    _jtd_constructor_1_impl(args);",
+            "    _jtd_constructor_0_impl(null, args);",
             "  }",
-            "  void main() {",
-            "    new A.con1(null, [1, 2, 3]);",
-            "    new A.con1(1, [2, 3]);",
+            "  void main(List<int> args) {",
+            "    new Test.con1(null, [1, 2, 3]);",
+            "    new Test.con2([1, 2, 3]);",
+            "    new Test.con1(null, args);",
+            "    new Test.con2(args);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_varArgs_alreadyArray_superConstructor() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  private static class A {",
+            "    A(int ...args) {",
+            "    }",
+            "  }",
+            "  private static class B extends A {",
+            "    B(int ...args) {",
+            "      super(args);",
+            "    }",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "}",
+            "class Test_A {",
+            "  Test_A(List<int> args) {",
+            "  }",
+            "}",
+            "class Test_B extends Test_A {",
+            "  Test_B(List<int> args) : super(args) {",
             "  }",
             "}"),
         getFormattedSource(unit));

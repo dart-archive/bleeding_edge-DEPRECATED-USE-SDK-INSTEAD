@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -956,12 +957,29 @@ public class Context {
   private void unwrapVarArgIfAlreadyArray(CompilationUnit unit) {
     unit.accept(new RecursiveASTVisitor<Void>() {
       @Override
+      public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+        process(node, node.getArgumentList());
+        return super.visitInstanceCreationExpression(node);
+      }
+
+      @Override
       public Void visitMethodInvocation(MethodInvocation node) {
+        process(node, node.getArgumentList());
+        return super.visitMethodInvocation(node);
+      }
+
+      @Override
+      public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+        process(node, node.getArgumentList());
+        return super.visitSuperConstructorInvocation(node);
+      }
+
+      private void process(ASTNode node, ArgumentList argumentList) {
         Object binding = nodeToBinding.get(node);
         if (binding instanceof IMethodBinding) {
           IMethodBinding methodBinding = (IMethodBinding) binding;
           if (methodBinding.isVarargs()) {
-            List<Expression> args = node.getArgumentList().getArguments();
+            List<Expression> args = argumentList.getArguments();
             if (!args.isEmpty() && args.get(args.size() - 1) instanceof ListLiteral) {
               ListLiteral listLiteral = (ListLiteral) args.get(args.size() - 1);
               List<Expression> elements = listLiteral.getElements();
@@ -977,7 +995,6 @@ public class Context {
             }
           }
         }
-        return super.visitMethodInvocation(node);
       }
     });
   }
