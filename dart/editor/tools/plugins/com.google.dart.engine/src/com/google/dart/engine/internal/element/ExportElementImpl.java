@@ -88,4 +88,9 @@ public class ExportElementImpl extends ElementImpl implements ExportElement {
     builder.append("export ");
     ((LibraryElementImpl) exportedLibrary).appendTo(builder);
   }
+
+  @Override
+  protected String getIdentifier() {
+    return exportedLibrary.getName();
+  }
 }

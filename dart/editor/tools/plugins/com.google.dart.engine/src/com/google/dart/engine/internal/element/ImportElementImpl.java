@@ -115,4 +115,9 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
     builder.append("import ");
     ((LibraryElementImpl) importedLibrary).appendTo(builder);
   }
+
+  @Override
+  protected String getIdentifier() {
+    return importedLibrary.getName() + ":" + (prefix == null ? "" : prefix.getName());
+  }
 }

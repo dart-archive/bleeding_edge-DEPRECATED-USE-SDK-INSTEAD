@@ -150,6 +150,16 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
         return (CompilationUnitElementImpl) part;
       }
     }
+    for (ImportElement importElement : imports) {
+      if (((ImportElementImpl) importElement).getIdentifier().equals(identifier)) {
+        return (ImportElementImpl) importElement;
+      }
+    }
+    for (ExportElement exportElement : exports) {
+      if (((ExportElementImpl) exportElement).getIdentifier().equals(identifier)) {
+        return (ExportElementImpl) exportElement;
+      }
+    }
     return null;
   }
 
