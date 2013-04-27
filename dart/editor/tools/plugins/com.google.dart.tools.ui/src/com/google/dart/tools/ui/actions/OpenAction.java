@@ -24,7 +24,6 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
@@ -68,13 +67,6 @@ public class OpenAction extends AbstractDartSelectionAction {
   }
 
   @Override
-  protected void doRun(IStructuredSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-    Element element = getSelectionElement(selection);
-    openElement(element);
-  }
-
-  @Override
   protected void init() {
     setText(ActionMessages.OpenAction_declaration_label);
     setToolTipText(ActionMessages.OpenAction_tooltip);
@@ -96,7 +88,7 @@ public class OpenAction extends AbstractDartSelectionAction {
     element = DartElementUtil.getVariableIfSyntheticAccessor(element);
     // do open
     try {
-      DartUI.openInEditor(element);
+      DartUI.openInEditor(editor, element);
     } catch (Throwable e) {
       ExceptionHandler.handle(e, getText(), "Exception during open.");
     }

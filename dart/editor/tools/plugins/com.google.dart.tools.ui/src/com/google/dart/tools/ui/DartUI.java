@@ -14,6 +14,9 @@
 package com.google.dart.tools.ui;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
@@ -22,10 +25,12 @@ import com.google.dart.tools.core.search.SearchScopeFactory;
 import com.google.dart.tools.ui.dialogs.TypeSelectionExtension;
 import com.google.dart.tools.ui.internal.SharedImages;
 import com.google.dart.tools.ui.internal.dialogs.FilteredTypesSelectionDialog;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.text.editor.ExternalCompilationUnitEditorInput;
 import com.google.dart.tools.ui.text.IColorManager;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -444,7 +449,7 @@ public final class DartUI {
    */
   public static DartElement getEditorInputDartElement(IEditorInput editorInput) {
     if (editorInput instanceof ExternalCompilationUnitEditorInput) {
-      return (DartElement) ((ExternalCompilationUnitEditorInput) editorInput).getCompilationUnit();
+      return ((ExternalCompilationUnitEditorInput) editorInput).getCompilationUnit();
     }
     // Performance: check working copy manager first: this is faster
     DartElement de = DartToolsPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(
@@ -622,6 +627,19 @@ public final class DartUI {
   }
 
   /**
+   * Opens an editor with {@link Element} in context of the given {@link DartEditor}.
+   * 
+   * @param contextEditor the {@link DartEditor} to use as context, may be {@code null}.
+   * @param element the {@link Element} to open in reveal.
+   * @return the opened editor or {@code null} if by some reason editor was not opened.
+   */
+  public static IEditorPart openInEditor(DartEditor contextEditor, Element element)
+      throws PartInitException, DartModelException {
+    IFile contextFile = contextEditor != null ? contextEditor.getInputResourceFile() : null;
+    return openInEditor(contextFile, element);
+  }
+
+  /**
    * Opens an editor on the given Dart element in the active page. Valid elements are all Dart
    * elements that are {@link SourceReference}. For elements inside a compilation unit, the parent
    * is opened in the editor is opened and the element revealed. If there already is an open Dart
@@ -713,6 +731,43 @@ public final class DartUI {
     if (reveal && part != null) {
       EditorUtility.revealInEditor(part, element);
     }
+    return part;
+  }
+
+  /**
+   * Opens an editor with {@link Element} in context of the given {@link IFile}.
+   * 
+   * @param context the {@link IFile} to open {@link Element} in, may be {@code null}.
+   * @param element the {@link Element} to open in reveal.
+   * @return the opened editor or {@code null} if by some reason editor was not opened.
+   */
+  public static IEditorPart openInEditor(IFile context, Element element) throws PartInitException,
+      DartModelException {
+    if (element == null) {
+      return null;
+    }
+    // open editor
+    IEditorPart part;
+    {
+      ProjectManager projectManager = DartCore.getProjectManager();
+      Source source = element.getSource();
+      IFile file;
+      if (context == null) {
+        file = (IFile) projectManager.getResource(source);
+      } else {
+        file = projectManager.getResourceMap(context).getResource(source);
+      }
+      if (file != null) {
+        part = EditorUtility.openInEditor(file);
+      } else {
+        part = EditorUtility.openInEditor(source);
+      }
+    }
+    // reveal Element
+    if (part != null) {
+      EditorUtility.revealInEditor(part, element);
+    }
+    // done
     return part;
   }
 
