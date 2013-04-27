@@ -65,6 +65,14 @@ public class PackageUriResolver extends UriResolver {
   }
 
   @Override
+  public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+    if (kind == UriKind.PACKAGE_URI) {
+      return new FileBasedSource(contentCache, new File(uri), kind);
+    }
+    return null;
+  }
+
+  @Override
   public Source resolveAbsolute(ContentCache contentCache, URI uri) {
     if (!isPackageUri(uri)) {
       return null;

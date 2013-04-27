@@ -31,6 +31,7 @@ import com.google.dart.engine.utilities.os.OSUtilities;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 
 /**
  * Instances of the class {@code DirectoryBasedDartSdk} represent a Dart SDK installed in a
@@ -206,6 +207,11 @@ public class DirectoryBasedDartSdk implements DartSdk {
       changeSet.added(analysisContext.getSourceFactory().forUri(uri));
     }
     analysisContext.applyChanges(changeSet);
+  }
+
+  @Override
+  public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+    return new FileBasedSource(contentCache, new File(uri), kind);
   }
 
   @Override

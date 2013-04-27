@@ -25,9 +25,72 @@ public class SourceFactoryTest extends TestCase {
     assertNotNull(new SourceFactory());
   }
 
+  public void test_fromEncoding_invalidUri() throws Exception {
+    SourceFactory factory = new SourceFactory();
+    try {
+      factory.fromEncoding("#<:&%>");
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
+  public void test_fromEncoding_noResolver() throws Exception {
+    SourceFactory factory = new SourceFactory();
+    try {
+      factory.fromEncoding("pfile:/does/not/exist.dart");
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
+  public void test_fromEncoding_tooShort() throws Exception {
+    SourceFactory factory = new SourceFactory();
+    try {
+      factory.fromEncoding("#");
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
+  public void test_fromEncoding_unknownKind() throws Exception {
+    SourceFactory factory = new SourceFactory();
+    try {
+      factory.fromEncoding("#file:/does/not/exist.dart");
+      fail("Expected IllegalArgumentException");
+    } catch (IllegalArgumentException exception) {
+      // Expected
+    }
+  }
+
+  public void test_fromEncoding_valid() throws Exception {
+    final boolean[] invoked = {false};
+    SourceFactory factory = new SourceFactory(new UriResolver() {
+      @Override
+      public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+        invoked[0] = true;
+        return new FileBasedSource(contentCache, new File(uri), kind);
+      }
+
+      @Override
+      public Source resolveAbsolute(ContentCache contentCache, URI uri) {
+        return null;
+      }
+    });
+    factory.fromEncoding("dfile:/does/not/exist.dart");
+    assertTrue(invoked[0]);
+  }
+
   public void test_resolveUri_absolute() throws Exception {
     final boolean[] invoked = {false};
     SourceFactory factory = new SourceFactory(new UriResolver() {
+      @Override
+      public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+        return null;
+      }
+
       @Override
       public Source resolveAbsolute(ContentCache contentCache, URI uri) {
         invoked[0] = true;
@@ -42,6 +105,11 @@ public class SourceFactoryTest extends TestCase {
     ContentCache contentCache = new ContentCache();
     SourceFactory factory = new SourceFactory(contentCache, new UriResolver() {
       @Override
+      public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+        return null;
+      }
+
+      @Override
       public Source resolveAbsolute(ContentCache contentCache, URI uri) {
         return null;
       }
@@ -55,6 +123,11 @@ public class SourceFactoryTest extends TestCase {
   public void test_resolveUri_nonAbsolute_relative() throws Exception {
     ContentCache contentCache = new ContentCache();
     SourceFactory factory = new SourceFactory(contentCache, new UriResolver() {
+      @Override
+      public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+        return null;
+      }
+
       @Override
       public Source resolveAbsolute(ContentCache contentCache, URI uri) {
         return null;

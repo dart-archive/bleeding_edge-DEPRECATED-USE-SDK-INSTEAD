@@ -16,6 +16,8 @@ package com.google.dart.engine.source;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -29,6 +31,29 @@ public class DartUriResolverTest extends TestCase {
     assertNotNull(new DartUriResolver(sdk));
   }
 
+  public void test_fromEncoding_dart() throws Exception {
+    ContentCache contentCache = new ContentCache();
+    File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
+    assertNotNull(sdkDirectory);
+    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    UriResolver resolver = new DartUriResolver(sdk);
+    Source result = resolver.fromEncoding(contentCache, UriKind.DART_URI, new URI(
+        "file:/does/not/exist.dart"));
+    assertNotNull(result);
+    assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
+  }
+
+  public void test_fromEncoding_nonDart() throws Exception {
+    ContentCache contentCache = new ContentCache();
+    File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
+    assertNotNull(sdkDirectory);
+    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    UriResolver resolver = new DartUriResolver(sdk);
+    Source result = resolver.fromEncoding(contentCache, UriKind.FILE_URI, new URI(
+        "file:/does/not/exist.dart"));
+    assertNull(result);
+  }
+
   public void test_resolve_dart() throws Exception {
     ContentCache contentCache = new ContentCache();
     File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
@@ -39,7 +64,7 @@ public class DartUriResolverTest extends TestCase {
     assertNotNull(result);
   }
 
-  public void test_resolve_dart_non_existing_library() throws Exception {
+  public void test_resolve_dart_nonExistingLibrary() throws Exception {
     ContentCache contentCache = new ContentCache();
     File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);

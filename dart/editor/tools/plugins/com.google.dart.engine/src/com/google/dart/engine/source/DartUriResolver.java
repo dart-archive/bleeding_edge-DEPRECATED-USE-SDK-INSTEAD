@@ -53,6 +53,14 @@ public class DartUriResolver extends UriResolver {
     this.sdk = sdk;
   }
 
+  @Override
+  public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+    if (kind == UriKind.DART_URI) {
+      return sdk.fromEncoding(contentCache, kind, uri);
+    }
+    return null;
+  }
+
   /**
    * Return the {@link DartSdk} against which URIs are to be resolved.
    * 

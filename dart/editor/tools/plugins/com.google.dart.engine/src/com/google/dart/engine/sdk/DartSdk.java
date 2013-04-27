@@ -16,6 +16,9 @@ package com.google.dart.engine.sdk;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.UriKind;
+
+import java.net.URI;
 
 /**
  * Instances of the class {@code DartSdk} represent a Dart SDK installed in a specified location.
@@ -32,6 +35,17 @@ public interface DartSdk {
    * The short name of the dart SDK html library.
    */
   public static final String DART_HTML = "dart:html";
+
+  /**
+   * Return the source representing the file with the given URI.
+   * 
+   * @param contentCache the content cache used to access the contents of the mapped source
+   * @param kind the kind of URI that was originally resolved in order to produce an encoding with
+   *          the given URI
+   * @param uri the URI of the file to be returned
+   * @return the source representing the specified file
+   */
+  public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri);
 
   /**
    * Return the {@link AnalysisContext} used for all of the sources in this {@link DartSdk}.

@@ -17,7 +17,6 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DartSdk;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -83,11 +82,11 @@ public class SourceFactory {
   }
 
   /**
-   * Return a source object that is equal to the source object used to obtain the given encoding, or
-   * {@code null} if the argument is not a valid encoding.
+   * Return a source object that is equal to the source object used to obtain the given encoding.
    * 
    * @param encoding the encoding of a source object
    * @return a source object that is described by the given encoding
+   * @throws IllegalArgumentException if the argument is not a valid encoding
    * @see Source#getEncoding()
    */
   public Source fromEncoding(String encoding) {
@@ -96,11 +95,17 @@ public class SourceFactory {
     }
     UriKind kind = UriKind.fromEncoding(encoding.charAt(0));
     if (kind == null) {
-      throw new IllegalArgumentException("Invalid source kind in encoding");
+      throw new IllegalArgumentException("Invalid source kind in encoding: " + kind);
     }
     try {
       URI uri = new URI(encoding.substring(1));
-      return new FileBasedSource(contentCache, new File(uri), kind);
+      for (UriResolver resolver : resolvers) {
+        Source result = resolver.fromEncoding(contentCache, kind, uri);
+        if (result != null) {
+          return result;
+        }
+      }
+      throw new IllegalArgumentException("No resolver for kind: " + kind);
     } catch (Exception exception) {
       throw new IllegalArgumentException("Invalid URI in encoding");
     }

@@ -24,7 +24,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class PackageUriResolverTest extends TestCase {
-
   public void test_absolute_vs_canonical() throws Exception {
     File directory = createFile("/does/not/exist/packages");
     // Cannot compare paths on Windows because this
@@ -39,8 +38,26 @@ public class PackageUriResolverTest extends TestCase {
     assertNotNull(new PackageUriResolver(directory));
   }
 
-  public void test_resolve_canonical() throws Exception {
+  public void test_fromEncoding_nonPackage() throws Exception {
+    ContentCache contentCache = new ContentCache();
+    File directory = createFile("/does/not");
+    UriResolver resolver = new PackageUriResolver(directory);
+    Source result = resolver.fromEncoding(contentCache, UriKind.DART_URI, new URI(
+        "file:/does/not/exist.dart"));
+    assertNull(result);
+  }
 
+  public void test_fromEncoding_package() throws Exception {
+    ContentCache contentCache = new ContentCache();
+    File directory = createFile("/does/not/exist/packages");
+    UriResolver resolver = new PackageUriResolver(directory);
+    Source result = resolver.fromEncoding(contentCache, UriKind.PACKAGE_URI, new URI(
+        "file:/does/not/exist.dart"));
+    assertNotNull(result);
+    assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
+  }
+
+  public void test_resolve_canonical() throws Exception {
     if (!FileUtilities2.isSymLinkSupported()) {
       System.out.println("Skipping " + getClass().getSimpleName() + " test_resolve_canonical");
       return;
