@@ -112,66 +112,6 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "}");
   }
 
-  public void test_createChange_multipleUnits() throws Exception {
-    testCode = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library libA;",
-        "class A {",
-        "  A.test() {} // marker",
-        "}",
-        "class B extends A {",
-        "  B() : super.test() {}",
-        "  factory B.named() = A.test;",
-        "}",
-        "main() {",
-        "  new A.test();",
-        "}");
-    Source libA = addSource(testCode);
-    Source libB = addSource(
-        "/B.dart",
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "import 'test.dart';",
-            "main() {",
-            "  new A.test();",
-            "}"));
-    indexTestUnit(libA);
-    CompilationUnit unitB = indexUnit(libB);
-    Source sourceB = unitB.getElement().getSource();
-    // configure refactoring
-    createRenameRefactoring("test() {} // marker");
-    assertEquals("Rename Constructor", refactoring.getRefactoringName());
-    refactoring.setNewName("newName");
-    // validate change
-    assertRefactoringStatusOK();
-    Change refactoringChange = refactoring.createChange(pm);
-    assertChangeResult(
-        refactoringChange,
-        testSource,
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "library libA;",
-            "class A {",
-            "  A.newName() {} // marker",
-            "}",
-            "class B extends A {",
-            "  B() : super.newName() {}",
-            "  factory B.named() = A.newName;",
-            "}",
-            "main() {",
-            "  new A.newName();",
-            "}"));
-    assertChangeResult(
-        refactoringChange,
-        sourceB,
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "import 'test.dart';",
-            "main() {",
-            "  new A.newName();",
-            "}"));
-  }
-
   public void test_createChange_remove() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -237,5 +177,65 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "main() {",
         "  new A.newName();",
         "}");
+  }
+
+  public void xtest_createChange_multipleUnits() throws Exception {
+    testCode = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library libA;",
+        "class A {",
+        "  A.test() {} // marker",
+        "}",
+        "class B extends A {",
+        "  B() : super.test() {}",
+        "  factory B.named() = A.test;",
+        "}",
+        "main() {",
+        "  new A.test();",
+        "}");
+    Source libA = addSource(testCode);
+    Source libB = addSource(
+        "/B.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'test.dart';",
+            "main() {",
+            "  new A.test();",
+            "}"));
+    indexTestUnit(libA);
+    CompilationUnit unitB = indexUnit(libB);
+    Source sourceB = unitB.getElement().getSource();
+    // configure refactoring
+    createRenameRefactoring("test() {} // marker");
+    assertEquals("Rename Constructor", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertRefactoringStatusOK();
+    Change refactoringChange = refactoring.createChange(pm);
+    assertChangeResult(
+        refactoringChange,
+        testSource,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library libA;",
+            "class A {",
+            "  A.newName() {} // marker",
+            "}",
+            "class B extends A {",
+            "  B() : super.newName() {}",
+            "  factory B.named() = A.newName;",
+            "}",
+            "main() {",
+            "  new A.newName();",
+            "}"));
+    assertChangeResult(
+        refactoringChange,
+        sourceB,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'test.dart';",
+            "main() {",
+            "  new A.newName();",
+            "}"));
   }
 }
