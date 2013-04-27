@@ -13,21 +13,27 @@
  */
 package com.google.dart.engine.services.completion;
 
+import com.google.dart.engine.source.Source;
+
+import java.util.ArrayList;
+
 public class CompletionLibraryTests extends CompletionTestCase {
 
   public void test001() throws Exception {
-    addLib(//
+    ArrayList<Source> sources = new ArrayList<Source>();
+    sources.add(addSource(//
         "/firth.dart",
         src(//
             "library firth;",
             "class SerializationException {",
             "  const SerializationException();",
-            "}"));
+            "}")));
     test(//
         src(//
             "import 'firth.dart';",
             "main() {",
             "throw new Seria!1lizationException();}"),
+        sources,
         "1+SerializationException");
   }
 
@@ -68,41 +74,42 @@ public class CompletionLibraryTests extends CompletionTestCase {
   }
 
   public void test006() throws Exception {
+    ArrayList<Source> sources = new ArrayList<Source>();
     // Exercise import and export handling.
     // Libraries are define in partial order of increasing dependency.
-    addLib(//
+    sources.add(addSource(//
         "/exp2a.dart",
         src(//
             "library exp2a;",
             "e2a() {}",
-            ""));
-    addLib(//
+            "")));
+    sources.add(addSource(//
         "/exp1b.dart",
         src(//
             "library exp1b;",
             "e1b() {}",
-            ""));
-    addLib(//
+            "")));
+    sources.add(addSource(//
         "/exp1a.dart",
         src(//
             "library exp1a;",
             "export 'exp1b.dart';",
             "e1a() {}",
-            ""));
-    addLib(//
+            "")));
+    sources.add(addSource(//
         "/imp1.dart",
         src(//
             "library imp1;",
             "export 'exp1a.dart';",
             "i1() {}",
-            ""));
-    addLib(//
+            "")));
+    sources.add(addSource(//
         "/imp2.dart",
         src(//
             "library imp2;",
             "export 'exp2a.dart';",
             "i2() {}",
-            ""));
+            "")));
     test(//
         src(//
             "import 'imp1.dart';",
@@ -114,6 +121,7 @@ public class CompletionLibraryTests extends CompletionTestCase {
             "  e1b();",
             "  e2a();",
             "}"),
+        sources,
         "1+i1",
         "1+i2",
         "1+e1a",

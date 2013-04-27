@@ -2,7 +2,9 @@ package com.google.dart.engine.services.completion;
 
 import com.google.common.base.Joiner;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
@@ -15,7 +17,9 @@ import com.google.dart.engine.services.util.MockCompletionRequestor;
 import com.google.dart.engine.source.Source;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class CompletionTestCase extends ResolverTestCase {
   protected static String src(String... parts) {
@@ -38,11 +42,28 @@ public class CompletionTestCase extends ResolverTestCase {
     searchEngine = SearchEngineFactory.createSearchEngine(index);
   }
 
-  protected void addLib(String path, String sourceString) throws Exception {
-    Source source = addSource(path, sourceString);
-    LibraryElement library = resolve(source);
-    CompilationUnit cu = getAnalysisContext().resolveCompilationUnit(source, library);
-    index.indexUnit(getAnalysisContext(), cu);
+  /**
+   * Resolve and index all of the compilation units that comprise the libraries specified by the
+   * given sources, returning the resolved compilation unit for the last library in the list.
+   * 
+   * @param sources the sources of the libraries to be resolved and indexed
+   * @throws AnalysisException if the libraries could not be resolved or indexed
+   */
+  protected CompilationUnit resolveAndIndex(List<Source> sources) throws AnalysisException {
+    AnalysisContext context = getAnalysisContext();
+    CompilationUnit libraryUnit = null;
+    for (Source source : sources) {
+      LibraryElement library = resolve(source);
+      libraryUnit = getAnalysisContext().resolveCompilationUnit(source, library);
+      index.indexUnit(context, libraryUnit);
+      for (CompilationUnitElement partElement : library.getParts()) {
+        CompilationUnit partUnit = getAnalysisContext().resolveCompilationUnit(
+            partElement.getSource(),
+            library);
+        index.indexUnit(context, partUnit);
+      }
+    }
+    return libraryUnit;
   }
 
   /**
@@ -57,15 +78,15 @@ public class CompletionTestCase extends ResolverTestCase {
    * @param originalSource The source for a completion test that contains completion points
    * @param validationStrings The positive and negative predictions
    */
-  protected void test(String originalSource, String... results) throws URISyntaxException,
-      AnalysisException {
+  protected void test(String originalSource, List<Source> sources, String... results)
+      throws URISyntaxException, AnalysisException {
     Collection<LocationSpec> completionTests = LocationSpec.from(originalSource, results);
     assertTrue(
         "Expected exclamation point ('!') within the source"
             + " denoting the position at which code completion should occur",
         !completionTests.isEmpty());
-    CompilationUnit compilationUnit = analyze(completionTests.iterator().next().source);
-    index.indexUnit(getAnalysisContext(), compilationUnit);
+    sources.add(addSource(completionTests.iterator().next().source));
+    CompilationUnit compilationUnit = resolveAndIndex(sources);
     CompletionFactory factory = new CompletionFactory();
     for (LocationSpec test : completionTests) {
       MockCompletionRequestor requestor = new MockCompletionRequestor();
@@ -87,10 +108,20 @@ public class CompletionTestCase extends ResolverTestCase {
     }
   }
 
-  private CompilationUnit analyze(String content) throws AnalysisException {
-    Source source = addSource(content);
-    LibraryElement library = resolve(source);
-    return getAnalysisContext().resolveCompilationUnit(source, library);
+  /**
+   * Run a set of completion tests on the given <code>originalSource</code>. The source string has
+   * completion points embedded in it, which are identified by '!X' where X is a single character.
+   * Each X is matched to positive or negative results in the array of
+   * <code>validationStrings</code>. Validation strings contain the name of a prediction with a two
+   * character prefix. The first character of the prefix corresponds to an X in the
+   * <code>originalSource</code>. The second character is either a '+' or a '-' indicating whether
+   * the string is a positive or negative result.
+   * 
+   * @param originalSource The source for a completion test that contains completion points
+   * @param validationStrings The positive and negative predictions
+   */
+  protected void test(String originalSource, String... results) throws URISyntaxException,
+      AnalysisException {
+    test(originalSource, new ArrayList<Source>(), results);
   }
-
 }
