@@ -23,6 +23,7 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ElementBuilderTest.class);
     suite.addTestSuite(HtmlUnitBuilderTest.class);
+    suite.addTestSuite(HtmlWarningCodeTest.class);
     return suite;
   }
 }

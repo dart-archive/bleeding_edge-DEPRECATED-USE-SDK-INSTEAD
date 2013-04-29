@@ -108,6 +108,12 @@ public class GatheringErrorListener implements AnalysisErrorListener {
   public void assertErrors(ErrorCode... expectedErrorCodes) {
     StringBuilder builder = new StringBuilder();
     //
+    // Verify that the expected error codes have a non-empty message.
+    //
+    for (ErrorCode errorCode : expectedErrorCodes) {
+      Assert.assertFalse("Empty error code message", errorCode.getMessage().isEmpty());
+    }
+    //
     // Compute the expected number of each type of error.
     //
     HashMap<ErrorCode, Integer> expectedCounts = new HashMap<ErrorCode, Integer>();
