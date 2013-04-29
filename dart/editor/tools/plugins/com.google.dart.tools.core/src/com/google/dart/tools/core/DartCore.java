@@ -178,12 +178,6 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static final String TYPE_CHECKS_FOR_INFERRED_TYPES = "typeChecksForInferredTypes";
 
-  /**
-   * Preference to control if "not a member" warnings should be reported for classes implementing
-   * "noSuchMethod".
-   */
-  public static final String REPORT_NO_MEMBER_WHEN_HAS_INTERCEPTOR = "reportNoMemberWhenHasInterceptor";
-
   public static final String PROJECT_PREF_DISABLE_DART_BASED_BUILDER = "disableDartBasedBuilder";
 
   public static final String PROJECT_PREF_DART2JS_FLAGS = "dart2jsFlags";
