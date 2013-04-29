@@ -72,7 +72,7 @@ void processArgs() {
  * Delete all generated files.
  */
 void handleCleanCommand() {
-  Directory current = new Directory.current();
+  Directory current = Directory.current;
   current.list(recursive: true).listen((FileSystemEntity entity) {
     if (entity is File) _maybeClean(entity);
   });
@@ -84,7 +84,7 @@ void handleCleanCommand() {
 void handleFullBuild() {
   var files = <String>[];
 
-  new Directory.current().list(recursive: true).listen(
+  Directory.current.list(recursive: true).listen(
       (FileSystemEntity entity) {
         if (entity is File) files.add(entity.fullPathSync());
       },
