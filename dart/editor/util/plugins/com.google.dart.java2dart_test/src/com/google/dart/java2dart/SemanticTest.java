@@ -1179,6 +1179,52 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_giveUniqueName_methods_hierarchy_overloaded() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  <E> E void foo(E p) {",
+            "    return null;",
+            "  }",
+            "}",
+            ""));
+    setFileLines(
+        "test/Test2.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test2 extends Test {",
+            "  int foo(int p) {",
+            "    return 0;",
+            "  }",
+            "  void main() {",
+            "    foo(this);",
+            "    foo(42);",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  void foo(Object p) => null;",
+            "}",
+            "class Test2 extends Test {",
+            "  int foo2(int p) => 0;",
+            "  void main() {",
+            "    foo(this);",
+            "    foo2(42);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_giveUniqueName_variableInitializer() throws Exception {
     File file = setFileLines(
         "test/Test.java",
@@ -1685,7 +1731,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             "class B extends A {",
-            "  void test() {",
+            "  void test2() {",
             "    print(1);",
             "    super.test(2);",
             "    print(3);",

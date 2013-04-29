@@ -125,9 +125,10 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/resolver"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/scanner"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/type"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/builder"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/cache"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/constant"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/element"));
-    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/builder"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/error"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/resolver"));
@@ -586,7 +587,8 @@ public class MainEngine {
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "AnalysisEngine.java") || isEnginePath(file, "utilities/logging/")
-          || isEnginePath(file, "context/") || isEnginePath(file, "internal/context/")) {
+          || isEnginePath(file, "context/") || isEnginePath(file, "internal/cache/")
+          || isEnginePath(file, "internal/context/")) {
         unit.getDeclarations().add(member);
       }
     }
@@ -703,6 +705,7 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "resolver"));
     unit.getDirectives().add(importDirective("dart:collection", null));
+    unit.getDirectives().add(importDirective("dart:uri", null, importShowCombinator("Uri")));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("instrumentation.dart", null));
@@ -901,7 +904,10 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(
-        importDirective("source.dart", null, importShowCombinator("Source", "ContentCache")));
+        importDirective(
+            "source.dart",
+            null,
+            importShowCombinator("ContentCache", "Source", "UriKind")));
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisContext")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
@@ -938,6 +944,7 @@ public class MainEngine {
           || isEnginePath(file, "source/SourceFactory.java")
           || isEnginePath(file, "source/SourceContainer.java")
           || isEnginePath(file, "source/SourceKind.java")
+          || isEnginePath(file, "source/UriKind.java")
           || isEnginePath(file, "source/UriResolver.java")
           || isEnginePath(file, "utilities/source/")) {
         continue;
@@ -965,6 +972,7 @@ public class MainEngine {
           || isEnginePath(file, "source/SourceFactory.java")
           || isEnginePath(file, "source/SourceContainer.java")
           || isEnginePath(file, "source/SourceKind.java")
+          || isEnginePath(file, "source/UriKind.java")
           || isEnginePath(file, "source/UriResolver.java")
           || isEnginePath(file, "utilities/source/")) {
         addNotRemovedCompiationUnitEntries(unit, entry.getValue());

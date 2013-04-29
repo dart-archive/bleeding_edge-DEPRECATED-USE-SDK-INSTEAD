@@ -16,6 +16,7 @@ package com.google.dart.java2dart.processor;
 
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
@@ -32,6 +33,7 @@ import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
@@ -42,6 +44,7 @@ import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
 import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
 import static com.google.dart.java2dart.util.ASTFactory.booleanLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
+import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
 import static com.google.dart.java2dart.util.ASTFactory.integer;
 import static com.google.dart.java2dart.util.ASTFactory.interpolationExpression;
 import static com.google.dart.java2dart.util.ASTFactory.interpolationString;
@@ -97,6 +100,26 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
   @Override
   public void process(CompilationUnit unit) {
     unit.accept(new GeneralizingASTVisitor<Void>() {
+      @Override
+      public Void visitAssignmentExpression(AssignmentExpression node) {
+        super.visitAssignmentExpression(node);
+        if (node.getOperator().getType() == TokenType.EQ) {
+          Expression leftExpr = node.getLeftHandSide();
+          Expression rightExpr = node.getRightHandSide();
+          ITypeBinding leftBinding = context.getNodeTypeBinding(leftExpr);
+          ITypeBinding rightBinding = context.getNodeTypeBinding(rightExpr);
+          if (JavaUtils.isTypeNamed(leftBinding, "java.lang.CharSequence")
+              && JavaUtils.isTypeNamed(rightBinding, "java.lang.String")) {
+            node.setRightHandSide(instanceCreationExpression(
+                Keyword.NEW,
+                typeName("CharSequence"),
+                rightExpr));
+            return null;
+          }
+        }
+        return null;
+      }
+
       @Override
       public Void visitBinaryExpression(BinaryExpression node) {
         if (node.getOperator().getType() == TokenType.PLUS) {
@@ -281,6 +304,17 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass2(node, "println(java.lang.String)", "java.io.PrintWriter")) {
           nameNode.setToken(token("println"));
+          return null;
+        }
+        if (isMethodInClass2(node, "startsWith(java.lang.String,int)", "java.lang.String")) {
+          replaceNode(
+              node,
+              methodInvocation(
+                  identifier("JavaString"),
+                  "startsWithBefore",
+                  node.getTarget(),
+                  args.get(0),
+                  args.get(1)));
           return null;
         }
         if (isMethodInClass(node, "format", "java.lang.String")) {
@@ -471,6 +505,23 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         }
         // done
         return super.visitTypeName(node);
+      }
+
+      @Override
+      public Void visitVariableDeclaration(VariableDeclaration node) {
+        super.visitVariableDeclaration(node);
+        Expression initializer = node.getInitializer();
+        ITypeBinding leftBinding = context.getNodeTypeBinding(node);
+        ITypeBinding rightBinding = context.getNodeTypeBinding(initializer);
+        if (JavaUtils.isTypeNamed(leftBinding, "java.lang.CharSequence")
+            && JavaUtils.isTypeNamed(rightBinding, "java.lang.String")) {
+          node.setInitializer(instanceCreationExpression(
+              Keyword.NEW,
+              typeName("CharSequence"),
+              initializer));
+          return null;
+        }
+        return null;
       }
     });
   }

@@ -1608,7 +1608,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry instanceof HtmlEntry) {
       HtmlEntryImpl htmlEntry = (HtmlEntryImpl) sourceEntry;
       htmlEntry.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
-      htmlEntry.setState(HtmlEntry.LINE_INFO, CacheState.INVALID);
+      htmlEntry.setState(SourceEntry.LINE_INFO, CacheState.INVALID);
       htmlEntry.setState(HtmlEntry.PARSED_UNIT, CacheState.INVALID);
       htmlEntry.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.INVALID);
       htmlEntry.setState(HtmlEntry.RESOLVED_UNIT, CacheState.INVALID);

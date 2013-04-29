@@ -792,6 +792,48 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_String_startsWith() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public boolean main(String s, String prefix, int index) {",
+        "    return s.startsWith(prefix, index);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  bool main(String s, String prefix, int index) => JavaString.startsWithBefore(s, prefix, index);",
+        "}");
+  }
+
+  public void test_String_toCharSequence() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  void testA(String s) {",
+        "    CharSequence cs;",
+        "    cs = s;",
+        "  }",
+        "  void testB(String s) {",
+        "    CharSequence cs = s;",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  void testA(String s) {",
+        "    CharSequence cs;",
+        "    cs = new CharSequence(s);",
+        "  }",
+        "  void testB(String s) {",
+        "    CharSequence cs = new CharSequence(s);",
+        "  }",
+        "}");
+  }
+
   public void test_StringBuilder() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

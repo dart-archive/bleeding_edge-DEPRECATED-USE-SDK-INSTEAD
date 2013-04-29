@@ -148,6 +148,24 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "}");
   }
 
+  public void test_commentDoc_escaping() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "/**",
+        " * Some [ident] ignored.",
+        " * Second line.",
+        " */",
+        "public class A {",
+        "}");
+    assertDartSource(
+        "/**",
+        " * Some \\[ident\\] ignored.",
+        " * Second line.",
+        " */",
+        "class A {",
+        "}");
+  }
+
   public void test_commentDoc_field() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",

@@ -36,7 +36,7 @@ class TestSource implements Source {
 }
 
 /**
- * Wrapper around [Function] which should be called with [target] and [arguments].
+ * Wrapper around [Function] which should be called with "target" and "arguments".
  */
 class MethodTrampoline {
   int parameterCount;

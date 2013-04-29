@@ -237,6 +237,35 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     return null;
   }
 
+  //TODO(scheglov) improve JavaDoc translation
+//  /**
+//   * Escapes characters in the JavaDoc to make it valid DartDoc.
+//   */
+//  private static String escapeDartDoc(String javaTagString) {
+//    // remove (and remember) leading spaces and "*"
+//    String leadingSpaces = StringUtils.substringBefore(javaTagString, "*");
+//    javaTagString = javaTagString.substring(leadingSpaces.length() + 1);
+//    // translate characters, do escaping
+//    StringBuilder sb = new StringBuilder();
+//    int length = javaTagString.length();
+//    for (int i = 0; i < length; i++) {
+//      char c = javaTagString.charAt(i);
+//      // don't escape * if there are spaces befor and after it
+//      if (c == '*' && i > 0 && javaTagString.charAt(i - 1) == ' ' && i < length - 1
+//          && javaTagString.charAt(i + 1) == ' ') {
+//        sb.append(c);
+//        continue;
+//      }
+//      // Complete set: "\\`*_{}[]()#+-.!"
+//      if ("\\`*_{}[]()#+-!".indexOf(c) != -1) {
+//        sb.append('\\');
+//      }
+//      sb.append(c);
+//    }
+//    // return with spaces and "*"
+//    return leadingSpaces + "*" + sb.toString();
+//  }
+
   private static org.eclipse.jdt.core.dom.MethodDeclaration getEnclosingMethod(
       org.eclipse.jdt.core.dom.ASTNode node) {
     while (node != null) {
@@ -1033,7 +1062,12 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     {
       buffer.append("/**");
       for (Object javaTag : node.tags()) {
-        buffer.append(javaTag.toString());
+        String javaTagString = javaTag.toString();
+        String dartDocString = StringUtils.replace(javaTagString, "[", "\\[");;
+        dartDocString = StringUtils.replace(dartDocString, "]", "\\]");;
+        // TODO(scheglov) improve JavaDoc translation
+//        String dartDocString = escapeDartDoc(javaTagString);
+        buffer.append(dartDocString);
       }
       buffer.append("\n */\n");
     }
@@ -1630,9 +1664,16 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.VariableDeclarationFragment node) {
-    return done(variableDeclaration(
+    VariableDeclaration varDecl = variableDeclaration(
         translateSimpleName(node.getName()),
-        translateExpression(node.getInitializer())));
+        translateExpression(node.getInitializer()));
+    {
+      IVariableBinding binding = node.resolveBinding();
+      if (binding != null) {
+        context.putNodeTypeBinding(varDecl, binding.getType());
+      }
+    }
+    return done(varDecl);
   }
 
   @Override

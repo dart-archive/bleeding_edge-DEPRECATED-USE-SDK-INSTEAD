@@ -47,6 +47,7 @@ import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.java2dart.util.Bindings;
 import com.google.dart.java2dart.util.JavaUtils;
 
 import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
@@ -331,10 +332,15 @@ public class Context {
     unit.accept(new RecursiveASTVisitor<Void>() {
       private final Set<ClassMember> untouchableMethods = Sets.newHashSet();
       private final Map<String, ClassMember> usedClassMembers = Maps.newHashMap();
+      private final Set<String> superNames = Sets.newHashSet();
+      private final Map<String, List<IMethodBinding>> superMembers = Maps.newHashMap();
 
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
+        untouchableMethods.clear();
         usedClassMembers.clear();
+        superNames.clear();
+        superMembers.clear();
         // fill "static" methods from super classes
         {
           org.eclipse.jdt.core.dom.ITypeBinding binding = getNodeTypeBinding(node);
@@ -344,6 +350,8 @@ public class Context {
               for (org.eclipse.jdt.core.dom.IMethodBinding method : binding.getDeclaredMethods()) {
                 if (org.eclipse.jdt.core.dom.Modifier.isStatic(method.getModifiers())) {
                   usedClassMembers.put(method.getName(), null);
+                } else {
+                  addSuperMember(method);
                 }
               }
               binding = binding.getSuperclass();
@@ -380,6 +388,20 @@ public class Context {
                 }
               }
             }
+            // may be overloaded method
+            {
+              Object binding = nodeToBinding.get(method);
+              if (binding instanceof IMethodBinding) {
+                IMethodBinding methodBinding = (IMethodBinding) binding;
+                String name = methodBinding.getName();
+                if (superNames.contains(name)) {
+                  IMethodBinding over = Bindings.findOverriddenMethod(methodBinding, false);
+                  if (over == null) {
+                    usedClassMembers.put(name, null);
+                  }
+                }
+              }
+            }
             // ensure unique name
             ensureUniqueName(method.getName(), method);
           }
@@ -395,6 +417,17 @@ public class Context {
         }
         // no recursion
         return null;
+      }
+
+      private void addSuperMember(IMethodBinding binding) {
+        String name = binding.getName();
+        superNames.add(name);
+        List<IMethodBinding> members = superMembers.get(name);
+        if (members == null) {
+          members = Lists.newArrayList();
+          superMembers.put(name, members);
+        }
+        members.add(binding);
       }
 
       private void ensureUniqueName(Identifier declarationName, ClassMember member) {
