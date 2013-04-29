@@ -51,6 +51,43 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   private SourceCorrectionProposal resultProposal;
   private String resultCode;
 
+  public void fail_test_importLibrary_withTopLevelVariable() throws Exception {
+    Source libSource = setFileContent(
+        "LibA.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library A;",
+            "var myTopLevelVariable;",
+            ""));
+    // prepare AnalysisContext
+    ensureAnalysisContext();
+    // process "libSource"
+    {
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.added(libSource);
+      analysisContext.applyChanges(changeSet);
+    }
+    // process unit
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  myTopLevelVariable = null;",
+        "}",
+        "");
+    analysisContext.computeLibraryElement(libSource);
+    assert_runProcessor(
+        CorrectionKind.QF_IMPORT_LIBRARY_PROJECT,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "",
+            "import 'LibA.dart';",
+            "",
+            "main() {",
+            "  myTopLevelVariable = null;",
+            "}",
+            ""));
+  }
+
   public void test_boolean() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -237,43 +274,6 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "",
             "main() {",
             "  myFunction();",
-            "}",
-            ""));
-  }
-
-  public void test_importLibrary_withTopLevelVariable() throws Exception {
-    Source libSource = setFileContent(
-        "LibA.dart",
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "library A;",
-            "var myTopLevelVariable;",
-            ""));
-    // prepare AnalysisContext
-    ensureAnalysisContext();
-    // process "libSource"
-    {
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.added(libSource);
-      analysisContext.applyChanges(changeSet);
-    }
-    // process unit
-    prepareProblemWithFix(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  myTopLevelVariable = null;",
-        "}",
-        "");
-    analysisContext.computeLibraryElement(libSource);
-    assert_runProcessor(
-        CorrectionKind.QF_IMPORT_LIBRARY_PROJECT,
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "",
-            "import 'LibA.dart';",
-            "",
-            "main() {",
-            "  myTopLevelVariable = null;",
             "}",
             ""));
   }

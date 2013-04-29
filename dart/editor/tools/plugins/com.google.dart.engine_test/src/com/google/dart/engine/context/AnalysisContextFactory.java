@@ -17,6 +17,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.DelegatingAnalysisContextImpl;
@@ -99,9 +100,12 @@ public final class AnalysisContextFactory {
         elementElement,
         new ClassElement[] {provider.getStringType().getElement()},
         ClassElementImpl.EMPTY_ARRAY)});
-    TopLevelVariableElementImpl document = topLevelVariableElement("document");
-    document.setType(htmlDocumentElement.getType());
+    TopLevelVariableElementImpl document = topLevelVariableElement(
+        "document",
+        true,
+        htmlDocumentElement.getType());
     htmlUnit.setTopLevelVariables(new TopLevelVariableElement[] {document});
+    htmlUnit.setAccessors(new PropertyAccessorElement[] {document.getGetter()});
     LibraryElementImpl htmlLibrary = new LibraryElementImpl(sdkContext, libraryIdentifier(
         "dart",
         "dom",

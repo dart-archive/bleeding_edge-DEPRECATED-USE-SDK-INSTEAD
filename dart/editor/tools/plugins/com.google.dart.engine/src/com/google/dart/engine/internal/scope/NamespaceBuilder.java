@@ -27,7 +27,6 @@ import com.google.dart.engine.element.NamespaceCombinator;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ShowCombinator;
-import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 
 import java.util.HashMap;
@@ -152,9 +151,6 @@ public class NamespaceBuilder {
       addIfPublic(definedNames, element);
     }
     for (ClassElement element : compilationUnit.getTypes()) {
-      addIfPublic(definedNames, element);
-    }
-    for (VariableElement element : compilationUnit.getTopLevelVariables()) {
       addIfPublic(definedNames, element);
     }
   }

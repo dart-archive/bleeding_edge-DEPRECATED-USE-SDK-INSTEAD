@@ -353,6 +353,35 @@ public final class ElementFactory {
     return new TopLevelVariableElementImpl(name);
   }
 
+  public static TopLevelVariableElementImpl topLevelVariableElement(String name, boolean isFinal,
+      Type type) {
+    TopLevelVariableElementImpl variable = new TopLevelVariableElementImpl(name);
+    variable.setFinal(isFinal);
+
+    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);
+    getter.setGetter(true);
+    getter.setSynthetic(true);
+    variable.setGetter(getter);
+
+    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
+    getterType.setReturnType(type);
+    getter.setType(getterType);
+
+    if (!isFinal) {
+      PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(variable);
+      setter.setSetter(true);
+      setter.setSynthetic(true);
+      variable.setSetter(setter);
+
+      FunctionTypeImpl setterType = new FunctionTypeImpl(getter);
+      setterType.setNormalParameterTypes(new Type[] {type});
+      setterType.setReturnType(VoidTypeImpl.getInstance());
+      setter.setType(setterType);
+    }
+
+    return variable;
+  }
+
   /**
    * Prevent the creation of instances of this class.
    */
