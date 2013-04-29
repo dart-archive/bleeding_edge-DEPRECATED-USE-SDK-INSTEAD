@@ -171,7 +171,8 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**
    * Return the "least upper bound" of the given types under the assumption that the types have the
    * same element and differ only in terms of the type arguments. The resulting type is composed by
-   * using the least upper bound of the corresponding type arguments.
+   * comparing the corresponding type arguments, keeping those that are the same, and using
+   * 'dynamic' for those that are different.
    * 
    * @param firstType the first type
    * @param secondType the second type
@@ -189,7 +190,13 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     Type[] lubArguments = new Type[argumentCount];
     for (int i = 0; i < argumentCount; i++) {
-      lubArguments[i] = firstArguments[i].getLeastUpperBound(secondArguments[i]);
+      //
+      // Ideally we would take the least upper bound of the two argument types, but this can cause
+      // an infinite recursion (such as when finding the least upper bound of String and num).
+      //
+      if (firstArguments[i].equals(secondArguments[i])) {
+        lubArguments[i] = firstArguments[i];
+      }
       if (lubArguments[i] == null) {
         lubArguments[i] = DynamicTypeImpl.getInstance();
       }

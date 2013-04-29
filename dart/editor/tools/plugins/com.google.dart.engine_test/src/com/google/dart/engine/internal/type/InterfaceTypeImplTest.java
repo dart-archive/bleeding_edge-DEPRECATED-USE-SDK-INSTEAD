@@ -577,6 +577,13 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertEquals(typeA, typeC.getLeastUpperBound(typeB));
   }
 
+  public void test_getLeastUpperBound_twoComparables() {
+    InterfaceType string = typeProvider.getStringType();
+    InterfaceType num = typeProvider.getNumType();
+
+    assertEquals(typeProvider.getObjectType(), string.getLeastUpperBound(num));
+  }
+
   public void test_getLeastUpperBound_typeParameters_different() {
     //
     // class List<int>
@@ -588,7 +595,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType listOfIntType = listType.substitute(new Type[] {intType});
     InterfaceType listOfDoubleType = listType.substitute(new Type[] {doubleType});
     assertEquals(
-        listType.substitute(new Type[] {typeProvider.getNumType()}),
+        listType.substitute(new Type[] {typeProvider.getDynamicType()}),
         listOfIntType.getLeastUpperBound(listOfDoubleType));
   }
 
