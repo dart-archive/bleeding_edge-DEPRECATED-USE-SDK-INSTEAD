@@ -15,7 +15,7 @@ vars.update({
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
   "dartium_webkit_revision": "1214",
-  "dartium_tools_revision": "1213",
+  "dartium_tools_revision": "1215",
 })
 
 def massage_deps(deps):
