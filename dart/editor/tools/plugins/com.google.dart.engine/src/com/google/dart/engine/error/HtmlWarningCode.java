@@ -26,13 +26,13 @@ public enum HtmlWarningCode implements ErrorCode {
    * An error code indicating that the value of the 'src' attribute of a Dart script tag is not a
    * valid URI.
    */
-  INVALID_URI(""),
+  INVALID_URI("Invalid URI"),
 
   /**
    * An error code indicating that the value of the 'src' attribute of a Dart script tag references
    * a file that does not exist.
    */
-  URI_DOES_NOT_EXIST("");
+  URI_DOES_NOT_EXIST("The referenced URI does not exist");
 
   /**
    * The message template used to create the message to be displayed for this error.
