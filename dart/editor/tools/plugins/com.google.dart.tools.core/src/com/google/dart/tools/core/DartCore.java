@@ -1449,9 +1449,7 @@ public class DartCore extends Plugin implements DartSdkListener {
         instrumentation.data("Exception", exception != null ? exception.toString() : "null");
 
         if (exception != null) {
-          final PrintWriter printWriter = new PrintWriter(new StringWriter());
-          exception.printStackTrace(printWriter);
-          instrumentation.data("StackTrace", printWriter.toString());
+          instrumentation.record(exception);
         }
 
       } catch (Exception e) {
