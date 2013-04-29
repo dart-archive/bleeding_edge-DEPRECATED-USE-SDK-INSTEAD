@@ -404,6 +404,32 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidOverrideReturnType_sameType() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int m() { return 0; }",
+        "}",
+        "class B extends A {",
+        "  int m() { return 1; }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_subclassType() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  num m() { return 0; }",
+        "}",
+        "class B extends A {",
+        "  int m() { return 1; }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invalidTypeArgumentInConstList() throws Exception {
     Source source = addSource(createSource(//
         "class A<E> {",

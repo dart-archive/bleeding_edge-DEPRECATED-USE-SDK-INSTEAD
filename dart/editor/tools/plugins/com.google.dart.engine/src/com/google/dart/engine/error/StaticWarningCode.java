@@ -183,7 +183,9 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    */
-  INVALID_OVERRIDE_RETURN_TYPE(""),
+  // TODO (jwren) Not yet implemented, even though there is a message.
+  INVALID_OVERRIDE_RETURN_TYPE(
+      "The return type '%s' must be a subclass of '%s' as defined by the overridden method from '%s'"),
 
   /**
    * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a setter <i>m2</i> and the

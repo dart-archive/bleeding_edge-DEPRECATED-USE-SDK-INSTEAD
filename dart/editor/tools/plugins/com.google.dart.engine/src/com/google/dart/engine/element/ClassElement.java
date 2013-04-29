@@ -142,24 +142,6 @@ public interface ClassElement extends Element {
   public boolean isValidMixin();
 
   /**
-   * Return the executable element representing the method, getter or setter that results from
-   * looking up the given member in this class with respect to the given library, or {@code null} if
-   * the look up fails. This method is used to determine what member the passed name is inherited
-   * from. The behavior of this method is defined by the Dart Language Specification in section
-   * 8.1.1: Let <i>C</i> be a class declared in library <i>L</i> with superclass <i>S</i> and let
-   * <i>C</i> declare an instance member <i>m</i>, and assume <i>S</i> declares an instance member
-   * </i>m'</i> with the same name as m. Then <i>m</i> overrides m'</i> iff <i>m'</i> is accessible
-   * to <i>L</i>, <i>m</i> has the same name as <i>m'</i> and neither <i>m</i> nor <i>m'</i> are
-   * fields.
-   * 
-   * @param memberName the name of the member being looked up
-   * @param library the library with respect to which the lookup is being performed
-   * @return the result of looking up the given member in this class with respect to the given
-   *         library
-   */
-  public ExecutableElement lookUpExecutable(String memberName, LibraryElement library);
-
-  /**
    * Return the element representing the getter that results from looking up the given getter in
    * this class with respect to the given library, or {@code null} if the look up fails. The
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:

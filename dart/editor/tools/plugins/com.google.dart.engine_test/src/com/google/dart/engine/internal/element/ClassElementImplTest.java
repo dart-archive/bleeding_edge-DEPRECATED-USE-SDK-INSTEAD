@@ -72,7 +72,6 @@ public class ClassElementImplTest extends EngineTestCase {
     MethodElement method = methodElement(methodName, null);
     classA.setMethods(new MethodElement[] {method});
     assertSame(method, classA.getMethod(methodName));
-    assertSame(method, classA.getExecutable(methodName));
   }
 
   public void test_getMethod_undeclared() {
@@ -81,7 +80,6 @@ public class ClassElementImplTest extends EngineTestCase {
     MethodElement method = methodElement(methodName, null);
     classA.setMethods(new MethodElement[] {method});
     assertNull(classA.getMethod(methodName + "x"));
-    assertNull(classA.getExecutable(methodName + "x"));
   }
 
   public void test_lookUpGetter_declared() {
@@ -92,7 +90,6 @@ public class ClassElementImplTest extends EngineTestCase {
     classA.setAccessors(new PropertyAccessorElement[] {getter});
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
     assertSame(getter, classA.lookUpGetter(getterName, library));
-    assertSame(getter, classA.lookUpExecutable(getterName, library));
   }
 
   public void test_lookUpGetter_inherited() {
@@ -105,7 +102,6 @@ public class ClassElementImplTest extends EngineTestCase {
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
         classA, classB});
     assertSame(getter, classB.lookUpGetter(getterName, library));
-    assertSame(getter, classB.lookUpExecutable(getterName, library));
   }
 
   public void test_lookUpGetter_undeclared() {
@@ -113,7 +109,6 @@ public class ClassElementImplTest extends EngineTestCase {
     ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
     assertNull(classA.lookUpGetter("g", library));
-    assertNull(classA.lookUpExecutable("g", library));
   }
 
   public void test_lookUpMethod_declared() {
@@ -124,7 +119,6 @@ public class ClassElementImplTest extends EngineTestCase {
     classA.setMethods(new MethodElement[] {method});
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
     assertSame(method, classA.lookUpMethod(methodName, library));
-    assertSame(method, classA.lookUpExecutable(methodName, library));
   }
 
   public void test_lookUpMethod_inherited() {
@@ -137,7 +131,6 @@ public class ClassElementImplTest extends EngineTestCase {
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
         classA, classB});
     assertSame(method, classB.lookUpMethod(methodName, library));
-    assertSame(method, classB.lookUpExecutable(methodName, library));
   }
 
   public void test_lookUpMethod_undeclared() {
@@ -145,7 +138,6 @@ public class ClassElementImplTest extends EngineTestCase {
     ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
     assertNull(classA.lookUpMethod("m", library));
-    assertNull(classA.lookUpExecutable("m", library));
   }
 
   public void test_lookUpSetter_declared() {
@@ -156,7 +148,6 @@ public class ClassElementImplTest extends EngineTestCase {
     classA.setAccessors(new PropertyAccessorElement[] {setter});
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
     assertSame(setter, classA.lookUpSetter(setterName, library));
-    assertSame(setter, classA.lookUpExecutable(setterName, library));
   }
 
   public void test_lookUpSetter_inherited() {
@@ -169,7 +160,6 @@ public class ClassElementImplTest extends EngineTestCase {
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
         classA, classB});
     assertSame(setter, classB.lookUpSetter(setterName, library));
-    assertSame(setter, classB.lookUpExecutable(setterName, library));
   }
 
   public void test_lookUpSetter_undeclared() {
@@ -177,6 +167,5 @@ public class ClassElementImplTest extends EngineTestCase {
     ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
     assertNull(classA.lookUpSetter("s", library));
-    assertNull(classA.lookUpExecutable("s", library));
   }
 }

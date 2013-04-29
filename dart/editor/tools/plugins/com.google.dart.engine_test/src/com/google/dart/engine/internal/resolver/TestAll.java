@@ -22,6 +22,7 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ElementResolverTest.class);
+    suite.addTestSuite(InheritanceManagerTest.class);
     suite.addTestSuite(LibraryElementBuilderTest.class);
     suite.addTestSuite(LibraryTest.class);
     suite.addTestSuite(StaticTypeAnalyzerTest.class);

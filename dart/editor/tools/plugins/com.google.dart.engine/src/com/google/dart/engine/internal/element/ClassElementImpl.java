@@ -18,7 +18,6 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
-import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
@@ -149,23 +148,6 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   @Override
   public ConstructorElement[] getConstructors() {
     return constructors;
-  }
-
-  /**
-   * Return the executable elemement representing the getter, setter or method with the given name
-   * that is declared in this class, or {@code null} if this class does not declare a member with
-   * the given name.
-   * 
-   * @param memberName the name of the getter to be returned
-   * @return the member declared in this class with the given name
-   */
-  public ExecutableElement getExecutable(String memberName) {
-    for (PropertyAccessorElement accessor : accessors) {
-      if (accessor.getName().equals(memberName)) {
-        return accessor;
-      }
-    }
-    return getMethod(memberName);
   }
 
   /**
@@ -307,31 +289,6 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   @Override
   public boolean isValidMixin() {
     return hasModifier(Modifier.MIXIN);
-  }
-
-  @Override
-  public ExecutableElement lookUpExecutable(String memberName, LibraryElement library) {
-    ExecutableElement element = getExecutable(memberName);
-    if (element != null && element.isAccessibleIn(library)) {
-      return element;
-    }
-    for (InterfaceType mixin : mixins) {
-      ClassElement mixinElement = mixin.getElement();
-      if (mixinElement != null) {
-        ClassElementImpl mixinElementImpl = (ClassElementImpl) mixinElement;
-        element = mixinElementImpl.getExecutable(memberName);
-        if (element != null && element.isAccessibleIn(library)) {
-          return element;
-        }
-      }
-    }
-    if (supertype != null) {
-      ClassElement supertypeElement = supertype.getElement();
-      if (supertypeElement != null) {
-        return supertypeElement.lookUpExecutable(memberName, library);
-      }
-    }
-    return null;
   }
 
   @Override

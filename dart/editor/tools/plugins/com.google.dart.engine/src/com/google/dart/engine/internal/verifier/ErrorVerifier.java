@@ -80,6 +80,7 @@ import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
@@ -134,6 +135,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * The object providing access to the types defined by the language.
    */
   private TypeProvider typeProvider;
+
+  /**
+   * The manager for the inheritance mappings.
+   */
+  private InheritanceManager inheritanceManager;
 
   /**
    * This is set to {@code true} iff the visitor is currently visiting children nodes of a
@@ -191,11 +197,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private final InterfaceType[] DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
 
   public ErrorVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
-      TypeProvider typeProvider) {
+      TypeProvider typeProvider, InheritanceManager inheritanceManager) {
     this.errorReporter = errorReporter;
     this.currentLibrary = currentLibrary;
     this.isInSystemLibrary = currentLibrary.getSource().isInSystemLibrary();
     this.typeProvider = typeProvider;
+    this.inheritanceManager = inheritanceManager;
     isEnclosingConstructorConst = false;
     isInCatchClause = false;
     dynamicType = typeProvider.getDynamicType();
@@ -420,6 +427,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         checkForOptionalParameterInOperator(node);
       }
       checkForConcreteClassWithAbstractMember(node);
+      checkForAllInvalidOverrideErrorCodes(node);
       return super.visitMethodDeclaration(node);
     } finally {
       enclosingFunction = previousFunction;
@@ -500,7 +508,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * relating to the initialization of fields in the enclosing class.
    * 
    * @param node the {@link ConstructorDeclaration} to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see #initialFieldElementsMap
    * @see CompileTimeErrorCode#FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
    * @see CompileTimeErrorCode#FINAL_INITIALIZED_MULTIPLE_TIMES
@@ -623,6 +631,56 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This checks the passed method declaration against override-error codes.
+   * 
+   * @param node the {@link MethodDeclaration} to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#INVALID_OVERRIDE_RETURN_TYPE
+   */
+  private boolean checkForAllInvalidOverrideErrorCodes(MethodDeclaration node) {
+    // TODO(jwren) have this method also check for other overriding error codes such as:
+    // CompileTimeErrorCode.INVALID_OVERRIDE_DEFAULT_VALUE and
+    // CompileTimeErrorCode.INVALID_OVERRIDE_NAMED, etc.
+    // TODO (jwren) The following is a start of implementing the error codes
+//    if (enclosingClass == null) {
+//      return false;
+//    }
+//    SimpleIdentifier methodName = node.getName();
+//    if (methodName.isSynthetic()) {
+//      return false;
+//    }
+//    ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
+//        enclosingClass,
+//        methodName.getName());
+//    TypeName returnTypeName = node.getReturnType();
+//    if (returnTypeName == null) {
+//      // TODO(jwren) Report error: 'int m()' is being overridden by 'm()'
+//      return false;
+//    }
+//    Type overridingType = returnTypeName.getType();
+//    Type overriddenType = overriddenExecutable.getType().getReturnType();
+//    if (overriddenType instanceof InterfaceType) {
+//      InterfaceType overriddenInterfaceType = (InterfaceType) overriddenType;
+//      Type[] typeParameters = overriddenInterfaceType.getTypeArguments();
+//      Type[] typeArguments = new Type[typeParameters.length];
+//      for (int i = 0; i < typeArguments.length; i++) {
+//        typeArguments[i] = typeProvider.getDynamicType();
+//      }
+//      overriddenType = overriddenType.substitute(typeArguments, typeParameters);
+//    }
+//
+//    if (overridingType != null && !overridingType.isSubtypeOf(overriddenType)) {
+//      errorReporter.reportError(
+//          StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE,
+//          methodName,
+//          methodName.getName(),
+//          overridingType.getName(),
+//          overriddenType.getName());
+//    }
+    return false;
+  }
+
+  /**
    * This checks that the return statement of the form <i>return e;</i> is not in a generative
    * constructor.
    * <p>
@@ -682,7 +740,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This verifies that the passed argument definition test identifier is a parameter.
    * 
    * @param node the {@link ArgumentDefinitionTest} to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#ARGUMENT_DEFINITION_TEST_NON_PARAMETER
    */
   private boolean checkForArgumentDefinitionTestNonParameter(ArgumentDefinitionTest node) {
@@ -708,7 +766,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_NAME},
    *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME} or
    *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME}
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_NAME
    * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME
    * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME
@@ -726,7 +784,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This verifies that the passed variable declaration list does not have a built-in identifier.
    * 
    * @param node the variable declaration list to check
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE
    */
   private boolean checkForBuiltInIdentifierAsName(VariableDeclarationList node) {
@@ -755,7 +813,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * operator '==' overridden.
    * 
    * @param node the switch statement to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
    */
   private boolean checkForCaseExpressionTypeImplementsEquals(SwitchStatement node) {
@@ -838,7 +896,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * instance variable.
    * 
    * @param node the instance creation expression to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
    */
   private boolean checkForConstConstructorWithNonFinalField(ConstructorDeclaration node) {
@@ -866,7 +924,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * declaration.
    * 
    * @param node the throw expression expression to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CONST_EVAL_THROWS_EXCEPTION
    */
   private boolean checkForConstEvalThrowsException(ThrowExpression node) {
@@ -881,7 +939,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This verifies that the passed normal formal parameter is not 'const'.
    * 
    * @param node the normal formal parameter to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CONST_FORMAL_PARAMETER
    */
   private boolean checkForConstFormalParameter(NormalFormalParameter node) {
@@ -900,7 +958,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param typeName the {@link TypeName} of the {@link ConstructorName} from the
    *          {@link InstanceCreationExpression}, this is the AST node that the error is attached to
    * @param type the type being constructed with this {@link InstanceCreationExpression}
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#CONST_WITH_ABSTRACT_CLASS
    * @see StaticWarningCode#NEW_WITH_ABSTRACT_CLASS
    */
@@ -925,7 +983,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * invoked on a constructor that is not 'const'.
    * 
    * @param node the instance creation expression to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CONST_WITH_NON_CONST
    */
   private boolean checkForConstWithNonConst(InstanceCreationExpression node) {
@@ -941,7 +999,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This verifies that there are no default parameters in the passed function type alias.
    * 
    * @param node the function type alias to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS
    */
   private boolean checkForDefaultValueInFunctionTypeAlias(FunctionTypeAlias node) {
@@ -964,7 +1022,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This verifies that the passed extends clause does not extend classes such as num or String.
    * 
    * @param node the extends clause to test
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
    */
   private boolean checkForExtendsDisallowedClass(ExtendsClause extendsClause) {
@@ -978,7 +1036,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 'String'.
    * 
    * @param node the type name to test
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see #checkForExtendsDisallowedClass(ExtendsClause)
    * @see #checkForImplementsDisallowedClass(ImplementsClause)
    * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
@@ -1020,7 +1078,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This verifies that the passed field formal parameter is in a constructor declaration.
    * 
    * @param node the field formal parameter to test
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
    */
   private boolean checkForFieldInitializerOutsideConstructor(FieldFormalParameter node) {
@@ -1098,7 +1156,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 'String'.
    * 
    * @param node the implements clause to test
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS
    */
   private boolean checkForImplementsDisallowedClass(ImplementsClause implementsClause) {
@@ -1116,7 +1174,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This verifies that the passed switch statement case expressions all have the same type.
    * 
    * @param node the switch statement to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#INCONSISTENT_CASE_EXPRESSION_TYPES
    */
   private boolean checkForInconsistentCaseExpressionTypes(SwitchStatement node) {
@@ -1150,7 +1208,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This verifies that the passed assignment expression represents a valid assignment.
    * 
    * @param node the assignment expression to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
    */
   private boolean checkForInvalidAssignment(AssignmentExpression node) {
@@ -1175,7 +1233,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param arguments a non-{@code null}, non-empty {@link TypeName} node list from the respective
    *          {@link MapLiteral}
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#INVALID_TYPE_ARGUMENT_FOR_KEY
    */
   private boolean checkForInvalidTypeArgumentForKey(NodeList<TypeName> arguments) {
@@ -1214,7 +1272,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * Checks to ensure that native function bodies can only in SDK code.
    * 
    * @param node the native function body to test
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see ParserErrorCode#NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
    */
   private boolean checkForNativeFunctionBodyInNonSDKCode(NativeFunctionBody node) {
@@ -1230,7 +1288,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * reported on the expression.
    * 
    * @param condition the conditional expression to test
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticTypeWarningCode#NON_BOOL_CONDITION
    */
   private boolean checkForNonBoolCondition(Expression condition) {
@@ -1246,7 +1304,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This verifies that the passed assert statement has either a 'bool' or '() -> bool' input.
    * 
    * @param node the assert statement to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticTypeWarningCode#NON_BOOL_EXPRESSION
    */
   private boolean checkForNonBoolExpression(AssertStatement node) {
@@ -1340,7 +1398,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param typeName the {@link TypeName} of the {@link ConstructorName} from the
    *          {@link InstanceCreationExpression}, this is the AST node that the error is attached to
    * @param constructorElement the {@link ConstructorElement} from the instance creation expression
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticTypeWarningCode#TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
    */
   private boolean checkForTypeArgumentNotMatchingBounds(InstanceCreationExpression node,
@@ -1376,7 +1434,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This method assumes that the method declaration was tested to be a setter before being called.
    * 
    * @param node the method declaration to evaluate
-   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
    */
   private boolean checkForWrongNumberOfParametersForSetter(MethodDeclaration node) {

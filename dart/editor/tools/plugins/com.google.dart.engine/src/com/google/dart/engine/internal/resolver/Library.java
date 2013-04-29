@@ -48,6 +48,11 @@ public class Library {
   private InternalAnalysisContext analysisContext;
 
   /**
+   * The inheritance manager which is used for this member lookups in this library.
+   */
+  private InheritanceManager inheritanceManager;
+
+  /**
    * The listener to which analysis errors will be reported.
    */
   private AnalysisErrorListener errorListener;
@@ -224,6 +229,18 @@ public class Library {
   }
 
   /**
+   * Return the inheritance manager for this library.
+   * 
+   * @return the inheritance manager for this library
+   */
+  public InheritanceManager getInheritanceManager() {
+    if (inheritanceManager == null) {
+      return inheritanceManager = new InheritanceManager(libraryElement);
+    }
+    return inheritanceManager;
+  }
+
+  /**
    * Return the library element representing this library, creating it if necessary.
    * 
    * @return the library element representing this library
@@ -306,6 +323,9 @@ public class Library {
    */
   public void setLibraryElement(LibraryElementImpl libraryElement) {
     this.libraryElement = libraryElement;
+    if (inheritanceManager != null) {
+      inheritanceManager.setLibraryElement(libraryElement);
+    }
   }
 
   @Override

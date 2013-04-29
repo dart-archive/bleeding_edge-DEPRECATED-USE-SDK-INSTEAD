@@ -52,6 +52,7 @@ import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.DeclarationResolver;
+import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
 import com.google.dart.engine.internal.resolver.TypeProvider;
@@ -935,7 +936,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             ErrorVerifier errorVerifier = new ErrorVerifier(
                 errorReporter,
                 libraryElement,
-                typeProvider);
+                typeProvider,
+                new InheritanceManager(libraryElement));
             unitAST.accept(errorVerifier);
 
             ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter);

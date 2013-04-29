@@ -16,7 +16,6 @@ package com.google.dart.engine.internal.element.handle;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
@@ -121,11 +120,6 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   @Override
   public boolean isValidMixin() {
     return getActualElement().isValidMixin();
-  }
-
-  @Override
-  public ExecutableElement lookUpExecutable(String memberName, LibraryElement library) {
-    return getActualElement().lookUpExecutable(memberName, library);
   }
 
   @Override

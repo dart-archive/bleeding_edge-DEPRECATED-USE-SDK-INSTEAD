@@ -728,7 +728,8 @@ public class LibraryResolver {
       ErrorVerifier errorVerifier = new ErrorVerifier(
           errorReporter,
           library.getLibraryElement(),
-          typeProvider);
+          typeProvider,
+          library.getInheritanceManager());
       unit.accept(errorVerifier);
 
       ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter);
