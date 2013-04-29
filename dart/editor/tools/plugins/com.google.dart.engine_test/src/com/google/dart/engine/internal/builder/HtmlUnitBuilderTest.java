@@ -19,6 +19,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.HtmlScriptElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
+import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.EmbeddedHtmlScriptElementImpl;
 import com.google.dart.engine.internal.element.ExternalHtmlScriptElementImpl;
@@ -29,7 +30,7 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.source.UriResolver;
 
-import java.io.File;
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class HtmlUnitBuilderTest extends EngineTestCase {
 
@@ -191,13 +192,16 @@ public class HtmlUnitBuilderTest extends EngineTestCase {
   }
 
   private HtmlElementImpl build(String contents) throws Exception {
-    File file = new File("does-not-exist.html").getAbsoluteFile();
-    TestSource source = new TestSource(sourceFactory.getContentCache(), file, contents);
+    TestSource source = new TestSource(
+        sourceFactory.getContentCache(),
+        createFile("/test.html"),
+        contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
     context.applyChanges(changeSet);
 
-    HtmlUnitBuilder builder = new HtmlUnitBuilder(context);
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    HtmlUnitBuilder builder = new HtmlUnitBuilder(context, errorListener);
     return builder.buildHtmlElement(source);
   }
 

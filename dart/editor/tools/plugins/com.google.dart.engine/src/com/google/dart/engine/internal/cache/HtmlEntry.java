@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.cache;
 
 import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.source.Source;
 
@@ -41,6 +42,12 @@ public interface HtmlEntry extends SourceEntry {
    */
   public static final DataDescriptor<Source[]> REFERENCED_LIBRARIES = new DataDescriptor<Source[]>(
       "HtmlEntry.REFERENCED_LIBRARIES");
+
+  /**
+   * The data descriptor representing the errors resulting from resolving the source.
+   */
+  public static final DataDescriptor<AnalysisError[]> RESOLUTION_ERRORS = new DataDescriptor<AnalysisError[]>(
+      "HtmlEntry.RESOLUTION_ERRORS");
 
   /**
    * The data descriptor representing the resolved AST structure.

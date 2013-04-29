@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.cache;
 
 import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.CacheState;
 import com.google.dart.engine.source.Source;
@@ -36,15 +37,15 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   private HtmlUnit parsedUnit;
 
   /**
-   * The state of the cached list of referenced libraries.
+   * The state of the cached resolution errors.
    */
-  private CacheState referencedLibrariesState = CacheState.INVALID;
+  private CacheState resolutionErrorsState = CacheState.INVALID;
 
   /**
-   * The list of libraries referenced in the HTML, or {@code null} if the list is not currently
-   * cached. Note that this list does not include libraries defined directly within the HTML file.
+   * The errors produced while resolving the compilation unit, or {@code null} if the errors are not
+   * currently cached.
    */
-  private Source[] referencedLibraries = Source.EMPTY_ARRAY;
+  private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
 
   /**
    * The state of the cached parsed and resolved HTML unit.
@@ -55,6 +56,17 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    * The resolved HTML unit, or {@code null} if the resolved HTML unit is not currently cached.
    */
   private HtmlUnit resolvedUnit;
+
+  /**
+   * The state of the cached list of referenced libraries.
+   */
+  private CacheState referencedLibrariesState = CacheState.INVALID;
+
+  /**
+   * The list of libraries referenced in the HTML, or {@code null} if the list is not currently
+   * cached. Note that this list does not include libraries defined directly within the HTML file.
+   */
+  private Source[] referencedLibraries = Source.EMPTY_ARRAY;
 
   /**
    * The state of the cached HTML element.
@@ -86,6 +98,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       return parsedUnitState;
     } else if (descriptor == REFERENCED_LIBRARIES) {
       return referencedLibrariesState;
+    } else if (descriptor == RESOLUTION_ERRORS) {
+      return resolutionErrorsState;
     } else if (descriptor == RESOLVED_UNIT) {
       return resolvedUnitState;
     }
@@ -101,6 +115,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       return (E) parsedUnit;
     } else if (descriptor == REFERENCED_LIBRARIES) {
       return (E) referencedLibraries;
+    } else if (descriptor == RESOLUTION_ERRORS) {
+      return (E) resolutionErrors;
     } else if (descriptor == RESOLVED_UNIT) {
       return (E) resolvedUnit;
     }
@@ -125,6 +141,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     } else if (descriptor == REFERENCED_LIBRARIES) {
       referencedLibraries = updatedValue(state, referencedLibraries, Source.EMPTY_ARRAY);
       referencedLibrariesState = state;
+    } else if (descriptor == RESOLUTION_ERRORS) {
+      resolutionErrors = updatedValue(state, resolutionErrors, AnalysisError.NO_ERRORS);
+      resolutionErrorsState = state;
     } else if (descriptor == RESOLVED_UNIT) {
       resolvedUnit = updatedValue(state, resolvedUnit, null);
       resolvedUnitState = state;
@@ -144,6 +163,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     } else if (descriptor == REFERENCED_LIBRARIES) {
       referencedLibraries = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
       referencedLibrariesState = CacheState.VALID;
+    } else if (descriptor == RESOLUTION_ERRORS) {
+      resolutionErrors = (AnalysisError[]) value;
+      resolutionErrorsState = CacheState.VALID;
     } else if (descriptor == RESOLVED_UNIT) {
       resolvedUnit = (HtmlUnit) value;
       resolvedUnitState = CacheState.VALID;
@@ -160,6 +182,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     parsedUnit = other.parsedUnit;
     referencedLibrariesState = other.referencedLibrariesState;
     referencedLibraries = other.referencedLibraries;
+    resolutionErrors = other.resolutionErrors;
+    resolutionErrorsState = other.resolutionErrorsState;
     resolvedUnitState = other.resolvedUnitState;
     resolvedUnit = other.resolvedUnit;
     elementState = other.elementState;

@@ -209,9 +209,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 //        // that might have been referencing the not-yet-existing source that was just added. Longer
 //        // term we need to keep track of which libraries are referencing non-existing sources and
 //        // only re-analyze those libraries.
-//        for (SourceEntry sourceEntry : sourceMap.values()) {
-//          if (sourceEntry instanceof DartEntry) {
-//            ((DartEntryImpl) sourceEntry).invalidateAllResolutionInformation();
+//        for (Map.Entry<Source, SourceEntry> mapEntry : sourceMap.entrySet()) {
+//          if (!mapEntry.getKey().isInSystemLibrary() && mapEntry.getValue() instanceof DartEntry) {
+//            ((DartEntryImpl) mapEntry.getValue()).invalidateAllResolutionInformation();
 //          }
 //        }
 //      }
@@ -269,26 +269,35 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public AnalysisError[] computeErrors(Source source) throws AnalysisException {
     synchronized (cacheLock) {
-      DartEntry dartEntry = getDartEntry(source);
-      if (dartEntry == null) {
-        return AnalysisError.NO_ERRORS;
-      }
-      CacheState parseErrorsState = dartEntry.getState(DartEntry.PARSE_ERRORS);
-      if (parseErrorsState != CacheState.VALID && parseErrorsState != CacheState.ERROR) {
-        parseCompilationUnit(source);
-      }
-      Source[] libraries = getLibrariesContaining(source);
-      for (Source librarySource : libraries) {
-        CacheState resolutionErrorsState = dartEntry.getState(
-            DartEntry.RESOLUTION_ERRORS,
-            librarySource);
-        if (resolutionErrorsState != CacheState.VALID && resolutionErrorsState != CacheState.ERROR) {
-          // TODO(brianwilkerson) Decide whether to resolve the source against all libraries or
-          // whether to add a librarySource parameter to this method.
-          // resolveCompilationUnit(source, librarySource);
+      SourceEntry sourceEntry = getSourceEntry(source);
+      if (sourceEntry instanceof DartEntry) {
+        DartEntry dartEntry = (DartEntry) sourceEntry;
+        CacheState parseErrorsState = dartEntry.getState(DartEntry.PARSE_ERRORS);
+        if (parseErrorsState != CacheState.VALID && parseErrorsState != CacheState.ERROR) {
+          parseCompilationUnit(source);
         }
+        Source[] libraries = getLibrariesContaining(source);
+        for (Source librarySource : libraries) {
+          CacheState resolutionErrorsState = dartEntry.getState(
+              DartEntry.RESOLUTION_ERRORS,
+              librarySource);
+          if (resolutionErrorsState != CacheState.VALID
+              && resolutionErrorsState != CacheState.ERROR) {
+            // TODO(brianwilkerson) Decide whether to resolve the source against all libraries or
+            // whether to add a librarySource parameter to this method.
+            // resolveCompilationUnit(source, librarySource);
+          }
+        }
+        return dartEntry.getAllErrors();
+      } else if (sourceEntry instanceof HtmlEntry) {
+        HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+        CacheState resolutionErrorsState = htmlEntry.getState(HtmlEntry.RESOLUTION_ERRORS);
+        if (resolutionErrorsState != CacheState.VALID && resolutionErrorsState != CacheState.ERROR) {
+          computeHtmlElement(source);
+        }
+        return htmlEntry.getValue(HtmlEntry.RESOLUTION_ERRORS);
       }
-      return dartEntry.getAllErrors();
+      return AnalysisError.NO_ERRORS;
     }
   }
 
@@ -311,10 +320,15 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             unit = parseHtmlUnit(source);
           }
         }
-        HtmlUnitBuilder builder = new HtmlUnitBuilder(this);
+        RecordingErrorListener listener = new RecordingErrorListener();
+        HtmlUnitBuilder builder = new HtmlUnitBuilder(this, listener);
         element = builder.buildHtmlElement(source, unit);
-        ((HtmlEntryImpl) htmlEntry).setValue(HtmlEntry.RESOLVED_UNIT, unit);
-        ((HtmlEntryImpl) htmlEntry).setValue(HtmlEntry.ELEMENT, element);
+        AnalysisError[] resolutionErrors = listener.getErrors(source);
+        HtmlEntryImpl htmlCopy = ((HtmlEntryImpl) htmlEntry); // htmlEntry.getWritableCopy();
+        htmlCopy.setValue(HtmlEntry.RESOLVED_UNIT, unit);
+        htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, resolutionErrors);
+        htmlCopy.setValue(HtmlEntry.ELEMENT, element);
+        getNotice(source).setErrors(resolutionErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
       }
       return element;
     }
@@ -475,6 +489,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         return new AnalysisErrorInfoImpl(
             dartEntry.getAllErrors(),
             dartEntry.getValue(SourceEntry.LINE_INFO));
+      } else if (sourceEntry instanceof HtmlEntry) {
+        HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+        return new AnalysisErrorInfoImpl(
+            htmlEntry.getValue(HtmlEntry.RESOLUTION_ERRORS),
+            htmlEntry.getValue(SourceEntry.LINE_INFO));
       }
       return new AnalysisErrorInfoImpl(
           AnalysisError.NO_ERRORS,

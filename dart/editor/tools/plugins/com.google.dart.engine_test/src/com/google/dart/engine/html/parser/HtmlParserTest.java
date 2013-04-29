@@ -23,7 +23,7 @@ import com.google.dart.engine.html.scanner.HtmlScanner;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.TestSource;
 
-import java.io.File;
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class HtmlParserTest extends EngineTestCase {
 
@@ -149,7 +149,10 @@ public class HtmlParserTest extends EngineTestCase {
 
   private HtmlParseResult parse(String contents) throws Exception {
     SourceFactory factory = new SourceFactory();
-    TestSource source = new TestSource(factory.getContentCache(), new File("foo.dart"), contents);
+    TestSource source = new TestSource(
+        factory.getContentCache(),
+        createFile("/test.dart"),
+        contents);
     HtmlScanner scanner = new HtmlScanner(source);
     source.getContents(scanner);
     HtmlScanResult scanResult = scanner.getResult();

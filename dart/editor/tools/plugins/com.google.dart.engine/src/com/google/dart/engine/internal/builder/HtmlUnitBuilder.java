@@ -18,6 +18,8 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.HtmlScriptElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.HtmlWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
@@ -33,7 +35,11 @@ import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.LineInfo;
+import com.google.dart.engine.utilities.source.LineInfo.Location;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 /**
@@ -52,6 +58,17 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
   private final InternalAnalysisContext context;
 
   /**
+   * The error listener to which errors will be reported.
+   */
+  private AnalysisErrorListener errorListener;
+
+  /**
+   * The line information associated with the source for which an element is being built, or
+   * {@code null} if we are not building an element.
+   */
+  private LineInfo lineInfo;
+
+  /**
    * The HTML element being built.
    */
   private HtmlElementImpl htmlElement;
@@ -65,9 +82,11 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
    * Initialize a newly created HTML unit builder.
    * 
    * @param context the analysis context in which the element model will be built
+   * @param errorListener the error listener to which errors will be reported
    */
-  public HtmlUnitBuilder(InternalAnalysisContext context) {
+  public HtmlUnitBuilder(InternalAnalysisContext context, AnalysisErrorListener errorListener) {
     this.context = context;
+    this.errorListener = errorListener;
   }
 
   /**
@@ -89,6 +108,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
    * @throws AnalysisException if the analysis could not be performed
    */
   public HtmlElementImpl buildHtmlElement(Source source, HtmlUnit unit) throws AnalysisException {
+    lineInfo = context.computeLineInfo(source);
     HtmlElementImpl result = new HtmlElementImpl(context, source.getShortName());
     result.setSource(source);
     htmlElement = result;
@@ -116,20 +136,18 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
   public Void visitXmlTagNode(XmlTagNode node) {
     if (isScriptNode(node)) {
       Source htmlSource = htmlElement.getSource();
-      String scriptSourcePath = getScriptSourcePath(node);
+      XmlAttributeNode scriptAttribute = getScriptSourcePath(node);
+      String scriptSourcePath = scriptAttribute == null ? null : scriptAttribute.getText();
       if (node.getAttributeEnd().getType() == TokenType.GT && scriptSourcePath == null) {
         EmbeddedHtmlScriptElementImpl script = new EmbeddedHtmlScriptElementImpl(node);
         String contents = node.getContent();
 
         //TODO (danrubel): Move scanning embedded scripts into AnalysisContextImpl
         // so that clients such as builder can scan, parse, and get errors without resolving
-        AnalysisErrorListener errorListener = new AnalysisErrorListener() {
-          @Override
-          public void onError(AnalysisError error) {
-            //TODO (danrubel): make errors accessible once this is moved into AnalysisContextImpl
-          }
-        };
-        StringScanner scanner = new StringScanner(null, contents, errorListener);
+        int attributeEnd = node.getAttributeEnd().getEnd();
+        Location location = lineInfo.getLocation(attributeEnd);
+        StringScanner scanner = new StringScanner(htmlSource, contents, errorListener);
+        scanner.setSourceStart(location.getLineNumber(), location.getColumnNumber(), attributeEnd);
         com.google.dart.engine.scanner.Token firstToken = scanner.tokenize();
         int[] lineStarts = scanner.getLineStarts();
 
@@ -137,6 +155,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
         // so that clients such as builder can scan, parse, and get errors without resolving
         Parser parser = new Parser(null, errorListener);
         CompilationUnit unit = parser.parseCompilationUnit(firstToken);
+        unit.setLineInfo(new LineInfo(lineStarts));
 
         try {
           CompilationUnitBuilder builder = new CompilationUnitBuilder();
@@ -144,16 +163,33 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
           LibraryElementImpl library = new LibraryElementImpl(context, null);
           library.setDefiningCompilationUnit(elem);
           script.setScriptLibrary(library);
-        } catch (AnalysisException e) {
+        } catch (AnalysisException exception) {
           //TODO (danrubel): Handle or forward the exception
-          e.printStackTrace();
+          exception.printStackTrace();
         }
 
         scripts.add(script);
       } else {
         ExternalHtmlScriptElementImpl script = new ExternalHtmlScriptElementImpl(node);
         if (scriptSourcePath != null) {
-          script.setScriptSource(context.getSourceFactory().resolveUri(htmlSource, scriptSourcePath));
+          try {
+            new URI(scriptSourcePath);
+            Source scriptSource = context.getSourceFactory().resolveUri(
+                htmlSource,
+                scriptSourcePath);
+            script.setScriptSource(scriptSource);
+            if (!scriptSource.exists()) {
+              reportError(
+                  HtmlWarningCode.URI_DOES_NOT_EXIST,
+                  scriptAttribute.getOffset() + 1,
+                  scriptSourcePath.length());
+            }
+          } catch (URISyntaxException exception) {
+            reportError(
+                HtmlWarningCode.INVALID_URI,
+                scriptAttribute.getOffset() + 1,
+                scriptSourcePath.length());
+          }
         }
         scripts.add(script);
       }
@@ -164,16 +200,15 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
   }
 
   /**
-   * Return the value of the source attribute if it exists.
+   * Return the first source attribute for the given tag node, or {@code null} if it does not exist.
    * 
    * @param node the node containing attributes
-   * @return the source path or {@code null} if not defined
+   * @return the source attribute contained in the given tag
    */
-  private String getScriptSourcePath(XmlTagNode node) {
+  private XmlAttributeNode getScriptSourcePath(XmlTagNode node) {
     for (XmlAttributeNode attribute : node.getAttributes()) {
       if (attribute.getName().getLexeme().equals(SRC)) {
-        String text = attribute.getText();
-        return text != null && text.length() > 0 ? text : null;
+        return attribute;
       }
     }
     return null;
@@ -202,5 +237,23 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * Report an error with the given error code at the given location. Use the given arguments to
+   * compose the error message.
+   * 
+   * @param errorCode the error code of the error to be reported
+   * @param offset the offset of the first character to be highlighted
+   * @param length the number of characters to be highlighted
+   * @param arguments the arguments used to compose the error message
+   */
+  private void reportError(ErrorCode errorCode, int offset, int length, Object... arguments) {
+    errorListener.onError(new AnalysisError(
+        htmlElement.getSource(),
+        offset,
+        length,
+        errorCode,
+        arguments));
   }
 }
