@@ -17,19 +17,17 @@ package com.google.dart.tools.search.internal.ui;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.engine.utilities.source.SourceRangeFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.text.editor.NewDartElementLabelProvider;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
@@ -59,6 +57,7 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -69,6 +68,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.progress.UIJob;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +80,117 @@ import java.util.Set;
  */
 public abstract class SearchMatchPage extends SearchPage {
   /**
+   * Helper for navigating {@link ResultItem} hierarchy.
+   */
+  private static class ResultCursor {
+    ResultItem item;
+    int sourceRangeIndex;
+
+    ResultCursor(ResultItem item) {
+      this(item, -1);
+    }
+
+    ResultCursor(ResultItem item, int sourceRangeIndex) {
+      this.item = item;
+      this.sourceRangeIndex = sourceRangeIndex;
+    }
+
+    SourceRange getSourceRange() {
+      if (item == null) {
+        return null;
+      }
+      if (sourceRangeIndex < 0 || sourceRangeIndex > item.sourceRanges.size() - 1) {
+        return null;
+      }
+      return item.sourceRanges.get(sourceRangeIndex);
+    }
+
+    /**
+     * Moves this {@link ResultCursor} to the next {@link SourceRange} in the same or next
+     * {@link ResultItem}.
+     * 
+     * @return {@code true} if was moved, or {@code false} if cursor is at the last position.
+     */
+    boolean next() {
+      ResultItem _item = item;
+      int _sourceRangeIndex = sourceRangeIndex;
+      // try to go to next
+      if (_next()) {
+        return true;
+      }
+      // rollback
+      item = _item;
+      sourceRangeIndex = _sourceRangeIndex;
+      return false;
+    }
+
+    /**
+     * Moves this {@link ResultCursor} to the previous {@link SourceRange} in the same or previous
+     * {@link ResultItem}.
+     * 
+     * @return {@code true} if was moved, or {@code false} if cursor is at the first position.
+     */
+    boolean prev() {
+      ResultItem _item = item;
+      int _sourceRangeIndex = sourceRangeIndex;
+      // try to go to previous
+      if (_prev()) {
+        return true;
+      }
+      // rollback
+      item = _item;
+      sourceRangeIndex = _sourceRangeIndex;
+      return false;
+    }
+
+    private boolean _next() {
+      if (item == null) {
+        return false;
+      }
+      // in the same leaf
+      if (sourceRangeIndex < item.sourceRanges.size() - 1) {
+        sourceRangeIndex++;
+        return true;
+      }
+      // next leaf
+      while (true) {
+        item = item.next;
+        if (item == null) {
+          return false;
+        }
+        if (!item.sourceRanges.isEmpty()) {
+          sourceRangeIndex = 0;
+          break;
+        }
+      }
+      return true;
+    }
+
+    private boolean _prev() {
+      if (item == null) {
+        return false;
+      }
+      // in the same leaf
+      if (sourceRangeIndex > 0) {
+        sourceRangeIndex--;
+        return true;
+      }
+      // previous leaf
+      while (true) {
+        item = item.prev;
+        if (item == null) {
+          return false;
+        }
+        if (!item.sourceRanges.isEmpty()) {
+          sourceRangeIndex = item.sourceRanges.size() - 1;
+          break;
+        }
+      }
+      return true;
+    }
+  }
+
+  /**
    * Item in search results tree.
    */
   private static class ResultItem {
@@ -86,6 +198,8 @@ public abstract class SearchMatchPage extends SearchPage {
     private final List<SourceRange> sourceRanges = Lists.newArrayList();
     private final List<ResultItem> children = Lists.newArrayList();
     private ResultItem parent;
+    private ResultItem prev;
+    private ResultItem next;
     private int numMatches;
 
     public ResultItem(Element element, SourceRange sourceRange) {
@@ -222,6 +336,8 @@ public abstract class SearchMatchPage extends SearchPage {
       addResultItem(itemMap, child);
     }
     calculateNumMatches(rootItem);
+    sortSourceRanges(rootItem);
+    linkLeaves(rootItem, null);
     return rootItem;
   }
 
@@ -238,19 +354,6 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   /**
-   * @return the {@link SourceRange} with minimal offset.
-   */
-  private static SourceRange findFirst(List<SourceRange> sourceRanges) {
-    SourceRange result = null;
-    for (SourceRange sourceRange : sourceRanges) {
-      if (result == null || result.getOffset() > sourceRange.getOffset()) {
-        result = sourceRange;
-      }
-    }
-    return result;
-  }
-
-  /**
    * @return the {@link Element} to use as enclosing in {@link ResultItem} tree.
    */
   private static Element getResultItemElement(Element element) {
@@ -262,6 +365,51 @@ public abstract class SearchMatchPage extends SearchPage {
       element = executable;
     }
     return element;
+  }
+
+  /**
+   * Recursively visits {@link ResultItem} and links leaves.
+   * 
+   * @return the last {@link ResultItem} leaf in the sub-tree.
+   */
+  private static ResultItem linkLeaves(ResultItem item, ResultItem prev) {
+    // leaf
+    if (item.children.isEmpty()) {
+      if (prev != null) {
+        prev.next = item;
+      }
+      item.prev = prev;
+      prev = item;
+      return item;
+    }
+    // container
+    ResultItem lastLeaf = prev;
+    item.next = item.children.get(0);
+    for (ResultItem child : item.children) {
+      lastLeaf = linkLeaves(child, lastLeaf);
+    }
+    return lastLeaf;
+  }
+
+  /**
+   * Recursively visits {@link ResultItem} and sorts all {@link SourceRange}s.
+   */
+  private static void sortSourceRanges(ResultItem item) {
+    Collections.sort(item.sourceRanges, new Comparator<SourceRange>() {
+      @Override
+      public int compare(SourceRange o1, SourceRange o2) {
+        return o1.getOffset() - o2.getOffset();
+      }
+    });
+    Collections.sort(item.children, new Comparator<ResultItem>() {
+      @Override
+      public int compare(ResultItem o1, ResultItem o2) {
+        return o1.element.getNameOffset() - o2.element.getNameOffset();
+      }
+    });
+    for (ResultItem child : item.children) {
+      sortSourceRanges(child);
+    }
   }
 
   private IAction removeAction = new Action() {
@@ -339,11 +487,37 @@ public abstract class SearchMatchPage extends SearchPage {
       viewer.collapseAll();
     }
   };
+
+  private IAction nextAction = new Action() {
+    {
+      setToolTipText("Show Next Match");
+      DartPluginImages.setLocalImageDescriptors(this, "search_next.gif");
+    }
+
+    @Override
+    public void run() {
+      openItemNext();
+    }
+  };
+
+  private IAction prevAction = new Action() {
+    {
+      setToolTipText("Show Previous Match");
+      DartPluginImages.setLocalImageDescriptors(this, "search_prev.gif");
+    }
+
+    @Override
+    public void run() {
+      openItemPrev();
+    }
+  };
+
   private final SearchView searchView;
   private final String taskName;
   private final Set<IResource> markerResources = Sets.newHashSet();
   private TreeViewer viewer;
   private ResultItem rootItem;
+  private ResultCursor itemCursor;
 
   public SearchMatchPage(SearchView searchView, String taskName) {
     this.searchView = searchView;
@@ -380,6 +554,9 @@ public abstract class SearchMatchPage extends SearchPage {
   @Override
   public void makeContributions(IMenuManager menuManager, IToolBarManager toolBarManager,
       IStatusLineManager statusLineManager) {
+    toolBarManager.add(nextAction);
+    toolBarManager.add(prevAction);
+    toolBarManager.add(new Separator());
     toolBarManager.add(removeAction);
     toolBarManager.add(removeAllAction);
     toolBarManager.add(new Separator());
@@ -465,6 +642,28 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   /**
+   * Opens {@link DartEditor} with the next {@link SourceRange} in the same of the next
+   * {@link ResultItem}.
+   */
+  private void openItemNext() {
+    boolean changed = itemCursor.next();
+    if (changed) {
+      showCursor();
+    }
+  }
+
+  /**
+   * Opens {@link DartEditor} with the previous {@link SourceRange} in the same of the previous
+   * {@link ResultItem}.
+   */
+  private void openItemPrev() {
+    boolean changed = itemCursor.prev();
+    if (changed) {
+      showCursor();
+    }
+  }
+
+  /**
    * Opens selected {@link ResultItem} in the editor.
    */
   private void openSelectedElement(ISelection selection) {
@@ -478,27 +677,23 @@ public abstract class SearchMatchPage extends SearchPage {
       return;
     }
     Object firstElement = structuredSelection.getFirstElement();
-    // should be ResultItem
+    // prepare ResultItem
     if (!(firstElement instanceof ResultItem)) {
       return;
     }
     ResultItem item = (ResultItem) firstElement;
-    Element element = item.element;
-    // prepare SourceRange to reveal
-    SourceRange sourceRange;
-    if (!item.sourceRanges.isEmpty()) {
-      sourceRange = findFirst(item.sourceRanges);
-    } else if (element instanceof CompilationUnitElement || element instanceof LibraryElement) {
-      sourceRange = null;
-    } else {
-      sourceRange = SourceRangeFactory.rangeElementName(element);
+    // use ResultCursor to find first occurrence in the requested subtree
+    itemCursor = new ResultCursor(item);
+    boolean found = itemCursor.next();
+    if (!found) {
+      return;
     }
+    Element element = itemCursor.item.element;
+    SourceRange sourceRange = itemCursor.getSourceRange();
     // show Element and SourceRange
     try {
       IEditorPart editor = DartUI.openInEditor(element);
-      if (sourceRange != null) {
-        EditorUtility.revealInEditor(editor, sourceRange);
-      }
+      EditorUtility.revealInEditor(editor, sourceRange);
     } catch (Throwable e) {
       ExceptionHandler.handle(e, "Search", "Exception during open.");
     }
@@ -515,6 +710,7 @@ public abstract class SearchMatchPage extends SearchPage {
         protected IStatus run(IProgressMonitor monitor) {
           List<SearchMatch> matches = runQuery();
           rootItem = buildResultItemTree(matches);
+          itemCursor = new ResultCursor(rootItem);
           // add markers
           addMarkers();
           // schedule UI update
@@ -557,6 +753,25 @@ public abstract class SearchMatchPage extends SearchPage {
       }, null);
     } catch (Throwable e) {
       DartToolsPlugin.log(e);
+    }
+  }
+
+  /**
+   * Shows current {@link #itemCursor} state.
+   */
+  private void showCursor() {
+    try {
+      viewer.setSelection(new StructuredSelection(itemCursor.item), true);
+      // open editor with Element
+      Element element = itemCursor.item.element;
+      IEditorPart editor = DartUI.openInEditor(element, false, false);
+      // show SourceRange
+      SourceRange sourceRange = itemCursor.getSourceRange();
+      if (sourceRange != null) {
+        EditorUtility.revealInEditor(editor, sourceRange);
+      }
+    } catch (Throwable e) {
+      ExceptionHandler.handle(e, "Search", "Exception during open.");
     }
   }
 }
