@@ -114,7 +114,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     public void run() {
       ExternalBrowserUtil.openInExternalBrowser("http://pub.dartlang.org/packages");
     }
-
   }
 
   private class PubUpdateListener implements IPubUpdateListener {
@@ -125,7 +124,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         public void run() {
           if (treeViewer != null) {
             IResource resource = container.findMember(DartCore.PACKAGES_DIRECTORY_NAME);
-            if (resource != null) {
+            if (resource != null && !treeViewer.getControl().isDisposed()) {
               treeViewer.refresh(resource);
             }
           }
