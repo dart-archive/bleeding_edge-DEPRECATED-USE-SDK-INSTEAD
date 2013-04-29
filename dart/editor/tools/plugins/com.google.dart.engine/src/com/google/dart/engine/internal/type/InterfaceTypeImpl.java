@@ -29,6 +29,7 @@ import com.google.dart.engine.type.TypeVariableType;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -142,6 +143,63 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   /**
+   * Return the intersection of the given sets of types, where intersection is based on the equality
+   * of the elements of the types rather than on the equality of the types themselves. In cases
+   * where two non-equal types have equal elements, which only happens when the class is
+   * parameterized, the type that is added to the intersection is the base type with type arguments
+   * that are the least upper bound of the type arguments of the two types.
+   * 
+   * @param first the first set of types to be intersected
+   * @param second the second set of types to be intersected
+   * @return the intersection of the given sets of types
+   */
+  private static InterfaceType[] intersection(Set<InterfaceType> first, Set<InterfaceType> second) {
+    HashMap<ClassElement, InterfaceType> firstMap = new HashMap<ClassElement, InterfaceType>();
+    for (InterfaceType firstType : first) {
+      firstMap.put(firstType.getElement(), firstType);
+    }
+    Set<InterfaceType> result = new HashSet<InterfaceType>();
+    for (InterfaceType secondType : second) {
+      InterfaceType firstType = firstMap.get(secondType.getElement());
+      if (firstType != null) {
+        result.add(leastUpperBound(firstType, secondType));
+      }
+    }
+    return result.toArray(new InterfaceType[result.size()]);
+  }
+
+  /**
+   * Return the "least upper bound" of the given types under the assumption that the types have the
+   * same element and differ only in terms of the type arguments. The resulting type is composed by
+   * using the least upper bound of the corresponding type arguments.
+   * 
+   * @param firstType the first type
+   * @param secondType the second type
+   * @return the "least upper bound" of the given types
+   */
+  private static InterfaceType leastUpperBound(InterfaceType firstType, InterfaceType secondType) {
+    if (firstType.equals(secondType)) {
+      return firstType;
+    }
+    Type[] firstArguments = firstType.getTypeArguments();
+    Type[] secondArguments = secondType.getTypeArguments();
+    int argumentCount = firstArguments.length;
+    if (argumentCount == 0) {
+      return firstType;
+    }
+    Type[] lubArguments = new Type[argumentCount];
+    for (int i = 0; i < argumentCount; i++) {
+      lubArguments[i] = firstArguments[i].getLeastUpperBound(secondArguments[i]);
+      if (lubArguments[i] == null) {
+        lubArguments[i] = DynamicTypeImpl.getInstance();
+      }
+    }
+    InterfaceTypeImpl lub = new InterfaceTypeImpl(firstType.getElement());
+    lub.setTypeArguments(lubArguments);
+    return lub;
+  }
+
+  /**
    * An array containing the actual types of the type arguments.
    */
   private Type[] typeArguments = TypeImpl.EMPTY_ARRAY;
@@ -212,7 +270,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return dynamicType;
     }
     // TODO (jwren) opportunity here for a better, faster algorithm if this turns out to be a bottle-neck
-    if (type == null || !(type instanceof InterfaceType)) {
+    if (!(type instanceof InterfaceType)) {
       return null;
     }
     // new names to match up with the spec
@@ -224,23 +282,17 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     Set<InterfaceType> sj = computeSuperinterfaceSet(j);
 
     // union si with i and sj with j
-    // By getting the type off of the element, we strip out any type arguments.
-    si.add(i.getElement().getType());
-    sj.add(j.getElement().getType());
+    si.add(i);
+    sj.add(j);
 
     // compute intersection, reference as set 's'
-    si.retainAll(sj);
-    Set<InterfaceType> s = si;
+    InterfaceType[] s = intersection(si, sj);
 
-    // define the list sn, a list containing the elements from set 's'
-    //ArrayList<Type> sn = new ArrayList<Type>(s.size());
-    InterfaceType[] sn = s.toArray(new InterfaceType[s.size()]);
-
-    // for each element in Set sn, compute the largest inheritance path to Object
-    int[] depths = new int[sn.length];
+    // for each element in Set s, compute the largest inheritance path to Object
+    int[] depths = new int[s.length];
     int maxDepth = 0;
-    for (int n = 0; n < sn.length; n++) {
-      depths[n] = computeLongestInheritancePathToObject(sn[n]);
+    for (int n = 0; n < s.length; n++) {
+      depths[n] = computeLongestInheritancePathToObject(s[n]);
       if (depths[n] > maxDepth) {
         maxDepth = depths[n];
       }
@@ -258,7 +310,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
       if (numberOfTypesAtMaxDepth == 1) {
-        return sn[indexOfLeastUpperBound];
+        return s[indexOfLeastUpperBound];
       }
     }
 

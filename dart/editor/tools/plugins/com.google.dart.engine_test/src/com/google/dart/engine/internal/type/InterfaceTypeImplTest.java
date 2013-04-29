@@ -403,19 +403,6 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertNull(interfaceType.getLeastUpperBound(functionType));
   }
 
-  public void test_getLeastUpperBound_ignoreTypeParameters() {
-    //
-    // class List<int>
-    // class List<double>
-    //
-    InterfaceType listType = typeProvider.getListType();
-    InterfaceType intType = typeProvider.getIntType();
-    InterfaceType doubleType = typeProvider.getDoubleType();
-    InterfaceType listOfIntType = listType.substitute(new Type[] {intType});
-    InterfaceType listOfDoubleType = listType.substitute(new Type[] {doubleType});
-    assertEquals(listType, listOfIntType.getLeastUpperBound(listOfDoubleType));
-  }
-
   public void test_getLeastUpperBound_mixinCase() {
     //
     // class A
@@ -588,6 +575,32 @@ public class InterfaceTypeImplTest extends EngineTestCase {
 
     assertEquals(typeA, typeB.getLeastUpperBound(typeC));
     assertEquals(typeA, typeC.getLeastUpperBound(typeB));
+  }
+
+  public void test_getLeastUpperBound_typeParameters_different() {
+    //
+    // class List<int>
+    // class List<double>
+    //
+    InterfaceType listType = typeProvider.getListType();
+    InterfaceType intType = typeProvider.getIntType();
+    InterfaceType doubleType = typeProvider.getDoubleType();
+    InterfaceType listOfIntType = listType.substitute(new Type[] {intType});
+    InterfaceType listOfDoubleType = listType.substitute(new Type[] {doubleType});
+    assertEquals(
+        listType.substitute(new Type[] {typeProvider.getNumType()}),
+        listOfIntType.getLeastUpperBound(listOfDoubleType));
+  }
+
+  public void test_getLeastUpperBound_typeParameters_same() {
+    //
+    // List<int>
+    // List<int>
+    //
+    InterfaceType listType = typeProvider.getListType();
+    InterfaceType intType = typeProvider.getIntType();
+    InterfaceType listOfIntType = listType.substitute(new Type[] {intType});
+    assertEquals(listOfIntType, listOfIntType.getLeastUpperBound(listOfIntType));
   }
 
   public void test_getMethod_implemented() {
