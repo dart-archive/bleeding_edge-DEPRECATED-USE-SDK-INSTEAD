@@ -649,6 +649,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "}");
     // prepare elements
     Element functionElement = findElement("topLevelFunction(");
+    VariableElement vElement = findElement("v;");
     ClassElement classElementA = findElement("A {");
     // index
     index.visitCompilationUnit(testUnit);
@@ -663,7 +664,7 @@ public class IndexContributorTest extends AbstractDartTest {
         relations,
         classElementA,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(functionElement, findOffset("A v"), "A"));
+        new ExpectedLocation(vElement, findOffset("A v"), "A"));
     assertRecordedRelation(
         relations,
         classElementA,
@@ -691,7 +692,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "}");
     verifyNoTestUnitErrors = true;
     // prepare elements
-    Element mainElement = findElement("main(");
+    VariableElement vElement = findElement("v;");
     LibraryElement libraryElement = mock(LibraryElement.class);
     ClassElement classElement = mock(ClassElement.class);
     findSimpleIdentifier("MyClass v;").setElement(classElement);
@@ -704,7 +705,7 @@ public class IndexContributorTest extends AbstractDartTest {
         relations,
         classElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, findOffset("MyClass v;"), "MyClass", "pref"));
+        new ExpectedLocation(vElement, findOffset("MyClass v;"), "MyClass", "pref"));
   }
 
   public void test_isReferencedBy_ClassTypeAlias() throws Exception {
@@ -716,6 +717,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "  B v;",
         "}");
     // prepare elements
+    VariableElement vElement = findElement("v;");
     Element functionElement = findElement("topLevelFunction(");
     ClassElement classElementB = findElement("B =");
     // index
@@ -731,7 +733,7 @@ public class IndexContributorTest extends AbstractDartTest {
         relations,
         classElementB,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(functionElement, findOffset("B v"), "B"));
+        new ExpectedLocation(vElement, findOffset("B v"), "B"));
   }
 
   public void test_isReferencedBy_CompilationUnitElement() throws Exception {
@@ -1005,6 +1007,27 @@ public class IndexContributorTest extends AbstractDartTest {
         new ExpectedLocation(mainElement, findOffset("A p)"), "A"));
   }
 
+  // XXX
+  public void test_isReferencedBy_typeInVariableList() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "A myVariable = null;",
+        "");
+    // prepare elements
+    Element classElementA = findElement("A {}");
+    Element variableElement = findElement("myVariable =");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        classElementA,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(variableElement, findOffset("A myVa"), "A"));
+  }
+
   public void test_isReferencedBy_TypeVariableElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1015,7 +1038,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "  }",
         "}");
     // prepare elements
-    ClassElement classElementA = findElement("A<T>");
+    VariableElement fieldElement = findElement("f;");
     TypeVariableElement typeVariableElement = findElement("T>");
     // index
     index.visitCompilationUnit(testUnit);
@@ -1025,7 +1048,7 @@ public class IndexContributorTest extends AbstractDartTest {
         relations,
         typeVariableElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(classElementA, findOffset("T f"), "T"));
+        new ExpectedLocation(fieldElement, findOffset("T f"), "T"));
   }
 
   public void test_isReferencedByQualified_ConstructorElement() throws Exception {

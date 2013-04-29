@@ -32,6 +32,7 @@ import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
@@ -493,6 +494,32 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     } finally {
       exitScope();
     }
+  }
+
+  @Override
+  public Void visitVariableDeclarationList(VariableDeclarationList node) {
+    NodeList<VariableDeclaration> variables = node.getVariables();
+    if (variables != null) {
+      // use first VariableDeclaration as Element for Location(s) in type
+      {
+        TypeName type = node.getType();
+        if (type != null) {
+          for (VariableDeclaration variableDeclaration : variables) {
+            enterScope(variableDeclaration.getElement());
+            try {
+              type.accept(this);
+            } finally {
+              exitScope();
+            }
+            // only one iteration
+            break;
+          }
+        }
+      }
+      // visit variables
+      variables.accept(this);
+    }
+    return null;
   }
 
   /**
