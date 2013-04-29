@@ -47,6 +47,16 @@ public class INIRewriter {
     list.add(index + 1, value);
 
   }
+  
+  public static void insertAfter(List<String> list, String key, List<String> orig) {
+
+    int length = getLengthOfFlag(orig, key);
+    int index = list.indexOf(key);
+    int origIndex = orig.indexOf(key);
+    for (int i = 1; i <= length; i++) {
+      list.add(index + i, orig.get(origIndex + i));
+    }
+  }
 
   public static void insertBefore(List<String> list, String key, String value) {
     int index = list.indexOf(key);
@@ -108,13 +118,24 @@ public class INIRewriter {
     return lines;
   }
 
+  private static int getLengthOfFlag(List<String> orig, String flag) {
+    int i = 0;
+    int index = orig.indexOf(flag) + 1;
+    while (!orig.get(index).startsWith("-")) {
+      i++;
+      index++;
+    }
+    return i;
+  }
+
   private static void mergeFlag(List<String> orig, ArrayList<String> merged, String flag) {
+
     if (merged.contains(VM_FLAG)) {
       insertBefore(merged, VM_FLAG, flag);
-      insertAfter(merged, flag, orig.get(orig.indexOf(flag) + 1));
+      insertAfter(merged, flag, orig);
     } else {
       insertBefore(merged, VM_ARGS_FLAG, flag);
-      insertAfter(merged, flag, orig.get(orig.indexOf(flag) + 1));
+      insertAfter(merged, flag, orig);
     }
   }
 
