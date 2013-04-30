@@ -21,6 +21,7 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.type.InterfaceType;
@@ -56,7 +57,7 @@ public class InheritanceManagerTest extends EngineTestCase {
 
   public void test_lookupInheritance_interface_getter() throws Exception {
     ClassElementImpl classA = classElement("A");
-    String getterName = "m";
+    String getterName = "g";
     PropertyAccessorElement getterG = getterElement(getterName, false, typeProvider.getIntType());
     classA.setAccessors(new PropertyAccessorElement[] {getterG});
 
@@ -87,9 +88,29 @@ public class InheritanceManagerTest extends EngineTestCase {
     assertSame(getterG, inheritanceManager.lookupInheritance(classB, setterName));
   }
 
+  public void test_lookupInheritance_interface_staticMember() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement methodM = methodElement(methodName, typeProvider.getIntType());
+    ((MethodElementImpl) methodM).setStatic(true);
+    classA.setMethods(new MethodElement[] {methodM});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setInterfaces(new InterfaceType[] {classA.getType()});
+    assertNull(inheritanceManager.lookupInheritance(classB, methodName));
+  }
+
   public void test_lookupInheritance_interfaces_infiniteLoop() throws Exception {
     ClassElementImpl classA = classElement("A");
     classA.setInterfaces(new InterfaceType[] {classA.getType()});
+    assertNull(inheritanceManager.lookupInheritance(classA, "name"));
+  }
+
+  public void test_lookupInheritance_interfaces_infiniteLoop2() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B");
+    classA.setInterfaces(new InterfaceType[] {classB.getType()});
+    classB.setInterfaces(new InterfaceType[] {classA.getType()});
     assertNull(inheritanceManager.lookupInheritance(classA, "name"));
   }
 
@@ -168,12 +189,24 @@ public class InheritanceManagerTest extends EngineTestCase {
   public void test_lookupInheritance_mixin_setter() throws Exception {
     ClassElementImpl classA = classElement("A");
     String setterName = "s";
-    PropertyAccessorElement setterS = getterElement(setterName, false, typeProvider.getIntType());
+    PropertyAccessorElement setterS = setterElement(setterName, false, typeProvider.getIntType());
     classA.setAccessors(new PropertyAccessorElement[] {setterS});
 
     ClassElementImpl classB = classElement("B", classA.getType());
     classB.setMixins(new InterfaceType[] {classA.getType()});
     assertSame(setterS, inheritanceManager.lookupInheritance(classB, setterName));
+  }
+
+  public void test_lookupInheritance_mixin_staticMember() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement methodM = methodElement(methodName, typeProvider.getIntType());
+    ((MethodElementImpl) methodM).setStatic(true);
+    classA.setMethods(new MethodElement[] {methodM});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setMixins(new InterfaceType[] {classA.getType()});
+    assertNull(inheritanceManager.lookupInheritance(classB, methodName));
   }
 
   public void test_lookupInheritance_noMember() throws Exception {
@@ -191,6 +224,20 @@ public class InheritanceManagerTest extends EngineTestCase {
     assertSame(getterG, inheritanceManager.lookupInheritance(classB, getterName));
   }
 
+  public void test_lookupInheritance_superclass_infiniteLoop() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    classA.setSupertype(classA.getType());
+    assertNull(inheritanceManager.lookupInheritance(classA, "name"));
+  }
+
+  public void test_lookupInheritance_superclass_infiniteLoop2() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B");
+    classA.setSupertype(classB.getType());
+    classB.setSupertype(classA.getType());
+    assertNull(inheritanceManager.lookupInheritance(classA, "name"));
+  }
+
   public void test_lookupInheritance_superclass_method() throws Exception {
     ClassElementImpl classA = classElement("A");
     String methodName = "m";
@@ -204,11 +251,22 @@ public class InheritanceManagerTest extends EngineTestCase {
   public void test_lookupInheritance_superclass_setter() throws Exception {
     ClassElementImpl classA = classElement("A");
     String setterName = "s";
-    PropertyAccessorElement setterS = getterElement(setterName, false, typeProvider.getIntType());
+    PropertyAccessorElement setterS = setterElement(setterName, false, typeProvider.getIntType());
     classA.setAccessors(new PropertyAccessorElement[] {setterS});
 
     ClassElementImpl classB = classElement("B", classA.getType());
     assertSame(setterS, inheritanceManager.lookupInheritance(classB, setterName));
+  }
+
+  public void test_lookupInheritance_superclass_staticMember() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement methodM = methodElement(methodName, typeProvider.getIntType());
+    ((MethodElementImpl) methodM).setStatic(true);
+    classA.setMethods(new MethodElement[] {methodM});
+
+    ClassElementImpl classB = classElement("B", classA.getType());
+    assertNull(inheritanceManager.lookupInheritance(classB, methodName));
   }
 
   public void test_lookupMember_getter() throws Exception {
@@ -219,12 +277,29 @@ public class InheritanceManagerTest extends EngineTestCase {
     assertSame(getterG, inheritanceManager.lookupMember(classA, getterName));
   }
 
+  public void test_lookupMember_getter_static() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String getterName = "g";
+    PropertyAccessorElement getterG = getterElement(getterName, true, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {getterG});
+    assertNull(inheritanceManager.lookupMember(classA, getterName));
+  }
+
   public void test_lookupMember_method() throws Exception {
     ClassElementImpl classA = classElement("A");
     String methodName = "m";
     MethodElement methodM = methodElement(methodName, typeProvider.getIntType());
     classA.setMethods(new MethodElement[] {methodM});
     assertSame(methodM, inheritanceManager.lookupMember(classA, methodName));
+  }
+
+  public void test_lookupMember_method_static() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement methodM = methodElement(methodName, typeProvider.getIntType());
+    ((MethodElementImpl) methodM).setStatic(true);
+    classA.setMethods(new MethodElement[] {methodM});
+    assertNull(inheritanceManager.lookupMember(classA, methodName));
   }
 
   public void test_lookupMember_noMember() throws Exception {
@@ -238,6 +313,14 @@ public class InheritanceManagerTest extends EngineTestCase {
     PropertyAccessorElement setterS = setterElement(setterName, false, typeProvider.getIntType());
     classA.setAccessors(new PropertyAccessorElement[] {setterS});
     assertSame(setterS, inheritanceManager.lookupMember(classA, setterName));
+  }
+
+  public void test_lookupMember_setter_static() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String setterName = "s";
+    PropertyAccessorElement setterS = setterElement(setterName, true, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {setterS});
+    assertNull(inheritanceManager.lookupMember(classA, setterName));
   }
 
   /**
