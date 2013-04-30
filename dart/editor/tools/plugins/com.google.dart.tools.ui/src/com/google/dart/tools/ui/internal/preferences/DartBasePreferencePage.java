@@ -182,14 +182,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_pub_auto_details);
     GridDataFactory.fillDefaults().applyTo(runPubAutoCheck);
 
-    // Temporary experimental settings
-
-    Group experimentalGroup = new Group(composite, SWT.NONE);
-    experimentalGroup.setText("Experimental"); //$NON-NLS-1$
-    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
-        experimentalGroup);
-    GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(experimentalGroup);
-
     initFromPrefs();
 
     return composite;
