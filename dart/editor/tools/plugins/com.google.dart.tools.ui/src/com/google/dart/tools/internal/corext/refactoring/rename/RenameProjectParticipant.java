@@ -14,7 +14,9 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.dart.compiler.util.apache.FileUtils;
+import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.pub.RunPubJob;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -72,6 +74,14 @@ public class RenameProjectParticipant extends RenameParticipant {
         }
         // rename folder on disk
         currentFile.renameTo(newFile);
+        // run Pub
+        // see https://code.google.com/p/dart/issues/detail?id=9222
+        if (OSUtilities.isWindows()) {
+          if (project.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
+            RunPubJob runPubJob = new RunPubJob(project, RunPubJob.INSTALL_COMMAND);
+            runPubJob.schedule();
+          }
+        }
       } catch (Throwable e) {
         DartCore.logError(e);
         return null;
