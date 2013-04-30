@@ -361,6 +361,199 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_exchangeBinaryExpressionArguments_wrong("1 + 2 + 3", "1 + 2 + 3");
   }
 
+  public void test_joinIfStatementInner_OK_conditionAndOr() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2 || 3 == 3) {",
+        "      print(0);",
+        "    }",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && (2 == 2 || 3 == 3)) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementInner(initial, "if (1 ==", expected);
+  }
+
+  public void test_joinIfStatementInner_OK_conditionInvocation() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (isCheck()) {",
+        "    if (2 == 2) {",
+        "      print(0);",
+        "    }",
+        "  }",
+        "}",
+        "bool isCheck() => false;");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (isCheck() && 2 == 2) {",
+        "    print(0);",
+        "  }",
+        "}",
+        "bool isCheck() => false;");
+    assert_joinIfStatementInner(initial, "if (isCheck", expected);
+  }
+
+  public void test_joinIfStatementInner_OK_conditionOrAnd() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 || 2 == 2) {",
+        "    if (3 == 3) {",
+        "      print(0);",
+        "    }",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if ((1 == 1 || 2 == 2) && 3 == 3) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementInner(initial, "if (1 ==", expected);
+  }
+
+  public void test_joinIfStatementInner_OK_simpleConditions_block_block() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2) {",
+        "      print(0);",
+        "    }",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementInner(initial, "if (1 ==", expected);
+  }
+
+  public void test_joinIfStatementInner_OK_simpleConditions_block_single() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2)",
+        "      print(0);",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementInner(initial, "if (1 ==", expected);
+  }
+
+  public void test_joinIfStatementInner_OK_simpleConditions_single_blockMulti() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1)",
+        "    if (2 == 2) {",
+        "      print(1);",
+        "      print(2);",
+        "      print(3);",
+        "    }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2) {",
+        "    print(1);",
+        "    print(2);",
+        "    print(3);",
+        "  }",
+        "}");
+    assert_joinIfStatementInner(initial, "if (1 ==", expected);
+  }
+
+  public void test_joinIfStatementInner_OK_simpleConditions_single_blockOne() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1)",
+        "    if (2 == 2) {",
+        "      print(0);",
+        "    }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementInner(initial, "if (1 ==", expected);
+  }
+
+  public void test_joinIfStatementInner_wrong_innerNotIf() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_joinIfStatementInner_wrong(initial, "if (1 ==");
+  }
+
+  public void test_joinIfStatementInner_wrong_innerWithElse() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2 ) {",
+        "      print(0);",
+        "    } else {",
+        "      print(1);",
+        "    }",
+        "  }",
+        "}");
+    assert_joinIfStatementInner_wrong(initial, "if (1 ==");
+  }
+
+  public void test_joinIfStatementInner_wrong_targetNotIf() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(0);",
+        "}");
+    assert_joinIfStatementInner_wrong(initial, "print(0");
+  }
+
+  public void test_joinIfStatementInner_wrong_targetWithElse() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2 ) {",
+        "      print(0);",
+        "    }",
+        "  } else {",
+        "    print(1);",
+        "  }",
+        "}");
+    assert_joinIfStatementInner_wrong(initial, "if (1 ==");
+  }
+
   public void test_joinVariableDeclaration_onAssignment_OK() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1253,6 +1446,20 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_exchangeBinaryExpressionArguments_success(expression, offsetPattern, expression);
   }
 
+  private void assert_joinIfStatementInner(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionKind.QA_JOIN_IF_WITH_INNER,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_joinIfStatementInner_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_joinIfStatementInner(initialSource, offsetPattern, initialSource);
+  }
+
   private void assert_joinVariableDeclaration(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
@@ -1309,7 +1516,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
    */
   private void assert_runProcessor(CorrectionKind kind, String expectedSource) throws Exception {
     // XXX used to see coverage of only one quick assist
-//    if (!proposalName.equals("Replace conditional with 'if-else'")) {
+//    if (kind != CorrectionKind.QA_JOIN_IF_WITH_INNER) {
 //      return;
 //    }
     CorrectionProposal[] proposals = getProposals();

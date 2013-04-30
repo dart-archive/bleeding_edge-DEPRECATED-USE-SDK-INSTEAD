@@ -22,6 +22,8 @@ public enum CorrectionKind {
   QA_CONVERT_INTO_BLOCK_BODY(30, "Convert into block body"),
   QA_CONVERT_INTO_EXPRESSION_BODY(30, "Convert into expression body"),
   QA_EXCHANGE_OPERANDS(30, "Exchange operands"),
+  QA_JOIN_IF_WITH_INNER(30, "Join 'if' statement with inner 'if' statement"),
+  QA_JOIN_IF_WITH_OUTER(30, "Join 'if' statement with outer 'if' statement"),
   QA_JOIN_VARIABLE_DECLARATION(30, "Join variable declaration"),
   QA_REMOVE_TYPE_ANNOTATION(29, "Remove type annotation"),
   QA_REPLACE_CONDITIONAL_WITH_IF_ELSE(30, "Replace conditional with 'if-else'"),

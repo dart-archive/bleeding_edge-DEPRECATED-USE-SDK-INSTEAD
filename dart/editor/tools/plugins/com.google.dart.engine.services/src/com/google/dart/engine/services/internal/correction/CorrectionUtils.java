@@ -423,8 +423,8 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return given {@link DartStatement} if not {@link DartBlock}, all children
-   *         {@link DartStatement}s if {@link DartBlock}.
+   * @return given {@link Statement} if not {@link Block}, all children {@link Statement}s if
+   *         {@link Block}.
    */
   public static List<Statement> getStatements(Statement statement) {
     if (statement instanceof Block) {
@@ -769,6 +769,35 @@ public class CorrectionUtils {
   }
 
   /**
+   * Indents given source left or right.
+   * 
+   * @return the source with changed indentation.
+   */
+  public String getIndentSource(String source, boolean right) {
+    StringBuilder sb = new StringBuilder();
+    String indent = getIndent(1);
+    String eol = getEndOfLine();
+    String[] lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, eol);
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+      // last line, stop if empty
+      if (i == lines.length - 1 && StringUtils.isEmpty(line)) {
+        break;
+      }
+      // update line
+      if (right) {
+        line = indent + line;
+      } else {
+        line = StringUtils.removeStart(line, indent);
+      }
+      // append line
+      sb.append(line);
+      sb.append(eol);
+    }
+    return sb.toString();
+  }
+
+  /**
    * @return the source with indentation changed from "oldIndent" to "newIndent", keeping
    *         indentation of the lines relative to each other.
    */
@@ -878,7 +907,7 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return the {@link #getLinesRange(SourceRange)} for given {@link DartStatement}s.
+   * @return the {@link #getLinesRange(SourceRange)} for given {@link Statement}s.
    */
   public SourceRange getLinesRange(List<Statement> statements) {
     SourceRange range = rangeNodes(statements);
@@ -899,6 +928,13 @@ public class CorrectionUtils {
     int afterEndLineOffset = getLineContentEnd(endOffset);
     // range
     return rangeStartEnd(startLineOffset, afterEndLineOffset);
+  }
+
+  /**
+   * @return the {@link #getLinesRange(SourceRange)} for given {@link Statement}s.
+   */
+  public SourceRange getLinesRange(Statement... statements) {
+    return getLinesRange(ImmutableList.copyOf(statements));
   }
 
   /**

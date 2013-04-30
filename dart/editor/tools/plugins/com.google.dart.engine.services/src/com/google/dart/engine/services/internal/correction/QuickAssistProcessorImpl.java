@@ -47,6 +47,7 @@ import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
+import com.google.dart.engine.scanner.TokenClass;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.SourceChange;
@@ -140,18 +141,33 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     return false;
   }
 
+  /**
+   * Checks if given {@link Expression} should be wrapped with parenthesis when we want to use it as
+   * operand of logical "and" expression.
+   */
+  private static boolean shouldWrapParenthesisBeforeAnd(Expression expr) {
+    if (expr instanceof BinaryExpression) {
+      BinaryExpression binary = (BinaryExpression) expr;
+      int precedence = binary.getOperator().getType().getPrecedence();
+      return precedence < TokenClass.LOGICAL_AND_OPERATOR.getPrecedence();
+    }
+    return false;
+  }
+
   private final List<CorrectionProposal> proposals = Lists.newArrayList();
   private final List<Edit> textEdits = Lists.newArrayList();
   private Source source;
   private CompilationUnit unit;
   private ASTNode node;
   private int selectionOffset;
+
   private int selectionLength;
   private CorrectionUtils utils;
-
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
   private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
+
   private final Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
+
   private SourceRange proposalEndRange = null;
 
   @Override
@@ -330,6 +346,58 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     }
     // add proposal
     addUnitCorrectionProposal(QA_EXCHANGE_OPERANDS);
+  }
+
+  void addProposal_joinIfStatementInner() throws Exception {
+    // prepare target "if" statement
+    if (!(node instanceof IfStatement)) {
+      return;
+    }
+    IfStatement targetIfStatement = (IfStatement) node;
+    if (targetIfStatement.getElseStatement() != null) {
+      return;
+    }
+    // prepare inner "if" statement
+    Statement targetThenStatement = targetIfStatement.getThenStatement();
+    Statement innerStatement = CorrectionUtils.getSingleStatement(targetThenStatement);
+    if (!(innerStatement instanceof IfStatement)) {
+      return;
+    }
+    IfStatement innerIfStatement = (IfStatement) innerStatement;
+    if (innerIfStatement.getElseStatement() != null) {
+      return;
+    }
+    // prepare environment
+    String prefix = utils.getNodePrefix(targetIfStatement);
+    String eol = utils.getEndOfLine();
+    // merge conditions
+    String condition;
+    {
+      Expression targetCondition = targetIfStatement.getCondition();
+      Expression innerCondition = innerIfStatement.getCondition();
+      String targetConditionSource = getSource(targetCondition);
+      String innerConditionSource = getSource(innerCondition);
+      if (shouldWrapParenthesisBeforeAnd(targetCondition)) {
+        targetConditionSource = "(" + targetConditionSource + ")";
+      }
+      if (shouldWrapParenthesisBeforeAnd(innerCondition)) {
+        innerConditionSource = "(" + innerConditionSource + ")";
+      }
+      condition = targetConditionSource + " && " + innerConditionSource;
+    }
+    // replace target "if" statement
+    {
+      Statement innerThenStatement = innerIfStatement.getThenStatement();
+      List<Statement> innerThenStatements = CorrectionUtils.getStatements(innerThenStatement);
+      SourceRange lineRanges = utils.getLinesRange(innerThenStatements);
+      String oldSource = utils.getText(lineRanges);
+      String newSource = utils.getIndentSource(oldSource, false);
+      addReplaceEdit(
+          rangeNode(targetIfStatement),
+          MessageFormat.format("if ({0}) '{'{1}{2}{3}'}'", condition, eol, newSource, prefix));
+    }
+    // done
+    addUnitCorrectionProposal(CorrectionKind.QA_JOIN_IF_WITH_INNER);
   }
 
   void addProposal_joinVariableDeclaration_onAssignment() throws Exception {

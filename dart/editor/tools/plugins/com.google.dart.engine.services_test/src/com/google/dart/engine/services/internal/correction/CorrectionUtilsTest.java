@@ -427,6 +427,20 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals("    ", utils.getIndent(2));
   }
 
+  public void test_getIndentSource_direction_left() throws Exception {
+    parseTestUnit("");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    assertEquals("a\nb\nc\n", utils.getIndentSource("  a\n  b\n  c\n", false));
+    assertEquals("  a\n    b\n  c\n", utils.getIndentSource("    a\n      b\n    c\n", false));
+  }
+
+  public void test_getIndentSource_direction_right() throws Exception {
+    parseTestUnit("");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    assertEquals("  a\n  b\n  c\n", utils.getIndentSource("a\nb\nc\n", true));
+    assertEquals("    a\n      b\n    c\n", utils.getIndentSource("  a\n    b\n  c\n", true));
+  }
+
   public void test_getIndentSource_SourceRange() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -561,14 +575,16 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     Statement statementB = findNode("var b", Statement.class);
     Statement statementC = findNode("var c", Statement.class);
     {
-      SourceRange range = utils.getLinesRange(ImmutableList.of(statementA, statementB));
-      assertEquals(rangeStartEnd(statementA.getOffset() - 2, statementC.getOffset() - 2), range);
+      SourceRange expected = rangeStartEnd(statementA.getOffset() - 2, statementC.getOffset() - 2);
+      SourceRange range = utils.getLinesRange(statementA, statementB);
+      assertEquals(expected, range);
     }
     {
-      SourceRange range = utils.getLinesRange(ImmutableList.of(statementC));
-      assertEquals(
-          rangeStartEnd(statementC.getOffset() - 2, block.getRightBracket().getOffset()),
-          range);
+      SourceRange expected = rangeStartEnd(
+          statementC.getOffset() - 2,
+          block.getRightBracket().getOffset());
+      SourceRange range = utils.getLinesRange(statementC);
+      assertEquals(expected, range);
     }
   }
 
