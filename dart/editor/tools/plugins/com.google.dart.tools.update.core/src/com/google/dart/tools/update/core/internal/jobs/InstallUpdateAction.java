@@ -24,6 +24,7 @@ import com.google.dart.tools.update.core.internal.UpdateUtils;
 
 import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.debug.core.DebugException;
@@ -227,6 +228,16 @@ public class InstallUpdateAction extends Action {
     monitor.done();
   }
 
+  private void deleteUpdateDirectory(IProgressMonitor monitor) {
+    IPath updateDir = UpdateCore.getUpdateDirPath();
+    try {
+      UpdateUtils.deleteDirectory(updateDir.toFile(), monitor);
+    } catch (Throwable th) {
+      // Don't let exceptions in cleanup block update
+      UpdateCore.logError(th);
+    }
+  }
+
   private boolean doApplyUpdate(IProgressMonitor monitor) throws IOException {
 
     File installTarget = UpdateUtils.getUpdateInstallDir();
@@ -309,6 +320,9 @@ public class InstallUpdateAction extends Action {
       monitor.setTaskName("Running " + installScript.getName() + " script");
       runInstallScript(installScript, mon.newChild(20));
     }
+
+    // Cleanup
+    deleteUpdateDirectory(monitor);
 
     return true;
   }
