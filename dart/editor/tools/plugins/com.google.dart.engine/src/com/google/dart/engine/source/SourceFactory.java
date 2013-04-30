@@ -166,6 +166,22 @@ public class SourceFactory {
   }
 
   /**
+   * Return an absolute URI that represents the given source.
+   * 
+   * @param source the source to get URI for
+   * @return the absolute URI representing the given source, may be {@code null}
+   */
+  public URI restoreUri(Source source) {
+    for (UriResolver resolver : resolvers) {
+      URI uri = resolver.restoreAbsolute(source);
+      if (uri != null) {
+        return uri;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Set the contents of the given source to the given contents. This has the effect of overriding
    * the default contents of the source. If the contents are {@code null} the override is removed so
    * that the default contents will be returned.

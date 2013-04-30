@@ -114,6 +114,29 @@ public class PackageUriResolver extends UriResolver {
         relPath), UriKind.PACKAGE_URI);
   }
 
+  @Override
+  public URI restoreAbsolute(Source source) {
+    if (source instanceof FileBasedSource) {
+      String sourcePath = ((FileBasedSource) source).getFile().getPath();
+      for (File packagesDirectory : packagesDirectories) {
+        File[] pkgFolders = packagesDirectory.listFiles();
+        if (pkgFolders != null) {
+          for (File pkgFolder : pkgFolders) {
+            try {
+              String pkgCanonicalPath = pkgFolder.getCanonicalPath();
+              if (sourcePath.startsWith(pkgCanonicalPath)) {
+                String relPath = sourcePath.substring(pkgCanonicalPath.length());
+                return URI.create(PACKAGE_SCHEME + ":" + pkgFolder.getName() + relPath);
+              }
+            } catch (Exception e) {
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * Answer the canonical file for the specified package.
    * 

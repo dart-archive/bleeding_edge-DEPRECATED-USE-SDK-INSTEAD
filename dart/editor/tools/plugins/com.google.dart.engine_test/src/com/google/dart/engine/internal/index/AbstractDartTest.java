@@ -51,7 +51,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class AbstractDartTest extends TestCase {
   protected final static String lineSeparator = System.getProperty("line.separator", "\n");
 
-  private static final DartSdk defaultSdk = DirectoryBasedDartSdk.getDefaultSdk();
+  protected static final DartSdk defaultSdk = DirectoryBasedDartSdk.getDefaultSdk();
   protected static final SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
       defaultSdk));
   protected static AnalysisContext analysisContext;

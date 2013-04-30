@@ -110,6 +110,18 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   }
 
   /**
+   * Attempts to convert the given absolute {@link File} to the "package" {@link URI}.
+   * 
+   * @param context the {@link AnalysisContext} to work in.
+   * @param file the absolute {@link File}, not null.
+   * @return the "package" {@link URI}, may be {@code null}.
+   */
+  private static URI findPackageUri(AnalysisContext context, File file) {
+    Source fileSource = new FileBasedSource(null, file);
+    return context.getSourceFactory().restoreUri(fileSource);
+  }
+
+  /**
    * @return <code>true</code> if given {@link DartNode} could be type name.
    */
   private static boolean mayBeTypeIdentifier(ASTNode node) {
@@ -136,9 +148,10 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   private ASTNode node;
   private int selectionOffset;
   private int selectionLength;
-  private CorrectionUtils utils;
 
 //  private SourceRange proposalEndRange = null;
+
+  private CorrectionUtils utils;
 
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
 
@@ -227,20 +240,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
-  @Override
-  public boolean hasFix(AnalysisError problem) {
-    ErrorCode errorCode = problem.getErrorCode();
-//    System.out.println(errorCode.getClass() + " " + errorCode);
-    return errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST
-        || errorCode == ParserErrorCode.EXPECTED_TOKEN
-        || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
-        || errorCode == StaticWarningCode.UNDEFINED_CLASS
-        || errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN
-        || errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER
-        || errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION
-        || errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION;
-  }
-
   // TODO(scheglov) implement this
 //  private void addFix_createConstructor() {
 //    DartNewExpression newExpression = null;
@@ -314,6 +313,20 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 //      addUnitCorrectionProposal(targetUnit, TextFileChange.FORCE_SAVE, msg, OBJ_CONSTRUCTOR_IMG);
 //    }
 //  }
+
+  @Override
+  public boolean hasFix(AnalysisError problem) {
+    ErrorCode errorCode = problem.getErrorCode();
+//    System.out.println(errorCode.getClass() + " " + errorCode);
+    return errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST
+        || errorCode == ParserErrorCode.EXPECTED_TOKEN
+        || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
+        || errorCode == StaticWarningCode.UNDEFINED_CLASS
+        || errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN
+        || errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER
+        || errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION
+        || errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION;
+  }
 
   private void addFix_boolInsteadOfBoolean() {
     SourceRange range = rangeError(problem);
@@ -506,7 +519,17 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         if (libraryFile == null) {
           continue;
         }
-        // add import
+        // may be "package:" URI
+        {
+          URI libraryPackageUri = findPackageUri(context, libraryFile);
+          if (libraryPackageUri != null) {
+            addFix_importLibrary(
+                CorrectionKind.QF_IMPORT_LIBRARY_PROJECT,
+                libraryPackageUri.toString());
+            continue;
+          }
+        }
+        // relative URI
         URI unitLibraryUri = unitLibraryFolder.toURI();
         URI libraryUri = libraryFile.toURI();
         String relative = unitLibraryUri.relativize(libraryUri).getPath();

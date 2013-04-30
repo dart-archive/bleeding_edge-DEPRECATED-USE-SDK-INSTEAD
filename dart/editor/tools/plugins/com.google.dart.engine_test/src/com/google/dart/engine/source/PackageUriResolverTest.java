@@ -145,6 +145,27 @@ public class PackageUriResolverTest extends TestCase {
         new File(result.getFullName()));
   }
 
+  public void test_restore() throws Exception {
+    if (!FileUtilities2.isSymLinkSupported()) {
+      System.out.println("Skipping " + getClass().getSimpleName() + " test_restore");
+      return;
+    }
+
+    File argsCanonicalDir = FileUtilities2.createTempDir("args").getCanonicalFile();
+    File packagesDir = FileUtilities2.createTempDir("packages");
+
+    // Create symlink packages/args --> args-canonical
+    FileUtilities2.createSymLink(argsCanonicalDir, new File(packagesDir, "args"));
+
+    ContentCache contentCache = new ContentCache();
+    UriResolver resolver = new PackageUriResolver(packagesDir);
+
+    // args-canonical/args.dart --> packages:args/args.dart
+    File someDart = new File(argsCanonicalDir, "args.dart");
+    FileBasedSource source = new FileBasedSource(contentCache, someDart);
+    assertEquals(new URI("package:args/args.dart"), resolver.restoreAbsolute(source));
+  }
+
   @Override
   protected void tearDown() throws Exception {
     FileUtilities2.deleteTempDir();

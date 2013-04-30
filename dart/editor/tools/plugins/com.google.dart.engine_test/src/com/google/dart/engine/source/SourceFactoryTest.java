@@ -138,6 +138,35 @@ public class SourceFactoryTest extends TestCase {
     assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
   }
 
+  public void test_restoreUri() throws Exception {
+    File file1 = createFile("/some/file1.dart");
+    File file2 = createFile("/some/file2.dart");
+    final Source source1 = new FileBasedSource(null, file1);
+    final Source source2 = new FileBasedSource(null, file2);
+    final URI expected1 = new URI("http://www.google.com");
+    SourceFactory factory = new SourceFactory(new UriResolver() {
+      @Override
+      public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+        return null;
+      }
+
+      @Override
+      public Source resolveAbsolute(ContentCache contentCache, URI uri) {
+        return null;
+      }
+
+      @Override
+      public URI restoreAbsolute(Source source) {
+        if (source == source1) {
+          return expected1;
+        }
+        return null;
+      }
+    });
+    assertSame(expected1, factory.restoreUri(source1));
+    assertSame(null, factory.restoreUri(source2));
+  }
+
   public void test_setContents() {
     ContentCache contentCache = new ContentCache();
     SourceFactory factory = new SourceFactory(contentCache);

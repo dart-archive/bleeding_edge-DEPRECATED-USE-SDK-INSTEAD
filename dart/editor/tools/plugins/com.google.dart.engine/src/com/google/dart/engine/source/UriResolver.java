@@ -53,4 +53,14 @@ public abstract class UriResolver {
    * @return a {@link Source source} representing the file to which given URI was resolved
    */
   public abstract Source resolveAbsolute(ContentCache contentCache, URI uri);
+
+  /**
+   * Return an absolute URI that represents the given source.
+   * 
+   * @param source the source to get URI for
+   * @return the absolute URI representing the given source, may be {@code null}
+   */
+  public URI restoreAbsolute(Source source) {
+    return null;
+  }
 }
