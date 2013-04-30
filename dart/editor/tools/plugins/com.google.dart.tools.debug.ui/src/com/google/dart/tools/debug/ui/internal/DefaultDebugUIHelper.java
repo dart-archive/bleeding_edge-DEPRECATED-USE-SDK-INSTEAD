@@ -54,34 +54,40 @@ public class DefaultDebugUIHelper extends DebugUIHelper {
 
   @Override
   public void showDevtoolsDisconnectError(final String _title, final DartiumDebugTarget target) {
-    final Display display = Display.getDefault();
+    if (true) {
+      showError(
+          "Debugger Connection Closed",
+          "The debugger connection has been closed by DevTools.");
+    } else {
+      final Display display = Display.getDefault();
 
-    Display.getDefault().asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        if (display.isDisposed()) {
-          return;
-        }
-
-        String title = _title;
-        String message = "The debugger connection has been closed by DevTools.\n\n"
-            + "Do you want to re-connect? (DevTools must be closed first)";
-
-        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-
-        while (MessageDialog.openQuestion(shell, title, message)) {
-          try {
-            target.reconnect();
-
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          if (display.isDisposed()) {
             return;
-          } catch (IOException e) {
-            title = "Error Re-connecting";
-            message = "Got " + e.toString() + " while reconnecting.\n\n"
-                + "Try to reconnect again?";
+          }
+
+          String title = _title;
+          String message = "The debugger connection has been closed by DevTools.\n\n"
+              + "Do you want to re-connect? (DevTools must be closed first)";
+
+          Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+
+          while (MessageDialog.openQuestion(shell, title, message)) {
+            try {
+              target.reconnect();
+
+              return;
+            } catch (IOException e) {
+              title = "Error Re-connecting";
+              message = "Got " + e.toString() + " while reconnecting.\n\n"
+                  + "Try to reconnect again?";
+            }
           }
         }
-      }
-    });
+      });
+    }
   }
 
   @Override
