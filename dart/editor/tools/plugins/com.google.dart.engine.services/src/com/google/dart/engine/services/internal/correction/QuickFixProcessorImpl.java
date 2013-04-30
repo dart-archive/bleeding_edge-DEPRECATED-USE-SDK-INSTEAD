@@ -361,15 +361,14 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     if (node instanceof SimpleStringLiteral && node.getParent() instanceof PartDirective) {
       SimpleStringLiteral uriLiteral = (SimpleStringLiteral) node;
       String uriString = uriLiteral.getValue();
+      // prepare referenced File
       File newFile;
-      try {
+      {
         URI uri = URI.create(uriString);
         if (uri.isAbsolute()) {
           return;
         }
         newFile = new File(unitLibraryFolder, uriString);
-      } catch (IllegalArgumentException e) {
-        return;
       }
       if (!newFile.exists()) {
         // prepare new source

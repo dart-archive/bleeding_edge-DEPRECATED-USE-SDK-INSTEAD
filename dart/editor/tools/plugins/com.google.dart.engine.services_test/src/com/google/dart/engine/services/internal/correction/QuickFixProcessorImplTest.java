@@ -51,17 +51,6 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   private SourceCorrectionProposal resultProposal;
   private String resultCode;
 
-  public void fail_test_createPart_badUri() throws Exception {
-    // TODO(brianwilkerson) I'm not sure what this should be testing, now that engine is
-    // differentiating between invalid syntax and non-existant URI's.
-    prepareProblemWithFix(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library app;",
-        "part 'invalid[uri]';",
-        "");
-    assertNoFix(CorrectionKind.QF_CREATE_PART);
-  }
-
   public void fail_test_importLibrary_withTopLevelVariable() throws Exception {
     Source libSource = setFileContent(
         "LibA.dart",
