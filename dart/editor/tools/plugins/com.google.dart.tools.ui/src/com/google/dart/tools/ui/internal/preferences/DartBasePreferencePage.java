@@ -14,12 +14,10 @@
 package com.google.dart.tools.ui.internal.preferences;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
@@ -35,7 +33,6 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.editors.text.EditorsPlugin;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
@@ -56,7 +53,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Button enableFolding;
   private Button enableAutoCompletion;
   private Button runPubAutoCheck;
-  private Button legacyAnalyzer;
 
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
@@ -194,29 +190,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         experimentalGroup);
     GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(experimentalGroup);
 
-    legacyAnalyzer = createCheckBox(experimentalGroup, "Use legacy analyzer (not recommended)", //$NON-NLS-1$
-        "Use legacy analyzer"); //$NON-NLS-1$
-    GridDataFactory.fillDefaults().applyTo(legacyAnalyzer);
-
-    legacyAnalyzer.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        boolean confirmRestart = MessageDialog.openConfirm(getShell(), "Confirm restart", //$NON-NLS-1$
-            "The editor will restart NOW for this setting to take effect. " + //$NON-NLS-1$
-                "If you need to save your work, please click Cancel, save your work, " + //$NON-NLS-1$
-                "and return to this preference page to change the preference."); //$NON-NLS-1$
-        if (confirmRestart) {
-          DartCore.setUserDefinedProperty(
-              DartCoreDebug.ENABLE_NEW_ANALYSIS_USER_FLAG,
-              Boolean.toString(!legacyAnalyzer.getSelection()));
-          PlatformUI.getWorkbench().restart();
-        } else {
-          // Cancel
-          legacyAnalyzer.setSelection(!legacyAnalyzer.getSelection());
-        }
-      }
-    });
-
     initFromPrefs();
 
     return composite;
@@ -258,8 +231,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     if (prefs != null) {
       runPubAutoCheck.setSelection(prefs.getBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, true));
     }
-
-    legacyAnalyzer.setSelection(!DartCoreDebug.ENABLE_NEW_ANALYSIS);
 
   }
 

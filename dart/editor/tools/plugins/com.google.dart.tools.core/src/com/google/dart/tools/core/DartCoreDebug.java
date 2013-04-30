@@ -60,8 +60,9 @@ public class DartCoreDebug {
   public static final boolean ENABLE_HTML_VALIDATION = isOptionTrue("experimental/validateHtml");
 
   // Verify that dartc has not been specified and that the new analyzer is not explicitly disabled
-  public static final boolean ENABLE_NEW_ANALYSIS = !isOptionTrue("experimental/analysis/useDartc")
-      && !"false".equals(DartCore.getUserDefinedProperty(ENABLE_NEW_ANALYSIS_USER_FLAG));
+  public static final boolean ENABLE_NEW_ANALYSIS = true;
+  //!isOptionTrue("experimental/analysis/useDartc")
+  //&& !"false".equals(DartCore.getUserDefinedProperty(ENABLE_NEW_ANALYSIS_USER_FLAG));
 
   // Persistent developer settings
 
