@@ -14,11 +14,13 @@
 
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 import com.google.dart.tools.debug.core.webkit.WebkitConsole;
 
 import org.eclipse.debug.core.IStreamListener;
 import org.eclipse.debug.core.model.IStreamMonitor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +35,8 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
 
   private String lastMessage;
   private StringBuilder buffer = new StringBuilder();
+
+  private WebkitConnection connection;
 
   public DartiumStreamMonitor() {
 
@@ -86,6 +90,19 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
   @Override
   public void removeListener(IStreamListener listener) {
     listeners.remove(listener);
+  }
+
+  protected void connectTo(WebkitConnection connection) throws IOException {
+    if (this.connection != null) {
+      messagesCleared();
+
+      this.connection.getConsole().removeConsoleListener(this);
+    }
+
+    this.connection = connection;
+
+    connection.getConsole().addConsoleListener(this);
+    connection.getConsole().enable();
   }
 
   void messageAdded(String message) {

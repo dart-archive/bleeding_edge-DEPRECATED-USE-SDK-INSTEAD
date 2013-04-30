@@ -119,6 +119,19 @@ public class WebkitConnection {
     this.webSocketUri = webSocketUri;
   }
 
+  /**
+   * A copy constructor for DartiumDebugTarget.
+   * 
+   * @param connection
+   */
+  public WebkitConnection(WebkitConnection connection) {
+    this.host = connection.host;
+    this.port = connection.port;
+    this.webSocketFile = connection.webSocketFile;
+
+    this.webSocketUri = connection.webSocketUri;
+  }
+
   public void addConnectionListener(WebkitConnectionListener listener) {
     connectionListeners.add(listener);
   }

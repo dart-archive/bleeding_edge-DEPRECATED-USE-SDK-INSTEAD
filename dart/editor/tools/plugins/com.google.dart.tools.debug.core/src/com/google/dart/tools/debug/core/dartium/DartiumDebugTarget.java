@@ -44,7 +44,6 @@ import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
-import org.eclipse.debug.core.model.IStreamMonitor;
 import org.eclipse.debug.core.model.IThread;
 
 import java.io.IOException;
@@ -70,13 +69,30 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   private DartiumProcess process;
   private IResourceResolver resourceResolver;
   private DartiumDebugThread debugThread;
-  private DartiumStreamMonitor outputStreamMonitor;
   private BreakpointManager breakpointManager;
   private CssScriptManager cssScriptManager;
   private HtmlScriptManager htmlScriptManager;
   private DartCodeManager dartCodeManager;
   private boolean canSetScriptSource;
   private SourceMapManager sourceMapManager;
+
+  /**
+   * A copy constructor for DartiumDebugTarget.
+   * 
+   * @param target
+   */
+  public DartiumDebugTarget(DartiumDebugTarget target) {
+    this(
+        target.debugTargetName,
+        new WebkitConnection(target.connection),
+        target.launch,
+        null,
+        target.resourceResolver,
+        target.breakpointManager != null);
+
+    this.process = target.process;
+    this.process.switchTo(this);
+  }
 
   /**
    * @param target
@@ -93,8 +109,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     this.resourceResolver = resourceResolver;
 
     debugThread = new DartiumDebugThread(this);
-    process = new DartiumProcess(this, debugTargetName, javaProcess);
-    outputStreamMonitor = new DartiumStreamMonitor();
+
+    if (javaProcess != null) {
+      process = new DartiumProcess(this, debugTargetName, javaProcess);
+    }
 
     if (enableBreakpoints) {
       breakpointManager = new BreakpointManager(this, resourceResolver);
@@ -246,7 +264,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   @Override
   public boolean isTerminated() {
-    return process.isTerminated();
+    return debugThread == null;
   }
 
   /**
@@ -292,8 +310,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
     connection.connect();
 
-    connection.getConsole().addConsoleListener(outputStreamMonitor);
-    connection.getConsole().enable();
+    process.getStreamMonitor().connectTo(connection);
 
     connection.getPage().addPageListener(new WebkitPage.PageListenerAdapter() {
       @Override
@@ -394,6 +411,30 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
   }
 
+  /**
+   * Attempt to re-connect to a debug target. If successful, it will return a new
+   * DartiumDebugTarget.
+   * 
+   * @return
+   * @throws IOException
+   */
+  public DartiumDebugTarget reconnect() throws IOException {
+    DartiumDebugTarget newTarget = new DartiumDebugTarget(this);
+
+    newTarget.openConnection();
+
+    ILaunch launch = newTarget.getLaunch();
+    launch.addDebugTarget(newTarget);
+
+    for (IDebugTarget target : launch.getDebugTargets()) {
+      if (target.isTerminated()) {
+        launch.removeDebugTarget(target);
+      }
+    }
+
+    return newTarget;
+  }
+
   @Override
   public void resume() throws DebugException {
     debugThread.resume();
@@ -424,7 +465,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   }
 
   public void writeToStdout(String message) {
-    outputStreamMonitor.messageAdded(message);
+    process.getStreamMonitor().messageAdded(message);
   }
 
   protected WebkitCallback<Boolean> createNavigateWebkitCallback(final String url) {
@@ -464,18 +505,15 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       // When the user opens the Webkit inspector our debug connection is closed.
       // We warn the user when this happens, since it otherwise isn't apparent to them
       // when the debugger connection is closing.
-      DebugUIHelper.getHelper().showError(
-          "Debugger Connection Closed",
-          "The debugger connection has been closed by the remote host.");
+//      DebugUIHelper.getHelper().showError(
+//          "Debugger Connection Closed",
+//          "The debugger connection has been closed by the remote host.");
+      DebugUIHelper.getHelper().showDevtoolsDisconnectError("Debugger Connection Closed", this);
     }
   }
 
   protected boolean shouldUseSourceMapping() {
     return DartDebugCorePlugin.getPlugin().getUseSourceMaps();
-  }
-
-  IStreamMonitor getOutputStreamMonitor() {
-    return outputStreamMonitor;
   }
 
   private PauseOnExceptionsType getPauseType() {

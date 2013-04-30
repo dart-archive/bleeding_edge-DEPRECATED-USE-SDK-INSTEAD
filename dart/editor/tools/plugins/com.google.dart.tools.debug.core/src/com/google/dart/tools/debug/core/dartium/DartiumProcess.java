@@ -43,6 +43,7 @@ class DartiumProcess extends PlatformObject implements IProcess {
   private IStreamsProxy streamsProxy;
   private Map<String, String> attributes = new HashMap<String, String>();
   private Date launchTime;
+  private DartiumStreamMonitor streamMonitor;
 
   public DartiumProcess(DartiumDebugTarget target, String browserName, Process javaProcess) {
     this.target = target;
@@ -50,6 +51,7 @@ class DartiumProcess extends PlatformObject implements IProcess {
     this.javaProcess = javaProcess;
 
     launchTime = new Date();
+    streamMonitor = new DartiumStreamMonitor();
 
     if (javaProcess != null) {
       new Thread(new Runnable() {
@@ -133,7 +135,7 @@ class DartiumProcess extends PlatformObject implements IProcess {
 
         @Override
         public IStreamMonitor getOutputStreamMonitor() {
-          return target.getOutputStreamMonitor();
+          return streamMonitor;
         }
 
         @Override
@@ -170,6 +172,18 @@ class DartiumProcess extends PlatformObject implements IProcess {
     if (javaProcess != null) {
       javaProcess.destroy();
     }
+  }
+
+  protected Process getJavaProcess() {
+    return javaProcess;
+  }
+
+  protected DartiumStreamMonitor getStreamMonitor() {
+    return streamMonitor;
+  }
+
+  protected void switchTo(DartiumDebugTarget target) {
+    this.target = target;
   }
 
   protected void waitForExit() {

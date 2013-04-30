@@ -104,10 +104,10 @@ public class DartCoreDebug {
     instrumentation.metric("ENABLE_HTML_VALIDATION", ENABLE_HTML_VALIDATION);
     instrumentation.metric("ENABLE_NEW_ANALYSIS", ENABLE_NEW_ANALYSIS);
 
-    instrumentation.metric("DISABLE_MARK_OCCURRENCES", LOGGING_DEBUGGER);
+    instrumentation.metric("DISABLE_MARK_OCCURRENCES", DISABLE_MARK_OCCURRENCES);
 
-    instrumentation.metric("DISABLE_DARTIUM_DEBUGGER", LOGGING_DEBUGGER);
-    instrumentation.metric("DISABLE_CLI_DEBUGGER", LOGGING_DEBUGGER);
+    instrumentation.metric("DISABLE_DARTIUM_DEBUGGER", DISABLE_DARTIUM_DEBUGGER);
+    instrumentation.metric("DISABLE_CLI_DEBUGGER", DISABLE_CLI_DEBUGGER);
 
   }
 

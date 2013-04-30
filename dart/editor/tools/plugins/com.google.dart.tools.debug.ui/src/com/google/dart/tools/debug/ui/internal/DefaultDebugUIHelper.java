@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.ui.internal;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DebugUIHelper;
+import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
 
 import org.eclipse.jface.action.IStatusLineManager;
@@ -49,6 +50,38 @@ public class DefaultDebugUIHelper extends DebugUIHelper {
       // This is not necessary on Linux.
 
     }
+  }
+
+  @Override
+  public void showDevtoolsDisconnectError(final String _title, final DartiumDebugTarget target) {
+    final Display display = Display.getDefault();
+
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        if (display.isDisposed()) {
+          return;
+        }
+
+        String title = _title;
+        String message = "The debugger connection has been closed by DevTools.\n\n"
+            + "Do you want to re-connect? (DevTools must be closed first)";
+
+        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+
+        while (MessageDialog.openQuestion(shell, title, message)) {
+          try {
+            target.reconnect();
+
+            return;
+          } catch (IOException e) {
+            title = "Error Re-connecting";
+            message = "Got " + e.toString() + " while reconnecting.\n\n"
+                + "Try to reconnect again?";
+          }
+        }
+      }
+    });
   }
 
   @Override

@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
@@ -30,6 +31,12 @@ public abstract class DebugUIHelper {
   private static class DefaultDebugUIHelper extends DebugUIHelper {
     @Override
     public void activateApplication(File application, String name) {
+      // no-op
+
+    }
+
+    @Override
+    public void showDevtoolsDisconnectError(String title, DartiumDebugTarget target) {
       // no-op
 
     }
@@ -96,6 +103,8 @@ public abstract class DebugUIHelper {
   }
 
   public abstract void activateApplication(File application, String name);
+
+  public abstract void showDevtoolsDisconnectError(String title, DartiumDebugTarget target);
 
   public abstract void showError(String title, String message);
 
