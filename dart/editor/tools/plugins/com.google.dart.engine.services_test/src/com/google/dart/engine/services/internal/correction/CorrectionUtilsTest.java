@@ -59,12 +59,17 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.formatter.edit.Edit;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils.TopInsertDesc;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
+import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
+import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
+import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartLength;
 
@@ -828,6 +833,21 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     }
   }
 
+  public void test_getParentPrecedence() throws Exception {
+    SimpleIdentifier a = identifier("a");
+    SimpleIdentifier b = identifier("b");
+    // binary
+    {
+      binaryExpression(a, TokenType.PLUS, b);
+      assertEquals(TokenType.PLUS.getPrecedence(), CorrectionUtils.getParentPrecedence(a));
+    }
+    // no operator
+    {
+      SimpleIdentifier expr = identifier("c");
+      assertEquals(-1, CorrectionUtils.getParentPrecedence(expr));
+    }
+  }
+
   public void test_getParents() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -849,6 +869,28 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertThat(parents.get(4)).isInstanceOf(Block.class);
     assertThat(parents.get(5)).isInstanceOf(ExpressionStatement.class);
     assertThat(parents.get(6)).isInstanceOf(MethodInvocation.class);
+  }
+
+  public void test_getPrecedence() throws Exception {
+    SimpleIdentifier a = identifier("a");
+    SimpleIdentifier b = identifier("b");
+    // binary
+    assertEquals(
+        TokenType.PLUS.getPrecedence(),
+        CorrectionUtils.getPrecedence(binaryExpression(a, TokenType.PLUS, b)));
+    assertEquals(
+        TokenType.STAR.getPrecedence(),
+        CorrectionUtils.getPrecedence(binaryExpression(a, TokenType.STAR, b)));
+    // prefix
+    assertEquals(
+        TokenType.BANG.getPrecedence(),
+        CorrectionUtils.getPrecedence(prefixExpression(TokenType.BANG, a)));
+    // postfix
+    assertEquals(
+        TokenType.PLUS_PLUS.getPrecedence(),
+        CorrectionUtils.getPrecedence(postfixExpression(a, TokenType.PLUS_PLUS)));
+    // no operator
+    assertEquals(-1, CorrectionUtils.getPrecedence(a));
   }
 
   public void test_getPropertyAccessorElement_accessor() throws Exception {

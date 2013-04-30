@@ -297,6 +297,44 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_convertToExpressionBody_wrong(initial, "return;");
   }
 
+  public void test_convertToIsNot_OK() throws Exception {
+    String initial = "!(v is String)";
+    String expected = "v is! String";
+    assert_convertToIsNot(initial, "is String", expected);
+  }
+
+  public void test_convertToIsNot_OK_higherPrecedencePrefix() throws Exception {
+    String initial = "!!(v is String)";
+    String expected = "!(v is! String)";
+    assert_convertToIsNot(initial, "is String", expected);
+  }
+
+  public void test_convertToIsNot_wrong_alreadyIsNot() throws Exception {
+    String initial = "v is! String";
+    assert_convertToIsNot(initial, "is! String", initial);
+  }
+
+  public void test_convertToIsNot_wrong_noEnclosingParenthesis() throws Exception {
+    String initial = "v is String";
+    assert_convertToIsNot(initial, "is String", initial);
+  }
+
+  public void test_convertToIsNot_wrong_noPrefix() throws Exception {
+    String initial = "(v is String)";
+    assert_convertToIsNot(initial, "is String", initial);
+  }
+
+  public void test_convertToIsNot_wrong_notIsExpression() throws Exception {
+    String initial = "!(v is String)";
+    assert_convertToIsNot(initial, "String)", initial);
+  }
+
+  public void test_convertToIsNot_wrong_notTheNotOperator() throws Exception {
+    verifyNoTestUnitErrors = false;
+    String initial = "++(v is String)";
+    assert_convertToIsNot(initial, "is String", initial);
+  }
+
   /**
    * We should go up only until we have same operator.
    */
@@ -1430,6 +1468,17 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_convertToExpressionBody(initialSource, offsetPattern, initialSource);
   }
 
+  private void assert_convertToIsNot(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    initialSource = "var v;\nvar v2 = " + initialSource + ";";
+    expectedSource = "var v;\nvar v2 = " + expectedSource + ";";
+    assert_runProcessor(
+        CorrectionKind.QA_CONVERT_INTO_IS_NOT,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
   private void assert_exchangeBinaryExpressionArguments_success(String initialExpression,
       String offsetPattern, String expectedExpression) throws Exception {
     String initialSource = "var v = " + initialExpression + ";";
@@ -1516,7 +1565,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
    */
   private void assert_runProcessor(CorrectionKind kind, String expectedSource) throws Exception {
     // XXX used to see coverage of only one quick assist
-//    if (kind != CorrectionKind.QA_JOIN_IF_WITH_INNER) {
+//    if (kind != CorrectionKind.QA_CONVERT_INTO_IS_NOT) {
 //      return;
 //    }
     CorrectionProposal[] proposals = getProposals();

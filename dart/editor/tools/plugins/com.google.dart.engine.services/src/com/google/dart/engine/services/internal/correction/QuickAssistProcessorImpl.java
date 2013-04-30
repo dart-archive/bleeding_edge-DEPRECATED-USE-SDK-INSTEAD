@@ -31,7 +31,10 @@ import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.IfStatement;
+import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.ParenthesizedExpression;
+import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
@@ -67,6 +70,7 @@ import com.google.dart.engine.utilities.source.SourceRange;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_ADD_TYPE_ANNOTATION;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_BLOCK_BODY;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_EXPRESSION_BODY;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_IS_NOT;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_EXCHANGE_OPERANDS;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_JOIN_VARIABLE_DECLARATION;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_REMOVE_TYPE_ANNOTATION;
@@ -313,6 +317,42 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     addReplaceEdit(rangeNode(body), newBodySource);
     // add proposal
     addUnitCorrectionProposal(QA_CONVERT_INTO_EXPRESSION_BODY);
+  }
+
+  void addProposal_convertToIsNot() throws Exception {
+    // prepare "is"
+    if (!(node instanceof IsExpression)) {
+      return;
+    }
+    IsExpression isExpression = (IsExpression) node;
+    if (isExpression.getNotOperator() != null) {
+      return;
+    }
+    // prepare enclosing ()
+    ASTNode parent = isExpression.getParent();
+    if (!(parent instanceof ParenthesizedExpression)) {
+      return;
+    }
+    ParenthesizedExpression parExpression = (ParenthesizedExpression) parent;
+    // prepare enclosing !()
+    ASTNode parent2 = parent.getParent();
+    if (!(parent2 instanceof PrefixExpression)) {
+      return;
+    }
+    PrefixExpression prefExpression = (PrefixExpression) parent2;
+    if (prefExpression.getOperator().getType() != TokenType.BANG) {
+      return;
+    }
+    // strip !()
+    if (CorrectionUtils.getParentPrecedence(prefExpression) >= TokenType.IS.getPrecedence()) {
+      addRemoveEdit(rangeToken(prefExpression.getOperator()));
+    } else {
+      addRemoveEdit(rangeStartEnd(prefExpression, parExpression.getLeftParenthesis()));
+      addRemoveEdit(rangeStartEnd(parExpression.getRightParenthesis(), prefExpression));
+    }
+    addInsertEdit(isExpression.getIsOperator().getEnd(), "!");
+    // add proposal
+    addUnitCorrectionProposal(QA_CONVERT_INTO_IS_NOT);
   }
 
   void addProposal_exchangeOperands() throws Exception {

@@ -21,6 +21,7 @@ public enum CorrectionKind {
   QA_ADD_TYPE_ANNOTATION(30, "Add type annotation"),
   QA_CONVERT_INTO_BLOCK_BODY(30, "Convert into block body"),
   QA_CONVERT_INTO_EXPRESSION_BODY(30, "Convert into expression body"),
+  QA_CONVERT_INTO_IS_NOT(30, "Convert into is!"),
   QA_EXCHANGE_OPERANDS(30, "Exchange operands"),
   QA_JOIN_IF_WITH_INNER(30, "Join 'if' statement with inner 'if' statement"),
   QA_JOIN_IF_WITH_OUTER(30, "Join 'if' statement with outer 'if' statement"),

@@ -29,6 +29,8 @@ import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
+import com.google.dart.engine.ast.PostfixExpression;
+import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -357,6 +359,18 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return the precedence of the given {@link Expression} parent. May be {@code -1} no operator.
+   * @see #getPrecedence(Expression)
+   */
+  public static int getParentPrecedence(Expression expression) {
+    ASTNode parent = expression.getParent();
+    if (parent instanceof Expression) {
+      return getPrecedence((Expression) parent);
+    }
+    return -1;
+  }
+
+  /**
    * @return parent {@link ASTNode}s from {@link CompilationUnit} (at index "0") to the given one.
    */
   public static List<ASTNode> getParents(ASTNode node) {
@@ -367,6 +381,25 @@ public class CorrectionUtils {
       current = current.getParent();
     } while (current.getParent() != null);
     return parents;
+  }
+
+  /**
+   * @return the precedence of the given {@link Expression} operator. May be {@code -1} no operator.
+   */
+  public static int getPrecedence(Expression expression) {
+    if (expression instanceof BinaryExpression) {
+      BinaryExpression binaryExpression = (BinaryExpression) expression;
+      return binaryExpression.getOperator().getType().getPrecedence();
+    }
+    if (expression instanceof PrefixExpression) {
+      PrefixExpression prefixExpression = (PrefixExpression) expression;
+      return prefixExpression.getOperator().getType().getPrecedence();
+    }
+    if (expression instanceof PostfixExpression) {
+      PostfixExpression postfixExpression = (PostfixExpression) expression;
+      return postfixExpression.getOperator().getType().getPrecedence();
+    }
+    return -1;
   }
 
   /**
