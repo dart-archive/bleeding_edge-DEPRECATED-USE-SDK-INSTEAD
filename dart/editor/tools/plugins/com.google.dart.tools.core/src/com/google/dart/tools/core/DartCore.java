@@ -1564,7 +1564,7 @@ public class DartCore extends Plugin implements DartSdkListener {
 
   @Override
   public void sdkUpdated(DartSdk sdk) {
-    Job job = new CleanLibrariesJob(true);
+    Job job = new CleanLibrariesJob();
 
     job.schedule();
   }

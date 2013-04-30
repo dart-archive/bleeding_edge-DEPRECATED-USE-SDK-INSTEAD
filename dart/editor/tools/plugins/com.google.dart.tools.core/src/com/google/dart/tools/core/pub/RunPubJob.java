@@ -1,10 +1,8 @@
 package com.google.dart.tools.core.pub;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
-import com.google.dart.tools.core.internal.util.CanonicalizationManager;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 
@@ -134,11 +132,6 @@ public class RunPubJob extends Job {
       } catch (CoreException e) {
         // Log the exception and move on
         DartCore.logError("Exception refreshing " + container, e);
-      }
-
-      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        // Tell the CanonicalizationManager that the symlink paths may have changed.
-        CanonicalizationManager.getManager().reset();
       }
 
       return new Status(IStatus.OK, DartCore.PLUGIN_ID, stringBuilder.toString());

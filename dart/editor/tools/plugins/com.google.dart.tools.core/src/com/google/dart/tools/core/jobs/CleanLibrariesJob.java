@@ -13,12 +13,6 @@
  */
 package com.google.dart.tools.core.jobs;
 
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
-import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
-import com.google.dart.tools.core.internal.util.CanonicalizationManager;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -36,36 +30,17 @@ import org.eclipse.core.runtime.jobs.Job;
  * Clean all workspace projects and rebuild the index.
  */
 public class CleanLibrariesJob extends Job {
-  private boolean resetModel;
 
   public CleanLibrariesJob() {
-    this(false);
-  }
-
-  public CleanLibrariesJob(boolean resetModel) {
     super("Reanalyzing...");
-
-    this.resetModel = resetModel;
 
     setRule(ResourcesPlugin.getWorkspace().getRoot());
   }
 
   @Override
   protected IStatus run(IProgressMonitor monitor) {
-    // Reset our cached info about file canonicalizations.
-    CanonicalizationManager.getManager().reset();
 
     try {
-      if (resetModel && !DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        PackageLibraryManagerProvider.resetLibraryManager();
-
-        AnalysisIndexManager.startIndexing();
-        AnalysisIndexManager.startServer();
-
-        DartModelManager.getInstance().resetModel();
-      } else {
-        // nothing for new analysis
-      }
 
       SubMonitor subMonitor = SubMonitor.convert(monitor, "Reanalyzing...", 100);
 

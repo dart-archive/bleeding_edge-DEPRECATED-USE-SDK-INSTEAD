@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.pub;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.builder.BuildEvent;
@@ -22,7 +21,6 @@ import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.BuildVisitor;
 import com.google.dart.tools.core.builder.CleanEvent;
 import com.google.dart.tools.core.internal.builder.DartBuilder;
-import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
 import org.eclipse.core.resources.IContainer;
@@ -170,20 +168,15 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
   protected void processPubspecContents(IResource pubspec, IProject project,
       IProgressMonitor monitor) {
 
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
-      dartProject.recomputePackageInfo(pubspec);
-    } else {
-      try {
-        PubFolder pubFolder = DartCore.getProjectManager().getPubFolder(pubspec);
-        if (pubFolder != null) {
-          pubFolder.invalidatePubspec();
-        }
-      } catch (CoreException e) {
-        DartCore.logError(e);
-      } catch (IOException e) {
-        DartCore.logError(e);
+    try {
+      PubFolder pubFolder = DartCore.getProjectManager().getPubFolder(pubspec);
+      if (pubFolder != null) {
+        pubFolder.invalidatePubspec();
       }
+    } catch (CoreException e) {
+      DartCore.logError(e);
+    } catch (IOException e) {
+      DartCore.logError(e);
     }
 
   }
