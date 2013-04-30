@@ -679,13 +679,49 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_undefinedMethod_noSuchMethod() throws Exception {
+  public void test_undefinedMethod_noSuchMethod_getter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  noSuchMethod() {}",
         "}",
         "f() {",
-        "  (new A()).someMethod();",
+        "  var v = (new A()).g;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+  }
+
+  public void test_undefinedMethod_noSuchMethod_instanceField() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  noSuchMethod() {}",
+        "  f() {",
+        "    var v = a;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+  }
+
+  public void test_undefinedMethod_noSuchMethod_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  noSuchMethod() {}",
+        "}",
+        "f() {",
+        "  (new A()).m();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+  }
+
+  public void test_undefinedMethod_noSuchMethod_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  noSuchMethod() {}",
+        "}",
+        "f() {",
+        "  var v = (new A()).s(1);",
         "}"));
     resolve(source);
     assertNoErrors();
