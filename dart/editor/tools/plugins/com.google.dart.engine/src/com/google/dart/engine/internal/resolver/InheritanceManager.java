@@ -74,7 +74,8 @@ public class InheritanceManager {
    *         member exists
    */
   public ExecutableElement lookupInheritance(ClassElement classElt, String memberName) {
-    ExecutableElement executable = lookupMemberInSuperclassChainAndMixins(classElt, memberName);
+    ExecutableElement executable = computeClassChainLookupMap(classElt, new HashSet<ClassElement>()).get(
+        memberName);
     if (executable == null) {
       return computeInterfaceLookupMap(classElt, new HashSet<ClassElement>()).get(memberName);
     }
@@ -126,6 +127,10 @@ public class InheritanceManager {
     InterfaceType supertype = classElt.getSupertype();
     if (supertype != null) {
       superclassElt = supertype.getElement();
+    } else {
+      // classElt is Object
+      classLookup.put(classElt, resultMap);
+      return resultMap;
     }
     if (superclassElt != null) {
       if (!visitedClasses.contains(superclassElt)) {
@@ -134,24 +139,24 @@ public class InheritanceManager {
             superclassElt,
             visitedClasses));
       } else {
+        // This case happens only when the superclass was previously visited and not in the lookup,
+        // meaning this is meant to shorten the compute for recursive cases.
         classLookup.put(superclassElt, resultMap);
         return resultMap;
       }
 
-      // put the members from the superclass and mixins in to the resultMap
+      // put the members from the superclass
       populateMapWithClassMembers(resultMap, superclassElt);
-
-      InterfaceType[] mixins = supertype.getMixins();
-      for (int i = mixins.length - 1; i >= 0; i--) {
-        ClassElement mixinElement = mixins[i].getElement();
-        if (mixinElement != null) {
-          populateMapWithClassMembers(resultMap, mixinElement);
-        }
-      }
-    } else {
-      // classElt is Object
-      resultMap = new HashMap<String, ExecutableElement>(0);
     }
+
+    InterfaceType[] mixins = classElt.getMixins();
+    for (int i = mixins.length - 1; i >= 0; i--) {
+      ClassElement mixinElement = mixins[i].getElement();
+      if (mixinElement != null) {
+        populateMapWithClassMembers(resultMap, mixinElement);
+      }
+    }
+
     classLookup.put(classElt, resultMap);
     return resultMap;
   }
@@ -325,43 +330,6 @@ public class InheritanceManager {
       }
     }
     return null;
-  }
-
-  /**
-   * TODO (jwren) add missing javadoc
-   * 
-   * @param classElt
-   * @param memberName
-   * @return
-   */
-  private ExecutableElement lookupMemberInMixins(ClassElement classElt, String memberName) {
-    InterfaceType[] mixins = classElt.getMixins();
-    for (int i = mixins.length - 1; i >= 0; i--) {
-      ClassElement mixinElement = mixins[i].getElement();
-      if (mixinElement != null) {
-        ExecutableElement element = lookupMemberInClass(mixinElement, memberName);
-        if (element != null) {
-          return element;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * TODO (jwren) add missing javadoc
-   * 
-   * @param classElt
-   * @param memberName
-   * @return
-   */
-  private ExecutableElement lookupMemberInSuperclassChainAndMixins(ClassElement classElt,
-      String memberName) {
-    ExecutableElement executable = lookupMemberInMixins(classElt, memberName);
-    if (executable != null) {
-      return executable;
-    }
-    return computeClassChainLookupMap(classElt, new HashSet<ClassElement>()).get(memberName);
   }
 
   /**

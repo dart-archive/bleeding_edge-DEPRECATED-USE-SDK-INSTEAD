@@ -192,7 +192,7 @@ public class InheritanceManagerTest extends EngineTestCase {
     PropertyAccessorElement setterS = setterElement(setterName, false, typeProvider.getIntType());
     classA.setAccessors(new PropertyAccessorElement[] {setterS});
 
-    ClassElementImpl classB = classElement("B", classA.getType());
+    ClassElementImpl classB = classElement("B");
     classB.setMixins(new InterfaceType[] {classA.getType()});
     assertSame(setterS, inheritanceManager.lookupInheritance(classB, setterName));
   }
