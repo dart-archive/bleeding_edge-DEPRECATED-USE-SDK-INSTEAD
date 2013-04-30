@@ -20,6 +20,7 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(RunPubJobTest.class);
+    suite.addTestSuite(RunPubCacheListJobTest.class);
     suite.addTestSuite(PubBuildParticipantTest.class);
     suite.addTestSuite(PubspecModelTest.class);
     suite.addTestSuite(PubYamlUtilsTest.class);
