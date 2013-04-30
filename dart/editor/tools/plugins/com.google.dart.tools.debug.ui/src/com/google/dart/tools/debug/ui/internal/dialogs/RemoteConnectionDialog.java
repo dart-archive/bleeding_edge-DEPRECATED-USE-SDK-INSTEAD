@@ -32,9 +32,13 @@ import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -45,6 +49,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.dialogs.ListDialog;
 
 import java.util.List;
 
@@ -62,7 +67,7 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
     }
 
     @Override
-    public ChromiumTabInfo chooseTab(List<ChromiumTabInfo> tabs) {
+    public ChromiumTabInfo chooseTab(final List<ChromiumTabInfo> tabs) {
       if (tabs.size() == 0) {
         return null;
       }
@@ -71,7 +76,26 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
         return tabs.get(0);
       }
 
-      // TODO(devoncarew): display a chooser dialog
+      final ChromiumTabInfo[] result = new ChromiumTabInfo[1];
+
+      Display.getDefault().syncExec(new Runnable() {
+        @Override
+        public void run() {
+          ListDialog dlg = new ListDialog(
+              PlatformUI.getWorkbench().getWorkbenchWindows()[0].getShell());
+          dlg.setInput(tabs);
+          dlg.setTitle("Select tab for remote connection");
+          dlg.setContentProvider(new ArrayContentProvider());
+          dlg.setLabelProvider(new TabLabelProvider());
+          if (dlg.open() == Window.OK) {
+            result[0] = (ChromiumTabInfo) dlg.getResult()[0];
+          }
+        }
+      });
+
+      if (result[0] != null) {
+        return result[0];
+      }
 
       return new DefaultChromiumTabChooser().chooseTab(tabs);
     }
@@ -166,6 +190,22 @@ public class RemoteConnectionDialog extends TitleAreaDialog {
         Job job = new ConnectionJob(connectionDelegate, host, port);
         job.schedule();
       }
+    }
+  }
+
+  static class TabLabelProvider extends LabelProvider {
+
+    @Override
+    public Image getImage(Object element) {
+      return null;
+    }
+
+    @Override
+    public String getText(Object element) {
+      if (element instanceof ChromiumTabInfo) {
+        return ((ChromiumTabInfo) element).getTitle();
+      }
+      return null;
     }
   }
 
