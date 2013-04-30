@@ -24,6 +24,7 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
@@ -61,6 +62,13 @@ public class OpenAction extends AbstractDartSelectionAction {
 
   @Override
   protected void doRun(DartSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
+    Element element = getSelectionElement(selection);
+    openElement(element);
+  }
+
+  @Override
+  protected void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     Element element = getSelectionElement(selection);
     openElement(element);
