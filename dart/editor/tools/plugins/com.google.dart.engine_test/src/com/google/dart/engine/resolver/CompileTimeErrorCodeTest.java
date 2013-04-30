@@ -1576,24 +1576,21 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_invalidUri_export() throws Exception {
     Source source = addSource(createSource(//
-        "library L;",
-        "export 'unknown.dart';"));
+    "export 'ht:';"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_URI);
   }
 
   public void test_invalidUri_import() throws Exception {
     Source source = addSource(createSource(//
-        "library L;",
-        "import 'unknown.dart';"));
+    "import 'ht:';"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_URI);
   }
 
   public void test_invalidUri_part() throws Exception {
     Source source = addSource(createSource(//
-        "library L;",
-        "part 'unknown.dart';"));
+    "part 'ht:';"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_URI);
   }
@@ -1662,9 +1659,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
-  // through the ErrorVerifier, it is not a CompileTimeErrorCode.
   public void test_nativeFunctionBodyInNonSDKCode_function() throws Exception {
+    // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
+    // through the ErrorVerifier, it is not a CompileTimeErrorCode.
     Source source = addSource(createSource(//
     "int m(a) native 'string';"));
     resolve(source);
@@ -1672,9 +1669,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
-  // through the ErrorVerifier, it is not a CompileTimeErrorCode.
   public void test_nativeFunctionBodyInNonSDKCode_method() throws Exception {
+    // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
+    // through the ErrorVerifier, it is not a CompileTimeErrorCode.
     Source source = addSource(createSource(//
         "class A{",
         "  static int m(a) native 'string';",
@@ -1783,6 +1780,27 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR);
     verify(source);
+  }
+
+  public void test_uriDoesNotExist_export() throws Exception {
+    Source source = addSource(createSource(//
+    "export 'unknown.dart';"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
+  public void test_uriDoesNotExist_import() throws Exception {
+    Source source = addSource(createSource(//
+    "import 'unknown.dart';"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
+  public void test_uriDoesNotExist_part() throws Exception {
+    Source source = addSource(createSource(//
+    "part 'unknown.dart';"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.URI_DOES_NOT_EXIST);
   }
 
   public void test_uriWithInterpolation_constant() throws Exception {

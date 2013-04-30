@@ -184,7 +184,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
     try {
       ErrorCode errorCode = problem.getErrorCode();
-      if (errorCode == CompileTimeErrorCode.INVALID_URI) {
+      if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
         addFix_createPart();
       }
       if (errorCode == ParserErrorCode.EXPECTED_TOKEN) {
@@ -231,7 +231,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   public boolean hasFix(AnalysisError problem) {
     ErrorCode errorCode = problem.getErrorCode();
 //    System.out.println(errorCode.getClass() + " " + errorCode);
-    return errorCode == CompileTimeErrorCode.INVALID_URI
+    return errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST
         || errorCode == ParserErrorCode.EXPECTED_TOKEN
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
         || errorCode == StaticWarningCode.UNDEFINED_CLASS

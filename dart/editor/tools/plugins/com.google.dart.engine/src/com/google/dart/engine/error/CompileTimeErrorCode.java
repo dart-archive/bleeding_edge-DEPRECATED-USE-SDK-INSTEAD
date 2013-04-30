@@ -519,9 +519,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 14.3 Parts: It is a compile time error if the contents of the URI are not a valid part
    * declaration.
    * 
-   * @param uri the uri pointing to a non-library declaration
+   * @param uri the URI that is invalid
+   * @see #URI_DOES_NOT_EXIST
    */
-  INVALID_URI("'%s' is not a valid uri"),
+  INVALID_URI("Invalid URI syntax: '%s'"),
 
   /**
    * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within
@@ -807,6 +808,21 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * or a compile-time error occurs.
    */
   UNINITIALIZED_FINAL_FIELD(""),
+
+  /**
+   * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
+   * not a library declaration.
+   * <p>
+   * 14.1 Imports: It is a compile-time error if the compilation unit found at the specified URI is
+   * not a library declaration.
+   * <p>
+   * 14.3 Parts: It is a compile time error if the contents of the URI are not a valid part
+   * declaration.
+   * 
+   * @param uri the URI pointing to a non-existent file
+   * @see #INVALID_URI
+   */
+  URI_DOES_NOT_EXIST("Target of URI does not exist: '%s'"),
 
   /**
    * 14.1 Imports: It is a compile-time error if <i>x</i> is not a compile-time constant, or if

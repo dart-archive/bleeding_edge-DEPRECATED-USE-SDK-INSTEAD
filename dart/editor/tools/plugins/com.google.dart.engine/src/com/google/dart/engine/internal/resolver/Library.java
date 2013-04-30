@@ -30,6 +30,8 @@ import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.scope.LibraryScope;
 import com.google.dart.engine.source.Source;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -295,16 +297,28 @@ public class Library {
           CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
-    Source source = getSource(getStringValue(uriLiteral));
-    if (source == null || !source.exists()) {
+    String uriContent = getStringValue(uriLiteral);
+    try {
+      new URI(uriContent);
+      Source source = getSource(uriContent);
+      if (source == null || !source.exists()) {
+        errorListener.onError(new AnalysisError(
+            librarySource,
+            uriLiteral.getOffset(),
+            uriLiteral.getLength(),
+            CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+            uriContent));
+      }
+      return source;
+    } catch (URISyntaxException exception) {
       errorListener.onError(new AnalysisError(
           librarySource,
           uriLiteral.getOffset(),
           uriLiteral.getLength(),
           CompileTimeErrorCode.INVALID_URI,
-          uriLiteral.toSource()));
+          uriContent));
     }
-    return source;
+    return null;
   }
 
   /**

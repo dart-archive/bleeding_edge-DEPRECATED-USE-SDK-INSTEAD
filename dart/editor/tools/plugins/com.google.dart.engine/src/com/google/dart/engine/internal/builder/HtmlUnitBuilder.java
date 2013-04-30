@@ -182,13 +182,15 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
               reportError(
                   HtmlWarningCode.URI_DOES_NOT_EXIST,
                   scriptAttribute.getOffset() + 1,
-                  scriptSourcePath.length());
+                  scriptSourcePath.length(),
+                  scriptSourcePath);
             }
           } catch (URISyntaxException exception) {
             reportError(
                 HtmlWarningCode.INVALID_URI,
                 scriptAttribute.getOffset() + 1,
-                scriptSourcePath.length());
+                scriptSourcePath.length(),
+                scriptSourcePath);
           }
         }
         scripts.add(script);
