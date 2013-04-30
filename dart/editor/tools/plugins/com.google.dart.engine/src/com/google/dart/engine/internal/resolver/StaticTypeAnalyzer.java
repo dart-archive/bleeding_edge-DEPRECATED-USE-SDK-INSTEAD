@@ -410,7 +410,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     // Return the least-upper-bound of the then and else expressions.
     Type thenType = getType(node.getThenExpression());
     Type elseType = getType(node.getElseExpression());
-    if (thenType == null) {
+    if (thenType == null || elseType == null) {
       // TODO(brianwilkerson) Determine whether this can still happen.
       return recordType(node, dynamicType);
     }
@@ -658,7 +658,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
     if (USE_TYPE_PROPAGATION) {
-      // Consider adding support for $dom_createElement, even though it is deprecated.
       String methodName = node.getMethodName().getName();
       if (methodName.equals("$dom_createEvent")) {
         Expression target = node.getRealTarget();
@@ -700,6 +699,20 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
               if (returnType != null) {
                 return recordType(node, returnType);
               }
+            }
+          }
+        }
+      } else if (methodName.equals("$dom_createElement")) {
+        Expression target = node.getRealTarget();
+        Type targetType = getType(target);
+        if (targetType instanceof InterfaceType
+            && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals(
+                "Document"))) {
+          LibraryElement library = targetType.getElement().getLibrary();
+          if (isHtmlLibrary(library)) {
+            Type returnType = getFirstArgumentAsQuery(library, node.getArgumentList());
+            if (returnType != null) {
+              return recordType(node, returnType);
             }
           }
         }
