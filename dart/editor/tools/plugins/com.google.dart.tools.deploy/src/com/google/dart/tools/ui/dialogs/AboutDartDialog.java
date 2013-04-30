@@ -111,7 +111,7 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
    */
   protected void createContents() {
 
-    setSize(new Point(394, 420));
+    setSize(new Point(394, 440));
 
     addCopyDetailsPopup(this);
 
