@@ -219,6 +219,11 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String PACKAGES_DIRECTORY_NAME = "packages";
 
   /**
+   * Name of "lib" directory in package
+   */
+  public static final String LIB_DIRECTORY_NAME = "lib";
+
+  /**
    * Path string for packages directory
    */
   public static final String PACKAGES_DIRECTORY_PATH = File.separator + PACKAGES_DIRECTORY_NAME

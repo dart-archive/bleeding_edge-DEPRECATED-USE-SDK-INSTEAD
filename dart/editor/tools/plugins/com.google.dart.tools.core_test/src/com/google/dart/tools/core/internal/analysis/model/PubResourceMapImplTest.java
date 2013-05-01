@@ -30,6 +30,15 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
   private MockFolder packagesContainer;
   private MockFolder pkg1Container;
   private MockFolder pkg2Container;
+  private MockFolder libContainer;
+
+  public void test_getResource_fromSourceInLib() throws Exception {
+    MockFile res = libContainer.addFile("file.dart");
+    FileBasedSource source = new FileBasedSource(contentCache, res.getLocation().toFile());
+
+    PubResourceMapImpl map = newTarget();
+    assertSame(res, map.getResource(source));
+  }
 
   public void test_getResource_fromSourceInPackage() throws Exception {
     if (!setupSymlinks()) {
@@ -89,6 +98,7 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
     packagesContainer = pubContainer.addFolder(DartCore.PACKAGES_DIRECTORY_NAME);
     pkg1Container = packagesContainer.addFolder("pkg1");
     pkg2Container = packagesContainer.addFolder("pkg2");
+    libContainer = pubContainer.getMockFolder(DartCore.LIB_DIRECTORY_NAME);
   }
 
   protected boolean setupSymlinks() throws IOException {

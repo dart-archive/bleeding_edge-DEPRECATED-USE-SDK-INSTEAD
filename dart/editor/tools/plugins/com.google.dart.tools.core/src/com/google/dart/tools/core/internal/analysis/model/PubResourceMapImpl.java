@@ -26,15 +26,26 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
    */
   private IPath packagesLocation;
 
+  /**
+   * The root "lib" folder (not {@code null}).
+   */
+  private final String libPath;
+
   public PubResourceMapImpl(IContainer container, AnalysisContext context) {
     super(container, context);
     packagesFolder = container.getFolder(new Path(DartCore.PACKAGES_DIRECTORY_NAME));
     packagesLocation = container.getLocation().append(DartCore.PACKAGES_DIRECTORY_NAME);
+    libPath = container.getLocation().append(DartCore.LIB_DIRECTORY_NAME).toOSString();
   }
 
   @Override
   public IFile getResource(Source source) {
     String sourcePath = source.getFullName();
+    // may be self-reference
+    if (sourcePath.startsWith(libPath)) {
+      return super.getResource(source);
+    }
+    // analyze installed packages from "packages" folder
     String[] pkgNames = packagesLocation.toFile().list();
     if (pkgNames != null) {
       for (String pkgName : pkgNames) {
