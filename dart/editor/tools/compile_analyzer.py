@@ -69,17 +69,20 @@ def CopyFiles(options):
   for f in files.split(" "):
     shutil.copy(f, options.output_dir)
 
-def CreateClassPathFile(options):
+def CreateManifestFile(options):
   class_path_file_name = options.output_dir + options.class_path_file
   with open(class_path_file_name, 'w') as output:
+    # classpath
     print >> output, 'Class-Path:', '.',
     for r,d,f in os.walk(options.output_dir):
       for file in f:
         if file.endswith('.jar'):
           print >> output, file,
-    # Add new line
     print >> output
 
+    # version
+    print >> output, 'Implementation-Version: %s' % GetDartVersion()
+    
 def GetJavacPath():
   if 'JAVA_HOME' in os.environ:
     return join(os.environ['JAVA_HOME'], 'bin', 'javac' + GetExecutableExtension())
@@ -99,6 +102,27 @@ def GetExecutableExtension():
   else:
     return ''
 
+def GetDartVersion():
+  # 0.1.2.0_r13661
+  return RunDart("../tools/version.dart")
+
+def RunDart(scriptPath):
+  if sys.platform == 'darwin':
+    pipe = subprocess.Popen(
+          ['../tools/testing/bin/macos/dart', scriptPath],
+          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  elif os.name == 'posix':
+    pipe = subprocess.Popen(
+          ['../tools/testing/bin/linux/dart', scriptPath],
+          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  else:
+    pipe = subprocess.Popen(
+          ['..\\tools\\testing\\bin\\windows\\dart.exe', scriptPath],
+          stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
+  output = pipe.communicate()
+  return output[0]
+
 def main():
   (options, args) = GetOptions()
   # Clean out everything whenever we do a build, guarantees that we don't have
@@ -107,7 +131,7 @@ def main():
   os.makedirs(options.output_dir)
 
   CopyFiles(options)
-  CreateClassPathFile(options)
+  CreateManifestFile(options)
   CompileAnalyzer(options, args)
   CreateJarFile(options)
 
