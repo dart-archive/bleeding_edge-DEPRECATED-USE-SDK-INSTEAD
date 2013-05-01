@@ -194,7 +194,6 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     // return the position behind the closing parenthesis if it looks like a
     // method declaration
     // or an expression for an if, while, for, catch statement
-
     DartHeuristicScanner scanner = new DartHeuristicScanner(document);
     int pos = offset;
     int length = max;
@@ -203,7 +202,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       scanTo = length;
     }
 
-    int closingParen = findClosingParenToLeft(scanner, pos) - 1;
+    int closingParen = findClosingParenToLeft(scanner, pos) - 1; // loc before rparen
     boolean hasNewToken = looksLikeAnonymousClassDef(document, partitioning, scanner, pos);
     int openingParen = -1;
     while (true) {
@@ -232,7 +231,9 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       if (looksLikeAnonymousClassDef(document, partitioning, scanner, openingParen - 1)) {
         return closingParen + 1;
       }
-
+      if (looksLikeArgument(scanner, openingParen - 1, max)) {
+        return closingParen + 1;
+      }
     }
 
     return -1;
@@ -329,23 +330,6 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
     return null;
   }
-
-//  /**
-//   * Returns the possibly <code>project</code>-specific core preference defined under
-//   * <code>key</code>.
-//   * 
-//   * @param project the project to get the preference from, or <code>null</code> to get the global
-//   *          preference
-//   * @param key the key of the preference
-//   * @return the value of the preference
-//   */
-//  @SuppressWarnings("unused")
-//  private static String getCoreOption(DartProject project, String key) {
-//    if (project == null) {
-//      return DartCore.getOption(key);
-//    }
-//    return project.getOption(key, true);
-//  }
 
   /**
    * Returns the indentation of the line <code>line</code> in <code>document</code>. The returned
@@ -560,6 +544,12 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     return false;
   }
 
+  private static boolean looksLikeArgument(DartHeuristicScanner scanner, int position, int max) {
+    int rpLoc = scanner.findOpeningPeer(position, '(', ')');
+    int lpLoc = scanner.findClosingPeer(rpLoc + 1, max, '(', ')');
+    return lpLoc != DartHeuristicScanner.NOT_FOUND;
+  }
+
   /**
    * Installs a Dart partitioner with <code>document</code>.
    * 
@@ -616,15 +606,8 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   }
 
   private boolean fCloseBrace;
-
   private boolean fIsSmartMode;
-
-//  private final DartProject fProject;
-//
-//  private static DartScanner scanner;
-
   private boolean fIsSmartTab;
-
   private String fPartitioning;
 
   /**
@@ -639,11 +622,8 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
    *          preferences from, or null to use default // * preferences
    * @param viewer the source viewer that this strategy is attached to
    */
-  public DartAutoIndentStrategy(String partitioning,
-//      DartProject project, 
-      ISourceViewer viewer) {
+  public DartAutoIndentStrategy(String partitioning, ISourceViewer viewer) {
     fPartitioning = partitioning;
-//    fProject = project;
     fViewer = viewer;
   }
 
@@ -1196,10 +1176,11 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         c.shiftsCaret = false;
 
         // copy old content of line behind insertion point to new line
-        // unless we think we are inserting an anonymous type definition
+        // unless we think we are inserting an unnamed function argument
 
+        int anonPos = -1;
         if (c.offset == 0
-            || computeAnonymousPosition(d, c.offset - 1, fPartitioning, lineEnd) == -1) {
+            || (anonPos = computeAnonymousPosition(d, c.offset - 1, fPartitioning, lineEnd)) == -1) {
           if (lineEnd - contentStart > 0) {
             c.length = lineEnd - c.offset;
             buf.append(d.get(contentStart, lineEnd - contentStart).toCharArray());
@@ -1212,7 +1193,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         if (nonWS < c.offset && d.getChar(nonWS) == '{') {
           reference = new StringBuffer(d.get(start, nonWS - start));
         } else {
-          reference = indenter.getReferenceIndentation(c.offset);
+          reference = indenter.getReferenceIndentation(c.offset, anonPos >= 0);
         }
         if (reference != null) {
           buf.append(reference);
