@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 
@@ -106,26 +107,38 @@ public class FileBasedSource implements Source {
     RandomAccessFile file = new RandomAccessFile(this.file, "r");
     FileChannel channel = null;
     ByteBuffer byteBuffer = null;
-    try {
-      channel = file.getChannel();
-      long size = channel.size();
-      if (size > Integer.MAX_VALUE) {
-        throw new IllegalStateException("File is too long to be read");
-      }
-      int length = (int) size;
-      byte[] bytes = new byte[length];
-      byteBuffer = ByteBuffer.wrap(bytes);
-      byteBuffer.position(0);
-      byteBuffer.limit(length);
-      channel.read(byteBuffer);
-    } finally {
-      if (channel != null) {
-        try {
-          channel.close();
-        } catch (IOException exception) {
-          // Ignored
+    Exception thrownException = null;
+    int readCount = 5;
+    do {
+      thrownException = null;
+      try {
+        channel = file.getChannel();
+        long size = channel.size();
+        if (size > Integer.MAX_VALUE) {
+          throw new IllegalStateException("File is too long to be read");
+        }
+        int length = (int) size;
+        byte[] bytes = new byte[length];
+        byteBuffer = ByteBuffer.wrap(bytes);
+        byteBuffer.position(0);
+        byteBuffer.limit(length);
+        channel.read(byteBuffer);
+      } catch (ClosedByInterruptException exception) {
+        // Eclipse appears to be interrupting the thread
+        thrownException = exception;
+      } finally {
+        if (channel != null) {
+          try {
+            channel.close();
+          } catch (IOException exception) {
+            // Ignored
+          }
         }
       }
+      readCount--;
+    } while (thrownException != null && readCount > 0);
+    if (thrownException != null) {
+      throw thrownException;
     }
     byteBuffer.rewind();
     receiver.accept(UTF_8_CHARSET.decode(byteBuffer), modificationTime);
