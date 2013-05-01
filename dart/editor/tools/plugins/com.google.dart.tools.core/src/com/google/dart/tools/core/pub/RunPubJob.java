@@ -81,6 +81,7 @@ public class RunPubJob extends Job {
    * @return the result of running the pub command
    */
   public IStatus runSilent(IProgressMonitor monitor) {
+    ProcessRunner runner = null;
     try {
       // Build the process description to run pub
       DartSdk sdk = DartSdkManager.getManager().getSdk();
@@ -103,7 +104,7 @@ public class RunPubJob extends Job {
       builder.command(args);
 
       // Run the pub command as an external process.
-      ProcessRunner runner = newProcessRunner(builder);
+      runner = newProcessRunner(builder);
 
       try {
         runner.runSync(monitor);
@@ -139,6 +140,9 @@ public class RunPubJob extends Job {
       String message = NLS.bind(PubMessages.RunPubJob_canceled, command);
       return new Status(IStatus.CANCEL, DartCore.PLUGIN_ID, message, exception);
     } finally {
+      if (runner != null) {
+        runner.dispose();
+      }
       monitor.done();
     }
   }
