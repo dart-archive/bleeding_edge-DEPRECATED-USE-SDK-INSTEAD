@@ -168,7 +168,7 @@ public class EngineTestCase extends TestCase {
       fail("Expected array of size " + expectedSize + "; contained " + array.length + " elements");
     }
     for (int i = 0; i < expectedElements.length; i++) {
-      Object element = array[0];
+      Object element = array[i];
       Object expectedElement = expectedElements[i];
       if (!Objects.equal(element, expectedElement)) {
         fail("Expected " + expectedElement + " at [" + i + "]; found " + element);

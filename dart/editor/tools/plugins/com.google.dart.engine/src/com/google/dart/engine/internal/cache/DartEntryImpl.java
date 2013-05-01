@@ -23,8 +23,6 @@ import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Instances of the class {@code DartEntryImpl} implement a {@link DartEntry}.
@@ -37,6 +35,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * a compilation unit as part of a specific library.
    */
   private static class ResolutionState {
+
+    /**
+     * The next resolution state or {@code null} if none.
+     */
+    private ResolutionState nextState;
+
     /**
      * The state of the cached resolved compilation unit.
      */
@@ -60,6 +64,13 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
 
     /**
+     * The source for the defining compilation unit of the library that contains this unit. If this
+     * unit is the defining compilation unit for it's library, then this will be the source for this
+     * unit.
+     */
+    private Source librarySource;
+
+    /**
      * Initialize a newly created resolution state.
      */
     public ResolutionState() {
@@ -67,21 +78,28 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
 
     /**
-     * Set this state to be exactly like the given state.
+     * Set this state to be exactly like the given state, recursively copying the next state as
+     * necessary.
      * 
      * @param other the state to be copied
      */
     public void copyFrom(ResolutionState other) {
+      librarySource = other.librarySource;
       resolvedUnitState = other.resolvedUnitState;
       resolvedUnit = other.resolvedUnit;
       resolutionErrorsState = other.resolutionErrorsState;
       resolutionErrors = other.resolutionErrors;
+      if (other.nextState != null) {
+        nextState = new ResolutionState();
+        nextState.copyFrom(other.nextState);
+      }
     }
 
     /**
      * Invalidate all of the resolution information associated with the compilation unit.
      */
     public void invalidateAllResolutionInformation() {
+      librarySource = null;
       resolvedUnitState = CacheState.INVALID;
       resolvedUnit = null;
       resolutionErrorsState = CacheState.INVALID;
@@ -133,24 +151,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private Source[] includedParts = Source.EMPTY_ARRAY;
 
   /**
-   * The source for the defining compilation unit of the library that contains this unit, or
-   * {@code null} if this unit is contained in multiple libraries. (If this unit is the defining
-   * compilation unit for it's library, then this will be the source for this unit.)
-   */
-  private Source librarySource;
-
-  /**
    * The information known as a result of resolving this compilation unit as part of the library
-   * that contains this unit, or {@code null} if this unit is contained in multiple libraries.
+   * that contains this unit. This field will never be {@code null}.
    */
   private ResolutionState resolutionState = new ResolutionState();
-
-  /**
-   * A table mapping the sources of the libraries containing this compilation unit to the
-   * information known as a result of resolving this compilation unit as part of the library, or
-   * {@code null} if this unit is contained in a single library.
-   */
-  private HashMap<Source, ResolutionState> resolutionMap;
 
   /**
    * The state of the cached library element.
@@ -221,17 +225,13 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     for (AnalysisError error : parseErrors) {
       errors.add(error);
     }
-    if (resolutionMap == null) {
-      for (AnalysisError error : resolutionState.resolutionErrors) {
+    ResolutionState state = resolutionState;
+    do {
+      for (AnalysisError error : state.resolutionErrors) {
         errors.add(error);
       }
-    } else {
-      for (ResolutionState state : resolutionMap.values()) {
-        for (AnalysisError error : state.resolutionErrors) {
-          errors.add(error);
-        }
-      }
-    }
+      state = state.nextState;
+    } while (state != null);
     if (errors.size() == 0) {
       return AnalysisError.NO_ERRORS;
     }
@@ -243,25 +243,18 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (parsedUnitState == CacheState.VALID) {
       return parsedUnit;
     }
-    if (resolutionMap == null) {
-      return resolutionState.resolvedUnit;
-    } else {
-      for (ResolutionState state : resolutionMap.values()) {
-        if (state.resolvedUnitState == CacheState.VALID) {
-          return state.resolvedUnit;
-        }
-      }
-    }
-    return null;
+    return getAnyResolvedCompilationUnit();
   }
 
   @Override
   public CompilationUnit getAnyResolvedCompilationUnit() {
-    for (ResolutionState state : resolutionMap.values()) {
+    ResolutionState state = resolutionState;
+    do {
       if (state.resolvedUnitState == CacheState.VALID) {
         return state.resolvedUnit;
       }
-    }
+      state = state.nextState;
+    } while (state != null);
     return null;
   }
 
@@ -295,27 +288,19 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   @Override
   public CacheState getState(DataDescriptor<?> descriptor, Source librarySource) {
-    if (descriptor == RESOLUTION_ERRORS) {
-      if (resolutionMap == null) {
-        return resolutionState.resolutionErrorsState;
-      } else {
-        ResolutionState state = resolutionMap.get(librarySource);
-        if (state != null) {
-          return state.resolutionErrorsState;
+    ResolutionState state = resolutionState;
+    do {
+      if (librarySource.equals(state.librarySource)) {
+        if (descriptor == RESOLUTION_ERRORS) {
+          return resolutionState.resolutionErrorsState;
+        } else if (descriptor == RESOLVED_UNIT) {
+          return resolutionState.resolvedUnitState;
+        } else {
+          throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
         }
       }
-    } else if (descriptor == RESOLVED_UNIT) {
-      if (resolutionMap == null) {
-        return resolutionState.resolvedUnitState;
-      } else {
-        ResolutionState state = resolutionMap.get(librarySource);
-        if (state != null) {
-          return state.resolvedUnitState;
-        }
-      }
-    } else {
-      throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
-    }
+      state = state.nextState;
+    } while (state != null);
     return CacheState.INVALID;
   }
 
@@ -345,33 +330,26 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   @Override
   @SuppressWarnings("unchecked")
   public <E> E getValue(DataDescriptor<E> descriptor, Source librarySource) {
-    if (descriptor == RESOLUTION_ERRORS) {
-      if (resolutionMap == null) {
-        if (librarySource != null && librarySource.equals(this.librarySource)) {
-          return (E) resolutionState.resolutionErrors;
-        }
-      } else {
-        ResolutionState state = resolutionMap.get(librarySource);
-        if (state != null) {
+    ResolutionState state = resolutionState;
+    do {
+      if (librarySource.equals(state.librarySource)) {
+        if (descriptor == RESOLUTION_ERRORS) {
           return (E) state.resolutionErrors;
+        } else if (descriptor == RESOLVED_UNIT) {
+          return (E) state.resolvedUnit;
+        } else {
+          throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
         }
       }
+      state = state.nextState;
+    } while (state != null);
+    if (descriptor == RESOLUTION_ERRORS) {
       return (E) AnalysisError.NO_ERRORS;
     } else if (descriptor == RESOLVED_UNIT) {
-      if (resolutionMap == null) {
-        if (librarySource != null && librarySource.equals(this.librarySource)) {
-          return (E) resolutionState.resolvedUnit;
-        }
-      } else {
-        ResolutionState state = resolutionMap.get(librarySource);
-        if (state != null) {
-          return (E) state.resolvedUnit;
-        }
-      }
+      return null;
     } else {
       throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
     }
-    return null;
   }
 
   @Override
@@ -385,13 +363,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * Invalidate all of the resolution information associated with the compilation unit.
    */
   public void invalidateAllResolutionInformation() {
-    if (resolutionMap == null) {
-      resolutionState.invalidateAllResolutionInformation();
-    } else {
-      for (ResolutionState state : resolutionMap.values()) {
-        state.invalidateAllResolutionInformation();
-      }
-    }
+    resolutionState.invalidateAllResolutionInformation();
+    resolutionState.nextState = null;
     elementState = CacheState.INVALID;
     element = null;
     publicNamespaceState = CacheState.INVALID;
@@ -409,25 +382,24 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    *          contain this part but no longer does
    */
   public void removeResolution(Source librarySource) {
-    if (librarySource == null) {
-      return;
-    }
-    if (resolutionMap == null) {
-      if (librarySource.equals(this.librarySource)) {
-        resolutionState.invalidateAllResolutionInformation();
-        this.librarySource = null;
-      }
-    } else {
-      resolutionMap.remove(librarySource);
-      if (resolutionMap.size() == 1) {
-        //
-        // We now have resolution state for a single library. Convert from the multi-library form to
-        // the single library form.
-        //
-        Map.Entry<Source, ResolutionState> entry = resolutionMap.entrySet().iterator().next();
-        this.librarySource = entry.getKey();
-        resolutionState = entry.getValue();
-        resolutionMap = null;
+    if (librarySource != null) {
+      if (librarySource.equals(resolutionState.librarySource)) {
+        if (resolutionState.nextState == null) {
+          resolutionState.invalidateAllResolutionInformation();
+        } else {
+          resolutionState = resolutionState.nextState;
+        }
+      } else {
+        ResolutionState priorState = resolutionState;
+        ResolutionState state = resolutionState.nextState;
+        while (state != null) {
+          if (librarySource.equals(state.librarySource)) {
+            priorState.nextState = state.nextState;
+            break;
+          }
+          priorState = state;
+          state = state.nextState;
+        }
       }
     }
   }
@@ -492,58 +464,19 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * @param descriptor the descriptor representing the data whose state is to be set
    * @param librarySource the source of the defining compilation unit of the library that is the
    *          context for the data
-   * @param state the new state of the data represented by the given descriptor
+   * @param cacheState the new state of the data represented by the given descriptor
    */
-  public void setState(DataDescriptor<?> descriptor, Source librarySource, CacheState state) {
-    if (resolutionMap == null) {
-      if (this.librarySource == null) {
-        //
-        // This is the first library to have resolution state.
-        //
-        this.librarySource = librarySource;
-      } else if (!this.librarySource.equals(librarySource)) {
-        //
-        // We now have resolution state for a second library. Convert from the single library form to
-        // the multi-library form.
-        //
-        resolutionMap = new HashMap<Source, ResolutionState>();
-        resolutionMap.put(this.librarySource, resolutionState);
-        this.librarySource = null;
-        resolutionState = null;
-      }
-    }
+  public void setState(DataDescriptor<?> descriptor, Source librarySource, CacheState cacheState) {
+    ResolutionState state = getOrCreateResolutionState(librarySource);
     if (descriptor == RESOLUTION_ERRORS) {
-      if (resolutionMap == null) {
-        resolutionState.resolutionErrors = updatedValue(
-            state,
-            resolutionState.resolutionErrors,
-            AnalysisError.NO_ERRORS);
-        resolutionState.resolutionErrorsState = state;
-      } else {
-        ResolutionState resolutionState = resolutionMap.get(librarySource);
-        if (resolutionState == null) {
-          resolutionState = new ResolutionState();
-          resolutionMap.put(librarySource, resolutionState);
-        }
-        resolutionState.resolutionErrors = updatedValue(
-            state,
-            resolutionState.resolutionErrors,
-            AnalysisError.NO_ERRORS);
-        resolutionState.resolutionErrorsState = state;
-      }
+      state.resolutionErrors = updatedValue(
+          cacheState,
+          state.resolutionErrors,
+          AnalysisError.NO_ERRORS);
+      state.resolutionErrorsState = cacheState;
     } else if (descriptor == RESOLVED_UNIT) {
-      if (resolutionMap == null) {
-        resolutionState.resolvedUnit = updatedValue(state, resolutionState.resolvedUnit, null);
-        resolutionState.resolvedUnitState = state;
-      } else {
-        ResolutionState resolutionState = resolutionMap.get(librarySource);
-        if (resolutionState == null) {
-          resolutionState = new ResolutionState();
-          resolutionMap.put(librarySource, resolutionState);
-        }
-        resolutionState.resolvedUnit = updatedValue(state, resolutionState.resolvedUnit, null);
-        resolutionState.resolvedUnitState = state;
-      }
+      state.resolvedUnit = updatedValue(cacheState, state.resolvedUnit, null);
+      state.resolvedUnitState = cacheState;
     } else {
       throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
     }
@@ -598,47 +531,13 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * @param value the new value of the data represented by the given descriptor and library
    */
   public <E> void setValue(DataDescriptor<E> descriptor, Source librarySource, E value) {
-    if (resolutionMap == null) {
-      if (this.librarySource == null) {
-        //
-        // This is the first library to have resolution state.
-        //
-        this.librarySource = librarySource;
-      } else if (!this.librarySource.equals(librarySource)) {
-        //
-        // We now have resolution state for a second library. Convert from the single library form to
-        // the multi-library form.
-        //
-        resolutionMap = new HashMap<Source, ResolutionState>();
-        resolutionMap.put(this.librarySource, resolutionState);
-        this.librarySource = null;
-        resolutionState = null;
-      }
-    }
+    ResolutionState state = getOrCreateResolutionState(librarySource);
     if (descriptor == RESOLUTION_ERRORS) {
-      if (resolutionMap == null) {
-        resolutionState.resolutionErrors = value == null ? AnalysisError.NO_ERRORS
-            : (AnalysisError[]) value;
-        resolutionState.resolutionErrorsState = CacheState.VALID;
-      } else {
-        ResolutionState state = resolutionMap.get(librarySource);
-        if (state != null) {
-          state.resolutionErrors = value == null ? AnalysisError.NO_ERRORS
-              : (AnalysisError[]) value;
-          state.resolutionErrorsState = CacheState.VALID;
-        }
-      }
+      state.resolutionErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
+      state.resolutionErrorsState = CacheState.VALID;
     } else if (descriptor == RESOLVED_UNIT) {
-      if (resolutionMap == null) {
-        resolutionState.resolvedUnit = (CompilationUnit) value;
-        resolutionState.resolvedUnitState = CacheState.VALID;
-      } else {
-        ResolutionState state = resolutionMap.get(librarySource);
-        if (state != null) {
-          state.resolvedUnit = (CompilationUnit) value;
-          state.resolvedUnitState = CacheState.VALID;
-        }
-      }
+      state.resolvedUnit = (CompilationUnit) value;
+      state.resolvedUnitState = CacheState.VALID;
     }
   }
 
@@ -654,19 +553,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     parseErrors = other.parseErrors;
     includedPartsState = other.includedPartsState;
     includedParts = other.includedParts;
-    if (other.resolutionMap == null) {
-      librarySource = other.librarySource;
-      ResolutionState newState = new ResolutionState();
-      newState.copyFrom(resolutionState);
-      resolutionState = newState;
-    } else {
-      resolutionMap = new HashMap<Source, ResolutionState>();
-      for (Map.Entry<Source, ResolutionState> mapEntry : other.resolutionMap.entrySet()) {
-        ResolutionState newState = new ResolutionState();
-        newState.copyFrom(mapEntry.getValue());
-        resolutionMap.put(mapEntry.getKey(), newState);
-      }
-    }
+    resolutionState.copyFrom(other.resolutionState);
     elementState = other.elementState;
     element = other.element;
     publicNamespaceState = other.publicNamespaceState;
@@ -674,6 +561,30 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     clientServerState = other.clientServerState;
     launchableState = other.launchableState;
     bitmask = other.bitmask;
+  }
+
+  /**
+   * Return a resolution state for the specified library, creating one as necessary.
+   * 
+   * @param librarySource the library source (not {@code null})
+   * @return the resolution state (not {@code null})
+   */
+  private ResolutionState getOrCreateResolutionState(Source librarySource) {
+    ResolutionState state = resolutionState;
+    if (state.librarySource == null) {
+      state.librarySource = librarySource;
+      return state;
+    }
+    while (!state.librarySource.equals(librarySource)) {
+      if (state.nextState == null) {
+        ResolutionState newState = new ResolutionState();
+        newState.librarySource = librarySource;
+        state.nextState = newState;
+        return newState;
+      }
+      state = state.nextState;
+    }
+    return state;
   }
 
   /**
