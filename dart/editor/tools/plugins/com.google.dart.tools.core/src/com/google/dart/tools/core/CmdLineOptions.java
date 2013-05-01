@@ -149,7 +149,6 @@ public class CmdLineOptions {
     }
 
     options.packageRoots = roots.toArray(new File[roots.size()]);
-    options.packageRootString = roots.size() > 0 ? roots.get(0).getPath() : null;
 
     return options;
   }
@@ -203,7 +202,6 @@ public class CmdLineOptions {
   private String runTestName = null;
   private boolean junitTestsAreRunning = false;
   private long startTime = 0;
-  private String packageRootString = null;
   private File[] packageRoots = null;
   private File packageOverrideDirectory = null;
   private ArrayList<String> warnings = new ArrayList<String>();
@@ -255,16 +253,6 @@ public class CmdLineOptions {
    */
   public File[] getPackageRoots() {
     return packageRoots;
-  }
-
-  /**
-   * Answer a string representing the package root specified on the command line. If more than one
-   * is specified, then answer the first.
-   * 
-   * @return the package root or {@code null} if none specified
-   */
-  public String getPackageRootString() {
-    return packageRootString;
   }
 
   /**

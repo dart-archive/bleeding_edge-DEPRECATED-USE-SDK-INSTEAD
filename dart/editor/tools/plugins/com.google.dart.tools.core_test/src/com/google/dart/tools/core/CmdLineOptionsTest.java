@@ -39,7 +39,6 @@ public class CmdLineOptionsTest extends TestCase {
   public void test_parse_empty() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {});
     assertOptions(options, false, 0, false, 0, false, 0, 0);
-    assertEquals(null, options.getPackageRootString());
   }
 
   public void test_parse_file() {
@@ -82,7 +81,6 @@ public class CmdLineOptionsTest extends TestCase {
     File file1 = new File("foo").getAbsoluteFile();
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--package-root", "foo"});
     assertOptions(options, false, 0, false, 0, false, 1, 0);
-    assertEquals(file1.getPath(), options.getPackageRootString());
     assertEquals(file1, options.getPackageRoots()[0]);
   }
 
@@ -92,7 +90,6 @@ public class CmdLineOptionsTest extends TestCase {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {
         "--package-root", "foo", "bar"});
     assertOptions(options, false, 0, false, 0, false, 2, 0);
-    assertEquals(file1.getPath(), options.getPackageRootString());
     assertEquals(file1, options.getPackageRoots()[0]);
     assertEquals(file2, options.getPackageRoots()[1]);
   }
