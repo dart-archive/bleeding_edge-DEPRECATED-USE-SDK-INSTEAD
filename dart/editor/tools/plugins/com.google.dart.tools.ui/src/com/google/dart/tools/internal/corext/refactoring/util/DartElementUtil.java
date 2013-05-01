@@ -210,20 +210,7 @@ public class DartElementUtil {
    * @return the {@link CompilationUnitElement} of the given {@link IFile}, may be {@code null}.
    */
   public static CompilationUnitElement getCompilationUnitElement(IFile file) {
-    // prepare context
-    ProjectManager projectManager = DartCore.getProjectManager();
-    Source source = projectManager.getSource(file);
-    AnalysisContext context = projectManager.getContext(file);
-    if (source == null || context == null) {
-      return null;
-    }
-    // prepare library
-    Source[] librarySources = context.getLibrariesContaining(source);
-    if (librarySources.length != 1) {
-      return null;
-    }
-    // get unit element
-    CompilationUnit resolvedUnit = context.getResolvedCompilationUnit(source, librarySources[0]);
+    CompilationUnit resolvedUnit = getResolvedCompilationUnit(file);
     if (resolvedUnit == null) {
       return null;
     }
@@ -240,6 +227,26 @@ public class DartElementUtil {
       element = fieldParameterElement.getField();
     }
     return element;
+  }
+
+  /**
+   * @return the resolved {@link CompilationUnit} of the given {@link IFile}, may be {@code null}.
+   */
+  public static CompilationUnit getResolvedCompilationUnit(IFile file) {
+    // prepare context
+    ProjectManager projectManager = DartCore.getProjectManager();
+    Source source = projectManager.getSource(file);
+    AnalysisContext context = projectManager.getContext(file);
+    if (source == null || context == null) {
+      return null;
+    }
+    // prepare library
+    Source[] librarySources = context.getLibrariesContaining(source);
+    if (librarySources.length != 1) {
+      return null;
+    }
+    // get unit element
+    return context.getResolvedCompilationUnit(source, librarySources[0]);
   }
 
   /**

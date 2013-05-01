@@ -15,29 +15,34 @@ package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.common.base.Objects;
 import com.google.dart.compiler.util.apache.FilenameUtils;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.UriBasedDirective;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExportElement;
+import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRangeFactory;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartImport;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartPart;
-import com.google.dart.tools.core.search.SearchEngine;
-import com.google.dart.tools.core.search.SearchEngineFactory;
-import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
+import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
-import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager_OLD;
+import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -51,6 +56,7 @@ import org.eclipse.ltk.core.refactoring.participants.MoveParticipant;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
+import java.io.File;
 import java.net.URI;
 import java.util.List;
 
@@ -61,7 +67,19 @@ import java.util.List;
  */
 public class MoveResourceParticipant extends MoveParticipant {
 
-  private final TextChangeManager_OLD changeManager = new TextChangeManager_OLD(true);
+  /**
+   * @return the Java {@link File} which corresponds to the given {@link Source}, may be
+   *         {@code null} if cannot be determined.
+   */
+  private static File getSourceFile(Source source) {
+    if (source instanceof FileBasedSource) {
+      FileBasedSource fileBasedSource = (FileBasedSource) source;
+      return new File(fileBasedSource.getFullName()).getAbsoluteFile();
+    }
+    return null;
+  }
+
+  private final TextChangeManager changeManager = new TextChangeManager();
 
   private IFile file;
 
@@ -79,10 +97,6 @@ public class MoveResourceParticipant extends MoveParticipant {
   @Override
   public Change createPreChange(final IProgressMonitor pm) throws CoreException,
       OperationCanceledException {
-    // TODO(scheglov) implement for new engine
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return null;
-    }
     return ExecutionUtils.runObjectCore(new RunnableObjectEx<Change>() {
       @Override
       public Change runObject() throws Exception {
@@ -106,11 +120,16 @@ public class MoveResourceParticipant extends MoveParticipant {
   }
 
   private void addReferenceUpdate(SearchMatch match, URI destUri) throws Exception {
-    CompilationUnit cu = match.getElement().getAncestor(CompilationUnit.class);
+    Source source = match.getElement().getSource();
+    //
+    File sourceFile = getSourceFile(source);
+    if (sourceFile == null) {
+      return;
+    }
     // prepare name prefix
     String namePrefix;
     {
-      URI sourceUri = cu.getResource().getParent().getLocationURI();
+      URI sourceUri = sourceFile.getParentFile().toURI();
       URI relative = URIUtilities.relativize(sourceUri, destUri);
       namePrefix = FilenameUtils.separatorsToUnix(relative.toString());
       if (namePrefix.length() != 0 && !namePrefix.endsWith("/")) {
@@ -123,39 +142,42 @@ public class MoveResourceParticipant extends MoveParticipant {
     int end = SourceRangeUtils.getEnd(matchRange) - "'".length() - file.getName().length();
     // add TextEdit to rename "old name" with "new name"
     TextEdit edit = new ReplaceEdit(begin, end - begin, namePrefix);
-    addTextEdit(cu, RefactoringCoreMessages.RenameProcessor_update_reference, edit);
+    addTextEdit(source, RefactoringCoreMessages.RenameProcessor_update_reference, edit);
   }
 
-  private void addTextEdit(CompilationUnit unit, String groupName, TextEdit textEdit) {
-    if (unit.getResource() != null) {
-      TextChange change = getTextChange(unit);
-      if (change == null) {
-        change = changeManager.get(unit);
-      }
-      TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
+  private void addTextEdit(Source source, String groupName, TextEdit textEdit) {
+    TextChange change = changeManager.get(source);
+    TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
+  }
+
+  private void addUnitUriTextEdit(CompilationUnitElement fileElement, URI newUnitUri,
+      Element element, StringLiteral uriNode) {
+    if (element != null) {
+      Source partUnit = element.getSource();
+      SourceRange uriRange = SourceRangeFactory.rangeNode(uriNode);
+      addUnitUriTextEdit(fileElement.getSource(), newUnitUri, uriRange, partUnit);
     }
   }
 
   /**
-   * Updates URI of "targetUnit" referenced from "sourceUnit".
+   * Updates URI of "target" referenced from "source".
    */
-  private void addUnitUriTextEdit(CompilationUnit sourceUnit, URI sourceUri, SourceRange uriRange,
-      CompilationUnit targetUnit) {
-    IResource targetResource = targetUnit.getResource();
-    if (targetResource != null) {
-      URI targetUri = targetResource.getLocationURI();
-      if (URIUtilities.isFileUri(sourceUri) && URIUtilities.isFileUri(targetUri)) {
-        URI relative = URIUtilities.relativize(sourceUri, targetUri);
-        String relativeStr = FilenameUtils.separatorsToUnix(relative.toString());
-        String relativeSource = "'" + relativeStr + "'";
-        ReplaceEdit textEdit = new ReplaceEdit(
-            uriRange.getOffset(),
-            uriRange.getLength(),
-            relativeSource);
-        String msg = RefactoringCoreMessages.RenameProcessor_update_reference;
-        addTextEdit(sourceUnit, msg, textEdit);
-      }
+  private void addUnitUriTextEdit(Source source, URI sourceUri, SourceRange uriRange, Source target) {
+    File sourceFile = getSourceFile(source);
+    File targetFile = getSourceFile(target);
+    if (sourceFile == null || targetFile == null) {
+      return;
     }
+    URI targetUri = targetFile.toURI();
+    URI relative = URIUtilities.relativize(sourceUri, targetUri);
+    String relativeStr = FilenameUtils.separatorsToUnix(relative.toString());
+    String relativeSource = "'" + relativeStr + "'";
+    ReplaceEdit textEdit = new ReplaceEdit(
+        uriRange.getOffset(),
+        uriRange.getLength(),
+        relativeSource);
+    String msg = RefactoringCoreMessages.RenameProcessor_update_reference;
+    addTextEdit(source, msg, textEdit);
   }
 
   /**
@@ -163,36 +185,40 @@ public class MoveResourceParticipant extends MoveParticipant {
    */
   private Change createChangeEx(IProgressMonitor pm) throws Exception {
     MoveArguments arguments = getArguments();
+    // prepare unit
+    CompilationUnit fileUnit = DartElementUtil.getResolvedCompilationUnit(file);
+    if (fileUnit == null) {
+      return null;
+    }
+    CompilationUnitElement fileElement = fileUnit.getElement();
     // update references
     Object destination = arguments.getDestination();
     if (arguments.getUpdateReferences() && destination instanceof IContainer) {
       IContainer destContainer = (IContainer) destination;
       URI destURI = ((IContainer) destination).getLocationURI();
-      // update references to moving unit
-      SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
-      List<SearchMatch> references = searchEngine.searchReferences(file, null, null, pm);
+      // prepare references
+      SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
+      List<SearchMatch> references = searchEngine.searchReferences(fileElement, null, null);
+      // update references
       for (SearchMatch match : references) {
         addReferenceUpdate(match, destURI);
       }
       // if moved Unit is defining library, updates references from it to its components
       {
-        DartElement fileElement = DartCore.create(file);
-        if (fileElement instanceof CompilationUnit) {
-          CompilationUnit unit = (CompilationUnit) fileElement;
-          DartLibrary library = unit.getLibrary();
-          if (library != null && Objects.equal(library.getDefiningCompilationUnit(), unit)) {
-            URI newUnitUri = destContainer.getLocationURI();
-            // "import"
-            for (DartImport imp : library.getImports()) {
-              SourceRange uriRange = imp.getUriRange();
-              CompilationUnit impUnit = imp.getLibrary().getDefiningCompilationUnit();
-              addUnitUriTextEdit(unit, newUnitUri, uriRange, impUnit);
-            }
-            // "part"
-            for (DartPart part : library.getParts()) {
-              SourceRange uriRange = part.getUriRange();
-              CompilationUnit partUnit = part.getUnit();
-              addUnitUriTextEdit(unit, newUnitUri, uriRange, partUnit);
+        LibraryElement library = fileElement.getLibrary();
+        if (library != null && Objects.equal(library.getDefiningCompilationUnit(), fileElement)) {
+          URI newUnitUri = destContainer.getLocationURI();
+          for (Directive directive : fileUnit.getDirectives()) {
+            if (directive instanceof UriBasedDirective) {
+              StringLiteral uriNode = ((UriBasedDirective) directive).getUri();
+              Element targetElement = directive.getElement();
+              if (targetElement instanceof ImportElement) {
+                targetElement = ((ImportElement) targetElement).getImportedLibrary();
+              }
+              if (targetElement instanceof ExportElement) {
+                targetElement = ((ExportElement) targetElement).getExportedLibrary();
+              }
+              addUnitUriTextEdit(fileElement, newUnitUri, targetElement, uriNode);
             }
           }
         }
