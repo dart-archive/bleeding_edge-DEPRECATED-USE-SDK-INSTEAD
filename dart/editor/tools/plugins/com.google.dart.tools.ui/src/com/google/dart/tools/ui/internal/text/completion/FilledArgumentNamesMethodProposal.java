@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -25,14 +25,15 @@ import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.link.LinkedModeModel;
 import org.eclipse.jface.text.link.LinkedModeUI;
-import org.eclipse.jface.text.link.LinkedPosition;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A method proposal with filled in argument names.
@@ -56,16 +57,8 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
 
     if (fArgumentOffsets != null && getTextViewer() != null) {
       try {
-        LinkedModeModel model = new LinkedModeModel();
-        for (int i = 0; i != fArgumentOffsets.length; i++) {
-          LinkedPositionGroup group = new LinkedPositionGroup();
-          group.addPosition(new LinkedPosition(
-              document,
-              baseOffset + fArgumentOffsets[i],
-              fArgumentLengths[i],
-              LinkedPositionGroup.NO_STOP));
-          model.addGroup(group);
-        }
+        OptionalArgumentModel model = new OptionalArgumentModel();
+        buildLinkedModeModel(model, document, baseOffset);
 
         model.forceInstall();
         DartEditor editor = getDartEditor();
@@ -75,6 +68,7 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
 
         LinkedModeUI ui = new EditorLinkedModeUI(model, getTextViewer());
         ui.setExitPosition(getTextViewer(), baseOffset + replacement.length(), 0, Integer.MAX_VALUE);
+        model.exitPositionUpdater(ui, getTextViewer(), baseOffset + replacement.length());
         ui.setExitPolicy(new ExitPolicy(')', document));
         ui.setDoContextInfo(true);
         ui.setCyclingMode(LinkedModeUI.CYCLE_WHEN_NO_PARENT);
@@ -98,6 +92,32 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
     }
 
     return new Point(fSelectedRegion.getOffset(), fSelectedRegion.getLength());
+  }
+
+  protected void buildLinkedModeModel(OptionalArgumentModel model, IDocument document,
+      int baseOffset) throws BadLocationException {
+    List<OptionalArgumentPosition> positions = new ArrayList<OptionalArgumentPosition>();
+    boolean hasNamed = getProposal().hasNamedParameters();
+    int positionalCount = getProposal().getPositionalParameterCount();
+    for (int i = 0; i != fArgumentOffsets.length; i++) {
+      LinkedPositionGroup group = new LinkedPositionGroup();
+      OptionalArgumentPosition pos;
+      pos = new OptionalArgumentPosition(
+          document,
+          baseOffset + fArgumentOffsets[i],
+          fArgumentLengths[i],
+          LinkedPositionGroup.NO_STOP);
+      boolean isRequired = i < positionalCount;
+      pos.setIsRequired(isRequired);
+      if (!isRequired && hasNamed) {
+        pos.resetNameStart();
+      }
+      positions.add(pos);
+      group.addPosition(pos);
+      model.setHasNamed(hasNamed);
+      model.addGroup(group);
+    }
+    model.setPositions(positions, document);
   }
 
   @Override
@@ -140,8 +160,8 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
       buffer.append(parameterNames[i]);
       fArgumentLengths[i] = parameterNames[i].length;
       if (hasNamed && i >= positionalCount) {
-        buffer.append(':');
-        fArgumentLengths[i]++;
+        buffer.append(": ");
+        fArgumentLengths[i] += 2;
       }
     }
 
