@@ -882,7 +882,8 @@ public class ResolverVisitor extends ScopedVisitor {
     // TODO(brianwilkerson) This needs to be significantly improved. Ideally we would eventually
     // turn this into a method on Statement that returns a termination indication (normal, abrupt
     // with no exception, abrupt with an exception).
-    if (statement instanceof ReturnStatement) {
+    if (statement instanceof ReturnStatement || statement instanceof BreakStatement
+        || statement instanceof ContinueStatement) {
       return true;
     } else if (statement instanceof ExpressionStatement) {
       return isAbruptTermination(((ExpressionStatement) statement).getExpression());

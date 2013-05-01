@@ -596,7 +596,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // This is really a function expression invocation.
       //
       // TODO(brianwilkerson) Consider the possibility of re-writing the AST.
-      PropertyAccessorElement getter = (PropertyAccessorElement) element;
+      PropertyAccessorElement getter = ((PropertyAccessorElement) element).getVariable().getGetter();
       FunctionType getterType = getter.getType();
       if (getterType != null) {
         Type returnType = getterType.getReturnType();
@@ -606,8 +606,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
               methodName,
               methodName.getName());
         }
+        MethodElement callMethod = getExecutableElement(returnType);
+        if (callMethod != null) {
+          recordResolution(methodName, callMethod);
+          return null;
+        }
       }
-      recordResolution(methodName, element);
+      recordResolution(methodName, getter);
       return null;
     } else if (element instanceof ExecutableElement) {
       invokedMethod = (ExecutableElement) element;
@@ -1074,6 +1079,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           return parameter;
         }
       }
+    }
+    return null;
+  }
+
+  /**
+   * If the given type represents a class that implements the call operator, return the element for
+   * the call method, otherwise {@code null}.
+   * 
+   * @param type the type defining the call method
+   * @return the element representing the call method
+   */
+  private MethodElement getExecutableElement(Type type) {
+    if (type instanceof InterfaceType) {
+      ClassElement classElement = ((InterfaceType) type).getElement();
+      return classElement.lookUpMethod("call", resolver.getDefiningLibrary());
     }
     return null;
   }
