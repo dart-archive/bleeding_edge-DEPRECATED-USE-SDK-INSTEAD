@@ -799,6 +799,32 @@ public class DartIndenter {
   }
 
   /**
+   * Computes the indentation at the reference point of <code>position</code>.
+   * 
+   * @param offset the offset in the document
+   * @param assumeOpeningBrace <code>true</code> if an opening brace should be assumed
+   * @return a String which reflects the indentation at the line in which the reference position to
+   *         <code>offset</code> resides, or <code>null</code> if it cannot be determined
+   */
+  public StringBuffer getReferenceIndentation(int offset, boolean assumeOpeningBrace) {
+
+    int unit;
+    if (assumeOpeningBrace) {
+      unit = findReferencePosition(offset, Symbols.TokenLBRACE);
+    } else {
+      unit = findReferencePosition(offset, peekChar(offset));
+    }
+
+    // if we were unable to find anything, return null
+    if (unit == DartHeuristicScanner.NOT_FOUND) {
+      return null;
+    }
+
+    return getLeadingWhitespace(unit);
+
+  }
+
+  /**
    * Computes the length of a <code>CharacterSequence</code>, counting a tab character as the size
    * until the next tab stop and every other character as one.
    * 
@@ -953,32 +979,6 @@ public class DartIndenter {
     } catch (BadLocationException e) {
       return indent;
     }
-  }
-
-  /**
-   * Computes the indentation at the reference point of <code>position</code>.
-   * 
-   * @param offset the offset in the document
-   * @param assumeOpeningBrace <code>true</code> if an opening brace should be assumed
-   * @return a String which reflects the indentation at the line in which the reference position to
-   *         <code>offset</code> resides, or <code>null</code> if it cannot be determined
-   */
-  private StringBuffer getReferenceIndentation(int offset, boolean assumeOpeningBrace) {
-
-    int unit;
-    if (assumeOpeningBrace) {
-      unit = findReferencePosition(offset, Symbols.TokenLBRACE);
-    } else {
-      unit = findReferencePosition(offset, peekChar(offset));
-    }
-
-    // if we were unable to find anything, return null
-    if (unit == DartHeuristicScanner.NOT_FOUND) {
-      return null;
-    }
-
-    return getLeadingWhitespace(unit);
-
   }
 
   /**
