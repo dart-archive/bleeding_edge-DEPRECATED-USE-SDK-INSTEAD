@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
@@ -51,10 +50,12 @@ import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.engine.utilities.source.SourceRangeFactory;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.text.IDartColorConstants;
+
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeToken;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
@@ -276,18 +277,6 @@ public class SemanticHighlightings {
     public boolean isEnabledByDefault() {
       return true;
     }
-
-    private List<SourceRange> addPosition(List<SourceRange> positions, SourceRange range) {
-      if (positions == null) {
-        positions = Lists.newArrayList();
-      }
-      positions.add(range);
-      return positions;
-    }
-
-    private List<SourceRange> addPosition(List<SourceRange> positions, Token token) {
-      return addPosition(positions, SourceRangeFactory.rangeToken(token));
-    }
   }
 
   private static class ClassHighlighting extends DefaultSemanticHighlighting {
@@ -352,6 +341,18 @@ public class SemanticHighlightings {
     @Override
     public boolean isUnderlineByDefault() {
       return false;
+    }
+
+    protected List<SourceRange> addPosition(List<SourceRange> positions, SourceRange range) {
+      if (positions == null) {
+        positions = Lists.newArrayList();
+      }
+      positions.add(range);
+      return positions;
+    }
+
+    protected List<SourceRange> addPosition(List<SourceRange> positions, Token token) {
+      return addPosition(positions, rangeToken(token));
     }
 
     RGB defaultFieldColor() {
@@ -429,29 +430,30 @@ public class SemanticHighlightings {
       List<SourceRange> result = null;
       ASTNode node = token.getNode();
       if (node instanceof LibraryDirective) {
-        result = addPosition(result, token, "#library");
-        result = addPosition(result, token, "library");
+        LibraryDirective directive = (LibraryDirective) node;
+        result = addPosition(result, directive.getKeyword());
       }
       if (node instanceof ImportDirective) {
-        result = addPosition(result, token, "#import");
-        result = addPosition(result, token, "import");
-        result = addPosition(result, token, "show");
-        result = addPosition(result, token, "hide");
+        ImportDirective directive = (ImportDirective) node;
+        result = addPosition(result, directive.getKeyword());
+        for (Combinator combinator : directive.getCombinators()) {
+          result = addPosition(result, combinator.getKeyword());
+        }
       }
       if (node instanceof ExportDirective) {
-        ExportDirective export = (ExportDirective) node;
-        result = addPosition(result, token, "export");
-        for (Combinator combinator : export.getCombinators()) {
-          result.add(SourceRangeFactory.rangeStartLength(combinator, "show".length()));
+        ExportDirective directive = (ExportDirective) node;
+        result = addPosition(result, directive.getKeyword());
+        for (Combinator combinator : directive.getCombinators()) {
+          result = addPosition(result, combinator.getKeyword());
         }
       }
       if (node instanceof PartDirective) {
-        result = addPosition(result, token, "#source");
-        result = addPosition(result, token, "part");
+        PartDirective directive = (PartDirective) node;
+        result = addPosition(result, directive.getKeyword());
       }
       if (node instanceof PartOfDirective) {
-        PartOfDirective partOf = (PartOfDirective) node;
-        return ImmutableList.of(SourceRangeFactory.rangeStartEnd(partOf, partOf.getOfToken()));
+        PartOfDirective directive = (PartOfDirective) node;
+        result = addPosition(result, rangeStartEnd(directive, directive.getOfToken()));
       }
       return result;
     }
@@ -479,24 +481,6 @@ public class SemanticHighlightings {
     @Override
     public boolean isEnabledByDefault() {
       return true;
-    }
-
-    private List<SourceRange> addPosition(List<SourceRange> result, SemanticToken token, String str) {
-      String source = token.getSource();
-      if (source != null) {
-        int index = source.indexOf(str);
-        if (index == 0) {
-          ASTNode node = token.getNode();
-          int start = node.getOffset() + index;
-          int length = str.length();
-          if (result == null) {
-            result = Lists.newArrayList();
-          }
-          result.add(SourceRangeFactory.rangeStartLength(start, length));
-          return result;
-        }
-      }
-      return result;
     }
   }
 

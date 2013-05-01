@@ -473,6 +473,14 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.DIRECTIVE, "library MyLib;");
   }
 
+  public void test_directive_library_withDocumentComment() throws Exception {
+    preparePositions(
+        "/// filler filler filler filler filler filler filler filler filler filler",
+        "library MyLib;",
+        "");
+    assertHasWordPosition(SemanticHighlightings.DIRECTIVE, "library MyLib;");
+  }
+
   public void test_directive_part() throws Exception {
     setFileContent("utils.dart", "part of app;");
     preparePositions(
