@@ -59,6 +59,7 @@ public class DartVariablesView extends VariablesView {
   }
 
   private boolean visible;
+
   private TreeModelViewer treeViewer;
   private IPreferenceStore preferences;
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
@@ -181,7 +182,7 @@ public class DartVariablesView extends VariablesView {
 
   @Override
   protected int[] getLastSashWeights() {
-    return new int[] {8, 2};
+    return new int[] {12, 4};
   }
 
   protected void updateColors() {

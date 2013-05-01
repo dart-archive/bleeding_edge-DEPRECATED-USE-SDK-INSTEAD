@@ -30,9 +30,11 @@ import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
+import org.eclipse.debug.core.model.IStreamMonitor;
 import org.eclipse.debug.core.model.IThread;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -201,6 +203,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
       ServerDebugThread thread = findThread(isolate);
 
       if (thread != null) {
+        printExceptionToStdout(exception);
+
         thread.handleDebuggerPaused(reason, frames, exception);
       }
     }
@@ -386,6 +390,18 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     breakpointManager.dispose();
   }
 
+  private void fireStreamAppended(String message) {
+    IStreamMonitor monitor = getProcess().getStreamsProxy().getOutputStreamMonitor();
+
+    try {
+      // monitor.fireStreamAppended(message);
+      Method method = getMethod(monitor, "fireStreamAppended");
+      method.invoke(monitor, message);
+    } catch (Throwable t) {
+
+    }
+  }
+
   private void firstIsolateInit(VmIsolate isolate) {
     breakpointManager.connect(isolate);
 
@@ -432,6 +448,17 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     return null;
   }
 
+  private Method getMethod(Object obj, String methodName) {
+    for (Method method : obj.getClass().getDeclaredMethods()) {
+      if (method.getName().equals(methodName)) {
+        method.setAccessible(true);
+        return method;
+      }
+    }
+
+    return null;
+  }
+
   private BreakOnExceptionsType getPauseType() {
     final BreakOnExceptions boe = DartDebugCorePlugin.getPlugin().getBreakOnExceptions();
     BreakOnExceptionsType pauseType = BreakOnExceptionsType.none;
@@ -443,6 +470,18 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     }
 
     return pauseType;
+  }
+
+  private void printExceptionToStdout(VmValue exception) {
+    String text = exception.getText();
+
+    int index = text.indexOf('\n');
+
+    if (index != -1) {
+      text = text.substring(0, index).trim();
+    }
+
+    fireStreamAppended("Breaking on exception: " + text + "\n");
   }
 
   private void removeThread(ServerDebugThread thread) {

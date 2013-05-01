@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.debug.core.webkit;
 
+import com.google.dart.tools.debug.core.util.DebuggerUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,7 +34,15 @@ public class WebkitCallFrame {
     List<WebkitCallFrame> frames = new ArrayList<WebkitCallFrame>();
 
     for (int i = 0; i < arr.length(); i++) {
-      frames.add(createFrom(arr.getJSONObject(i)));
+      WebkitCallFrame frame = createFrom(arr.getJSONObject(i));
+
+      if (i == 0 && DebuggerUtils.isInternalMethodName(frame.getFunctionName())) {
+        // Strip out the first frame if it's _noSuchMethod. There will be another
+        // "Object.noSuchMethod" on the stack. This sucks, but it's where we're choosing to put
+        // the fix.
+      } else {
+        frames.add(frame);
+      }
     }
 
     return frames;

@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.webkit.JsonUtils;
 
 import org.json.JSONArray;
@@ -32,7 +33,15 @@ public class VmCallFrame extends VmRef {
     List<VmCallFrame> frames = new ArrayList<VmCallFrame>();
 
     for (int i = 0; i < arr.length(); i++) {
-      frames.add(createFrom(isolate, arr.getJSONObject(i)));
+      VmCallFrame frame = createFrom(isolate, arr.getJSONObject(i));
+
+      if (i == 0 && DebuggerUtils.isInternalMethodName(frame.getFunctionName())) {
+        // Strip out the first frame if it's _noSuchMethod. There will be another
+        // "Object.noSuchMethod" on the stack. This sucks, but it's where we're choosing to put
+        // the fix.
+      } else {
+        frames.add(frame);
+      }
     }
 
     return frames;

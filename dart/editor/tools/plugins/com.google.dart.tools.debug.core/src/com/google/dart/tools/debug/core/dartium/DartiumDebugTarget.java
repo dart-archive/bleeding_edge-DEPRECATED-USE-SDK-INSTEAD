@@ -367,6 +367,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       @Override
       public void debuggerPaused(PausedReasonType reason, List<WebkitCallFrame> frames,
           WebkitRemoteObject exception) {
+        if (exception != null) {
+          printExceptionToStdout(exception);
+        }
+
         debugThread.handleDebuggerSuspended(reason, frames, exception);
       }
 
@@ -509,6 +513,31 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 //          "Debugger Connection Closed",
 //          "The debugger connection has been closed by the remote host.");
       DebugUIHelper.getHelper().showDevtoolsDisconnectError("Debugger Connection Closed", this);
+    }
+  }
+
+  protected void printExceptionToStdout(WebkitRemoteObject exception) {
+    try {
+      getConnection().getRuntime().callToString(
+          exception.getObjectId(),
+          new WebkitCallback<String>() {
+            @Override
+            public void handleResult(WebkitResult<String> result) {
+              if (!result.isError()) {
+                String text = result.getResult();
+
+                int index = text.indexOf('\n');
+
+                if (index != -1) {
+                  text = text.substring(0, index).trim();
+                }
+
+                process.getStreamMonitor().messageAdded("Breaking on exception: " + text + "\n");
+              }
+            }
+          });
+    } catch (IOException e) {
+      DartDebugCorePlugin.logError(e);
     }
   }
 

@@ -114,6 +114,10 @@ public class DebuggerUtils {
     return name;
   }
 
+  public static boolean isInternalMethodName(String methodName) {
+    return methodName.startsWith("Object._noSuchMethod@");
+  }
+
   /**
    * @return whether the given debugger symbol name represents a private symbol
    */
