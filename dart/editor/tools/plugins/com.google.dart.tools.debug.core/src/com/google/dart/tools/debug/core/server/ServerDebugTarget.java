@@ -203,7 +203,9 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
       ServerDebugThread thread = findThread(isolate);
 
       if (thread != null) {
-        printExceptionToStdout(exception);
+        if (exception != null) {
+          printExceptionToStdout(exception);
+        }
 
         thread.handleDebuggerPaused(reason, frames, exception);
       }
