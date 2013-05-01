@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.omni;
 
-import com.google.dart.tools.ui.omni.elements.TypeProvider_OLD.SearchInProgressPlaceHolder;
+import com.google.dart.tools.ui.omni.elements.TypeProvider.SearchInProgressPlaceHolder;
 
 import java.util.Arrays;
 import java.util.Comparator;

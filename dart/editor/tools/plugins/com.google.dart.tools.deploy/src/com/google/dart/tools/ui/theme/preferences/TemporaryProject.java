@@ -16,11 +16,6 @@ package com.google.dart.tools.ui.theme.preferences;
 import com.google.common.io.CharStreams;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.deploy.Activator;
 
 import org.eclipse.core.resources.ICommand;
@@ -35,7 +30,6 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
@@ -48,8 +42,8 @@ import java.io.Reader;
 import java.net.URI;
 
 /**
- * Helper for creating, manipulating and disposing a temporary {@link DartProject}. This exists in
- * the workspace for a short time but the user should never see it.
+ * Helper for creating, manipulating and disposing a temporary project. This exists in the workspace
+ * for a short time but the user should never see it.
  */
 public class TemporaryProject {
 
@@ -77,17 +71,16 @@ public class TemporaryProject {
   }
 
   private final IProject project;
-  private final DartProject dartProject;
 
   /**
-   * Creates new {@link DartProject} with default name.
+   * Creates new new temporary project with default name.
    */
   public TemporaryProject() throws CoreException {
     this(DEFAULT_NAME);
   }
 
   /**
-   * Creates new {@link DartProject} with given name.
+   * Creates new temporary project with the given name.
    */
   public TemporaryProject(final String name) throws CoreException {
     final IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -109,13 +102,6 @@ public class TemporaryProject {
         project.setDescription(description, IResource.FORCE, null);
       }
     }, null);
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      dartProject = null;
-//      DartCore.getProjectManager().getProject(project); // TODO Delete if reviewers agree.
-    } else {
-      // remember DartProject
-      dartProject = DartCore.create(project);
-    }
   }
 
   public IFolder createFolder(String path) throws Exception {
@@ -135,14 +121,6 @@ public class TemporaryProject {
    * Disposes allocated resources and deletes project.
    */
   public void dispose() throws CoreException {
-    // TODO(messick): Do we need to notify AnalysisServer?
-    {
-      IPath location = project.getLocation();
-      if (location != null) {
-        AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-        server.discard(location.toFile());
-      }
-    }
     try {
       if (project.exists()) {
         project.close(null);
@@ -151,13 +129,6 @@ public class TemporaryProject {
     }
     // do dispose
     deleteProject(project);
-  }
-
-  /**
-   * @return the {@link DartProject}.
-   */
-  public DartProject getDartProject() {
-    return dartProject;
   }
 
   /**
@@ -215,9 +186,6 @@ public class TemporaryProject {
    */
   public IFile setUnitContent(String path, String content) throws IOException, CoreException {
     IFile file = setFileContent(path, content);
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      DartCore.create(file);
-    }
     return file;
   }
 

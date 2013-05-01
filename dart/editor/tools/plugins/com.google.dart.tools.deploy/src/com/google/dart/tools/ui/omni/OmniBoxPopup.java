@@ -13,14 +13,12 @@
  */
 package com.google.dart.tools.ui.omni;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
-import com.google.dart.tools.ui.omni.elements.TypeProvider;
 import com.google.dart.tools.ui.omni.elements.FileProvider;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
 import com.google.dart.tools.ui.omni.elements.TextSearchProvider;
-import com.google.dart.tools.ui.omni.elements.TypeProvider_OLD;
+import com.google.dart.tools.ui.omni.elements.TypeProvider;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.runtime.Assert;
@@ -149,7 +147,7 @@ public class OmniBoxPopup extends BasePopupDialog {
   private static final int MAX_COUNT_TOTAL = 20;
 
   private static OmniProposalProvider createTypeProvider(IProgressMonitor pm) {
-    return DartCoreDebug.ENABLE_NEW_ANALYSIS ? new TypeProvider(pm) : new TypeProvider_OLD(pm);
+    return new TypeProvider(pm);
   }
 
   private OmniProposalProvider[] providers;
@@ -908,10 +906,6 @@ public class OmniBoxPopup extends BasePopupDialog {
     //to ensure a refresh --- if/when other provides go async, this special casing should 
     //get generalized
     for (OmniProposalProvider provider : providers) {
-      if (provider instanceof TypeProvider_OLD) {
-        needsRefresh = !((TypeProvider_OLD) provider).isSearchComplete();
-        provider.reset();
-      }
       if (provider instanceof TypeProvider) {
         needsRefresh = !((TypeProvider) provider).isSearchComplete();
         provider.reset();

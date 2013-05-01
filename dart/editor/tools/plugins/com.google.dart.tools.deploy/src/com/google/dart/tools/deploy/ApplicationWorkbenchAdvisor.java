@@ -16,11 +16,6 @@ package com.google.dart.tools.deploy;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole.MessageStream;
-import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartSdkManager;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DeployConsolePatternMatcher;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
@@ -287,12 +282,6 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
         }
       });
 
-      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        if (DartSdkManager.getManager().hasSdk()) {
-          new AnalysisMonitor(PackageLibraryManagerProvider.getDefaultAnalysisServer()).start();
-        }
-      }
-
       IWorkbench workbench = PlatformUI.getWorkbench();
       IActivityManager act = workbench.getActivitySupport().getActivityManager();
       IBindingService bind = (IBindingService) workbench.getService(IBindingService.class);
@@ -331,17 +320,7 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
   }
 
   protected boolean shouldShowWelcome() {
-    try {
-
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        return DartCore.getProjectManager().getProjects().length == 0;
-      }
-
-      return DartModelManager.getInstance().getDartModel().getDartProjects().length == 0;
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e);
-    }
-    return false;
+    return DartCore.getProjectManager().getProjects().length == 0;
   }
 
   //checks to see if a flag has been set noting that workspace layout needs to be reset

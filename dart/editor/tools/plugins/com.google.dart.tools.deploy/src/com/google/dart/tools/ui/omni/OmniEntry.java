@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.omni;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
-import com.google.dart.tools.ui.omni.elements.TypeProvider_OLD.SearchInProgressPlaceHolder;
+import com.google.dart.tools.ui.omni.elements.TypeProvider.SearchInProgressPlaceHolder;
 import com.google.dart.tools.ui.themes.Fonts;
 
 import org.eclipse.jface.resource.DeviceResourceException;
