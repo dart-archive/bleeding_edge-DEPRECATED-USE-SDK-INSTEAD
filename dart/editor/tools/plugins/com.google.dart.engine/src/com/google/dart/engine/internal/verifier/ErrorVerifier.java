@@ -869,7 +869,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       ClassElement classElement = constructorElement.getEnclosingElement();
       FieldElement[] fields = classElement.getFields();
       for (FieldElement field : fields) {
-        if (field.getDisplayName().equals(name)) {
+        if (field.getName().equals(name)) {
           errorReporter.reportError(
               CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD,
               node,
@@ -879,7 +879,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
       MethodElement[] methods = classElement.getMethods();
       for (MethodElement method : methods) {
-        if (method.getDisplayName().equals(name)) {
+        if (method.getName().equals(name)) {
           errorReporter.reportError(
               CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD,
               node,

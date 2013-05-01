@@ -107,7 +107,7 @@ public abstract class Member implements Element {
 
   @Override
   public String getName() {
-    return getDisplayName();
+    return baseElement.getName();
   }
 
   @Override

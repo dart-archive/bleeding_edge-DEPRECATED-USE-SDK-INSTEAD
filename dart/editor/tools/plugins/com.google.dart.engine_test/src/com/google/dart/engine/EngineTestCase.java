@@ -359,7 +359,7 @@ public class EngineTestCase extends TestCase {
    */
   protected PropertyAccessorElement getGetter(InterfaceType type, String getterName) {
     for (PropertyAccessorElement accessor : type.getElement().getAccessors()) {
-      if (accessor.isGetter() && accessor.getDisplayName().equals(getterName)) {
+      if (accessor.isGetter() && accessor.getName().equals(getterName)) {
         return accessor;
       }
     }
@@ -376,7 +376,7 @@ public class EngineTestCase extends TestCase {
    */
   protected MethodElement getMethod(InterfaceType type, String methodName) {
     for (MethodElement method : type.getElement().getMethods()) {
-      if (method.getDisplayName().equals(methodName)) {
+      if (method.getName().equals(methodName)) {
         return method;
       }
     }

@@ -195,15 +195,15 @@ public abstract class Scope {
   private String getName(Element element) {
     if (element instanceof MethodElement) {
       MethodElement method = (MethodElement) element;
-      if (method.getDisplayName().equals("-") && method.getParameters().length == 0) {
+      if (method.getName().equals("-") && method.getParameters().length == 0) {
         return UNARY_MINUS;
       }
     } else if (element instanceof PropertyAccessorElement) {
       PropertyAccessorElement accessor = (PropertyAccessorElement) element;
       if (accessor.isSetter()) {
-        return accessor.getDisplayName() + SETTER_SUFFIX;
+        return accessor.getName() + SETTER_SUFFIX;
       }
     }
-    return element.getDisplayName();
+    return element.getName();
   }
 }

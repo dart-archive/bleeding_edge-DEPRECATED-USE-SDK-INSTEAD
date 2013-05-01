@@ -815,7 +815,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
           optionalParameterTypes.add(parameter.getType());
           break;
         case NAMED:
-          namedParameterTypes.put(parameter.getDisplayName(), parameter.getType());
+          namedParameterTypes.put(parameter.getName(), parameter.getType());
           break;
       }
     }

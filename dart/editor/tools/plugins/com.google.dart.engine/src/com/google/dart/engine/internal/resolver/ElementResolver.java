@@ -1074,8 +1074,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private ParameterElement findNamedParameter(ParameterElement[] parameters, String name) {
     for (ParameterElement parameter : parameters) {
       if (parameter.getParameterKind() == ParameterKind.NAMED) {
-        String parameteName = parameter.getDisplayName();
-        if (parameteName != null && parameteName.equals(name)) {
+        String parameterName = parameter.getName();
+        if (parameterName != null && parameterName.equals(name)) {
           return parameter;
         }
       }

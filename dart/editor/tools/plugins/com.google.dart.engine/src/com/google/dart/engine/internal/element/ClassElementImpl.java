@@ -159,7 +159,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   public FieldElement getField(String name) {
     for (FieldElement fieldElement : fields) {
-      if (name.equals(fieldElement.getDisplayName())) {
+      if (name.equals(fieldElement.getName())) {
         return fieldElement;
       }
     }
@@ -180,7 +180,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   public PropertyAccessorElement getGetter(String getterName) {
     for (PropertyAccessorElement accessor : accessors) {
-      if (accessor.isGetter() && accessor.getDisplayName().equals(getterName)) {
+      if (accessor.isGetter() && accessor.getName().equals(getterName)) {
         return accessor;
       }
     }
@@ -206,7 +206,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   public MethodElement getMethod(String methodName) {
     for (MethodElement method : methods) {
-      if (method.getDisplayName().equals(methodName)) {
+      if (method.getName().equals(methodName)) {
         return method;
       }
     }
@@ -226,7 +226,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   @Override
   public ConstructorElement getNamedConstructor(String name) {
     for (ConstructorElement element : getConstructors()) {
-      String elementName = element.getDisplayName();
+      String elementName = element.getName();
       if (elementName != null && elementName.equals(name)) {
         return element;
       }
@@ -242,8 +242,13 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    * @return the setter declared in this class with the given name
    */
   public PropertyAccessorElement getSetter(String setterName) {
+    // TODO (jwren) revisit- should we append '=' here or require clients to include it?
+    // Do we need the check for isSetter below?
+    if (!setterName.endsWith("=")) {
+      setterName += '=';
+    }
     for (PropertyAccessorElement accessor : accessors) {
-      if (accessor.isSetter() && accessor.getDisplayName().equals(setterName)) {
+      if (accessor.isSetter() && accessor.getName().equals(setterName)) {
         return accessor;
       }
     }

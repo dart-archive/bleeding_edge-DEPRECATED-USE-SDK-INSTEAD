@@ -389,7 +389,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (element == null) {
       return false;
     }
-    return element.getDisplayName().equals("Function") && element.getLibrary().isDartCore();
+    return element.getName().equals("Function") && element.getLibrary().isDartCore();
   }
 
   @Override

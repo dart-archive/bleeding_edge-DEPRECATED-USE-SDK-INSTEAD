@@ -167,7 +167,7 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   @Override
   public ClassElement getType(String className) {
     for (ClassElement type : types) {
-      if (type.getDisplayName().equals(className)) {
+      if (type.getName().equals(className)) {
         return type;
       }
     }

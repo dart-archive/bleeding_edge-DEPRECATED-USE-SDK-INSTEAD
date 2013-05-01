@@ -53,7 +53,7 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
    * @param variable the variable with which this access is associated
    */
   public PropertyAccessorElementImpl(PropertyInducingElementImpl variable) {
-    super(variable.getDisplayName(), -1);
+    super(variable.getName(), -1);
     this.variable = variable;
     setSynthetic(true);
   }
@@ -74,6 +74,14 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
       return ElementKind.GETTER;
     }
     return ElementKind.SETTER;
+  }
+
+  @Override
+  public String getName() {
+    if (isSetter()) {
+      return super.getName() + '=';
+    }
+    return super.getName();
   }
 
   @Override

@@ -199,7 +199,7 @@ public abstract class ElementHandle implements Element {
 
   @Override
   public String getName() {
-    return getDisplayName();
+    return getActualElement().getName();
   }
 
   @Override

@@ -157,7 +157,7 @@ public abstract class ElementImpl implements Element {
 
   @Override
   public String getName() {
-    return getDisplayName();
+    return name;
   }
 
   @Override
@@ -260,7 +260,7 @@ public abstract class ElementImpl implements Element {
    * @return an identifier that uniquely identifies this element relative to its parent
    */
   protected String getIdentifier() {
-    return getDisplayName();
+    return getName();
   }
 
   /**

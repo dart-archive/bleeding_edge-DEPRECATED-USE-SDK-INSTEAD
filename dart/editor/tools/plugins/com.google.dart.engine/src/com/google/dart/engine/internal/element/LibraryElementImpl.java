@@ -279,7 +279,7 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @Override
   public boolean isDartCore() {
-    return getDisplayName().equals("dart.core");
+    return getName().equals("dart.core");
   }
 
   @Override

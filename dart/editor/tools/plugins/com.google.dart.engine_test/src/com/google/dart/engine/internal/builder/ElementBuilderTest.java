@@ -91,7 +91,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     VariableElement exceptionVariable = variables[0];
     assertNotNull(exceptionVariable);
-    assertEquals(exceptionParameterName, exceptionVariable.getDisplayName());
+    assertEquals(exceptionParameterName, exceptionVariable.getName());
     assertFalse(exceptionVariable.isSynthetic());
     assertFalse(exceptionVariable.isConst());
     assertFalse(exceptionVariable.isFinal());
@@ -99,7 +99,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     VariableElement stackVariable = variables[1];
     assertNotNull(stackVariable);
-    assertEquals(stackParameterName, stackVariable.getDisplayName());
+    assertEquals(stackParameterName, stackVariable.getName());
     assertFalse(stackVariable.isSynthetic());
     assertFalse(stackVariable.isConst());
     assertFalse(stackVariable.isFinal());
@@ -123,7 +123,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     ClassElement type = types[0];
     assertNotNull(type);
-    assertEquals(className, type.getDisplayName());
+    assertEquals(className, type.getName());
     TypeVariableElement[] typeVariables = type.getTypeVariables();
     assertLength(0, typeVariables);
     assertTrue(type.isAbstract());
@@ -141,7 +141,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     ClassElement type = types[0];
     assertNotNull(type);
-    assertEquals(className, type.getDisplayName());
+    assertEquals(className, type.getName());
     TypeVariableElement[] typeVariables = type.getTypeVariables();
     assertLength(0, typeVariables);
     assertFalse(type.isAbstract());
@@ -167,11 +167,11 @@ public class ElementBuilderTest extends EngineTestCase {
 
     ClassElement type = types[0];
     assertNotNull(type);
-    assertEquals(className, type.getDisplayName());
+    assertEquals(className, type.getName());
     TypeVariableElement[] typeVariables = type.getTypeVariables();
     assertLength(2, typeVariables);
-    assertEquals(firstVariableName, typeVariables[0].getDisplayName());
-    assertEquals(secondVariableName, typeVariables[1].getDisplayName());
+    assertEquals(firstVariableName, typeVariables[0].getName());
+    assertEquals(secondVariableName, typeVariables[1].getName());
     assertFalse(type.isAbstract());
     assertFalse(type.isSynthetic());
   }
@@ -205,7 +205,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     ClassElement type = types[0];
     assertNotNull(type);
-    assertEquals(className, type.getDisplayName());
+    assertEquals(className, type.getName());
     assertFalse(type.isAbstract());
     assertFalse(type.isSynthetic());
 
@@ -213,19 +213,19 @@ public class ElementBuilderTest extends EngineTestCase {
     assertLength(1, typeVariables);
     TypeVariableElement typeVariable = typeVariables[0];
     assertNotNull(typeVariable);
-    assertEquals(typeVariableName, typeVariable.getDisplayName());
+    assertEquals(typeVariableName, typeVariable.getName());
 
     FieldElement[] fields = type.getFields();
     assertLength(1, fields);
     FieldElement field = fields[0];
     assertNotNull(field);
-    assertEquals(fieldName, field.getDisplayName());
+    assertEquals(fieldName, field.getName());
 
     MethodElement[] methods = type.getMethods();
     assertLength(1, methods);
     MethodElement method = methods[0];
     assertNotNull(method);
-    assertEquals(methodName, method.getDisplayName());
+    assertEquals(methodName, method.getName());
   }
 
   public void test_visitConstructorDeclaration_factory() {
@@ -247,7 +247,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ConstructorElement constructor = constructors[0];
     assertNotNull(constructor);
     assertTrue(constructor.isFactory());
-    assertEquals("", constructor.getDisplayName());
+    assertEquals("", constructor.getName());
     assertLength(0, constructor.getFunctions());
     assertLength(0, constructor.getLabels());
     assertLength(0, constructor.getLocalVariables());
@@ -273,7 +273,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ConstructorElement constructor = constructors[0];
     assertNotNull(constructor);
     assertFalse(constructor.isFactory());
-    assertEquals("", constructor.getDisplayName());
+    assertEquals("", constructor.getName());
     assertLength(0, constructor.getFunctions());
     assertLength(0, constructor.getLabels());
     assertLength(0, constructor.getLocalVariables());
@@ -300,7 +300,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ConstructorElement constructor = constructors[0];
     assertNotNull(constructor);
     assertFalse(constructor.isFactory());
-    assertEquals(constructorName, constructor.getDisplayName());
+    assertEquals(constructorName, constructor.getName());
     assertLength(0, constructor.getFunctions());
     assertLength(0, constructor.getLabels());
     assertLength(0, constructor.getLocalVariables());
@@ -328,7 +328,7 @@ public class ElementBuilderTest extends EngineTestCase {
     ConstructorElement constructor = constructors[0];
     assertNotNull(constructor);
     assertFalse(constructor.isFactory());
-    assertEquals("", constructor.getDisplayName());
+    assertEquals("", constructor.getName());
     assertLength(0, constructor.getFunctions());
     assertLength(0, constructor.getLabels());
     assertLength(0, constructor.getLocalVariables());
@@ -352,7 +352,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     FieldElement firstField = fields[0];
     assertNotNull(firstField);
-    assertEquals(firstFieldName, firstField.getDisplayName());
+    assertEquals(firstFieldName, firstField.getName());
     assertNull(firstField.getInitializer());
     assertFalse(firstField.isConst());
     assertFalse(firstField.isFinal());
@@ -360,7 +360,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     FieldElement secondField = fields[1];
     assertNotNull(secondField);
-    assertEquals(secondFieldName, secondField.getDisplayName());
+    assertEquals(secondFieldName, secondField.getName());
     assertNull(secondField.getInitializer());
     assertFalse(secondField.isConst());
     assertFalse(secondField.isFinal());
@@ -378,7 +378,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     ParameterElement parameter = parameters[0];
     assertNotNull(parameter);
-    assertEquals(parameterName, parameter.getDisplayName());
+    assertEquals(parameterName, parameter.getName());
     assertNull(parameter.getInitializer());
     assertFalse(parameter.isConst());
     assertFalse(parameter.isFinal());
@@ -398,9 +398,9 @@ public class ElementBuilderTest extends EngineTestCase {
     ParameterElement[] parameters = holder.getParameters();
     assertLength(2, parameters);
 
-    assertEquals(firstParameterName, parameters[0].getDisplayName());
+    assertEquals(firstParameterName, parameters[0].getName());
 
-    assertEquals(secondParameterName, parameters[1].getDisplayName());
+    assertEquals(secondParameterName, parameters[1].getName());
   }
 
   public void test_visitFunctionDeclaration() {
@@ -418,7 +418,7 @@ public class ElementBuilderTest extends EngineTestCase {
     FunctionElement function = functions[0];
 
     assertNotNull(function);
-    assertEquals(functionName, function.getDisplayName());
+    assertEquals(functionName, function.getName());
     assertSame(function, declaration.getElement());
     assertSame(function, declaration.getFunctionExpression().getElement());
     assertFalse(function.isSynthetic());
@@ -450,14 +450,14 @@ public class ElementBuilderTest extends EngineTestCase {
 
     FunctionTypeAliasElement alias = aliases[0];
     assertNotNull(alias);
-    assertEquals(aliasName, alias.getDisplayName());
+    assertEquals(aliasName, alias.getName());
     assertLength(0, alias.getParameters());
     TypeVariableElement[] parameters = alias.getTypeVariables();
     assertLength(1, parameters);
 
     TypeVariableElement parameter = parameters[0];
     assertNotNull(parameter);
-    assertEquals(parameterName, parameter.getDisplayName());
+    assertEquals(parameterName, parameter.getName());
   }
 
   public void test_visitFunctionTypedFormalParameter() {
@@ -471,7 +471,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     ParameterElement parameter = parameters[0];
     assertNotNull(parameter);
-    assertEquals(parameterName, parameter.getDisplayName());
+    assertEquals(parameterName, parameter.getName());
     assertNull(parameter.getInitializer());
     assertFalse(parameter.isConst());
     assertFalse(parameter.isFinal());
@@ -490,7 +490,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     LabelElement label = labels[0];
     assertNotNull(label);
-    assertEquals(labelName, label.getDisplayName());
+    assertEquals(labelName, label.getName());
     assertFalse(label.isSynthetic());
   }
 
@@ -512,7 +512,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     MethodElement method = methods[0];
     assertNotNull(method);
-    assertEquals(methodName, method.getDisplayName());
+    assertEquals(methodName, method.getName());
     assertLength(0, method.getFunctions());
     assertLength(0, method.getLabels());
     assertLength(0, method.getLocalVariables());
@@ -540,14 +540,14 @@ public class ElementBuilderTest extends EngineTestCase {
 
     FieldElement field = fields[0];
     assertNotNull(field);
-    assertEquals(methodName, field.getDisplayName());
+    assertEquals(methodName, field.getName());
     assertTrue(field.isSynthetic());
     assertNull(field.getSetter());
     PropertyAccessorElement getter = field.getGetter();
     assertNotNull(getter);
     assertTrue(getter.isGetter());
     assertFalse(getter.isSynthetic());
-    assertEquals(methodName, getter.getDisplayName());
+    assertEquals(methodName, getter.getName());
     assertEquals(field, getter.getVariable());
     assertLength(0, getter.getFunctions());
     assertLength(0, getter.getLabels());
@@ -573,7 +573,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     MethodElement method = methods[0];
     assertNotNull(method);
-    assertEquals(methodName, method.getDisplayName());
+    assertEquals(methodName, method.getName());
     assertLength(0, method.getFunctions());
     assertLength(0, method.getLabels());
     assertLength(0, method.getLocalVariables());
@@ -601,7 +601,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     MethodElement method = methods[0];
     assertNotNull(method);
-    assertEquals(methodName, method.getDisplayName());
+    assertEquals(methodName, method.getName());
     assertLength(0, method.getFunctions());
     assertLength(0, method.getLabels());
     assertLength(0, method.getLocalVariables());
@@ -629,13 +629,14 @@ public class ElementBuilderTest extends EngineTestCase {
 
     FieldElement field = fields[0];
     assertNotNull(field);
-    assertEquals(methodName, field.getDisplayName());
+    assertEquals(methodName, field.getName());
     assertTrue(field.isSynthetic());
     assertNull(field.getGetter());
     PropertyAccessorElement setter = field.getSetter();
     assertNotNull(setter);
     assertTrue(setter.isSetter());
     assertFalse(setter.isSynthetic());
+    assertEquals(methodName + '=', setter.getName());
     assertEquals(methodName, setter.getDisplayName());
     assertEquals(field, setter.getVariable());
     assertLength(0, setter.getFunctions());
@@ -662,7 +663,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     MethodElement method = methods[0];
     assertNotNull(method);
-    assertEquals(methodName, method.getDisplayName());
+    assertEquals(methodName, method.getName());
     assertLength(0, method.getFunctions());
     assertLength(0, method.getLabels());
     assertLength(0, method.getLocalVariables());
@@ -698,7 +699,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     MethodElement method = methods[0];
     assertNotNull(method);
-    assertEquals(methodName, method.getDisplayName());
+    assertEquals(methodName, method.getName());
     assertFalse(method.isAbstract());
     assertFalse(method.isStatic());
     assertFalse(method.isSynthetic());
@@ -707,7 +708,7 @@ public class ElementBuilderTest extends EngineTestCase {
     assertLength(1, parameters);
     VariableElement parameter = parameters[0];
     assertNotNull(parameter);
-    assertEquals(parameterName, parameter.getDisplayName());
+    assertEquals(parameterName, parameter.getName());
 
     VariableElement[] localVariables = method.getLocalVariables();
     assertLength(2, localVariables);
@@ -715,16 +716,16 @@ public class ElementBuilderTest extends EngineTestCase {
     VariableElement secondVariable = localVariables[1];
     assertNotNull(firstVariable);
     assertNotNull(secondVariable);
-    assertTrue((firstVariable.getDisplayName().equals(localVariableName) && secondVariable.getDisplayName().equals(
+    assertTrue((firstVariable.getName().equals(localVariableName) && secondVariable.getName().equals(
         exceptionParameterName))
-        || (firstVariable.getDisplayName().equals(exceptionParameterName) && secondVariable.getDisplayName().equals(
+        || (firstVariable.getName().equals(exceptionParameterName) && secondVariable.getName().equals(
             localVariableName)));
 
     LabelElement[] labels = method.getLabels();
     assertLength(1, labels);
     LabelElement label = labels[0];
     assertNotNull(label);
-    assertEquals(labelName, label.getDisplayName());
+    assertEquals(labelName, label.getName());
   }
 
   public void test_visitNamedFormalParameter() {
@@ -740,7 +741,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     ParameterElement parameter = parameters[0];
     assertNotNull(parameter);
-    assertEquals(parameterName, parameter.getDisplayName());
+    assertEquals(parameterName, parameter.getName());
     assertFalse(parameter.isConst());
     assertFalse(parameter.isFinal());
     assertFalse(parameter.isSynthetic());
@@ -761,7 +762,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     ParameterElement parameter = parameters[0];
     assertNotNull(parameter);
-    assertEquals(parameterName, parameter.getDisplayName());
+    assertEquals(parameterName, parameter.getName());
     assertNull(parameter.getInitializer());
     assertFalse(parameter.isConst());
     assertFalse(parameter.isFinal());
@@ -780,7 +781,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     FunctionTypeAliasElement alias = aliases[0];
     assertNotNull(alias);
-    assertEquals(aliasName, alias.getDisplayName());
+    assertEquals(aliasName, alias.getName());
     assertNotNull(alias.getType());
     assertFalse(alias.isSynthetic());
   }
@@ -804,13 +805,13 @@ public class ElementBuilderTest extends EngineTestCase {
 
     FunctionTypeAliasElement alias = aliases[0];
     assertNotNull(alias);
-    assertEquals(aliasName, alias.getDisplayName());
+    assertEquals(aliasName, alias.getName());
     assertNotNull(alias.getType());
     assertFalse(alias.isSynthetic());
     VariableElement[] parameters = alias.getParameters();
     assertLength(2, parameters);
-    assertEquals(firstParameterName, parameters[0].getDisplayName());
-    assertEquals(secondParameterName, parameters[1].getDisplayName());
+    assertEquals(firstParameterName, parameters[0].getName());
+    assertEquals(secondParameterName, parameters[1].getName());
     TypeVariableElement[] typeVariables = alias.getTypeVariables();
     assertNotNull(typeVariables);
     assertLength(0, typeVariables);
@@ -833,7 +834,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     FunctionTypeAliasElement alias = aliases[0];
     assertNotNull(alias);
-    assertEquals(aliasName, alias.getDisplayName());
+    assertEquals(aliasName, alias.getName());
     assertNotNull(alias.getType());
     assertFalse(alias.isSynthetic());
     VariableElement[] parameters = alias.getParameters();
@@ -841,8 +842,8 @@ public class ElementBuilderTest extends EngineTestCase {
     assertLength(0, parameters);
     TypeVariableElement[] typeVariables = alias.getTypeVariables();
     assertLength(2, typeVariables);
-    assertEquals(firstTypeParameterName, typeVariables[0].getDisplayName());
-    assertEquals(secondTypeParameterName, typeVariables[1].getDisplayName());
+    assertEquals(firstTypeParameterName, typeVariables[0].getName());
+    assertEquals(secondTypeParameterName, typeVariables[1].getName());
   }
 
   public void test_visitTypeParameter() {
@@ -856,7 +857,7 @@ public class ElementBuilderTest extends EngineTestCase {
 
     TypeVariableElement typeVariable = typeVariables[0];
     assertNotNull(typeVariable);
-    assertEquals(parameterName, typeVariable.getDisplayName());
+    assertEquals(parameterName, typeVariable.getName());
     assertNull(typeVariable.getBound());
     assertFalse(typeVariable.isSynthetic());
   }
@@ -885,7 +886,7 @@ public class ElementBuilderTest extends EngineTestCase {
     LocalVariableElement[] variableElements = constructors[0].getLocalVariables();
     assertLength(1, variableElements);
     LocalVariableElement variableElement = variableElements[0];
-    assertEquals(variableName, variableElement.getDisplayName());
+    assertEquals(variableName, variableElement.getName());
   }
 
   public void test_visitVariableDeclaration_inMethod() {
@@ -912,7 +913,7 @@ public class ElementBuilderTest extends EngineTestCase {
     LocalVariableElement[] variableElements = methods[0].getLocalVariables();
     assertLength(1, variableElements);
     LocalVariableElement variableElement = variableElements[0];
-    assertEquals(variableName, variableElement.getDisplayName());
+    assertEquals(variableName, variableElement.getName());
   }
 
   public void test_visitVariableDeclaration_localNestedInField() {
@@ -942,7 +943,7 @@ public class ElementBuilderTest extends EngineTestCase {
     LocalVariableElement[] variableElements = functionElements[0].getLocalVariables();
     assertLength(1, variableElements);
     LocalVariableElement variableElement = variableElements[0];
-    assertEquals(variableName, variableElement.getDisplayName());
+    assertEquals(variableName, variableElement.getName());
     assertFalse(variableElement.isConst());
     assertFalse(variableElement.isFinal());
     assertFalse(variableElement.isSynthetic());
@@ -961,7 +962,7 @@ public class ElementBuilderTest extends EngineTestCase {
     TopLevelVariableElement variable = variables[0];
     assertNotNull(variable);
     assertNull(variable.getInitializer());
-    assertEquals(variableName, variable.getDisplayName());
+    assertEquals(variableName, variable.getName());
     assertFalse(variable.isConst());
     assertFalse(variable.isFinal());
     assertFalse(variable.isSynthetic());

@@ -225,7 +225,7 @@ public class InheritanceManager {
         MethodElement[] methods = interfaceElement.getMethods();
         for (MethodElement method : methods) {
           if (method.isAccessibleIn(library) && !method.isStatic()) {
-            String key = method.getDisplayName();
+            String key = method.getName();
             if (!unionMap.containsKey(key)) {
               HashSet<ExecutableElement> set = new HashSet<ExecutableElement>(4);
               set.add(method);
@@ -238,7 +238,7 @@ public class InheritanceManager {
         PropertyAccessorElement[] accessors = interfaceElement.getAccessors();
         for (PropertyAccessorElement accessor : accessors) {
           if (accessor.isAccessibleIn(library) && !accessor.isStatic()) {
-            String key = accessor.getDisplayName();
+            String key = accessor.getName();
             if (!unionMap.containsKey(key)) {
               HashSet<ExecutableElement> set = new HashSet<ExecutableElement>(4);
               set.add(accessor);
@@ -317,14 +317,14 @@ public class InheritanceManager {
   private ExecutableElement lookupMemberInClass(ClassElement classElt, String memberName) {
     MethodElement[] methods = classElt.getMethods();
     for (MethodElement method : methods) {
-      if (memberName.equals(method.getDisplayName()) && method.isAccessibleIn(library)
+      if (memberName.equals(method.getName()) && method.isAccessibleIn(library)
           && !method.isStatic()) {
         return method;
       }
     }
     PropertyAccessorElement[] accessors = classElt.getAccessors();
     for (PropertyAccessorElement accessor : accessors) {
-      if (memberName.equals(accessor.getDisplayName()) && accessor.isAccessibleIn(library)
+      if (memberName.equals(accessor.getName()) && accessor.isAccessibleIn(library)
           && !accessor.isStatic()) {
         return accessor;
       }
@@ -344,13 +344,13 @@ public class InheritanceManager {
     MethodElement[] methods = classElt.getMethods();
     for (MethodElement method : methods) {
       if (method.isAccessibleIn(library) && !method.isStatic()) {
-        map.put(method.getDisplayName(), method);
+        map.put(method.getName(), method);
       }
     }
     PropertyAccessorElement[] accessors = classElt.getAccessors();
     for (PropertyAccessorElement accessor : accessors) {
       if (accessor.isAccessibleIn(library) && !accessor.isStatic()) {
-        map.put(accessor.getDisplayName(), accessor);
+        map.put(accessor.getName(), accessor);
       }
     }
     return map;

@@ -78,7 +78,7 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
   @Override
   public String getIdentifier() {
     // TODO(brianwilkerson) Figure out how to handle un-named functions.
-    return getDisplayName();
+    return getName();
   }
 
   @Override

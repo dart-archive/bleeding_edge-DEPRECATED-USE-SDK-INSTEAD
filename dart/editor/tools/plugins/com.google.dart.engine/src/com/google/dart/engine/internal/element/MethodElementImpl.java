@@ -72,7 +72,7 @@ public class MethodElementImpl extends ExecutableElementImpl implements MethodEl
 
   @Override
   public boolean isOperator() {
-    String name = getDisplayName();
+    String name = getName();
     if (name.isEmpty()) {
       return false;
     }

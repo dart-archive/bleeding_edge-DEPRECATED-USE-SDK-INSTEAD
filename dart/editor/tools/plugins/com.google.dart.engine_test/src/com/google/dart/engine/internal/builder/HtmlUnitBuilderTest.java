@@ -114,7 +114,7 @@ public class HtmlUnitBuilderTest extends EngineTestCase {
 
     public void validate(int scriptIndex, TopLevelVariableElement variable) {
       assertNotNull("script " + scriptIndex, variable);
-      assertEquals("script " + scriptIndex, expectedName, variable.getDisplayName());
+      assertEquals("script " + scriptIndex, expectedName, variable.getName());
     }
   }
 

@@ -118,6 +118,6 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
 
   @Override
   protected String getIdentifier() {
-    return importedLibrary.getDisplayName() + ":" + (prefix == null ? "" : prefix.getDisplayName());
+    return ((LibraryElementImpl) importedLibrary).getIdentifier();
   }
 }

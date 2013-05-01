@@ -80,12 +80,12 @@ public class InheritanceManagerTest extends EngineTestCase {
   public void test_lookupInheritance_interface_setter() throws Exception {
     ClassElementImpl classA = classElement("A");
     String setterName = "s";
-    PropertyAccessorElement getterG = setterElement(setterName, false, typeProvider.getIntType());
-    classA.setAccessors(new PropertyAccessorElement[] {getterG});
+    PropertyAccessorElement setterS = setterElement(setterName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {setterS});
 
     ClassElementImpl classB = classElement("B");
     classB.setInterfaces(new InterfaceType[] {classA.getType()});
-    assertSame(getterG, inheritanceManager.lookupInheritance(classB, setterName));
+    assertSame(setterS, inheritanceManager.lookupInheritance(classB, setterName + '='));
   }
 
   public void test_lookupInheritance_interface_staticMember() throws Exception {
@@ -194,7 +194,7 @@ public class InheritanceManagerTest extends EngineTestCase {
 
     ClassElementImpl classB = classElement("B");
     classB.setMixins(new InterfaceType[] {classA.getType()});
-    assertSame(setterS, inheritanceManager.lookupInheritance(classB, setterName));
+    assertSame(setterS, inheritanceManager.lookupInheritance(classB, setterName + '='));
   }
 
   public void test_lookupInheritance_mixin_staticMember() throws Exception {
@@ -255,7 +255,7 @@ public class InheritanceManagerTest extends EngineTestCase {
     classA.setAccessors(new PropertyAccessorElement[] {setterS});
 
     ClassElementImpl classB = classElement("B", classA.getType());
-    assertSame(setterS, inheritanceManager.lookupInheritance(classB, setterName));
+    assertSame(setterS, inheritanceManager.lookupInheritance(classB, setterName + '='));
   }
 
   public void test_lookupInheritance_superclass_staticMember() throws Exception {
@@ -312,7 +312,7 @@ public class InheritanceManagerTest extends EngineTestCase {
     String setterName = "s";
     PropertyAccessorElement setterS = setterElement(setterName, false, typeProvider.getIntType());
     classA.setAccessors(new PropertyAccessorElement[] {setterS});
-    assertSame(setterS, inheritanceManager.lookupMember(classA, setterName));
+    assertSame(setterS, inheritanceManager.lookupMember(classA, setterName + '='));
   }
 
   public void test_lookupMember_setter_static() throws Exception {
