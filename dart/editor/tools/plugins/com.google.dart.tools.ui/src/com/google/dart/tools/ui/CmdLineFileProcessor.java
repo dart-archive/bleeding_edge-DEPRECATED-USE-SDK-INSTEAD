@@ -15,7 +15,7 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.internal.perf.Performance;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.internal.util.ResourceUtil2;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -99,7 +99,7 @@ public class CmdLineFileProcessor {
       String directoryToOpen = file.getParentFile().getAbsolutePath();
       new CreateAndRevealProjectAction(workbenchWindow, directoryToOpen).run();
       try {
-        EditorUtility.openInEditor(ResourceUtil.getFile(file));
+        EditorUtility.openInEditor(ResourceUtil2.getFile(file));
       } catch (PartInitException e) {
         e.printStackTrace();
       } catch (DartModelException e) {

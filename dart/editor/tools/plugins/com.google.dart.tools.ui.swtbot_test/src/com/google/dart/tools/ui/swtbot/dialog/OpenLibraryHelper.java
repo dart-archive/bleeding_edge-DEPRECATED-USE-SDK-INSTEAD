@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.swtbot.dialog;
 
-import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.internal.util.ResourceUtil2;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -57,7 +57,7 @@ public class OpenLibraryHelper {
         try {
           String directoryToOpen = lib.dir.getAbsolutePath();
           new CreateAndRevealProjectAction(SWTBotUtil.getWorkbenchWindow(), directoryToOpen).run();
-          EditorUtility.openInEditor(ResourceUtil.getFile(lib.dartFile));
+          EditorUtility.openInEditor(ResourceUtil2.getFile(lib.dartFile));
         } catch (Exception e) {
           DartToolsPlugin.log(e);
         }

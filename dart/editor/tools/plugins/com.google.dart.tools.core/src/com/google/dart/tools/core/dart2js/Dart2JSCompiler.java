@@ -16,7 +16,7 @@ package com.google.dart.tools.core.dart2js;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.internal.util.ResourceUtil2;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.pub.IPackageRootProvider;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
@@ -306,7 +306,7 @@ public class Dart2JSCompiler {
   }
 
   private IProject getProjectFor(IPath path) {
-    return ResourceUtil.getFile(path.toFile()).getProject();
+    return ResourceUtil2.getFile(path.toFile()).getProject();
   }
 
   private void refreshParentFolder(IPath outputPath) {

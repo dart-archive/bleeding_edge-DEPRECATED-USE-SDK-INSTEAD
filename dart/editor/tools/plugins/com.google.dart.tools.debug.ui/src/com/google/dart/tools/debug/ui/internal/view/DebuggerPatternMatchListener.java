@@ -15,7 +15,7 @@
 package com.google.dart.tools.debug.ui.internal.view;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.internal.util.ResourceUtil2;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationDelegate;
 
@@ -113,7 +113,7 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
 
       IPath path = new Path(filePath);
 
-      return ResourceUtil.getFile(path.toFile());
+      return ResourceUtil2.getFile(path.toFile());
     }
 
     public int getLine() {
