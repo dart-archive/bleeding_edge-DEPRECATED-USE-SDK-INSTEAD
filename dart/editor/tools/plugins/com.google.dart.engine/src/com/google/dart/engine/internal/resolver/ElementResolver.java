@@ -454,11 +454,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     MethodElement member = lookUpMethod(arrayType, operator);
     if (member == null) {
-      resolver.reportError(
-          StaticWarningCode.UNDEFINED_OPERATOR,
-          node,
-          operator,
-          arrayType.getName());
+      Token leftBracket = node.getLeftBracket();
+      Token rightBracket = node.getRightBracket();
+      if (leftBracket == null || rightBracket == null) {
+        resolver.reportError(
+            StaticWarningCode.UNDEFINED_OPERATOR,
+            node,
+            operator,
+            arrayType.getName());
+      } else {
+        int offset = leftBracket.getOffset();
+        resolver.reportError(StaticWarningCode.UNDEFINED_OPERATOR, offset, rightBracket.getOffset()
+            - offset + 1, operator, arrayType.getName());
+      }
     } else {
       node.setElement(member);
     }
