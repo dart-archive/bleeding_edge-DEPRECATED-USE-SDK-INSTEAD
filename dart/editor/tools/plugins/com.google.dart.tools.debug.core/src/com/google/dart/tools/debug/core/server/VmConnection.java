@@ -305,6 +305,15 @@ public class VmConnection {
     }
   }
 
+  public void getIsolateIds(final VmCallback<List<Integer>> callback) throws IOException {
+    sendSimpleCommand("getIsolateIds", -1, new Callback() {
+      @Override
+      public void handleResult(JSONObject result) throws JSONException {
+        callback.handleResult(convertGetIsolateIdsResult(result));
+      }
+    });
+  }
+
   public void getLibraries(VmIsolate isolate, final VmCallback<List<VmLibraryRef>> callback)
       throws IOException {
     sendSimpleCommand("getLibraries", isolate.getId(), new Callback() {
@@ -834,7 +843,7 @@ public class VmConnection {
 
       JSONObject params = request.getJSONObject("params");
 
-      if (!params.has("isolateId")) {
+      if (!params.has("isolateId") && isolateId != -1) {
         params.put("isolateId", isolateId);
       }
     } catch (JSONException jse) {
@@ -888,6 +897,25 @@ public class VmConnection {
       JSONObject jsonResult = object.getJSONObject("result");
 
       result.setResult(VmVariable.createFrom(isolate, jsonResult.optJSONArray("globals")));
+    }
+
+    return result;
+  }
+
+  private VmResult<List<Integer>> convertGetIsolateIdsResult(JSONObject object)
+      throws JSONException {
+    VmResult<List<Integer>> result = VmResult.createFrom(object);
+
+    if (object.has("result")) {
+      JSONArray arr = object.getJSONObject("result").optJSONArray("isolateIds");
+
+      List<Integer> isolateIds = new ArrayList<Integer>();
+
+      for (int i = 0; i < arr.length(); i++) {
+        isolateIds.add(new Integer(arr.getInt(i)));
+      }
+
+      result.setResult(isolateIds);
     }
 
     return result;

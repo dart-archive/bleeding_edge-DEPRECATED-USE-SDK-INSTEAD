@@ -49,7 +49,9 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     IDartStackFrame, IExceptionStackFrame, IVariableResolver, IExpressionEvaluator {
   private IThread thread;
   private VmCallFrame vmFrame;
+
   private boolean isExceptionStackFrame;
+
   private List<ServerDebugVariable> locals;
 
   public ServerDebugStackFrame(IDebugTarget target, IThread thread, VmCallFrame vmFrame) {
@@ -283,6 +285,10 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     newLocals.addAll(locals);
 
     locals = newLocals;
+  }
+
+  protected VmCallFrame getVmFrame() {
+    return vmFrame;
   }
 
   private List<ServerDebugVariable> createFrom(VmCallFrame frame) {

@@ -35,6 +35,10 @@ void testAnimals() {
   // loaded, dartium does not send us the adjusted bp location.
   var tempCat = SPARKY;
 
+  spawnAnimalsIsolate();
+  spawnAnimalsIsolate();
+  spawnAnimalsIsolate();
+  
   tempCat.color;
   tempCat.color = "dsdf";
 
@@ -43,7 +47,7 @@ void testAnimals() {
   print("${tempCat}:");
 
   tempCat.performAction();
-
+  
   checkTypes();
 
   createARealBigArray();

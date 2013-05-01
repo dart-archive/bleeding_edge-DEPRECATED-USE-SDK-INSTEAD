@@ -7,14 +7,15 @@ library cmd_test;
 import 'pets.dart' as pets;
 
 num petCount = 0;
+double fooCount = 10.0;
 
 void main() {
   print("starting debuggertest");
 
   // Spawn some isolates...
-//  pets.spawnAnimalsIsolate();
-//  pets.spawnAnimalsIsolate();
-//  pets.spawnAnimalsIsolate();
+  pets.spawnAnimalsIsolate();
+  pets.spawnAnimalsIsolate();
+  pets.spawnAnimalsIsolate();
 
   var cat = pets.SPARKY;
 
@@ -31,6 +32,8 @@ void main() {
 
   pets.createARealBigArray();
 
+  pets.Ferret ferret = new pets.Ferret("Fanny");
+  
   var dog = new pets.Dog("Scooter");
 
   dog.performAction();

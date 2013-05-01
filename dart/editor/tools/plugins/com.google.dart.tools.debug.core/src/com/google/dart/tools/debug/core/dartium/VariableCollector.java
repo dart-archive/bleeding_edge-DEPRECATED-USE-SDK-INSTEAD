@@ -25,6 +25,7 @@ import org.eclipse.debug.core.model.IVariable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -40,7 +41,7 @@ class VariableCollector {
         remoteObjects.size(),
         variable);
 
-    for (WebkitRemoteObject obj : remoteObjects) {
+    for (final WebkitRemoteObject obj : remoteObjects) {
       try {
         target.getConnection().getRuntime().getProperties(
             obj,
@@ -49,7 +50,7 @@ class VariableCollector {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
                 try {
-                  collector.collectFields(result);
+                  collector.collectFields(result, !obj.isList());
                 } catch (Throwable t) {
                   DartDebugCorePlugin.logError(t);
 
@@ -93,7 +94,7 @@ class VariableCollector {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
                 try {
-                  collector.collectFields(result);
+                  collector.collectFields(result, false);
                 } catch (Throwable t) {
                   DartDebugCorePlugin.logError(t);
 
@@ -138,11 +139,17 @@ class VariableCollector {
     return variables.toArray(new IVariable[variables.size()]);
   }
 
-  private void collectFields(WebkitResult<WebkitPropertyDescriptor[]> results) {
+  private void collectFields(WebkitResult<WebkitPropertyDescriptor[]> results, boolean shouldSort) {
     boolean gettingStaticFields = false;
 
     if (!results.isError()) {
-      for (WebkitPropertyDescriptor descriptor : results.getResult()) {
+      WebkitPropertyDescriptor[] properties = results.getResult();
+
+      if (shouldSort) {
+        properties = sort(properties);
+      }
+
+      for (WebkitPropertyDescriptor descriptor : properties) {
         if (descriptor.isEnumerable()) {
           if (!shouldFilter(descriptor)) {
             DartiumDebugVariable variable = new DartiumDebugVariable(target, descriptor);
@@ -194,7 +201,7 @@ class VariableCollector {
       CountDownLatch latch) {
     try {
       if (!results.isError()) {
-        for (WebkitPropertyDescriptor descriptor : results.getResult()) {
+        for (WebkitPropertyDescriptor descriptor : sort(results.getResult())) {
           if (descriptor.isEnumerable()) {
             DartiumDebugVariable variable = new DartiumDebugVariable(target, descriptor);
 
@@ -267,6 +274,12 @@ class VariableCollector {
     }
 
     return false;
+  }
+
+  private WebkitPropertyDescriptor[] sort(WebkitPropertyDescriptor[] properties) {
+    Arrays.sort(properties);
+
+    return properties;
   }
 
   private void worked() {

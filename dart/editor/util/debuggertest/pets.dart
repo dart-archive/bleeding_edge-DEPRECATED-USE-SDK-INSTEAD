@@ -1,7 +1,8 @@
 
 library pets;
 
-import 'dart:collection' show DoubleLinkedQueue;
+import 'dart:async';
+import 'dart:collection';
 import 'dart:isolate';
 import 'dart:math';
 
@@ -132,13 +133,42 @@ class Dog extends FloppyEars implements Animal {
   String toString() => "dog ${name}";
 }
 
+/**
+ * Ferrets return null for their toString().
+ */
+class Ferret extends Animal {
+  String name;
+  int clawCount;
+  
+  Ferret(this.name) {
+    clawCount = 4;
+  }
+  
+  String toString() {
+    return null;
+  }
+}
+
 List<Animal> getLotsOfAnimals() {
   return [
       new Dog("Scooter"),
       new Cat("Munchkins"),
       new Cat("1月27日(金曜日)"),
       SPARKY,
-      new Dog.withFleas(Dog.BEST_DOG_NAME, 2)
+      new Dog.withFleas(Dog.BEST_DOG_NAME, 2),
+      new Dog("Scooter"),
+      new Cat("Munchkins"),
+      new Cat("1月27日(金曜日)"),
+      new Dog("Scooter"),
+      new Cat("Munchkins"),
+      new Cat("1月27日(金曜日)"),
+      new Dog("Scooter"),
+      new Cat("Munchkins"),
+      new Cat("1月27日(金曜日)"),
+      new Dog("Scooter"),
+      new Cat("Munchkins"),
+      new Cat("1月27日(金曜日)"),
+      SPARKY,
   ];
 }
 
@@ -166,11 +196,11 @@ void spawnAnimalsIsolate() {
 }
 
 void _spawnAnimals() {
-  int count = new Random().nextInt(100);
+  int count = new Random().nextInt(10);
 
-  for (num i = 0; i < count * 1000; i++) {
-    getLotsOfAnimals();
-  }
+  new Timer(new Duration(seconds: count), () {
+    print("isolate finished after ${count} seconds");
+  });
 }
 
 void checkTypes() {
