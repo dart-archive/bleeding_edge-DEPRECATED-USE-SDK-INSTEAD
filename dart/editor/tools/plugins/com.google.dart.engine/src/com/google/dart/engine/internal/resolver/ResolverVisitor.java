@@ -47,6 +47,7 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ParenthesizedExpression;
+import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
@@ -926,9 +927,6 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param condition the condition that will have evaluated to 'false'
    */
   private void propagateFalseState(Expression condition) {
-    while (condition instanceof ParenthesizedExpression) {
-      condition = ((ParenthesizedExpression) condition).getExpression();
-    }
     if (condition instanceof IsExpression) {
       IsExpression is = (IsExpression) condition;
       if (is.getNotOperator() != null) {
@@ -946,6 +944,13 @@ public class ResolverVisitor extends ScopedVisitor {
         propagateFalseState(binary.getLeftOperand());
         propagateFalseState(binary.getRightOperand());
       }
+    } else if (condition instanceof PrefixExpression) {
+      PrefixExpression prefix = (PrefixExpression) condition;
+      if (prefix.getOperator().getType() == TokenType.BANG) {
+        propagateTrueState(prefix.getOperand());
+      }
+    } else if (condition instanceof ParenthesizedExpression) {
+      propagateFalseState(((ParenthesizedExpression) condition).getExpression());
     }
   }
 
@@ -956,9 +961,6 @@ public class ResolverVisitor extends ScopedVisitor {
    * @param condition the condition that will have evaluated to 'true'
    */
   private void propagateTrueState(Expression condition) {
-    while (condition instanceof ParenthesizedExpression) {
-      condition = ((ParenthesizedExpression) condition).getExpression();
-    }
     if (condition instanceof IsExpression) {
       IsExpression is = (IsExpression) condition;
       if (is.getNotOperator() == null) {
@@ -976,6 +978,13 @@ public class ResolverVisitor extends ScopedVisitor {
         propagateTrueState(binary.getLeftOperand());
         propagateTrueState(binary.getRightOperand());
       }
+    } else if (condition instanceof PrefixExpression) {
+      PrefixExpression prefix = (PrefixExpression) condition;
+      if (prefix.getOperator().getType() == TokenType.BANG) {
+        propagateFalseState(prefix.getOperand());
+      }
+    } else if (condition instanceof ParenthesizedExpression) {
+      propagateTrueState(((ParenthesizedExpression) condition).getExpression());
     }
   }
 

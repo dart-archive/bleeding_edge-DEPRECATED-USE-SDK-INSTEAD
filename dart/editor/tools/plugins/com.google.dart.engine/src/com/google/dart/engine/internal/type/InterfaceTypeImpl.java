@@ -438,59 +438,15 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   public boolean isMoreSpecificThan(Type type) {
     //
     // S is dynamic.
-    // Dynamic test is done here since it is not an instanceof InterfaceType.
+    // The test to determine whether S is dynamic is done here because dynamic is not an instance of
+    // InterfaceType.
+    //
     if (type == DynamicTypeImpl.getInstance()) {
       return true;
     } else if (!(type instanceof InterfaceType)) {
       return false;
     }
-    InterfaceType s = (InterfaceType) type;
-    //
-    // A type T is more specific than a type S, written T << S,  if one of the following conditions
-    // is met:
-    //
-    //
-    // Reflexivity: T is S.
-    //
-    if (this.equals(s)) {
-      return true;
-    }
-    //
-    // T is bottom.
-    //
-    // This case is handled by the class BottomTypeImpl.
-
-    //
-    // Direct supertype: S is a direct supertype of T.
-    //
-    if (s.isDirectSupertypeOf(this)) {
-      return true;
-    }
-    //
-    // Covariance: T is of the form I<T1, ..., Tn> and S is of the form I<S1, ..., Sn> and Ti << Si, 1 <= i <= n.
-    //
-    ClassElement tElement = getElement();
-    ClassElement sElement = s.getElement();
-    if (tElement.equals(sElement)) {
-      Type[] tArguments = getTypeArguments();
-      Type[] sArguments = s.getTypeArguments();
-      if (tArguments.length != sArguments.length) {
-        return false;
-      }
-      for (int i = 0; i < tArguments.length; i++) {
-        if (!tArguments[i].isMoreSpecificThan(sArguments[i])) {
-          return false;
-        }
-      }
-      return true;
-    }
-    //
-    // Transitivity: T << U and U << S.
-    //
-    if (getElement().getSupertype() == null) {
-      return false;
-    }
-    return getElement().getSupertype().isMoreSpecificThan(type);
+    return isMoreSpecificThan((InterfaceType) type, new HashSet<ClassElement>());
   }
 
   @Override
@@ -507,53 +463,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (this.equals(type)) {
       return true;
     }
-    InterfaceType typeT = this;
-    InterfaceType typeS = (InterfaceType) type;
-    ClassElement elementT = getElement();
-    if (elementT == null) {
-      return false;
-    }
-    typeT = substitute(typeArguments, TypeVariableTypeImpl.getTypes(elementT.getTypeVariables()));
-    if (typeT.equals(typeS)) {
-      return true;
-    } else if (ObjectUtilities.equals(elementT, typeS.getElement())) {
-      // For each of the type arguments return true if all type args from T is a subtype of all
-      // types from S.
-      Type[] typeTArgs = typeT.getTypeArguments();
-      Type[] typeSArgs = typeS.getTypeArguments();
-      if (typeTArgs.length != typeSArgs.length) {
-        // This case covers the case where two objects are being compared that have a different
-        // number of parameterized types.
-        return false;
-      }
-      for (int i = 0; i < typeTArgs.length; i++) {
-        // Recursively call isSubtypeOf the type arguments and return false if the T argument is not
-        // a subtype of the S argument.
-        if (!typeTArgs[i].isSubtypeOf(typeSArgs[i])) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    Type supertype = elementT.getSupertype();
-    // The type is Object, return false.
-    if (supertype == null) {
-      return false;
-    }
-    Type[] interfaceTypes = elementT.getInterfaces();
-    for (Type interfaceType : interfaceTypes) {
-      if (interfaceType.isSubtypeOf(typeS)) {
-        return true;
-      }
-    }
-    Type[] mixinTypes = elementT.getMixins();
-    for (Type mixinType : mixinTypes) {
-      if (mixinType.equals(typeS)) {
-        return true;
-      }
-    }
-    return supertype.isSubtypeOf(typeS);
+    return isSubtypeOf((InterfaceType) type, new HashSet<ClassElement>());
   }
 
   @Override
@@ -685,5 +595,122 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
       builder.append(">");
     }
+  }
+
+  private boolean isMoreSpecificThan(InterfaceType s, HashSet<ClassElement> visitedClasses) {
+    //
+    // A type T is more specific than a type S, written T << S,  if one of the following conditions
+    // is met:
+    //
+    // Reflexivity: T is S.
+    //
+    if (this.equals(s)) {
+      return true;
+    }
+    //
+    // T is bottom. (This case is handled by the class BottomTypeImpl.)
+    //
+    // Direct supertype: S is a direct supertype of T.
+    //
+    if (s.isDirectSupertypeOf(this)) {
+      return true;
+    }
+    //
+    // Covariance: T is of the form I<T1, ..., Tn> and S is of the form I<S1, ..., Sn> and Ti << Si, 1 <= i <= n.
+    //
+    ClassElement tElement = getElement();
+    ClassElement sElement = s.getElement();
+    if (tElement.equals(sElement)) {
+      Type[] tArguments = getTypeArguments();
+      Type[] sArguments = s.getTypeArguments();
+      if (tArguments.length != sArguments.length) {
+        return false;
+      }
+      for (int i = 0; i < tArguments.length; i++) {
+        if (!tArguments[i].isMoreSpecificThan(sArguments[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    //
+    // Transitivity: T << U and U << S.
+    //
+    ClassElement element = getElement();
+    if (element == null || visitedClasses.contains(element)) {
+      return false;
+    }
+    visitedClasses.add(element);
+    //
+    // Iterate over all of the types U that are more specific than T because they are direct
+    // supertypes of T and return true if any of them are more specific than S.
+    //
+    InterfaceType supertype = element.getSupertype();
+    if (supertype != null && ((InterfaceTypeImpl) supertype).isMoreSpecificThan(s, visitedClasses)) {
+      return true;
+    }
+    for (InterfaceType interfaceType : element.getInterfaces()) {
+      if (((InterfaceTypeImpl) interfaceType).isMoreSpecificThan(s, visitedClasses)) {
+        return true;
+      }
+    }
+    for (InterfaceType mixinType : element.getMixins()) {
+      if (((InterfaceTypeImpl) mixinType).isMoreSpecificThan(s, visitedClasses)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isSubtypeOf(InterfaceType type, HashSet<ClassElement> visitedClasses) {
+    InterfaceType typeT = this;
+    InterfaceType typeS = type;
+    ClassElement elementT = getElement();
+    if (elementT == null || visitedClasses.contains(elementT)) {
+      return false;
+    }
+    visitedClasses.add(elementT);
+
+    typeT = substitute(typeArguments, TypeVariableTypeImpl.getTypes(elementT.getTypeVariables()));
+    if (typeT.equals(typeS)) {
+      return true;
+    } else if (ObjectUtilities.equals(elementT, typeS.getElement())) {
+      // For each of the type arguments return true if all type args from T is a subtype of all
+      // types from S.
+      Type[] typeTArgs = typeT.getTypeArguments();
+      Type[] typeSArgs = typeS.getTypeArguments();
+      if (typeTArgs.length != typeSArgs.length) {
+        // This case covers the case where two objects are being compared that have a different
+        // number of parameterized types.
+        return false;
+      }
+      for (int i = 0; i < typeTArgs.length; i++) {
+        // Recursively call isSubtypeOf the type arguments and return false if the T argument is not
+        // a subtype of the S argument.
+        if (!typeTArgs[i].isSubtypeOf(typeSArgs[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    InterfaceType supertype = elementT.getSupertype();
+    // The type is Object, return false.
+    if (supertype != null && ((InterfaceTypeImpl) supertype).isSubtypeOf(typeS, visitedClasses)) {
+      return true;
+    }
+    InterfaceType[] interfaceTypes = elementT.getInterfaces();
+    for (InterfaceType interfaceType : interfaceTypes) {
+      if (((InterfaceTypeImpl) interfaceType).isSubtypeOf(typeS, visitedClasses)) {
+        return true;
+      }
+    }
+    InterfaceType[] mixinTypes = elementT.getMixins();
+    for (InterfaceType mixinType : mixinTypes) {
+      if (((InterfaceTypeImpl) mixinType).isSubtypeOf(typeS, visitedClasses)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

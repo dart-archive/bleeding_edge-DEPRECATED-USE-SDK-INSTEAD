@@ -867,7 +867,66 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertTrue(type.isMoreSpecificThan(DynamicTypeImpl.getInstance()));
   }
 
-  public void test_isMoreSpecificThan_indirectSupertype() {
+  public void test_isMoreSpecificThan_self() {
+    InterfaceType type = classElement("A").getType();
+
+    assertTrue(type.isMoreSpecificThan(type));
+  }
+
+  public void test_isMoreSpecificThan_transitive_interface() {
+    //
+    //  class A {}
+    //  class B extends A {}
+    //  class C implements B {}
+    //
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    ClassElementImpl classC = classElement("C");
+    classC.setInterfaces(new InterfaceType[] {classB.getType()});
+    InterfaceType typeA = classA.getType();
+    InterfaceType typeC = classC.getType();
+
+    assertTrue(typeC.isMoreSpecificThan(typeA));
+  }
+
+  public void test_isMoreSpecificThan_transitive_mixin() {
+    //
+    //  class A {}
+    //  class B extends A {}
+    //  class C with B {}
+    //
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    ClassElementImpl classC = classElement("C");
+    classC.setMixins(new InterfaceType[] {classB.getType()});
+    InterfaceType typeA = classA.getType();
+    InterfaceType typeC = classC.getType();
+
+    assertTrue(typeC.isMoreSpecificThan(typeA));
+  }
+
+  public void test_isMoreSpecificThan_transitive_recursive() {
+    //
+    //  class A extends B {}
+    //  class B extends A {}
+    //  class C {}
+    //
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    ClassElementImpl classC = classElement("C");
+    InterfaceType typeA = classA.getType();
+    InterfaceType typeC = classC.getType();
+    classA.setSupertype(classB.getType());
+
+    assertFalse(typeA.isMoreSpecificThan(typeC));
+  }
+
+  public void test_isMoreSpecificThan_transitive_superclass() {
+    //
+    //  class A {}
+    //  class B extends A {}
+    //  class C extends B {}
+    //
     ClassElement classA = classElement("A");
     ClassElement classB = classElement("B", classA.getType());
     ClassElement classC = classElement("C", classB.getType());
@@ -875,12 +934,6 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeC = classC.getType();
 
     assertTrue(typeC.isMoreSpecificThan(typeA));
-  }
-
-  public void test_isMoreSpecificThan_self() {
-    InterfaceType type = classElement("A").getType();
-
-    assertTrue(type.isMoreSpecificThan(type));
   }
 
   public void test_isSubtypeOf_directSubtype() {
@@ -902,17 +955,6 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertTrue(typeA.isSubtypeOf(dynamicType));
   }
 
-  public void test_isSubtypeOf_indirectSubtype() {
-    ClassElement classA = classElement("A");
-    ClassElement classB = classElement("B", classA.getType());
-    ClassElement classC = classElement("C", classB.getType());
-    InterfaceType typeA = classA.getType();
-    InterfaceType typeC = classC.getType();
-
-    assertTrue(typeC.isSubtypeOf(typeA));
-    assertFalse(typeA.isSubtypeOf(typeC));
-  }
-
   public void test_isSubtypeOf_interface() {
     ClassElement classA = classElement("A");
     ClassElement classB = classElement("B", classA.getType());
@@ -930,6 +972,11 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_mixins() {
+    //
+    // class A {}
+    // class B extends A {}
+    // class C with B {}
+    //
     ClassElement classA = classElement("A");
     ClassElement classB = classElement("B", classA.getType());
     ClassElementImpl classC = classElement("C");
@@ -941,7 +988,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
 
     assertTrue(typeC.isSubtypeOf(typeB));
     assertTrue(typeC.isSubtypeOf(typeObject));
-    assertFalse(typeC.isSubtypeOf(typeA));
+    assertTrue(typeC.isSubtypeOf(typeA));
     assertFalse(typeA.isSubtypeOf(typeC));
   }
 
@@ -959,6 +1006,33 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeA = classA.getType();
 
     assertTrue(typeA.isSubtypeOf(typeA));
+  }
+
+  public void test_isSubtypeOf_transitive_recursive() {
+    //
+    //  class A extends B {}
+    //  class B extends A {}
+    //  class C {}
+    //
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    ClassElementImpl classC = classElement("C");
+    InterfaceType typeA = classA.getType();
+    InterfaceType typeC = classC.getType();
+    classA.setSupertype(classB.getType());
+
+    assertFalse(typeA.isSubtypeOf(typeC));
+  }
+
+  public void test_isSubtypeOf_transitive_superclass() {
+    ClassElement classA = classElement("A");
+    ClassElement classB = classElement("B", classA.getType());
+    ClassElement classC = classElement("C", classB.getType());
+    InterfaceType typeA = classA.getType();
+    InterfaceType typeC = classC.getType();
+
+    assertTrue(typeC.isSubtypeOf(typeA));
+    assertFalse(typeA.isSubtypeOf(typeC));
   }
 
   public void test_isSubtypeOf_typeArguments() {
@@ -1041,6 +1115,11 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSupertypeOf_mixins() {
+    //
+    // class A {}
+    // class B extends A {}
+    // class C with B {}
+    //
     ClassElement classA = classElement("A");
     ClassElement classB = classElement("B", classA.getType());
     ClassElementImpl classC = classElement("C");
@@ -1052,7 +1131,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
 
     assertTrue(typeB.isSupertypeOf(typeC));
     assertTrue(typeObject.isSupertypeOf(typeC));
-    assertFalse(typeA.isSupertypeOf(typeC));
+    assertTrue(typeA.isSupertypeOf(typeC));
     assertFalse(typeC.isSupertypeOf(typeA));
   }
 
