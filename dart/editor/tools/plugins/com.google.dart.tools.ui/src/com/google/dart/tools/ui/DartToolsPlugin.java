@@ -16,7 +16,6 @@ package com.google.dart.tools.ui;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.dialogs.ScanProgressUI;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRegistry;
 import com.google.dart.tools.ui.internal.cleanup.preference.PreferencesAccess;
@@ -26,7 +25,6 @@ import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory;
 import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitDocumentProvider;
 import com.google.dart.tools.ui.internal.text.editor.ICompilationUnitDocumentProvider;
-import com.google.dart.tools.ui.internal.text.editor.LegacyCompilationUnitDocumentProvider;
 import com.google.dart.tools.ui.internal.text.editor.WorkingCopyManager;
 import com.google.dart.tools.ui.internal.text.editor.saveparticipant.SaveParticipantRegistry;
 import com.google.dart.tools.ui.internal.text.folding.JavaFoldingStructureProviderRegistry;
@@ -608,11 +606,7 @@ public class DartToolsPlugin extends AbstractUIPlugin {
 
   public synchronized ICompilationUnitDocumentProvider getCompilationUnitDocumentProvider() {
     if (compilationUnitDocumentProvider == null) {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        compilationUnitDocumentProvider = new CompilationUnitDocumentProvider();
-      } else {
-        compilationUnitDocumentProvider = new LegacyCompilationUnitDocumentProvider();
-      }
+      compilationUnitDocumentProvider = new CompilationUnitDocumentProvider();
     }
     return compilationUnitDocumentProvider;
   }

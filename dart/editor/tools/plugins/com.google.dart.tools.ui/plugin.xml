@@ -3344,37 +3344,28 @@
       </deleteParticipant>
    </extension>
 
-    <extension
+    <!--<extension
         point="com.google.dart.tools.ui.quickFixProcessors">
         <quickFixProcessor
             name="%defaultQuickFixProcessor"
             class="com.google.dart.tools.ui.internal.text.correction.QuickFixProcessor_OLD"
             id="com.google.dart.tools.ui.internal.text.correction.QuickFixProcessor">
         </quickFixProcessor>
-        <!--<quickFixProcessor
+        <quickFixProcessor
             name="%spellingQuickFixProcessor"
             class="org.eclipse.jdt.internal.ui.text.spelling.WordQuickFixProcessor"
             id= "org.eclipse.jdt.ui.text.correction.spelling.QuickFixProcessor">
             <handledMarkerTypes>
                 <markerType id="org.eclipse.jdt.ui.internal.spelling"/>
             </handledMarkerTypes>
-        </quickFixProcessor>-->
-    </extension>
+        </quickFixProcessor>
+    </extension>-->
     
    <extension
          point="com.google.dart.tools.ui.quickAssistProcessors">
       <quickAssistProcessor
             class="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor"
             id="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor"/>
-      <quickAssistProcessor
-            class="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor_OLD"
-            id="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor_OLD"/>
-   </extension>
-    
-   <extension point="org.eclipse.ui.ide.markerResolution">
-      <markerResolutionGenerator
-         markerType="com.google.dart.tools.core.problem"
-         class="com.google.dart.tools.ui.internal.text.correction.CorrectionMarkerResolutionGenerator"/>
    </extension>
    
    <extension

@@ -43,7 +43,6 @@ import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.GenerateActionGroup;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
-import com.google.dart.tools.ui.actions.RefactorActionGroup_OLD;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
@@ -938,78 +937,78 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         return;
       }
 
-      try {
-
-        int startOffset, endOffset;
-        int revealStartOffset, revealEndOffset;
-        if (showsHighlightRangeOnly()) {
-          DartElement newStartElement = (DartElement) fStartOffset.getElement();
-          startOffset = fStartOffset.getRememberedOffset(newStartElement);
-          revealStartOffset = fStartOffset.getRevealOffset(newStartElement, startOffset);
-          if (revealStartOffset == -1) {
-            startOffset = -1;
-          }
-
-          DartElement newEndElement = (DartElement) fEndOffset.getElement();
-          endOffset = fEndOffset.getRememberedOffset(newEndElement);
-          revealEndOffset = fEndOffset.getRevealOffset(newEndElement, endOffset);
-          if (revealEndOffset == -1) {
-            endOffset = -1;
-          }
-        } else {
-          startOffset = fStartOffset.getOffset();
-          revealStartOffset = startOffset;
-          endOffset = fEndOffset.getOffset();
-          revealEndOffset = endOffset;
-        }
-
-        if (startOffset == -1) {
-          startOffset = endOffset; // fallback to caret offset
-          revealStartOffset = revealEndOffset;
-        }
-
-        if (endOffset == -1) {
-          endOffset = startOffset; // fallback to other offset
-          revealEndOffset = revealStartOffset;
-        }
-
-        DartElement element;
-        if (endOffset == -1) {
-          // fallback to element selection
-          element = (DartElement) fEndOffset.getElement();
-          if (element == null) {
-            element = (DartElement) fStartOffset.getElement();
-          }
-          if (element != null) {
-            setSelection(element);
-          }
-          return;
-        }
-
-        if (isValidSelection(revealStartOffset, revealEndOffset - revealStartOffset)
-            && isValidSelection(startOffset, endOffset - startOffset)) {
-          selectAndReveal(startOffset, endOffset - startOffset, revealStartOffset, revealEndOffset
-              - revealStartOffset);
-        }
-      } finally {
-        fStartOffset.clear();
-        fEndOffset.clear();
-      }
+//      try {
+//
+//        int startOffset, endOffset;
+//        int revealStartOffset, revealEndOffset;
+//        if (showsHighlightRangeOnly()) {
+//          DartElement newStartElement = (DartElement) fStartOffset.getElement();
+//          startOffset = fStartOffset.getRememberedOffset(newStartElement);
+//          revealStartOffset = fStartOffset.getRevealOffset(newStartElement, startOffset);
+//          if (revealStartOffset == -1) {
+//            startOffset = -1;
+//          }
+//
+//          DartElement newEndElement = (DartElement) fEndOffset.getElement();
+//          endOffset = fEndOffset.getRememberedOffset(newEndElement);
+//          revealEndOffset = fEndOffset.getRevealOffset(newEndElement, endOffset);
+//          if (revealEndOffset == -1) {
+//            endOffset = -1;
+//          }
+//        } else {
+//          startOffset = fStartOffset.getOffset();
+//          revealStartOffset = startOffset;
+//          endOffset = fEndOffset.getOffset();
+//          revealEndOffset = endOffset;
+//        }
+//
+//        if (startOffset == -1) {
+//          startOffset = endOffset; // fallback to caret offset
+//          revealStartOffset = revealEndOffset;
+//        }
+//
+//        if (endOffset == -1) {
+//          endOffset = startOffset; // fallback to other offset
+//          revealEndOffset = revealStartOffset;
+//        }
+//
+//        DartElement element;
+//        if (endOffset == -1) {
+//          // fallback to element selection
+//          element = (DartElement) fEndOffset.getElement();
+//          if (element == null) {
+//            element = (DartElement) fStartOffset.getElement();
+//          }
+//          if (element != null) {
+//            setSelection(element);
+//          }
+//          return;
+//        }
+//
+//        if (isValidSelection(revealStartOffset, revealEndOffset - revealStartOffset)
+//            && isValidSelection(startOffset, endOffset - startOffset)) {
+//          selectAndReveal(startOffset, endOffset - startOffset, revealStartOffset, revealEndOffset
+//              - revealStartOffset);
+//        }
+//      } finally {
+//        fStartOffset.clear();
+//        fEndOffset.clear();
+//      }
     }
 
-    private boolean isValidSelection(int offset, int length) {
-      IDocumentProvider provider = getDocumentProvider();
-      if (provider != null) {
-        IDocument document = provider.getDocument(getEditorInput());
-        if (document != null) {
-          int end = offset + length;
-          int documentLength = document.getLength();
-          return 0 <= offset && offset <= documentLength && 0 <= end && end <= documentLength
-              && length >= 0;
-        }
-      }
-      return false;
-    }
+//    private boolean isValidSelection(int offset, int length) {
+//      IDocumentProvider provider = getDocumentProvider();
+//      if (provider != null) {
+//        IDocument document = provider.getDocument(getEditorInput());
+//        if (document != null) {
+//          int end = offset + length;
+//          int documentLength = document.getLength();
+//          return 0 <= offset && offset <= documentLength && 0 <= end && end <= documentLength
+//              && length >= 0;
+//        }
+//      }
+//      return false;
+//    }
 
   }
 
@@ -1535,13 +1534,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     }
 
     fGenerateActionGroup = new GenerateActionGroup(this, ITextEditorActionConstants.GROUP_EDIT);
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      fRefactorActionGroup = new RefactorActionGroup(this);
-    } else {
-      fRefactorActionGroup = new RefactorActionGroup_OLD(
-          this,
-          ITextEditorActionConstants.GROUP_EDIT);
-    }
+    fRefactorActionGroup = new RefactorActionGroup(this);
     //    ActionGroup surroundWith = new SurroundWithActionGroup(this,
     //        ITextEditorActionConstants.GROUP_EDIT);
 

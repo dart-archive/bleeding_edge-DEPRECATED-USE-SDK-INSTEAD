@@ -568,10 +568,11 @@ public class EditorUtility {
       return;
     }
 
-    if (part instanceof DartEditor) {
-      ((DartEditor) part).setSelection(element);
-      return;
-    }
+    // TODO(scheglov) to be removed with method
+//    if (part instanceof DartEditor) {
+//      ((DartEditor) part).setSelection(element);
+//      return;
+//    }
 
     // Support for non-Dart editor
     try {

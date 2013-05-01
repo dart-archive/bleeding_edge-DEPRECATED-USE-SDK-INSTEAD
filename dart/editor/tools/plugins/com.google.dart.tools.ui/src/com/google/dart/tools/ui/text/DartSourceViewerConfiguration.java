@@ -22,7 +22,6 @@ import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingStrategy;
 import com.google.dart.tools.ui.internal.text.correction.DartCorrectionAssistant;
-import com.google.dart.tools.ui.internal.text.correction.DartCorrectionAssistant_OLD;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistProcessor;
 import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy_OLD;
@@ -621,15 +620,9 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
   public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) {
     ITextEditor editor = getEditor();
     if (editor != null) {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        DartCorrectionAssistant assistant = new DartCorrectionAssistant(editor);
-        assistant.setRestoreCompletionProposalSize(getSettings("quick_assist_proposal_size")); //$NON-NLS-1$
-        return assistant;
-      } else {
-        DartCorrectionAssistant_OLD assistant = new DartCorrectionAssistant_OLD(editor);
-        assistant.setRestoreCompletionProposalSize(getSettings("quick_assist_proposal_size")); //$NON-NLS-1$
-        return assistant;
-      }
+      DartCorrectionAssistant assistant = new DartCorrectionAssistant(editor);
+      assistant.setRestoreCompletionProposalSize(getSettings("quick_assist_proposal_size")); //$NON-NLS-1$
+      return assistant;
     }
     return null;
   }

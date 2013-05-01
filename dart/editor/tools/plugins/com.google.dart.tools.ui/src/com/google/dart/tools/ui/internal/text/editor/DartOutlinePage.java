@@ -66,7 +66,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 /**
  * {@link IContentOutlinePage} for {@link DartEditor}.
  */
-public class DartOutlinePage extends Page implements IContentOutlinePage, DartOutlinePage_I {
+public class DartOutlinePage extends Page implements IContentOutlinePage {
 
   private class CollapseAllAction extends InstrumentedAction {
     CollapseAllAction() {

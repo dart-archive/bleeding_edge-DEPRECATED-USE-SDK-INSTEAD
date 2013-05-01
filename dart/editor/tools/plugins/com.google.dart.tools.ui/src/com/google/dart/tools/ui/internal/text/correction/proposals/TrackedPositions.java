@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
-import com.google.dart.compiler.common.HasSourceInfo;
-import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.dom.rewrite.TrackedNodePosition;
 
@@ -22,11 +20,6 @@ import com.google.dart.tools.core.dom.rewrite.TrackedNodePosition;
  * Factory for {@link TrackedNodePosition}.
  */
 public class TrackedPositions {
-  public static TrackedNodePosition forNode(HasSourceInfo node) {
-    SourceInfo sourceInfo = node.getSourceInfo();
-    return forStartLength(sourceInfo.getOffset(), sourceInfo.getLength());
-  }
-
   public static TrackedNodePosition forRange(SourceRange r) {
     return forStartLength(r.getOffset(), r.getLength());
   }

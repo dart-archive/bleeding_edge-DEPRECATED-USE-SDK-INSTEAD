@@ -29,9 +29,6 @@ import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 
 import java.util.Iterator;
 
-/**
- * A replacement for {@link LegacyCompilationUnitDocumentProvider}.
- */
 public class CompilationUnitDocumentProvider extends TextFileDocumentProvider implements
     ICompilationUnitDocumentProvider {
 
