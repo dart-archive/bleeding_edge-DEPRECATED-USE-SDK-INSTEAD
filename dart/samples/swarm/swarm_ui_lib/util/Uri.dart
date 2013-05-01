@@ -74,4 +74,6 @@ class Uri extends uri.Uri {
                     .replaceAll('%26', '&')
                     .replaceAll('%20', ' ');
   }
+
+  Uri(String uri) : super(uri);
 }
