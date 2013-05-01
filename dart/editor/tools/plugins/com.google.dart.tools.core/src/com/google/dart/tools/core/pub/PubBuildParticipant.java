@@ -209,7 +209,9 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
       File dir = container.getLocation().toFile();
       File pubFile = new File(dir, DartCore.PUBSPEC_FILE_NAME);
       File lockFile = new File(dir, DartCore.PUBSPEC_LOCK_FILE_NAME);
-      if (lockFile.exists() && lockFile.lastModified() >= pubFile.lastModified()) {
+      File packagesDir = new File(dir, DartCore.PACKAGES_DIRECTORY_NAME);
+      if (packagesDir.exists() && lockFile.exists()
+          && lockFile.lastModified() >= pubFile.lastModified()) {
         return;
       }
 
