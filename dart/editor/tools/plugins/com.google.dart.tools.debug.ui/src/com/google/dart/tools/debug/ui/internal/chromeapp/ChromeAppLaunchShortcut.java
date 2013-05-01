@@ -49,7 +49,7 @@ import java.io.InputStreamReader;
  * @see http://developer.chrome.com/extensions/manifest.html
  */
 public class ChromeAppLaunchShortcut extends AbstractLaunchShortcut implements ILaunchShortcutExt {
-  private static final String MANIFEST_FILE_NAME = "manifest.json";
+  public static final String MANIFEST_FILE_NAME = "manifest.json";
 
   public ChromeAppLaunchShortcut() {
     super("Chrome App");

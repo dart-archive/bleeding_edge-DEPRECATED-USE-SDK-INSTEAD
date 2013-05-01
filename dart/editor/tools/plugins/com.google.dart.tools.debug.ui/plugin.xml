@@ -17,6 +17,13 @@
             properties="canLaunchBrowser"
             type="org.eclipse.jface.viewers.ISelection">
       </propertyTester>
+      <propertyTester
+            class="com.google.dart.tools.debug.ui.launch.RunInChromeAppPropertyTester"
+            id="com.google.dart.tools.debug.ui.run.chromeAppPropertyTester"
+            namespace="com.google.dart.tools.debug.ui.launch"
+            properties="canLaunchChromeApp"
+            type="org.eclipse.jface.viewers.ISelection">
+      </propertyTester>
    </extension>
 
    <extension
@@ -361,6 +368,13 @@
             id="com.google.dart.tools.debug.ui.run.dartium"
             name="%runDartiumName">
       </command>
+       <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.RunInChromeAppHandler"
+            description="Run as Chrome App"
+            id="com.google.dart.tools.debug.ui.run.chromeapp"
+            name="Run as Chrome App">
+      </command>
       <command
             categoryId="org.eclipse.ui.category.window"
             defaultHandler="com.google.dart.tools.debug.ui.launch.RunInBrowserHandler"
@@ -495,6 +509,30 @@
                         <test
                               forcePluginActivation="true"
                               property="com.google.dart.tools.debug.ui.launch.canLaunchBrowser">
+                        </test>
+                  </and>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="true"
+            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
+         <command
+               commandId="com.google.dart.tools.debug.ui.run.chromeapp"
+               icon="icons/obj16/run_exc.png"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <and>
+                        <test
+                              forcePluginActivation="true"
+                              property="com.google.dart.tools.debug.ui.launch.canLaunchChromeApp">
                         </test>
                   </and>
                </with>
