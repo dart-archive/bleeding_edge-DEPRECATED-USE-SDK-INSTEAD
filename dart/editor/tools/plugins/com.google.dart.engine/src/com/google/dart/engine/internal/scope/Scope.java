@@ -139,9 +139,9 @@ public abstract class Scope {
     return new AnalysisError(
         source,
         duplicate.getNameOffset(),
-        duplicate.getName().length(),
+        duplicate.getDisplayName().length(),
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        existing.getName());
+        existing.getDisplayName());
   }
 
   /**
@@ -195,15 +195,15 @@ public abstract class Scope {
   private String getName(Element element) {
     if (element instanceof MethodElement) {
       MethodElement method = (MethodElement) element;
-      if (method.getName().equals("-") && method.getParameters().length == 0) {
+      if (method.getDisplayName().equals("-") && method.getParameters().length == 0) {
         return UNARY_MINUS;
       }
     } else if (element instanceof PropertyAccessorElement) {
       PropertyAccessorElement accessor = (PropertyAccessorElement) element;
       if (accessor.isSetter()) {
-        return accessor.getName() + SETTER_SUFFIX;
+        return accessor.getDisplayName() + SETTER_SUFFIX;
       }
     }
-    return element.getName();
+    return element.getDisplayName();
   }
 }

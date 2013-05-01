@@ -159,7 +159,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   public FieldElement getField(String name) {
     for (FieldElement fieldElement : fields) {
-      if (name.equals(fieldElement.getName())) {
+      if (name.equals(fieldElement.getDisplayName())) {
         return fieldElement;
       }
     }
@@ -180,7 +180,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   public PropertyAccessorElement getGetter(String getterName) {
     for (PropertyAccessorElement accessor : accessors) {
-      if (accessor.isGetter() && accessor.getName().equals(getterName)) {
+      if (accessor.isGetter() && accessor.getDisplayName().equals(getterName)) {
         return accessor;
       }
     }
@@ -206,7 +206,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   public MethodElement getMethod(String methodName) {
     for (MethodElement method : methods) {
-      if (method.getName().equals(methodName)) {
+      if (method.getDisplayName().equals(methodName)) {
         return method;
       }
     }
@@ -226,7 +226,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   @Override
   public ConstructorElement getNamedConstructor(String name) {
     for (ConstructorElement element : getConstructors()) {
-      String elementName = element.getName();
+      String elementName = element.getDisplayName();
       if (elementName != null && elementName.equals(name)) {
         return element;
       }
@@ -243,7 +243,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   public PropertyAccessorElement getSetter(String setterName) {
     for (PropertyAccessorElement accessor : accessors) {
-      if (accessor.isSetter() && accessor.getName().equals(setterName)) {
+      if (accessor.isSetter() && accessor.getDisplayName().equals(setterName)) {
         return accessor;
       }
     }
@@ -268,7 +268,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   @Override
   public ConstructorElement getUnnamedConstructor() {
     for (ConstructorElement element : getConstructors()) {
-      String name = element.getName();
+      String name = element.getDisplayName();
       if (name == null || name.isEmpty()) {
         return element;
       }
@@ -499,7 +499,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @Override
   protected void appendTo(StringBuilder builder) {
-    String name = getName();
+    String name = getDisplayName();
     if (name == null) {
       builder.append("{unnamed class}");
     } else {

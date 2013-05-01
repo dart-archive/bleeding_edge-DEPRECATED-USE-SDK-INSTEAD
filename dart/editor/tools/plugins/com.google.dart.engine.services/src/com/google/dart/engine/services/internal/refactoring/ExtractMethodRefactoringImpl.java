@@ -232,7 +232,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           // may be returns value
           if (returnVariable != null) {
             String varTypeName = utils.getTypeSource(returnVariable.getType());
-            String originalName = returnVariable.getName();
+            String originalName = returnVariable.getDisplayName();
             String occurrenceName = occurence.parameterOldToOccurrenceName.get(originalName);
             if (varTypeName.equals("dynamic")) {
               sb.append("var ");
@@ -316,7 +316,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
             declarationSource = annotations + getSignature(methodName) + " {" + eol;
             declarationSource += returnExpressionSource;
             if (returnVariable != null) {
-              declarationSource += prefix + "  return " + returnVariable.getName() + ";" + eol;
+              declarationSource += prefix + "  return " + returnVariable.getDisplayName() + ";" + eol;
             }
             declarationSource += prefix + "}";
           }
@@ -524,7 +524,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         if (partRange.covers(nodeRange)) {
           VariableElement variableElement = CorrectionUtils.getLocalOrParameterVariableElement(node);
           if (variableElement != null) {
-            String originalName = variableElement.getName();
+            String originalName = variableElement.getDisplayName();
             String patternName = pattern.originalToPatternNames.get(originalName);
             if (patternName == null) {
               patternName = "__dartEditorVariable" + pattern.originalToPatternNames.size();
@@ -662,7 +662,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           if (variableElement != null) {
             // if declared outside, add parameter
             if (!isDeclaredInSelection(variableElement)) {
-              String variableName = variableElement.getName();
+              String variableName = variableElement.getDisplayName();
               // add parameter
               if (!selectionParametersToRanges.containsKey(variableName)) {
                 Type paraType = variableElement.getType();
@@ -703,7 +703,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     if (assignedUsedVariables.size() > 1) {
       StringBuilder sb = new StringBuilder();
       for (VariableElement variable : assignedUsedVariables) {
-        sb.append(variable.getName());
+        sb.append(variable.getDisplayName());
         sb.append("\n");
       }
       result.addFatalError(MessageFormat.format("Ambiguous return value: "

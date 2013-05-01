@@ -149,7 +149,7 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
   @Override
   protected void appendTo(StringBuilder builder) {
     builder.append("typedef ");
-    builder.append(getName());
+    builder.append(getDisplayName());
     int variableCount = typeVariables.length;
     if (variableCount > 0) {
       builder.append("<");

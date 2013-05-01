@@ -59,7 +59,7 @@ public class LibraryImportScope extends Scope {
 
   @Override
   public void define(Element element) {
-    if (!isPrivateName(element.getName())) {
+    if (!isPrivateName(element.getDisplayName())) {
       super.define(element);
     }
   }

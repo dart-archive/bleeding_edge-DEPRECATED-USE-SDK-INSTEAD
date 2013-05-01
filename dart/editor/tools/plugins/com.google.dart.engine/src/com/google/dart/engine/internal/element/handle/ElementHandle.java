@@ -173,6 +173,11 @@ public abstract class ElementHandle implements Element {
   }
 
   @Override
+  public String getDisplayName() {
+    return getActualElement().getDisplayName();
+  }
+
+  @Override
   public Element getEnclosingElement() {
     return getActualElement().getEnclosingElement();
   }
@@ -194,7 +199,7 @@ public abstract class ElementHandle implements Element {
 
   @Override
   public String getName() {
-    return getActualElement().getName();
+    return getDisplayName();
   }
 
   @Override

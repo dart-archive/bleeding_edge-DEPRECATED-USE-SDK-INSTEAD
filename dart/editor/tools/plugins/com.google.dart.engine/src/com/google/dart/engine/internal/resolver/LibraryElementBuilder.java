@@ -171,7 +171,7 @@ public class LibraryElementBuilder {
    */
   private FunctionElement findEntryPoint(CompilationUnitElementImpl element) {
     for (FunctionElement function : element.getFunctions()) {
-      if (function.getName().equals(ENTRY_POINT_NAME)) {
+      if (function.getDisplayName().equals(ENTRY_POINT_NAME)) {
         return function;
       }
     }

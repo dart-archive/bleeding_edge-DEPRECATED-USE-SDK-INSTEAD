@@ -215,7 +215,7 @@ public class CompletionEngine {
     }
 
     void remove(Element element) {
-      String name = element.getName();
+      String name = element.getDisplayName();
       List<Element> list = uniqueNames.get(name);
       if (list == null) {
         return;
@@ -242,7 +242,7 @@ public class CompletionEngine {
 
     private void mergeNames(Element[] elements) {
       for (Element element : elements) {
-        String name = element.getName();
+        String name = element.getDisplayName();
         List<Element> dups = uniqueNames.get(name);
         if (dups == null) {
           dups = new ArrayList<Element>();
@@ -290,7 +290,7 @@ public class CompletionEngine {
     }
 
     boolean match(Element elem) {
-      return match(elem.getName());
+      return match(elem.getDisplayName());
     }
 
     boolean match(String name) {
@@ -1319,7 +1319,7 @@ public class CompletionEngine {
     ClassDeclaration classDecl = fieldName.getAncestor(ClassDeclaration.class);
     ClassElement classElement = classDecl.getElement();
     for (FieldElement field : classElement.getFields()) {
-      pName(field.getName(), ProposalKind.FIELD);
+      pName(field.getDisplayName(), ProposalKind.FIELD);
     }
   }
 
@@ -1428,7 +1428,7 @@ public class CompletionEngine {
           continue;
         }
       }
-      if (type.getName().equals(name)) {
+      if (type.getDisplayName().equals(name)) {
         continue;
       }
       pName(type);
@@ -1618,7 +1618,7 @@ public class CompletionEngine {
     }
     List<LibraryElement> libs = getSystemLibraries();
     for (LibraryElement lib : libs) {
-      String name = lib.getName();
+      String name = lib.getDisplayName();
       name = name.substring(5);
       if (filter.isPermitted(name)) {
         pName("dart:" + name, ProposalKind.IMPORT);
@@ -1631,7 +1631,7 @@ public class CompletionEngine {
     filter = new Filter(identifier);
     for (ConstructorElement cons : classElement.getConstructors()) {
       if ((state.isCompileTimeConstantRequired ? cons.isConst() : true)
-          && filter.isPermitted(cons.getName())) {
+          && filter.isPermitted(cons.getDisplayName())) {
         pNamedConstructor(classElement, cons, identifier);
       }
     }
@@ -1947,7 +1947,7 @@ public class CompletionEngine {
     for (ImportElement imp : imps) {
       PrefixElement prefix = imp.getPrefix();
       if (prefix != null) {
-        String impName = prefix.getName();
+        String impName = prefix.getDisplayName();
         if (name.equals(impName)) {
           libs.add(imp.getImportedLibrary());
         }
@@ -1977,7 +1977,7 @@ public class CompletionEngine {
 
   private void pExecutable(ExecutableElement element, SimpleIdentifier identifier) {
     // Create a completion proposal for the element: function, method, getter, setter, constructor.
-    String name = element.getName();
+    String name = element.getDisplayName();
     if (name.isEmpty() || filterDisallows(element)) {
       return; // Simple constructors are not handled here
     }
@@ -1987,14 +1987,14 @@ public class CompletionEngine {
     prop.setCompletion(name).setReturnType(element.getType().getReturnType().getName());
     Element container = element.getEnclosingElement();
     if (container != null) {
-      prop.setDeclaringType(container.getName());
+      prop.setDeclaringType(container.getDisplayName());
     }
     requestor.accept(prop);
   }
 
   private void pExecutable(VariableElement element, SimpleIdentifier identifier) {
     // Create a completion proposal for the element: top-level variable.
-    String name = element.getName();
+    String name = element.getDisplayName();
     if (name.isEmpty() || filterDisallows(element)) {
       return; // Simple constructors are not handled here
     }
@@ -2003,7 +2003,7 @@ public class CompletionEngine {
     prop.setCompletion(name).setReturnType(element.getType().getName());
     Element container = element.getEnclosingElement();
     if (container != null) {
-      prop.setDeclaringType(container.getName());
+      prop.setDeclaringType(container.getDisplayName());
     }
     requestor.accept(prop);
   }
@@ -2014,7 +2014,7 @@ public class CompletionEngine {
 
   private void pField(FieldElement element, SimpleIdentifier identifier, ClassElement classElement) {
     // Create a completion proposal for the element: field only.
-    String name = element.getName();
+    String name = element.getDisplayName();
     if (filterDisallows(element)) {
       return;
     }
@@ -2022,7 +2022,7 @@ public class CompletionEngine {
     CompletionProposal prop = createProposal(kind);
     prop.setCompletion(name);
     Element container = element.getEnclosingElement();
-    prop.setDeclaringType(container.getName());
+    prop.setDeclaringType(container.getDisplayName());
     requestor.accept(prop);
   }
 
@@ -2038,7 +2038,7 @@ public class CompletionEngine {
 
   private void pName(Element element) {
     // Create a completion proposal for the element: variable, field, class, function.
-    String name = element.getName();
+    String name = element.getDisplayName();
     if (filterDisallows(element)) {
       return;
     }
@@ -2047,7 +2047,7 @@ public class CompletionEngine {
     prop.setCompletion(name);
     Element container = element.getEnclosingElement();
     if (container != null) {
-      prop.setDeclaringType(container.getName());
+      prop.setDeclaringType(container.getDisplayName());
     }
     Type type = typeOf(element);
     if (type != null) {
@@ -2072,9 +2072,9 @@ public class CompletionEngine {
   private void pNamedConstructor(ClassElement classElement, ConstructorElement element,
       SimpleIdentifier identifier) {
     // Create a completion proposal for the named constructor.
-    String name = classElement.getName();
-    if (!element.getName().isEmpty()) {
-      name += "." + element.getName();
+    String name = classElement.getDisplayName();
+    if (!element.getDisplayName().isEmpty()) {
+      name += "." + element.getDisplayName();
     }
     if (filterDisallows(name)) {
       return;
@@ -2084,7 +2084,7 @@ public class CompletionEngine {
     setParameterInfo(element, prop);
     prop.setCompletion(name).setReturnType(element.getType().getReturnType().getName());
     Element container = element.getEnclosingElement();
-    prop.setDeclaringType(container.getName());
+    prop.setDeclaringType(container.getDisplayName());
     requestor.accept(prop);
   }
 
@@ -2221,7 +2221,7 @@ public class CompletionEngine {
             positional = true;
             break;
         }
-        params.add(param.getName());
+        params.add(param.getDisplayName());
         types.add(param.getType().toString());
       }
     }

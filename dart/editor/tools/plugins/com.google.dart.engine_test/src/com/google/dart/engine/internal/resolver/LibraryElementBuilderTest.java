@@ -49,7 +49,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
 
     LibraryElement element = buildLibrary(librarySource);
     assertNotNull(element);
-    assertEquals("lib", element.getName());
+    assertEquals("lib", element.getDisplayName());
     assertNull(element.getEntryPoint());
     assertLength(0, element.getImportedLibraries());
     assertLength(0, element.getImports());
@@ -59,7 +59,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
 
     CompilationUnitElement unit = element.getDefiningCompilationUnit();
     assertNotNull(unit);
-    assertEquals("lib.dart", unit.getName());
+    assertEquals("lib.dart", unit.getDisplayName());
     assertEquals(element, unit.getLibrary());
     assertLength(0, unit.getAccessors());
     assertLength(0, unit.getFunctions());
@@ -123,7 +123,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     assertLength(2, sourcedUnits);
 
     assertTypes(element.getDefiningCompilationUnit(), "A");
-    if (sourcedUnits[0].getName().equals("first.dart")) {
+    if (sourcedUnits[0].getDisplayName().equals("first.dart")) {
       assertTypes(sourcedUnits[0], "B");
       assertTypes(sourcedUnits[1], "C");
     } else {
@@ -169,7 +169,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     assertLength(typeNames.length, types);
     for (ClassElement type : types) {
       assertNotNull(type);
-      String actualTypeName = type.getName();
+      String actualTypeName = type.getDisplayName();
       boolean wasExpected = false;
       for (String expectedTypeName : typeNames) {
         if (expectedTypeName.equals(actualTypeName)) {

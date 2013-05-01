@@ -89,8 +89,8 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
 
   @Override
   protected void appendTo(StringBuilder builder) {
-    builder.append(getEnclosingElement().getName());
-    String name = getName();
+    builder.append(getEnclosingElement().getDisplayName());
+    String name = getDisplayName();
     if (name != null && !name.isEmpty()) {
       builder.append(".");
       builder.append(name);

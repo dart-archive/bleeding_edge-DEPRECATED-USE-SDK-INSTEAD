@@ -62,8 +62,8 @@ public class SearchMatch {
   public static final Comparator<SearchMatch> SORT_BY_ELEMENT_NAME = new Comparator<SearchMatch>() {
     @Override
     public int compare(SearchMatch firstMatch, SearchMatch secondMatch) {
-      String firstName = firstMatch.getElement().getName();
-      String secondName = secondMatch.getElement().getName();
+      String firstName = firstMatch.getElement().getDisplayName();
+      String secondName = secondMatch.getElement().getDisplayName();
       return Collator.getInstance().compare(firstName, secondName);
     }
   };
@@ -171,7 +171,7 @@ public class SearchMatch {
     builder.append(", quality="); //$NON-NLS-1$
     builder.append(quality);
     builder.append(", element="); //$NON-NLS-1$
-    builder.append(element.getName());
+    builder.append(element.getDisplayName());
     builder.append(", range="); //$NON-NLS-1$
     builder.append(sourceRange);
     builder.append(", qualified="); //$NON-NLS-1$

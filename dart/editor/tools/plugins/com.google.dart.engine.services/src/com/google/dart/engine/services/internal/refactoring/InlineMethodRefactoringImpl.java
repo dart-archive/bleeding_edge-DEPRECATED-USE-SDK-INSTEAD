@@ -455,7 +455,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
           ASTNode qualifier = CorrectionUtils.getNodeQualifier(node);
           if (qualifier == null || qualifier instanceof ThisExpression) {
             if (accessor.isStatic()) {
-              String className = accessor.getEnclosingElement().getName();
+              String className = accessor.getEnclosingElement().getDisplayName();
               if (qualifier == null) {
                 SourceRange qualifierRange = rangeStartLength(node, 0);
                 result.addStaticFieldQualifier(className, qualifierRange);
@@ -541,7 +541,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     // prepare edits to replace conflicting variables
     Set<String> conflictingNames = getNamesConflictingWithLocal(utils.getUnit(), contextNode);
     for (Entry<VariableElement, List<SourceRange>> entry : part.variables.entrySet()) {
-      String originalName = entry.getKey().getName();
+      String originalName = entry.getKey().getDisplayName();
       // prepare unique name
       String uniqueName;
       {
@@ -585,7 +585,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
           public Void visitLocalElement(LocalElement element) {
             SourceRange elementRange = element.getVisibleRange();
             if (elementRange != null && elementRange.intersects(offsetRange)) {
-              result.add(element.getName());
+              result.add(element.getDisplayName());
             }
             return super.visitLocalElement(element);
           }
@@ -603,7 +603,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
           for (ClassElement classElement : elements) {
             List<Element> classMembers = CorrectionUtils.getChildren(classElement);
             for (Element classMemberElement : classMembers) {
-              result.add(classMemberElement.getName());
+              result.add(classMemberElement.getDisplayName());
             }
           }
         }

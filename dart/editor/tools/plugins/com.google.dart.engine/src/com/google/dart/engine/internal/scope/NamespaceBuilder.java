@@ -125,7 +125,7 @@ public class NamespaceBuilder {
    * @param element the element to be added
    */
   private void addIfPublic(Map<String, Element> definedNames, Element element) {
-    String name = element.getName();
+    String name = element.getDisplayName();
     if (name != null && !Scope.isPrivateName(name)) {
       definedNames.put(name, element);
     }
@@ -186,7 +186,7 @@ public class NamespaceBuilder {
   private HashMap<String, Element> apply(HashMap<String, Element> definedNames,
       PrefixElement prefixElement) {
     if (prefixElement != null) {
-      String prefix = prefixElement.getName();
+      String prefix = prefixElement.getDisplayName();
       HashMap<String, Element> newNames = new HashMap<String, Element>(definedNames.size());
       for (Map.Entry<String, Element> entry : definedNames.entrySet()) {
         newNames.put(prefix + "." + entry.getKey(), entry.getValue());

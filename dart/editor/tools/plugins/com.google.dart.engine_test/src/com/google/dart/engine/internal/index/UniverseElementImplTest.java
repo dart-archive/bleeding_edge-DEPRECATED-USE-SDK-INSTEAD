@@ -33,7 +33,7 @@ public class UniverseElementImplTest extends EngineTestCase {
 
   public void test_access() throws Exception {
     UniverseElement element = UniverseElement.INSTANCE;
-    assertEquals("--universe--", element.getName());
+    assertEquals("--universe--", element.getDisplayName());
     assertEquals(-1, element.getNameOffset());
     assertSame(ElementKind.UNIVERSE, element.getKind());
   }

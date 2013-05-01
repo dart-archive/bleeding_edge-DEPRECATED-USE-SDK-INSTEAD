@@ -269,7 +269,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
               }
             }
             if (memberElement == null) {
-              reportGetterOrSetterNotFound(prefixedIdentifier, name, element.getName());
+              reportGetterOrSetterNotFound(prefixedIdentifier, name, element.getDisplayName());
             } else {
               recordResolution(name, memberElement);
             }
@@ -425,7 +425,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (prefixNode != null) {
       String prefixName = prefixNode.getName();
       for (PrefixElement prefixElement : resolver.getDefiningLibrary().getPrefixes()) {
-        if (prefixElement.getName().equals(prefixName)) {
+        if (prefixElement.getDisplayName().equals(prefixName)) {
           recordResolution(prefixNode, prefixElement);
           break;
         }
@@ -541,7 +541,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
               StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
               methodName,
               methodName.getName(),
-              targetType.getElement().getName());
+              targetType.getElement().getDisplayName());
           return null;
         }
       } else if (target instanceof SimpleIdentifier) {
@@ -656,7 +656,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
                 StaticTypeWarningCode.UNDEFINED_METHOD,
                 methodName,
                 methodName.getName(),
-                enclosingClass.getName());
+                enclosingClass.getDisplayName());
           } else {
             resolver.reportError(
                 StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
@@ -760,7 +760,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         }
       }
       if (memberElement == null) {
-        reportGetterOrSetterNotFound(node, identifier, prefixElement.getName());
+        reportGetterOrSetterNotFound(node, identifier, prefixElement.getDisplayName());
       } else {
 //      if (!element.isStatic()) {
 //        reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
@@ -823,7 +823,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     if (memberElement == null) {
-      reportGetterOrSetterNotFound(node, identifier, variableType.getElement().getName());
+      reportGetterOrSetterNotFound(node, identifier, variableType.getElement().getDisplayName());
     } else {
       recordResolution(identifier, memberElement);
     }
@@ -1069,7 +1069,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private ParameterElement findNamedParameter(ParameterElement[] parameters, String name) {
     for (ParameterElement parameter : parameters) {
       if (parameter.getParameterKind() == ParameterKind.NAMED) {
-        String parameteName = parameter.getName();
+        String parameteName = parameter.getDisplayName();
         if (parameteName != null && parameteName.equals(name)) {
           return parameter;
         }

@@ -132,7 +132,7 @@ public class ElementHolder {
 
   public FieldElement getField(String fieldName) {
     for (FieldElement field : fields) {
-      if (field.getName().equals(fieldName)) {
+      if (field.getDisplayName().equals(fieldName)) {
         return field;
       }
     }

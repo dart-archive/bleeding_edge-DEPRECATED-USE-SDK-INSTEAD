@@ -384,7 +384,7 @@ public class NewDartElementImageProvider {
   }
 
   private boolean isPrivate(Element elem) {
-    return Identifier.isPrivateName(elem.getName());
+    return Identifier.isPrivateName(elem.getDisplayName());
   }
 
 }

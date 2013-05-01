@@ -26,8 +26,8 @@ public class SearchMatchTest extends EngineTestCase {
   public void test_comparatorByName() throws Exception {
     Element elementA = mock(Element.class);
     Element elementB = mock(Element.class);
-    when(elementA.getName()).thenReturn("A");
-    when(elementB.getName()).thenReturn("B");
+    when(elementA.getDisplayName()).thenReturn("A");
+    when(elementB.getDisplayName()).thenReturn("B");
     SearchMatch matchA = new SearchMatch(
         MatchQuality.EXACT,
         MatchKind.TYPE_REFERENCE,
@@ -47,8 +47,8 @@ public class SearchMatchTest extends EngineTestCase {
   public void test_equals() throws Exception {
     Element elementA = mock(Element.class);
     Element elementB = mock(Element.class);
-    when(elementA.getName()).thenReturn("A");
-    when(elementB.getName()).thenReturn("B");
+    when(elementA.getDisplayName()).thenReturn("A");
+    when(elementB.getDisplayName()).thenReturn("B");
     SearchMatch matchA = new SearchMatch(
         MatchQuality.EXACT,
         MatchKind.TYPE_REFERENCE,

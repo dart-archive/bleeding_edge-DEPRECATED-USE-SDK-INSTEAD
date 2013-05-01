@@ -888,11 +888,11 @@ public class SearchEngineImplTest extends EngineTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    when(elementA.getName()).thenReturn("A");
-    when(elementB.getName()).thenReturn("B");
-    when(elementC.getName()).thenReturn("C");
-    when(elementD.getName()).thenReturn("D");
-    when(elementE.getName()).thenReturn("E");
+    when(elementA.getDisplayName()).thenReturn("A");
+    when(elementB.getDisplayName()).thenReturn("B");
+    when(elementC.getDisplayName()).thenReturn("C");
+    when(elementD.getDisplayName()).thenReturn("D");
+    when(elementE.getDisplayName()).thenReturn("E");
     when(elementA.getContext()).thenReturn(CONTEXT);
     when(elementB.getContext()).thenReturn(CONTEXT);
     when(elementC.getContext()).thenReturn(CONTEXT);

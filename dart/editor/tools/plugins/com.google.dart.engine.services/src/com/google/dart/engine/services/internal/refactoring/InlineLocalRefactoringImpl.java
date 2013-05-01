@@ -105,7 +105,7 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
       if (variableNode.getInitializer() == null) {
         String message = MessageFormat.format(
             "Local variable ''{0}'' is not initialized at declaration.",
-            variableElement.getName());
+            variableElement.getDisplayName());
         return RefactoringStatus.createFatalErrorStatus(
             message,
             RefactoringStatusContext.create(variableNode));
@@ -117,7 +117,7 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
         if (reference.getKind() != MatchKind.VARIABLE_READ) {
           String message = MessageFormat.format(
               "Local variable ''{0}'' is assigned more than once.",
-              variableElement.getName());
+              variableElement.getDisplayName());
           return RefactoringStatus.createFatalErrorStatus(
               message,
               RefactoringStatusContext.create(reference));
@@ -187,7 +187,7 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
 
   @Override
   public String getVariableName() {
-    return variableElement.getName();
+    return variableElement.getDisplayName();
   }
 
   /**

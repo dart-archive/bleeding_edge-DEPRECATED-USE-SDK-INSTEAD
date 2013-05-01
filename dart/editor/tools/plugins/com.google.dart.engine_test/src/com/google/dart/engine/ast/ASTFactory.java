@@ -1031,7 +1031,7 @@ public final class ASTFactory {
    * @return the type name that was created
    */
   public static TypeName typeName(ClassElement element, TypeName... arguments) {
-    SimpleIdentifier name = identifier(element.getName());
+    SimpleIdentifier name = identifier(element.getDisplayName());
     name.setElement(element);
     TypeName typeName = typeName(name, arguments);
     typeName.setType(element.getType());

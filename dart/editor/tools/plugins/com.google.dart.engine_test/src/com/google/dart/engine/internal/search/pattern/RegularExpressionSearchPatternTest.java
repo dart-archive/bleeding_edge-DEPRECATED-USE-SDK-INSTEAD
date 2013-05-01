@@ -26,35 +26,35 @@ public class RegularExpressionSearchPatternTest extends EngineTestCase {
 
   public void test_caseInsensitive_false_contentMismatch() throws Exception {
     SearchPattern pattern = new RegularExpressionSearchPattern("H[a-z]*Map", false);
-    when(element.getName()).thenReturn("Maps");
+    when(element.getDisplayName()).thenReturn("Maps");
     // validate
     assertSame(null, pattern.matches(element));
   }
 
   public void test_caseInsensitive_true_caseMismatch() throws Exception {
     SearchPattern pattern = new RegularExpressionSearchPattern("H[a-z]*MaP", false);
-    when(element.getName()).thenReturn("HashMap");
+    when(element.getDisplayName()).thenReturn("HashMap");
     // validate
     assertSame(MatchQuality.EXACT, pattern.matches(element));
   }
 
   public void test_caseSensitive_false_caseMismatch() throws Exception {
     SearchPattern pattern = new RegularExpressionSearchPattern("H[a-z]*MaP", true);
-    when(element.getName()).thenReturn("HashMap");
+    when(element.getDisplayName()).thenReturn("HashMap");
     // validate
     assertSame(null, pattern.matches(element));
   }
 
   public void test_caseSensitive_false_contentMismatch() throws Exception {
     SearchPattern pattern = new RegularExpressionSearchPattern("H[a-z]*Map", true);
-    when(element.getName()).thenReturn("Maps");
+    when(element.getDisplayName()).thenReturn("Maps");
     // validate
     assertSame(null, pattern.matches(element));
   }
 
   public void test_caseSensitive_true() throws Exception {
     SearchPattern pattern = new RegularExpressionSearchPattern("H.*Map", true);
-    when(element.getName()).thenReturn("HashMap");
+    when(element.getDisplayName()).thenReturn("HashMap");
     // validate
     assertSame(MatchQuality.EXACT, pattern.matches(element));
   }
@@ -67,7 +67,7 @@ public class RegularExpressionSearchPatternTest extends EngineTestCase {
 
   public void test_nullName() throws Exception {
     SearchPattern pattern = new RegularExpressionSearchPattern("H.*Map", true);
-    when(element.getName()).thenReturn(null);
+    when(element.getDisplayName()).thenReturn(null);
     // validate
     assertSame(null, pattern.matches(element));
   }

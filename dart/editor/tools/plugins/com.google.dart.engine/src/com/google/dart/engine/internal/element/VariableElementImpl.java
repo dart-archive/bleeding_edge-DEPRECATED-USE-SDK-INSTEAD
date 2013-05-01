@@ -152,6 +152,6 @@ public abstract class VariableElementImpl extends ElementImpl implements Variabl
   protected void appendTo(StringBuilder builder) {
     builder.append(getType());
     builder.append(" ");
-    builder.append(getName());
+    builder.append(getDisplayName());
   }
 }

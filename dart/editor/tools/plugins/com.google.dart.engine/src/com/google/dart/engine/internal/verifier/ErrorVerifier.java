@@ -539,7 +539,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             errorReporter.reportError(
                 CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
                 formalParameter.getIdentifier(),
-                fieldElement.getName());
+                fieldElement.getDisplayName());
             foundError = true;
           }
         } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
@@ -547,7 +547,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             errorReporter.reportError(
                 CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
                 formalParameter.getIdentifier(),
-                fieldElement.getName());
+                fieldElement.getDisplayName());
             foundError = true;
           }
         }
@@ -582,7 +582,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             errorReporter.reportError(
                 CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
                 fieldName,
-                fieldElement.getName());
+                fieldElement.getDisplayName());
             foundError = true;
           }
 //          else if (variableElement instanceof TopLevelVariableElement) {
@@ -721,7 +721,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               returnExpression,
               actualReturnType.getName(),
               expectedReturnType.getName(),
-              enclosingFunction.getName());
+              enclosingFunction.getDisplayName());
           return true;
         }
       }
@@ -831,7 +831,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           errorReporter.reportError(
               CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
               expression,
-              element.getName());
+              element.getDisplayName());
           return true;
         }
       }
@@ -854,7 +854,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
           methodName,
           methodName.getName(),
-          enclosingClass.getName());
+          enclosingClass.getDisplayName());
       return true;
     }
     return false;
@@ -869,7 +869,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       ClassElement classElement = constructorElement.getEnclosingElement();
       FieldElement[] fields = classElement.getFields();
       for (FieldElement field : fields) {
-        if (field.getName().equals(name)) {
+        if (field.getDisplayName().equals(name)) {
           errorReporter.reportError(
               CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD,
               node,
@@ -879,7 +879,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
       MethodElement[] methods = classElement.getMethods();
       for (MethodElement method : methods) {
-        if (method.getName().equals(name)) {
+        if (method.getDisplayName().equals(name)) {
           errorReporter.reportError(
               CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD,
               node,
@@ -1419,7 +1419,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
                 StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
                 argTypeName,
                 argTypeName.getName(),
-                boundingElts[i].getName());
+                boundingElts[i].getDisplayName());
             return true;
           }
         }

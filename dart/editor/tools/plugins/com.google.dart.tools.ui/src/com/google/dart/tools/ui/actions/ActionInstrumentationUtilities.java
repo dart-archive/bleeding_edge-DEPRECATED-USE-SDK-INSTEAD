@@ -102,7 +102,7 @@ public class ActionInstrumentationUtilities {
 
     instrumentation.metric("Element-Class", element.getClass().toString());
 
-    instrumentation.data("Element-Name", element.getName());
+    instrumentation.data("Element-Name", element.getDisplayName());
 
   }
 

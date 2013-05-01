@@ -26,35 +26,35 @@ public class ExactSearchPatternTest extends EngineTestCase {
 
   public void test_caseInsensitive_false() throws Exception {
     SearchPattern pattern = new ExactSearchPattern("HashMa", false);
-    when(element.getName()).thenReturn("HashMap");
+    when(element.getDisplayName()).thenReturn("HashMap");
     // validate
     assertSame(null, pattern.matches(element));
   }
 
   public void test_caseInsensitive_true() throws Exception {
     SearchPattern pattern = new ExactSearchPattern("HashMap", false);
-    when(element.getName()).thenReturn("HashMaP");
+    when(element.getDisplayName()).thenReturn("HashMaP");
     // validate
     assertSame(MatchQuality.EXACT, pattern.matches(element));
   }
 
   public void test_caseSensitive_false() throws Exception {
     SearchPattern pattern = new ExactSearchPattern("HashMa", true);
-    when(element.getName()).thenReturn("HashMap");
+    when(element.getDisplayName()).thenReturn("HashMap");
     // validate
     assertSame(null, pattern.matches(element));
   }
 
   public void test_caseSensitive_true() throws Exception {
     SearchPattern pattern = new ExactSearchPattern("HashMap", true);
-    when(element.getName()).thenReturn("HashMap");
+    when(element.getDisplayName()).thenReturn("HashMap");
     // validate
     assertSame(MatchQuality.EXACT, pattern.matches(element));
   }
 
   public void test_nullName() throws Exception {
     SearchPattern pattern = new ExactSearchPattern("HashMap", true);
-    when(element.getName()).thenReturn(null);
+    when(element.getDisplayName()).thenReturn(null);
     // validate
     assertSame(null, pattern.matches(element));
   }

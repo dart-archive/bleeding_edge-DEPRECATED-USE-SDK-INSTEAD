@@ -219,7 +219,7 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
     Element element = node.getMethodName().getElement();
     if (element instanceof FunctionElement) {
       FunctionElement function = (FunctionElement) element;
-      if (function.getName().equals("identical")) {
+      if (function.getDisplayName().equals("identical")) {
         NodeList<Expression> arguments = node.getArgumentList().getArguments();
         if (arguments.size() == 2) {
           Element enclosingElement = function.getEnclosingElement();

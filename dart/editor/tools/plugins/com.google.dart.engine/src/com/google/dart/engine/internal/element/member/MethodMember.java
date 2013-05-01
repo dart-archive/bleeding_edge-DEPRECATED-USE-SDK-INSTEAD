@@ -90,9 +90,9 @@ public class MethodMember extends ExecutableMember implements MethodElement {
     ParameterElement[] parameters = getParameters();
     FunctionType type = getType();
     StringBuilder builder = new StringBuilder();
-    builder.append(baseElement.getEnclosingElement().getName());
+    builder.append(baseElement.getEnclosingElement().getDisplayName());
     builder.append(".");
-    builder.append(baseElement.getName());
+    builder.append(baseElement.getDisplayName());
     builder.append("(");
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {

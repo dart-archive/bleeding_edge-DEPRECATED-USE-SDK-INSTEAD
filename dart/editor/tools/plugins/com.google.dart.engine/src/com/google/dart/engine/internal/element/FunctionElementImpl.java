@@ -78,7 +78,7 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
   @Override
   public String getIdentifier() {
     // TODO(brianwilkerson) Figure out how to handle un-named functions.
-    return getName();
+    return getDisplayName();
   }
 
   @Override
@@ -114,7 +114,7 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
 
   @Override
   protected void appendTo(StringBuilder builder) {
-    String name = getName();
+    String name = getDisplayName();
     if (name != null) {
       builder.append(name);
     }

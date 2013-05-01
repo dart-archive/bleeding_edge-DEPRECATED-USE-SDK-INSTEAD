@@ -32,7 +32,7 @@ public class NameElementImplTest extends EngineTestCase {
 
   public void test_new() throws Exception {
     NameElementImpl element = new NameElementImpl("test");
-    assertEquals("name:test", element.getName());
+    assertEquals("name:test", element.getDisplayName());
     assertEquals(-1, element.getNameOffset());
     assertSame(ElementKind.NAME, element.getKind());
   }

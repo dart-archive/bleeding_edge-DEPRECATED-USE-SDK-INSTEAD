@@ -178,7 +178,7 @@ public class NewDartElementLabels {
         break;
         
       default:
-        buf.append(element.getName());
+        buf.append(element.getDisplayName());
     }
 
   }
@@ -205,7 +205,7 @@ public class NewDartElementLabels {
 
   private static void getClassLabel(ClassElement cls, StringBuffer buf) {
 
-    String clsName = cls.getName();
+    String clsName = cls.getDisplayName();
     if (clsName.length() == 0) { // anonymous
       String supertypeName = cls.getSupertype().getName();
       clsName = Messages.format(DartUIMessages.JavaElementLabels_anonym_type, supertypeName);
@@ -288,20 +288,20 @@ public class NewDartElementLabels {
 
   private static void getCompilationUnitLabel(CompilationUnitElement cu, long flags,
       StringBuffer buf) {
-    buf.append(cu.getName());
+    buf.append(cu.getDisplayName());
   }
 
   private static String getDisplayName(ExecutableElement elem, ClassElement declaringType) {
     if (elem instanceof ConstructorElement) {
       ConstructorElement ce = (ConstructorElement) elem;
-      String name = declaringType.getName();
-      String constructorName = ce.getName();
+      String name = declaringType.getDisplayName();
+      String constructorName = ce.getDisplayName();
       if (constructorName != null && constructorName.length() > 0) {
         name = name + '.' + constructorName;
       }
       return name;
     }
-    return elem.getName();
+    return elem.getDisplayName();
   }
 
   private static ClassElement getEnclosingElement(ExecutableElement elem) {
@@ -335,7 +335,7 @@ public class NewDartElementLabels {
       }
       buf.append('.');
     }
-    buf.append(field.getName());
+    buf.append(field.getDisplayName());
 
     if (getFlag(flags, F_APP_TYPE_SIGNATURE)) {
       if (typeName != null) {
@@ -373,7 +373,7 @@ public class NewDartElementLabels {
       buf.append(' ');
     }
 
-    String name = function.getName();
+    String name = function.getDisplayName();
     if (name == null || name.length() == 0) {
       buf.append("function");
     } else {
@@ -446,7 +446,7 @@ public class NewDartElementLabels {
     String[] names = new String[parameters.length];
 
     for (int i = 0; i < parameters.length; i++) {
-      names[i] = parameters[i].getName();
+      names[i] = parameters[i].getDisplayName();
     }
 
     return names;
@@ -476,7 +476,7 @@ public class NewDartElementLabels {
 
   private static void getTypeLabel(ClassElement type, long flags, StringBuffer buf) {
 
-    String typeName = type.getName();
+    String typeName = type.getDisplayName();
 
     if (typeName.length() == 0) { // anonymous
 

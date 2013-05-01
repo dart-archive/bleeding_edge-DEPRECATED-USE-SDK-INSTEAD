@@ -141,7 +141,7 @@ public class ParameterMember extends VariableMember implements ParameterElement 
     builder.append(left);
     builder.append(getType());
     builder.append(" ");
-    builder.append(baseElement.getName());
+    builder.append(baseElement.getDisplayName());
     builder.append(right);
     return builder.toString();
   }

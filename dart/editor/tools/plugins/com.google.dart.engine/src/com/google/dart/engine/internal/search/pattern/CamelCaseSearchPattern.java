@@ -52,7 +52,7 @@ public class CamelCaseSearchPattern implements SearchPattern {
 
   @Override
   public MatchQuality matches(Element element) {
-    String name = element.getName();
+    String name = element.getDisplayName();
     if (name == null) {
       return null;
     }

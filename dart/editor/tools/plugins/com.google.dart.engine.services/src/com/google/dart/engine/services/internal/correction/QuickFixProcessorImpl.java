@@ -388,7 +388,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         String source;
         {
           String eol = utils.getEndOfLine();
-          String libraryName = unitLibraryElement.getName();
+          String libraryName = unitLibraryElement.getDisplayName();
           source = "part of " + libraryName + ";" + eol + eol;
         }
         // add proposal
@@ -460,11 +460,11 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
       // insert prefix
       SourceRange range = rangeStartLength(node, 0);
-      addReplaceEdit(range, prefix.getName() + ".");
+      addReplaceEdit(range, prefix.getDisplayName() + ".");
       addUnitCorrectionProposal(
           CorrectionKind.QF_IMPORT_LIBRARY_PREFIX,
-          libraryElement.getName(),
-          prefix.getName());
+          libraryElement.getDisplayName(),
+          prefix.getDisplayName());
     }
     // check SDK libraries
     AnalysisContext context = unitLibraryElement.getContext();

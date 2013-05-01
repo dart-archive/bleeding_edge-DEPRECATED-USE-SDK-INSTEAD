@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 public class CamelCaseSearchPatternTest extends EngineTestCase {
   public void test_matchExact_samePartCount() throws Exception {
     Element element = mock(Element.class);
-    when(element.getName()).thenReturn("HashMap");
+    when(element.getDisplayName()).thenReturn("HashMap");
     //
     CamelCaseSearchPattern pattern = new CamelCaseSearchPattern("HM", true);
     assertSame(MatchQuality.EXACT, pattern.matches(element));
@@ -31,7 +31,7 @@ public class CamelCaseSearchPatternTest extends EngineTestCase {
 
   public void test_matchExact_withLowerCase() throws Exception {
     Element element = mock(Element.class);
-    when(element.getName()).thenReturn("HashMap");
+    when(element.getDisplayName()).thenReturn("HashMap");
     //
     CamelCaseSearchPattern pattern = new CamelCaseSearchPattern("HaMa", true);
     assertSame(MatchQuality.EXACT, pattern.matches(element));
@@ -39,7 +39,7 @@ public class CamelCaseSearchPatternTest extends EngineTestCase {
 
   public void test_matchNot_nullName() throws Exception {
     Element element = mock(Element.class);
-    when(element.getName()).thenReturn(null);
+    when(element.getDisplayName()).thenReturn(null);
     //
     CamelCaseSearchPattern pattern = new CamelCaseSearchPattern("HM", true);
     assertSame(null, pattern.matches(element));
@@ -47,7 +47,7 @@ public class CamelCaseSearchPatternTest extends EngineTestCase {
 
   public void test_matchNot_samePartCount() throws Exception {
     Element element = mock(Element.class);
-    when(element.getName()).thenReturn("LinkedHashMap");
+    when(element.getDisplayName()).thenReturn("LinkedHashMap");
     //
     CamelCaseSearchPattern pattern = new CamelCaseSearchPattern("LH", true);
     assertSame(null, pattern.matches(element));
@@ -55,7 +55,7 @@ public class CamelCaseSearchPatternTest extends EngineTestCase {
 
   public void test_matchNot_withLowerCase() throws Exception {
     Element element = mock(Element.class);
-    when(element.getName()).thenReturn("HashMap");
+    when(element.getDisplayName()).thenReturn("HashMap");
     //
     CamelCaseSearchPattern pattern = new CamelCaseSearchPattern("HaMu", true);
     assertSame(null, pattern.matches(element));

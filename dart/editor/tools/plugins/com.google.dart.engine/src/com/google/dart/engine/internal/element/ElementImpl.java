@@ -131,6 +131,11 @@ public abstract class ElementImpl implements Element {
   }
 
   @Override
+  public String getDisplayName() {
+    return name;
+  }
+
+  @Override
   public Element getEnclosingElement() {
     return enclosingElement;
   }
@@ -152,7 +157,7 @@ public abstract class ElementImpl implements Element {
 
   @Override
   public String getName() {
-    return name;
+    return getDisplayName();
   }
 
   @Override
@@ -255,7 +260,7 @@ public abstract class ElementImpl implements Element {
    * @return an identifier that uniquely identifies this element relative to its parent
    */
   protected String getIdentifier() {
-    return getName();
+    return getDisplayName();
   }
 
   /**

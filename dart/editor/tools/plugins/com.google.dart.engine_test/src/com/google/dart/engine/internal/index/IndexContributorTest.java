@@ -192,7 +192,7 @@ public class IndexContributorTest extends AbstractDartTest {
     T element = mock(clazz);
     when(element.getLocation()).thenReturn(location);
     when(element.getNameOffset()).thenReturn(offset);
-    when(element.getName()).thenReturn(name);
+    when(element.getDisplayName()).thenReturn(name);
     return element;
   }
 

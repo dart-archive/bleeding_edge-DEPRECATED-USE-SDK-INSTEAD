@@ -186,14 +186,14 @@ public class ActionUtil {
     Element element = getActionElement(selection);
     if (element != null) {
       // prepare name
-      String name = element.getName();
+      String name = element.getDisplayName();
       if (element instanceof ConstructorElement) {
         ConstructorElement constructor = (ConstructorElement) element;
-        String className = constructor.getEnclosingElement().getName();
+        String className = constructor.getEnclosingElement().getDisplayName();
         if (name.isEmpty()) {
           name = className + "()";
         } else {
-          name = className + "." + element.getName();
+          name = className + "." + element.getDisplayName();
         }
       }
       // show name or element kind

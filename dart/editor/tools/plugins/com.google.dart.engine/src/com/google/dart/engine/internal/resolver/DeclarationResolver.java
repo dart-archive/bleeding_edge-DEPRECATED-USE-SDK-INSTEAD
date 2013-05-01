@@ -573,7 +573,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
    */
   private <E extends Element> E find(E[] elements, String name, int offset) {
     for (E element : elements) {
-      if (element.getName().equals(name) && element.getNameOffset() == offset) {
+      if (element.getDisplayName().equals(name) && element.getNameOffset() == offset) {
         return element;
       }
     }
@@ -617,7 +617,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
             return element;
           }
         } else {
-          if (prefixElement != null && prefix.getName().equals(prefixElement.getName())) {
+          if (prefixElement != null && prefix.getName().equals(prefixElement.getDisplayName())) {
             return element;
           }
         }

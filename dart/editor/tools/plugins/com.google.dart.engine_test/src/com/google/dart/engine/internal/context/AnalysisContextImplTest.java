@@ -542,7 +542,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
    */
   private ClassElement findClass(CompilationUnitElement unit, String className) {
     for (ClassElement classElement : unit.getTypes()) {
-      if (classElement.getName().equals(className)) {
+      if (classElement.getDisplayName().equals(className)) {
         return classElement;
       }
     }

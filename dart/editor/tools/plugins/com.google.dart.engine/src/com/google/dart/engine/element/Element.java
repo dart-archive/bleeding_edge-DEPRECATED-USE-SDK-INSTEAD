@@ -90,6 +90,13 @@ public interface Element {
   public AnalysisContext getContext();
 
   /**
+   * Return the display name of this element, or {@code null} if this element does not have a name.
+   * 
+   * @return the display name of this element
+   */
+  public String getDisplayName();
+
+  /**
    * Return the element that either physically or logically encloses this element. This will be
    * {@code null} if this element is a library because libraries are the top-level elements in the
    * model.
@@ -131,6 +138,9 @@ public interface Element {
 
   /**
    * Return the name of this element, or {@code null} if this element does not have a name.
+   * <p>
+   * In most cases the name and the display name are the same. Differences though are cases such as
+   * setters where the name of some setter {@code set f(x) is {@code f=}, instead of {@code f}.
    * 
    * @return the name of this element
    */

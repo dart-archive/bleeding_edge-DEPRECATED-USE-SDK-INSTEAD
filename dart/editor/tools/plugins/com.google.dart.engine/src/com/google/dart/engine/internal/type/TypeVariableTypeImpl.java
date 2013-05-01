@@ -48,7 +48,7 @@ public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
    * @param element the element representing the declaration of the type variable
    */
   public TypeVariableTypeImpl(TypeVariableElement element) {
-    super(element, element.getName());
+    super(element, element.getDisplayName());
   }
 
   @Override

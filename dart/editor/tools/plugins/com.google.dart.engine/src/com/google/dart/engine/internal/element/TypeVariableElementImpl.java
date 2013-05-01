@@ -91,7 +91,7 @@ public class TypeVariableElementImpl extends ElementImpl implements TypeVariable
 
   @Override
   protected void appendTo(StringBuilder builder) {
-    builder.append(getName());
+    builder.append(getDisplayName());
     if (bound != null) {
       builder.append(" extends ");
       builder.append(bound);

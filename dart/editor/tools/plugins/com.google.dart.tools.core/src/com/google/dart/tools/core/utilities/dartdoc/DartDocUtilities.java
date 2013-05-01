@@ -60,7 +60,7 @@ public final class DartDocUtilities {
       LibraryElement library = element.getLibrary();
 
       if (library != null) {
-        String libraryName = library.getName();
+        String libraryName = library.getDisplayName();
         if (libraryName != null && libraryName.length() > 0) {
           return getTypeName(element) + " - " + libraryName;
         }
@@ -73,7 +73,7 @@ public final class DartDocUtilities {
     public String visitConstructorElement(ConstructorElement element) {
       StringBuilder params = describeParams(element.getParameters());
       String typeName = element.getType().getReturnType().getName();
-      String constructorName = element.getName();
+      String constructorName = element.getDisplayName();
       if (constructorName != null && constructorName.length() != 0) {
         typeName = typeName + "." + constructorName;
       }
@@ -82,7 +82,7 @@ public final class DartDocUtilities {
 
     @Override
     public String visitFieldElement(FieldElement element) {
-      return getTypeName(element) + " " + element.getName();
+      return getTypeName(element) + " " + element.getDisplayName();
     }
 
     @Override
@@ -92,7 +92,7 @@ public final class DartDocUtilities {
 
     @Override
     public String visitLocalVariableElement(LocalVariableElement element) {
-      return getTypeName(element) + " " + element.getName();
+      return getTypeName(element) + " " + element.getDisplayName();
     }
 
     @Override
@@ -116,12 +116,12 @@ public final class DartDocUtilities {
         if (returnTypeName != null) {
           sb.append(returnTypeName).append(' ');
         }
-        sb.append("get ").append(element.getName());
+        sb.append("get ").append(element.getDisplayName());
         return sb.toString();
       }
 
       if (element.isSetter()) {
-        return element.getName() + "(" + describeParams(element.getParameters()) + ")";
+        return element.getDisplayName() + "(" + describeParams(element.getParameters()) + ")";
       }
 
       return getDescription(element);
@@ -129,7 +129,7 @@ public final class DartDocUtilities {
 
     @Override
     public String visitTopLevelVariableElement(TopLevelVariableElement element) {
-      return getTypeName(element) + " " + element.getName();
+      return getTypeName(element) + " " + element.getDisplayName();
     }
 
     @Override
@@ -189,9 +189,9 @@ public final class DartDocUtilities {
       String returnTypeName = getName(element.getType().getReturnType());
 
       if (returnTypeName != null) {
-        return returnTypeName + " " + element.getName() + "(" + params + ")";
+        return returnTypeName + " " + element.getDisplayName() + "(" + params + ")";
       } else {
-        return element.getName() + "(" + params + ")";
+        return element.getDisplayName() + "(" + params + ")";
       }
     }
 
@@ -200,7 +200,7 @@ public final class DartDocUtilities {
       StringBuilder buf = new StringBuilder();
 
       String typeName = getTypeName(param);
-      String paramName = param.getName();
+      String paramName = param.getDisplayName();
 
       if (typeName.indexOf('(') != -1) {
 

@@ -217,7 +217,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param element the element representing the declaration of the type
    */
   public InterfaceTypeImpl(ClassElement element) {
-    super(element, element.getName());
+    super(element, element.getDisplayName());
   }
 
   /**
@@ -389,7 +389,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (element == null) {
       return false;
     }
-    return element.getName().equals("Function") && element.getLibrary().isDartCore();
+    return element.getDisplayName().equals("Function") && element.getLibrary().isDartCore();
   }
 
   @Override

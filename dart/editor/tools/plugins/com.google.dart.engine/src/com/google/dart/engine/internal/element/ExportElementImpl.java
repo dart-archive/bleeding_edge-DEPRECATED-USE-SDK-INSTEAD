@@ -91,6 +91,6 @@ public class ExportElementImpl extends ElementImpl implements ExportElement {
 
   @Override
   protected String getIdentifier() {
-    return exportedLibrary.getName();
+    return exportedLibrary.getDisplayName();
   }
 }

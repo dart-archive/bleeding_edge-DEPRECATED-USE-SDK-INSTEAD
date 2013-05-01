@@ -115,7 +115,7 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
     Element element = getSelectionElement(selection);
     if (element != null) {
       IFile context = getSelectionContextFile(selection);
-      String name = element.getName();
+      String name = element.getDisplayName();
       doSearch(context, name);
     }
   }

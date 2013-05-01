@@ -54,7 +54,7 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           searchEngine,
           element.getKind(),
           (ClassElement) element.getEnclosingElement(),
-          element.getName(),
+          element.getDisplayName(),
           newName);
       result.merge(validator.validate(new SubProgressMonitor(pm, 1), true));
       return result;

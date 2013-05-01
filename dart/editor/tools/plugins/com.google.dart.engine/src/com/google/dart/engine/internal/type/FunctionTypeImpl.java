@@ -120,7 +120,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @param element the element representing the declaration of the function type
    */
   public FunctionTypeImpl(ExecutableElement element) {
-    super(element, element == null ? null : element.getName());
+    super(element, element == null ? null : element.getDisplayName());
   }
 
   /**
@@ -130,7 +130,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @param element the element representing the declaration of the function type
    */
   public FunctionTypeImpl(FunctionTypeAliasElement element) {
-    super(element, element == null ? null : element.getName());
+    super(element, element == null ? null : element.getDisplayName());
   }
 
   @Override

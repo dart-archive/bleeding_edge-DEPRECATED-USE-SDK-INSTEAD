@@ -1551,7 +1551,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     private final SourceRange sourceRange;
 
     private SourceReferenceAdapter(com.google.dart.engine.element.Element element) {
-      sourceRange = new SourceRange(element.getNameOffset(), element.getName().length());
+      sourceRange = new SourceRange(element.getNameOffset(), element.getDisplayName().length());
     }
 
     @Override
@@ -2607,7 +2607,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     markInNavigationHistory();
 
     int offset = element.getNameOffset();
-    int length = element.getName().length();
+    int length = element.getDisplayName().length();
     selectAndReveal(offset, length);
   }
 

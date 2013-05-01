@@ -290,7 +290,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
           builder.append(")");
         }
       } else if (obj instanceof Element) {
-        String name = ((Element) obj).getName();
+        String name = ((Element) obj).getDisplayName();
         if (name != null) {
           builder.append(" - ");
           builder.append(name);

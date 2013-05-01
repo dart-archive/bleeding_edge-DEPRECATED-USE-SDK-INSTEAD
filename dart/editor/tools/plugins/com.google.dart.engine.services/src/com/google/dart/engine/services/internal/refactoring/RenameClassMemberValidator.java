@@ -70,7 +70,7 @@ class RenameClassMemberValidator {
       for (Element newNameMember : getChildren(elementClass, newName)) {
         String message = MessageFormat.format(
             "Class ''{0}'' already declares {1} with name ''{2}''.",
-            elementClass.getName(),
+            elementClass.getDisplayName(),
             getElementKindName(newNameMember),
             newName);
         result.addError(message, RefactoringStatusContext.create(newNameMember));
@@ -118,7 +118,7 @@ class RenameClassMemberValidator {
                       "Usage of renamed {0} will be shadowed by {1} ''{2}''.",
                       getElementKindName(elementKind),
                       getElementKindName(localElement),
-                      localElement.getName());
+                      localElement.getDisplayName());
                   result.addError(message, RefactoringStatusContext.create(reference));
                 }
               }

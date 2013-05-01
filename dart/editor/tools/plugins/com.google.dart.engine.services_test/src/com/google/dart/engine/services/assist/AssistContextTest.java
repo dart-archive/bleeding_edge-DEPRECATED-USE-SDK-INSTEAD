@@ -72,7 +72,7 @@ public class AssistContextTest extends AbstractDartTest {
         selectionLength);
     ClassElement coveredElement = (ClassElement) context.getCoveredElement();
     assertNotNull(coveredElement);
-    assertEquals("String", coveredElement.getName());
+    assertEquals("String", coveredElement.getDisplayName());
   }
 
   public void test_getCoveredElement_null() throws Exception {

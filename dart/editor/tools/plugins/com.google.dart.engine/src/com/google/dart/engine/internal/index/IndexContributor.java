@@ -92,7 +92,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   public static Location createElementLocation(Element element) {
     if (element != null) {
       int offset = element.getNameOffset();
-      int length = element.getName().length();
+      int length = element.getDisplayName().length();
       String prefix = null;
       return new Location(element, offset, length, prefix);
     }

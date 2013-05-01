@@ -29,8 +29,8 @@ public class GatheringSearchListenerTest extends EngineTestCase {
   public void test_matchFound() throws Exception {
     Element elementA = mock(Element.class);
     Element elementB = mock(Element.class);
-    when(elementA.getName()).thenReturn("A");
-    when(elementB.getName()).thenReturn("B");
+    when(elementA.getDisplayName()).thenReturn("A");
+    when(elementB.getDisplayName()).thenReturn("B");
     when(matchA.getElement()).thenReturn(elementA);
     when(matchB.getElement()).thenReturn(elementB);
     // matchB

@@ -68,7 +68,7 @@ public class RefactoringStatusContextTest extends AbstractDartTest {
     when(element.getContext()).thenReturn(analysisContext);
     when(element.getSource()).thenReturn(source);
     when(element.getNameOffset()).thenReturn(12);
-    when(element.getName()).thenReturn("test");
+    when(element.getDisplayName()).thenReturn("test");
     RefactoringStatusContext context = RefactoringStatusContext.create(element);
     // access
     assertSame(analysisContext, context.getContext());

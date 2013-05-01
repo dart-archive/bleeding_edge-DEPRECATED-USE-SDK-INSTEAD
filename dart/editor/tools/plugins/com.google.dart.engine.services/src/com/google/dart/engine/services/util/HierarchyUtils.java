@@ -131,7 +131,7 @@ public class HierarchyUtils {
       classElement = superType.getElement();
       if (classElement != null) {
         // stop at Object
-        if (Objects.equal(classElement.getName(), "Object")) {
+        if (Objects.equal(classElement.getDisplayName(), "Object")) {
           break;
         }
         // OK, add

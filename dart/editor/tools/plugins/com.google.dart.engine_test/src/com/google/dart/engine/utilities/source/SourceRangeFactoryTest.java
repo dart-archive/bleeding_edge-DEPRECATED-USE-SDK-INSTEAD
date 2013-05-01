@@ -56,7 +56,7 @@ public class SourceRangeFactoryTest extends TestCase {
   public void test_rangeElementName() throws Exception {
     Element element = mock(Element.class);
     when(element.getNameOffset()).thenReturn(5);
-    when(element.getName()).thenReturn("MyClass");
+    when(element.getDisplayName()).thenReturn("MyClass");
     SourceRange range = SourceRangeFactory.rangeElementName(element);
     assertRange(range, 5, 7);
   }

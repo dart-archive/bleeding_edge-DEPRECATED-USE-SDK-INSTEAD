@@ -65,7 +65,7 @@ class RenameUnitMemberValidator {
               return super.visitElement(element);
             }
             // top-level
-            if (element.getName().equals(newName)) {
+            if (element.getDisplayName().equals(newName)) {
               String message = MessageFormat.format(
                   "Library already declares {0} with name ''{1}''.",
                   getElementKindName(element),
@@ -91,7 +91,7 @@ class RenameUnitMemberValidator {
                   return super.visitElement(maybeShadow);
                 }
                 // class member
-                if (maybeShadow.getName().equals(newName)) {
+                if (maybeShadow.getDisplayName().equals(newName)) {
                   String message = MessageFormat.format(
                       "Reference to renamed {0} will shadowed by {1} ''{2}''.",
                       getElementKindName(elementKind),

@@ -161,7 +161,7 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
     builder.append(left);
     builder.append(getType());
     builder.append(" ");
-    builder.append(getName());
+    builder.append(getDisplayName());
     builder.append(right);
   }
 }

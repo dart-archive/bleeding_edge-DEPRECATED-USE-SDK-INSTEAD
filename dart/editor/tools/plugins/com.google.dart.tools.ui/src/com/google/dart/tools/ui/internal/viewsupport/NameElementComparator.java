@@ -35,8 +35,8 @@ public class NameElementComparator extends ViewerComparator {
     if (!(e2 instanceof Element)) {
       return 0;
     }
-    String name1 = ((Element) e1).getName();
-    String name2 = ((Element) e2).getName();
+    String name1 = ((Element) e1).getDisplayName();
+    String name2 = ((Element) e2).getDisplayName();
     if (name1 == null || name2 == null) {
       return 0;
     }

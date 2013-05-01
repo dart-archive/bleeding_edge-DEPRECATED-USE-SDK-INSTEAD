@@ -77,6 +77,11 @@ public abstract class Member implements Element {
   }
 
   @Override
+  public String getDisplayName() {
+    return baseElement.getDisplayName();
+  }
+
+  @Override
   public ElementKind getKind() {
     return baseElement.getKind();
   }
@@ -102,7 +107,7 @@ public abstract class Member implements Element {
 
   @Override
   public String getName() {
-    return baseElement.getName();
+    return getDisplayName();
   }
 
   @Override

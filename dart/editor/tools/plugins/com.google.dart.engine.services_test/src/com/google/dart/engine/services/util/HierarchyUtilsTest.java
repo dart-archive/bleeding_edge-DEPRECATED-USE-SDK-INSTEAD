@@ -51,18 +51,18 @@ public class HierarchyUtilsTest extends RefactoringImplTest {
       List<Element> members = HierarchyUtils.getDirectMembers(classA, false);
       assertThat(members).hasSize(2);
       assertThat(members.get(0)).isInstanceOf(FieldElement.class);
-      assertEquals("ma1", members.get(0).getName());
+      assertEquals("ma1", members.get(0).getDisplayName());
       assertThat(members.get(1)).isInstanceOf(MethodElement.class);
-      assertEquals("ma2", members.get(1).getName());
+      assertEquals("ma2", members.get(1).getDisplayName());
     }
     // B
     {
       List<Element> members = HierarchyUtils.getDirectMembers(classB, false);
       assertThat(members).hasSize(2);
       assertThat(members.get(0)).isInstanceOf(FieldElement.class);
-      assertEquals("mb1", members.get(0).getName());
+      assertEquals("mb1", members.get(0).getDisplayName());
       assertThat(members.get(1)).isInstanceOf(MethodElement.class);
-      assertEquals("mb2", members.get(1).getName());
+      assertEquals("mb2", members.get(1).getDisplayName());
     }
   }
 
@@ -89,9 +89,9 @@ public class HierarchyUtilsTest extends RefactoringImplTest {
       List<Element> members = HierarchyUtils.getMembers(classA, false);
       assertThat(members).hasSize(2);
       assertThat(members.get(0)).isInstanceOf(FieldElement.class);
-      assertEquals("ma1", members.get(0).getName());
+      assertEquals("ma1", members.get(0).getDisplayName());
       assertThat(members.get(1)).isInstanceOf(MethodElement.class);
-      assertEquals("ma2", members.get(1).getName());
+      assertEquals("ma2", members.get(1).getDisplayName());
     }
     // B
     {
@@ -99,16 +99,16 @@ public class HierarchyUtilsTest extends RefactoringImplTest {
       assertThat(members).hasSize(4);
       // mb1
       assertThat(members.get(0)).isInstanceOf(FieldElement.class);
-      assertEquals("mb1", members.get(0).getName());
+      assertEquals("mb1", members.get(0).getDisplayName());
       // mb2
       assertThat(members.get(1)).isInstanceOf(MethodElement.class);
-      assertEquals("mb2", members.get(1).getName());
+      assertEquals("mb2", members.get(1).getDisplayName());
       // ma1
       assertThat(members.get(2)).isInstanceOf(FieldElement.class);
-      assertEquals("ma1", members.get(2).getName());
+      assertEquals("ma1", members.get(2).getDisplayName());
       // ma2
       assertThat(members.get(3)).isInstanceOf(MethodElement.class);
-      assertEquals("ma2", members.get(3).getName());
+      assertEquals("ma2", members.get(3).getDisplayName());
     }
   }
 

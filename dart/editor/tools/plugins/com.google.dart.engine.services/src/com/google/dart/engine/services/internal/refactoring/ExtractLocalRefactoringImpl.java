@@ -298,7 +298,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
                 public Void visitLocalElement(LocalElement element) {
                   SourceRange elementRange = element.getVisibleRange();
                   if (elementRange != null && elementRange.intersects(newVariableVisibleRange)) {
-                    excludedVariableNames.add(element.getName());
+                    excludedVariableNames.add(element.getDisplayName());
                   }
                   return super.visitLocalElement(element);
                 }

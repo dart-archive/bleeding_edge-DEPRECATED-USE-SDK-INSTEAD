@@ -46,9 +46,9 @@ public class ServiceInlineMethodRefactoring extends ServiceRefactoring implement
   public String getMethodLabel() {
     ExecutableElement element = refactoring.getElement();
     if (element instanceof FunctionElement) {
-      return element.getName();
+      return element.getDisplayName();
     }
-    return element.getEnclosingElement().getName() + "." + element.getName();
+    return element.getEnclosingElement().getDisplayName() + "." + element.getDisplayName();
   }
 
   @Override

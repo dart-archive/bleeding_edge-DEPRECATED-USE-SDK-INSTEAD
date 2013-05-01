@@ -48,7 +48,7 @@ public class TypeElement extends OmniElement {
 
   @Override
   public String getId() {
-    return element.getName();
+    return element.getDisplayName();
   }
 
   @Override
@@ -65,7 +65,7 @@ public class TypeElement extends OmniElement {
   @Override
   public String getLabel() {
     StringBuffer result = new StringBuffer();
-    result.append(element.getName());
+    result.append(element.getDisplayName());
 
     //cache detail offset (used for styling detail area in OmniElement.paint(...))
     detailOffset = result.length();
@@ -73,14 +73,14 @@ public class TypeElement extends OmniElement {
     LibraryElement library = element.getLibrary();
     if (library != null) {
       result.append(DartElementLabels.CONCAT_STRING);
-      result.append(library.getName());
+      result.append(library.getDisplayName());
     }
     return result.toString();
   }
 
   @Override
   protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
-    instrumentation.data("TypeElement.searchResultSelected", element.getName());
+    instrumentation.data("TypeElement.searchResultSelected", element.getDisplayName());
     try {
       IFile contextFile = getContextFile();
       DartUI.openInEditor(contextFile, element, true);

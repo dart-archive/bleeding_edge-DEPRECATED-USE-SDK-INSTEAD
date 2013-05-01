@@ -57,7 +57,7 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    */
   public MultiplyDefinedElementImpl(AnalysisContext context, Element firstElement,
       Element secondElement) {
-    name = firstElement.getName();
+    name = firstElement.getDisplayName();
     conflictingElements = computeConflictingElements(firstElement, secondElement);
   }
 
@@ -84,6 +84,11 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @Override
   public AnalysisContext getContext() {
     return context;
+  }
+
+  @Override
+  public String getDisplayName() {
+    return name;
   }
 
   @Override

@@ -160,7 +160,7 @@ public class CorrectionUtils {
       public Void visitElement(Element element) {
         if (element == parent) {
           super.visitElement(element);
-        } else if (name == null || element.getName().equals(name)) {
+        } else if (name == null || element.getDisplayName().equals(name)) {
           children.add(element);
         }
         return null;
@@ -199,9 +199,9 @@ public class CorrectionUtils {
     switch (kind) {
       case FIELD:
       case METHOD:
-        return element.getEnclosingElement().getName() + "." + element.getName();
+        return element.getEnclosingElement().getDisplayName() + "." + element.getDisplayName();
       default:
-        return element.getName();
+        return element.getDisplayName();
     }
   }
 
@@ -623,7 +623,7 @@ public class CorrectionUtils {
       // TODO(scheglov) not implemented yet in Resolver 
       ParameterElement parameter = expression.getParameterElement();
       if (parameter != null) {
-        return parameter.getName();
+        return parameter.getDisplayName();
       }
     }
     // unknown
@@ -1136,7 +1136,7 @@ public class CorrectionUtils {
       Element element = type.getElement();
       ImportElement imp = getImportElement(element);
       if (imp != null && imp.getPrefix() != null) {
-        return imp.getPrefix().getName() + "." + typeSource;
+        return imp.getPrefix().getDisplayName() + "." + typeSource;
       }
     }
     // no prefix

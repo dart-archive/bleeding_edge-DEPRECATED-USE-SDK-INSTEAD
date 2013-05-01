@@ -31,7 +31,7 @@ public class SourceRangeFactory {
    * @return the name {@link SourceRange} of the given {@link Element};
    */
   public static SourceRange rangeElementName(Element element) {
-    return rangeStartLength(element.getNameOffset(), element.getName().length());
+    return rangeStartLength(element.getNameOffset(), element.getDisplayName().length());
   }
 
   /**

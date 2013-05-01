@@ -519,8 +519,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (USE_TYPE_PROPAGATION) {
       ConstructorElement element = node.getElement();
-      if (element != null && "Element".equals(element.getEnclosingElement().getName())
-          && "tag".equals(element.getName())) {
+      if (element != null && "Element".equals(element.getEnclosingElement().getDisplayName())
+          && "tag".equals(element.getDisplayName())) {
         LibraryElement library = element.getLibrary();
         if (isHtmlLibrary(library)) {
           Type returnType = getFirstArgumentAsType(
@@ -1267,7 +1267,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       if (parameterElements != null) {
         for (int i = 0; i < parameterElements.length; i++) {
           TypeVariableElement varElt = parameterElements[i];
-          if (returnType.getName().equals(varElt.getName())) {
+          if (returnType.getName().equals(varElt.getDisplayName())) {
             return interfaceTypeContext.getTypeArguments()[i];
           }
         }
@@ -1301,7 +1301,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @return {@code true} if the library is 'dart:html'
    */
   private boolean isHtmlLibrary(LibraryElement library) {
-    return library.getName().equals("dart.dom.html");
+    return library.getDisplayName().equals("dart.dom.html");
   }
 
   /**
@@ -1439,7 +1439,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
             optionalParameterTypes.add(parameter.getType());
             break;
           case NAMED:
-            namedParameterTypes.put(parameter.getName(), parameter.getType());
+            namedParameterTypes.put(parameter.getDisplayName(), parameter.getType());
             break;
         }
       }

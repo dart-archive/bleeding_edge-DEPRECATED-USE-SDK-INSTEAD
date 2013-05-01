@@ -85,20 +85,20 @@ public class OpenExternalDartdocAction extends AbstractDartSelectionAction {
       instrumentation.metric("Problem", "library was null");
       return;
     }
-    String libraryName = libraryElement.getName();
+    String libraryName = libraryElement.getDisplayName();
     // prepare names
     String className;
     String elementName;
     ClassElement enclosingClassElement = element.getAncestor(ClassElement.class);
     if (element instanceof ClassElement) {
-      className = element.getName();
+      className = element.getDisplayName();
       elementName = null;
     } else if (enclosingClassElement != null) {
-      className = enclosingClassElement.getName();
-      elementName = element.getName();
+      className = enclosingClassElement.getDisplayName();
+      elementName = element.getDisplayName();
     } else {
       className = null;
-      elementName = element.getName();
+      elementName = element.getDisplayName();
     }
     // do open
     browseDartDoc(libraryName, className, elementName, instrumentation);

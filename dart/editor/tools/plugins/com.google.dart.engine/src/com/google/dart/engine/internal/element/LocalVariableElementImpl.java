@@ -85,6 +85,6 @@ public class LocalVariableElementImpl extends VariableElementImpl implements Loc
   protected void appendTo(StringBuilder builder) {
     builder.append(getType());
     builder.append(" ");
-    builder.append(getName());
+    builder.append(getDisplayName());
   }
 }

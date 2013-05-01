@@ -50,7 +50,7 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
     // element
     ExecutableElement element = refactoring.getElement();
     assertThat(element).isInstanceOf(FunctionElement.class);
-    assertEquals("test", element.getName());
+    assertEquals("test", element.getDisplayName());
   }
 
   public void test_access_MethodElement() throws Exception {

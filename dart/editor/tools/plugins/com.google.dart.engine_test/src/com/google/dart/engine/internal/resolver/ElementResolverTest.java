@@ -738,7 +738,7 @@ public class ElementResolverTest extends EngineTestCase {
         if (labelElement == null) {
           innerScope = new LabelScope(outerScope, false, false);
         } else {
-          innerScope = new LabelScope(outerScope, labelElement.getName(), labelElement);
+          innerScope = new LabelScope(outerScope, labelElement.getDisplayName(), labelElement);
         }
         scopeField.set(visitor, innerScope);
         statement.accept(resolver);

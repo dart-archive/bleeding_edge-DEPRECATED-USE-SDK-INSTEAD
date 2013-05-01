@@ -47,7 +47,7 @@ public class RegularExpressionSearchPattern implements SearchPattern {
     if (element == null) {
       return null;
     }
-    String name = element.getName();
+    String name = element.getDisplayName();
     if (name == null) {
       return null;
     }

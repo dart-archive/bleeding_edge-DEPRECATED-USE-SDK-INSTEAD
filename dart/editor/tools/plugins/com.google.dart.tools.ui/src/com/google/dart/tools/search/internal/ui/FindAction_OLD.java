@@ -105,6 +105,11 @@ public abstract class FindAction_OLD extends InstrumentedSelectionDispatchAction
     }
 
     @Override
+    public String getDisplayName() {
+      return null;
+    }
+
+    @Override
     public Element getEnclosingElement() {
       return null;
     }

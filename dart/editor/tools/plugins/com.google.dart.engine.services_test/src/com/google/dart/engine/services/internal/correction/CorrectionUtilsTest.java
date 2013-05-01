@@ -220,7 +220,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
       List<Element> children = CorrectionUtils.getChildren(classElement, "myMethod");
       assertThat(children).hasSize(1);
       MethodElement child = (MethodElement) Iterables.get(children, 0);
-      assertEquals("myMethod", child.getName());
+      assertEquals("myMethod", child.getDisplayName());
     }
   }
 
@@ -310,7 +310,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getElementQualifiedName() throws Exception {
     ClassElement enclosingClass = mock(ClassElement.class);
     when(enclosingClass.getKind()).thenReturn(ElementKind.CLASS);
-    when(enclosingClass.getName()).thenReturn("A");
+    when(enclosingClass.getDisplayName()).thenReturn("A");
     // ClassElement
     assertEquals("A", CorrectionUtils.getElementQualifiedName(enclosingClass));
     // MethodElement
@@ -318,7 +318,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
       MethodElement method = mock(MethodElement.class);
       when(method.getKind()).thenReturn(ElementKind.METHOD);
       when(method.getEnclosingElement()).thenReturn(enclosingClass);
-      when(method.getName()).thenReturn("myMethod");
+      when(method.getDisplayName()).thenReturn("myMethod");
       assertEquals("A.myMethod", CorrectionUtils.getElementQualifiedName(method));
     }
     // FieldElement
@@ -326,7 +326,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
       FieldElement field = mock(FieldElement.class);
       when(field.getKind()).thenReturn(ElementKind.FIELD);
       when(field.getEnclosingElement()).thenReturn(enclosingClass);
-      when(field.getName()).thenReturn("myField");
+      when(field.getDisplayName()).thenReturn("myField");
       assertEquals("A.myField", CorrectionUtils.getElementQualifiedName(field));
     }
   }

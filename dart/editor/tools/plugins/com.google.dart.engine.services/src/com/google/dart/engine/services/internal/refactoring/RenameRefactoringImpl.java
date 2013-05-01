@@ -73,7 +73,7 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   @Override
   public RefactoringStatus checkNewName(String newName) {
     RefactoringStatus result = new RefactoringStatus();
-    if (Objects.equal(newName, element.getName())) {
+    if (Objects.equal(newName, element.getDisplayName())) {
       result.addFatalError("Choose another name.");
     }
     return result;
@@ -81,7 +81,7 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
 
   @Override
   public String getCurrentName() {
-    return element.getName();
+    return element.getDisplayName();
   }
 
   @Override

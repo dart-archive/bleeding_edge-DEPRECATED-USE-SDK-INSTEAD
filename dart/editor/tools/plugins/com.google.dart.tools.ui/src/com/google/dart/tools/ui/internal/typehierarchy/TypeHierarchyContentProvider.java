@@ -53,7 +53,7 @@ public class TypeHierarchyContentProvider implements ITreeContentProvider {
         }
         if (element == type) {
           super.visitElement(element);
-        } else if (name == null || element.getName().equals(name)) {
+        } else if (name == null || element.getDisplayName().equals(name)) {
           result[0] = element;
         }
         return null;
@@ -137,7 +137,7 @@ public class TypeHierarchyContentProvider implements ITreeContentProvider {
       Element inputElement = (Element) inputObject;
       if (inputElement instanceof ExecutableElement
           && inputElement.getEnclosingElement() instanceof ClassElement) {
-        memberName = inputElement.getName();
+        memberName = inputElement.getDisplayName();
         inputObject = inputElement.getEnclosingElement();
       }
       if (inputObject instanceof ClassElement) {
