@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.ui.internal.dartium;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -114,10 +113,7 @@ public class DartiumLaunchShortcut extends AbstractLaunchShortcut implements ILa
 
   @Override
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return super.testSimilar(resource, config);
-    }
-    return LaunchUtils.isLaunchableWith(resource, config);
+    return super.testSimilar(resource, config);
   }
 
 }

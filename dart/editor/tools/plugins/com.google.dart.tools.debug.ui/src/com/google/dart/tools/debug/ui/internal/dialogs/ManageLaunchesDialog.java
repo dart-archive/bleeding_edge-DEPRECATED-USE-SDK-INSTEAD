@@ -14,8 +14,6 @@
 
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -563,23 +561,16 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     IResource resource = LaunchUtils.getSelectedResource(window);
 
     if (resource != null) {
-      try {
 
-        ILaunchConfiguration config = null;
-        if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-          List<ILaunchConfiguration> configs = LaunchUtils.getExistingLaunchesFor(resource);
-          if (!configs.isEmpty()) {
-            config = configs.get(0);
-          }
-        } else {
-          config = LaunchUtils.getLaunchFor(resource);
-        }
-        if (config != null) {
-          launchesViewer.setSelection(new StructuredSelection(config));
-          return;
-        }
-      } catch (DartModelException exception) {
-        DartUtil.logError(exception);
+      ILaunchConfiguration config = null;
+      List<ILaunchConfiguration> configs = LaunchUtils.getExistingLaunchesFor(resource);
+      if (!configs.isEmpty()) {
+        config = configs.get(0);
+      }
+
+      if (config != null) {
+        launchesViewer.setSelection(new StructuredSelection(config));
+        return;
       }
     }
 

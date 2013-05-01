@@ -15,8 +15,6 @@
 package com.google.dart.tools.debug.ui.internal.view;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationDelegate;
@@ -314,23 +312,19 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
   }
 
   private String resolvePackageUri(String url) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      IResource resource = getResource();
 
-      if (resource != null) {
-        IFile file = DartCore.getProjectManager().resolvePackageUri(resource, url);
+    IResource resource = getResource();
+    if (resource != null) {
+      IFile file = DartCore.getProjectManager().resolvePackageUri(resource, url);
 
-        if (file != null) {
-          return file.getLocation().toFile().toURI().toString();
-        } else {
-          return null;
-        }
+      if (file != null) {
+        return file.getLocation().toFile().toURI().toString();
+      } else {
+        return null;
       }
-
-      return null;
-    } else {
-      return PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(url).toString();
     }
+
+    return null;
   }
 
 }

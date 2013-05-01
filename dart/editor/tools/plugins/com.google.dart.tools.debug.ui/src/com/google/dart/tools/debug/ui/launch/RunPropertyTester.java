@@ -16,12 +16,7 @@ package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
-import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartLibrary;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.resources.IFile;
@@ -45,26 +40,12 @@ public class RunPropertyTester extends PropertyTester {
       if (receiver instanceof IStructuredSelection) {
         Object o = ((IStructuredSelection) receiver).getFirstElement();
         if (o instanceof IFile && DartCore.isDartLikeFileName(((IFile) o).getName())) {
+
           IFile file = (IFile) o;
-          if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-            ProjectManager manager = DartCore.getProjectManager();
-            if (manager.getSourceKind(file) == SourceKind.LIBRARY
-                && manager.isServerLibrary(manager.getSource(file))) {
-              return true;
-            }
-            return false;
-          } else {
-            DartElement element = DartCore.create((IFile) o);
-            if (element instanceof CompilationUnitImpl
-                && ((CompilationUnitImpl) element).definesLibrary()) {
-              DartLibrary library = ((CompilationUnitImpl) element).getLibrary();
-              if (library instanceof DartLibraryImpl) {
-                DartLibraryImpl impl = (DartLibraryImpl) library;
-                if (impl.isServerApplication()) {
-                  return true;
-                }
-              }
-            }
+          ProjectManager manager = DartCore.getProjectManager();
+          if (manager.getSourceKind(file) == SourceKind.LIBRARY
+              && manager.isServerLibrary(manager.getSource(file))) {
+            return true;
           }
         }
       }

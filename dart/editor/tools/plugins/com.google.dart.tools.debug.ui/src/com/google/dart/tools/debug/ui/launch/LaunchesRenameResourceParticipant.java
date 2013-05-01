@@ -14,19 +14,13 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.common.base.Objects;
 import com.google.dart.compiler.util.apache.StringUtils;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -76,20 +70,6 @@ public class LaunchesRenameResourceParticipant extends RenameParticipant {
   @Override
   public Change createChange(IProgressMonitor pm) throws CoreException, OperationCanceledException {
     // TODO(scheglov) implement for new engine
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return null;
-    }
-    ILaunchConfiguration[] configurations = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations();
-    for (final ILaunchConfiguration configuration : configurations) {
-      String launchPlugin = configuration.getType().getPluginIdentifier();
-      if (Objects.equal(launchPlugin, DartDebugUIPlugin.PLUGIN_ID)) {
-        DartLaunchConfigWrapper configWrapper = new DartLaunchConfigWrapper(configuration);
-        if (Objects.equal(configWrapper.getApplicationResource(), file)) {
-          String newName = getArguments().getNewName();
-          return new UpdateConfigurationHtml(configuration, newName);
-        }
-      }
-    }
     return null;
   }
 
@@ -101,17 +81,6 @@ public class LaunchesRenameResourceParticipant extends RenameParticipant {
   @Override
   protected boolean initialize(Object element) {
     // TODO(scheglov) implement for new engine
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return false;
-    }
-    if (element instanceof IFile) {
-      file = (IFile) element;
-      try {
-        return DartCore.create(file) instanceof HTMLFile;
-      } catch (Throwable e) {
-        DartCore.logError(e);
-      }
-    }
     return false;
   }
 

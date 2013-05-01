@@ -16,13 +16,7 @@ package com.google.dart.tools.debug.ui.internal.server;
 
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.AppSelectionDialog;
@@ -58,9 +52,7 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -71,51 +63,23 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     private Set<IResource> serverLibraries = new HashSet<IResource>();
 
     public ServerAppResourceFilter() {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        ProjectManager manager = DartCore.getProjectManager();
-        // TODO(devoncarew): this currently returns an empty list
-        Source[] librarySources = manager.getLaunchableServerLibrarySources();
-        for (Source source : librarySources) {
-          IResource resource = manager.getResource(source);
-          if (resource != null) {
-            serverLibraries.add(resource);
-          }
-        }
 
-      } else {
-        try {
-          List<DartLibrary> libraries = DartModelManager.getInstance().getDartModel().getUnreferencedLibraries();
-          List<DartLibrary> bundledLibraries = Arrays.asList(DartModelManager.getInstance().getDartModel().getBundledLibraries());
-
-          libraries.removeAll(bundledLibraries);
-
-          for (DartLibrary library : libraries) {
-            if (library instanceof DartLibraryImpl
-                && ((DartLibraryImpl) library).isServerApplication()) {
-              serverLibraries.add(library.getCorrespondingResource());
-            }
-          }
-        } catch (DartModelException e) {
-          DartDebugCorePlugin.logError(e);
+      ProjectManager manager = DartCore.getProjectManager();
+      // TODO(devoncarew): this currently returns an empty list
+      Source[] librarySources = manager.getLaunchableServerLibrarySources();
+      for (Source source : librarySources) {
+        IResource resource = manager.getResource(source);
+        if (resource != null) {
+          serverLibraries.add(resource);
         }
       }
     }
 
     @Override
     public boolean matches(IResource resource) {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        // TODO(devoncarew): we don't use the serverLibraries set for now
 
-        return DartCore.isDartLikeFileName(resource.getName());
-      } else {
-        if (DartCore.isDartLikeFileName(resource.getName())) {
-          if (serverLibraries.contains(resource)) {
-            return true;
-          }
-        }
-
-        return false;
-      }
+      // TODO(devoncarew): we don't use the serverLibraries set for now
+      return DartCore.isDartLikeFileName(resource.getName());
     }
   }
 

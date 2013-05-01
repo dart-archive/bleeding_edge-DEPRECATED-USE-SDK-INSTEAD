@@ -16,13 +16,7 @@ package com.google.dart.tools.debug.ui.internal.util;
 import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.internal.model.DartProjectImpl;
-import com.google.dart.tools.core.internal.model.HTMLFileImpl;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -49,9 +43,7 @@ import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * An abstract parent of Dart launch shortcuts.
@@ -261,57 +253,15 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       return null;
     }
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return getResourceToLaunch(originalResource);
-    }
-
-    DartElement elem = null;
-
     if (originalResource instanceof IResource) {
       IResource resource = (IResource) originalResource;
       if (!resource.isAccessible()) {
         return null;
       }
-
-      if (DartUtil.isWebPage(resource)) {
-        return resource;
-      }
-
-      // DartLibrary
-      elem = DartCore.create(resource);
+      return getPrimaryLaunchTarget(resource);
     }
+    return null;
 
-    if (originalResource instanceof DartElement) {
-      elem = (DartElement) originalResource;
-    }
-
-    if (elem == null) {
-      return null;
-    }
-
-    if (elem instanceof DartProjectImpl) {
-      DartLibrary[] libraries = ((DartProjectImpl) elem).getDartLibraries();
-
-      if (libraries.length > 0) {
-        Set<IResource> htmlFiles = new HashSet<IResource>();
-
-        for (DartLibrary library : libraries) {
-          IResource htmlFile = getHtmlFileFor(library);
-
-          if (htmlFile != null) {
-            htmlFiles.add(htmlFile);
-          }
-        }
-
-        IResource[] files = htmlFiles.toArray(new IResource[htmlFiles.size()]);
-        // TODO(keertip): need to handle the case of multiple html files
-        return files[0];
-      }
-    }
-
-    DartLibrary parentLibrary = elem.getAncestor(DartLibrary.class);
-
-    return getHtmlFileFor(parentLibrary);
   }
 
   /**
@@ -319,23 +269,8 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    */
   protected boolean isBrowserApplication(IResource resource) {
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      if (getPrimaryLaunchTarget(resource) != null) {
-        return true;
-      }
-    } else {
-      DartLibrary[] libraries = LaunchUtils.getDartLibraries(resource);
-
-      if (libraries.length > 0) {
-        for (DartLibrary library : libraries) {
-          if (library instanceof DartLibraryImpl) {
-            DartLibraryImpl impl = (DartLibraryImpl) library;
-            if (impl.isBrowserApplication()) {
-              return true;
-            }
-          }
-        }
-      }
+    if (getPrimaryLaunchTarget(resource) != null) {
+      return true;
     }
     return false;
   }
@@ -364,21 +299,6 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       return true;
     }
     return false;
-  }
-
-  /**
-   * @return the html file used to launch the given library
-   */
-  private IResource getHtmlFileFor(DartLibrary library) throws DartModelException {
-    List<HTMLFileImpl> htmlFiles = library.getChildrenOfType(HTMLFileImpl.class);
-
-    if (htmlFiles.isEmpty()) {
-      // no html file associated with library
-      return null;
-    } else {
-      // TODO(keertip): need to handle the case of multiple html files
-      return htmlFiles.get(0).getCorrespondingResource();
-    }
   }
 
   private IResource getHtmlFileForLibrarySource(Source[] sources) {
@@ -413,18 +333,6 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       return getHtmlFileForLibrarySource(sources);
     }
     // TODO(keertip): figure out association for other files like css etc.
-    return null;
-  }
-
-  private IResource getResourceToLaunch(Object originalResource) {
-
-    if (originalResource instanceof IResource) {
-      IResource resource = (IResource) originalResource;
-      if (!resource.isAccessible()) {
-        return null;
-      }
-      return getPrimaryLaunchTarget(resource);
-    }
     return null;
   }
 

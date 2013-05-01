@@ -16,10 +16,7 @@ package com.google.dart.tools.debug.ui.internal.server;
 import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
@@ -63,24 +60,10 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
       return false;
     }
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      if (getPrimaryLaunchTarget(resource) != null) {
-        return true;
-      }
-    } else {
-      DartLibrary[] libraries = LaunchUtils.getDartLibraries(resource);
-
-      if (libraries.length > 0) {
-        for (DartLibrary library : libraries) {
-          if (library instanceof DartLibraryImpl) {
-            DartLibraryImpl impl = (DartLibraryImpl) library;
-            if (impl.isServerApplication()) {
-              return true;
-            }
-          }
-        }
-      }
+    if (getPrimaryLaunchTarget(resource) != null) {
+      return true;
     }
+
     return false;
   }
 
@@ -92,9 +75,8 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
       ILaunchConfiguration[] configs = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations(
           getConfigurationType());
 
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        resource = getPrimaryLaunchTarget(resource);
-      }
+      resource = getPrimaryLaunchTarget(resource);
+
       if (resource != null) {
         for (int i = 0; i < configs.length; i++) {
           ILaunchConfiguration config = configs[i];
@@ -186,9 +168,7 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
     }
 
     // Launch an existing configuration if one exists
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      resource = getPrimaryLaunchTarget(resource);
-    }
+    resource = getPrimaryLaunchTarget(resource);
     if (resource == null) {
       return;
     }
@@ -227,16 +207,14 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
   }
 
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
-      IResource appResource = launchWrapper.getApplicationResource();
 
-      if (ObjectUtils.equals(appResource, resource)) {
-        return true;
-      }
-      return false;
+    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
+    IResource appResource = launchWrapper.getApplicationResource();
+
+    if (ObjectUtils.equals(appResource, resource)) {
+      return true;
     }
-    return LaunchUtils.isLaunchableWith(resource, config);
+    return false;
   }
 
   private IResource getPrimaryLaunchTarget(IResource resource) {

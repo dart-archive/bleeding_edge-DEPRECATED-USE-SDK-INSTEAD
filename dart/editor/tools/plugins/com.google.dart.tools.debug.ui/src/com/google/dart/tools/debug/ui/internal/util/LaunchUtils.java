@@ -15,7 +15,6 @@ package com.google.dart.tools.debug.ui.internal.util;
 
 import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -62,7 +61,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -317,30 +315,6 @@ public class LaunchUtils {
 
     if (configs.size() > 0) {
       return chooseLatest(configs);
-    }
-
-    // No existing configs - check if the current resource is not launchable.
-    if (getApplicableLaunchShortcuts(resource).size() == 0) {
-      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        // Try and locate a launchable library that references this library.
-        DartLibrary[] libraries = getDartLibraries(resource);
-
-        if (libraries.length > 0) {
-          Set<ILaunchConfiguration> libraryConfigs = new HashSet<ILaunchConfiguration>();
-
-          for (DartLibrary library : libraries) {
-            for (DartLibrary referencingLib : library.getReferencingLibraries()) {
-              IResource libResource = referencingLib.getCorrespondingResource();
-
-              libraryConfigs.addAll(getExistingLaunchesFor(libResource));
-            }
-          }
-
-          if (libraryConfigs.size() > 0) {
-            return chooseLatest(libraryConfigs);
-          }
-        }
-      }
     }
 
     return null;
