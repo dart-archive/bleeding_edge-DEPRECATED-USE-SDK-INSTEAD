@@ -172,13 +172,15 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
       UIInstrumentationBuilder instrumentation) {
 
     String scriptName = getScript(event.keyCode);
-    instrumentation.metric("Running script ", scriptName);
+    if (scriptName != null && !scriptName.isEmpty()) {
+      instrumentation.metric("Running script ", scriptName);
 
-    if (!selection.isEmpty() && selection.getFirstElement() instanceof IResource) {
-      IResource res = (IResource) selection.getFirstElement();
-      new RunScriptJob(res, scriptName).schedule();
-    } else {
-      new RunScriptJob(null, scriptName).schedule();
+      if (!selection.isEmpty() && selection.getFirstElement() instanceof IResource) {
+        IResource res = (IResource) selection.getFirstElement();
+        new RunScriptJob(res, scriptName).schedule();
+      } else {
+        new RunScriptJob(null, scriptName).schedule();
+      }
     }
   }
 
