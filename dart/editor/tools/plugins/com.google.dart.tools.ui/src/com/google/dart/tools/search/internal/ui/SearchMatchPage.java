@@ -34,6 +34,7 @@ import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -513,14 +514,16 @@ public abstract class SearchMatchPage extends SearchPage {
   };
 
   private final SearchView searchView;
+  private final IFile context;
   private final String taskName;
   private final Set<IResource> markerResources = Sets.newHashSet();
   private TreeViewer viewer;
   private ResultItem rootItem;
   private ResultCursor itemCursor;
 
-  public SearchMatchPage(SearchView searchView, String taskName) {
+  public SearchMatchPage(SearchView searchView, IFile context, String taskName) {
     this.searchView = searchView;
+    this.context = context;
     this.taskName = taskName;
   }
 
@@ -692,7 +695,7 @@ public abstract class SearchMatchPage extends SearchPage {
     SourceRange sourceRange = itemCursor.getSourceRange();
     // show Element and SourceRange
     try {
-      IEditorPart editor = DartUI.openInEditor(element);
+      IEditorPart editor = DartUI.openInEditor(context, element, true);
       EditorUtility.revealInEditor(editor, sourceRange);
     } catch (Throwable e) {
       ExceptionHandler.handle(e, "Search", "Exception during open.");
@@ -764,7 +767,7 @@ public abstract class SearchMatchPage extends SearchPage {
       viewer.setSelection(new StructuredSelection(itemCursor.item), true);
       // open editor with Element
       Element element = itemCursor.item.element;
-      IEditorPart editor = DartUI.openInEditor(element, false, false);
+      IEditorPart editor = DartUI.openInEditor(context, element, false);
       // show SourceRange
       SourceRange sourceRange = itemCursor.getSourceRange();
       if (sourceRange != null) {

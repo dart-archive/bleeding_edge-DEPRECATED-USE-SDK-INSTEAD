@@ -24,6 +24,7 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.text.editor.LightNodeElement;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbenchSite;
 
@@ -46,8 +47,33 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
   }
 
   /**
-   * @return the {@link Element} covered by the given {@link DartSelection}, may be
-   *         <code>null</code>.
+   * @return the {@link IFile} corresponding to the given {@link DartSelection}. May be {@code null}
+   *         .
+   */
+  protected static IFile getSelectionContextFile(DartSelection selection) {
+    DartEditor editor = selection.getEditor();
+    if (editor != null) {
+      return editor.getInputResourceFile();
+    }
+    return null;
+  }
+
+  /**
+   * @return the {@link IFile} corresponding to the given {@link IStructuredSelection}. May be
+   *         {@code null}.
+   */
+  protected static IFile getSelectionContextFile(IStructuredSelection selection) {
+    if (selection.size() == 1) {
+      Object object = selection.getFirstElement();
+      if (object instanceof LightNodeElement) {
+        return ((LightNodeElement) object).getContextFile();
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return the {@link Element} covered by the given {@link DartSelection}, may be {@code null}.
    */
   protected static Element getSelectionElement(DartSelection selection) {
     AssistContext context = selection.getContext();
@@ -58,8 +84,8 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
   }
 
   /**
-   * @return the only {@link Element} in the given {@link IStructuredSelection}. May be
-   *         <code>null</code>.
+   * @return the only {@link Element} in the given {@link IStructuredSelection}. May be {@code null}
+   *         .
    */
   protected static Element getSelectionElement(IStructuredSelection selection) {
     if (selection.size() == 1) {
@@ -75,8 +101,7 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
   }
 
   /**
-   * @return the {@link ASTNode} covered by the given {@link DartSelection}, may be
-   *         <code>null</code>.
+   * @return the {@link ASTNode} covered by the given {@link DartSelection}, may be {@code null}.
    */
   protected static ASTNode getSelectionNode(DartSelection selection) {
     AssistContext context = selection.getContext();
@@ -126,13 +151,17 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
     return isInterestingElement(node, element);
   }
 
+  protected final DartEditor editor;
+
   public AbstractDartSelectionAction(DartEditor editor) {
     super(editor.getEditorSite());
+    this.editor = editor;
     init();
   }
 
   public AbstractDartSelectionAction(IWorkbenchSite site) {
     super(site);
+    this.editor = null;
     init();
   }
 

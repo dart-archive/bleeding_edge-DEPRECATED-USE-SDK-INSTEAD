@@ -232,7 +232,7 @@ public class DartOutlineInformationControl extends PopupDialog implements IInfor
     // create TreeViewer
     viewer = new OutlineTreeViewer(tree);
     viewer.addFilter(new NameFilter());
-    viewer.setContentProvider(LightNodeElements.newTreeContentProvider());
+    viewer.setContentProvider(LightNodeElements.newTreeContentProvider(editor));
     viewer.setLabelProvider(LightNodeElements.LABEL_PROVIDER);
     viewer.setInput(editor.getParsedUnit());
     selectElementEnclosingEditorSelection();

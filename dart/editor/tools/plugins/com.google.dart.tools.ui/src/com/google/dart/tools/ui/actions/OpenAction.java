@@ -48,11 +48,8 @@ public class OpenAction extends AbstractDartSelectionAction {
     return isInterestingElementSelected(selection);
   }
 
-  private final DartEditor editor;
-
   public OpenAction(DartEditor editor) {
     super(editor);
-    this.editor = editor;
   }
 
   @Override
@@ -96,7 +93,7 @@ public class OpenAction extends AbstractDartSelectionAction {
     element = DartElementUtil.getVariableIfSyntheticAccessor(element);
     // do open
     try {
-      DartUI.openInEditor(editor, element);
+      DartUI.openInEditor(editor, element, true);
     } catch (Throwable e) {
       ExceptionHandler.handle(e, getText(), "Exception during open.");
     }

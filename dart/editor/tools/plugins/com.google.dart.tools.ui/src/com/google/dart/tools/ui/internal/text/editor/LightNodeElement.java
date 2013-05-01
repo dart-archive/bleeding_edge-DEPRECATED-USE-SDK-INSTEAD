@@ -21,12 +21,15 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.element.Element;
 
+import org.eclipse.core.resources.IFile;
+
 import java.util.List;
 
 /**
  * Lightweight container of {@link ASTNode} and its name.
  */
 public class LightNodeElement {
+  private final IFile contextFile;
   private final LightNodeElement parent;
   private final ASTNode node;
   private final int nameOffset;
@@ -34,9 +37,11 @@ public class LightNodeElement {
   private final String name;
   public final List<LightNodeElement> children = Lists.newArrayList();
 
-  LightNodeElement(LightNodeElement parent, ASTNode node, ASTNode nameNode, String name) {
+  LightNodeElement(IFile contextFile, LightNodeElement parent, ASTNode node, ASTNode nameNode,
+      String name) {
     Preconditions.checkNotNull(node);
     Preconditions.checkNotNull(nameNode);
+    this.contextFile = contextFile;
     this.parent = parent;
     this.node = node;
     this.name = name;
@@ -65,6 +70,14 @@ public class LightNodeElement {
 
   public List<LightNodeElement> getChildren() {
     return children;
+  }
+
+  /**
+   * @return the {@link IFile} in context of which this {@link LightNodeElement} was created. May be
+   *         {@code null}.
+   */
+  public IFile getContextFile() {
+    return contextFile;
   }
 
   /**

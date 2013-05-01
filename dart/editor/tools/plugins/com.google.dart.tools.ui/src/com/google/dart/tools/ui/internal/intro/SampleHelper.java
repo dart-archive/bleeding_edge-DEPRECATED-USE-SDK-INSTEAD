@@ -85,7 +85,7 @@ public class SampleHelper {
               window,
               window.getShell());
 
-          EditorUtility.openInTextEditor(ResourceUtil.getFile(fileToOpen));
+          EditorUtility.openInTextEditor(ResourceUtil.getFile(fileToOpen), true);
 
         } catch (CoreException e) {
           DartToolsPlugin.log(e);

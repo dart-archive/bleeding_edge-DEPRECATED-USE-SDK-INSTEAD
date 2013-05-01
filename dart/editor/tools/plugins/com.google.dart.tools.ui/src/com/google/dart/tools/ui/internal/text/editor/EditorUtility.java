@@ -523,7 +523,7 @@ public class EditorUtility {
    * @return an open editor
    * @throws PartInitException if the editor could not be opened or the input element is not valid
    */
-  public static IEditorPart openInTextEditor(IFile file) throws PartInitException {
+  public static IEditorPart openInTextEditor(IFile file, boolean activate) throws PartInitException {
     if (file == null) {
       throwPartInitException(DartEditorMessages.EditorUtility_file_must_not_be_null);
     }
@@ -545,7 +545,7 @@ public class EditorUtility {
         p,
         file,
         maybeSwapDefaultEditorDescriptor(desc.getId()),
-        true);
+        activate);
     initializeHighlightRange(editorPart);
     return editorPart;
   }

@@ -32,6 +32,7 @@ import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -89,7 +90,12 @@ public class LightNodeElements {
    * {@link ITreeContentProvider} for {@link LightNodeElement}s in {@link CompilationUnit}.
    */
   private static class NodeContentProvider implements ITreeContentProvider {
+    private final IFile contextFile;
     private final List<LightNodeElement> elements = Lists.newArrayList();
+
+    public NodeContentProvider(IFile contextFile) {
+      this.contextFile = contextFile;
+    }
 
     @Override
     public void dispose() {
@@ -130,13 +136,13 @@ public class LightNodeElements {
           TopLevelVariableDeclaration topVarDecl = (TopLevelVariableDeclaration) unitMember;
           List<VariableDeclaration> variables = topVarDecl.getVariables().getVariables();
           for (VariableDeclaration variable : variables) {
-            LightNodeElement element = createLightNodeElement(null, variable, true);
+            LightNodeElement element = createLightNodeElement(contextFile, null, variable, true);
             if (element != null) {
               elements.add(element);
             }
           }
         } else {
-          LightNodeElement element = createLightNodeElement(null, unitMember, true);
+          LightNodeElement element = createLightNodeElement(contextFile, null, unitMember, true);
           if (element != null) {
             elements.add(element);
           }
@@ -232,7 +238,7 @@ public class LightNodeElements {
    * @return the {@link LightNodeElement} for given {@link ASTNode}, may be <code>null</code> if
    *         given is not declaration and does not have reasonable declaration child.
    */
-  public static LightNodeElement createLightNodeElement(ASTNode node) {
+  public static LightNodeElement createLightNodeElement(IFile contextFile, ASTNode node) {
     if (node == null) {
       return null;
     }
@@ -241,7 +247,7 @@ public class LightNodeElements {
     ASTNode childNode = null;
     ClassDeclaration enclosingClass = node.getAncestor(ClassDeclaration.class);
     if (enclosingClass != null) {
-      parent = createLightNodeElement(null, enclosingClass, false);
+      parent = createLightNodeElement(contextFile, null, enclosingClass, false);
       {
         MethodDeclaration method = node.getAncestor(MethodDeclaration.class);
         if (method != null) {
@@ -287,7 +293,7 @@ public class LightNodeElements {
       }
     }
     // try to create LightNodeElement
-    LightNodeElement element = createLightNodeElement(parent, childNode, false);
+    LightNodeElement element = createLightNodeElement(contextFile, parent, childNode, false);
     if (element == null) {
       element = parent;
     }
@@ -304,18 +310,26 @@ public class LightNodeElements {
   /**
    * @return {@link ITreeContentProvider} for {@link TreeViewer} of {@link LightNodeElement}s.
    */
-  public static ITreeContentProvider newTreeContentProvider() {
-    return new NodeContentProvider();
+  public static ITreeContentProvider newTreeContentProvider(DartEditor editor) {
+    IFile contextFile = editor.getInputResourceFile();
+    return newTreeContentProvider(contextFile);
   }
 
-  private static LightNodeElement createLightNodeElement(LightNodeElement parent, ASTNode node,
-      boolean withChildren) {
+  /**
+   * @return {@link ITreeContentProvider} for {@link TreeViewer} of {@link LightNodeElement}s.
+   */
+  public static ITreeContentProvider newTreeContentProvider(IFile contextFile) {
+    return new NodeContentProvider(contextFile);
+  }
+
+  private static LightNodeElement createLightNodeElement(IFile contextFile,
+      LightNodeElement parent, ASTNode node, boolean withChildren) {
     // VariableDeclaration
     if (node instanceof VariableDeclaration) {
       VariableDeclaration variable = (VariableDeclaration) node;
       SimpleIdentifier nameNode = variable.getName();
       String name = nameNode.getName();
-      return new LightNodeElement(parent, variable, nameNode, name);
+      return new LightNodeElement(contextFile, parent, variable, nameNode, name);
     }
     // ConstructorDeclaration
     if (node instanceof ConstructorDeclaration) {
@@ -324,9 +338,9 @@ public class LightNodeElements {
       SimpleIdentifier constructorName = constructor.getName();
       if (constructorName != null) {
         name += "." + constructorName.getName();
-        return new LightNodeElement(parent, node, constructorName, name);
+        return new LightNodeElement(contextFile, parent, node, constructorName, name);
       } else {
-        return new LightNodeElement(parent, node, constructor.getReturnType(), name);
+        return new LightNodeElement(contextFile, parent, node, constructor.getReturnType(), name);
       }
     }
     // method
@@ -337,23 +351,28 @@ public class LightNodeElements {
       if (method.isSetter()) {
         name += "=";
       }
-      return new LightNodeElement(parent, node, nameNode, name);
+      return new LightNodeElement(contextFile, parent, node, nameNode, name);
     }
     // ClassDeclaration
     if (node instanceof ClassDeclaration) {
       ClassDeclaration classDeclaration = (ClassDeclaration) node;
       SimpleIdentifier nameNode = classDeclaration.getName();
-      LightNodeElement classElement = new LightNodeElement(null, node, nameNode, nameNode.getName());
+      LightNodeElement classElement = new LightNodeElement(
+          contextFile,
+          null,
+          node,
+          nameNode,
+          nameNode.getName());
       if (withChildren) {
         for (ClassMember classMember : classDeclaration.getMembers()) {
           if (classMember instanceof FieldDeclaration) {
             FieldDeclaration fieldDeclaration = (FieldDeclaration) classMember;
             List<VariableDeclaration> fields = fieldDeclaration.getFields().getVariables();
             for (VariableDeclaration field : fields) {
-              createLightNodeElement(classElement, field, true);
+              createLightNodeElement(contextFile, classElement, field, true);
             }
           } else {
-            createLightNodeElement(classElement, classMember, true);
+            createLightNodeElement(contextFile, classElement, classMember, true);
           }
         }
       }
@@ -363,7 +382,12 @@ public class LightNodeElements {
     if (node instanceof FunctionDeclaration) {
       FunctionDeclaration functionDeclaration = (FunctionDeclaration) node;
       SimpleIdentifier nameNode = functionDeclaration.getName();
-      return new LightNodeElement(null, functionDeclaration, nameNode, nameNode.getName());
+      return new LightNodeElement(
+          contextFile,
+          null,
+          functionDeclaration,
+          nameNode,
+          nameNode.getName());
     }
     // unknown
     return null;

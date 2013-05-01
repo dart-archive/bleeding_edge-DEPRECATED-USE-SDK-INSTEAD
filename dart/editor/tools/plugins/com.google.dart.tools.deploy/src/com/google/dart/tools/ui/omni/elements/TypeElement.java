@@ -17,15 +17,23 @@ import com.google.dart.compiler.resolver.ClassAliasElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
 
 /**
  * {@link OmniElement} for types.
@@ -74,9 +82,46 @@ public class TypeElement extends OmniElement {
   protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
     instrumentation.data("TypeElement.searchResultSelected", element.getName());
     try {
-      DartUI.openInEditor(element);
+      IFile contextFile = getContextFile();
+      DartUI.openInEditor(contextFile, element, true);
     } catch (Throwable e) {
       DartToolsPlugin.log(e);
     }
+  }
+
+  private IFile getContextFile() {
+    Source source = element.getSource();
+    IWorkbenchPage page = DartToolsPlugin.getActivePage();
+    if (page != null) {
+      // try active editor
+      {
+        IEditorPart editor = page.getActiveEditor();
+        IFile contextFile = getContextFile(source, editor);
+        if (contextFile != null) {
+          return contextFile;
+        }
+      }
+      // try open editors
+      for (IEditorReference editorReference : page.getEditorReferences()) {
+        IEditorPart editor = editorReference.getEditor(false);
+        IFile contextFile = getContextFile(source, editor);
+        if (contextFile != null) {
+          return contextFile;
+        }
+      }
+    }
+    // not found
+    return null;
+  }
+
+  private IFile getContextFile(Source source, IEditorPart editor) {
+    if (editor instanceof DartEditor) {
+      IFile contextFile = ((DartEditor) editor).getInputResourceFile();
+      ResourceMap resourceMap = DartCore.getProjectManager().getResourceMap(contextFile);
+      if (resourceMap.getResource(source) != null) {
+        return contextFile;
+      }
+    }
+    return null;
   }
 }

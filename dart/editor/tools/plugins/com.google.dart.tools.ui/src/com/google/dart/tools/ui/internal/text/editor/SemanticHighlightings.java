@@ -482,16 +482,19 @@ public class SemanticHighlightings {
     }
 
     private List<SourceRange> addPosition(List<SourceRange> result, SemanticToken token, String str) {
-      ASTNode node = token.getNode();
-      int index = token.getSource().indexOf(str);
-      if (index == 0) {
-        int start = node.getOffset() + index;
-        int length = str.length();
-        if (result == null) {
-          result = Lists.newArrayList();
+      String source = token.getSource();
+      if (source != null) {
+        int index = source.indexOf(str);
+        if (index == 0) {
+          ASTNode node = token.getNode();
+          int start = node.getOffset() + index;
+          int length = str.length();
+          if (result == null) {
+            result = Lists.newArrayList();
+          }
+          result.add(SourceRangeFactory.rangeStartLength(start, length));
+          return result;
         }
-        result.add(SourceRangeFactory.rangeStartLength(start, length));
-        return result;
       }
       return result;
     }

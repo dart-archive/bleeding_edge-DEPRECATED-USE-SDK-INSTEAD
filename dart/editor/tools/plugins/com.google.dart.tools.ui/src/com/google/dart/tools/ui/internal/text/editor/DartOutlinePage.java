@@ -204,7 +204,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     // create "viewer"
     viewer = new DartOutlineViewer(tree);
     ColoredViewersManager.install(viewer);
-    viewer.setContentProvider(LightNodeElements.newTreeContentProvider());
+    viewer.setContentProvider(LightNodeElements.newTreeContentProvider(editor));
     viewer.setLabelProvider(LightNodeElements.LABEL_PROVIDER);
     // TODO(devoncarew): I'd like to use this but opening dart:html is too slow w/ this setting.
     //viewer.setAutoExpandLevel(2);

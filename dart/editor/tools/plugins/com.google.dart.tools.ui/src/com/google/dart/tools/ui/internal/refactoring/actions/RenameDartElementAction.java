@@ -71,11 +71,8 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
     return true;
   }
 
-  private DartEditor editor;
-
   public RenameDartElementAction(DartEditor editor) {
     super(editor);
-    this.editor = editor;
     setEnabled(SelectionConverter.canOperateOn(editor));
   }
 

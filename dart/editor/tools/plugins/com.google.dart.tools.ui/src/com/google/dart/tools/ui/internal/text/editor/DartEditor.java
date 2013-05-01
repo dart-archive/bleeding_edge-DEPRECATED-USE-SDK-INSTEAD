@@ -2868,7 +2868,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     ASTNode node = new NodeLocator(caret).searchWithin(unit);
 //      System.out.println(caret + "  " + parsedUnit);
-    return LightNodeElements.createLightNodeElement(node);
+    return LightNodeElements.createLightNodeElement(inputResourceFile, node);
   }
 
   /**

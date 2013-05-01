@@ -633,10 +633,10 @@ public final class DartUI {
    * @param element the {@link Element} to open in reveal.
    * @return the opened editor or {@code null} if by some reason editor was not opened.
    */
-  public static IEditorPart openInEditor(DartEditor contextEditor, Element element)
+  public static IEditorPart openInEditor(DartEditor contextEditor, Element element, boolean activate)
       throws PartInitException, DartModelException {
     IFile contextFile = contextEditor != null ? contextEditor.getInputResourceFile() : null;
-    return openInEditor(contextFile, element);
+    return openInEditor(contextFile, element, activate);
   }
 
   /**
@@ -741,8 +741,8 @@ public final class DartUI {
    * @param element the {@link Element} to open in reveal.
    * @return the opened editor or {@code null} if by some reason editor was not opened.
    */
-  public static IEditorPart openInEditor(IFile context, Element element) throws PartInitException,
-      DartModelException {
+  public static IEditorPart openInEditor(IFile context, Element element, boolean activate)
+      throws PartInitException, DartModelException {
     if (element == null) {
       return null;
     }
@@ -758,9 +758,9 @@ public final class DartUI {
         file = projectManager.getResourceMap(context).getResource(source);
       }
       if (file != null) {
-        part = EditorUtility.openInEditor(file);
+        part = EditorUtility.openInEditor(file, activate);
       } else {
-        part = EditorUtility.openInEditor(source);
+        part = EditorUtility.openInEditor(source, activate);
       }
     }
     // reveal Element
