@@ -46,7 +46,7 @@ import java.util.List;
  * Finds declarations of the {@link Element}s similar to selected in the workspace.
  */
 public class FindDeclarationsAction extends AbstractDartSelectionAction {
-  static boolean isInvocationNameOfPropertyAccessSelected(DartSelection selection) {
+  static boolean isInvocationNameOrPropertyAccessSelected(DartSelection selection) {
     ASTNode node = getSelectionNode(selection);
     if (!(node instanceof SimpleIdentifier)) {
       return false;
@@ -89,7 +89,7 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
   @Override
   public void selectionChanged(DartSelection selection) {
     setEnabled(isResolvedClassMemberSelected(selection)
-        || isInvocationNameOfPropertyAccessSelected(selection));
+        || isInvocationNameOrPropertyAccessSelected(selection));
   }
 
   @Override

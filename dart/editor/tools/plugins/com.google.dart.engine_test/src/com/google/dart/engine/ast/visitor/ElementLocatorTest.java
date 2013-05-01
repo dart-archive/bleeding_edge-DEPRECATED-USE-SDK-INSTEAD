@@ -18,11 +18,11 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
-import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -81,6 +81,13 @@ public class ElementLocatorTest extends ResolverTestCase {
     assertSame(cu.getElement(), element);
   }
 
+  public void test_compilationUnitElement_part() throws Exception {
+    addSource("/foo.dart", "part of app;");
+    ASTNode id = findNodeIn("'foo.dart'", "library app; part 'foo.dart';");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(CompilationUnitElement.class, element);
+  }
+
   public void test_ConstructorDeclaration() throws Exception {
     ASTNode id = findNodeIndexedIn("bar", 0, //
         "class A {",
@@ -107,17 +114,6 @@ public class ElementLocatorTest extends ResolverTestCase {
     assertInstanceOf(FunctionElement.class, element);
   }
 
-  public void test_importElement() throws Exception {
-
-    addSource("/foo.dart", "library 'foo';");
-
-    ASTNode id = findNodeIn("'foo.dart'", //
-        "import 'foo.dart';",
-        "class A { }");
-    Element element = ElementLocator.locate(id);
-    assertInstanceOf(ImportElement.class, element);
-  }
-
   public void test_InstanceCreationExpression() throws Exception {
     ASTNode node = findNodeIndexedIn("A(", 0, //
         "class A {}",
@@ -126,6 +122,20 @@ public class ElementLocatorTest extends ResolverTestCase {
         "}");
     Element element = ElementLocator.locate(node);
     assertInstanceOf(ConstructorElement.class, element);
+  }
+
+  public void test_libraryElement_export() throws Exception {
+    addSource("/foo.dart", "library 'foo';");
+    ASTNode id = findNodeIn("'foo.dart'", "export 'foo.dart';");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(LibraryElement.class, element);
+  }
+
+  public void test_libraryElement_import() throws Exception {
+    addSource("/foo.dart", "library 'foo';");
+    ASTNode id = findNodeIn("'foo.dart'", "import 'foo.dart';");
+    Element element = ElementLocator.locate(id);
+    assertInstanceOf(LibraryElement.class, element);
   }
 
   public void test_methodElement() throws Exception {

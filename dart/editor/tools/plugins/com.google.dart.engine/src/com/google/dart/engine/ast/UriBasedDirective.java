@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
+
 import java.util.List;
 
 /**
@@ -54,6 +56,15 @@ public abstract class UriBasedDirective extends Directive {
   public StringLiteral getUri() {
     return uri;
   }
+
+  /**
+   * Return the element associated with the URI of this directive, or {@code null} if the AST
+   * structure has not been resolved or if this URI could not be resolved. Examples of the latter
+   * case include a directive that contains an invalid URL or a URL that does not exist.
+   * 
+   * @return the element associated with this directive
+   */
+  public abstract Element getUriElement();
 
   /**
    * Set the URI referenced by this directive to the given URI.

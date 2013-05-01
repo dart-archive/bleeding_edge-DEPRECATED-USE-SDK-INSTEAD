@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -85,6 +86,11 @@ public class PartDirective extends UriBasedDirective {
    */
   public Token getSemicolon() {
     return semicolon;
+  }
+
+  @Override
+  public CompilationUnitElement getUriElement() {
+    return (CompilationUnitElement) getElement();
   }
 
   /**

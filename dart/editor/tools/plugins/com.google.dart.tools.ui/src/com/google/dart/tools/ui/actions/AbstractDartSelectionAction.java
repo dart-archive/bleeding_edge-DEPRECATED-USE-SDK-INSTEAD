@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -126,7 +127,10 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
     }
     // LibraryElement, bad selection in the most cases
     if (element instanceof LibraryElement) {
-      return false;
+      if (node != null && node.getAncestor(NamespaceDirective.class) != null) {
+      } else {
+        return false;
+      }
     }
     // CompilationUnit, bad selection in the most cases
     if (element instanceof CompilationUnitElement) {

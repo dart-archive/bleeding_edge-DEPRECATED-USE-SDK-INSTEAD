@@ -13,6 +13,9 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -82,6 +85,15 @@ public class ImportDirective extends NamespaceDirective {
    */
   public SimpleIdentifier getPrefix() {
     return prefix;
+  }
+
+  @Override
+  public LibraryElement getUriElement() {
+    Element element = getElement();
+    if (element instanceof ImportElement) {
+      return ((ImportElement) element).getImportedLibrary();
+    }
+    return null;
   }
 
   /**

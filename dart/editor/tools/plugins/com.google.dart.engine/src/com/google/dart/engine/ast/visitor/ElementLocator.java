@@ -141,13 +141,10 @@ public class ElementLocator {
 
     @Override
     public Element visitStringLiteral(StringLiteral node) {
-
       ASTNode parent = node.getParent();
-
       if (parent instanceof UriBasedDirective) {
-        return ((UriBasedDirective) parent).getElement();
+        return ((UriBasedDirective) parent).getUriElement();
       }
-
       return null;
     }
 

@@ -13,6 +13,9 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExportElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -46,6 +49,15 @@ public class ExportDirective extends NamespaceDirective {
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitExportDirective(this);
+  }
+
+  @Override
+  public LibraryElement getUriElement() {
+    Element element = getElement();
+    if (element instanceof ExportElement) {
+      return ((ExportElement) element).getExportedLibrary();
+    }
+    return null;
   }
 
   @Override

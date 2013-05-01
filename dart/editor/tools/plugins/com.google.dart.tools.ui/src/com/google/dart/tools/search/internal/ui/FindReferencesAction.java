@@ -33,7 +33,7 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
-import static com.google.dart.tools.search.internal.ui.FindDeclarationsAction.isInvocationNameOfPropertyAccessSelected;
+import static com.google.dart.tools.search.internal.ui.FindDeclarationsAction.isInvocationNameOrPropertyAccessSelected;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -47,6 +47,20 @@ import java.util.List;
  * Finds references of the selected {@link Element} in the workspace.
  */
 public class FindReferencesAction extends AbstractDartSelectionAction {
+  /**
+   * @return {@code true} if given {@link DartSelection} looks valid and we can try to open it.
+   */
+  private static boolean isValidSelection(DartSelection selection) {
+    Element element = ActionUtil.getActionElement(selection);
+    // unresolved
+    if (element == null && isInvocationNameOrPropertyAccessSelected(selection)) {
+      return true;
+    }
+    // interesting elements
+    ASTNode node = getSelectionNode(selection);
+    return isInterestingElement(node, element);
+  }
+
   public FindReferencesAction(DartEditor editor) {
     super(editor);
   }
@@ -57,8 +71,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
 
   @Override
   public void selectionChanged(DartSelection selection) {
-    Element element = ActionUtil.getActionElement(selection);
-    setEnabled(element != null || isInvocationNameOfPropertyAccessSelected(selection));
+    setEnabled(isValidSelection(selection));
   }
 
   @Override

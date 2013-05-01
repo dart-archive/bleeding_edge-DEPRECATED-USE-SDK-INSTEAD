@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -90,6 +91,9 @@ public abstract class NamespaceDirective extends UriBasedDirective {
   public Token getSemicolon() {
     return semicolon;
   }
+
+  @Override
+  public abstract LibraryElement getUriElement();
 
   /**
    * Set the token representing the 'import' or 'export' keyword to the given token.
