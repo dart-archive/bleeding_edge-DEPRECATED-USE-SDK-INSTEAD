@@ -25,7 +25,7 @@ import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
 import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.actions.OpenAsTextAction;
-import com.google.dart.tools.ui.actions.OpenExternalDartdocAction_OLD;
+import com.google.dart.tools.ui.actions.OpenExternalDartdocAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
@@ -218,7 +218,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private OpenAsTextAction openAsTextAction;
 
-  private OpenExternalDartdocAction_OLD browseDartDocAction;
+  private OpenExternalDartdocAction browseDartDocAction;
 
   @Override
   public void createPartControl(Composite parent) {
@@ -723,7 +723,13 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     pubUpdateAction = RunPubAction.createPubUpdateAction(getSite().getWorkbenchWindow());
     pubInstallAction = RunPubAction.createPubInstallAction(getSite().getWorkbenchWindow());
 
-    browseDartDocAction = new OpenExternalDartdocAction_OLD(getSite());
+    browseDartDocAction = new OpenExternalDartdocAction(getSite()) {
+      @Override
+      protected boolean isValidSelection(
+          com.google.dart.tools.ui.internal.text.editor.DartSelection selection) {
+        return true;
+      }
+    };
     treeViewer.addSelectionChangedListener(browseDartDocAction);
   }
 }
