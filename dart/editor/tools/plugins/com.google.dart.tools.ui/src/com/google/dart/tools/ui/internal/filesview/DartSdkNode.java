@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.tools.core.DartCoreDebug;
 
 /**
  * A class used to represent the Dart SDK in the Files view.
@@ -22,7 +21,7 @@ import com.google.dart.tools.core.DartCoreDebug;
 abstract class DartSdkNode implements IDartNode {
 
   public static DartSdkNode createInstance() {
-    return DartCoreDebug.ENABLE_NEW_ANALYSIS ? new NewDartSdkNode() : new OldDartSdkNode();
+    return new NewDartSdkNode();
   }
 
   public abstract DartLibraryNode[] getLibraries();

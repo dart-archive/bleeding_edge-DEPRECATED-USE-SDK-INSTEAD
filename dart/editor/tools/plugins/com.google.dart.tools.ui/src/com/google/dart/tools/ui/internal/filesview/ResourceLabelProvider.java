@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
@@ -31,8 +30,7 @@ public abstract class ResourceLabelProvider implements IStyledLabelProvider, ILa
    * Get a resource label provider instance.
    */
   public static ResourceLabelProvider createInstance() {
-    return DartCoreDebug.ENABLE_NEW_ANALYSIS ? new NewResourceLabelProvider()
-        : new OldResourceLabelProvider();
+    return new NewResourceLabelProvider();
   }
 
   @Override

@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.filesystem.EFS;
@@ -74,7 +73,7 @@ class DartLibraryNode implements IDartNode {
 
   @Override
   public String getLabel() {
-    return DartCoreDebug.ENABLE_NEW_ANALYSIS ? name : "dart:" + name;
+    return name;
   }
 
   @Override

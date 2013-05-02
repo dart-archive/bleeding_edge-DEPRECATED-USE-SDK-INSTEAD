@@ -14,12 +14,7 @@
 
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.element.Element;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartDocumentable;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.utilities.dartdoc.DartDocUtilities;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
@@ -98,35 +93,31 @@ public class DartTextHover extends DefaultTextHover {
       }
     }
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+    Element element = NewSelectionConverter.getElementAtOffset(editor, region.getOffset());
 
-      Element element = NewSelectionConverter.getElementAtOffset(editor, region.getOffset());
+    if (element != null) {
 
-      if (element != null) {
+      String textSummary = DartDocUtilities.getTextSummaryAsHtml(element);
 
-        String textSummary = DartDocUtilities.getTextSummaryAsHtml(element);
+      if (textSummary != null) {
 
-        if (textSummary != null) {
+        StringBuffer docs = new StringBuffer();
+        docs.append("<b>" + textSummary + "</b>");
 
-          StringBuffer docs = new StringBuffer();
-          docs.append("<b>" + textSummary + "</b>");
+        String dartdoc = DartDocUtilities.getDartDocAsHtml(element);
 
-          String dartdoc = DartDocUtilities.getDartDocAsHtml(element);
-
-          if (dartdoc != null) {
-            docs.append("<br><br>");
-            docs.append(dartdoc);
-          }
-
-          return docs.toString().trim();
+        if (dartdoc != null) {
+          docs.append("<br><br>");
+          docs.append(dartdoc);
         }
 
+        return docs.toString().trim();
       }
 
-      return null;
     }
 
-    return legacyGetHoverInfo(region);
+    return null;
+
   }
 
   @Override
@@ -138,41 +129,6 @@ public class DartTextHover extends DefaultTextHover {
     str = str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 
     return str;
-  }
-
-  private String legacyGetHoverInfo(IRegion region) {
-    DartUnit unit = editor.getAST();
-
-    if (unit == null) {
-      return null;
-    }
-
-    try {
-      DartDocumentable documentable = DartDocUtilities.getDartDocumentable(
-          (CompilationUnit) editor.getInputDartElement(),
-          unit,
-          region.getOffset(),
-          region.getOffset() + region.getLength());
-
-      if (documentable != null) {
-        StringBuffer docs = new StringBuffer();
-
-        docs.append("<b>" + DartDocUtilities.getTextSummaryAsHtml(documentable) + "</b>");
-
-        String dartdoc = DartDocUtilities.getDartDocAsHtml(documentable);
-
-        if (dartdoc != null) {
-          docs.append("<br><br>");
-          docs.append(dartdoc);
-        }
-
-        return docs.toString().trim();
-      } else {
-        return null;
-      }
-    } catch (DartModelException e) {
-      return null;
-    }
   }
 
 }

@@ -13,31 +13,23 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.actions.OpenAction;
-import com.google.dart.tools.ui.actions.OpenAction_OLD;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.AbstractHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
@@ -72,10 +64,6 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
       return null;
     }
 
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return legacyInternalDetectHyperlinks(editor, region, canShowMultipleHyperlinks, openAction);
-    }
-
     com.google.dart.engine.ast.CompilationUnit cu = editor.getInputUnit();
 
     int offset = region.getOffset();
@@ -97,59 +85,4 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
 
   }
 
-  // To be removed when the analysis engine is live
-  private IHyperlink[] legacyInternalDetectHyperlinks(ITextEditor textEditor, IRegion region,
-      boolean canShowMultipleHyperlinks, IAction openAction) {
-    int offset = region.getOffset();
-
-    CompilationUnit input = (CompilationUnit) EditorUtility.getEditorInputDartElement(
-        textEditor,
-        false);
-    if (input == null) {
-      return null;
-    }
-    //
-    // Search the AST for the word region to determine if it is a candidate for a link.
-    //
-    DartEditor dartEditor = (DartEditor) textEditor;
-    DartUnit ast = dartEditor.getAST();
-    if (ast != null) {
-      final DartElementLocator locator = new DartElementLocator(input, offset, offset); //start, end);
-      DartElement foundElement = locator.searchWithin(ast);
-      if (foundElement != null) {
-
-        // don't link to non-existent resources (dartbug.com/2308)
-        if (foundElement instanceof CompilationUnit) {
-          IResource resource = foundElement.getResource();
-          if ((resource == null || !resource.exists()) && !foundElement.isInSdk()) {
-            return null;
-          }
-        }
-
-        IRegion wordRegion = locator.getWordRegion();
-        final IRegion candidateRegion = locator.getCandidateRegion();
-        if (candidateRegion != null && wordRegion != null) {
-          return new IHyperlink[] {new DartElementHyperlink(
-              foundElement,
-              wordRegion,
-              new OpenAction_OLD(dartEditor) {
-                @Override
-                protected void selectInEditor(IEditorPart part, DartElement element) {
-                  EditorUtility.revealInEditor(
-                      part,
-                      candidateRegion.getOffset(),
-                      candidateRegion.getLength());
-                }
-              })};
-        }
-        if (wordRegion != null) {
-          return new IHyperlink[] {new DartElementHyperlink(
-              foundElement,
-              wordRegion,
-              (OpenAction_OLD) openAction)};
-        }
-      }
-    }
-    return null;
-  }
 }
