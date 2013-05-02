@@ -2491,14 +2491,34 @@ public class Parser {
     TypeName type = null;
     if (matches(Keyword.FINAL) || matches(Keyword.CONST)) {
       keyword = getAndAdvance();
-      if (matchesIdentifier(peek()) || matches(peek(), TokenType.LT)
-          || matches(peek(), Keyword.THIS)) {
+      //
+      // We are assuming that the current token is an identifier and looking to see whether we have
+      // one of the following patterns:
+      //   final ^ type variable
+      //   final ^ type<...> variable
+      //   final ^ prefix.type variable
+      //   final ^ prefix.type<...> variable
+      //   final ^ type this.field
+      //
+      if (matchesIdentifier(peek())
+          || matches(peek(), TokenType.LT)
+          || matches(peek(), Keyword.THIS)
+          || (matches(peek(), TokenType.PERIOD) && matchesIdentifier(peek(2)) && (matchesIdentifier(peek(3))
+              || matches(peek(3), TokenType.LT) || matches(peek(3), Keyword.THIS)))) {
         type = parseTypeName();
       }
     } else if (matches(Keyword.VAR)) {
       keyword = getAndAdvance();
     } else {
-      // We are assuming that the current token is an identifier.
+      //
+      // We are assuming that the current token is an identifier and looking to see whether we have
+      // one of the following patterns:
+      //   ^ type variable
+      //   ^ type<...> variable
+      //   ^ prefix.type variable
+      //   ^ prefix.type<...> variable
+      //   ^ type this.field
+      //
       if (matchesIdentifier(peek())
           || matches(peek(), TokenType.LT)
           || matches(peek(), Keyword.THIS)

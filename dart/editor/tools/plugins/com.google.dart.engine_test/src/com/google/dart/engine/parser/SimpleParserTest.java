@@ -2161,6 +2161,18 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(result.getType());
   }
 
+  public void test_parseFinalConstVarOrType_final_prefixedType() throws Exception {
+    FinalConstVarOrType result = parse(
+        "parseFinalConstVarOrType",
+        new Object[] {false},
+        "final p.A a");
+    Token keyword = result.getKeyword();
+    assertNotNull(keyword);
+    assertEquals(TokenType.KEYWORD, keyword.getType());
+    assertEquals(Keyword.FINAL, ((KeywordToken) keyword).getKeyword());
+    assertNotNull(result.getType());
+  }
+
   public void test_parseFinalConstVarOrType_final_type() throws Exception {
     FinalConstVarOrType result = parse(
         "parseFinalConstVarOrType",
