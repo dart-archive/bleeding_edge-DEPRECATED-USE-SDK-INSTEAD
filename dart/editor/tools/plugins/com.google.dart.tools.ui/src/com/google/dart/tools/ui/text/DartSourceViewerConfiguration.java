@@ -44,7 +44,6 @@ import com.google.dart.tools.ui.internal.text.functions.DartCompositeReconciling
 import com.google.dart.tools.ui.internal.text.functions.DartElementProvider;
 import com.google.dart.tools.ui.internal.text.functions.DartMultilineStringScanner;
 import com.google.dart.tools.ui.internal.text.functions.DartOutlineInformationControl;
-import com.google.dart.tools.ui.internal.text.functions.DartOutlineInformationControl_OLD;
 import com.google.dart.tools.ui.internal.text.functions.DartPresentationReconciler;
 import com.google.dart.tools.ui.internal.text.functions.DartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.HTMLAnnotationHover;
@@ -885,12 +884,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
       @Override
       public IInformationControl createInformationControl(Shell parent) {
         int shellStyle = SWT.RESIZE;
-        int treeStyle = SWT.V_SCROLL | SWT.H_SCROLL;
-        if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-          return new DartOutlineInformationControl(parent, shellStyle, fTextEditor);
-        } else {
-          return new DartOutlineInformationControl_OLD(parent, shellStyle, treeStyle, commandId);
-        }
+        return new DartOutlineInformationControl(parent, shellStyle, fTextEditor);
       }
     };
   }

@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.internal;
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.NewDartElementLabels;
-import com.google.dart.tools.ui.NewStandardDartElementContentProvider;
+import com.google.dart.tools.ui.StandardDartElementContentProvider;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.internal.viewsupport.NewDartElementImageProvider;
 
@@ -29,11 +29,11 @@ import org.eclipse.ui.model.IWorkbenchAdapter;
 public class NewDartWorkbenchAdapter implements IWorkbenchAdapter {
 
   private final NewDartElementImageProvider imageProvider;
-  private final NewStandardDartElementContentProvider contentProvider;
+  private final StandardDartElementContentProvider contentProvider;
 
   public NewDartWorkbenchAdapter() {
     imageProvider = new NewDartElementImageProvider();
-    contentProvider = new NewStandardDartElementContentProvider(true);
+    contentProvider = new StandardDartElementContentProvider(true);
   }
 
   @Override

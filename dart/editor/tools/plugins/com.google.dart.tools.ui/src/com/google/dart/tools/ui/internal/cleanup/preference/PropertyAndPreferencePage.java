@@ -76,11 +76,6 @@ public abstract class PropertyAndPreferencePage extends PreferencePage implement
     fData = null;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.jface.preference.PreferencePage#applyData(java.lang.Object)
-   */
   @SuppressWarnings("unchecked")
   @Override
   public void applyData(Object data) {
@@ -95,38 +90,20 @@ public abstract class PropertyAndPreferencePage extends PreferencePage implement
     }
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.IWorkbenchPropertyPage#getElement()
-   */
   @Override
   public IAdaptable getElement() {
     return fProject;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)
-   */
   @Override
   public void init(IWorkbench workbench) {
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.IWorkbenchPropertyPage#setElement(org.eclipse.core.runtime.IAdaptable)
-   */
   @Override
   public void setElement(IAdaptable element) {
     fProject = (IProject) element.getAdapter(IResource.class);
   }
 
-  /*
-   * @see org.eclipse.jface.preference.IPreferencePage#createContents(Composite)
-   */
   @Override
   protected Control createContents(Composite parent) {
     Composite composite = new Composite(parent, SWT.NONE);

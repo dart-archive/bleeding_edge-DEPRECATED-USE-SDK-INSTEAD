@@ -31,7 +31,6 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.ParentElement;
 import com.google.dart.tools.ui.ImportedDartLibrary;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
-import com.google.dart.tools.ui.OldStandardDartElementContentProvider;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;

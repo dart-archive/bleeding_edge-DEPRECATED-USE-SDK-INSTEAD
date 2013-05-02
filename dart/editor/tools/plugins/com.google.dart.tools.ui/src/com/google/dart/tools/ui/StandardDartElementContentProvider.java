@@ -51,7 +51,7 @@ import java.util.Collections;
  * </pre>
  * </p>
  */
-public class NewStandardDartElementContentProvider implements ITreeContentProvider,
+public class StandardDartElementContentProvider implements ITreeContentProvider,
     IWorkingCopyProvider {
 
   protected static final Object[] NO_CHILDREN = new Object[0];
@@ -60,11 +60,19 @@ public class NewStandardDartElementContentProvider implements ITreeContentProvid
   private final boolean provideMembers;
 
   /**
+   * Creates a new content provider. The content provider does not provide members of compilation
+   * units or class files.
+   */
+  public StandardDartElementContentProvider() {
+    this(true);
+  }
+
+  /**
    * Creates a new <code>NewStandardDartElementContentProvider</code>.
    * 
    * @param provideMembers if <code>true</code>, members below compilation units are provided
    */
-  public NewStandardDartElementContentProvider(boolean provideMembers) {
+  public StandardDartElementContentProvider(boolean provideMembers) {
     this.provideMembers = provideMembers;
   }
 

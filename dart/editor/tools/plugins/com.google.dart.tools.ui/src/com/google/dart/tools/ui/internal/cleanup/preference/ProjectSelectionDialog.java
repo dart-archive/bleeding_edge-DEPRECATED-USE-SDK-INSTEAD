@@ -19,7 +19,7 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartElementComparator;
 import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.OldStandardDartElementContentProvider;
+import com.google.dart.tools.ui.StandardDartElementContentProvider;
 import com.google.dart.tools.ui.internal.dialogs.StatusInfo;
 import com.google.dart.tools.ui.internal.preferences.PreferencesMessages;
 
@@ -117,7 +117,7 @@ public class ProjectSelectionDialog extends SelectionStatusDialog {
     fTableViewer.getTable().setLayoutData(data);
 
     fTableViewer.setLabelProvider(new DartElementLabelProvider());
-    fTableViewer.setContentProvider(new OldStandardDartElementContentProvider());
+    fTableViewer.setContentProvider(new StandardDartElementContentProvider());
     fTableViewer.setComparator(new DartElementComparator());
     fTableViewer.getControl().setFont(font);
 
