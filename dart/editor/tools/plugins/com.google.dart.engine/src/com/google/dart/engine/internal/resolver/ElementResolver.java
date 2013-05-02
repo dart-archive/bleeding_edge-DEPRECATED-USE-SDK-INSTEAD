@@ -1516,7 +1516,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    */
   private void reportGetterOrSetterNotFound(PrefixedIdentifier node, SimpleIdentifier identifier,
       String typeName) {
-    Type targetType = getType(node);
+    // This method is only invoked when the prefixed identifier is effectively a property access.
+    Type targetType = getType(node.getPrefix());
     if (targetType != null && doesClassDeclareNoSuchMethod(targetType.getElement())) {
       return;
     }

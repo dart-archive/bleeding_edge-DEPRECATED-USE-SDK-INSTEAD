@@ -685,7 +685,22 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  noSuchMethod(invocation) {}",
         "}",
         "f() {",
-        "  var v = (new A()).g;",
+        "  (new A()).g;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+  }
+
+  public void test_undefinedMethod_noSuchMethod_getter2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  noSuchMethod(invocation) {}",
+        "}",
+        "class B {",
+        "  A a = new A();",
+        "  m() {",
+        "    a.g;",
+        "  }",
         "}"));
     resolve(source);
     assertNoErrors();
