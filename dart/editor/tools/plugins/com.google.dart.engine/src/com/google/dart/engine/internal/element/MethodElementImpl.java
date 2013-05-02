@@ -66,13 +66,24 @@ public class MethodElementImpl extends ExecutableElementImpl implements MethodEl
   }
 
   @Override
+  public String getName() {
+    String name = super.getName();
+    if (isOperator() && name.equals("-")) {
+      if (getParameters().length == 0) {
+        return "unary-";
+      }
+    }
+    return super.getName();
+  }
+
+  @Override
   public boolean isAbstract() {
     return hasModifier(Modifier.ABSTRACT);
   }
 
   @Override
   public boolean isOperator() {
-    String name = getName();
+    String name = getDisplayName();
     if (name.isEmpty()) {
       return false;
     }
