@@ -300,6 +300,21 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   @Override
+  public ResourceMap getResourceMap(AnalysisContext context) {
+    synchronized (pubFolders) {
+      for (PubFolder pubFolder : getPubFolders()) {
+        if (pubFolder.getContext() == context) {
+          return pubFolder;
+        }
+      }
+    }
+    if (defaultContext == context) {
+      return defaultResourceMap;
+    }
+    return null;
+  }
+
+  @Override
   public ResourceMap getResourceMap(IResource resource) {
     synchronized (pubFolders) {
       PubFolder pubFolder = getPubFolder(resource);

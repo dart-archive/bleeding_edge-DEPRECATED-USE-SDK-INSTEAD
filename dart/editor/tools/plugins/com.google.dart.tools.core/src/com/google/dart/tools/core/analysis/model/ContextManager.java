@@ -94,6 +94,15 @@ public interface ContextManager {
 
   /**
    * Answer the bi-directional map for translating between sources and resources for the specified
+   * analysis context.
+   * 
+   * @param context the analysis context (not {@code null})
+   * @return the resource map (not {@code null})
+   */
+  ResourceMap getResourceMap(AnalysisContext context);
+
+  /**
+   * Answer the bi-directional map for translating between sources and resources for the specified
    * resource.
    * 
    * @param resource the resource (not {@code null})

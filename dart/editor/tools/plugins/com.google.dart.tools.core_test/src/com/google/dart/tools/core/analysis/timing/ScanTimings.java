@@ -237,6 +237,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public ResourceMap getResourceMap(AnalysisContext context) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public ResourceMap getResourceMap(IResource resource) {
       throw new UnsupportedOperationException();
     }

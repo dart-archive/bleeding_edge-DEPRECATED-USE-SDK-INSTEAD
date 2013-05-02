@@ -24,6 +24,7 @@ import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -611,7 +612,8 @@ public abstract class SearchMatchPage extends SearchPage {
     // add marker if leaf
     if (!item.sourceRanges.isEmpty()) {
       Source source = item.element.getSource();
-      IResource resource = DartCore.getProjectManager().getResource(source);
+      ResourceMap resourceMap = DartCore.getProjectManager().getResourceMap(context);
+      IResource resource = resourceMap.getResource(source);
       if (resource != null && resource.exists()) {
         markerResources.add(resource);
         try {

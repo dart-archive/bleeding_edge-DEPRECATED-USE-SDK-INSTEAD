@@ -227,6 +227,17 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
+  public ResourceMap getResourceMap(AnalysisContext context) {
+    for (Project project : getProjects()) {
+      ResourceMap map = project.getResourceMap(context);
+      if (map != null) {
+        return map;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public ResourceMap getResourceMap(IResource resource) {
     return getProject(resource.getProject()).getResourceMap(resource);
   }

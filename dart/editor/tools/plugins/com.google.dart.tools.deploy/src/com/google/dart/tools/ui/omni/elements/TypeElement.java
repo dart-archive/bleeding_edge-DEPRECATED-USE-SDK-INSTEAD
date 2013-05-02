@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.omni.elements;
 
 import com.google.dart.compiler.resolver.ClassAliasElement;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -23,17 +24,14 @@ import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorReference;
-import org.eclipse.ui.IWorkbenchPage;
 
 /**
  * {@link OmniElement} for types.
@@ -82,46 +80,105 @@ public class TypeElement extends OmniElement {
   protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
     instrumentation.data("TypeElement.searchResultSelected", element.getDisplayName());
     try {
-      IFile contextFile = getContextFile();
-      DartUI.openInEditor(contextFile, element, true);
+      // prepare resource to open
+      IFile elementFile = getElementFile();
+      if (elementFile == null) {
+        return;
+      }
+      // open editor
+      IEditorPart editor = EditorUtility.openInEditor(elementFile, true);
+      if (editor == null) {
+        return;
+      }
+      // reveal element
+      EditorUtility.revealInEditor(editor, element);
     } catch (Throwable e) {
       DartToolsPlugin.log(e);
     }
   }
 
-  private IFile getContextFile() {
-    Source source = element.getSource();
-    IWorkbenchPage page = DartToolsPlugin.getActivePage();
-    if (page != null) {
-      // try active editor
-      {
-        IEditorPart editor = page.getActiveEditor();
-        IFile contextFile = getContextFile(source, editor);
-        if (contextFile != null) {
-          return contextFile;
-        }
-      }
-      // try open editors
-      for (IEditorReference editorReference : page.getEditorReferences()) {
-        IEditorPart editor = editorReference.getEditor(false);
-        IFile contextFile = getContextFile(source, editor);
-        if (contextFile != null) {
-          return contextFile;
-        }
-      }
-    }
-    // not found
-    return null;
+  /**
+   * @return the {@link IFile} with {@link #element} to open, may be {@code null}.
+   */
+  private IFile getElementFile() {
+    AnalysisContext elementContext = element.getContext();
+    Source elementSource = element.getSource();
+    ResourceMap map = DartCore.getProjectManager().getResourceMap(elementContext);
+    return map.getResource(elementSource);
   }
 
-  private IFile getContextFile(Source source, IEditorPart editor) {
-    if (editor instanceof DartEditor) {
-      IFile contextFile = ((DartEditor) editor).getInputResourceFile();
-      ResourceMap resourceMap = DartCore.getProjectManager().getResourceMap(contextFile);
-      if (resourceMap.getResource(source) != null) {
-        return contextFile;
-      }
-    }
-    return null;
-  }
+  // TODO(scheglov) remove this
+//  private IFile getContextFile(Source source, IEditorPart editor) {
+//    if (editor instanceof DartEditor) {
+//      IFile contextFile = ((DartEditor) editor).getInputResourceFile();
+//      ResourceMap resourceMap = DartCore.getProjectManager().getResourceMap(contextFile);
+//      if (resourceMap.getResource(source) != null) {
+//        return contextFile;
+//      }
+//    }
+//    return null;
+//  }
+//
+//  private IResource getContextResource() {
+//    Source source = element.getSource();
+//    IWorkbenchPage page = DartToolsPlugin.getActivePage();
+//    if (page != null) {
+//      // try active editor
+//      {
+//        IEditorPart editor = page.getActiveEditor();
+//        IFile contextFile = getContextFile(source, editor);
+//        if (contextFile != null) {
+//          return contextFile;
+//        }
+//      }
+//      // try open editors
+//      for (IEditorReference editorReference : page.getEditorReferences()) {
+//        IEditorPart editor = editorReference.getEditor(false);
+//        IFile contextFile = getContextFile(source, editor);
+//        if (contextFile != null) {
+//          return contextFile;
+//        }
+//      }
+//      // try Files view selection
+//      {
+//        IResource selection = getFilesViewSelection();
+//        if (selection != null) {
+//          return selection;
+//        }
+//      }
+//    }
+//    // not found
+//    return null;
+//  }
+//
+//  private IResource getFilesViewSelection() {
+//    // prepare IWorkbenchPage
+//    IWorkbenchPage activePage = DartToolsPlugin.getActivePage();
+//    if (activePage == null) {
+//      return null;
+//    }
+//    // prepare Files view
+//    IViewPart filesView = activePage.findView(FilesView.VIEW_ID);
+//    if (filesView == null) {
+//      return null;
+//    }
+//    // prepare ISelectionProvider
+//    ISelectionProvider selectionProvider = filesView.getViewSite().getSelectionProvider();
+//    if (selectionProvider == null) {
+//      return null;
+//    }
+//    // prepare selection
+//    ISelection selection = selectionProvider.getSelection();
+//    if (!(selection instanceof IStructuredSelection)) {
+//      return null;
+//    }
+//    IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+//    // IResource should be selected
+//    Object selectedFileObject = structuredSelection.getFirstElement();
+//    if (selectedFileObject instanceof IResource) {
+//      return (IResource) selectedFileObject;
+//    }
+//    // wrong selection
+//    return null;
+//  }
 }

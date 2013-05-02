@@ -32,6 +32,7 @@ import com.google.dart.tools.ui.text.IColorManager;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
@@ -737,11 +738,11 @@ public final class DartUI {
   /**
    * Opens an editor with {@link Element} in context of the given {@link IFile}.
    * 
-   * @param context the {@link IFile} to open {@link Element} in, may be {@code null}.
+   * @param context the {@link IResource} to open {@link Element} in, may be {@code null}.
    * @param element the {@link Element} to open in reveal.
    * @return the opened editor or {@code null} if by some reason editor was not opened.
    */
-  public static IEditorPart openInEditor(IFile context, Element element, boolean activate)
+  public static IEditorPart openInEditor(IResource context, Element element, boolean activate)
       throws PartInitException, DartModelException {
     if (element == null) {
       return null;
