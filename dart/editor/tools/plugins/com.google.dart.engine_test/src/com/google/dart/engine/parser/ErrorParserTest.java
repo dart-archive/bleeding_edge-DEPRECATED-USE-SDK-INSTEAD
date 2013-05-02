@@ -43,7 +43,7 @@ public class ErrorParserTest extends ParserTestCase {
   public void fail_illegalAssignmentToNonAssignable_superAssigned() throws Exception {
     // TODO(brianwilkerson) When this test starts to pass, remove the test
     // test_illegalAssignmentToNonAssignable_superAssigned.
-    parse("parseExpression", "super = x;", ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
+    parseExpression("super = x;", ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
   }
 
   public void fail_invalidCommentReference__new_nonIdentifier() throws Exception {
@@ -103,13 +103,13 @@ public class ErrorParserTest extends ParserTestCase {
   public void fail_missingFunctionParameters_local_nonVoid_block() throws Exception {
     // The parser does not recognize this as a function declaration, so it tries to parse it as an
     // expression statement. It isn't clear what the best error message is in this case.
-    parse("parseStatement", "int f { return x;}", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
+    parseStatement("int f { return x;}", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
   }
 
   public void fail_missingFunctionParameters_local_nonVoid_expression() throws Exception {
     // The parser does not recognize this as a function declaration, so it tries to parse it as an
     // expression statement. It isn't clear what the best error message is in this case.
-    parse("parseStatement", "int f => x;", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
+    parseStatement("int f => x;", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
   }
 
   public void fail_namedFunctionExpression() throws Exception {
@@ -122,19 +122,19 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void fail_unexpectedToken_invalidPostfixExpression() throws Exception {
     // Note: this might not be the right error to produce, but some error should be produced
-    parse("parseExpression", "f()++", ParserErrorCode.UNEXPECTED_TOKEN);
+    parseExpression("f()++", ParserErrorCode.UNEXPECTED_TOKEN);
   }
 
   public void fail_voidVariable_initializer() throws Exception {
     // The parser parses this as a function declaration statement because that is the only thing
     // that validly starts with 'void'. That causes a different error message to be produced.
-    parse("parseStatement", "void x = 0;", ParserErrorCode.VOID_VARIABLE);
+    parseStatement("void x = 0;", ParserErrorCode.VOID_VARIABLE);
   }
 
   public void fail_voidVariable_noInitializer() throws Exception {
     // The parser parses this as a function declaration statement because that is the only thing
     // that validly starts with 'void'. That causes a different error message to be produced.
-    parse("parseStatement", "void x;", ParserErrorCode.VOID_VARIABLE);
+    parseStatement("void x;", ParserErrorCode.VOID_VARIABLE);
   }
 
   public void test_abstractClassMember_constructor() throws Exception {
@@ -178,26 +178,23 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_abstractTopLevelFunction_function() throws Exception {
-    parse("parseCompilationUnit", "abstract f(v) {}", ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION);
+    parseCompilationUnit("abstract f(v) {}", ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION);
   }
 
   public void test_abstractTopLevelFunction_getter() throws Exception {
-    parse("parseCompilationUnit", "abstract get m {}", ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION);
+    parseCompilationUnit("abstract get m {}", ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION);
   }
 
   public void test_abstractTopLevelFunction_setter() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "abstract set m(v) {}",
-        ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION);
+    parseCompilationUnit("abstract set m(v) {}", ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION);
   }
 
   public void test_abstractTopLevelVariable() throws Exception {
-    parse("parseCompilationUnit", "abstract C f;", ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE);
+    parseCompilationUnit("abstract C f;", ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE);
   }
 
   public void test_abstractTypeDef() throws Exception {
-    parse("parseCompilationUnit", "abstract typedef F();", ParserErrorCode.ABSTRACT_TYPEDEF);
+    parseCompilationUnit("abstract typedef F();", ParserErrorCode.ABSTRACT_TYPEDEF);
   }
 
   public void test_breakOutsideOfLoop_breakInDoStatement() throws Exception {
@@ -221,11 +218,11 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_breakOutsideOfLoop_functionExpression_inALoop() throws Exception {
-    parse("parseStatement", "for(; x;) {() {break;};}", ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
+    parseStatement("for(; x;) {() {break;};}", ParserErrorCode.BREAK_OUTSIDE_OF_LOOP);
   }
 
   public void test_breakOutsideOfLoop_functionExpression_withALoop() throws Exception {
-    parse("parseStatement", "() {for (; x;) {break;}};");
+    parseStatement("() {for (; x;) {break;}};");
   }
 
   public void test_constAndFinal() throws Exception {
@@ -241,7 +238,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_constClass() throws Exception {
-    parse("parseCompilationUnit", "const class C {}", ParserErrorCode.CONST_CLASS);
+    parseCompilationUnit("const class C {}", ParserErrorCode.CONST_CLASS);
   }
 
   public void test_constMethod() throws Exception {
@@ -249,7 +246,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_constTypedef() throws Exception {
-    parse("parseCompilationUnit", "const typedef F();", ParserErrorCode.CONST_TYPEDEF);
+    parseCompilationUnit("const typedef F();", ParserErrorCode.CONST_TYPEDEF);
   }
 
   public void test_continueOutsideOfLoop_continueInDoStatement() throws Exception {
@@ -273,11 +270,11 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_continueOutsideOfLoop_functionExpression_inALoop() throws Exception {
-    parse("parseStatement", "for(; x;) {() {continue;};}", ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);
+    parseStatement("for(; x;) {() {continue;};}", ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP);
   }
 
   public void test_continueOutsideOfLoop_functionExpression_withALoop() throws Exception {
-    parse("parseStatement", "() {for (; x;) {continue;}};");
+    parseStatement("() {for (; x;) {continue;}};");
   }
 
   public void test_continueWithoutLabelInCase_error() throws Exception {
@@ -296,16 +293,14 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_directiveAfterDeclaration_classBeforeDirective() throws Exception {
-    CompilationUnit unit = parse(
-        "parseCompilationUnit",
+    CompilationUnit unit = parseCompilationUnit(
         "class Foo{} library l;",
         ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
     assertNotNull(unit);
   }
 
   public void test_directiveAfterDeclaration_classBetweenDirectives() throws Exception {
-    CompilationUnit unit = parse(
-        "parseCompilationUnit",
+    CompilationUnit unit = parseCompilationUnit(
         "library l;\nclass Foo{}\npart 'a.dart';",
         ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
     assertNotNull(unit);
@@ -423,16 +418,19 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_expectedToken_semicolonMissingAfterExpression() throws Exception {
-    parse("parseStatement", "x", ParserErrorCode.EXPECTED_TOKEN);
+    parseStatement("x", ParserErrorCode.EXPECTED_TOKEN);
   }
 
   public void test_expectedToken_whileMissingInDoStatement() throws Exception {
-    parse("parseStatement", "do {} (x);", ParserErrorCode.EXPECTED_TOKEN);
+    parseStatement("do {} (x);", ParserErrorCode.EXPECTED_TOKEN);
+  }
+
+  public void test_expectedTypeName_is() throws Exception {
+    parseExpression("x is", ParserErrorCode.EXPECTED_TYPE_NAME);
   }
 
   public void test_exportDirectiveAfterPartDirective() throws Exception {
-    parse(
-        "parseCompilationUnit",
+    parseCompilationUnit(
         "part 'a.dart'; export 'b.dart';",
         ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
   }
@@ -462,7 +460,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_externalClass() throws Exception {
-    parse("parseCompilationUnit", "external class C {}", ParserErrorCode.EXTERNAL_CLASS);
+    parseCompilationUnit("external class C {}", ParserErrorCode.EXTERNAL_CLASS);
   }
 
   public void test_externalConstructorWithBody_factory() throws Exception {
@@ -546,21 +544,15 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_externalTypedef() throws Exception {
-    parse("parseCompilationUnit", "external typedef F();", ParserErrorCode.EXTERNAL_TYPEDEF);
+    parseCompilationUnit("external typedef F();", ParserErrorCode.EXTERNAL_TYPEDEF);
   }
 
   public void test_factoryTopLevelDeclaration_class() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "factory class C {}",
-        ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION);
+    parseCompilationUnit("factory class C {}", ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION);
   }
 
   public void test_factoryTopLevelDeclaration_typedef() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "factory typedef F();",
-        ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION);
+    parseCompilationUnit("factory typedef F();", ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION);
   }
 
   public void test_fieldInitializerOutsideConstructor() throws Exception {
@@ -576,7 +568,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_finalClass() throws Exception {
-    parse("parseCompilationUnit", "final class C {}", ParserErrorCode.FINAL_CLASS);
+    parseCompilationUnit("final class C {}", ParserErrorCode.FINAL_CLASS);
   }
 
   public void test_finalConstructor() throws Exception {
@@ -588,7 +580,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_finalTypedef() throws Exception {
-    parse("parseCompilationUnit", "final typedef F();", ParserErrorCode.FINAL_TYPEDEF);
+    parseCompilationUnit("final typedef F();", ParserErrorCode.FINAL_TYPEDEF);
   }
 
   public void test_getterWithParameters() throws Exception {
@@ -603,30 +595,26 @@ public class ErrorParserTest extends ParserTestCase {
     // TODO(brianwilkerson) When the test fail_illegalAssignmentToNonAssignable_superAssigned starts
     // to pass, remove this test (there should only be one error generated, but we're keeping this
     // test until that time so that we can catch other forms of regressions).
-    parse(
-        "parseExpression",
+    parseExpression(
         "super = x;",
         ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
         ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
   }
 
   public void test_implementsBeforeExtends() throws Exception {
-    parse(
-        "parseCompilationUnit",
+    parseCompilationUnit(
         "class A implements B extends C {}",
         ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS);
   }
 
   public void test_implementsBeforeWith() throws Exception {
-    parse(
-        "parseCompilationUnit",
+    parseCompilationUnit(
         "class A extends B implements C with D {}",
         ParserErrorCode.IMPLEMENTS_BEFORE_WITH);
   }
 
   public void test_importDirectiveAfterPartDirective() throws Exception {
-    parse(
-        "parseCompilationUnit",
+    parseCompilationUnit(
         "part 'a.dart'; import 'b.dart';",
         ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
   }
@@ -691,30 +679,26 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_libraryDirectiveNotFirst() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "import 'x.dart'; library l;",
-        ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
+    parseCompilationUnit("import 'x.dart'; library l;", ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
   }
 
   public void test_libraryDirectiveNotFirst_afterPart() throws Exception {
-    CompilationUnit unit = parse(
-        "parseCompilationUnit",
+    CompilationUnit unit = parseCompilationUnit(
         "part 'a.dart';\nlibrary l;",
         ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
     assertNotNull(unit);
   }
 
   public void test_missingAssignableSelector_identifiersAssigned() throws Exception {
-    parse("parseExpression", "x.y = y;");
+    parseExpression("x.y = y;");
   }
 
   public void test_missingAssignableSelector_primarySelectorPostfix() throws Exception {
-    parse("parseExpression", "x(y)(z)++", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
+    parseExpression("x(y)(z)++", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
   }
 
   public void test_missingAssignableSelector_selector() throws Exception {
-    parse("parseExpression", "x(y)(z).a++");
+    parseExpression("x(y)(z).a++");
   }
 
   public void test_missingAssignableSelector_superPrimaryExpression() throws Exception {
@@ -726,7 +710,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_missingAssignableSelector_superPropertyAccessAssigned() throws Exception {
-    parse("parseExpression", "super.x = x;");
+    parseExpression("super.x = x;");
   }
 
   public void test_missingCatchOrFinally() throws Exception {
@@ -738,7 +722,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_missingClassBody() throws Exception {
-    parse("parseCompilationUnit", "class A class B {}", ParserErrorCode.MISSING_CLASS_BODY);
+    parseCompilationUnit("class A class B {}", ParserErrorCode.MISSING_CLASS_BODY);
   }
 
   public void test_missingConstFinalVarOrType() throws Exception {
@@ -766,30 +750,27 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_missingFunctionParameters_local_void_block() throws Exception {
-    parse("parseStatement", "void f { return x;}", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
+    parseStatement("void f { return x;}", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
   }
 
   public void test_missingFunctionParameters_local_void_expression() throws Exception {
-    parse("parseStatement", "void f => x;", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
+    parseStatement("void f => x;", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
   }
 
   public void test_missingFunctionParameters_topLevel_nonVoid_block() throws Exception {
-    parse("parseCompilationUnit", "int f { return x;}", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
+    parseCompilationUnit("int f { return x;}", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
   }
 
   public void test_missingFunctionParameters_topLevel_nonVoid_expression() throws Exception {
-    parse("parseCompilationUnit", "int f => x;", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
+    parseCompilationUnit("int f => x;", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
   }
 
   public void test_missingFunctionParameters_topLevel_void_block() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "void f { return x;}",
-        ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
+    parseCompilationUnit("void f { return x;}", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
   }
 
   public void test_missingFunctionParameters_topLevel_void_expression() throws Exception {
-    parse("parseCompilationUnit", "void f => x;", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
+    parseCompilationUnit("void f => x;", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
   }
 
   public void test_missingIdentifier_functionDeclaration_returnTypeWithoutName() throws Exception {
@@ -813,16 +794,14 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_missingNameInLibraryDirective() throws Exception {
-    CompilationUnit unit = parse(
-        "parseCompilationUnit",
+    CompilationUnit unit = parseCompilationUnit(
         "library;",
         ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE);
     assertNotNull(unit);
   }
 
   public void test_missingNameInPartOfDirective() throws Exception {
-    CompilationUnit unit = parse(
-        "parseCompilationUnit",
+    CompilationUnit unit = parseCompilationUnit(
         "part of;",
         ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE);
     assertNotNull(unit);
@@ -843,15 +822,15 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_missingTypedefParameters_nonVoid() throws Exception {
-    parse("parseCompilationUnit", "typedef int F;", ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
+    parseCompilationUnit("typedef int F;", ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
   }
 
   public void test_missingTypedefParameters_typeParameters() throws Exception {
-    parse("parseCompilationUnit", "typedef F<E>;", ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
+    parseCompilationUnit("typedef F<E>;", ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
   }
 
   public void test_missingTypedefParameters_void() throws Exception {
-    parse("parseCompilationUnit", "typedef void F;", ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
+    parseCompilationUnit("typedef void F;", ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
   }
 
   public void test_missingVariableInForEach() throws Exception {
@@ -870,10 +849,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_multipleLibraryDirectives() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "library l; library m;",
-        ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
+    parseCompilationUnit("library l; library m;", ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
   }
 
   public void test_multipleNamedParameterGroups() throws Exception {
@@ -884,10 +860,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_multiplePartOfDirectives() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "part of l; part of m;",
-        ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES);
+    parseCompilationUnit("part of l; part of m;", ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES);
   }
 
   public void test_multiplePositionalParameterGroups() throws Exception {
@@ -925,33 +898,25 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_nonIdentifierLibraryName_library() throws Exception {
-    CompilationUnit unit = parse(
-        "parseCompilationUnit",
+    CompilationUnit unit = parseCompilationUnit(
         "library 'lib';",
         ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME);
     assertNotNull(unit);
   }
 
   public void test_nonIdentifierLibraryName_partOf() throws Exception {
-    CompilationUnit unit = parse(
-        "parseCompilationUnit",
+    CompilationUnit unit = parseCompilationUnit(
         "part of 'lib';",
         ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME);
     assertNotNull(unit);
   }
 
   public void test_nonPartOfDirectiveInPart_after() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "part of l; part 'f.dart';",
-        ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART);
+    parseCompilationUnit("part of l; part 'f.dart';", ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART);
   }
 
   public void test_nonPartOfDirectiveInPart_before() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "part 'f.dart'; part of m;",
-        ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART);
+    parseCompilationUnit("part 'f.dart'; part of m;", ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART);
   }
 
   public void test_nonUserDefinableOperator() throws Exception {
@@ -1018,18 +983,15 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_staticTopLevelDeclaration_class() throws Exception {
-    parse("parseCompilationUnit", "static class C {}", ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
+    parseCompilationUnit("static class C {}", ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
   }
 
   public void test_staticTopLevelDeclaration_typedef() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "static typedef F();",
-        ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
+    parseCompilationUnit("static typedef F();", ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
   }
 
   public void test_staticTopLevelDeclaration_variable() throws Exception {
-    parse("parseCompilationUnit", "static var x;", ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
+    parseCompilationUnit("static var x;", ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
   }
 
   public void test_switchHasCaseAfterDefaultCase() throws Exception {
@@ -1109,15 +1071,19 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_unexpectedToken_semicolonBetweenCompilationUnitMembers() throws Exception {
-    parse("parseCompilationUnit", "int x; ; int y;", ParserErrorCode.UNEXPECTED_TOKEN);
+    parseCompilationUnit("int x; ; int y;", ParserErrorCode.UNEXPECTED_TOKEN);
   }
 
   public void test_useOfUnaryPlusOperator() throws Exception {
     parse("parseUnaryExpression", "+x", ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
   }
 
+  public void test_varAsTypeName_as() throws Exception {
+    parseExpression("x as var", ParserErrorCode.VAR_AS_TYPE_NAME);
+  }
+
   public void test_varClass() throws Exception {
-    parse("parseCompilationUnit", "var class C {}", ParserErrorCode.VAR_CLASS);
+    parseCompilationUnit("var class C {}", ParserErrorCode.VAR_CLASS);
   }
 
   public void test_varConstructor() throws Exception {
@@ -1133,7 +1099,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_varTypedef() throws Exception {
-    parse("parseCompilationUnit", "var typedef F();", ParserErrorCode.VAR_TYPEDEF);
+    parseCompilationUnit("var typedef F();", ParserErrorCode.VAR_TYPEDEF);
   }
 
   public void test_voidField_initializer() throws Exception {
@@ -1149,10 +1115,7 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_withBeforeExtends() throws Exception {
-    parse(
-        "parseCompilationUnit",
-        "class A with B extends C {}",
-        ParserErrorCode.WITH_BEFORE_EXTENDS);
+    parseCompilationUnit("class A with B extends C {}", ParserErrorCode.WITH_BEFORE_EXTENDS);
   }
 
   public void test_withWithoutExtends() throws Exception {

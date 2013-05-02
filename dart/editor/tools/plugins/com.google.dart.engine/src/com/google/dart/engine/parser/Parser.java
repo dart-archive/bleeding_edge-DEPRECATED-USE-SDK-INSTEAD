@@ -4824,7 +4824,16 @@ public class Parser {
    * @return the type name that was parsed
    */
   private TypeName parseTypeName() {
-    Identifier typeName = parsePrefixedIdentifier();
+    Identifier typeName;
+    if (matches(Keyword.VAR)) {
+      reportError(ParserErrorCode.VAR_AS_TYPE_NAME);
+      typeName = new SimpleIdentifier(getAndAdvance());
+    } else if (matchesIdentifier()) {
+      typeName = parsePrefixedIdentifier();
+    } else {
+      typeName = createSyntheticIdentifier();
+      reportError(ParserErrorCode.EXPECTED_TYPE_NAME);
+    }
     TypeArgumentList typeArguments = null;
     if (matches(TokenType.LT)) {
       typeArguments = parseTypeArgumentList();

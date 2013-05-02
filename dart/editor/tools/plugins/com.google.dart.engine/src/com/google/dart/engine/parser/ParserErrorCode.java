@@ -51,6 +51,7 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_LIST_OR_MAP_LITERAL("Expected a list or map literal"),
   EXPECTED_STRING_LITERAL("Expected a string literal"),
   EXPECTED_TOKEN("Expected to find '%s'"),
+  EXPECTED_TYPE_NAME("Expected a type name"),
   EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Export directives must preceed part directives"),
   EXTERNAL_AFTER_CONST("The modifier 'external' should be before the modifier 'const'"),
   EXTERNAL_AFTER_FACTORY("The modifier 'external' should be before the modifier 'factory'"),
@@ -150,6 +151,7 @@ public enum ParserErrorCode implements ErrorCode {
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER(
       "The default value of a positional parameter should be preceeded by '='"),
   WRONG_TERMINATOR_FOR_PARAMETER_GROUP("Expected '%s' to close parameter group"),
+  VAR_AS_TYPE_NAME("The keyword 'var' cannot be used as a type name"),
   VAR_CLASS("Classes cannot be declared to be 'var'"),
   VAR_RETURN_TYPE("The return type cannot be 'var'"),
   VAR_TYPEDEF("Type aliases cannot be declared to be 'var'"),

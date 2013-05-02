@@ -283,12 +283,12 @@ public class RecoveryParserTest extends ParserTestCase {
   }
 
   public void test_equalityExpression_precedence_relational_left() throws Exception {
-    BinaryExpression expression = parseExpression("is ==", ParserErrorCode.MISSING_IDENTIFIER);
+    BinaryExpression expression = parseExpression("is ==", ParserErrorCode.EXPECTED_TYPE_NAME);
     assertInstanceOf(IsExpression.class, expression.getLeftOperand());
   }
 
   public void test_equalityExpression_precedence_relational_right() throws Exception {
-    BinaryExpression expression = parseExpression("== is", ParserErrorCode.MISSING_IDENTIFIER);
+    BinaryExpression expression = parseExpression("== is", ParserErrorCode.EXPECTED_TYPE_NAME);
     assertInstanceOf(IsExpression.class, expression.getRightOperand());
   }
 
@@ -324,8 +324,8 @@ public class RecoveryParserTest extends ParserTestCase {
   public void test_isExpression_noType() throws Exception {
     CompilationUnit unit = parseCompilationUnit(
         "class Bar<T extends Foo> {m(x){if (x is ) return;if (x is !)}}",
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TYPE_NAME,
+        ParserErrorCode.EXPECTED_TYPE_NAME,
         ParserErrorCode.MISSING_STATEMENT);
     ClassDeclaration declaration = (ClassDeclaration) unit.getDeclarations().get(0);
     MethodDeclaration method = (MethodDeclaration) declaration.getMembers().get(0);
@@ -456,7 +456,7 @@ public class RecoveryParserTest extends ParserTestCase {
   }
 
   public void test_relationalExpression_missing_LHS_RHS() throws Exception {
-    IsExpression expression = parseExpression("is", ParserErrorCode.MISSING_IDENTIFIER);
+    IsExpression expression = parseExpression("is", ParserErrorCode.EXPECTED_TYPE_NAME);
     assertInstanceOf(SimpleIdentifier.class, expression.getExpression());
     assertTrue(expression.getExpression().isSynthetic());
     assertInstanceOf(TypeName.class, expression.getType());
@@ -464,13 +464,13 @@ public class RecoveryParserTest extends ParserTestCase {
   }
 
   public void test_relationalExpression_missing_RHS() throws Exception {
-    IsExpression expression = parseExpression("x is", ParserErrorCode.MISSING_IDENTIFIER);
+    IsExpression expression = parseExpression("x is", ParserErrorCode.EXPECTED_TYPE_NAME);
     assertInstanceOf(TypeName.class, expression.getType());
     assertTrue(expression.getType().isSynthetic());
   }
 
   public void test_relationalExpression_precedence_shift_right() throws Exception {
-    IsExpression expression = parseExpression("<< is", ParserErrorCode.MISSING_IDENTIFIER);
+    IsExpression expression = parseExpression("<< is", ParserErrorCode.EXPECTED_TYPE_NAME);
     assertInstanceOf(BinaryExpression.class, expression.getExpression());
   }
 
