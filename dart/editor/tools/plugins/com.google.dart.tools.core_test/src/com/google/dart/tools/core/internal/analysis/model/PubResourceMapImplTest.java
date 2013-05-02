@@ -27,6 +27,7 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
   protected File packagesDir;
   protected File pkg1CanonicalDir;
   protected File pkg2CanonicalDir;
+  protected File libCanonicalDir;
   private MockFolder packagesContainer;
   private MockFolder pkg1Container;
   private MockFolder pkg2Container;
@@ -37,6 +38,13 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
     FileBasedSource source = new FileBasedSource(contentCache, res.getLocation().toFile());
 
     PubResourceMapImpl map = newTarget();
+    assertSame(res, map.getResource(source));
+
+    if (!setupSymlinks()) {
+      return;
+    }
+    File myAppPackagesDir = new File(packagesDir, "myapp");
+    source = new FileBasedSource(contentCache, new File(myAppPackagesDir, "file.dart"));
     assertSame(res, map.getResource(source));
   }
 
@@ -86,7 +94,9 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
 
   @Override
   protected PubResourceMapImpl newTarget() {
-    return new PubResourceMapImpl(pubContainer, context);
+    PubResourceMapImpl resMap = new PubResourceMapImpl(pubContainer, context);
+    resMap.setSelfPackageName("myapp");
+    return resMap;
   }
 
   @Override
@@ -99,6 +109,7 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
     pkg1Container = packagesContainer.addFolder("pkg1");
     pkg2Container = packagesContainer.addFolder("pkg2");
     libContainer = pubContainer.getMockFolder(DartCore.LIB_DIRECTORY_NAME);
+    libCanonicalDir = libContainer.getLocation().toFile().getCanonicalFile();
   }
 
   protected boolean setupSymlinks() throws IOException {
@@ -110,6 +121,8 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
     assertTrue(packagesDir.mkdirs());
     FileUtilities2.createSymLink(pkg1CanonicalDir, new File(packagesDir, "pkg1"));
     FileUtilities2.createSymLink(pkg2CanonicalDir, new File(packagesDir, "pkg2"));
+    assertTrue(libCanonicalDir.mkdirs());
+    FileUtilities2.createSymLink(libCanonicalDir, new File(packagesDir, "myapp"));
     return true;
   }
 }

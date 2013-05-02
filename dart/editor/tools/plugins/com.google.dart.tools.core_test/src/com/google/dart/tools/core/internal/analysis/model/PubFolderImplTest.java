@@ -53,11 +53,10 @@ public class PubFolderImplTest extends PubResourceMapImplTest {
 
   public void test_getPubspec() throws Exception {
     PubFolderImpl pubFolder = newTarget();
-    pubContainer.getMockFile(DartCore.PUBSPEC_FILE_NAME).setContents(pubspecYamlString);
     PubspecModel pubspec = pubFolder.getPubspec();
     assertNotNull(pubspec);
     assertSame(pubspec, pubFolder.getPubspec());
-    assertEquals("web_components", pubspec.getName());
+    assertEquals("myapp", pubspec.getName());
   }
 
   public void test_getSdk() throws Exception {
@@ -69,6 +68,8 @@ public class PubFolderImplTest extends PubResourceMapImplTest {
 
   @Override
   protected PubFolderImpl newTarget() {
+    pubContainer.getMockFile(DartCore.PUBSPEC_FILE_NAME).setContents(
+        pubspecYamlString.replace("name: web_components", "name: myapp"));
     return new PubFolderImpl(pubContainer, context, expectedSdk);
   }
 

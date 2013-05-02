@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.analysis.model;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -69,8 +70,26 @@ public class PubFolderImpl extends PubResourceMapImpl implements PubFolder {
       IFile file = container.getFile(new Path(PUBSPEC_FILE_NAME));
       Reader reader = new InputStreamReader(file.getContents(), file.getCharset());
       pubspec = new PubspecModel(getContents(reader));
+      setSelfPackageName(pubspec.getName());
     }
     return pubspec;
+  }
+
+  @Override
+  public IFile getResource(Source source) {
+    // Ensure that the setPackagePath has been set
+    if (getSelfPackagePath() == null) {
+      IFile pubspecFile = container.getFile(new Path(PUBSPEC_FILE_NAME));
+      if (pubspecFile.exists()) {
+        try {
+          getPubspec();
+        } catch (Exception e) {
+          DartCore.logError("Failed to read " + pubspecFile, e);
+          //$FALL-THROUGH$
+        }
+      }
+    }
+    return super.getResource(source);
   }
 
   @Override

@@ -1,3 +1,16 @@
+/*
+ * Copyright (c) 2013, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
@@ -29,13 +42,24 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
   /**
    * The root "lib" folder (not {@code null}).
    */
+  private final IContainer libFolder;
+
+  /**
+   * The path to the root "lib" folder (not {@code null}).
+   */
   private final String libPath;
+
+  /**
+   * The path of the package that maps to the "lib" folder.
+   */
+  private String selfPackagePath;
 
   public PubResourceMapImpl(IContainer container, AnalysisContext context) {
     super(container, context);
     packagesFolder = container.getFolder(new Path(DartCore.PACKAGES_DIRECTORY_NAME));
     packagesLocation = container.getLocation().append(DartCore.PACKAGES_DIRECTORY_NAME);
-    libPath = container.getLocation().append(DartCore.LIB_DIRECTORY_NAME).toOSString();
+    libFolder = container.getFolder(new Path(DartCore.LIB_DIRECTORY_NAME));
+    libPath = libFolder.getLocation().toOSString() + File.separator;
   }
 
   @Override
@@ -44,6 +68,10 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
     // may be self-reference
     if (sourcePath.startsWith(libPath)) {
       return super.getResource(source);
+    }
+    if (selfPackagePath != null && sourcePath.startsWith(selfPackagePath)) {
+      String relPath = sourcePath.substring(selfPackagePath.length());
+      return libFolder.getFile(new Path(relPath));
     }
     // analyze installed packages from "packages" folder
     String[] pkgNames = packagesLocation.toFile().list();
@@ -95,5 +123,27 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
       file = fileLocation.toFile();
     }
     return new FileBasedSource(contentCache, file);
+  }
+
+  /**
+   * Set the name of the package that maps to the "lib" directory.
+   * 
+   * @param name the package name or {@code null} if none
+   */
+  public void setSelfPackageName(String name) {
+    if (name != null && name.length() > 0) {
+      selfPackagePath = packagesLocation.append(name).toOSString();
+    } else {
+      selfPackagePath = null;
+    }
+  }
+
+  /**
+   * Answer the path to the package that maps to the "lib" directory.
+   * 
+   * @return the path or {@code null} if none
+   */
+  protected String getSelfPackagePath() {
+    return selfPackagePath;
   }
 }
