@@ -13,14 +13,12 @@
  */
 package com.google.dart.tools.core;
 
-import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.AnalysisServerImpl;
 import com.google.dart.tools.core.analysis.AnalysisServerMock;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -33,8 +31,6 @@ import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.DartProjectImpl;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.operation.BatchOperation;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
@@ -52,7 +48,6 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkListener;
 import com.google.dart.tools.core.model.DartSdkManager;
-import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
@@ -102,7 +97,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -276,23 +270,6 @@ public class DartCore extends Plugin implements DartSdkListener {
   private static ProjectManager projectManager;
 
   /**
-   * Configures the given marker attribute map for the given Dart element. Used for markers, which
-   * denote a Dart element rather than a resource.
-   * 
-   * @param attributes the mutable marker attribute map
-   * @param element the Dart element for which the marker needs to be configured
-   */
-  public static void addDartElementMarkerAttributes(Map<String, String> attributes,
-      DartElement element) {
-    // if (element instanceof IMember)
-    // element = ((IMember) element).getClassFile();
-    // if (attributes != null && element != null) {
-    // attributes.put(ATT_HANDLE_ID, element.getHandleIdentifier());
-    // }
-    notYetImplemented();
-  }
-
-  /**
    * Add the given listener to the list of objects that are listening for changes to Dart elements.
    * Has no effect if an identical listener is already registered.
    * <p>
@@ -304,37 +281,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param listener the listener being added
    */
   public static void addElementChangedListener(ElementChangedListener listener) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      // TODO(devoncarew): this needs to be converted to fast-fail
-
-    } else {
-      addElementChangedListener(listener, ElementChangedEvent.POST_CHANGE
-          | ElementChangedEvent.POST_RECONCILE);
-    }
-  }
-
-  /**
-   * Add the given listener to the list of objects that are listening for changes to Dart elements.
-   * Has no effect if an identical listener is already registered. After completion of this method,
-   * the given listener will be registered for exactly the specified events. If they were previously
-   * registered for other events, they will be de-registered.
-   * <p>
-   * Once registered, a listener starts receiving notification of changes to Dart elements in the
-   * model. The listener continues to receive notifications until it is replaced or removed.
-   * </p>
-   * <p>
-   * Listeners can listen for several types of event as defined in <code>ElementChangeEvent</code>.
-   * Clients are free to register for any number of event types, however if they register for more
-   * than one, it is their responsibility to ensure they correctly handle the case where the same
-   * Dart element change shows up in multiple notifications. Clients are guaranteed to receive only
-   * the events for which they are registered.
-   * </p>
-   * 
-   * @param listener the listener being added
-   * @param eventMask the bit-wise OR of all event types of interest to the listener
-   */
-  public static void addElementChangedListener(ElementChangedListener listener, int eventMask) {
-    DartModelManager.getInstance().addElementChangedListener(listener, eventMask);
+    //TODO (pquitslund): remove method
   }
 
   /**
@@ -344,11 +291,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param listener the listener to add
    */
   public static void addIgnoreListener(DartIgnoreListener listener) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      getProjectManager().getIgnoreManager().addListener(listener);
-    } else {
-      DartIgnoreManager.getInstance().addListener(listener);
-    }
+    getProjectManager().getIgnoreManager().addListener(listener);
   }
 
   /**
@@ -359,11 +302,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @throws CoreException if there was an error deleting markers
    */
   public static void addToIgnores(IResource resource) throws IOException, CoreException {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      getProjectManager().getIgnoreManager().addToIgnores(resource);
-    } else {
-      DartModelManager.getInstance().addToIgnores(resource);
-    }
+    getProjectManager().getIgnoreManager().addToIgnores(resource);
   }
 
   /**
@@ -522,10 +461,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return an analysis server
    */
   public static AnalysisServer createAnalysisServer() {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return new AnalysisServerMock();
-    }
-    return new AnalysisServerImpl(PackageLibraryManagerProvider.getAnyLibraryManager());
+    return new AnalysisServerMock();
   }
 
   /**
@@ -691,11 +627,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return the value of a given option
    */
   public static String getOption(String optionName) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return OptionManager.getInstance().getOption(optionName);
-    } else {
-      return DartModelManager.getInstance().getOption(optionName);
-    }
+    return OptionManager.getInstance().getOption(optionName);
   }
 
   /**
@@ -716,11 +648,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    *         <code>String</code>)
    */
   public static HashMap<String, String> getOptions() {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return OptionManager.getInstance().getOptions();
-    } else {
-      return DartModelManager.getInstance().getOptions();
-    }
+    return OptionManager.getInstance().getOptions();
   }
 
   /**
@@ -776,17 +704,14 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static String getSelfLinkedPackageName(IResource resource) {
     String packageName = null;
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      try {
-        PubFolder folder = DartCore.getProjectManager().getPubFolder(resource);
-        packageName = folder.getPubspec().getName();
-      } catch (Exception e) {
-        DartCore.logError(e);
-      }
-    } else {
-      DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(resource.getProject());
-      packageName = dartProject.getSelfLinkedPackageDirName();
+
+    try {
+      PubFolder folder = DartCore.getProjectManager().getPubFolder(resource);
+      packageName = folder.getPubspec().getName();
+    } catch (Exception e) {
+      DartCore.logError(e);
     }
+
     return packageName;
   }
 
@@ -852,12 +777,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return <code>true</code> if the given resource should be analyzed
    */
   public static boolean isAnalyzed(IResource resource) {
-
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return getProjectManager().getIgnoreManager().isAnalyzed(resource);
-    }
-
-    return DartModelManager.getInstance().isAnalyzed(resource);
+    return getProjectManager().getIgnoreManager().isAnalyzed(resource);
   }
 
   /**
@@ -1062,11 +982,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * Check if this URI denotes a patch file.
    */
   public static boolean isPatchfile(File file) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return file != null && file.getName().endsWith("_patch.dart");
-    } else {
-      return PackageLibraryManager.isPatchFile(file);
-    }
+    return file != null && file.getName().endsWith("_patch.dart");
   }
 
   /**
@@ -1235,12 +1151,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param listener the listener to be removed
    */
   public static void removeElementChangedListener(ElementChangedListener listener) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      // TODO(devoncarew): this needs to be converted to fast-fail
-
-    } else {
-      DartModelManager.getInstance().removeElementChangedListener(listener);
-    }
+    //TODO (pquitslund): remove method
   }
 
   /**
@@ -1250,11 +1161,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @throws IOException if there was an error accessing the ignore file
    */
   public static void removeFromIgnores(IPath resource) throws IOException {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      getProjectManager().getIgnoreManager().removeFromIgnores(resource);
-    } else {
-      // Unsupported in the old model
-    }
+    getProjectManager().getIgnoreManager().removeFromIgnores(resource);
   }
 
   /**
@@ -1264,11 +1171,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @throws IOException if there was an error accessing the ignore file
    */
   public static void removeFromIgnores(IResource resource) throws IOException {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      getProjectManager().getIgnoreManager().removeFromIgnores(resource);
-    } else {
-      DartModelManager.getInstance().removeFromIgnores(resource);
-    }
+    getProjectManager().getIgnoreManager().removeFromIgnores(resource);
   }
 
   /**
@@ -1278,11 +1181,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param listener the non-<code>null</code> listener to remove
    */
   public static void removeIgnoreListener(DartIgnoreListener listener) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      getProjectManager().getIgnoreManager().addListener(listener);
-    } else {
-      DartIgnoreManager.getInstance().removeListener(listener);
-    }
+    getProjectManager().getIgnoreManager().addListener(listener);
   }
 
   /**
@@ -1636,9 +1535,7 @@ public class DartCore extends Plugin implements DartSdkListener {
       }
     });
     DartSdkManager.getManager().addSdkListener(this);
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      getProjectManager().start();
-    }
+    getProjectManager().start();
   }
 
   @Override
@@ -1646,9 +1543,7 @@ public class DartCore extends Plugin implements DartSdkListener {
     DartSdkManager.getManager().removeSdkListener(this);
 
     try {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        getProjectManager().stop();
-      }
+      getProjectManager().stop();
       AnalysisIndexManager.stopServerAndIndexing();
       DartModelManager.shutdown();
       RootArtifactProvider.shutdown();
