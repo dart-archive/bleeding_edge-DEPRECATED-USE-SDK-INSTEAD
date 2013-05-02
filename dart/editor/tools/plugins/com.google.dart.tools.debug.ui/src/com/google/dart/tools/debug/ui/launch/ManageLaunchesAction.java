@@ -39,9 +39,8 @@ public class ManageLaunchesAction extends InstrumentedAction {
 
   @Override
   public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
-
     ManageLaunchesDialog dialog = new ManageLaunchesDialog(window);
-    dialog.open();
 
+    dialog.open();
   }
 }

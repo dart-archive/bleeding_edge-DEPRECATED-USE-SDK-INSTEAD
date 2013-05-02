@@ -229,6 +229,8 @@ public final class StringUtilities {
     boolean inQuote = false;
     boolean prevWasSlash = false;
 
+    command = command.replaceAll("\r\n", " ").replaceAll("\n", " ");
+
     for (final char c : command.toCharArray()) {
       if (!prevWasSlash && (c == '\'' || c == '"')) {
         inQuote = !inQuote;

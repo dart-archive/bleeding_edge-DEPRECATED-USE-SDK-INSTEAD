@@ -40,6 +40,7 @@ import org.eclipse.debug.ui.ILaunchConfigurationTabGroup;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -67,6 +68,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.internal.WorkbenchPlugin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -340,6 +342,25 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     });
 
     return contents;
+  }
+
+  @Override
+  protected IDialogSettings getDialogBoundsSettings() {
+    final String settingsName = getClass().getCanonicalName();
+
+    IDialogSettings workbenchSettings = WorkbenchPlugin.getDefault().getDialogSettings();
+    IDialogSettings section = workbenchSettings.getSection(settingsName);
+
+    if (section == null) {
+      section = workbenchSettings.addNewSection(settingsName);
+    }
+
+    return section;
+  }
+
+  @Override
+  protected int getDialogBoundsStrategy() {
+    return DIALOG_PERSISTSIZE;
   }
 
   /**

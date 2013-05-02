@@ -63,12 +63,14 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     private Set<IResource> serverLibraries = new HashSet<IResource>();
 
     public ServerAppResourceFilter() {
-
       ProjectManager manager = DartCore.getProjectManager();
+
       // TODO(devoncarew): this currently returns an empty list
       Source[] librarySources = manager.getLaunchableServerLibrarySources();
+
       for (Source source : librarySources) {
         IResource resource = manager.getResource(source);
+
         if (resource != null) {
           serverLibraries.add(resource);
         }
@@ -77,7 +79,6 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
     @Override
     public boolean matches(IResource resource) {
-
       // TODO(devoncarew): we don't use the serverLibraries set for now
       return DartCore.isDartLikeFileName(resource.getName());
     }
@@ -156,7 +157,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     label.setText("Script arguments:");
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).applyTo(label);
 
-    argsText = new Text(group, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL);
+    argsText = new Text(group, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.WRAP);
     argsText.addModifyListener(textModifyListener);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.FILL).grab(true, false).hint(400, 74).applyTo(
         argsText);
