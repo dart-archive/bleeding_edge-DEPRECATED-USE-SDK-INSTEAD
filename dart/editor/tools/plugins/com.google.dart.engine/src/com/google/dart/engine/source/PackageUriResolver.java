@@ -30,6 +30,7 @@ import java.net.URI;
  * @coverage dart.engine.source
  */
 public class PackageUriResolver extends UriResolver {
+
   /**
    * The package directories that {@code package} URI's are assumed to be relative to.
    */
@@ -39,6 +40,11 @@ public class PackageUriResolver extends UriResolver {
    * The name of the {@code package} scheme.
    */
   private static final String PACKAGE_SCHEME = "package";
+
+  /**
+   * Log exceptions thrown with the message "Required key not available" only once.
+   */
+  private static boolean CanLogRequiredKeyIoException = true;
 
   /**
    * Return {@code true} if the given URI is a {@code package} URI.
@@ -102,16 +108,16 @@ public class PackageUriResolver extends UriResolver {
     for (File packagesDirectory : packagesDirectories) {
       File resolvedFile = new File(packagesDirectory, path);
       if (resolvedFile.exists()) {
-        return new FileBasedSource(contentCache, getCanonicalFile(
-            packagesDirectory,
-            pkgName,
-            relPath), UriKind.PACKAGE_URI);
+        return new FileBasedSource(
+            contentCache,
+            getCanonicalFile(packagesDirectory, pkgName, relPath),
+            UriKind.PACKAGE_URI);
       }
     }
-    return new FileBasedSource(contentCache, getCanonicalFile(
-        packagesDirectories[0],
-        pkgName,
-        relPath), UriKind.PACKAGE_URI);
+    return new FileBasedSource(
+        contentCache,
+        getCanonicalFile(packagesDirectories[0], pkgName, relPath),
+        UriKind.PACKAGE_URI);
   }
 
   @Override
@@ -151,7 +157,12 @@ public class PackageUriResolver extends UriResolver {
     try {
       pkgDir = pkgDir.getCanonicalFile();
     } catch (IOException e) {
-      AnalysisEngine.getInstance().getLogger().logError("Canonical failed: " + pkgDir, e);
+      if (!e.getMessage().contains("Required key not available")) {
+        AnalysisEngine.getInstance().getLogger().logError("Canonical failed: " + pkgDir, e);
+      } else if (CanLogRequiredKeyIoException) {
+        CanLogRequiredKeyIoException = false;
+        AnalysisEngine.getInstance().getLogger().logError("Canonical failed: " + pkgDir, e);
+      }
     }
     return new File(pkgDir, relPath.replace('/', File.separatorChar));
   }
