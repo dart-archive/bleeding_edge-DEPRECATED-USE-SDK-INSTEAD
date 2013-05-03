@@ -642,6 +642,33 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_undefinedGetter_noSuchMethod_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  noSuchMethod(invocation) {}",
+        "}",
+        "f() {",
+        "  (new A()).g;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+  }
+
+  public void test_undefinedGetter_noSuchMethod_getter2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  noSuchMethod(invocation) {}",
+        "}",
+        "class B {",
+        "  A a = new A();",
+        "  m() {",
+        "    a.g;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+  }
+
   public void test_undefinedGetter_typeSubstitution() throws Exception {
     Source source = addSource(createSource(//
         "class A<E> {",
@@ -668,45 +695,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_undefinedIdentifier_show() throws Exception {
-    Source source = addSource(createSource(//
-        "library L;",
-        "export 'lib1.dart' show a;"));
-    addSource("/lib1.dart", createSource(//
-        "library lib1;"));
-    resolve(source);
-    assertNoErrors();
-    verify(source);
-  }
-
-  public void test_undefinedMethod_noSuchMethod_getter() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  noSuchMethod(invocation) {}",
-        "}",
-        "f() {",
-        "  (new A()).g;",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-  }
-
-  public void test_undefinedMethod_noSuchMethod_getter2() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  noSuchMethod(invocation) {}",
-        "}",
-        "class B {",
-        "  A a = new A();",
-        "  m() {",
-        "    a.g;",
-        "  }",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-  }
-
-  public void test_undefinedMethod_noSuchMethod_instanceField() throws Exception {
+  public void test_undefinedIdentifier_noSuchMethod() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  noSuchMethod(invocation) {}",
@@ -718,25 +707,24 @@ public class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
   }
 
-  public void test_undefinedMethod_noSuchMethod_method() throws Exception {
+  public void test_undefinedIdentifier_show() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "export 'lib1.dart' show a;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_undefinedMethod_noSuchMethod() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  noSuchMethod(invocation) {}",
         "}",
         "f() {",
         "  (new A()).m();",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-  }
-
-  public void test_undefinedMethod_noSuchMethod_setter() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  noSuchMethod(invocation) {}",
-        "}",
-        "f() {",
-        "  (new A()).s = 1;",
         "}"));
     resolve(source);
     assertNoErrors();
@@ -749,6 +737,18 @@ public class NonErrorResolverTest extends ResolverTestCase {
     resolve(source);
     assertNoErrors();
     verify(source);
+  }
+
+  public void test_undefinedSetter_noSuchMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  noSuchMethod(invocation) {}",
+        "}",
+        "f() {",
+        "  (new A()).s = 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
   }
 
   public void test_wrongNumberOfParametersForSetter() throws Exception {

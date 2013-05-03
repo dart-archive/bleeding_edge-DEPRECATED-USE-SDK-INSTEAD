@@ -1057,7 +1057,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     ClassElementImpl classElement = (ClassElementImpl) element;
     MethodElement method = classElement.lookUpMethod("noSuchMethod", resolver.getDefiningLibrary());
-    if (method == null) {
+    // if no method found, or if the method found is defined in Object, return false
+    if (method == null || method.getEnclosingElement().getSupertype() == null) {
       return false;
     }
     return true;
