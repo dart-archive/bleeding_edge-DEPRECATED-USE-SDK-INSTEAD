@@ -36,13 +36,17 @@ public class WebkitCallFrame {
     for (int i = 0; i < arr.length(); i++) {
       WebkitCallFrame frame = createFrom(arr.getJSONObject(i));
 
-      if (i == 0 && DebuggerUtils.isInternalMethodName(frame.getFunctionName())) {
-        // Strip out the first frame if it's _noSuchMethod. There will be another
-        // "Object.noSuchMethod" on the stack. This sucks, but it's where we're choosing to put
-        // the fix.
-      } else {
-        frames.add(frame);
+      // If we are on the first frame and there are at least 3 frames:
+      if (i == 0 && arr.length() > 2) {
+        if (DebuggerUtils.isInternalMethodName(frame.getFunctionName())) {
+          // Strip out the first frame if it's _noSuchMethod. There will be another
+          // "Object.noSuchMethod" on the stack. This sucks, but it's where we're choosing to put
+          // the fix.
+          continue;
+        }
       }
+
+      frames.add(frame);
     }
 
     return frames;
