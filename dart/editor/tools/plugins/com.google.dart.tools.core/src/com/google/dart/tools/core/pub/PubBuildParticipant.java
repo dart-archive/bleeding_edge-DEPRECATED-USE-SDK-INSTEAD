@@ -104,6 +104,9 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
             processLockFileContents(lockFile, resource.getProject(), monitor);
           }
         }
+        if (resource.getName().equals(DartCore.PUBSPEC_LOCK_FILE_NAME)) {
+          processLockFileContents(resource, resource.getProject(), monitor);
+        }
       }
     }
 
@@ -124,6 +127,12 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
         if (lockFile != null) {
           processLockFileContents(lockFile, proxy.requestResource().getProject(), monitor);
         }
+      }
+      if (proxy.getName().equals(DartCore.PUBSPEC_LOCK_FILE_NAME)) {
+        processLockFileContents(
+            proxy.requestResource(),
+            proxy.requestResource().getProject(),
+            monitor);
       }
     }
 
