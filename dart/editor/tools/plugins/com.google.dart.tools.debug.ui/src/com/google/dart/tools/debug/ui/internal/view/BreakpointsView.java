@@ -18,6 +18,7 @@ import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
+import org.eclipse.debug.core.model.DebugElement;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.TreeModelViewer;
 import org.eclipse.debug.internal.ui.views.variables.details.DetailPaneProxy;
 import org.eclipse.jface.action.IToolBarManager;
@@ -114,6 +115,14 @@ public class BreakpointsView extends
     getPreferences().addPropertyChangeListener(propertyChangeListener);
     updateColors();
     return treeViewer;
+  }
+
+  @Override
+  protected void setViewerInput(Object context) {
+    if (context != null && context instanceof DebugElement) {
+      return;
+    }
+    super.setViewerInput(context);
   }
 
   protected void updateColors() {
