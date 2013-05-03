@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -24,6 +25,7 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.constructorElement;
 import static com.google.dart.engine.element.ElementFactory.fieldElement;
 import static com.google.dart.engine.element.ElementFactory.getObject;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
@@ -225,12 +227,13 @@ public class TestTypeProvider implements TypeProvider {
       ClassElementImpl objectElement = getObject();
       objectType = objectElement.getType();
       if (objectElement.getMethods().length == 0) {
+        objectElement.setConstructors(new ConstructorElement[] {constructorElement("Object")});
         objectElement.setMethods(new MethodElement[] {
-            methodElement("toString", getStringType()), methodElement("==", boolType, objectType)});
-        objectElement.setAccessors(new PropertyAccessorElement[] {getterElement(
-            "hashCode",
-            false,
-            getIntType())});
+            methodElement("toString", getStringType()), methodElement("==", boolType, objectType),
+            methodElement("noSuchMethod", getDynamicType(), getDynamicType())});
+        objectElement.setAccessors(new PropertyAccessorElement[] {
+            getterElement("hashCode", false, getIntType()),
+            getterElement("runtimeType", false, getTypeType())});
       }
     }
     return objectType;
