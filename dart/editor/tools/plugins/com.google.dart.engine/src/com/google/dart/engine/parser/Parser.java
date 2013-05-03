@@ -3797,7 +3797,7 @@ public class Parser {
           }
           reportError(ParserErrorCode.MISSING_STATEMENT);
           // TODO(brianwilkerson) Recover from this error.
-          return null;
+          return new EmptyStatement(createSyntheticToken(TokenType.SEMICOLON));
         }
       } else if (keyword == Keyword.CONST) {
         if (matchesAny(
@@ -3828,7 +3828,7 @@ public class Parser {
         // We have found an error of some kind. Try to recover.
         //
         reportError(ParserErrorCode.MISSING_STATEMENT);
-        return null;
+        return new EmptyStatement(createSyntheticToken(TokenType.SEMICOLON));
       }
     } else if (matches(TokenType.SEMICOLON)) {
       return parseEmptyStatement();
