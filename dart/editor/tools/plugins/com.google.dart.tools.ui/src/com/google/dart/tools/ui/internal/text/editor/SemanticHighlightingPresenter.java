@@ -35,6 +35,7 @@ import org.eclipse.swt.custom.StyleRange;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -240,18 +241,34 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
     }
   }
 
+  private static String getTextPresentationDebugString(TextPresentation textPresentation,
+      IDocument document) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("doc:");
+    sb.append(document.getLength());
+    for (Iterator<?> iter = textPresentation.getAllStyleRangeIterator(); iter.hasNext();) {
+      StyleRange styleRange = (StyleRange) iter.next();
+      sb.append("|(");
+      sb.append(styleRange.start);
+      sb.append(",");
+      sb.append(styleRange.length);
+      sb.append(")");
+    }
+    return sb.toString();
+  }
+
   /** Position updater */
   private IPositionUpdater fPositionUpdater = new HighlightingPositionUpdater(getPositionCategory());
-
   /** The source viewer this semantic highlighting reconciler is installed on */
   private DartSourceViewer fSourceViewer;
+
   /** The background presentation reconciler */
   private DartPresentationReconciler fPresentationReconciler;
-
   /**
    * UI's current highlighted positions - can contain <code>null</code> elements
    */
   private List<Position> fPositions = new ArrayList<Position>();
+
   /** UI position lock */
   private Object fPositionLock = new Object();
 
@@ -630,7 +647,8 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
       DartToolsPlugin.log(e);
     } catch (BadLocationException e) {
       // Should not happen
-      DartToolsPlugin.log(e);
+      String debugMsg = getTextPresentationDebugString(textPresentation, document);
+      DartToolsPlugin.log(debugMsg, e);
     }
 //    checkOrdering("new positions: ", fPositions); //$NON-NLS-1$
 
