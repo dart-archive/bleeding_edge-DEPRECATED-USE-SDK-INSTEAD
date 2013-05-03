@@ -93,6 +93,7 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeVariableType;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.HashMap;
 
@@ -635,23 +636,61 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param node the {@link MethodDeclaration} to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#INVALID_OVERRIDE_NAMED
+   * @see CompileTimeErrorCode#INVALID_OVERRIDE_POSITIONAL
+   * @see CompileTimeErrorCode#INVALID_OVERRIDE_REQUIRED
+   * @see CompileTimeErrorCode#OVERRIDE_MISSING_NAMED_PARAMETERS
+   * @see CompileTimeErrorCode#OVERRIDE_MISSING_REQUIRED_PARAMETERS
    * @see StaticWarningCode#INVALID_OVERRIDE_RETURN_TYPE
    */
   private boolean checkForAllInvalidOverrideErrorCodes(MethodDeclaration node) {
-    // TODO(jwren) have this method also check for other overriding error codes such as:
-    // CompileTimeErrorCode.INVALID_OVERRIDE_DEFAULT_VALUE and
-    // CompileTimeErrorCode.INVALID_OVERRIDE_NAMED, etc.
-    // TODO (jwren) The following is a start of implementing the error codes
-//    if (enclosingClass == null) {
-//      return false;
-//    }
-//    SimpleIdentifier methodName = node.getName();
-//    if (methodName.isSynthetic()) {
-//      return false;
-//    }
-//    ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
-//        enclosingClass,
-//        methodName.getName());
+    if (enclosingClass == null || node.isStatic() || node.getBody() instanceof NativeFunctionBody) {
+      return false;
+    }
+    ExecutableElement executableElement = node.getElement();
+    if (executableElement == null) {
+      return false;
+    }
+    SimpleIdentifier methodName = node.getName();
+    if (methodName.isSynthetic()) {
+      return false;
+    }
+    ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
+        enclosingClass,
+        executableElement.getName());
+    if (overriddenExecutable == null || overriddenExecutable.isSynthetic()) {
+      return false;
+    }
+    boolean foundError = false;
+    int[] parameterKindCounts_method = countParameterKinds(executableElement.getParameters());
+    int[] parameterKindCounts_overriddenMethod = countParameterKinds(overriddenExecutable.getParameters());
+    if (parameterKindCounts_method[0] != parameterKindCounts_overriddenMethod[0]) {
+      errorReporter.reportError(
+          CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED,
+          methodName,
+          parameterKindCounts_overriddenMethod[0],
+          overriddenExecutable.getEnclosingElement().getDisplayName());
+      foundError = true;
+    }
+    if (parameterKindCounts_method[1] < parameterKindCounts_overriddenMethod[1]) {
+      errorReporter.reportError(
+          CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL,
+          methodName,
+          parameterKindCounts_overriddenMethod[1],
+          overriddenExecutable.getEnclosingElement().getDisplayName());
+      foundError = true;
+    }
+    if (parameterKindCounts_method[2] < parameterKindCounts_overriddenMethod[2]) {
+      // TODO (jwren) This only catches a subset of this error code, we still need to check that
+      // the names of the parameters are correct in the override.
+      errorReporter.reportError(
+          CompileTimeErrorCode.INVALID_OVERRIDE_NAMED,
+          methodName,
+          parameterKindCounts_overriddenMethod[2],
+          overriddenExecutable.getEnclosingElement().getDisplayName());
+      foundError = true;
+    }
+
 //    TypeName returnTypeName = node.getReturnType();
 //    if (returnTypeName == null) {
 //      // TODO(jwren) Report error: 'int m()' is being overridden by 'm()'
@@ -659,16 +698,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 //    }
 //    Type overridingType = returnTypeName.getType();
 //    Type overriddenType = overriddenExecutable.getType().getReturnType();
-//    if (overriddenType instanceof InterfaceType) {
-//      InterfaceType overriddenInterfaceType = (InterfaceType) overriddenType;
-//      Type[] typeParameters = overriddenInterfaceType.getTypeArguments();
-//      Type[] typeArguments = new Type[typeParameters.length];
-//      for (int i = 0; i < typeArguments.length; i++) {
-//        typeArguments[i] = typeProvider.getDynamicType();
-//      }
-//      overriddenType = overriddenType.substitute(typeArguments, typeParameters);
-//    }
-//
 //    if (overridingType != null && !overridingType.isSubtypeOf(overriddenType)) {
 //      errorReporter.reportError(
 //          StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE,
@@ -676,8 +705,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 //          methodName.getName(),
 //          overridingType.getName(),
 //          overriddenType.getName());
+//      foundError = true;
 //    }
-    return false;
+    return foundError;
   }
 
   /**
@@ -818,10 +848,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForCaseExpressionTypeImplementsEquals(SwitchStatement node) {
     Expression expression = node.getExpression();
-    Type type = expression.getStaticType();
+    Type type = getType(expression);
     // if the type is int or String, exit this check quickly
-    if (type != null && !type.equals(typeProvider.getIntType())
-        && !type.equals(typeProvider.getStringType())) {
+    if (!type.equals(typeProvider.getIntType()) && !type.equals(typeProvider.getStringType())) {
       Element element = type.getElement();
       if (element instanceof ClassElement) {
         ClassElement classElement = (ClassElement) element;
@@ -1178,7 +1207,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#INCONSISTENT_CASE_EXPRESSION_TYPES
    */
   private boolean checkForInconsistentCaseExpressionTypes(SwitchStatement node) {
-    // TODO(jwren) Revisit this algorithm, should there up to n-1 errors.
+    // TODO(jwren) Revisit this algorithm, should there up to n-1 errors?
     NodeList<SwitchMember> switchMembers = node.getMembers();
     boolean foundError = false;
     Type firstType = null;
@@ -1187,9 +1216,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         SwitchCase switchCase = (SwitchCase) switchMember;
         Expression expression = switchCase.getExpression();
         if (firstType == null) {
-          firstType = expression.getStaticType();
+          firstType = getType(expression);
         } else {
-          Type nType = expression.getStaticType();
+          Type nType = getType(expression);
           if (!firstType.equals(nType)) {
             errorReporter.reportError(
                 CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
@@ -1452,6 +1481,31 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * This method returns an array of three {@code int}s, where the first is a count of the number of
+   * required parameters, the second is a count of the number of positional parameters, and the
+   * third is a count of the number of named parameters.
+   * 
+   * @param parameters an array of parameters to count to types of
+   * @return an array containing three {@code int}s, the count of required, positional and named
+   *         parameters
+   * @see #checkForAllInvalidOverrideErrorCodes(MethodDeclaration)
+   */
+  private int[] countParameterKinds(ParameterElement[] parameters) {
+    int[] parameterTypeCounts = new int[] {0, 0, 0};
+    for (ParameterElement parameterElement : parameters) {
+      ParameterKind kind = parameterElement.getParameterKind();
+      if (kind == ParameterKind.REQUIRED) {
+        parameterTypeCounts[0]++;
+      } else if (kind == ParameterKind.POSITIONAL) {
+        parameterTypeCounts[1]++;
+      } else {
+        parameterTypeCounts[2]++;
+      }
+    }
+    return parameterTypeCounts;
   }
 
   /**

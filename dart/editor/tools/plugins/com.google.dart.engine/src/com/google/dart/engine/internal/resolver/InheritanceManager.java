@@ -14,11 +14,11 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 
 import java.util.ArrayList;
@@ -74,6 +74,9 @@ public class InheritanceManager {
    *         member exists
    */
   public ExecutableElement lookupInheritance(ClassElement classElt, String memberName) {
+    if (memberName == null || memberName.isEmpty()) {
+      return null;
+    }
     ExecutableElement executable = computeClassChainLookupMap(classElt, new HashSet<ClassElement>()).get(
         memberName);
     if (executable == null) {
@@ -252,53 +255,57 @@ public class InheritanceManager {
     }
     // Loop through the entries in the union map, adding them to the resultMap appropriately.
     for (Entry<String, HashSet<ExecutableElement>> entry : unionMap.entrySet()) {
+      String key = entry.getKey();
       HashSet<ExecutableElement> set = entry.getValue();
-      if (set.size() == 1) {
-        resultMap.put(entry.getKey(), set.iterator().next());
+      int numOfEltsWithMatchingNames = set.size();
+      if (numOfEltsWithMatchingNames == 1) {
+        resultMap.put(key, set.iterator().next());
       } else {
         boolean allMethods = true;
+        boolean allSetters = true;
         boolean allGetters = true;
         for (ExecutableElement executableElement : set) {
           if (executableElement instanceof PropertyAccessorElement) {
             allMethods = false;
+            if (((PropertyAccessorElement) executableElement).isSetter()) {
+              allGetters = false;
+            } else {
+              allSetters = false;
+            }
           } else {
             allGetters = false;
+            allSetters = false;
           }
         }
-        if (allMethods || allGetters) {
-          // Compute the element whose type is the subtype of all of the other enclosing types.
-          ExecutableElement[] elements = set.toArray(new ExecutableElement[set.size()]);
-          InterfaceType[] enclosingElementTypes = new InterfaceType[elements.length];
-          for (int i = 0; i < elements.length; i++) {
-            Element enclosingElement = elements[i].getEnclosingElement();
-            if (enclosingElement instanceof ClassElement) {
-              enclosingElementTypes[i] = ((ClassElement) enclosingElement).getType();
-            } else {
-              enclosingElementTypes[i] = null;
-            }
+        if (allMethods || allGetters || allSetters) {
+          // Compute the element whose type is the subtype of all of the other types.
+          ExecutableElement[] elements = set.toArray(new ExecutableElement[numOfEltsWithMatchingNames]);
+          FunctionType[] executableElementTypes = new FunctionType[numOfEltsWithMatchingNames];
+          for (int i = 0; i < numOfEltsWithMatchingNames; i++) {
+            executableElementTypes[i] = elements[i].getType();
           }
-          for (int i = 0; i < enclosingElementTypes.length; i++) {
-            InterfaceType subtype = enclosingElementTypes[i];
+          for (int i = 0; i < numOfEltsWithMatchingNames; i++) {
+            FunctionType subtype = executableElementTypes[i];
             if (subtype == null) {
               continue;
             }
             boolean subtypeOfAllTypes = true;
-            for (int j = 0; j < enclosingElementTypes.length && subtypeOfAllTypes; j++) {
+            for (int j = 0; j < numOfEltsWithMatchingNames && subtypeOfAllTypes; j++) {
               if (i != j) {
-                if (!subtype.isSubtypeOf(enclosingElementTypes[j])) {
+                if (!subtype.isSubtypeOf(executableElementTypes[j])) {
                   subtypeOfAllTypes = false;
                   break;
                 }
               }
             }
             if (subtypeOfAllTypes) {
-              resultMap.put(entry.getKey(), elements[i]);
+              resultMap.put(key, elements[i]);
               break;
             }
           }
         } else {
           // TODO (jwren) Report error.
-          //finalMap.put(entry.getKey(), null);
+          //resultMap.put(entry.getKey(), null);
         }
       }
     }

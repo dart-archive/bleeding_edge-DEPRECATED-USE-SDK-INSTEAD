@@ -156,8 +156,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     classI1.setMethods(new MethodElement[] {methodM});
 
     ClassElementImpl classI2 = classElement("I2");
-    MethodElement methodM2 = methodElement(methodName, typeProvider.getIntType());
-    classI2.setMethods(new MethodElement[] {methodM2});
+    PropertyAccessorElement getterG = getterElement(methodName, false, typeProvider.getIntType());
+    classI2.setAccessors(new PropertyAccessorElement[] {getterG});
 
     ClassElementImpl classA = classElement("A");
     classA.setInterfaces(new InterfaceType[] {classI1.getType(), classI2.getType()});

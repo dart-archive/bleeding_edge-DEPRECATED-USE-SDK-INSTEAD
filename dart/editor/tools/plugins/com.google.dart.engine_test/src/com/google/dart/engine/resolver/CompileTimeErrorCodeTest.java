@@ -275,45 +275,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invalidOverrideNamed() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m({a, b}) {}",
-        "}",
-        "class B extends A {",
-        "  m({a}) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_NAMED);
-    verify(source);
-  }
-
-  public void fail_invalidOverridePositional() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m([a, b]) {}",
-        "}",
-        "class B extends A {",
-        "  m([a]) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL);
-    verify(source);
-  }
-
-  public void fail_invalidOverrideRequired() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m(a) {}",
-        "}",
-        "class B extends A {",
-        "  m(a, b) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED);
-    verify(source);
-  }
-
   public void fail_invalidReferenceToThis_staticMethod() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1535,6 +1496,45 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD);
+    verify(source);
+  }
+
+  public void test_invalidOverrideNamed() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m({a, b}) {}",
+        "}",
+        "class B extends A {",
+        "  m({a}) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_NAMED);
+    verify(source);
+  }
+
+  public void test_invalidOverridePositional() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m([a, b]) {}",
+        "}",
+        "class B extends A {",
+        "  m([a]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL);
+    verify(source);
+  }
+
+  public void test_invalidOverrideRequired() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m(a) {}",
+        "}",
+        "class B extends A {",
+        "  m(a, b) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED);
     verify(source);
   }
 

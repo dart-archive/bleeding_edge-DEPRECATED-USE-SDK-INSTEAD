@@ -461,22 +461,34 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 7.1: It is a compile-time error if an instance method <i>m1</i> overrides an instance member
    * <i>m2</i> and <i>m1</i> does not declare all the named parameters declared by <i>m2</i>.
+   * 
+   * @param paramCount the number of named parameters in the overridden member
+   * @param className the name of the class from the overridden method
    */
-  INVALID_OVERRIDE_NAMED(""),
+  INVALID_OVERRIDE_NAMED(
+      "Must have at least %d named parameters to match the overridden method from %s"),
 
   /**
    * 7.1 Instance Methods: It is a compile-time error if an instance method <i>m1</i> overrides an
    * instance member <i>m2</i> and <i>m1</i> has fewer optional positional parameters than
    * <i>m2</i>.
+   * 
+   * @param paramCount the number of positional parameters in the overridden member
+   * @param className the name of the class from the overridden method
    */
-  INVALID_OVERRIDE_POSITIONAL(""),
+  INVALID_OVERRIDE_POSITIONAL(
+      "Must have at least %d optional parameters to match the overridden method from %s'"),
 
   /**
    * 7.1 Instance Methods: It is a compile-time error if an instance method <i>m1</i> overrides an
    * instance member <i>m2</i> and <i>m1</i> has a different number of required parameters than
    * <i>m2</i>.
+   * 
+   * @param paramCount the number of required parameters in the overridden member
+   * @param className the name of the class from the overridden method
    */
-  INVALID_OVERRIDE_REQUIRED(""),
+  INVALID_OVERRIDE_REQUIRED(
+      "Must have at exactly %d required parameters to match the overridden method from %s"),
 
   /**
    * 12.10 This: It is a compile-time error if this appears in a top-level function or variable
