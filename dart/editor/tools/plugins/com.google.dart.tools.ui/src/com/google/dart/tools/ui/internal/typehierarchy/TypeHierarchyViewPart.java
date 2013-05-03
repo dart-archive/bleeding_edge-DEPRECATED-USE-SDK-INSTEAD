@@ -18,7 +18,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.search.internal.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.actions.OpenAction_OLD;
+import com.google.dart.tools.ui.actions.OpenAction;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.internal.text.editor.CompositeActionGroup;
@@ -73,7 +73,7 @@ public class TypeHierarchyViewPart extends ViewPart {
   private TreeViewer typesViewer;
   private MethodsViewer_I methodsViewer;
 
-  private OpenAction_OLD fOpenAction;
+  private OpenAction fOpenAction;
   private Menu contextMenu;
   private CompositeActionGroup actionGroups;
 
@@ -116,7 +116,7 @@ public class TypeHierarchyViewPart extends ViewPart {
       restoreState(fMemento);
     }
 
-    fOpenAction = new OpenAction_OLD(getSite());
+    fOpenAction = new OpenAction(getSite());
   }
 
   @Override

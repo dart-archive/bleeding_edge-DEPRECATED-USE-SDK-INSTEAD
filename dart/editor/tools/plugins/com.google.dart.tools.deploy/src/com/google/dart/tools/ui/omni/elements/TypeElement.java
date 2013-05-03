@@ -14,24 +14,18 @@
 package com.google.dart.tools.ui.omni.elements;
 
 import com.google.dart.compiler.resolver.ClassAliasElement;
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.source.Source;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.ui.IEditorPart;
 
 /**
  * {@link OmniElement} for types.
@@ -80,31 +74,10 @@ public class TypeElement extends OmniElement {
   protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
     instrumentation.data("TypeElement.searchResultSelected", element.getDisplayName());
     try {
-      // prepare resource to open
-      IFile elementFile = getElementFile();
-      if (elementFile == null) {
-        return;
-      }
-      // open editor
-      IEditorPart editor = EditorUtility.openInEditor(elementFile, true);
-      if (editor == null) {
-        return;
-      }
-      // reveal element
-      EditorUtility.revealInEditor(editor, element);
+      DartUI.openInEditor(element);
     } catch (Throwable e) {
       DartToolsPlugin.log(e);
     }
-  }
-
-  /**
-   * @return the {@link IFile} with {@link #element} to open, may be {@code null}.
-   */
-  private IFile getElementFile() {
-    AnalysisContext elementContext = element.getContext();
-    Source elementSource = element.getSource();
-    ResourceMap map = DartCore.getProjectManager().getResourceMap(elementContext);
-    return map.getResource(elementSource);
   }
 
   // TODO(scheglov) remove this

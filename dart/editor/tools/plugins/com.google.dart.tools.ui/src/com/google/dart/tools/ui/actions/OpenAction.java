@@ -26,6 +26,7 @@ import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 
@@ -50,6 +51,10 @@ public class OpenAction extends AbstractDartSelectionAction {
 
   public OpenAction(DartEditor editor) {
     super(editor);
+  }
+
+  public OpenAction(IWorkbenchSite site) {
+    super(site);
   }
 
   @Override
@@ -93,7 +98,7 @@ public class OpenAction extends AbstractDartSelectionAction {
     element = DartElementUtil.getVariableIfSyntheticAccessor(element);
     // do open
     try {
-      DartUI.openInEditor(editor, element, true);
+      DartUI.openInEditor(element);
     } catch (Throwable e) {
       ExceptionHandler.handle(e, getText(), "Exception during open.");
     }

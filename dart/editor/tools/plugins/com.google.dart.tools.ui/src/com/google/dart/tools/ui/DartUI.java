@@ -13,10 +13,12 @@
  */
 package com.google.dart.tools.ui;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
@@ -728,11 +730,22 @@ public final class DartUI {
    */
   public static IEditorPart openInEditor(Element element, boolean activate, boolean reveal)
       throws DartModelException, PartInitException {
-    IEditorPart part = EditorUtility.openInEditor(element, activate);
-    if (reveal && part != null) {
-      EditorUtility.revealInEditor(part, element);
+    // prepare resource to open
+    IFile elementFile = getElementFile(element);
+    // open editor
+    IEditorPart editor;
+    if (elementFile != null) {
+      editor = EditorUtility.openInEditor(elementFile, activate);
+    } else {
+      editor = EditorUtility.openInEditor(element.getSource(), activate);
     }
-    return part;
+    if (editor == null) {
+      return null;
+    }
+    if (reveal && editor != null) {
+      EditorUtility.revealInEditor(editor, element);
+    }
+    return editor;
   }
 
   /**
@@ -800,6 +813,19 @@ public final class DartUI {
       }
     }
     return null;
+  }
+
+  /**
+   * @return the {@link IFile} with {@link #element} to open, may be {@code null}.
+   */
+  private static IFile getElementFile(Element element) {
+    AnalysisContext elementContext = element.getContext();
+    Source elementSource = element.getSource();
+    ResourceMap map = DartCore.getProjectManager().getResourceMap(elementContext);
+    if (map == null) {
+      return null;
+    }
+    return map.getResource(elementSource);
   }
 
   private DartUI() {

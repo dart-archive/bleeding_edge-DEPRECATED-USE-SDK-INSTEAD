@@ -52,7 +52,6 @@ import com.google.dart.tools.ui.internal.text.functions.LegacyDartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.text.functions.SingleTokenDartScanner;
 import com.google.dart.tools.ui.internal.typehierarchy.HierarchyInformationControl;
-import com.google.dart.tools.ui.internal.typehierarchy.HierarchyInformationControl_OLD;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.runtime.Assert;
@@ -145,18 +144,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
         int shellStyle = SWT.RESIZE;
         int treeStyle = SWT.V_SCROLL | SWT.H_SCROLL;
         return new HierarchyInformationControl(parent, shellStyle, treeStyle);
-      }
-    };
-  }
-
-  private static IInformationControlCreator getHierarchyPresenterControlCreator_OLD(
-      ISourceViewer sourceViewer) {
-    return new IInformationControlCreator() {
-      @Override
-      public IInformationControl createInformationControl(Shell parent) {
-        int shellStyle = SWT.RESIZE;
-        int treeStyle = SWT.V_SCROLL | SWT.H_SCROLL;
-        return new HierarchyInformationControl_OLD(parent, shellStyle, treeStyle);
       }
     };
   }
@@ -455,12 +442,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
       }
     }
 
-    IInformationControlCreator hierarchyPresenterControlCreator;
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      hierarchyPresenterControlCreator = getHierarchyPresenterControlCreator(sourceViewer);
-    } else {
-      hierarchyPresenterControlCreator = getHierarchyPresenterControlCreator_OLD(sourceViewer);
-    }
+    IInformationControlCreator hierarchyPresenterControlCreator = getHierarchyPresenterControlCreator(sourceViewer);
     InformationPresenter presenter = new InformationPresenter(hierarchyPresenterControlCreator);
     presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
     presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);

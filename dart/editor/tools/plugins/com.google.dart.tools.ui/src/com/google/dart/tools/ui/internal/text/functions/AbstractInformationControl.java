@@ -18,8 +18,8 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.ParentElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
-import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.StringMatcher;
 
 import org.eclipse.core.runtime.CoreException;
@@ -62,7 +62,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ActionHandler;
 import org.eclipse.ui.commands.HandlerSubmission;
@@ -827,21 +826,9 @@ public abstract class AbstractInformationControl extends PopupDialog implements
 
   private void gotoSelectedElement() {
     Object selectedElement = getSelectedElement();
-    if (selectedElement != null) {
+    if (selectedElement instanceof Element) {
       try {
-        dispose();
-        IEditorPart part = EditorUtility.openInEditor(selectedElement, true);
-        if (part != null) {
-          if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-            if (selectedElement instanceof Element) {
-              EditorUtility.revealInEditor(part, (Element) selectedElement);
-            }
-          } else {
-            if (selectedElement instanceof DartElement) {
-              EditorUtility.revealInEditor(part, (DartElement) selectedElement);
-            }
-          }
-        }
+        DartUI.openInEditor((Element) selectedElement);
       } catch (CoreException ex) {
         DartToolsPlugin.log(ex);
       }
