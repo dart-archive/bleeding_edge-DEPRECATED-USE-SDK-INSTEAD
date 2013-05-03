@@ -426,7 +426,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public AnalysisContext extractContext(SourceContainer container) {
     return extractContextInto(
         container,
-        (AnalysisContextImpl) AnalysisEngine.getInstance().createAnalysisContext());
+        (InternalAnalysisContext) AnalysisEngine.getInstance().createAnalysisContext());
   }
 
   @Override
