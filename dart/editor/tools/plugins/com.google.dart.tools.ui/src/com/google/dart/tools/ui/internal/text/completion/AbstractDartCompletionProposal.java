@@ -95,7 +95,18 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     ICompletionProposalExtension, ICompletionProposalExtension2, ICompletionProposalExtension3,
     ICompletionProposalExtension5, ICompletionProposalExtension6 {
 
-  protected static final class ExitPolicy implements IExitPolicy {
+  /**
+   * Allow the linked mode editor to continue running even when the exit character is typed as part
+   * of a function argument. Using shift operators in a context that expects balanced angle brackets
+   * is not legal syntax and will confuse the linked mode editor.
+   */
+  protected static class ExitPolicy implements IExitPolicy {
+
+    private int parenCount = 0;
+    private int braceCount = 0;
+    private int bracketCount = 0;
+    private int angleBracketCount = 0;
+    private char lastChar = (char) 0;
 
     final char fExitCharacter;
     private final IDocument fDocument;
@@ -107,8 +118,8 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
 
     @Override
     public ExitFlags doExit(LinkedModeModel environment, VerifyEvent event, int offset, int length) {
-
-      if (event.character == fExitCharacter) {
+      countGroupChars(event);
+      if (event.character == fExitCharacter && isBalanced(fExitCharacter)) {
         if (environment.anyPositionContains(offset)) {
           return new ExitFlags(ILinkedModeListener.UPDATE_CARET, false);
         } else {
@@ -131,11 +142,104 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
             }
           }
           return null;
+//        case ',':
+//          // Making comma act like tab seems like a good idea but it requires auto-insert of matching group chars to work.
+//          if (offset > 0) {
+//            try {
+//              if (fDocument.getChar(offset) == ',') {
+//                event.character = 0x09;
+//                return null;
+//              }
+//            } catch (BadLocationException e) {
+//            }
+//          }
         default:
           return null;
       }
     }
 
+    private void countGroupChar(char ch, int inc) {
+      switch (ch) {
+        case '(':
+          parenCount += inc;
+          break;
+        case ')':
+          parenCount -= inc;
+          break;
+        case '{':
+          braceCount += inc;
+          break;
+        case '}':
+          braceCount -= inc;
+          break;
+        case '[':
+          bracketCount += inc;
+          break;
+        case ']':
+          bracketCount -= inc;
+          break;
+        case '<':
+          angleBracketCount += inc;
+          break;
+        case '>':
+          if (lastChar != '=') {
+            // only decrement when not part of =>
+            angleBracketCount -= inc;
+          }
+          break;
+        case '=':
+          if (lastChar == '>') {
+            // deleting => should not change angleBracketCount
+            angleBracketCount += inc;
+          }
+          break;
+        default:
+          break;
+      }
+      lastChar = ch;
+    }
+
+    private void countGroupChars(VerifyEvent event) {
+      char ch = event.character;
+      int inc = 1;
+      if (ch == '\b') { // TODO Find correct delete chars for Linux & Windows
+        inc = -1;
+        if (!(event.widget instanceof StyledText)) {
+          return;
+        }
+        Point sel = ((StyledText) event.widget).getSelection();
+        try {
+          if (sel.x == sel.y) {
+            ch = fDocument.getChar(sel.x);
+            countGroupChar(ch, inc);
+          } else {
+            for (int x = sel.y - 1; x >= sel.x; x--) {
+              ch = fDocument.getChar(x);
+              countGroupChar(ch, inc);
+            }
+          }
+        } catch (BadLocationException ex) {
+          return;
+        }
+      } else {
+        countGroupChar(ch, inc);
+      }
+    }
+
+    private boolean isBalanced(char ch) {
+      switch (ch) {
+        case ')':
+          return parenCount == -1;
+        case '}':
+          return braceCount == -1;
+        case ']':
+          return bracketCount == -1;
+        case '>':
+          return angleBracketCount == -1;
+        default:
+          return true; // never unbalanced
+      }
+    }
   }
 
   /**

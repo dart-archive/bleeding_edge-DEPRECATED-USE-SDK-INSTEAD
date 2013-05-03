@@ -333,7 +333,13 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       final Point selection = sourceViewer.getSelectedRange();
       final int offset = selection.x;
       final int length = selection.y;
-
+      LinkedModeModel existingModel = LinkedModeModel.getModel(document, offset);
+      if (existingModel != null && existingModel.anyPositionContains(offset)) {
+        if (existingModel.getClass().getSuperclass().isAssignableFrom(LinkedModeModel.class)) {
+          // Adding a bracket matcher while completion proposal editing is active causes problems
+          return;
+        }
+      }
       try {
         IRegion startLine = document.getLineInformationOfOffset(offset);
         IRegion endLine = document.getLineInformationOfOffset(offset + length);
