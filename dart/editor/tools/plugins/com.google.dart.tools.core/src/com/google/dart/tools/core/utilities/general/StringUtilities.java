@@ -229,7 +229,7 @@ public final class StringUtilities {
     boolean inQuote = false;
     boolean prevWasSlash = false;
 
-    command = command.replaceAll("\r\n", " ").replaceAll("\n", " ");
+    command = command.replaceAll("\r\n", " ").replaceAll("\n", " ").replaceAll("\\s+", " ");
 
     for (final char c : command.toCharArray()) {
       if (!prevWasSlash && (c == '\'' || c == '"')) {
