@@ -499,6 +499,19 @@ public final class DartUI {
   }
 
   /**
+   * @return the {@link IFile} with {@link #element} to open, may be {@code null}.
+   */
+  public static IFile getElementFile(Element element) {
+    AnalysisContext elementContext = element.getContext();
+    Source elementSource = element.getSource();
+    ResourceMap map = DartCore.getProjectManager().getResourceMap(elementContext);
+    if (map == null) {
+      return null;
+    }
+    return map.getResource(elementSource);
+  }
+
+  /**
    * Returns the shared images for the Dart UI.
    * 
    * @return the shared images manager
@@ -520,15 +533,6 @@ public final class DartUI {
     // TODO(messick) Use a color identifier distinct from the editor.
     return prefs.getBoolean(AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND_SYSTEM_DEFAULT) ? null
         : createColor(prefs, AbstractTextEditor.PREFERENCE_COLOR_FOREGROUND, display);
-  }
-
-  public static Color getViewerSelectionBackground(IPreferenceStore prefs, Display display) {
-    // TODO(messick) Use a color identifier distinct from the editor.
-    return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_DEFAULT_COLOR)
-        ? null : createColor(
-            prefs,
-            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_COLOR,
-            display);
   }
 
 //TODO (pquitslund): implement when we have dart doc
@@ -610,6 +614,15 @@ public final class DartUI {
 //  public static void setProjectJSdocLocation(DartProject project, URL url) {
 //    JavaDocLocations.setProjectJavadocLocation(project, url);
 //  }
+
+  public static Color getViewerSelectionBackground(IPreferenceStore prefs, Display display) {
+    // TODO(messick) Use a color identifier distinct from the editor.
+    return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_DEFAULT_COLOR)
+        ? null : createColor(
+            prefs,
+            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_COLOR,
+            display);
+  }
 
   public static Color getViewerSelectionForeground(IPreferenceStore prefs, Display display) {
     // TODO(messick) Use a color identifier distinct from the editor.
@@ -813,19 +826,6 @@ public final class DartUI {
       }
     }
     return null;
-  }
-
-  /**
-   * @return the {@link IFile} with {@link #element} to open, may be {@code null}.
-   */
-  private static IFile getElementFile(Element element) {
-    AnalysisContext elementContext = element.getContext();
-    Source elementSource = element.getSource();
-    ResourceMap map = DartCore.getProjectManager().getResourceMap(elementContext);
-    if (map == null) {
-      return null;
-    }
-    return map.getResource(elementSource);
   }
 
   private DartUI() {

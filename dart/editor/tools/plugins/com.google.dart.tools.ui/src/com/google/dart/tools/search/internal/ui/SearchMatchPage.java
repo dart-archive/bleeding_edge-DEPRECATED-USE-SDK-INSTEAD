@@ -51,6 +51,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.text.Position;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
@@ -86,62 +87,62 @@ public abstract class SearchMatchPage extends SearchPage {
    */
   private static class ResultCursor {
     ResultItem item;
-    int sourceRangeIndex;
+    int positionIndex;
 
     ResultCursor(ResultItem item) {
       this(item, -1);
     }
 
-    ResultCursor(ResultItem item, int sourceRangeIndex) {
+    ResultCursor(ResultItem item, int positionIndex) {
       this.item = item;
-      this.sourceRangeIndex = sourceRangeIndex;
+      this.positionIndex = positionIndex;
     }
 
-    SourceRange getSourceRange() {
+    Position getPosition() {
       if (item == null) {
         return null;
       }
-      if (sourceRangeIndex < 0 || sourceRangeIndex > item.sourceRanges.size() - 1) {
+      if (positionIndex < 0 || positionIndex > item.positions.size() - 1) {
         return null;
       }
-      return item.sourceRanges.get(sourceRangeIndex);
+      return item.positions.get(positionIndex);
     }
 
     /**
-     * Moves this {@link ResultCursor} to the next {@link SourceRange} in the same or next
+     * Moves this {@link ResultCursor} to the next {@link Position} in the same or next
      * {@link ResultItem}.
      * 
      * @return {@code true} if was moved, or {@code false} if cursor is at the last position.
      */
     boolean next() {
       ResultItem _item = item;
-      int _sourceRangeIndex = sourceRangeIndex;
+      int _positionIndex = positionIndex;
       // try to go to next
       if (_next()) {
         return true;
       }
       // rollback
       item = _item;
-      sourceRangeIndex = _sourceRangeIndex;
+      positionIndex = _positionIndex;
       return false;
     }
 
     /**
-     * Moves this {@link ResultCursor} to the previous {@link SourceRange} in the same or previous
+     * Moves this {@link ResultCursor} to the previous {@link Position} in the same or previous
      * {@link ResultItem}.
      * 
      * @return {@code true} if was moved, or {@code false} if cursor is at the first position.
      */
     boolean prev() {
       ResultItem _item = item;
-      int _sourceRangeIndex = sourceRangeIndex;
+      int _positionIndex = positionIndex;
       // try to go to previous
       if (_prev()) {
         return true;
       }
       // rollback
       item = _item;
-      sourceRangeIndex = _sourceRangeIndex;
+      positionIndex = _positionIndex;
       return false;
     }
 
@@ -150,8 +151,8 @@ public abstract class SearchMatchPage extends SearchPage {
         return false;
       }
       // in the same leaf
-      if (sourceRangeIndex < item.sourceRanges.size() - 1) {
-        sourceRangeIndex++;
+      if (positionIndex < item.positions.size() - 1) {
+        positionIndex++;
         return true;
       }
       // next leaf
@@ -160,8 +161,8 @@ public abstract class SearchMatchPage extends SearchPage {
         if (item == null) {
           return false;
         }
-        if (!item.sourceRanges.isEmpty()) {
-          sourceRangeIndex = 0;
+        if (!item.positions.isEmpty()) {
+          positionIndex = 0;
           break;
         }
       }
@@ -173,8 +174,8 @@ public abstract class SearchMatchPage extends SearchPage {
         return false;
       }
       // in the same leaf
-      if (sourceRangeIndex > 0) {
-        sourceRangeIndex--;
+      if (positionIndex > 0) {
+        positionIndex--;
         return true;
       }
       // previous leaf
@@ -183,8 +184,8 @@ public abstract class SearchMatchPage extends SearchPage {
         if (item == null) {
           return false;
         }
-        if (!item.sourceRanges.isEmpty()) {
-          sourceRangeIndex = item.sourceRanges.size() - 1;
+        if (!item.positions.isEmpty()) {
+          positionIndex = item.positions.size() - 1;
           break;
         }
       }
@@ -197,19 +198,19 @@ public abstract class SearchMatchPage extends SearchPage {
    */
   private static class ResultItem {
     private final Element element;
-    private final List<SourceRange> sourceRanges = Lists.newArrayList();
+    private final List<Position> positions = Lists.newArrayList();
     private final List<ResultItem> children = Lists.newArrayList();
     private ResultItem parent;
     private ResultItem prev;
     private ResultItem next;
     private int numMatches;
 
-    public ResultItem(Element element, SourceRange sourceRange) {
+    public ResultItem(Element element, Position position) {
       this.element = element;
-      if (sourceRange != null) {
-        sourceRanges.add(sourceRange);
+      if (position != null) {
+        positions.add(position);
       }
-      numMatches = sourceRange != null ? 1 : 0;
+      numMatches = position != null ? 1 : 0;
     }
 
     @Override
@@ -227,7 +228,7 @@ public abstract class SearchMatchPage extends SearchPage {
 
     public void merge(ResultItem item) {
       numMatches += item.numMatches;
-      sourceRanges.addAll(item.sourceRanges);
+      positions.addAll(item.positions);
     }
 
     void addChild(ResultItem child) {
@@ -334,11 +335,14 @@ public abstract class SearchMatchPage extends SearchPage {
     itemMap.put(null, rootItem);
     for (SearchMatch match : matches) {
       Element element = getResultItemElement(match.getElement());
-      ResultItem child = new ResultItem(element, match.getSourceRange());
+      SourceRange matchRange = match.getSourceRange();
+      ResultItem child = new ResultItem(element, new Position(
+          matchRange.getOffset(),
+          matchRange.getLength()));
       addResultItem(itemMap, child);
     }
     calculateNumMatches(rootItem);
-    sortSourceRanges(rootItem);
+    sortPositions(rootItem);
     linkLeaves(rootItem, null);
     return rootItem;
   }
@@ -347,7 +351,7 @@ public abstract class SearchMatchPage extends SearchPage {
    * Recursively calculates {@link ResultItem#numMatches} fields.
    */
   private static int calculateNumMatches(ResultItem item) {
-    int result = item.sourceRanges.size();
+    int result = item.positions.size();
     for (ResultItem child : item.children) {
       result += calculateNumMatches(child);
     }
@@ -394,12 +398,20 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   /**
-   * Recursively visits {@link ResultItem} and sorts all {@link SourceRange}s.
+   * Reveals the given {@link Position} in the {@link IEditorPart}.
    */
-  private static void sortSourceRanges(ResultItem item) {
-    Collections.sort(item.sourceRanges, new Comparator<SourceRange>() {
+  private static void revealInEditor(IEditorPart editor, Position position) {
+    SourceRange sourceRange = new SourceRange(position.offset, position.length);
+    EditorUtility.revealInEditor(editor, sourceRange);
+  }
+
+  /**
+   * Recursively visits {@link ResultItem} and sorts all {@link Position}s.
+   */
+  private static void sortPositions(ResultItem item) {
+    Collections.sort(item.positions, new Comparator<Position>() {
       @Override
-      public int compare(SourceRange o1, SourceRange o2) {
+      public int compare(Position o1, Position o2) {
         return o1.getOffset() - o2.getOffset();
       }
     });
@@ -410,7 +422,7 @@ public abstract class SearchMatchPage extends SearchPage {
       }
     });
     for (ResultItem child : item.children) {
-      sortSourceRanges(child);
+      sortPositions(child);
     }
   }
 
@@ -522,6 +534,8 @@ public abstract class SearchMatchPage extends SearchPage {
   private ResultItem rootItem;
   private ResultCursor itemCursor;
 
+  private PositionTracker positionTracker;
+
   public SearchMatchPage(SearchView searchView, IFile context, String taskName) {
     this.searchView = searchView;
     this.context = context;
@@ -548,6 +562,7 @@ public abstract class SearchMatchPage extends SearchPage {
   public void dispose() {
     super.dispose();
     removeMarkers();
+    disposePositionTracker();
   }
 
   @Override
@@ -610,18 +625,18 @@ public abstract class SearchMatchPage extends SearchPage {
    */
   private void addMarkers(ResultItem item) throws CoreException {
     // add marker if leaf
-    if (!item.sourceRanges.isEmpty()) {
+    if (!item.positions.isEmpty()) {
       Source source = item.element.getSource();
       ResourceMap resourceMap = DartCore.getProjectManager().getResourceMap(context);
       IResource resource = resourceMap.getResource(source);
       if (resource != null && resource.exists()) {
         markerResources.add(resource);
         try {
-          List<SourceRange> sourceRanges = item.sourceRanges;
-          for (SourceRange sourceRange : sourceRanges) {
+          List<Position> positions = item.positions;
+          for (Position position : positions) {
             IMarker marker = resource.createMarker(SearchView.SEARCH_MARKER);
-            marker.setAttribute(IMarker.CHAR_START, sourceRange.getOffset());
-            marker.setAttribute(IMarker.CHAR_END, sourceRange.getEnd());
+            marker.setAttribute(IMarker.CHAR_START, position.getOffset());
+            marker.setAttribute(IMarker.CHAR_END, position.getOffset() + position.getLength());
           }
         } catch (Throwable e) {
         }
@@ -631,6 +646,17 @@ public abstract class SearchMatchPage extends SearchPage {
     for (ResultItem child : item.children) {
       addMarkers(child);
     }
+  }
+
+  /**
+   * Disposes {@link #positionTracker}.
+   */
+  private void disposePositionTracker() {
+    if (positionTracker == null) {
+      return;
+    }
+    positionTracker.dispose();
+    positionTracker = null;
   }
 
   /**
@@ -647,7 +673,7 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   /**
-   * Opens {@link DartEditor} with the next {@link SourceRange} in the same of the next
+   * Opens {@link DartEditor} with the next {@link Position} in the same of the next
    * {@link ResultItem}.
    */
   private void openItemNext() {
@@ -658,7 +684,7 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   /**
-   * Opens {@link DartEditor} with the previous {@link SourceRange} in the same of the previous
+   * Opens {@link DartEditor} with the previous {@link Position} in the same of the previous
    * {@link ResultItem}.
    */
   private void openItemPrev() {
@@ -694,11 +720,11 @@ public abstract class SearchMatchPage extends SearchPage {
       return;
     }
     Element element = itemCursor.item.element;
-    SourceRange sourceRange = itemCursor.getSourceRange();
-    // show Element and SourceRange
+    Position position = itemCursor.getPosition();
+    // show Element and Position
     try {
       IEditorPart editor = DartUI.openInEditor(context, element, true);
-      EditorUtility.revealInEditor(editor, sourceRange);
+      revealInEditor(editor, position);
     } catch (Throwable e) {
       ExceptionHandler.handle(e, "Search", "Exception during open.");
     }
@@ -716,6 +742,7 @@ public abstract class SearchMatchPage extends SearchPage {
           List<SearchMatch> matches = runQuery();
           rootItem = buildResultItemTree(matches);
           itemCursor = new ResultCursor(rootItem);
+          trackPositions();
           // add markers
           addMarkers();
           // schedule UI update
@@ -770,13 +797,41 @@ public abstract class SearchMatchPage extends SearchPage {
       // open editor with Element
       Element element = itemCursor.item.element;
       IEditorPart editor = DartUI.openInEditor(context, element, false);
-      // show SourceRange
-      SourceRange sourceRange = itemCursor.getSourceRange();
-      if (sourceRange != null) {
-        EditorUtility.revealInEditor(editor, sourceRange);
+      // show Position
+      Position position = itemCursor.getPosition();
+      if (position != null) {
+        revealInEditor(editor, position);
       }
     } catch (Throwable e) {
       ExceptionHandler.handle(e, "Search", "Exception during open.");
+    }
+  }
+
+  /**
+   * Starts tracking all search result positions in {@link #positionTracker}.
+   */
+  private void trackPositions() {
+    disposePositionTracker();
+    positionTracker = new PositionTracker();
+    trackPositions(rootItem);
+  }
+
+  /**
+   * Recursively visits {@link ResultItem} and tracks all {@link Position}s.
+   */
+  private void trackPositions(ResultItem item) {
+    // do track positions
+    if (item.element != null) {
+      IFile file = DartUI.getElementFile(item.element);
+      if (file != null) {
+        for (Position position : item.positions) {
+          positionTracker.trackPosition(file, position);
+        }
+      }
+    }
+    // process children
+    for (ResultItem child : item.children) {
+      trackPositions(child);
     }
   }
 }
