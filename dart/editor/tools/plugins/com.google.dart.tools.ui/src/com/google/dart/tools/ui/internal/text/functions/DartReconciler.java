@@ -26,8 +26,11 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.DocumentRewriteSessionEvent;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.IDocumentRewriteSessionListener;
 import org.eclipse.jface.text.ITextInputListener;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.reconciler.MonoReconciler;
@@ -57,7 +60,7 @@ public class DartReconciler extends MonoReconciler {
   }
 
   private class Listener implements IDocumentListener, ITextInputListener,
-      ISelectionChangedListener {
+      ISelectionChangedListener, IDocumentRewriteSessionListener {
 
     @Override
     public void documentAboutToBeChanged(DocumentEvent event) {
@@ -69,6 +72,16 @@ public class DartReconciler extends MonoReconciler {
     }
 
     @Override
+    public void documentRewriteSessionChanged(DocumentRewriteSessionEvent event) {
+      if (event.getChangeType() == DocumentRewriteSessionEvent.SESSION_START) {
+        event.getDocument().removeDocumentListener(this);
+      }
+      if (event.getChangeType() == DocumentRewriteSessionEvent.SESSION_STOP) {
+        event.getDocument().addDocumentListener(this);
+      }
+    }
+
+    @Override
     public void inputDocumentAboutToBeChanged(IDocument oldInput, IDocument newInput) {
     }
 
@@ -76,9 +89,15 @@ public class DartReconciler extends MonoReconciler {
     public void inputDocumentChanged(IDocument oldInput, IDocument newInput) {
       if (oldInput != null) {
         oldInput.removeDocumentListener(this);
+        if (oldInput instanceof IDocumentExtension4) {
+          ((IDocumentExtension4) oldInput).removeDocumentRewriteSessionListener(this);
+        }
       }
       if (newInput != null) {
         newInput.addDocumentListener(this);
+        if (newInput instanceof IDocumentExtension4) {
+          ((IDocumentExtension4) newInput).addDocumentRewriteSessionListener(this);
+        }
       }
       if (oldInput != null) {
         putEditorState(true);

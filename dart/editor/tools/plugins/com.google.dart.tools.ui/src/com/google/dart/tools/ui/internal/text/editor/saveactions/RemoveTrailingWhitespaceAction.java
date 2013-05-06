@@ -13,9 +13,13 @@
  */
 package com.google.dart.tools.ui.internal.text.editor.saveactions;
 
+import org.eclipse.jface.text.DocumentRewriteSession;
+import org.eclipse.jface.text.DocumentRewriteSessionType;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentExtension4;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.text.edits.MultiTextEdit;
+import org.eclipse.text.edits.TextEdit;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -23,6 +27,23 @@ import java.lang.reflect.InvocationTargetException;
  * An action to remove trailing whitespace from a document.
  */
 public class RemoveTrailingWhitespaceAction {
+  /**
+   * Applying big {@link TextEdit} may be pretty expensive if document itself is also big. Currently
+   * in Dart this causes running "FastDocumentPartitionScanner" on each change and it looks like
+   * Editor is hanging.
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=10443
+   */
+  private static void applyTextEdit(IDocument document, TextEdit textEdit) throws Exception {
+    if (document instanceof IDocumentExtension4) {
+      IDocumentExtension4 extension4 = (IDocumentExtension4) document;
+      DocumentRewriteSession session = extension4.startRewriteSession(DocumentRewriteSessionType.UNRESTRICTED);
+      textEdit.apply(document);
+      extension4.stopRewriteSession(session);
+    } else {
+      textEdit.apply(document);
+    }
+  }
 
   private final ISourceViewer viewer;
 
@@ -44,10 +65,9 @@ public class RemoveTrailingWhitespaceAction {
 
     try {
       MultiTextEdit edit = CodeFormatEditFactory.removeTrailingWhitespace(document);
-      edit.apply(document);
+      applyTextEdit(document, edit);
     } catch (Throwable e) {
       throw new InvocationTargetException(e);
     }
   }
-
 }
