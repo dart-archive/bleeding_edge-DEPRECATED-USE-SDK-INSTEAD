@@ -12,9 +12,11 @@
  * the License.
  */
 
-package com.google.dart.engine.services.internal.correction;
+package com.google.dart.engine.services.correction;
 
 import com.google.dart.engine.services.correction.CorrectionImage;
+import com.google.dart.engine.services.correction.LinkedPositionProposal;
+import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 
 /**
  * Test for {@link LinkedPositionProposal}.

@@ -14,8 +14,11 @@
 
 package com.google.dart.engine.services.internal.correction;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -30,22 +33,24 @@ import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.CreateFileCorrectionProposal;
+import com.google.dart.engine.services.correction.LinkedPositionProposal;
 import com.google.dart.engine.services.correction.QuickFixProcessor;
 import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.services.internal.refactoring.RefactoringImplTest;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 
-import org.apache.commons.lang3.StringUtils;
-
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class QuickFixProcessorImplTest extends RefactoringImplTest {
   private static final QuickFixProcessor PROCESSOR = CorrectionProcessors.getQuickFixProcessor();
+  private static CharMatcher NOT_IDENTIFIER_MATCHER = CharMatcher.JAVA_LETTER_OR_DIGIT.negate();
 
   private AnalysisError error;
   private SourceCorrectionProposal resultProposal;
@@ -432,6 +437,338 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             ""));
   }
 
+  public void test_undefinedClass_useSimilar_fromThisLibrary() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class MyClass {}",
+        "main() {",
+        "  MyCalss v = null;",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CHANGE_TO,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class MyClass {}",
+            "main() {",
+            "  MyClass v = null;",
+            "}"));
+  }
+
+  public void test_undefinedClass_useSimilar_String() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Stirng s = 'abc';",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CHANGE_TO,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  String s = 'abc';",
+            "}"));
+  }
+
+  public void test_undefinedFunction_useSimilar_fromImport() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  pritn(0);",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CHANGE_TO,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  print(0);",
+            "}"));
+  }
+
+  public void test_undefinedFunction_useSimilar_thisLibrary() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "myFunction() {}",
+        "main() {",
+        "  myFuntcion();",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CHANGE_TO,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "myFunction() {}",
+            "main() {",
+            "  myFunction();",
+            "}"));
+  }
+
+  public void test_undefinedMethod_createQualified_fromClass() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  A.myUndefinedMethod();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static myUndefinedMethod() {",
+            "  }",
+            "}",
+            "main() {",
+            "  A.myUndefinedMethod();",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedMethod_createQualified_fromClass_hasOtherMember() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "}",
+        "main() {",
+        "  A.myUndefinedMethod();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  foo() {}",
+            "  ",
+            "  static myUndefinedMethod() {",
+            "  }",
+            "}",
+            "main() {",
+            "  A.myUndefinedMethod();",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedMethod_createQualified_fromClass_unresolved() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  NoSuchClass.myUndefinedMethod();",
+        "}",
+        "");
+    assertNoFix(CorrectionKind.QF_CREATE_METHOD);
+  }
+
+  public void test_undefinedMethod_createQualified_fromInstance() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.myUndefinedMethod();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  myUndefinedMethod() {",
+            "  }",
+            "}",
+            "main() {",
+            "  A a = new A();",
+            "  a.myUndefinedMethod();",
+            "}",
+            ""));
+    // linked positions
+    {
+      Map<String, List<SourceRange>> expected = Maps.newHashMap();
+      expected.put("NAME", getResultRanges("myUndefinedMethod();", "myUndefinedMethod() {"));
+      assertEquals(expected, resultProposal.getLinkedPositions());
+    }
+  }
+
+  public void test_undefinedMethod_createUnqualified_parameters() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  main() {",
+        "    myUndefinedMethod(0, 1.0, '3');",
+        "  }",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  main() {",
+            "    myUndefinedMethod(0, 1.0, '3');",
+            "  }",
+            "  ",
+            "  myUndefinedMethod(int i, double d, String s) {",
+            "  }",
+            "}"));
+    // linked positions
+    {
+      Map<String, List<SourceRange>> expected = Maps.newHashMap();
+      expected.put("NAME", getResultRanges("myUndefinedMethod(0", "myUndefinedMethod(int"));
+      expected.put("TYPE0", getResultRanges("int i"));
+      expected.put("TYPE1", getResultRanges("double d"));
+      expected.put("TYPE2", getResultRanges("String s"));
+      expected.put("ARG0", getResultRanges("i,"));
+      expected.put("ARG1", getResultRanges("d,"));
+      expected.put("ARG2", getResultRanges("s)"));
+      assertEquals(expected, resultProposal.getLinkedPositions());
+    }
+    // linked proposals
+    assertLinkedProposals("TYPE0", "int", "num", "Comparable", "Object");
+    assertLinkedProposals("TYPE1", "double", "num", "Comparable", "Object");
+    assertLinkedProposals("TYPE2", "String", "Comparable", "Object");
+  }
+
+  public void test_undefinedMethod_createUnqualified_returnType() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  main() {",
+        "    int v = myUndefinedMethod();",
+        "  }",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  main() {",
+            "    int v = myUndefinedMethod();",
+            "  }",
+            "  ",
+            "  int myUndefinedMethod() {",
+            "  }",
+            "}"));
+    // linked positions
+    {
+      Map<String, List<SourceRange>> expected = Maps.newHashMap();
+      expected.put("NAME", getResultRanges("myUndefinedMethod();", "myUndefinedMethod() {"));
+      expected.put("RETURN_TYPE", getResultRanges("int myUndefinedMethod()"));
+      assertEquals(expected, resultProposal.getLinkedPositions());
+    }
+  }
+
+  public void test_undefinedMethod_createUnqualified_staticFromField() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static f = myUndefinedMethod();",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static f = myUndefinedMethod();",
+            "  ",
+            "  static myUndefinedMethod() {",
+            "  }",
+            "}"));
+  }
+
+  public void test_undefinedMethod_createUnqualified_staticFromMethod() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static main() {",
+        "    myUndefinedMethod();",
+        "  }",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static main() {",
+            "    myUndefinedMethod();",
+            "  }",
+            "  ",
+            "  static myUndefinedMethod() {",
+            "  }",
+            "}"));
+  }
+
+  public void test_undefinedMethod_useSimilar_qualified() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  myMethod() {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.myMehtod();",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CHANGE_TO,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  myMethod() {}",
+            "}",
+            "main() {",
+            "  A a = new A();",
+            "  a.myMethod();",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedMethod_useSimilar_unqualified_superClass() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  myMethod() {}",
+        "}",
+        "class B extends A {",
+        "  main() {",
+        "    myMehtod();",
+        "  }",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CHANGE_TO,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  myMethod() {}",
+            "}",
+            "class B extends A {",
+            "  main() {",
+            "    myMethod();",
+            "  }",
+            "}"));
+  }
+
+  public void test_undefinedMethod_useSimilar_unqualified_thisClass() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  myMethod() {}",
+        "  main() {",
+        "    myMehtod();",
+        "  }",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CHANGE_TO,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  myMethod() {}",
+            "  main() {",
+            "    myMethod();",
+            "  }",
+            "}"));
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -453,8 +790,19 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
    */
   private void assert_runProcessor(CorrectionKind kind, String expectedSource) throws Exception {
     resultProposal = (SourceCorrectionProposal) findProposal(kind);
+    assertNotNull(kind.name(), resultProposal);
     resultCode = applyProposal(resultProposal);
     assertEquals(expectedSource, resultCode);
+  }
+
+  private void assertLinkedProposals(String positionName, String... expectedNames) {
+    List<LinkedPositionProposal> proposals = resultProposal.getLinkedPositionProposals().get(
+        positionName);
+    Set<String> actualNames = Sets.newHashSet();
+    for (LinkedPositionProposal proposal : proposals) {
+      actualNames.add(proposal.getText());
+    }
+    assertThat(actualNames).contains((Object[]) expectedNames);
   }
 
   private void assertNoFix(CorrectionKind kind) throws Exception {
@@ -490,13 +838,13 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
   }
 
   /**
-   * @return the {@link SourceRange} of "wordPattern" in {@link #resultCode}.
+   * @return the {@link SourceRange} of "identPattern" in {@link #resultCode}.
    */
-  private SourceRange getResultRange(String wordPattern) {
-    int offset = resultCode.indexOf(wordPattern);
-    assertThat(offset).describedAs(wordPattern + " in " + resultCode).isPositive();
-    String word = StringUtils.substringBefore(wordPattern, " ");
-    return new SourceRange(offset, word.length());
+  private SourceRange getResultRange(String identPattern) {
+    int offset = resultCode.indexOf(identPattern);
+    assertThat(offset).describedAs(identPattern + " in " + resultCode).isPositive();
+    String identifier = identPattern.substring(0, NOT_IDENTIFIER_MATCHER.indexIn(identPattern));
+    return new SourceRange(offset, identifier.length());
   }
 
   /**

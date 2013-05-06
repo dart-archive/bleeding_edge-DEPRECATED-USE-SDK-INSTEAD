@@ -56,6 +56,7 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProposal;
+import com.google.dart.engine.services.correction.LinkedPositionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
 import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.services.internal.util.ExecutionUtils;

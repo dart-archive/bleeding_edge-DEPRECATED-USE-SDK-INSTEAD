@@ -15,6 +15,7 @@
 package com.google.dart.engine.services.internal.correction;
 
 import com.google.dart.engine.services.correction.CorrectionImage;
+import com.google.dart.engine.services.correction.LinkedPositionProposal;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartLength;
@@ -48,6 +49,13 @@ public class SourceBuilderTest extends AbstractDartTest {
     builder.append(" = 99;");
     // validate
     assertEquals(42 + "var v".length(), builder.getEndPosition());
+  }
+
+  public void test_length() throws Exception {
+    SourceBuilder builder = new SourceBuilder(42);
+    builder.append("var ");
+    builder.append("a");
+    assertEquals(5, builder.length());
   }
 
   public void test_new_offset() throws Exception {

@@ -909,6 +909,37 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertSame(null, CorrectionUtils.getPropertyAccessorElement(identifier));
   }
 
+  public void test_getResolvedNode_class() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "");
+    {
+      ClassElement element = findIdentifierElement("A {}");
+      ClassDeclaration node = CorrectionUtils.getResolvedNode(element);
+      assertNotNull(node);
+      assertEquals("A", node.getName().getName());
+    }
+  }
+
+  public void test_getResolvedNode_notSupported() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "");
+    {
+      Element element = mock(Element.class);
+      when(element.getContext()).thenReturn(analysisContext);
+      when(element.getSource()).thenReturn(testSource);
+      when(element.getKind()).thenReturn(ElementKind.ERROR);
+      try {
+        CorrectionUtils.getResolvedNode(element);
+        fail();
+      } catch (IllegalArgumentException e) {
+      }
+    }
+  }
+
   public void test_getResolvedUnit() throws Exception {
     Source source = mock(Source.class);
     CompilationUnit compilationUnit = mock(CompilationUnit.class);
@@ -1196,6 +1227,23 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         expression,
         ImmutableSet.of("i", "j"),
         formatLines("k"));
+  }
+
+  public void test_getVariableNameSuggestions_expectedType_String() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class TreeNode {}",
+        "main() {",
+        "  String res = '';",
+        "}");
+    Expression expression = findNode("'';", Expression.class);
+    Type expectedType = ((VariableDeclaration) expression.getParent()).getElement().getType();
+    // first choice for "String" is "s"
+    assert_getVariableNameSuggestions(
+        expectedType,
+        expression,
+        ImmutableSet.of(""),
+        formatLines("s"));
   }
 
   public void test_getVariableNameSuggestions_invocationArgument_named() throws Exception {

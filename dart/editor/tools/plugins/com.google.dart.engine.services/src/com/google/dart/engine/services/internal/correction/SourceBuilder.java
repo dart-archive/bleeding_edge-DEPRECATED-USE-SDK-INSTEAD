@@ -17,6 +17,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.engine.services.correction.CorrectionImage;
 import com.google.dart.engine.services.correction.CorrectionProposal;
+import com.google.dart.engine.services.correction.LinkedPositionProposal;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
@@ -104,6 +105,13 @@ public class SourceBuilder {
    */
   public int getOffset() {
     return offset;
+  }
+
+  /**
+   * @return the length of the built source.
+   */
+  public int length() {
+    return buffer.length();
   }
 
   /**

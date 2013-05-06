@@ -106,6 +106,13 @@ public class SourceRangeTest extends TestCase {
     assertEquals(new SourceRange(5, 2), r.getMoveEnd(-1));
   }
 
+  public void test_getTranslated() throws Exception {
+    SourceRange r = new SourceRange(5, 3);
+    assertEquals(r, r.getTranslated(0));
+    assertEquals(new SourceRange(7, 3), r.getTranslated(2));
+    assertEquals(new SourceRange(4, 3), r.getTranslated(-1));
+  }
+
   public void test_intersects() throws Exception {
     SourceRange r = new SourceRange(5, 3);
     // null

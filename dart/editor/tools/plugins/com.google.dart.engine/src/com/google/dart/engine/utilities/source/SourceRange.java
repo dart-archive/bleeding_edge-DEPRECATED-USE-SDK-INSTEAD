@@ -134,6 +134,13 @@ public final class SourceRange {
     return offset;
   }
 
+  /**
+   * @return the expanded translated of {@link SourceRange}, with moved start and the same length.
+   */
+  public SourceRange getTranslated(int delta) {
+    return new SourceRange(offset + delta, length);
+  }
+
   @Override
   public int hashCode() {
     return 31 * offset + length;

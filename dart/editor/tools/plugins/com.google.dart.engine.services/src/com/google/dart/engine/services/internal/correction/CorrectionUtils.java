@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
@@ -78,6 +79,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -256,6 +258,16 @@ public class CorrectionUtils {
   }
 
   /**
+   * TODO(scheglov) may be replace with some API for this
+   * 
+   * @return the namespace of the given {@link ImportElement}.
+   */
+  public static Map<String, Element> getImportNamespace(ImportElement imp) {
+    Namespace namespace = new NamespaceBuilder().createImportNamespace(imp);
+    return namespace.getDefinedNames();
+  }
+
+  /**
    * @return the line prefix from the given source, i.e. basically just whitespace prefix of the
    *         given {@link String}.
    */
@@ -415,6 +427,21 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return the resolved {@link ASTNode} which declares given {@link Element}.
+   */
+  @SuppressWarnings("unchecked")
+  public static <T> T getResolvedNode(Element element) throws AnalysisException {
+    CompilationUnit unit = getResolvedUnit(element);
+    ASTNode node = new NodeLocator(element.getNameOffset()).searchWithin(unit);
+    switch (element.getKind()) {
+      case CLASS:
+        return (T) node.getAncestor(ClassDeclaration.class);
+      default:
+        throw new IllegalArgumentException(element.getKind().name());
+    }
+  }
+
+  /**
    * @return the resolved {@link CompilationUnit} which declares given {@link Element}.
    */
   public static CompilationUnit getResolvedUnit(Element element) throws AnalysisException {
@@ -530,6 +557,8 @@ public class CorrectionUtils {
         addSingleCharacterName(excluded, res, 'i');
       } else if ("double".equals(typeName)) {
         addSingleCharacterName(excluded, res, 'd');
+      } else if ("String".equals(typeName)) {
+        addSingleCharacterName(excluded, res, 's');
       } else {
         addAll(excluded, res, getVariableNameSuggestions(typeName));
       }
@@ -1207,9 +1236,8 @@ public class CorrectionUtils {
    */
   private ImportElement getImportElement(Element element) {
     for (ImportElement imp : library.getImports()) {
-      // TODO(scheglov) may be replace with some API for this
-      Namespace namespace = new NamespaceBuilder().createImportNamespace(imp);
-      if (namespace.getDefinedNames().containsValue(element)) {
+      Map<String, Element> definedNames = getImportNamespace(imp);
+      if (definedNames.containsValue(element)) {
         return imp;
       }
     }

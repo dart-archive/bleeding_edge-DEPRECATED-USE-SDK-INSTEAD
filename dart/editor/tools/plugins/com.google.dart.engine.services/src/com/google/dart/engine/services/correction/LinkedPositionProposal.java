@@ -11,9 +11,8 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.services.internal.correction;
+package com.google.dart.engine.services.correction;
 
-import com.google.dart.engine.services.correction.CorrectionImage;
 
 /**
  * Proposal for linked position.

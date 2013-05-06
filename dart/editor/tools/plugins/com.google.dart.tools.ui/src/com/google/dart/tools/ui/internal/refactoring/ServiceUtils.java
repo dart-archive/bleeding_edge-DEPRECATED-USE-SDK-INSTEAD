@@ -21,6 +21,7 @@ import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionImage;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CreateFileCorrectionProposal;
+import com.google.dart.engine.services.correction.LinkedPositionProposal;
 import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
@@ -84,11 +85,13 @@ public class ServiceUtils {
    * @return the Editor specific {@link Image} to given {@link CorrectionImage} identifier.
    */
   public static Image toLTK(CorrectionImage imageId) {
-    switch (imageId) {
-      case IMG_CORRECTION_CHANGE:
-        return DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE);
-      case IMG_CORRECTION_CLASS:
-        return DartPluginImages.get(DartPluginImages.IMG_OBJS_CLASS);
+    if (imageId != null) {
+      switch (imageId) {
+        case IMG_CORRECTION_CHANGE:
+          return DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE);
+        case IMG_CORRECTION_CLASS:
+          return DartPluginImages.get(DartPluginImages.IMG_OBJS_CLASS);
+      }
     }
     return null;
   }
@@ -166,12 +169,21 @@ public class ServiceUtils {
         textChange,
         kind.getRelevance(),
         image);
+    // add linked positions
     for (Entry<String, List<SourceRange>> entry : sourceProposal.getLinkedPositions().entrySet()) {
       String group = entry.getKey();
       for (SourceRange position : entry.getValue()) {
         uiProposal.addLinkedPosition(TrackedPositions.forRange(position), false, group);
       }
     }
+    // add proposals
+    for (Entry<String, List<LinkedPositionProposal>> entry : sourceProposal.getLinkedPositionProposals().entrySet()) {
+      String group = entry.getKey();
+      for (LinkedPositionProposal proposal : entry.getValue()) {
+        uiProposal.addLinkedPositionProposal(group, proposal.getText(), toLTK(proposal.getIcon()));
+      }
+    }
+    // done
     return uiProposal;
   }
 
