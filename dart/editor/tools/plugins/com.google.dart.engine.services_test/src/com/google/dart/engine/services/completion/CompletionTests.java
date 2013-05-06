@@ -426,6 +426,14 @@ public class CompletionTests extends CompletionTestCase {
     test("var aBcD; var x=ab!1", "1+aBcD");
   }
 
+  public void test027() throws Exception {
+    test("m(){try{}catch(eeee,ssss){s!1}", "1+ssss");
+  }
+
+  public void test028() throws Exception {
+    test("m(){var isX=3;if(is!1)", "1+isX");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",

@@ -922,6 +922,34 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitIsExpression(IsExpression node) {
+      Ident ident;
+      if (node.getIsOperator().getEnd() == completionLocation()) {
+        int offset = 0;
+        Token isToken = node.getIsOperator();
+        if (isToken != null) {
+          offset = isToken.getOffset();
+        }
+        if (node.getExpression() instanceof PrefixedIdentifier) {
+          PrefixedIdentifier prefIdent = (PrefixedIdentifier) node.getExpression();
+          if (prefIdent.getLength() == 0) {
+            Type type = typeOf(prefIdent.getPrefix());
+            analyzePrefixedAccess(type, new Ident(node, "is", offset));
+          } else {
+            pKeyword(node.getIsOperator());
+          }
+          return null;
+        } else {
+          ident = new Ident(node, "is", offset);
+        }
+      } else {
+        ident = new Ident(node);
+      }
+      analyzeLocalName(ident);
+      return null;
+    }
+
+    @Override
     public Void visitMethodInvocation(MethodInvocation node) {
       Token period = node.getPeriod();
       if (period != null && isCompletionAfter(period.getEnd())) {
@@ -1173,8 +1201,27 @@ public class CompletionEngine {
     @Override
     public Void visitIsExpression(IsExpression node) {
       if (typeName == node.getType()) {
-        // TODO Confirm that this path always has simple identifiers
-        analyzeTypeName((SimpleIdentifier) node.getType().getName(), null);
+        SimpleIdentifier ident;
+        Token isToken = node.getIsOperator();
+        if (completionLocation() == isToken.getEnd()) {
+          // { is! } possible name completion
+          int offset = isToken.getOffset();
+          if (node.getExpression() instanceof PrefixedIdentifier) {
+            PrefixedIdentifier prefIdent = (PrefixedIdentifier) node.getExpression();
+            if (prefIdent.getLength() == 0) {
+              Type type = typeOf(prefIdent.getPrefix());
+              analyzePrefixedAccess(type, new Ident(node, "is", offset));
+            } else {
+              pKeyword(node.getIsOperator());
+            }
+            return null;
+          } else {
+            ident = new Ident(node, "is", offset);
+          }
+          analyzeLocalName(ident);
+        } else {
+          analyzeTypeName((SimpleIdentifier) node.getType().getName(), null);
+        }
       }
       return null;
     }
@@ -2000,7 +2047,10 @@ public class CompletionEngine {
     }
     ProposalKind kind = proposalKindOf(element);
     CompletionProposal prop = createProposal(kind);
-    prop.setCompletion(name).setReturnType(element.getType().getName());
+    prop.setCompletion(name);
+    if (element.getType() != null) {
+      prop.setReturnType(element.getType().getName());
+    }
     Element container = element.getEnclosingElement();
     if (container != null) {
       prop.setDeclaringType(container.getDisplayName());
