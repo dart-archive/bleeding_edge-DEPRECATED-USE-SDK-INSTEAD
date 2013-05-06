@@ -329,7 +329,8 @@ class View implements Positionable {
   }
 
   Future<bool> _measureLayout() {
-    final changed = new Completer<bool>();
+    // TODO(10459): code should not use Completer.sync.
+    final changed = new Completer<bool>.sync();
     _measureLayoutHelper(changed);
 
     var changedComplete = false;
@@ -352,7 +353,8 @@ class View implements Positionable {
     // we're taking pains to not initialize _layout if it's not needed. Is that
     // a good tradeoff?
     if (ViewLayout.hasCustomLayout(this)) {
-      Completer sizeCompleter = new Completer<Size>();
+      // TODO(10459): code should not use Completer.sync.
+      Completer sizeCompleter = new Completer<Size>.sync();
       window.setImmediate(() {
         sizeCompleter.complete(
             new Size(_node.client.width, _node.client.height));
