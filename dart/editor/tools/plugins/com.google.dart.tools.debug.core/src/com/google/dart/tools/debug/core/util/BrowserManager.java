@@ -230,7 +230,9 @@ public class BrowserManager {
       throw new CoreException(new Status(
           IStatus.ERROR,
           DartDebugCorePlugin.PLUGIN_ID,
-          "Could not find Dartium"));
+          "Could not find Dartium executable in "
+              + DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory()
+              + ". Download and install Dartium from http://www.dartlang.org/tools/dartium/."));
     }
 
     IPath browserLocation = new Path(dartium.getAbsolutePath());
