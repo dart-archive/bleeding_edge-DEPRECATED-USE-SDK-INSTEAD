@@ -63,6 +63,8 @@ public class BrowserManager {
 
   private static IResourceResolver resourceResolver;
 
+  public static ILaunch currentLaunch;
+
   /**
    * Create a Chrome user data directory, and return the path to that directory.
    * 
@@ -220,6 +222,8 @@ public class BrowserManager {
 
     monitor.beginTask("Launching Dartium...", enableDebugging ? 7 : 2);
 
+    currentLaunch = null;
+
     File dartium = DartSdkManager.getManager().getSdk().getDartiumExecutable();
 
     if (dartium == null) {
@@ -305,6 +309,8 @@ public class BrowserManager {
 
     timer.stopTask();
     timer.stopTimer();
+
+    currentLaunch = launch;
     monitor.done();
   }
 

@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.core;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.debug.core.util.CoreLaunchUtils;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -50,6 +51,7 @@ public abstract class DartLaunchConfigurationDelegate extends LaunchConfiguratio
 
     } catch (CoreException e) {
       DebugUIHelper.getHelper().showError("Error Launching Application", e.getMessage());
+      CoreLaunchUtils.removeLaunch(launch);
     } finally {
       instrumentation.log();
     }

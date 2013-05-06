@@ -97,6 +97,8 @@ public class DartDebugCorePlugin extends Plugin {
 
   public static final String PREFS_BREAK_ON_EXCEPTIONS = "breakOnExceptions";
 
+  public static final String PREFS_SHOW_RUN_RESUME_DIALOG = "showRunResumeDialog";
+
   /**
    * Create a Status object with the given message and this plugin's ID.
    * 
@@ -192,6 +194,10 @@ public class DartDebugCorePlugin extends Plugin {
   private IEclipsePreferences prefs;
 
   private IUserAgentManager userAgentManager;
+
+  public boolean canShowRunResumeDialog() {
+    return getPrefs().getBoolean(PREFS_SHOW_RUN_RESUME_DIALOG, true);
+  }
 
   public BreakOnExceptions getBreakOnExceptions() {
     try {
@@ -293,6 +299,11 @@ public class DartDebugCorePlugin extends Plugin {
 
   public void setDefaultBrowser(boolean value) {
     getPrefs().putBoolean(PREFS_DEFAULT_BROWSER, value);
+  }
+
+  public void setShowRunResumeDialogPref(boolean value) {
+    getPrefs().putBoolean(PREFS_SHOW_RUN_RESUME_DIALOG, value);
+
   }
 
   public void setUserAgentManager(IUserAgentManager userAgentManager) {
