@@ -1719,6 +1719,7 @@ public class DartIndenter {
     final int READ_IDENT = 2;
     int mayBeMethodBody = NOTHING;
     boolean isTypeBody = false;
+    int prevToken = -1;
     while (true) {
       nextToken();
 
@@ -1803,6 +1804,9 @@ public class DartIndenter {
           //$FALL-THROUGH$
         case Symbols.TokenRBRACKET:
         case Symbols.TokenGREATERTHAN:
+          if (prevToken == Symbols.TokenEQUAL && fToken == Symbols.TokenGREATERTHAN) {
+            break;
+          }
           pos = fPreviousPos;
           if (skipScope()) {
             break;
@@ -1853,6 +1857,7 @@ public class DartIndenter {
         default:
           // keep searching
       }
+      prevToken = fToken;
     }
   }
 
