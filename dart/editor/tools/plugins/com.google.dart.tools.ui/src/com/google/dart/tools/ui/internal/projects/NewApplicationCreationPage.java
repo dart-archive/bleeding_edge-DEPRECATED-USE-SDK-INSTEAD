@@ -369,12 +369,22 @@ public class NewApplicationCreationPage extends WizardPage {
 
   private IStatus validateLocation() {
     String location = projectLocationField.getText();
+    IPath locationPath = new Path(location);
 
-    if (!new Path(location).isValidPath(getProjectName())) {
+    if (!locationPath.isValidPath(getProjectName())) {
       return new Status(
           IStatus.ERROR,
           DartToolsPlugin.PLUGIN_ID,
           ProjectMessages.NewProjectCreationPage_invalid_loc);
+    }
+
+    // TODO(scheglov) check after Pub issue fixed
+    // https://code.google.com/p/dart/issues/detail?id=10439
+    if (locationPath.isUNC()) {
+      return new Status(
+          IStatus.ERROR,
+          DartToolsPlugin.PLUGIN_ID,
+          ProjectMessages.NewProjectCreationPage_invalid_loc_unc);
     }
 
     if (doesProjectExist()) {

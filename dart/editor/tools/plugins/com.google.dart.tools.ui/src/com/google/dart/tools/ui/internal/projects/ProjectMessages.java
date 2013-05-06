@@ -39,6 +39,7 @@ public class ProjectMessages extends NLS {
   public static String NewApplicationWizardPage_project_name_tooltip;
   public static String NewApplicationWizardPage_webAppCheckbox_name_label;
   public static String NewProjectCreationPage_invalid_loc;
+  public static String NewProjectCreationPage_invalid_loc_unc;
   public static String NewProjectCreationPage_NewProjectCreationPage_title;
   public static String NewApplicationWizardPage_open_existing;
   public static String NewApplicationWizardPage_create_new;
