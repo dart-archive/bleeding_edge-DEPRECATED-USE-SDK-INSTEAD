@@ -106,6 +106,15 @@ public class FieldDeclaration extends ClassMember {
   }
 
   /**
+   * Return {@code true} if the fields are static.
+   * 
+   * @return {@code true} if the fields are declared to be static
+   */
+  public boolean isStatic() {
+    return keyword != null;
+  }
+
+  /**
    * Set the fields being declared to the given list of variables.
    * 
    * @param fieldList the fields being declared
