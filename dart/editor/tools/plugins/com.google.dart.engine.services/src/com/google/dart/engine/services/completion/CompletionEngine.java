@@ -243,6 +243,11 @@ public class CompletionEngine {
     private void mergeNames(Element[] elements) {
       for (Element element : elements) {
         String name = element.getDisplayName();
+        if (!filter.isPrivateDisallowed && Identifier.isPrivateName(name)) {
+          if (!isInCurrentLibrary(element)) {
+            return;
+          }
+        }
         List<Element> dups = uniqueNames.get(name);
         if (dups == null) {
           dups = new ArrayList<Element>();
@@ -295,7 +300,7 @@ public class CompletionEngine {
 
     boolean match(String name) {
       // Return true if the filter passes. Return false for private elements that should not be visible
-      // in the current context, or for library elements that are not accessible in the context (NYI).
+      // in the current context.
       return isPermitted(name) && name.toLowerCase().startsWith(prefix);
     }
   }
@@ -1977,6 +1982,11 @@ public class CompletionEngine {
 
   private boolean isCompletionBetween(int firstLoc, int secondLoc) {
     return isCompletionAfter(firstLoc) && isCompletionBefore(secondLoc);
+  }
+
+  private boolean isInCurrentLibrary(Element element) {
+    LibraryElement libElement = getCurrentLibrary();
+    return element.getLibrary() == libElement;
   }
 
   private boolean isUnitInLibFolder(CompilationUnitElement cu) {

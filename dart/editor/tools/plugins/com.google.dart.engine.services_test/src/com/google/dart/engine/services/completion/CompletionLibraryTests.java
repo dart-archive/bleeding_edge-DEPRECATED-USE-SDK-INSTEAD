@@ -76,7 +76,7 @@ public class CompletionLibraryTests extends CompletionTestCase {
   public void test006() throws Exception {
     ArrayList<Source> sources = new ArrayList<Source>();
     // Exercise import and export handling.
-    // Libraries are define in partial order of increasing dependency.
+    // Libraries are defined in partial order of increasing dependency.
     sources.add(addSource(//
         "/exp2a.dart",
         src(//
@@ -128,4 +128,28 @@ public class CompletionLibraryTests extends CompletionTestCase {
         "1+e2a",
         "1+e1b");
   }
+
+  public void test007() throws Exception {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    // Exercise import and export handling.
+    // Libraries are defined in partial order of increasing dependency.
+    sources.add(addSource(//
+        "/l1.dart",
+        src(//
+            "library l1;",
+            "var _l1t; var l1t;",
+            "")));
+    test(//
+        src(//
+            "import 'l1.dart';",
+            "main() {",
+            "  var x = l!1",
+            "  var y = _!2",
+            "}"),
+        sources,
+        "1+l1t",
+        "1-_l1t",
+        "2-_l1t");
+  }
+
 }
