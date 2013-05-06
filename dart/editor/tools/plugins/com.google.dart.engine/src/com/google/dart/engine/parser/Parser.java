@@ -1850,9 +1850,13 @@ public class Parser {
           partDirectiveFound = true;
         } else if (partDirectiveFound) {
           if (directive instanceof ExportDirective) {
-            reportError(ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
+            reportError(
+                ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+                ((NamespaceDirective) directive).getKeyword());
           } else if (directive instanceof ImportDirective) {
-            reportError(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE);
+            reportError(
+                ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+                ((NamespaceDirective) directive).getKeyword());
           }
         }
         if (directive instanceof PartOfDirective) {
