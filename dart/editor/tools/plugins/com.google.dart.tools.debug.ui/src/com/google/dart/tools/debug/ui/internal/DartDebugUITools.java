@@ -17,6 +17,7 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -98,7 +99,8 @@ public class DartDebugUITools {
           if (!launch.isTerminated()) {
             DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
                 launch.getLaunchConfiguration());
-            if (wrapper.getApplicationResource().equals(launchWrapper.getApplicationResource())) {
+            IResource resource = wrapper.getApplicationResource();
+            if (resource != null && resource.equals(launchWrapper.getApplicationResource())) {
               isAppRunning = true;
               break;
             }
