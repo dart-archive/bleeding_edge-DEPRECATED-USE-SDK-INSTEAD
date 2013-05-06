@@ -594,6 +594,12 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     activateEditorAction = ActionFactory.ACTIVATE_EDITOR.create(window);
     register(activateEditorAction);
 
+    nextEditorAction = ActionFactory.NEXT_EDITOR.create(window);
+    register(nextEditorAction);
+    prevEditorAction = ActionFactory.PREVIOUS_EDITOR.create(window);
+    register(prevEditorAction);
+    ActionFactory.linkCycleActionPair(nextEditorAction, prevEditorAction);
+
     maximizePartAction = ActionFactory.MAXIMIZE.create(window);
     register(maximizePartAction);
 
@@ -1027,6 +1033,13 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     for (int i = 2; i < 5; ++i) {
       menu.add(new Separator(IWorkbenchActionConstants.SHOW_EXT + i));
     }
+
+    menu.add(new Separator());
+    menu.add(activateEditorAction);
+    menu.add(nextEditorAction);
+    menu.add(prevEditorAction);
+    menu.add(workbookEditorsAction);
+
     //menu.add(new Separator());
     //menu.add(nextAction);
     //menu.add(previousAction);

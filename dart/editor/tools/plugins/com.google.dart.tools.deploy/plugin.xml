@@ -143,6 +143,33 @@
             sequence="F5"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration">
       </key>      
+      <key
+            commandId="org.eclipse.ui.window.activateEditor"
+            sequence="F12"
+            platform="win32"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.window.activateEditor"
+            sequence="F12"
+            platform="gtk"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.window.activateEditor"
+            sequence="M1+F12"
+            platform="carbon"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.window.openEditorDropDown"
+            sequence="M1+E"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.window.nextEditor"
+            sequence="M1+F6"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="org.eclipse.ui.window.previousEditor"
+            sequence="M1+M2+F6"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
    </extension>
    
    <extension
