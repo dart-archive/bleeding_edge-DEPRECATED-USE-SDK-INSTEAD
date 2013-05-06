@@ -375,6 +375,19 @@ public class WebkitDebugger extends WebkitDomain {
     }
   }
 
+  /**
+   * Merge the given collection of (old) script ids into this connections set of scripts.
+   * 
+   * @param oldScripts
+   */
+  public void mergeOldScripts(Collection<WebkitScript> oldScripts) {
+    for (WebkitScript script : oldScripts) {
+      if (scriptMap.get(script.getScriptId()) == null) {
+        scriptMap.put(script.getScriptId(), script);
+      }
+    }
+  }
+
   public void pause() throws IOException {
     sendSimpleCommand("Debugger.pause");
   }

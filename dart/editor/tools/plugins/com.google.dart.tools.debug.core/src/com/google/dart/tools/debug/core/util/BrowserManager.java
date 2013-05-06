@@ -380,6 +380,10 @@ public class BrowserManager {
 
       debugTarget.openConnection(url);
 
+      if (DartDebugCorePlugin.LOGGING) {
+        System.out.println("Connected to WIP debug agent on port " + devToolsPortNumber);
+      }
+
       timer.stopTask();
     } catch (IOException e) {
       DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);

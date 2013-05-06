@@ -33,6 +33,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitDom.InspectorListener;
 import com.google.dart.tools.debug.core.webkit.WebkitPage;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 import com.google.dart.tools.debug.core.webkit.WebkitResult;
+import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -47,6 +48,7 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -425,7 +427,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   public DartiumDebugTarget reconnect() throws IOException {
     DartiumDebugTarget newTarget = new DartiumDebugTarget(this);
 
-    newTarget.openConnection();
+    newTarget.reopenConnection(getConnection().getDebugger().getAllScripts());
 
     ILaunch launch = newTarget.getLaunch();
     launch.addDebugTarget(newTarget);
@@ -437,6 +439,15 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
 
     return newTarget;
+  }
+
+  public void reopenConnection(Collection<WebkitScript> oldScripts) throws IOException {
+    openConnection(null);
+
+    // TODO: we should not re-cycle the scripts - this is to work around an issue with
+    // reconnecting to Dartium
+
+    getConnection().getDebugger().mergeOldScripts(oldScripts);
   }
 
   @Override
