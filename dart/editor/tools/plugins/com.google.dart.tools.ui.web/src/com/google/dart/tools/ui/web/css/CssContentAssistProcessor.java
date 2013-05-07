@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.web.css;
 
 import com.google.dart.tools.ui.web.DartWebPlugin;
 import com.google.dart.tools.ui.web.utils.CssAttributes;
+import com.google.dart.tools.ui.web.utils.SimpleTemplate;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -33,6 +34,15 @@ import java.util.Comparator;
 import java.util.List;
 
 public class CssContentAssistProcessor implements IContentAssistProcessor {
+  private static List<SimpleTemplate> attributeTemplates;
+
+  static {
+    attributeTemplates = new ArrayList<SimpleTemplate>();
+
+    for (String keyword : CssAttributes.getAttributes()) {
+      attributeTemplates.add(new SimpleTemplate(keyword, keyword + ": "));
+    }
+  }
 
   public CssContentAssistProcessor() {
 
@@ -76,17 +86,12 @@ public class CssContentAssistProcessor implements IContentAssistProcessor {
     }
 
     if (!attributeCompletion) {
-      for (String keyword : CssAttributes.getAttributes()) {
-        if (keyword.startsWith(prefix)) {
-          completions.add(new CompletionProposal(
-              keyword,
-              offset - prefix.length(),
-              prefix.length(),
-              keyword.length(),
-              DartWebPlugin.getImage("protected_co.gif"),
-              null,
-              null,
-              null));
+      for (SimpleTemplate template : attributeTemplates) {
+        if (template.matches(prefix)) {
+          completions.add(template.createCompletion(
+              prefix,
+              offset,
+              DartWebPlugin.getImage("protected_co.gif")));
         }
       }
     }

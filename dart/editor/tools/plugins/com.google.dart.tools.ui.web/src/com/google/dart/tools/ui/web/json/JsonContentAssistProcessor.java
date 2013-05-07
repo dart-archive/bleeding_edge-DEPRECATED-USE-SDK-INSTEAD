@@ -15,12 +15,12 @@
 package com.google.dart.tools.ui.web.json;
 
 import com.google.dart.tools.ui.web.DartWebPlugin;
+import com.google.dart.tools.ui.web.utils.SimpleTemplate;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
@@ -31,11 +31,26 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * This content assistant is specifically for Chrome app manifest.json files.
+ */
 class JsonContentAssistProcessor implements IContentAssistProcessor {
-  private JsonEditor editor;
+  private static List<SimpleTemplate> templates;
 
-  public JsonContentAssistProcessor(JsonEditor editor) {
-    this.editor = editor;
+  static {
+    templates = new ArrayList<SimpleTemplate>();
+
+    for (String keyword : ManifestKeywords.getKeywords()) {
+      if (ManifestKeywords.getStringType(keyword)) {
+        templates.add(new SimpleTemplate(keyword, keyword + "\": \"${}\""));
+      } else {
+        templates.add(new SimpleTemplate(keyword, keyword + "\": "));
+      }
+    }
+  }
+
+  public JsonContentAssistProcessor() {
+
   }
 
   @Override
@@ -48,19 +63,12 @@ class JsonContentAssistProcessor implements IContentAssistProcessor {
 
     List<ICompletionProposal> completions = new ArrayList<ICompletionProposal>();
 
-    if (editor.isManifestEditor()) {
-      for (String keyword : ManifestKeywords.getKeywords()) {
-        if (keyword.startsWith(prefix)) {
-          completions.add(new CompletionProposal(
-              keyword,
-              offset - prefix.length(),
-              prefix.length(),
-              keyword.length(),
-              DartWebPlugin.getImage("protected_co.gif"),
-              null,
-              null,
-              null));
-        }
+    for (SimpleTemplate template : templates) {
+      if (template.matches(prefix)) {
+        completions.add(template.createCompletion(
+            prefix,
+            offset,
+            DartWebPlugin.getImage("protected_co.gif")));
       }
     }
 

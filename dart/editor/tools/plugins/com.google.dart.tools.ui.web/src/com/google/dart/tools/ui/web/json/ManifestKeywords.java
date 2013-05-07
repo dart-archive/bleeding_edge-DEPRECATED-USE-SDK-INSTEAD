@@ -58,6 +58,18 @@ class ManifestKeywords {
     return keywords;
   }
 
+  public static boolean getStringType(String keyword) {
+    final String[] stringTypes = new String[] {"name", "description", "version", "default_locale"};
+
+    for (String type : stringTypes) {
+      if (keyword.equals(type)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   private ManifestKeywords() {
 
   }

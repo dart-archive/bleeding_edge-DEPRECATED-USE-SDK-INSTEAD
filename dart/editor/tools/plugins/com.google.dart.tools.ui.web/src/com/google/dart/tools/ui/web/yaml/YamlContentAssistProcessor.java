@@ -47,11 +47,17 @@ class YamlContentAssistProcessor implements IContentAssistProcessor {
 
     for (String keyword : YamlKeywords.getKeywords()) {
       if (keyword.startsWith(prefix)) {
+        String textToInsert = keyword + ": ";
+
         completions.add(new CompletionProposal(
-            keyword,
+            textToInsert,
             offset - prefix.length(),
             prefix.length(),
-            keyword.length()));
+            textToInsert.length(),
+            null,
+            keyword,
+            null,
+            null));
       }
     }
 

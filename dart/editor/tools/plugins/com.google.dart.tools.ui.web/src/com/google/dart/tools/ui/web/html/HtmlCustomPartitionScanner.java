@@ -105,9 +105,11 @@ public class HtmlCustomPartitionScanner implements IPartitionTokenScanner {
 
     for (HtmlToken token : tokens) {
       if (lastEmitted < token.offset) {
-        current.next = new HtmlToken(DEFAULT_TOKEN, lastEmitted, token.offset - lastEmitted);
+        if (token.offset - lastEmitted > 0) {
+          current.next = new HtmlToken(DEFAULT_TOKEN, lastEmitted, token.offset - lastEmitted);
+          current = current.next;
+        }
         lastEmitted = token.offset;
-        current = current.next;
       }
 
       current.next = token;
@@ -118,8 +120,10 @@ public class HtmlCustomPartitionScanner implements IPartitionTokenScanner {
     }
 
     if (lastEmitted < docLength) {
-      current.next = new HtmlToken(DEFAULT_TOKEN, lastEmitted, docLength - lastEmitted);
-      current = current.next;
+      if (docLength - lastEmitted > 0) {
+        current.next = new HtmlToken(DEFAULT_TOKEN, lastEmitted, docLength - lastEmitted);
+        current = current.next;
+      }
       lastEmitted = current.offset;
     }
 

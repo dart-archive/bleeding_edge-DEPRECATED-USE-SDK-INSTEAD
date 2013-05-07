@@ -63,9 +63,9 @@ public class CssAutoIndentStrategy extends WebEditorAutoIndentStrategy {
         buf.append("  ");
 
         // Insert \n, indent, and '}', then back up the caret position.
-        String eol = getEol(document, command.offset);
+        //String eol = getEol(document, command.offset);
 
-        String closingBracket = eol + wsStart /* + "}"*/;
+        String closingBracket = /*eol +*/wsStart /* + "}"*/;
 
         buf.append(closingBracket);
 
@@ -79,18 +79,18 @@ public class CssAutoIndentStrategy extends WebEditorAutoIndentStrategy {
     }
   }
 
-  private String getEol(IDocument document, int offset) throws BadLocationException {
-    String eol = document.getLineDelimiter(document.getLineOfOffset(offset));
-
-    if (eol == null) {
-      eol = document.getLineDelimiter(0);
-    }
-
-    if (eol == null) {
-      eol = "\n";
-    }
-
-    return eol;
-  }
+//  private String getEol(IDocument document, int offset) throws BadLocationException {
+//    String eol = document.getLineDelimiter(document.getLineOfOffset(offset));
+//
+//    if (eol == null) {
+//      eol = document.getLineDelimiter(0);
+//    }
+//
+//    if (eol == null) {
+//      eol = "\n";
+//    }
+//
+//    return eol;
+//  }
 
 }

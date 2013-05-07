@@ -62,6 +62,7 @@ public class YamlSourceViewerConfiguration extends TextSourceViewerConfiguration
     if (editor.isPubspecEditor()) {
       ContentAssistant assistant = new ContentAssistant();
 
+      assistant.enableAutoInsert(true);
       assistant.setContentAssistProcessor(
           new YamlContentAssistProcessor(),
           IDocument.DEFAULT_CONTENT_TYPE);

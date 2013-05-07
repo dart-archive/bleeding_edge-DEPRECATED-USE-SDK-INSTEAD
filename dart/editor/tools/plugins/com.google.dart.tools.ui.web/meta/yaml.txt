@@ -12,4 +12,3 @@ environment
 path
 documentation
 dev_dependencies
-

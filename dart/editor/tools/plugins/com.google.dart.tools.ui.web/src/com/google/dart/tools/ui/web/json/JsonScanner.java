@@ -14,8 +14,13 @@
 
 package com.google.dart.tools.ui.web.json;
 
+import com.google.dart.tools.ui.web.DartWebPlugin;
+
+import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.rules.IRule;
+import org.eclipse.jface.text.rules.MultiLineRule;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
+import org.eclipse.jface.text.rules.Token;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +30,13 @@ import java.util.List;
  */
 class JsonScanner extends RuleBasedScanner {
 
-  public JsonScanner() {
+  public JsonScanner(JsonEditor editor) {
+    Token commentToken = new Token(new TextAttribute(DartWebPlugin.getPlugin().getEditorColor(
+        DartWebPlugin.COLOR_COMMENTS)));
+
     List<IRule> rules = new ArrayList<IRule>();
+
+    rules.add(new MultiLineRule("/*", "*/", commentToken, (char) 0, true));
 
     setRules(rules.toArray(new IRule[rules.size()]));
   }

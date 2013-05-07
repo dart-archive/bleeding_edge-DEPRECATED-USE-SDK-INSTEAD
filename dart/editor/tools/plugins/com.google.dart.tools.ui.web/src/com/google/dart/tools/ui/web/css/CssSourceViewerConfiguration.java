@@ -62,6 +62,7 @@ public class CssSourceViewerConfiguration extends TextSourceViewerConfiguration 
   public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
     ContentAssistant assistant = new ContentAssistant();
 
+    assistant.enableAutoInsert(true);
     assistant.setContentAssistProcessor(
         new CssContentAssistProcessor(),
         IDocument.DEFAULT_CONTENT_TYPE);

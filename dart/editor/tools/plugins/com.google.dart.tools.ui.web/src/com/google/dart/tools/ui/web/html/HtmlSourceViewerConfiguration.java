@@ -82,6 +82,8 @@ public class HtmlSourceViewerConfiguration extends TextSourceViewerConfiguration
     ContentAssistant assistant = new ContentAssistant();
 
     assistant.enableAutoActivation(true);
+    assistant.setAutoActivationDelay(100);
+    assistant.enableAutoInsert(true);
 
     HtmlContentAssistProcessor htmlContentAssist = new HtmlContentAssistProcessor(editor);
 

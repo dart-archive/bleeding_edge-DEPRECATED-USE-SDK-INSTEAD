@@ -55,14 +55,18 @@ public class JsonSourceViewerConfiguration extends SourceViewerConfiguration {
 
   @Override
   public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
-    ContentAssistant assistant = new ContentAssistant();
+    if (editor.isManifestEditor()) {
+      ContentAssistant assistant = new ContentAssistant();
 
-    assistant.setContentAssistProcessor(
-        new JsonContentAssistProcessor(editor),
-        JsonPartitionScanner.JSON_STRING);
-    //assistant.setInformationControlCreator(getInformationControlCreator(sourceViewer));
+      assistant.enableAutoInsert(true);
+      assistant.setContentAssistProcessor(
+          new JsonContentAssistProcessor(),
+          JsonPartitionScanner.JSON_STRING);
 
-    return assistant;
+      return assistant;
+    } else {
+      return super.getContentAssistant(sourceViewer);
+    }
   }
 
   @Override
@@ -115,7 +119,7 @@ public class JsonSourceViewerConfiguration extends SourceViewerConfiguration {
 
   protected JsonScanner getScanner() {
     if (scanner == null) {
-      scanner = new JsonScanner();
+      scanner = new JsonScanner(editor);
       scanner.setDefaultReturnToken(new Token(new TextAttribute(null)));
     }
     return scanner;

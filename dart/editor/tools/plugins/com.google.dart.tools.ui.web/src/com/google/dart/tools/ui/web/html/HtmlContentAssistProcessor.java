@@ -19,6 +19,7 @@ import com.google.dart.tools.core.html.XmlDocument;
 import com.google.dart.tools.core.html.XmlElement;
 import com.google.dart.tools.core.html.XmlNode;
 import com.google.dart.tools.ui.web.DartWebPlugin;
+import com.google.dart.tools.ui.web.utils.SimpleTemplate;
 import com.google.dart.tools.ui.web.utils.WordDetector;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -38,6 +39,34 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class HtmlContentAssistProcessor implements IContentAssistProcessor {
+  private static List<SimpleTemplate> entityTemplates;
+
+  static {
+    entityTemplates = new ArrayList<SimpleTemplate>();
+
+    for (String entityName : HtmlKeywords.getKeywords()) {
+      if (entityName.equals("a")) {
+        entityTemplates.add(new SimpleTemplate(entityName, "a href=\"${}\"></a>"));
+      } else if (entityName.equals("iframe")) {
+        entityTemplates.add(new SimpleTemplate(entityName, "iframe src=\"${}\"></iframe>"));
+      } else if (entityName.equals("img")) {
+        entityTemplates.add(new SimpleTemplate(entityName, "img src=\"${}\">"));
+      } else if (entityName.equals("link")) {
+        entityTemplates.add(new SimpleTemplate(entityName, "link rel=\"stylesheet\" href=\"${}\">"));
+      } else if (entityName.equals("style")) {
+        entityTemplates.add(new SimpleTemplate(entityName, "style type=\"text/css\">${}</style>"));
+      } else if (entityName.equals("script")) {
+        entityTemplates.add(new SimpleTemplate(entityName, "script src=\"${}\"></script>"));
+      } else if (entityName.equals("param")) {
+        entityTemplates.add(new SimpleTemplate(entityName, "param name=\"${}\" value =\"\">"));
+      } else if (HtmlKeywords.isSelfClosing(entityName)) {
+        entityTemplates.add(new SimpleTemplate(entityName, entityName + ">"));
+      } else {
+        entityTemplates.add(new SimpleTemplate(entityName, entityName + ">${}</" + entityName + ">"));
+      }
+    }
+  }
+
   private HtmlEditor editor;
 
   public HtmlContentAssistProcessor(HtmlEditor editor) {
@@ -68,8 +97,8 @@ class HtmlContentAssistProcessor implements IContentAssistProcessor {
 
     if (m.lookingAt() && m.end() == bracketStart.length()) {
       doEntityCompletion(strPrefix, offset, completions);
-    } else if (node == null) {
-      doEntityCompletion(strPrefix, offset, completions);
+    } else if (node == null && bracketStart.startsWith("</")) {
+      doEntityCloseCompletion(strPrefix, offset, completions);
     } else if (node instanceof XmlElement) {
       XmlElement element = (XmlElement) node;
       XmlAttribute attribute = null;
@@ -153,19 +182,32 @@ class HtmlContentAssistProcessor implements IContentAssistProcessor {
 
   }
 
-  protected void doEntityCompletion(String strPrefix, int offset,
+  protected void doEntityCloseCompletion(String strPrefix, int offset,
       List<ICompletionProposal> completions) {
     for (String keyword : HtmlKeywords.getKeywords()) {
       if (keyword.startsWith(strPrefix)) {
+        String textToInsert = keyword + ">";
+
         completions.add(new CompletionProposal(
-            keyword,
+            textToInsert,
             offset - strPrefix.length(),
             strPrefix.length(),
-            keyword.length(),
+            textToInsert.length(),
             DartWebPlugin.getImage("xml_node.gif"),
-            null,
+            keyword,
             null,
             null));
+      }
+    }
+  }
+
+  protected void doEntityCompletion(String prefix, int offset, List<ICompletionProposal> completions) {
+    for (SimpleTemplate template : entityTemplates) {
+      if (template.matches(prefix)) {
+        completions.add(template.createCompletion(
+            prefix,
+            offset,
+            DartWebPlugin.getImage("xml_node.gif")));
       }
     }
   }
