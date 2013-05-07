@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -266,8 +267,9 @@ public class PubspecModel {
         }
       }
     }
-    pubYamlObject.dependencies = dependenciesMap;
-    pubYamlObject.dev_dependencies = devDependenciesMap;
+
+    pubYamlObject.dependencies = new TreeMap<String, Object>(dependenciesMap);
+    pubYamlObject.dev_dependencies = new TreeMap<String, Object>(devDependenciesMap);
     return pubYamlObject;
   }
 
