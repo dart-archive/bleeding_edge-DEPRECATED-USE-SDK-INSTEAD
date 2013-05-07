@@ -78,6 +78,18 @@ public class AnalyzerOptions {
     return options;
   }
 
+  /**
+   * Print the tool usage to the given stream.
+   * 
+   * @param out
+   */
+  public static void printUsage(PrintStream out) {
+    AnalyzerOptions bean = new AnalyzerOptions();
+    CmdLineParser parser = new CmdLineParser(bean);
+    parser.setUsageWidth(120);
+    parser.printUsage(out);
+  }
+
   private static String[] processArgs(String[] args) {
     List<String> result = new ArrayList<String>();
 
@@ -231,17 +243,6 @@ public class AnalyzerOptions {
    */
   public boolean getWarningsAreFatal() {
     return warningsAreFatal;
-  }
-
-  /**
-   * Print the tool usage to the given stream.
-   * 
-   * @param out
-   */
-  public void printUsage(PrintStream out) {
-    CmdLineParser parser = new CmdLineParser(this);
-    parser.setUsageWidth(120);
-    parser.printUsage(out);
   }
 
   public void setDartSdkPath(File dartSdkPath) {

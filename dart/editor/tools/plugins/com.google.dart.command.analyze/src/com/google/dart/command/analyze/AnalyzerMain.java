@@ -56,7 +56,7 @@ public class AnalyzerMain {
     if (args.length == 0 || options.showHelp()) {
       showVersion(options, System.out);
       System.out.println();
-      showUsage(options, System.out);
+      showUsage(System.out);
       System.exit(0);
     }
 
@@ -67,13 +67,13 @@ public class AnalyzerMain {
 
     if (options.getDartSdkPath() == null) {
       System.out.println(PROGRAM_NAME + ": no Dart SDK found.");
-      showUsage(options, System.out);
+      showUsage(System.out);
       System.exit(1);
     }
 
     if (!options.getDartSdkPath().exists()) {
       System.out.println(PROGRAM_NAME + ": invalid Dart SDK path: " + options.getDartSdkPath());
-      showUsage(options, System.out);
+      showUsage(System.out);
       System.exit(1);
     }
 
@@ -92,7 +92,6 @@ public class AnalyzerMain {
     }
 
     try {
-      final AnalyzerImpl analyzer = new AnalyzerImpl(options);
 
       if (options.shouldBatch()) {
         ErrorSeverity result = BatchRunner.runAsBatch(args, new BatchRunnerInvocation() {
@@ -108,7 +107,7 @@ public class AnalyzerMain {
               compilerOptions.setWarningsAreFatal(true);
             }
 
-            return runAnalyzer(analyzer, compilerOptions);
+            return runAnalyzer(compilerOptions);
           }
         });
 
@@ -120,11 +119,11 @@ public class AnalyzerMain {
 
         if (sourceFilePath == null) {
           System.out.println(PROGRAM_NAME + ": no source files were specified.");
-          showUsage(options, System.out);
+          showUsage(System.out);
           System.exit(1);
         }
 
-        ErrorSeverity result = runAnalyzer(analyzer, options);
+        ErrorSeverity result = runAnalyzer(options);
 
         if (result != ErrorSeverity.NONE) {
           System.exit(result.ordinal());
@@ -153,14 +152,14 @@ public class AnalyzerMain {
    * @param analyzerOptions parsed command line arguments
    * @return {@code  true} on success, {@code false} on failure.
    */
-  protected static ErrorSeverity runAnalyzer(AnalyzerImpl analyzer, AnalyzerOptions options)
-      throws IOException, AnalysisException {
+  protected static ErrorSeverity runAnalyzer(AnalyzerOptions options) throws IOException,
+      AnalysisException {
     File sourceFile = new File(options.getSourceFile());
 
     if (!sourceFile.exists()) {
       System.out.println("File not found: " + sourceFile);
       System.out.println();
-      showUsage(options, System.out);
+      showUsage(System.out);
       return ErrorSeverity.ERROR;
     }
 
@@ -168,7 +167,7 @@ public class AnalyzerMain {
     if (!AnalysisEngine.isDartFileName(sourceFile.getName())) {
       System.out.println(sourceFile + " is not a Dart file");
       System.out.println();
-      showUsage(options, System.out);
+      showUsage(System.out);
       return ErrorSeverity.ERROR;
     }
 
@@ -179,6 +178,7 @@ public class AnalyzerMain {
 
     formatter.startAnalysis();
 
+    AnalyzerImpl analyzer = new AnalyzerImpl(options);
     ErrorSeverity status = analyzer.analyze(sourceFile, errors);
 
     formatter.formatErrors(errors);
@@ -233,11 +233,11 @@ public class AnalyzerMain {
     }
   }
 
-  private static void showUsage(AnalyzerOptions options, PrintStream out) {
+  private static void showUsage(PrintStream out) {
     out.println("Usage: " + PROGRAM_NAME + " [<options>] <dart-script>");
     out.println();
     out.println("Options:");
-    options.printUsage(out);
+    AnalyzerOptions.printUsage(out);
     out.println();
     out.println("Exit codes:");
     out.println(" 0: No analysis issues found");
