@@ -49,7 +49,7 @@ public class ServerRemoteProcess extends PlatformObject implements IProcess {
 
   @Override
   public boolean canTerminate() {
-    return true;
+    return target.getConnection().isConnected();
   }
 
   public void fireCreateEvent() {
