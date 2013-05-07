@@ -42,6 +42,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.source.Source;
 
 import org.mockito.ArgumentCaptor;
 
@@ -924,11 +925,6 @@ public class IndexContributorTest extends AbstractDartTest {
     List<RecordedRelation> relations = captureRecordedRelations();
     assertRecordedRelation(
         relations,
-        referencedElement,
-        IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, findOffset("'Lib.dart'"), "'Lib.dart'"));
-    assertRecordedRelation(
-        relations,
         referencedElement.getDefiningCompilationUnit(),
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, findOffset("'Lib.dart'"), "'Lib.dart'"));
@@ -955,14 +951,34 @@ public class IndexContributorTest extends AbstractDartTest {
     List<RecordedRelation> relations = captureRecordedRelations();
     assertRecordedRelation(
         relations,
-        referencedElement,
-        IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, findOffset("'Lib.dart'"), "'Lib.dart'"));
-    assertRecordedRelation(
-        relations,
         referencedElement.getDefiningCompilationUnit(),
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, findOffset("'Lib.dart'"), "'Lib.dart'"));
+  }
+
+  public void test_isReferencedBy_libraryName() throws Exception {
+    String partCode = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "part of lib; // marker",
+        "");
+    Source partSource = addSource("/part.dart", partCode);
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library lib;",
+        "part 'part.dart';",
+        "");
+    CompilationUnit partUnit = analysisContext.getResolvedCompilationUnit(
+        partSource,
+        testLibraryElement);
+    // index
+    index.visitCompilationUnit(partUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        testLibraryElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(partUnit.getElement(), partCode.indexOf("lib; // marker"), "lib"));
   }
 
   public void test_isReferencedBy_ParameterElement() throws Exception {
@@ -1007,7 +1023,6 @@ public class IndexContributorTest extends AbstractDartTest {
         new ExpectedLocation(mainElement, findOffset("A p)"), "A"));
   }
 
-  // XXX
   public void test_isReferencedBy_typeInVariableList() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

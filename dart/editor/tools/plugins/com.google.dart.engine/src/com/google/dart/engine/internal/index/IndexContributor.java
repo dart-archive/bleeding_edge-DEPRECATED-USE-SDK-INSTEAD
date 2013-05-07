@@ -34,6 +34,7 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -395,6 +396,13 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
+  public Void visitPartOfDirective(PartOfDirective node) {
+    Location location = createLocation(node.getLibraryName());
+    recordRelationship(node.getElement(), IndexConstants.IS_REFERENCED_BY, location);
+    return null;
+  }
+
+  @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     Element nameElement = new NameElementImpl(node.getName());
     Location location = createLocation(node);
@@ -595,13 +603,12 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * Records reference to the given {@link LibraryElement} and its defining
-   * {@link CompilationUnitElement}.
+   * Records reference to defining {@link CompilationUnitElement} of the given
+   * {@link LibraryElement}.
    */
   private void recordLibraryReference(UriBasedDirective node, LibraryElement library) {
     if (library != null) {
       Location location = createLocation(node.getUri());
-      recordRelationship(library, IndexConstants.IS_REFERENCED_BY, location);
       recordRelationship(
           library.getDefiningCompilationUnit(),
           IndexConstants.IS_REFERENCED_BY,
