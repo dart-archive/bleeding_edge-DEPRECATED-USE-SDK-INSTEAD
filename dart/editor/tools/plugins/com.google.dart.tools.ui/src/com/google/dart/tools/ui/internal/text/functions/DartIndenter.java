@@ -520,8 +520,7 @@ public class DartIndenter {
     // an unindentation happens sometimes if the next token is special, namely
     // on braces, parens and case labels
     // align braces, but handle the case where we align with the method
-    // declaration start instead of
-    // the opening brace.
+    // declaration start instead of the opening brace.
     if (matchBrace) {
       if (skipScope(Symbols.TokenLBRACE, Symbols.TokenRBRACE)) {
         try {
@@ -534,8 +533,7 @@ public class DartIndenter {
         } catch (BadLocationException e) {
           // concurrent modification - walk default path
         }
-        // if the opening brace is not on the start of the line, skip to the
-        // start
+        // if the opening brace is not on the start of the line, skip to the start
         int pos = skipToStatementStart(true, true);
         fIndent = 0; // indent is aligned with reference position
         return pos;
@@ -592,7 +590,7 @@ public class DartIndenter {
           return fPosition;
         } else {
           fPosition = pos;
-          return skipToStatementStart(danglingElse, false);
+          return skipToStatementStart(danglingElse, true); // Assume inside block; may need to change for top-level defs
         }
 
         // scope introduction
@@ -1263,7 +1261,7 @@ public class DartIndenter {
       return false;
     }
     try {
-      fPosition = end;
+      fPosition = end + 1;
       fPreviousPos = end;
       boolean looksLikeParams = looksLikeFormalParamList();
       return looksLikeParams;
@@ -1307,7 +1305,8 @@ public class DartIndenter {
         case Symbols.TokenVOID: // illegal but not uncommon
         case Symbols.TokenOTHER: // period
         case Symbols.TokenCOMMA: // param separator
-        case Symbols.TokenEQUAL: // named params
+        case Symbols.TokenEQUAL: // optional params
+        case Symbols.TokenCOLON: // named params
         case Symbols.TokenTHIS:
         case Symbols.TokenTRUE:
         case Symbols.TokenFALSE:
