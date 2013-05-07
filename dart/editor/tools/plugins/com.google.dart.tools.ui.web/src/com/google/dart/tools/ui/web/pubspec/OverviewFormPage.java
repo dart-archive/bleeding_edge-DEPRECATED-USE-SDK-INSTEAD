@@ -17,11 +17,13 @@ package com.google.dart.tools.ui.web.pubspec;
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.pub.IModelListener;
 import com.google.dart.tools.core.pub.PubspecModel;
+import com.google.dart.tools.core.pub.RunPubJob;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 import com.google.dart.tools.ui.actions.RunPublishAction;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
@@ -44,6 +46,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.SectionPart;
 import org.eclipse.ui.forms.editor.FormEditor;
@@ -231,7 +235,17 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     saveActionText.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       public void linkActivated(HyperlinkEvent e) {
-        getEditor().doSave(new NullProgressMonitor());
+        if (getEditor().isDirty()) {
+          getEditor().doSave(new NullProgressMonitor());
+        } else {
+          IEditorInput input = getEditorInput();
+          if (input instanceof IFileEditorInput) {
+            IFile file = ((IFileEditorInput) input).getFile();
+            if (file != null) {
+              new RunPubJob(file.getParent(), RunPubJob.INSTALL_COMMAND).schedule();
+            }
+          }
+        }
       }
     });
 
