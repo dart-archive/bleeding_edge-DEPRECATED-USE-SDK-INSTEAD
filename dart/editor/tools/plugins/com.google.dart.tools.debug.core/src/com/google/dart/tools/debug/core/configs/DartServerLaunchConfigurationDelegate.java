@@ -272,8 +272,8 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
           // If the resource is linked, set the cwd to the parent directory of the resolved resource.
           return resource.getLocation().toFile().getParentFile();
         } else {
-          // If the resource is not linked, set the cwd to the project's directory.
-          return resource.getProject().getLocation().toFile();
+          // If the resource is not linked, set the cwd to the resource's parent directory.
+          return resource.getParent().getLocation().toFile();
         }
       }
     }
