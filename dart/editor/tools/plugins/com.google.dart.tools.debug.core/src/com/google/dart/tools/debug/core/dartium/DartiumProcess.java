@@ -44,6 +44,7 @@ class DartiumProcess extends PlatformObject implements IProcess {
   private Map<String, String> attributes = new HashMap<String, String>();
   private Date launchTime;
   private DartiumStreamMonitor streamMonitor;
+  private boolean isTerminated = false;
 
   public DartiumProcess(DartiumDebugTarget target, String browserName, Process javaProcess) {
     this.target = target;
@@ -156,10 +157,10 @@ class DartiumProcess extends PlatformObject implements IProcess {
         return true;
       }
     } catch (IllegalThreadStateException exception) {
-
+      return false;
     }
 
-    return false;
+    return isTerminated;
   }
 
   @Override
@@ -172,6 +173,7 @@ class DartiumProcess extends PlatformObject implements IProcess {
     if (javaProcess != null) {
       javaProcess.destroy();
     }
+    isTerminated = true;
   }
 
   protected Process getJavaProcess() {

@@ -151,7 +151,6 @@ public class BrowserManager {
 
   public IDebugTarget performRemoteConnection(IChromiumTabChooser tabChooser, String host,
       int port, IProgressMonitor monitor) throws CoreException {
-    final String browserName = "Remote";
 
     ILaunch launch = null;
 
@@ -183,11 +182,12 @@ public class BrowserManager {
           tab.getWebSocketDebuggerFile());
 
       final DartiumDebugTarget debugTarget = new DartiumDebugTarget(
-          browserName,
+          "Remote",
           connection,
           launch,
           null,
           getResourceServer(),
+          true,
           true);
 
       launch.setAttribute(DebugPlugin.ATTR_CONSOLE_ENCODING, "UTF-8");
@@ -360,7 +360,8 @@ public class BrowserManager {
           launch,
           runtimeProcess,
           getResourceServer(),
-          enableBreakpoints);
+          enableBreakpoints,
+          false);
 
       monitor.worked(1);
 

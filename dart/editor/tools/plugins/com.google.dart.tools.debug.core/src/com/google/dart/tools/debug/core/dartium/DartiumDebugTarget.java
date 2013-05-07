@@ -90,7 +90,8 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
         target.launch,
         null,
         target.resourceResolver,
-        target.breakpointManager != null);
+        target.breakpointManager != null,
+        false);
 
     this.process = target.process;
     this.process.switchTo(this);
@@ -100,7 +101,8 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
    * @param target
    */
   public DartiumDebugTarget(String debugTargetName, WebkitConnection connection, ILaunch launch,
-      Process javaProcess, IResourceResolver resourceResolver, boolean enableBreakpoints) {
+      Process javaProcess, IResourceResolver resourceResolver, boolean enableBreakpoints,
+      boolean isRemote) {
     super(null);
 
     setActiveTarget(this);
@@ -112,7 +114,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
     debugThread = new DartiumDebugThread(this);
 
-    if (javaProcess != null) {
+    if (javaProcess != null || isRemote) {
       process = new DartiumProcess(this, debugTargetName, javaProcess);
     }
 
@@ -476,6 +478,11 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   @Override
   public void terminate() throws DebugException {
+    try {
+      connection.close();
+    } catch (IOException e) {
+
+    }
     process.terminate();
   }
 
