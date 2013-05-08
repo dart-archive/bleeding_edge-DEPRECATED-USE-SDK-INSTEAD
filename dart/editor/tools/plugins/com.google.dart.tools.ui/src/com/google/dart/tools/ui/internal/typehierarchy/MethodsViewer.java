@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * {@link MethodsViewer} shows a list of methods of {@link ClassElement}.
  */
-public class MethodsViewer extends TableViewer implements MethodsViewer_I {
+public class MethodsViewer extends TableViewer {
   private class ShowInheritedMembersAction extends Action {
     public ShowInheritedMembersAction() {
       super(TypeHierarchyMessages.ShowInheritedMembersAction_label, IAction.AS_CHECK_BOX);
@@ -87,7 +87,6 @@ public class MethodsViewer extends TableViewer implements MethodsViewer_I {
   /**
    * Fills the {@link ToolBarManager} with items for the {@link MethodsViewer}.
    */
-  @Override
   public void contributeToToolBar(IToolBarManager tbm) {
     tbm.add(showInheritedMembersAction);
     fMemberFilterActionGroup.contributeToToolBar(tbm);
@@ -96,7 +95,6 @@ public class MethodsViewer extends TableViewer implements MethodsViewer_I {
   /**
    * Restores the state of the filter actions.
    */
-  @Override
   public void restoreState(IMemento memento) {
     fMemberFilterActionGroup.restoreState(memento);
     {
@@ -109,13 +107,11 @@ public class MethodsViewer extends TableViewer implements MethodsViewer_I {
   /**
    * Saves the state of the filter actions.
    */
-  @Override
   public void saveState(IMemento memento) {
     fMemberFilterActionGroup.saveState(memento);
     memento.putString(TAG_SHOWINHERITED, String.valueOf(showInheritedMembers));
   }
 
-  @Override
   public void setInputType(final/*ClassElement*/Object _inputType) {
     this.inputType = (ClassElement) _inputType;
     // may be no type

@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.typehierarchy;
 
 import com.google.common.base.Predicates;
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.search.internal.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.OpenAction;
@@ -71,7 +70,7 @@ public class TypeHierarchyViewPart extends ViewPart {
   private ViewForm fTypeViewerViewForm;
   private ViewForm fMethodViewerViewForm;
   private TreeViewer typesViewer;
-  private MethodsViewer_I methodsViewer;
+  private MethodsViewer methodsViewer;
 
   private OpenAction fOpenAction;
   private Menu contextMenu;
@@ -180,11 +179,7 @@ public class TypeHierarchyViewPart extends ViewPart {
   }
 
   private Control createMethodViewerControl(Composite parent) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      methodsViewer = new MethodsViewer(parent);
-    } else {
-      methodsViewer = new MethodsViewer_OLD(parent);
-    }
+    methodsViewer = new MethodsViewer(parent);
     ((StructuredViewer) methodsViewer).addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
@@ -200,36 +195,33 @@ public class TypeHierarchyViewPart extends ViewPart {
   private Control createTypeViewerControl(Composite parent) {
     typesViewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
     Tree tree = typesViewer.getTree();
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      typesViewer.setContentProvider(new TypeHierarchyContentProvider());
-      typesViewer.setLabelProvider(new HierarchyLabelProvider(Predicates.alwaysFalse()));
-      // register "viewer" as selection provide for this view
-      IViewSite site = getViewSite();
-      site.setSelectionProvider(typesViewer);
-      // configure actions
-      actionGroups = new CompositeActionGroup(new ActionGroup[] {
-          new OpenViewActionGroup(site), new RefactorActionGroup(site),
-          new DartSearchActionGroup(site)});
-      // configure actions
-      {
-        IActionBars actionBars = site.getActionBars();
-        actionGroups.fillActionBars(actionBars);
-      }
-      // prepare context menu
-      MenuManager manager = new MenuManager();
-      manager.setRemoveAllWhenShown(true);
-      manager.addMenuListener(new IMenuListener() {
-        @Override
-        public void menuAboutToShow(IMenuManager m) {
-          contextMenuAboutToShow(m);
-        }
-      });
-      contextMenu = manager.createContextMenu(tree);
-      tree.setMenu(contextMenu);
-    } else {
-      typesViewer.setContentProvider(new TypeHierarchyContentProvider_OLD());
-      typesViewer.setLabelProvider(new HierarchyLabelProvider_OLD(Predicates.alwaysFalse()));
+
+    typesViewer.setContentProvider(new TypeHierarchyContentProvider());
+    typesViewer.setLabelProvider(new HierarchyLabelProvider(Predicates.alwaysFalse()));
+    // register "viewer" as selection provide for this view
+    IViewSite site = getViewSite();
+    site.setSelectionProvider(typesViewer);
+    // configure actions
+    actionGroups = new CompositeActionGroup(new ActionGroup[] {
+        new OpenViewActionGroup(site), new RefactorActionGroup(site),
+        new DartSearchActionGroup(site)});
+    // configure actions
+    {
+      IActionBars actionBars = site.getActionBars();
+      actionGroups.fillActionBars(actionBars);
     }
+    // prepare context menu
+    MenuManager manager = new MenuManager();
+    manager.setRemoveAllWhenShown(true);
+    manager.addMenuListener(new IMenuListener() {
+      @Override
+      public void menuAboutToShow(IMenuManager m) {
+        contextMenuAboutToShow(m);
+      }
+    });
+    contextMenu = manager.createContextMenu(tree);
+    tree.setMenu(contextMenu);
+
     typesViewer.addPostSelectionChangedListener(new ISelectionChangedListener() {
       @Override
       public void selectionChanged(SelectionChangedEvent event) {
