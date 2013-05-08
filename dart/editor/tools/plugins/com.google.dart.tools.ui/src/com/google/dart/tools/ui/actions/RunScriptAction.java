@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -108,8 +109,11 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
       if (exitCode != 0) {
         String output = "[" + exitCode + "] " + stringBuilder.toString();
         String message = "Failed to run script " + scriptLocation + output;
+        DartCore.getConsole().print(message);
         return new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, message);
       }
+
+      DartCore.getConsole().print(stringBuilder.toString());
 
       return new Status(IStatus.OK, DartToolsPlugin.PLUGIN_ID, stringBuilder.toString());
     }
@@ -143,7 +147,18 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
     String scriptName = getScript(event.keyCode);
     instrumentation.metric("Running script ", scriptName);
 
-    if (scriptName != null && !scriptName.isEmpty()) {
+    MessageConsole console = DartCore.getConsole();
+    console.clear();
+
+    if (scriptName == null || scriptName.isEmpty()) {
+
+      console.print("Unable to run script.  No script specified in '"
+          + getPropertiesFile().getAbsolutePath() + "'");
+
+    } else {
+
+      console.print("Running script '" + scriptName + "'...\n");
+
       IFile file = null;
       if (!selection.isEmpty()) {
         IWorkbenchPage page = DartToolsPlugin.getActivePage();
@@ -163,6 +178,7 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
           }
         }
       }
+
       new RunScriptJob(file, scriptName).schedule();
     }
   }
@@ -182,6 +198,12 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
         new RunScriptJob(null, scriptName).schedule();
       }
     }
+  }
+
+  protected File getPropertiesFile() {
+    File installDirectory = DartCore.getEclipseInstallationDirectory();
+    File file = new File(installDirectory, "scripts.properties");
+    return file;
   }
 
   private String getScript(int keyCode) {
@@ -210,8 +232,7 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
 
   private Properties getScriptProperties() {
     properties = new Properties();
-    File installDirectory = DartCore.getEclipseInstallationDirectory();
-    File file = new File(installDirectory, "scripts.properties");
+    File file = getPropertiesFile();
 
     if (file.exists()) {
       try {
