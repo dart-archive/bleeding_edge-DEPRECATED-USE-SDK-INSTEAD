@@ -366,7 +366,8 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseArgumentDefinitionTest() throws Exception {
-    ArgumentDefinitionTest test = parse("parseArgumentDefinitionTest", "?x");
+    ArgumentDefinitionTest test = parse("parseArgumentDefinitionTest", "?x"/*,
+                                                                           ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST*/);
     assertNotNull(test.getQuestion());
     assertNotNull(test.getIdentifier());
   }
@@ -3133,7 +3134,21 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(literal.getRightBracket());
   }
 
-  public void test_parseMapLiteralEntry() throws Exception {
+  public void test_parseMapLiteralEntry_complex() throws Exception {
+    MapLiteralEntry entry = parse("parseMapLiteralEntry", "2 + 2 : y");
+    assertNotNull(entry.getKey());
+    assertNotNull(entry.getSeparator());
+    assertNotNull(entry.getValue());
+  }
+
+  public void test_parseMapLiteralEntry_int() throws Exception {
+    MapLiteralEntry entry = parse("parseMapLiteralEntry", "0 : y");
+    assertNotNull(entry.getKey());
+    assertNotNull(entry.getSeparator());
+    assertNotNull(entry.getValue());
+  }
+
+  public void test_parseMapLiteralEntry_string() throws Exception {
     MapLiteralEntry entry = parse("parseMapLiteralEntry", "'x' : y");
     assertNotNull(entry.getKey());
     assertNotNull(entry.getSeparator());
@@ -3493,12 +3508,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals("foo", identifier.getPrefix().getName());
     assertNotNull(identifier.getPeriod());
     assertEquals("bar", identifier.getIdentifier().getName());
-  }
-
-  public void test_parsePrimaryExpression_argumentDefinitionTest() throws Exception {
-    ArgumentDefinitionTest expression = parse("parseArgumentDefinitionTest", "?a");
-    assertNotNull(expression.getQuestion());
-    assertNotNull(expression.getIdentifier());
   }
 
   public void test_parsePrimaryExpression_const() throws Exception {

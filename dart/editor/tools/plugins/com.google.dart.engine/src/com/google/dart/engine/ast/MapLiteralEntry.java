@@ -21,16 +21,16 @@ import com.google.dart.engine.scanner.Token;
  * 
  * <pre>
  * mapLiteralEntry ::=
- *     {@link StringLiteral key} ':' {@link Expression value}
+ *     {@link Expression key} ':' {@link Expression value}
  * </pre>
  * 
  * @coverage dart.engine.ast
  */
 public class MapLiteralEntry extends ASTNode {
   /**
-   * The key with which the value will be associated.
+   * The expression computing the key with which the value will be associated.
    */
-  private StringLiteral key;
+  private Expression key;
 
   /**
    * The colon that separates the key from the value.
@@ -45,11 +45,11 @@ public class MapLiteralEntry extends ASTNode {
   /**
    * Initialize a newly created map literal entry.
    * 
-   * @param key the key with which the value will be associated
+   * @param key the expression computing the key with which the value will be associated
    * @param separator the colon that separates the key from the value
    * @param value the expression computing the value that will be associated with the key
    */
-  public MapLiteralEntry(StringLiteral key, Token separator, Expression value) {
+  public MapLiteralEntry(Expression key, Token separator, Expression value) {
     this.key = becomeParentOf(key);
     this.separator = separator;
     this.value = becomeParentOf(value);
@@ -71,11 +71,11 @@ public class MapLiteralEntry extends ASTNode {
   }
 
   /**
-   * Return the key with which the value will be associated.
+   * Return the expression computing the key with which the value will be associated.
    * 
-   * @return the key with which the value will be associated
+   * @return the expression computing the key with which the value will be associated
    */
-  public StringLiteral getKey() {
+  public Expression getKey() {
     return key;
   }
 
@@ -98,11 +98,12 @@ public class MapLiteralEntry extends ASTNode {
   }
 
   /**
-   * Set the key with which the value will be associated to the given string.
+   * Set the expression computing the key with which the value will be associated to the given
+   * string.
    * 
-   * @param string the key with which the value will be associated
+   * @param string the expression computing the key with which the value will be associated
    */
-  public void setKey(StringLiteral string) {
+  public void setKey(Expression string) {
     key = becomeParentOf(string);
   }
 

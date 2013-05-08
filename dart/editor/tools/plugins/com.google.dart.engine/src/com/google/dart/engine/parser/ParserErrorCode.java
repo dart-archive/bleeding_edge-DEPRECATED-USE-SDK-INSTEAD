@@ -42,6 +42,8 @@ public enum ParserErrorCode implements ErrorCode {
       "A continue statement cannot be used outside of a loop or switch statement"),
   CONTINUE_WITHOUT_LABEL_IN_CASE(
       "A continue statement in a switch statement must have a label as a target"),
+  DEPRECATED_ARGUMENT_DEFINITION_TEST(
+      "The argument definition test ('?' operator) has been deprecated"),
   DIRECTIVE_AFTER_DECLARATION("Directives must appear before any declarations"),
   DUPLICATE_LABEL_IN_SWITCH_STATEMENT("The label %s was already used in this switch statement"),
   DUPLICATED_MODIFIER("The modifier '%s' was already specified."),

@@ -93,7 +93,6 @@ public class Parser {
    * @return the compilation unit that was parsed
    */
   public CompilationUnit parseCompilationUnit(Token token) {
-
     InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.Parser.parseCompilationUnit");
     try {
       currentToken = token;
@@ -101,7 +100,6 @@ public class Parser {
     } finally {
       instrumentation.log();
     }
-
   }
 
   /**
@@ -618,6 +616,7 @@ public class Parser {
         int offset = token.getOffset();
         if (offset < firstOffset) {
           first = token;
+          firstOffset = offset;
         }
       }
     }
@@ -861,6 +860,8 @@ public class Parser {
   private ArgumentDefinitionTest parseArgumentDefinitionTest() {
     Token question = expect(TokenType.QUESTION);
     SimpleIdentifier identifier = parseSimpleIdentifier();
+    // TODO(brianwilkerson) Enable this warning when the use of this operator has been removed
+    // reportError(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question);
     return new ArgumentDefinitionTest(question, identifier);
   }
 
@@ -1012,7 +1013,7 @@ public class Parser {
    * @param optional {@code true} if the selector is optional
    * @return the assignable selector that was parsed
    */
-  private Expression parseAssignableSelector(Expression prefix, boolean optional) {
+  private Expression parseAssignableSelector(Expression prefix, boolean optional) { //## prefix must be non-null
     if (matches(TokenType.OPEN_SQUARE_BRACKET)) {
       Token leftBracket = getAndAdvance();
       Expression index = parseExpression();
@@ -1189,7 +1190,7 @@ public class Parser {
       period = null;
     } else {
       reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
-      return expression;
+      return expression; //##
     }
     if (currentToken.getType() == TokenType.OPEN_PAREN) {
       while (currentToken.getType() == TokenType.OPEN_PAREN) {
@@ -1199,7 +1200,7 @@ public class Parser {
           functionName = null;
         } else if (expression == null) {
           // It should not be possible to get here.
-          return null;
+          return null; //##
         } else {
           expression = new FunctionExpressionInvocation(expression, parseArgumentList());
         }
@@ -1405,7 +1406,7 @@ public class Parser {
           return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), returnType);
         }
         reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
-        return null;
+        return null; //##
       }
     } else if (matches(Keyword.GET) && matchesIdentifier(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
@@ -1433,7 +1434,7 @@ public class Parser {
         return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
       }
       reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
-      return null;
+      return null; //##
     } else if (matches(peek(), TokenType.PERIOD) && matchesIdentifier(peek(2))
         && matches(peek(3), TokenType.OPEN_PAREN)) {
       return parseConstructor(
@@ -1515,7 +1516,7 @@ public class Parser {
         return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), type);
       }
       reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
-      return null;
+      return null; //##
     } else if (matches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseMethodDeclaration(
@@ -1684,7 +1685,7 @@ public class Parser {
   private CommentReference parseCommentReference(String referenceSource, int sourceOffset) {
     // TODO(brianwilkerson) The errors are not getting the right offset/length and are being duplicated.
     if (referenceSource.length() == 0) {
-      return null;
+      return null; //##
     }
     try {
       final boolean[] errorFound = {false};
@@ -1698,7 +1699,7 @@ public class Parser {
       scanner.setSourceStart(1, 1, sourceOffset);
       Token firstToken = scanner.tokenize();
       if (errorFound[0]) {
-        return null;
+        return null; //##
       }
       Token newKeyword = null;
       if (matches(firstToken, Keyword.NEW)) {
@@ -1721,7 +1722,7 @@ public class Parser {
           nextToken = firstToken.getNext();
         }
         if (nextToken.getType() != TokenType.EOF) {
-          return null;
+          return null; //##
         }
         return new CommentReference(newKeyword, identifier);
       } else if (matches(firstToken, Keyword.THIS) || matches(firstToken, Keyword.NULL)
@@ -1730,12 +1731,12 @@ public class Parser {
         // of CommentReference to take an expression rather than an identifier. For now we just
         // ignore it to reduce the number of errors produced, but that's probably not a valid
         // long term approach.
-        return null;
+        return null; //##
       }
     } catch (Exception exception) {
       // Ignored because we assume that it wasn't a real comment reference.
     }
-    return null;
+    return null; //##
   }
 
   /**
@@ -1931,7 +1932,7 @@ public class Parser {
         reportError(ParserErrorCode.TOP_LEVEL_OPERATOR, currentToken);
         // TODO(brianwilkerson) Recovery: We probably want to try parsing an operator at this point
         // even though we can't add it to the AST structure.
-        return null;
+        return null; //##
       } else if (matchesIdentifier()
           && matchesAny(
               peek(),
@@ -1963,7 +1964,7 @@ public class Parser {
           }
         }
         reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
-        return null;
+        return null; //##
       }
     } else if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier(peek())) {
       validateModifiersForTopLevelFunction(modifiers);
@@ -1972,10 +1973,10 @@ public class Parser {
       reportError(ParserErrorCode.TOP_LEVEL_OPERATOR, currentToken);
       // TODO(brianwilkerson) Recovery: We probably want to try parsing an operator at this point
       // even though we can't (?) add it to the AST structure.
-      return null;
+      return null; //##
     } else if (!matchesIdentifier()) {
       reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
-      return null;
+      return null; //##
     } else if (matches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
@@ -1997,10 +1998,10 @@ public class Parser {
       reportError(ParserErrorCode.TOP_LEVEL_OPERATOR, currentToken);
       // TODO(brianwilkerson) Recovery: We probably want to try parsing an operator at this point
       // even though we can't (?) add it to the AST structure.
-      return null;
+      return null; //##
     } else if (!matchesIdentifier()) {
       reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
-      return null;
+      return null; //##
     }
     if (matchesAny(peek(), TokenType.OPEN_PAREN, TokenType.FUNCTION, TokenType.OPEN_CURLY_BRACKET)) {
       validateModifiersForTopLevelFunction(modifiers);
@@ -2226,7 +2227,7 @@ public class Parser {
       return parsePartDirective(commentAndMetadata);
     } else {
       // Internal error
-      return null;
+      return null; //##
     }
   }
 
@@ -2261,7 +2262,7 @@ public class Parser {
       commentToken = commentToken.getNext();
     }
     if (commentTokens.isEmpty()) {
-      return null;
+      return null; //##
     }
     Token[] tokens = commentTokens.toArray(new Token[commentTokens.size()]);
     List<CommentReference> references = parseCommentReferences(tokens);
@@ -3065,7 +3066,7 @@ public class Parser {
       reportError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
       // TODO(brianwilkerson) Recover from this error. At the very least we should skip to the start
       // of the next valid compilation unit member.
-      return null;
+      return null; //##
     }
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
@@ -3506,13 +3507,13 @@ public class Parser {
    * 
    * <pre>
    * mapLiteralEntry ::=
-   *     stringLiteral ':' expression
+   *     expression ':' expression
    * </pre>
    * 
    * @return the map literal entry that was parsed
    */
   private MapLiteralEntry parseMapLiteralEntry() {
-    StringLiteral key = parseStringLiteral();
+    Expression key = parseExpression();
     Token separator = expect(TokenType.COLON);
     Expression value = parseExpression();
     return new MapLiteralEntry(key, separator, value);
@@ -3993,7 +3994,7 @@ public class Parser {
         && (matchesIdentifier(peek(3)) || matches(peek(3), TokenType.LT))) {
       return parseReturnType();
     }
-    return null;
+    return null; //##
   }
 
   /**
@@ -5492,10 +5493,10 @@ public class Parser {
    * This method must be kept in sync with {@link #parseStringLiteral()}.
    * 
    * <pre>
- * stringLiteral ::=
- *     MULTI_LINE_STRING+
- *   | SINGLE_LINE_STRING+
- * </pre>
+   * stringLiteral ::=
+   *     MULTI_LINE_STRING+
+   *   | SINGLE_LINE_STRING+
+   * </pre>
    * 
    * @param startToken the token at which parsing is to begin
    * @return the token following the string literal that was parsed

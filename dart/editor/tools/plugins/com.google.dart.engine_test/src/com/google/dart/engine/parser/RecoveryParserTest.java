@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.parser;
 
-import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -81,11 +80,6 @@ public class RecoveryParserTest extends ParserTestCase {
         "super + +",
         ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
-  }
-
-  public void test_argumentDefinitionTest_missing_identifier() throws Exception {
-    ArgumentDefinitionTest expression = parseExpression("?", ParserErrorCode.MISSING_IDENTIFIER);
-    assertTrue(expression.getIdentifier().isSynthetic());
   }
 
   public void test_assignmentExpression_missing_compound1() throws Exception {

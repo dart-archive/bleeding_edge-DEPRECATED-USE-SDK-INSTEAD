@@ -22,7 +22,6 @@ import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
@@ -36,6 +35,7 @@ import com.google.dart.engine.internal.constant.ValidResult;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
@@ -82,20 +82,39 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
   public Void visitMapLiteral(MapLiteral node) {
     super.visitMapLiteral(node);
     boolean isConst = node.getModifier() != null;
-    HashSet<String> keys = new HashSet<String>();
+    boolean reportEqualKeys = true;
+    HashSet<Object> keys = new HashSet<Object>();
+    ArrayList<Expression> invalidKeys = new ArrayList<Expression>();
     for (MapLiteralEntry entry : node.getEntries()) {
-      StringLiteral key = entry.getKey();
-      EvaluationResultImpl result = validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
-      if (result instanceof ValidResult && ((ValidResult) result).getValue() instanceof String) {
-        String value = (String) ((ValidResult) result).getValue();
-        if (keys.contains(value)) {
-          errorReporter.reportError(StaticWarningCode.EQUAL_KEYS_IN_MAP, key);
+      Expression key = entry.getKey();
+      if (isConst) {
+        EvaluationResultImpl result = validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
+        validate(entry.getValue(), CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+        if (result instanceof ValidResult) {
+          Object value = ((ValidResult) result).getValue();
+          if (keys.contains(value)) {
+            invalidKeys.add(key);
+          } else {
+            keys.add(value);
+          }
+        }
+      } else {
+        EvaluationResultImpl result = key.accept(new ConstantVisitor());
+        if (result instanceof ValidResult) {
+          Object value = ((ValidResult) result).getValue();
+          if (keys.contains(value)) {
+            invalidKeys.add(key);
+          } else {
+            keys.add(value);
+          }
         } else {
-          keys.add(value);
+          reportEqualKeys = false;
         }
       }
-      if (isConst) {
-        validate(entry.getValue(), CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+    }
+    if (reportEqualKeys) {
+      for (Expression key : invalidKeys) {
+        errorReporter.reportError(StaticWarningCode.EQUAL_KEYS_IN_MAP, key);
       }
     }
     return null;
@@ -137,6 +156,19 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * Return {@code true} if the given value is the result of evaluating an expression whose value is
+   * a valid key in a const map literal. Keys in const map literals must be either a string, number,
+   * boolean, list, map, or null.
+   * 
+   * @param value
+   * @return {@code true} if the given value is a valid key in a const map literal
+   */
+  private boolean isValidConstMapKey(Object value) {
+    // TODO(brianwilkerson)
+    return true;
   }
 
   /**
