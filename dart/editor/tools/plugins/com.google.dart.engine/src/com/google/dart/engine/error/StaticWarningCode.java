@@ -50,7 +50,7 @@ public enum StaticWarningCode implements ErrorCode {
    * to be thrown, because no setter is defined for it. The assignment will also give rise to a
    * static warning for the same reason.
    */
-  ASSIGNMENT_TO_FINAL(""),
+  ASSIGNMENT_TO_FINAL("Final variables cannot be assigned a value"),
 
   /**
    * 13.9 Switch: It is a static warning if the last statement of the statement sequence

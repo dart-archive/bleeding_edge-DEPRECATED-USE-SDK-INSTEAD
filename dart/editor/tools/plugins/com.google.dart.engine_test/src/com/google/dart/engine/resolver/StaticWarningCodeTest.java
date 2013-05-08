@@ -26,15 +26,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_assignmentToFinal() throws Exception {
-    Source source = addSource(createSource(//
-        "final x = 0;",
-        "f() { x = 1; }"));
-    resolve(source);
-    assertErrors(StaticWarningCode.ASSIGNMENT_TO_FINAL);
-    verify(source);
-  }
-
   public void fail_caseBlockNotTerminated() throws Exception {
     Source source = addSource(createSource(//
         "f(int p) {",
@@ -454,6 +445,41 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.UNDEFINED_STATIC_METHOD_OR_GETTER);
+    verify(source);
+  }
+
+  public void test_assignmentToFinal_instanceVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final v = 0;",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  a.v = 1;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
+  public void test_assignmentToFinal_localVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "final x = 0;",
+        "f() {",
+        "  final x = 0;",
+        "  x = 1;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
+  public void test_assignmentToFinal_topLevelVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "final x = 0;",
+        "f() { x = 1; }"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ASSIGNMENT_TO_FINAL);
     verify(source);
   }
 

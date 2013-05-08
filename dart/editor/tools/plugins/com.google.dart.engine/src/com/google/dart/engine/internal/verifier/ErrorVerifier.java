@@ -72,6 +72,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -227,6 +228,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
     checkForInvalidAssignment(node);
+    checkForAssignmentToFinal(node);
     return super.visitAssignmentExpression(node);
   }
 
@@ -782,6 +784,37 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           identifier,
           identifier.getName());
       return true;
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that left hand side of the passed assignment expression is not final.
+   * 
+   * @param node the assignment expression to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#ASSIGNMENT_TO_FINAL
+   */
+  private boolean checkForAssignmentToFinal(AssignmentExpression node) {
+    Expression lhs = node.getLeftHandSide();
+    if (lhs instanceof Identifier) {
+      Element leftElement = ((Identifier) lhs).getElement();
+      if (leftElement instanceof VariableElement) {
+        VariableElement leftVar = (VariableElement) leftElement;
+        if (leftVar.isFinal()) {
+          errorReporter.reportError(StaticWarningCode.ASSIGNMENT_TO_FINAL, lhs);
+          return true;
+        }
+        return false;
+      }
+      if (leftElement instanceof PropertyAccessorElement) {
+        PropertyAccessorElement leftAccessor = (PropertyAccessorElement) leftElement;
+        if (!leftAccessor.isSetter()) {
+          errorReporter.reportError(StaticWarningCode.ASSIGNMENT_TO_FINAL, lhs);
+          return true;
+        }
+        return false;
+      }
     }
     return false;
   }
