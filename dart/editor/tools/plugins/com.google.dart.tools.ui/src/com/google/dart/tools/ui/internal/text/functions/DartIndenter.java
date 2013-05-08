@@ -590,7 +590,7 @@ public class DartIndenter {
           return fPosition;
         } else {
           fPosition = pos;
-          return skipToStatementStart(danglingElse, true); // Assume inside block; may need to change for top-level defs
+          return skipToStatementStart(danglingElse, false);
         }
 
         // scope introduction
@@ -1776,10 +1776,21 @@ public class DartIndenter {
           return fPreviousPos;
 
         case Symbols.TokenCOLON:
-          int pos = fPreviousPos;
+          int prevPos = fPreviousPos;
+          int pos = fPosition;
           if (!isConditional()) {
-            return pos;
+            return prevPos;
           }
+          // conditionals and constructors are hard to tell apart so look harder for constructor
+          fPosition = pos;
+          fPreviousPos = prevPos;
+          if (looksLikeFormalParamList()) {
+            if (looksLikeConstructorDecl()) {
+              return fPosition;
+            }
+          }
+          fPosition = pos;
+          fPreviousPos = prevPos;
           break;
 
         case Symbols.TokenRBRACE:
