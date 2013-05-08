@@ -558,6 +558,26 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonVoidReturnForOperator_no() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  operator []=() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonVoidReturnForOperator_void() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void operator []=() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_optionalParameterInOperator_required() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

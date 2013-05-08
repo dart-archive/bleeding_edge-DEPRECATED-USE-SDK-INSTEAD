@@ -263,7 +263,7 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.1.1 Operators: It is a static warning if the return type of the user-declared operator []= is
    * explicitly declared and not void.
    */
-  NON_VOID_RETURN_FOR_OPERATOR(""),
+  NON_VOID_RETURN_FOR_OPERATOR("The return type of the operator []= must be 'void'"),
 
   /**
    * 7.3 Setters: It is a static warning if a setter declares a return type other than void.

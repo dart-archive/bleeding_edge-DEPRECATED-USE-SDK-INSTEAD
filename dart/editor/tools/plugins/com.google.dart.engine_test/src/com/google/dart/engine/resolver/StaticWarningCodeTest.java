@@ -296,16 +296,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonVoidReturnForOperator() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  int operator []=() {}",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR);
-    verify(source);
-  }
-
   public void fail_nonVoidReturnForSetter() throws Exception {
     Source source = addSource(createSource(//
         "int set x(int v) {",
@@ -545,6 +535,16 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS);
+    verify(source);
+  }
+
+  public void test_nonVoidReturnForOperator() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int operator []=() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR);
     verify(source);
   }
 

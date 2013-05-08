@@ -432,6 +432,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         checkForWrongNumberOfParametersForSetter(node);
       } else if (node.isOperator()) {
         checkForOptionalParameterInOperator(node);
+        checkForNonVoidReturnTypeForOperator(node);
       }
       checkForConcreteClassWithAbstractMember(node);
       checkForAllInvalidOverrideErrorCodes(node);
@@ -894,6 +895,48 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * This verifies that the given switch case is terminated with 'break', 'continue', 'return' or
+   * 'throw'.
+   * 
+   * @param node the switch case to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#CASE_BLOCK_NOT_TERMINATED
+   */
+  private boolean checkForCaseBlockNotTerminated(SwitchCase node) {
+    NodeList<Statement> statements = node.getStatements();
+    if (statements.isEmpty()) {
+      // fall-through without statements at all
+      ASTNode parent = node.getParent();
+      if (parent instanceof SwitchStatement) {
+        SwitchStatement switchStatement = (SwitchStatement) parent;
+        NodeList<SwitchMember> members = switchStatement.getMembers();
+        int index = members.indexOf(node);
+        if (index != -1 && index < members.size() - 1) {
+          return false;
+        }
+      }
+      // no other switch member after this one
+    } else {
+      Statement statement = statements.get(statements.size() - 1);
+      // terminated with statement
+      if (statement instanceof BreakStatement || statement instanceof ContinueStatement
+          || statement instanceof ReturnStatement) {
+        return false;
+      }
+      // terminated with 'throw' expression
+      if (statement instanceof ExpressionStatement) {
+        Expression expression = ((ExpressionStatement) statement).getExpression();
+        if (expression instanceof ThrowExpression) {
+          return false;
+        }
+      }
+    }
+    // report error
+    errorReporter.reportError(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, node.getKeyword());
+    return true;
   }
 
   /**
@@ -1430,6 +1473,32 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This verifies the passed method declaration of operator {@code []=}, has {@code void} return
+   * type.
+   * 
+   * @param node the method declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#NON_VOID_RETURN_FOR_OPERATOR
+   */
+  private boolean checkForNonVoidReturnTypeForOperator(MethodDeclaration node) {
+    // check that []= operator
+    SimpleIdentifier name = node.getName();
+    if (!name.getName().equals("[]=")) {
+      return false;
+    }
+    // check return type
+    TypeName typeName = node.getReturnType();
+    if (typeName != null) {
+      Type type = typeName.getType();
+      if (type != null && !type.isVoid()) {
+        errorReporter.reportError(StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR, typeName);
+      }
+    }
+    // no warning
+    return false;
+  }
+
+  /**
    * This verifies the passed operator-method declaration, does not have an optional parameter.
    * <p>
    * This method assumes that the method declaration was tested to be an operator declaration before
@@ -1490,48 +1559,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
-  }
-
-  /**
-   * This verifies that the given switch case is terminated with 'break', 'continue', 'return' or
-   * 'throw'.
-   * 
-   * @param node the switch case to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#CASE_BLOCK_NOT_TERMINATED
-   */
-  private boolean checkForCaseBlockNotTerminated(SwitchCase node) {
-    NodeList<Statement> statements = node.getStatements();
-    if (statements.isEmpty()) {
-      // fall-through without statements at all
-      ASTNode parent = node.getParent();
-      if (parent instanceof SwitchStatement) {
-        SwitchStatement switchStatement = (SwitchStatement) parent;
-        NodeList<SwitchMember> members = switchStatement.getMembers();
-        int index = members.indexOf(node);
-        if (index != -1 && index < members.size() - 1) {
-          return false;
-        }
-      }
-      // no other switch member after this one
-    } else {
-      Statement statement = statements.get(statements.size() - 1);
-      // terminated with statement
-      if (statement instanceof BreakStatement || statement instanceof ContinueStatement
-          || statement instanceof ReturnStatement) {
-        return false;
-      }
-      // terminated with 'throw' expression
-      if (statement instanceof ExpressionStatement) {
-        Expression expression = ((ExpressionStatement) statement).getExpression();
-        if (expression instanceof ThrowExpression) {
-          return false;
-        }
-      }
-    }
-    // report error
-    errorReporter.reportError(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, node.getKeyword());
-    return true;
   }
 
   /**
