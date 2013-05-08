@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.common.base.Objects;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -45,7 +46,7 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
     // may be SourceChange
     if (change instanceof SourceChange) {
       SourceChange sourceChange = (SourceChange) change;
-      if (sourceChange.getSource() == source) {
+      if (Objects.equal(sourceChange.getSource(), source)) {
         return sourceChange;
       }
     }
@@ -115,12 +116,19 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   }
 
   /**
+   * Index the given {@link CompilationUnit}.
+   */
+  protected final void indexUnit(CompilationUnit unit) {
+    AnalysisContext context = unit.getElement().getContext();
+    index.indexUnit(context, unit);
+  }
+
+  /**
    * Resolve and index the given source.
    */
   protected final CompilationUnit indexUnit(Source source) throws Exception {
     CompilationUnit unit = parseUnit(source);
-    AnalysisContext context = unit.getElement().getContext();
-    index.indexUnit(context, unit);
+    indexUnit(unit);
     return unit;
   }
 
@@ -129,8 +137,7 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
    */
   protected final CompilationUnit indexUnit(String path, String code) throws Exception {
     CompilationUnit unit = parseUnit(path, code);
-    AnalysisContext context = unit.getElement().getContext();
-    index.indexUnit(context, unit);
+    indexUnit(unit);
     return unit;
   }
 

@@ -38,6 +38,7 @@ import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactori
 import com.google.dart.engine.services.internal.refactoring.InlineMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameLibraryRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefactoringImpl;
 
@@ -105,6 +106,9 @@ public class RefactoringFactory {
   public static RenameRefactoring createRenameRefactoring(SearchEngine searchEngine, Element element) {
     Preconditions.checkNotNull(searchEngine);
     Preconditions.checkNotNull(element);
+    if (element instanceof LibraryElement) {
+      return new RenameLibraryRefactoringImpl(searchEngine, (LibraryElement) element);
+    }
     if (element instanceof ConstructorElement) {
       return new RenameConstructorRefactoringImpl(searchEngine, (ConstructorElement) element);
     }

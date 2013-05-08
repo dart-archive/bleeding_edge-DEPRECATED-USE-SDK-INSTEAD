@@ -21,6 +21,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -36,6 +37,7 @@ import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactori
 import com.google.dart.engine.services.internal.refactoring.InlineMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameLibraryRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefactoringImpl;
 
@@ -123,6 +125,14 @@ public class RefactoringFactoryTest extends AbstractDartTest {
     // create refactoring
     Refactoring refactoring = createRenameRefactoring(searchEngine, element);
     assertThat(refactoring).isInstanceOf(RenameConstructorRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_LibraryElement() throws Exception {
+    LibraryElement element = mock(LibraryElement.class);
+    when(element.getEnclosingElement()).thenReturn(enclosingClass);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameLibraryRefactoringImpl.class);
   }
 
   public void test_createRenameRefactoring_local_FunctionElement() throws Exception {

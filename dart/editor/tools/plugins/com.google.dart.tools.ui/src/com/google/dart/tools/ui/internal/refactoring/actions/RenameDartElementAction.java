@@ -15,10 +15,12 @@ package com.google.dart.tools.ui.internal.refactoring.actions;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
@@ -43,32 +45,49 @@ import org.eclipse.ui.IWorkbenchSite;
  */
 public class RenameDartElementAction extends AbstractDartSelectionAction {
   /**
-   * @return {@code true} if given {@link DartSelection} looks valid and we can try to rename.
+   * @return the {@link Element} to rename {@code true}, may be {@code null} if invalid selection.
    */
-  private static boolean isValidSelection(DartSelection selection) {
+  private static Element getElementToRename(DartSelection selection) {
     Element element = getSelectionElement(selection);
     ASTNode node = getSelectionNode(selection);
+    // 'library x;' or 'part of x;'
+    if (node != null) {
+      Directive directive = node.getAncestor(Directive.class);
+      if (directive != null) {
+        Element libraryElement = directive.getElement();
+        if (libraryElement instanceof LibraryElement) {
+          return libraryElement;
+        }
+      }
+    }
     // can we rename this node at all?
     if (node instanceof SimpleIdentifier) {
       // usually
     } else if (node instanceof InstanceCreationExpression) {
       // "new X()" - to give name to unnamed constructor
     } else {
-      return false;
+      return null;
+    }
+    // it is more logical to rename constructor, not type
+    if (node instanceof SimpleIdentifier && node.getParent() instanceof ConstructorDeclaration) {
+      ConstructorDeclaration constructor = (ConstructorDeclaration) node.getParent();
+      if (constructor.getName() == null && constructor.getReturnType() == node) {
+        element = constructor.getElement();
+      }
     }
     // do we have interesting Element?
     if (!isInterestingElement(node, element)) {
-      return false;
+      return null;
     }
     // we don't want to rename anything from SDK
     {
       Source source = element.getSource();
       if (source == null || source.isInSystemLibrary()) {
-        return false;
+        return null;
       }
     }
     // OK
-    return true;
+    return element;
   }
 
   public RenameDartElementAction(DartEditor editor) {
@@ -82,7 +101,8 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
 
   @Override
   public void selectionChanged(DartSelection selection) {
-    setEnabled(isValidSelection(selection));
+    Element element = getElementToRename(selection);
+    setEnabled(element != null);
   }
 
   @Override
@@ -102,23 +122,30 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
       if (context == null) {
         return;
       }
+      // prepare environment
+      Element element = getElementToRename(selection);
+      if (element == null) {
+        return;
+      }
+//      ASTNode node = context.getCoveredNode();
+//      // 'library x;' or 'part of x;'
+//      if (node != null) {
+//        Directive directive = node.getAncestor(Directive.class);
+//        if (directive != null && directive.getElement() instanceof LibraryElement) {
+//          renameUsingDialog(element);
+//          return;
+//        }
+//      }
       // Unnamed constructor are special case - we don't have name to start linked mode.
       // Named constructors may become unnamed, this looks ugly because of analysis as you type.
-      {
-        Element element = context.getCoveredElement();
-        // it is more logical to rename constructor, not type
-        ASTNode node = context.getCoveredNode();
-        if (node instanceof SimpleIdentifier && node.getParent() instanceof ConstructorDeclaration) {
-          ConstructorDeclaration constructor = (ConstructorDeclaration) node.getParent();
-          if (constructor.getName() == null && constructor.getReturnType() == node) {
-            element = constructor.getElement();
-          }
-        }
-        // is it constructor?
-        if (element instanceof ConstructorElement) {
-          renameUsingDialog(element);
-          return;
-        }
+      if (element instanceof ConstructorElement) {
+        renameUsingDialog(element);
+        return;
+      }
+      // XXX
+      if (element instanceof LibraryElement) {
+        renameUsingDialog(element);
+        return;
       }
       // start linked mode rename
       new RenameLinkedMode(editor, context).start();

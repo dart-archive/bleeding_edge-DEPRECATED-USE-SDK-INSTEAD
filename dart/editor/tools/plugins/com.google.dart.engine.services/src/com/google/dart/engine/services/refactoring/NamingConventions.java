@@ -17,6 +17,8 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.text.MessageFormat;
 
 /**
@@ -41,11 +43,6 @@ public final class NamingConventions {
     // null
     if (name == null) {
       return RefactoringStatus.createErrorStatus("Constant name must not be null.");
-    }
-    // has leading/trailing spaces
-    String trimmed = name.trim();
-    if (!name.equals(trimmed)) {
-      return RefactoringStatus.createErrorStatus("Constant name must not start or end with a blank.");
     }
     // is not identifier
     RefactoringStatus status = validateIdentifier(name, "Constant");
@@ -112,6 +109,41 @@ public final class NamingConventions {
    *         valid, {@link RefactoringStatusSeverity#WARNING} if the name is discouraged, or
    *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
    */
+  public static RefactoringStatus validateLibraryName(String name) {
+    // null
+    if (name == null) {
+      return RefactoringStatus.createErrorStatus("Library name must not be null.");
+    }
+    // blank
+    if (StringUtils.isBlank(name)) {
+      return RefactoringStatus.createErrorStatus("Library name must not be blank.");
+    }
+    // check identifiers
+    String[] identifiers = StringUtils.splitPreserveAllTokens(name, '.');
+    for (String identifier : identifiers) {
+      RefactoringStatus status = validateIdentifier0(identifier, "Library name identifier");
+      if (!status.isOK()) {
+        return status;
+      }
+    }
+    // should not have upper-case letters
+    for (String identifier : identifiers) {
+      char[] chars = identifier.toCharArray();
+      for (char c : chars) {
+        if (Character.isUpperCase(c)) {
+          return RefactoringStatus.createWarningStatus("Library name should consist of lower-case identifier separated by dots.");
+        }
+      }
+    }
+    // OK
+    return new RefactoringStatus();
+  }
+
+  /**
+   * @return the {@link RefactoringStatus} with {@link RefactoringStatusSeverity#OK} if the name is
+   *         valid, {@link RefactoringStatusSeverity#WARNING} if the name is discouraged, or
+   *         {@link RefactoringStatusSeverity#ERROR} if the name is illegal.
+   */
   public static RefactoringStatus validateMethodName(String name) {
     return validateLowerCamelCase(name, "Method");
   }
@@ -135,16 +167,29 @@ public final class NamingConventions {
   }
 
   private static RefactoringStatus validateIdentifier(String identifier, String elementName) {
+    return validateIdentifier0(identifier, elementName + " name");
+  }
+
+  private static RefactoringStatus validateIdentifier0(String identifier, String identifierName) {
+    // has leading/trailing spaces
+    String trimmed = identifier.trim();
+    if (!identifier.equals(trimmed)) {
+      String message = MessageFormat.format(
+          "{0} must not start or end with a blank.",
+          identifierName);
+      return RefactoringStatus.createErrorStatus(message);
+    }
+    // empty
     int length = identifier.length();
     if (length == 0) {
-      String message = MessageFormat.format("{0} name must not be empty.", elementName);
+      String message = MessageFormat.format("{0} must not be empty.", identifierName);
       return RefactoringStatus.createErrorStatus(message);
     }
     char currentChar = identifier.charAt(0);
     if (!Character.isLetter(currentChar) && currentChar != '_') {
       String message = MessageFormat.format(
-          "{0} name must not start with ''{1}''.",
-          elementName,
+          "{0} must not start with ''{1}''.",
+          identifierName,
           currentChar);
       return RefactoringStatus.createErrorStatus(message);
     }
@@ -152,8 +197,8 @@ public final class NamingConventions {
       currentChar = identifier.charAt(i);
       if (!Character.isLetterOrDigit(currentChar) && currentChar != '_') {
         String message = MessageFormat.format(
-            "{0} name must not contain ''{1}''.",
-            elementName,
+            "{0} must not contain ''{1}''.",
+            identifierName,
             currentChar);
         return RefactoringStatus.createErrorStatus(message);
       }
@@ -168,14 +213,6 @@ public final class NamingConventions {
     // null
     if (identifier == null) {
       String message = MessageFormat.format("{0} name must not be null.", elementName);
-      return RefactoringStatus.createErrorStatus(message);
-    }
-    // has leading/trailing spaces
-    String trimmed = identifier.trim();
-    if (!identifier.equals(trimmed)) {
-      String message = MessageFormat.format(
-          "{0} name must not start or end with a blank.",
-          elementName);
       return RefactoringStatus.createErrorStatus(message);
     }
     // is not identifier
@@ -205,14 +242,6 @@ public final class NamingConventions {
     // null
     if (identifier == null) {
       String message = MessageFormat.format("{0} name must not be null.", elementName);
-      return RefactoringStatus.createErrorStatus(message);
-    }
-    // leading or trailing spaces
-    String trimmed = identifier.trim();
-    if (!identifier.equals(trimmed)) {
-      String message = MessageFormat.format(
-          "{0} name must not start or end with a blank.",
-          elementName);
       return RefactoringStatus.createErrorStatus(message);
     }
     // is not identifier

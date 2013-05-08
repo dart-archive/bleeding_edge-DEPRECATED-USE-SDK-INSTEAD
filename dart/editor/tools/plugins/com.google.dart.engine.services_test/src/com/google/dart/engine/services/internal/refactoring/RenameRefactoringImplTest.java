@@ -26,6 +26,7 @@ import com.google.dart.engine.services.status.RefactoringStatusSeverity;
  */
 public abstract class RenameRefactoringImplTest extends RefactoringImplTest {
   protected RenameRefactoring refactoring;
+  protected Change refactoringChange;
 
   /**
    * Asserts that {@link #refactoring} status is OK.
@@ -47,8 +48,8 @@ public abstract class RenameRefactoringImplTest extends RefactoringImplTest {
    */
   protected final void assertSuccessfulRename(String... lines) throws Exception {
     assertRefactoringStatusOK();
-    Change change = refactoring.createChange(pm);
-    assertTestChangeResult(change, makeSource(lines));
+    refactoringChange = refactoring.createChange(pm);
+    assertTestChangeResult(refactoringChange, makeSource(lines));
   }
 
   /**

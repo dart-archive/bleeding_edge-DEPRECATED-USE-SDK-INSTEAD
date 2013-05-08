@@ -24,6 +24,7 @@ import static com.google.dart.engine.services.refactoring.NamingConventions.vali
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateFieldName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateFunctionName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateFunctionTypeAliasName;
+import static com.google.dart.engine.services.refactoring.NamingConventions.validateLibraryName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateMethodName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateParameterName;
 import static com.google.dart.engine.services.refactoring.NamingConventions.validateVariableName;
@@ -377,6 +378,78 @@ public class NamingConventionsTest extends AbstractDartTest {
         validateFunctionTypeAliasName("newName  "),
         RefactoringStatusSeverity.ERROR,
         "Function type alias name must not start or end with a blank.");
+  }
+
+  public void test_validateLibraryName_blank() throws Exception {
+    assertRefactoringStatus(
+        validateLibraryName(" "),
+        RefactoringStatusSeverity.ERROR,
+        "Library name must not be blank.");
+    assertRefactoringStatus(
+        validateLibraryName(" "),
+        RefactoringStatusSeverity.ERROR,
+        "Library name must not be blank.");
+  }
+
+  public void test_validateLibraryName_blank_identifier() throws Exception {
+    assertRefactoringStatus(
+        validateLibraryName("my..name"),
+        RefactoringStatusSeverity.ERROR,
+        "Library name identifier must not be empty.");
+    assertRefactoringStatus(
+        validateLibraryName("my. .name"),
+        RefactoringStatusSeverity.ERROR,
+        "Library name identifier must not start or end with a blank.");
+  }
+
+  public void test_validateLibraryName_hasUpperCase() throws Exception {
+    assertRefactoringStatus(
+        validateLibraryName("newName"),
+        RefactoringStatusSeverity.WARNING,
+        "Library name should consist of lower-case identifier separated by dots.");
+  }
+
+  public void test_validateLibraryName_leadingBlanks() throws Exception {
+    assertRefactoringStatus(
+        validateLibraryName("my. bad.name"),
+        RefactoringStatusSeverity.ERROR,
+        "Library name identifier must not start or end with a blank.");
+  }
+
+  public void test_validateLibraryName_notIdentifierMiddle() throws Exception {
+    assertRefactoringStatus(
+        validateLibraryName("my.ba-d.name"),
+        RefactoringStatusSeverity.ERROR,
+        "Library name identifier must not contain '-'.");
+  }
+
+  public void test_validateLibraryName_notIdentifierStart() throws Exception {
+    assertRefactoringStatus(
+        validateLibraryName("my.2bad.name"),
+        RefactoringStatusSeverity.ERROR,
+        "Library name identifier must not start with '2'.");
+  }
+
+  public void test_validateLibraryName_null() throws Exception {
+    assertRefactoringStatus(
+        validateLibraryName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Library name must not be null.");
+  }
+
+  public void test_validateLibraryName_OK_oneIdentifier() throws Exception {
+    assertRefactoringStatusOK(validateLibraryName("name"));
+  }
+
+  public void test_validateLibraryName_OK_severalIdentifiers() throws Exception {
+    assertRefactoringStatusOK(validateLibraryName("my.library.name"));
+  }
+
+  public void test_validateLibraryName_trailingBlanks() throws Exception {
+    assertRefactoringStatus(
+        validateLibraryName("my.bad .name"),
+        RefactoringStatusSeverity.ERROR,
+        "Library name identifier must not start or end with a blank.");
   }
 
   public void test_validateMethodName_doesNotStartWithLowerCase() throws Exception {
