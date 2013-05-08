@@ -420,9 +420,9 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       return null;
     }
     // record specific relations
-    if (element instanceof ClassElement || element instanceof FunctionTypeAliasElement
-        || element instanceof TypeVariableElement || element instanceof LabelElement
-        || element instanceof FunctionElement) {
+    if (element instanceof ClassElement || element instanceof FieldElement
+        || element instanceof FunctionElement || element instanceof FunctionTypeAliasElement
+        || element instanceof LabelElement || element instanceof TypeVariableElement) {
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     } else if (element instanceof FieldFormalParameterElement) {
       FieldFormalParameterElement fieldParameter = (FieldFormalParameterElement) element;

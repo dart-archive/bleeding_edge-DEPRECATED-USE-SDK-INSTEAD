@@ -591,7 +591,7 @@ public class SearchEngineImpl implements SearchEngine {
     assert listener != null;
     listener = applyFilter(filter, listener);
     // TODO(scheglov) use "7" when add matches by name
-    listener = new CountingSearchListener(5, listener);
+    listener = new CountingSearchListener(6, listener);
     // exact matches
     {
       index.getRelationships(
@@ -610,6 +610,10 @@ public class SearchEngineImpl implements SearchEngine {
           field.getSetter(),
           IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           newCallback(MatchKind.FIELD_WRITE, scope, listener));
+      index.getRelationships(
+          field,
+          IndexConstants.IS_REFERENCED_BY,
+          newCallback(MatchKind.FIELD_REFERENCE, scope, listener));
       index.getRelationships(
           field,
           IndexConstants.IS_REFERENCED_BY_QUALIFIED,

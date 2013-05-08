@@ -405,8 +405,25 @@ public class SearchEngineImplTest extends EngineTestCase {
           IndexConstants.IS_REFERENCED_BY_QUALIFIED,
           location);
     }
+    // search matches
+    List<SearchMatch> matches = searchReferencesSync(Element.class, fieldElement);
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.FIELD_READ, 1, 10, false),
+        new ExpectedMatch(elementB, MatchKind.FIELD_READ, 2, 20, true),
+        new ExpectedMatch(elementC, MatchKind.FIELD_WRITE, 3, 30, false),
+        new ExpectedMatch(elementD, MatchKind.FIELD_WRITE, 4, 40, true));
+  }
+
+  public void test_searchReferences_FieldElement2() throws Exception {
+    FieldElement fieldElement = mock2(FieldElement.class, ElementKind.FIELD);
     {
-      Location location = new Location(elementE, 5, 50, null);
+      Location location = new Location(elementA, 1, 10, null);
+      indexStore.recordRelationship(fieldElement, IndexConstants.IS_REFERENCED_BY, location);
+    }
+    {
+      Location location = new Location(elementB, 2, 20, null);
       indexStore.recordRelationship(
           fieldElement,
           IndexConstants.IS_REFERENCED_BY_QUALIFIED,
@@ -417,11 +434,8 @@ public class SearchEngineImplTest extends EngineTestCase {
     // verify
     assertMatches(
         matches,
-        new ExpectedMatch(elementA, MatchKind.FIELD_READ, 1, 10, false),
-        new ExpectedMatch(elementB, MatchKind.FIELD_READ, 2, 20, true),
-        new ExpectedMatch(elementC, MatchKind.FIELD_WRITE, 3, 30, false),
-        new ExpectedMatch(elementD, MatchKind.FIELD_WRITE, 4, 40, true),
-        new ExpectedMatch(elementE, MatchKind.FIELD_REFERENCE, 5, 50, true));
+        new ExpectedMatch(elementA, MatchKind.FIELD_REFERENCE, 1, 10, false),
+        new ExpectedMatch(elementB, MatchKind.FIELD_REFERENCE, 2, 20, true));
   }
 
   public void test_searchReferences_FunctionElement() throws Exception {

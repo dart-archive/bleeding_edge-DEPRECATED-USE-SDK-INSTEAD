@@ -317,6 +317,26 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
   }
 
+  public void test_createChange_FieldElement_constructorFieldInitializer() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  final test;",
+        "  A() : test = 5;",
+        "}");
+    // configure refactoring
+    createRenameRefactoring("test;");
+    assertEquals("Rename Field", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  final newName;",
+        "  A() : newName = 5;",
+        "}");
+  }
+
   public void test_createChange_FieldElement_fieldFormalParameter() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
