@@ -26,21 +26,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_caseBlockNotTerminated() throws Exception {
-    Source source = addSource(createSource(//
-        "f(int p) {",
-        "  switch (p) {",
-        "    case 0:",
-        "      f(p);",
-        "    case 1:",
-        "      break;",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED);
-    verify(source);
-  }
-
   public void fail_castToNonType() throws Exception {
     Source source = addSource(createSource(//
         "var A = 0;",
@@ -480,6 +465,33 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "f() { x = 1; }"));
     resolve(source);
     assertErrors(StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
+  public void test_caseBlockNotTerminated() throws Exception {
+    Source source = addSource(createSource(//
+        "f(int p) {",
+        "  switch (p) {",
+        "    case 0:",
+        "      f(p);",
+        "    case 1:",
+        "      break;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED);
+    verify(source);
+  }
+
+  public void test_caseBlockNotTerminated_noFollowingSwitchCase() throws Exception {
+    Source source = addSource(createSource(//
+        "f(int p) {",
+        "  switch (p) {",
+        "    case 0:",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED);
     verify(source);
   }
 

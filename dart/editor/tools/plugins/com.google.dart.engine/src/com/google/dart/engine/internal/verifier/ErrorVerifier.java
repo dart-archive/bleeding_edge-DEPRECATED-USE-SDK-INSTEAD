@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -26,9 +27,11 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
@@ -51,6 +54,7 @@ import com.google.dart.engine.ast.RethrowExpression;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
@@ -459,6 +463,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
     checkForConstFormalParameter(node);
     return super.visitSimpleFormalParameter(node);
+  }
+
+  @Override
+  public Void visitSwitchCase(SwitchCase node) {
+    checkForCaseBlockNotTerminated(node);
+    return super.visitSwitchCase(node);
   }
 
   @Override
@@ -1449,6 +1459,48 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * This verifies that the given switch case is terminated with 'break', 'continue', 'return' or
+   * 'throw'.
+   * 
+   * @param node the switch case to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#CASE_BLOCK_NOT_TERMINATED
+   */
+  private boolean checkForCaseBlockNotTerminated(SwitchCase node) {
+    NodeList<Statement> statements = node.getStatements();
+    if (statements.isEmpty()) {
+      // fall-through without statements at all
+      ASTNode parent = node.getParent();
+      if (parent instanceof SwitchStatement) {
+        SwitchStatement switchStatement = (SwitchStatement) parent;
+        NodeList<SwitchMember> members = switchStatement.getMembers();
+        int index = members.indexOf(node);
+        if (index != -1 && index < members.size() - 1) {
+          return false;
+        }
+      }
+      // no other switch member after this one
+    } else {
+      Statement statement = statements.get(statements.size() - 1);
+      // terminated with statement
+      if (statement instanceof BreakStatement || statement instanceof ContinueStatement
+          || statement instanceof ReturnStatement) {
+        return false;
+      }
+      // terminated with 'throw' expression
+      if (statement instanceof ExpressionStatement) {
+        Expression expression = ((ExpressionStatement) statement).getExpression();
+        if (expression instanceof ThrowExpression) {
+          return false;
+        }
+      }
+    }
+    // report error
+    errorReporter.reportError(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, node.getKeyword());
+    return true;
   }
 
   /**

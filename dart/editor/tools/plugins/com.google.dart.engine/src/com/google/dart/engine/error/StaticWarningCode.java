@@ -56,7 +56,8 @@ public enum StaticWarningCode implements ErrorCode {
    * 13.9 Switch: It is a static warning if the last statement of the statement sequence
    * <i>s<sub>k</sub></i> is not a break, continue, return or throw statement.
    */
-  CASE_BLOCK_NOT_TERMINATED(""),
+  CASE_BLOCK_NOT_TERMINATED(
+      "The last statement of the 'case' should be 'break', 'continue', 'return' or 'throw'"),
 
   /**
    * 12.32 Type Cast: It is a static warning if <i>T</i> does not denote a type available in the

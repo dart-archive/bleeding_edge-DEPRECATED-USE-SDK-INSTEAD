@@ -71,6 +71,33 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_caseBlockNotTerminated() throws Exception {
+    Source source = addSource(createSource(//
+        "f(int p) {",
+        "  for (int i = 0; i < 10; i++) {",
+        "    switch (p) {",
+        "      case 0:",
+        "        break;",
+        "      case 1:",
+        "        continue;",
+        "      case 2:",
+        "        return;",
+        "      case 3:",
+        "        throw new Object();",
+        "      case 4:",
+        "      case 5:",
+        "        return;",
+        "      case 6:",
+        "      default:",
+        "        return;",
+        "    }",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_caseExpressionTypeImplementsEquals_int() throws Exception {
     Source source = addSource(createSource(//
         "f(int i) {",
