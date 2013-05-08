@@ -38,8 +38,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * referenced during a subtype test.
    * <li>Otherwise, it is a compile-time error.
    * </ol>
+   * 
+   * @param ambiguousTypeName the name of the ambiguous type
+   * @param firstLibraryName the name of the first library that the type is found
+   * @param secondLibraryName the name of the second library that the type is found
    */
-  AMBIGUOUS_IMPORT(""),
+  AMBIGUOUS_IMPORT("The type '%s' is defined in the libraries '%s' and '%s'"),
 
   /**
    * 12.33 Argument Definition Test: It is a compile time error if <i>v</i> does not denote a formal

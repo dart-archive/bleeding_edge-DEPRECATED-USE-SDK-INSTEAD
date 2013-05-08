@@ -14,6 +14,7 @@
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
@@ -30,36 +31,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class N {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_EXPORT);
-    verify(source);
-  }
-
-  public void fail_ambiguousImport_function() throws Exception {
-    Source source = addSource(createSource(//
-        "library L;",
-        "import 'lib1.dart';",
-        "import 'lib2.dart';",
-        "g() { return f(); }"));
-    addSource("/lib1.dart", createSource(//
-        "f() {}"));
-    addSource("/lib2.dart", createSource(//
-        "f() {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
-    verify(source);
-  }
-
-  public void fail_ambiguousImport_typeAnnotation() throws Exception {
-    Source source = addSource(createSource(//
-        "library L;",
-        "import 'lib1.dart';",
-        "import 'lib2.dart';",
-        "class A extends N {}"));
-    addSource("/lib1.dart", createSource(//
-        "class N {}"));
-    addSource("/lib2.dart", createSource(//
-        "class N {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
     verify(source);
   }
 
@@ -790,6 +761,34 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
     verify(source);
+  }
+
+  public void test_ambiguousImport_function() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "g() { return f(); }"));
+    addSource("/lib1.dart", createSource(//
+        "f() {}"));
+    addSource("/lib2.dart", createSource(//
+        "f() {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT, StaticTypeWarningCode.UNDEFINED_FUNCTION);
+  }
+
+  public void test_ambiguousImport_typeAnnotation() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "class A extends N {}"));
+    addSource("/lib1.dart", createSource(//
+        "class N {}"));
+    addSource("/lib2.dart", createSource(//
+        "class N {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT, CompileTimeErrorCode.EXTENDS_NON_CLASS);
   }
 
   public void test_argumentDefinitionTestNonParameter() throws Exception {

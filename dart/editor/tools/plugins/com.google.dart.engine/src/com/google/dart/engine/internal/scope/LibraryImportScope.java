@@ -16,7 +16,9 @@ package com.google.dart.engine.internal.scope;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
 
 import java.util.ArrayList;
@@ -94,8 +96,25 @@ public class LibraryImportScope extends Scope {
       }
     }
     if (foundElement instanceof MultiplyDefinedElementImpl) {
-      // TODO(brianwilkerson) Report this error.
-      // CompileTimeErrorCode.AMBIGUOUS_IMPORT
+      String foundEltName = foundElement.getDisplayName();
+      String libName1 = "", libName2 = "";
+      Element[] conflictingMembers = ((MultiplyDefinedElementImpl) foundElement).getConflictingElements();
+      LibraryElement enclosingLibrary = conflictingMembers[0].getAncestor(LibraryElement.class);
+      if (enclosingLibrary != null) {
+        libName1 = enclosingLibrary.getDefiningCompilationUnit().getDisplayName();
+      }
+      enclosingLibrary = conflictingMembers[1].getAncestor(LibraryElement.class);
+      if (enclosingLibrary != null) {
+        libName2 = enclosingLibrary.getDefiningCompilationUnit().getDisplayName();
+      }
+      // TODO (jwren) Change the error message to include a list of all library names instead of
+      // just the first two
+      errorListener.onError(new AnalysisError(
+          getSource(),
+          CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+          foundEltName,
+          libName1,
+          libName2));
     }
     if (foundElement != null) {
       defineWithoutChecking(foundElement);
