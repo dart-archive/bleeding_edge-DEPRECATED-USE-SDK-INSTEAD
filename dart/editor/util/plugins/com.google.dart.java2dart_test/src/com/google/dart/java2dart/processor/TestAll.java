@@ -23,6 +23,7 @@ public class TestAll {
     suite.addTestSuite(ObjectSemanticProcessorTest.class);
     suite.addTestSuite(MathSemanticProcessorTest.class);
     suite.addTestSuite(DateSemanticProcessorTest.class);
+    suite.addTestSuite(ConstructorSemanticProcessorTest.class);
     suite.addTestSuite(CollectionSemanticProcessorTest.class);
     suite.addTestSuite(LoggerSemanticProcessorTest.class);
     suite.addTestSuite(PropertySemanticProcessorTest.class);

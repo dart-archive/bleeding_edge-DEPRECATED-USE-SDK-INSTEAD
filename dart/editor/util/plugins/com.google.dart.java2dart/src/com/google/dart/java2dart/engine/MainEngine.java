@@ -29,6 +29,7 @@ import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.BeautifySemanticProcessor;
 import com.google.dart.java2dart.processor.CollectionSemanticProcessor;
+import com.google.dart.java2dart.processor.ConstructorSemanticProcessor;
 import com.google.dart.java2dart.processor.GuavaSemanticProcessor;
 import com.google.dart.java2dart.processor.IOSemanticProcessor;
 import com.google.dart.java2dart.processor.JUnitSemanticProcessor;
@@ -180,6 +181,7 @@ public class MainEngine {
     // run processors
     {
       List<SemanticProcessor> PROCESSORS = ImmutableList.of(
+          new ConstructorSemanticProcessor(context),
           new ObjectSemanticProcessor(context),
           new CollectionSemanticProcessor(context),
           new IOSemanticProcessor(context),

@@ -141,6 +141,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "public class A {",
         "}");
     assertDartSource(//
+        "",
         "/**",
         " * Some comment.",
         " */",
@@ -158,6 +159,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "public class A {",
         "}");
     assertDartSource(
+        "",
         "/**",
         " * Some \\[ident\\] ignored.",
         " * Second line.",
@@ -177,6 +179,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "}");
     assertDartSource(//
         "class A {",
+        "  ",
         "  /**",
         "   * Some comment.",
         "   */",
@@ -195,6 +198,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "}");
     assertDartSource(
         "class A {",
+        "  ",
         "  /**",
         "   * Some comment.",
         "   */",
