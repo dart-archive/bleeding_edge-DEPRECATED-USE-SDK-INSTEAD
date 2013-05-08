@@ -756,15 +756,30 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
       // RETURN_OF_INVALID_TYPE
       if (!expectedReturnType.isVoid()) {
-        Type actualReturnType = getType(returnExpression);
-        if (!actualReturnType.isAssignableTo(expectedReturnType)) {
-          errorReporter.reportError(
-              StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-              returnExpression,
-              actualReturnType.getName(),
-              expectedReturnType.getName(),
-              enclosingFunction.getDisplayName());
-          return true;
+        Type staticReturnType = getStaticType(returnExpression);
+        boolean isStaticAssignable = staticReturnType.isAssignableTo(expectedReturnType);
+        Type propagatedReturnType = getPropagatedType(returnExpression);
+        if (propagatedReturnType == null) {
+          if (!isStaticAssignable) {
+            errorReporter.reportError(
+                StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+                returnExpression,
+                staticReturnType.getName(),
+                expectedReturnType.getName(),
+                enclosingFunction.getDisplayName());
+            return true;
+          }
+        } else {
+          boolean isPropagatedAssignable = propagatedReturnType.isAssignableTo(expectedReturnType);
+          if (!isStaticAssignable && !isPropagatedAssignable) {
+            errorReporter.reportError(
+                StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+                returnExpression,
+                staticReturnType.getName(),
+                expectedReturnType.getName(),
+                enclosingFunction.getDisplayName());
+            return true;
+          }
         }
       }
     } else {
@@ -891,9 +906,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForCaseExpressionTypeImplementsEquals(SwitchStatement node) {
     Expression expression = node.getExpression();
-    Type type = getType(expression);
+    Type type = getStaticType(expression);
     // if the type is int or String, exit this check quickly
-    if (!type.equals(typeProvider.getIntType()) && !type.equals(typeProvider.getStringType())) {
+    if (type != null && !type.equals(typeProvider.getIntType())
+        && !type.equals(typeProvider.getStringType())) {
       Element element = type.getElement();
       if (element instanceof ClassElement) {
         ClassElement classElement = (ClassElement) element;
@@ -1259,9 +1275,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         SwitchCase switchCase = (SwitchCase) switchMember;
         Expression expression = switchCase.getExpression();
         if (firstType == null) {
-          firstType = getType(expression);
+          firstType = getStaticType(expression);
         } else {
-          Type nType = getType(expression);
+          Type nType = getStaticType(expression);
           if (!firstType.equals(nType)) {
             errorReporter.reportError(
                 CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
@@ -1287,15 +1303,29 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Expression lhs = node.getLeftHandSide();
     Expression rhs = node.getRightHandSide();
     VariableElement leftElement = getVariableElement(lhs);
-    Type leftType = (leftElement == null) ? getType(lhs) : leftElement.getType();
-    Type rightType = getType(rhs);
-    if (!rightType.isAssignableTo(leftType)) {
-      errorReporter.reportError(
-          StaticTypeWarningCode.INVALID_ASSIGNMENT,
-          rhs,
-          rightType.getName(),
-          leftType.getName());
-      return true;
+    Type leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.getType();
+    Type staticRightType = getStaticType(rhs);
+    boolean isStaticAssignable = staticRightType.isAssignableTo(leftType);
+    Type propagatedRightType = getPropagatedType(rhs);
+    if (propagatedRightType == null) {
+      if (!isStaticAssignable) {
+        errorReporter.reportError(
+            StaticTypeWarningCode.INVALID_ASSIGNMENT,
+            rhs,
+            staticRightType.getName(),
+            leftType.getName());
+        return true;
+      }
+    } else {
+      boolean isPropagatedAssignable = propagatedRightType.isAssignableTo(leftType);
+      if (!isStaticAssignable && !isPropagatedAssignable) {
+        errorReporter.reportError(
+            StaticTypeWarningCode.INVALID_ASSIGNMENT,
+            rhs,
+            staticRightType.getName(),
+            leftType.getName());
+        return true;
+      }
     }
     return false;
   }
@@ -1348,6 +1378,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see ParserErrorCode#NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
    */
   private boolean checkForNativeFunctionBodyInNonSDKCode(NativeFunctionBody node) {
+    // TODO(brianwilkerson) Figure out the right rule for when 'native' is allowed.
     if (!isInSystemLibrary) {
       errorReporter.reportError(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, node);
       return true;
@@ -1364,7 +1395,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see StaticTypeWarningCode#NON_BOOL_CONDITION
    */
   private boolean checkForNonBoolCondition(Expression condition) {
-    Type conditionType = getType(condition);
+    Type conditionType = getStaticType(condition);
     if (conditionType != null && !conditionType.isAssignableTo(typeProvider.getBoolType())) {
       errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_CONDITION, condition);
       return true;
@@ -1381,7 +1412,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForNonBoolExpression(AssertStatement node) {
     Expression expression = node.getCondition();
-    Type type = getType(expression);
+    Type type = getStaticType(expression);
     if (type instanceof InterfaceType) {
       if (!type.isAssignableTo(typeProvider.getBoolType())) {
         errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
@@ -1594,14 +1625,28 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Return the type of the given expression that is to be used for type analysis.
+   * Return the propagated type of the given expression that is to be used for type analysis.
    * 
    * @param expression the expression whose type is to be returned
-   * @return the type of the given expression
+   * @return the propagated type of the given expression
    */
-  private Type getType(Expression expression) {
+  private Type getPropagatedType(Expression expression) {
+    return expression.getPropagatedType();
+  }
+
+  /**
+   * Return the static type of the given expression that is to be used for type analysis.
+   * 
+   * @param expression the expression whose type is to be returned
+   * @return the static type of the given expression
+   */
+  private Type getStaticType(Expression expression) {
     Type type = expression.getStaticType();
-    return type == null ? dynamicType : type;
+    if (type == null) {
+      // TODO(brianwilkerson) This should never happen.
+      return dynamicType;
+    }
+    return type;
   }
 
   /**

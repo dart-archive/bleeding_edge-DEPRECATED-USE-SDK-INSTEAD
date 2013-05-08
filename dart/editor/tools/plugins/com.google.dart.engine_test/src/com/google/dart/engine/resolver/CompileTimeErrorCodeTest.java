@@ -381,16 +381,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonConstMapKey() throws Exception {
-    Source source = addSource(createSource(//
-        "f(a) {",
-        "  return const {a : 0};",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
-    verify(source);
-  }
-
   public void fail_nonConstValueInInitializer() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -439,8 +429,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_prefixCollidesWithTopLevelMembers() throws Exception {
+    addSource("lib.dart", createSource(""));
     Source source = addSource(createSource(//
-        "import 'dart:uri' as uri;",
+        "import 'lib.dart' as uri;",
         "var uri = null;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
@@ -1596,8 +1587,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_labelInOuterScope() throws Exception {
     Source source = addSource(createSource(//
-        "class int {}",
-        "",
         "class A {",
         "  void m(int i) {",
         "    l: while (i > 0) {",
@@ -1608,10 +1597,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    // TODO (jwren) situations where a LABEL_IN_OUTER_SCOPE is generated, a UNDEFINED_OPERATOR will
-    // also always be generated, we should revisit this situation so that there is only the more
-    // accurate error code generated.
-    assertErrors(CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE, StaticWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE);
     // We cannot verify resolution with unresolvable labels
   }
 
@@ -1709,6 +1695,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+    verify(source);
+  }
+
+  public void test_nonConstMapKey() throws Exception {
+    Source source = addSource(createSource(//
+        "f(a) {",
+        "  return const {a : 0};",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
     verify(source);
   }
 

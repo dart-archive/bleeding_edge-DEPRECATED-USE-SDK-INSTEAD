@@ -59,7 +59,7 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) ((Block) ifStatement.getThenStatement()).getStatements().get(
         0);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_assert() throws Exception {
@@ -79,7 +79,7 @@ public class TypePropagationTest extends ResolverTestCase {
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_assignment() throws Exception {
@@ -97,7 +97,7 @@ public class TypePropagationTest extends ResolverTestCase {
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(2);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(getTypeProvider().getIntType(), variableName.getStaticType());
+    assertSame(getTypeProvider().getIntType(), variableName.getPropagatedType());
   }
 
   public void test_assignment_afterInitializer() throws Exception {
@@ -115,7 +115,7 @@ public class TypePropagationTest extends ResolverTestCase {
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(2);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(getTypeProvider().getDoubleType(), variableName.getStaticType());
+    assertSame(getTypeProvider().getDoubleType(), variableName.getPropagatedType());
   }
 
   public void test_forEach() throws Exception {
@@ -138,7 +138,7 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) ((Block) forStatement.getBody()).getStatements().get(
         0);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_initializer() throws Exception {
@@ -155,7 +155,7 @@ public class TypePropagationTest extends ResolverTestCase {
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(getTypeProvider().getIntType(), variableName.getStaticType());
+    assertSame(getTypeProvider().getIntType(), variableName.getPropagatedType());
   }
 
   public void test_initializer_dereference() throws Exception {
@@ -171,7 +171,7 @@ public class TypePropagationTest extends ResolverTestCase {
     ExpressionStatement statement = (ExpressionStatement) body.getBlock().getStatements().get(1);
     PrefixedIdentifier invocation = (PrefixedIdentifier) statement.getExpression();
     SimpleIdentifier variableName = invocation.getPrefix();
-    assertSame(getTypeProvider().getStringType(), variableName.getStaticType());
+    assertSame(getTypeProvider().getStringType(), variableName.getPropagatedType());
   }
 
   public void test_is_conditional() throws Exception {
@@ -191,7 +191,7 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(0);
     ConditionalExpression conditional = (ConditionalExpression) statement.getExpression();
     SimpleIdentifier variableName = (SimpleIdentifier) conditional.getThenExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_is_if() throws Exception {
@@ -216,7 +216,7 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) ((Block) ifStatement.getThenStatement()).getStatements().get(
         0);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_is_if_lessSpecific() throws Exception {
@@ -233,15 +233,15 @@ public class TypePropagationTest extends ResolverTestCase {
     assertNoErrors();
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
-    ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
-    InterfaceType typeA = classA.getElement().getType();
+//    ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
+//    InterfaceType typeA = classA.getElement().getType();
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(1);
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
     IfStatement ifStatement = (IfStatement) body.getBlock().getStatements().get(0);
     ReturnStatement statement = (ReturnStatement) ((Block) ifStatement.getThenStatement()).getStatements().get(
         0);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(null, variableName.getPropagatedType());
   }
 
   public void test_is_if_logicalAnd() throws Exception {
@@ -266,7 +266,7 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) ((Block) ifStatement.getThenStatement()).getStatements().get(
         0);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_is_postConditional() throws Exception {
@@ -286,7 +286,7 @@ public class TypePropagationTest extends ResolverTestCase {
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_is_postIf() throws Exception {
@@ -310,7 +310,7 @@ public class TypePropagationTest extends ResolverTestCase {
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_is_subclass() throws Exception {
@@ -357,7 +357,7 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) ((Block) whileStatement.getBody()).getStatements().get(
         0);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_isNot_conditional() throws Exception {
@@ -377,7 +377,7 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(0);
     ConditionalExpression conditional = (ConditionalExpression) statement.getExpression();
     SimpleIdentifier variableName = (SimpleIdentifier) conditional.getElseExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_isNot_if() throws Exception {
@@ -402,7 +402,7 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) ((Block) ifStatement.getElseStatement()).getStatements().get(
         0);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_isNot_if_logicalOr() throws Exception {
@@ -427,7 +427,7 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) ((Block) ifStatement.getElseStatement()).getStatements().get(
         0);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_isNot_postConditional() throws Exception {
@@ -447,7 +447,7 @@ public class TypePropagationTest extends ResolverTestCase {
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_isNot_postIf() throws Exception {
@@ -469,7 +469,7 @@ public class TypePropagationTest extends ResolverTestCase {
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getStaticType());
+    assertSame(typeA, variableName.getPropagatedType());
   }
 
   public void test_query() throws Exception {
@@ -500,16 +500,16 @@ public class TypePropagationTest extends ResolverTestCase {
     BlockFunctionBody body = (BlockFunctionBody) main.getFunctionExpression().getBody();
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(11);
     NodeList<Expression> elements = ((ListLiteral) statement.getExpression()).getElements();
-    assertEquals("AnchorElement", elements.get(0).getStaticType().getName());
-    assertEquals("AnchorElement", elements.get(1).getStaticType().getName());
-    assertEquals("BodyElement", elements.get(2).getStaticType().getName());
-    assertEquals("ButtonElement", elements.get(3).getStaticType().getName());
-    assertEquals("DivElement", elements.get(4).getStaticType().getName());
-    assertEquals("InputElement", elements.get(5).getStaticType().getName());
-    assertEquals("SelectElement", elements.get(6).getStaticType().getName());
-    assertEquals("DivElement", elements.get(7).getStaticType().getName());
-    assertEquals("Element", elements.get(8).getStaticType().getName());
-    assertEquals("Element", elements.get(9).getStaticType().getName());
-    assertEquals("Element", elements.get(10).getStaticType().getName());
+    assertEquals("AnchorElement", elements.get(0).getPropagatedType().getName());
+    assertEquals("AnchorElement", elements.get(1).getPropagatedType().getName());
+    assertEquals("BodyElement", elements.get(2).getPropagatedType().getName());
+    assertEquals("ButtonElement", elements.get(3).getPropagatedType().getName());
+    assertEquals("DivElement", elements.get(4).getPropagatedType().getName());
+    assertEquals("InputElement", elements.get(5).getPropagatedType().getName());
+    assertEquals("SelectElement", elements.get(6).getPropagatedType().getName());
+    assertEquals("DivElement", elements.get(7).getPropagatedType().getName());
+    assertEquals("Element", elements.get(8).getPropagatedType().getName());
+    assertEquals("Element", elements.get(9).getPropagatedType().getName());
+    assertEquals("Element", elements.get(10).getPropagatedType().getName());
   }
 }

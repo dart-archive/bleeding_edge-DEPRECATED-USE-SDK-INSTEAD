@@ -81,7 +81,6 @@ import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
-import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
@@ -91,6 +90,7 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeVariableType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -149,9 +149,77 @@ import java.util.HashSet;
  */
 public class ElementResolver extends SimpleASTVisitor<Void> {
   /**
+   * Instances of the class {@code SyntheticIdentifier} implement an identifier that can be used to
+   * look up names in the lexical scope when there is no identifier in the AST structure. There is
+   * no identifier in the AST when the parser could not distinguish between a method invocation and
+   * an invocation of a top-level function imported with a prefix.
+   */
+  private static class SyntheticIdentifier extends Identifier {
+    /**
+     * The name of the synthetic identifier.
+     */
+    private final String name;
+
+    /**
+     * Initialize a newly created synthetic identifier to have the given name.
+     * 
+     * @param name the name of the synthetic identifier
+     */
+    private SyntheticIdentifier(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public <R> R accept(ASTVisitor<R> visitor) {
+      return null;
+    }
+
+    @Override
+    public Token getBeginToken() {
+      return null;
+    }
+
+    @Override
+    public Element getElement() {
+      return null;
+    }
+
+    @Override
+    public Token getEndToken() {
+      return null;
+    }
+
+    @Override
+    public String getName() {
+      return name;
+    }
+
+    @Override
+    public void visitChildren(ASTVisitor<?> visitor) {
+    }
+  }
+
+  /**
    * The resolver driving this participant.
    */
   private ResolverVisitor resolver;
+
+  /**
+   * A table mapping nodes in the AST to the element produced based on static type information.
+   */
+  private HashMap<ASTNode, ExecutableElement> staticElementMap;
+
+  /**
+   * The name of the method that can be implemented by a class to allow its instances to be invoked
+   * as if they were a function.
+   */
+  private static final String CALL_METHOD_NAME = "call";
+
+  /**
+   * The name of the method that will be invoked if an attempt is made to invoke an undefined method
+   * on an object.
+   */
+  private static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -160,23 +228,36 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    */
   public ElementResolver(ResolverVisitor resolver) {
     this.resolver = resolver;
+    staticElementMap = resolver.getStaticElementMap();
   }
 
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
-    TokenType operator = node.getOperator().getType();
-    if (operator != TokenType.EQ) {
-      operator = operatorFromCompoundAssignment(operator);
-      Expression leftNode = node.getLeftHandSide();
-      if (leftNode != null) {
-        Type leftType = getType(leftNode);
-        if (leftType != null) {
-          MethodElement method = lookUpMethod(leftType, operator.getLexeme());
-          if (method != null) {
-            node.setElement(method);
-          } else {
-            // TODO(brianwilkerson) Report this error. StaticTypeWarningCode.UNDEFINED_MEMBER
-          }
+    Token operator = node.getOperator();
+    TokenType operatorType = operator.getType();
+    if (operatorType != TokenType.EQ) {
+      operatorType = operatorFromCompoundAssignment(operatorType);
+      Expression leftHandSide = node.getLeftHandSide();
+      if (leftHandSide != null) {
+        String methodName = operatorType.getLexeme();
+
+        Type staticType = getStaticType(leftHandSide);
+        MethodElement staticMethod = lookUpMethod(staticType, methodName);
+        staticElementMap.put(node, staticMethod);
+
+        Type propagatedType = getPropagatedType(leftHandSide);
+        MethodElement propagatedMethod = lookUpMethod(propagatedType, methodName);
+        node.setElement(select(staticMethod, propagatedMethod));
+
+        if (shouldReportMissingMember(staticType, staticMethod)
+            && (propagatedType == null || shouldReportMissingMember(
+                propagatedType,
+                propagatedMethod))) {
+          resolver.reportError(
+              StaticTypeWarningCode.UNDEFINED_METHOD,
+              operator,
+              methodName,
+              staticType.getName());
         }
       }
     }
@@ -187,22 +268,28 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   public Void visitBinaryExpression(BinaryExpression node) {
     Token operator = node.getOperator();
     if (operator.isUserDefinableOperator()) {
-      Type leftType = getType(node.getLeftOperand());
-      if (leftType == null || leftType.isDynamic()) {
-        return null;
-      } else if (leftType instanceof FunctionType) {
-        leftType = resolver.getTypeProvider().getFunctionType();
-      }
-      String methodName = operator.getLexeme();
-      MethodElement member = lookUpMethod(leftType, methodName);
-      if (member == null) {
-        resolver.reportError(
-            StaticWarningCode.UNDEFINED_OPERATOR,
-            operator,
-            methodName,
-            leftType.getName());
-      } else {
-        node.setElement(member);
+      Expression leftOperand = node.getLeftOperand();
+      if (leftOperand != null) {
+        String methodName = operator.getLexeme();
+
+        Type staticType = getStaticType(leftOperand);
+        MethodElement staticMethod = lookUpMethod(staticType, methodName);
+        staticElementMap.put(node, staticMethod);
+
+        Type propagatedType = getPropagatedType(leftOperand);
+        MethodElement propagatedMethod = lookUpMethod(propagatedType, methodName);
+        node.setElement(select(staticMethod, propagatedMethod));
+
+        if (shouldReportMissingMember(staticType, staticMethod)
+            && (propagatedType == null || shouldReportMissingMember(
+                propagatedType,
+                propagatedMethod))) {
+          resolver.reportError(
+              StaticWarningCode.UNDEFINED_OPERATOR,
+              operator,
+              methodName,
+              staticType.getName());
+        }
       }
     }
     return null;
@@ -227,12 +314,16 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       Element element = simpleIdentifier.getElement();
       if (element != null) {
         if (!element.getLibrary().equals(resolver.getDefiningLibrary())) {
-          // TODO(brianwilkerson) Report this error.
+          // TODO(brianwilkerson) Report this error?
         }
         if (node.getNewKeyword() != null) {
           if (element instanceof ClassElement) {
             ConstructorElement constructor = ((ClassElement) element).getUnnamedConstructor();
-            recordResolution(simpleIdentifier, constructor);
+            if (constructor == null) {
+              // TODO(brianwilkerson) Report this error.
+            } else {
+              recordResolution(simpleIdentifier, constructor);
+            }
           } else {
             // TODO(brianwilkerson) Report this error.
           }
@@ -249,7 +340,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           // TODO(brianwilkerson) The prefix needs to be resolved to the element for the import that
           // defines the prefix, not the prefix's element.
 
-          // TODO(brianwilkerson) Report this error.
+          // TODO(brianwilkerson) Report this error?
           element = resolver.getNameScope().lookup(identifier, resolver.getDefiningLibrary());
           recordResolution(name, element);
           return null;
@@ -279,7 +370,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         } else {
           if (element instanceof ClassElement) {
             ConstructorElement constructor = ((ClassElement) element).getNamedConstructor(name.getName());
-            if (constructor != null) {
+            if (constructor == null) {
+              // TODO(brianwilkerson) Report this error.
+            } else {
               recordResolution(name, constructor);
             }
           } else {
@@ -293,17 +386,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    FieldElement fieldElement = null;
     SimpleIdentifier fieldName = node.getFieldName();
     ClassElement enclosingClass = resolver.getEnclosingClass();
-    fieldElement = ((ClassElementImpl) enclosingClass).getField(fieldName.getName());
-    if (fieldElement == null) {
+    FieldElement fieldElement = ((ClassElementImpl) enclosingClass).getField(fieldName.getName());
+    recordResolution(fieldName, fieldElement);
+    if (fieldElement == null || fieldElement.isSynthetic()) {
       resolver.reportError(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD, node, fieldName);
-    } else if (!fieldElement.isSynthetic()) {
-      recordResolution(fieldName, fieldElement);
-      if (fieldElement.isStatic()) {
-        resolver.reportError(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, node, fieldName);
-      }
+    } else if (fieldElement.isStatic()) {
+      resolver.reportError(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, node, fieldName);
     }
     return null;
   }
@@ -311,7 +401,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitConstructorName(ConstructorName node) {
     Type type = node.getType().getType();
-    if (type instanceof DynamicTypeImpl) {
+    if (type != null && type.isDynamic()) {
       return null;
     } else if (!(type instanceof InterfaceType)) {
       // TODO(brianwilkerson) Report these errors.
@@ -334,8 +424,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       constructor = classElement.getUnnamedConstructor();
     } else {
       constructor = classElement.getNamedConstructor(name.getName());
+      staticElementMap.put(name, constructor);
       name.setElement(constructor);
     }
+    staticElementMap.put(node, constructor);
     node.setElement(constructor);
     return null;
   }
@@ -355,7 +447,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Element element = node.getElement();
     if (element instanceof ExportElement) {
       // The element is null when the URI is invalid
-      // TODO(brianwilkerson) Figure out when the element can ever be something other than an ExportElement
+      // TODO(brianwilkerson) Figure out whether the element can ever be something other than an
+      // ExportElement
       resolveCombinators(((ExportElement) element).getExportedLibrary(), node.getCombinators());
     }
     return null;
@@ -366,55 +459,67 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     String fieldName = node.getIdentifier().getName();
     ClassElement classElement = resolver.getEnclosingClass();
     if (classElement != null) {
-      // Call getField directly on the ClassElementImpl since we only care about variables in the
-      // immediately enclosing class.
       FieldElement fieldElement = ((ClassElementImpl) classElement).getField(fieldName);
-
-      if (fieldElement != null) {
-        if (!fieldElement.isSynthetic()) {
-          ParameterElement parameterElement = node.getElement();
-          if (parameterElement instanceof FieldFormalParameterElementImpl) {
-            FieldFormalParameterElementImpl fieldFormal = (FieldFormalParameterElementImpl) parameterElement;
-            fieldFormal.setField(fieldElement);
-            Type declaredType = fieldFormal.getType();
-            Type fieldType = fieldElement.getType();
-            if (node.getType() == null) {
-              fieldFormal.setType(fieldType);
-            }
-            if (fieldElement.isStatic()) {
-              resolver.reportError(
-                  CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
-                  node,
-                  fieldName);
-            } else if (declaredType != null && fieldType != null
-                && !declaredType.isAssignableTo(fieldType)) {
-              // TODO(brianwilkerson) We should implement a displayName() method for types that will
-              // work nicely with function types and then use that below.
-              resolver.reportError(
-                  StaticWarningCode.FIELD_INITIALIZER_WITH_INVALID_TYPE,
-                  node,
-                  declaredType.getName(),
-                  fieldType.getName());
-            }
-          }
-        }
-      } else {
+      if (fieldElement == null) {
         resolver.reportError(
             CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
             node,
             fieldName);
+      } else {
+        ParameterElement parameterElement = node.getElement();
+        if (parameterElement instanceof FieldFormalParameterElementImpl) {
+          FieldFormalParameterElementImpl fieldFormal = (FieldFormalParameterElementImpl) parameterElement;
+          fieldFormal.setField(fieldElement);
+          Type declaredType = fieldFormal.getType();
+          Type fieldType = fieldElement.getType();
+          if (node.getType() == null) {
+            fieldFormal.setType(fieldType);
+          }
+          if (fieldElement.isSynthetic()) {
+            resolver.reportError(
+                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
+                node,
+                fieldName);
+          } else if (fieldElement.isStatic()) {
+            resolver.reportError(
+                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+                node,
+                fieldName);
+          } else if (declaredType != null && fieldType != null
+              && !declaredType.isAssignableTo(fieldType)) {
+            // TODO(brianwilkerson) We should implement a displayName() method for types that will
+            // work nicely with function types and then use that below.
+            resolver.reportError(
+                StaticWarningCode.FIELD_INITIALIZER_WITH_INVALID_TYPE,
+                node,
+                declaredType.getName(),
+                fieldType.getName());
+          }
+        } else {
+          if (fieldElement.isSynthetic()) {
+            resolver.reportError(
+                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
+                node,
+                fieldName);
+          } else if (fieldElement.isStatic()) {
+            resolver.reportError(
+                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+                node,
+                fieldName);
+          }
+        }
       }
     }
 //    else {
-    // TODO(jwren) Report error, constructor initializer variable is a top level element
-    // (Either here or in ErrorVerifier#checkForAllFinalInitializedErrorCodes)
+//    // TODO(jwren) Report error, constructor initializer variable is a top level element
+//    // (Either here or in ErrorVerifier#checkForAllFinalInitializedErrorCodes)
 //    }
     return super.visitFieldFormalParameter(node);
   }
 
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    // TODO(brianwilkerson) Resolve the function being invoked?
+    // TODO(brianwilkerson) Can we ever resolve the function being invoked?
     //resolveNamedArguments(node.getArgumentList(), invokedFunction);
     return null;
   }
@@ -434,7 +539,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Element element = node.getElement();
     if (element instanceof ImportElement) {
       // The element is null when the URI is invalid
-      // TODO(brianwilkerson) Figure out when the element can ever be something other than an ImportElement
+      // TODO(brianwilkerson) Figure out whether the element can ever be something other than an
+      // ImportElement
       resolveCombinators(((ImportElement) element).getImportedLibrary(), node.getCombinators());
     }
     return null;
@@ -442,33 +548,32 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitIndexExpression(IndexExpression node) {
-    Type arrayType = getType(node.getRealTarget());
-    if (arrayType == null || arrayType.isDynamic()) {
-      return null;
-    }
-    String operator;
-    if (node.inSetterContext()) {
-      operator = TokenType.INDEX_EQ.getLexeme();
-    } else {
-      operator = TokenType.INDEX.getLexeme();
-    }
-    MethodElement member = lookUpMethod(arrayType, operator);
-    if (member == null) {
+    Expression target = node.getRealTarget();
+    String methodName = getIndexOperator(node);
+
+    Type staticType = getStaticType(target);
+    MethodElement staticMethod = lookUpMethod(staticType, methodName);
+    staticElementMap.put(node, staticMethod);
+
+    Type propagatedType = getPropagatedType(target);
+    MethodElement propagatedMethod = lookUpMethod(propagatedType, methodName);
+    node.setElement(select(staticMethod, propagatedMethod));
+
+    if (shouldReportMissingMember(staticType, staticMethod)
+        && (propagatedType == null || shouldReportMissingMember(propagatedType, propagatedMethod))) {
       Token leftBracket = node.getLeftBracket();
       Token rightBracket = node.getRightBracket();
       if (leftBracket == null || rightBracket == null) {
         resolver.reportError(
             StaticWarningCode.UNDEFINED_OPERATOR,
             node,
-            operator,
-            arrayType.getName());
+            methodName,
+            staticType.getName());
       } else {
         int offset = leftBracket.getOffset();
         resolver.reportError(StaticWarningCode.UNDEFINED_OPERATOR, offset, rightBracket.getOffset()
-            - offset + 1, operator, arrayType.getName());
+            - offset + 1, methodName, staticType.getName());
       }
-    } else {
-      node.setElement(member);
     }
     return null;
   }
@@ -476,6 +581,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorElement invokedConstructor = node.getConstructorName().getElement();
+    staticElementMap.put(node, invokedConstructor);
     node.setElement(invokedConstructor);
     resolveNamedArguments(node.getArgumentList(), invokedConstructor);
     return null;
@@ -483,239 +589,113 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
+    //
+    // We have a method invocation of one of two forms: 'e.m(a1, ..., an)' or 'm(a1, ..., an)'. The
+    // first step is to figure out which executable is being invoked, using both the static and the
+    // propagated type information.
+    //
     SimpleIdentifier methodName = node.getMethodName();
     Expression target = node.getRealTarget();
-    Element element;
+    Element staticElement;
+    Element propagatedElement;
     if (target == null) {
-      element = resolver.getNameScope().lookup(methodName, resolver.getDefiningLibrary());
-      if (element == null) {
+      staticElement = resolveInvokedElement(methodName);
+      propagatedElement = null;
+    } else {
+      Type targetType = getStaticType(target);
+      staticElement = resolveInvokedElement(target, targetType, methodName);
+      propagatedElement = resolveInvokedElement(target, getPropagatedType(target), methodName);
+    }
+    staticElement = convertSetterToGetter(staticElement);
+    propagatedElement = convertSetterToGetter(propagatedElement);
+    //
+    // Record the results.
+    //
+    Element recordedElement = recordResolution(methodName, staticElement, propagatedElement);
+    if (recordedElement instanceof ExecutableElement) {
+      resolveNamedArguments(node.getArgumentList(), (ExecutableElement) recordedElement);
+    }
+    //
+    // Then check for error conditions.
+    //
+    ErrorCode errorCode;
+    if (staticElement == null) {
+      if (propagatedElement == null) {
+        // TODO(brianwilkerson) It is possible that there is no element because we could not resolve
+        // the target. In such a case we would like to suppress this error to reduce noise.
+        errorCode = checkForInvocationError(target, staticElement);
+      } else {
+        errorCode = checkForInvocationError(target, propagatedElement);
+      }
+    } else {
+      errorCode = checkForInvocationError(target, staticElement);
+      if (propagatedElement != null) {
+        ErrorCode propagatedError = checkForInvocationError(target, propagatedElement);
+        errorCode = select(errorCode, propagatedError);
+      }
+    }
+    if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
+      resolver.reportError(
+          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
+          methodName,
+          methodName.getName());
+    } else if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
+      resolver.reportError(
+          StaticTypeWarningCode.UNDEFINED_FUNCTION,
+          methodName,
+          methodName.getName());
+    } else if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
+      String targetTypeName;
+      if (target == null) {
         ClassElement enclosingClass = resolver.getEnclosingClass();
-        if (enclosingClass != null) {
-          InterfaceType enclosingType = enclosingClass.getType();
-          element = lookUpMethod(enclosingType, methodName.getName());
-          if (element == null) {
-            PropertyAccessorElement getter = lookUpGetter(enclosingType, methodName.getName());
-            if (getter != null) {
-              FunctionType getterType = getter.getType();
-              if (getterType != null) {
-                Type returnType = getterType.getReturnType();
-                // TODO(brianwilkerson) Should we also allow type parameters at this point (because
-                // they might be resolved to an executable type)?
-                if (!isExecutableType(returnType)) {
-                  resolver.reportError(
-                      StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
-                      methodName,
-                      methodName.getName());
-                }
-              }
-              recordResolution(methodName, getter);
-              return null;
-            }
-          }
-        }
-      }
-    } else {
-      Type targetType = getType(target);
-      if (targetType instanceof InterfaceType) {
-        InterfaceType classType = (InterfaceType) targetType;
-        element = lookUpMethod(classType, methodName.getName());
-        if (element == null) {
-          PropertyAccessorElement accessor = classType.getGetter(methodName.getName());
-          if (accessor != null) {
-            Type returnType = accessor.getType().getReturnType();
-            if (!isExecutableType(returnType)) {
-              resolver.reportError(
-                  StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
-                  methodName,
-                  methodName.getName());
-              return null;
-            }
-            element = accessor;
-          }
-        }
-        if (element == null && target instanceof SuperExpression) {
-          // TODO(jwren) We should split the UNDEFINED_METHOD into two error codes, this one, and
-          // a code that describes the situation where the method was found, but it was not
-          // accessible from the current library.
-          resolver.reportError(
-              StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
-              methodName,
-              methodName.getName(),
-              targetType.getElement().getDisplayName());
-          return null;
-        }
-      } else if (target instanceof SimpleIdentifier) {
-        Element targetElement = ((SimpleIdentifier) target).getElement();
-        if (targetElement instanceof PrefixElement) {
-          // TODO(brianwilkerson) This isn't a method invocation, it's a function invocation where
-          // the function name is a prefixed identifier. Consider re-writing the AST.
-          final String name = ((SimpleIdentifier) target).getName() + "." + methodName;
-          Identifier functionName = new Identifier() {
-            @Override
-            public <R> R accept(ASTVisitor<R> visitor) {
-              return null;
-            }
-
-            @Override
-            public Token getBeginToken() {
-              return null;
-            }
-
-            @Override
-            public Element getElement() {
-              return null;
-            }
-
-            @Override
-            public Token getEndToken() {
-              return null;
-            }
-
-            @Override
-            public String getName() {
-              return name;
-            }
-
-            @Override
-            public void visitChildren(ASTVisitor<?> visitor) {
-            }
-          };
-          element = resolver.getNameScope().lookup(functionName, resolver.getDefiningLibrary());
-        } else {
-          //TODO(brianwilkerson) Report this error.
-          return null;
-        }
+        targetTypeName = enclosingClass.getDisplayName();
       } else {
-        //TODO(brianwilkerson) Report this error.
-        return null;
+        Type targetType = getPropagatedType(target);
+        if (targetType == null) {
+          targetType = getStaticType(target);
+        }
+        targetTypeName = targetType == null ? null : targetType.getName();
       }
+      resolver.reportError(
+          StaticTypeWarningCode.UNDEFINED_METHOD,
+          methodName,
+          methodName.getName(),
+          targetTypeName);
+    } else if (errorCode == StaticTypeWarningCode.UNDEFINED_SUPER_METHOD) {
+      Type targetType = getPropagatedType(target);
+      if (targetType == null) {
+        targetType = getStaticType(target);
+      }
+      String targetTypeName = targetType == null ? null : targetType.getName();
+      resolver.reportError(
+          StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
+          methodName,
+          methodName.getName(),
+          targetTypeName);
     }
-    ExecutableElement invokedMethod = null;
-    if (element instanceof PropertyAccessorElement) {
-      //
-      // This is really a function expression invocation.
-      //
-      // TODO(brianwilkerson) Consider the possibility of re-writing the AST.
-      PropertyAccessorElement getter = ((PropertyAccessorElement) element).getVariable().getGetter();
-      FunctionType getterType = getter.getType();
-      if (getterType != null) {
-        Type returnType = getterType.getReturnType();
-        if (!isExecutableType(returnType)) {
-          resolver.reportError(
-              StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
-              methodName,
-              methodName.getName());
-        }
-        MethodElement callMethod = getExecutableElement(returnType);
-        if (callMethod != null) {
-          recordResolution(methodName, callMethod);
-          return null;
-        }
-      }
-      recordResolution(methodName, getter);
-      return null;
-    } else if (element instanceof ExecutableElement) {
-      invokedMethod = (ExecutableElement) element;
-    } else {
-      //
-      // This is really a function expression invocation.
-      //
-      // TODO(brianwilkerson) Consider the possibility of re-writing the AST.
-      if (element instanceof PropertyInducingElement) {
-        PropertyAccessorElement getter = ((PropertyInducingElement) element).getGetter();
-        FunctionType getterType = getter.getType();
-        if (getterType != null) {
-          Type returnType = getterType.getReturnType();
-          if (!isExecutableType(returnType)) {
-            resolver.reportError(
-                StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
-                methodName,
-                methodName.getName());
-          }
-        }
-        recordResolution(methodName, element);
-        return null;
-      } else if (element instanceof VariableElement) {
-        Type variableType = resolver.getOverrideManager().getType(element);
-        if (variableType == null) {
-          variableType = ((VariableElement) element).getType();
-        }
-        if (!isExecutableType(variableType)) {
-          resolver.reportError(
-              StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
-              methodName,
-              methodName.getName());
-        }
-        recordResolution(methodName, element);
-        return null;
-      } else {
-        if (target == null) {
-          ClassElement enclosingClass = resolver.getEnclosingClass();
-          if (enclosingClass == null) {
-            resolver.reportError(
-                StaticTypeWarningCode.UNDEFINED_FUNCTION,
-                methodName,
-                methodName.getName());
-          } else if (element == null) {
-            resolver.reportError(
-                StaticTypeWarningCode.UNDEFINED_METHOD,
-                methodName,
-                methodName.getName(),
-                enclosingClass.getDisplayName());
-          } else {
-            resolver.reportError(
-                StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
-                methodName,
-                methodName.getName());
-          }
-        } else {
-          Type targetType = getType(target);
-          String targetTypeName = targetType == null ? null : targetType.getName();
-          if (targetTypeName == null) {
-            resolver.reportError(
-                StaticTypeWarningCode.UNDEFINED_FUNCTION,
-                methodName,
-                methodName.getName());
-          } else {
-            if (!doesClassDeclareNoSuchMethod(targetType.getElement())) {
-              resolver.reportError(
-                  StaticTypeWarningCode.UNDEFINED_METHOD,
-                  methodName,
-                  methodName.getName(),
-                  targetTypeName);
-            }
-          }
-        }
-        return null;
-      }
-    }
-    recordResolution(methodName, invokedMethod);
-    resolveNamedArguments(node.getArgumentList(), invokedMethod);
     return null;
   }
 
   @Override
   public Void visitPostfixExpression(PostfixExpression node) {
-    Token operator = node.getOperator();
-    Type operandType = getType(node.getOperand());
-    if (operandType == null || operandType.isDynamic()) {
-      return null;
-    }
-    String methodName;
-    if (operator.getType() == TokenType.PLUS_PLUS) {
-      methodName = TokenType.PLUS.getLexeme();
-    } else {
-      methodName = TokenType.MINUS.getLexeme();
-    }
-    MethodElement member = lookUpMethod(operandType, methodName);
-    if (member == null) {
+    Expression operand = node.getOperand();
+    String methodName = getPostfixOperator(node);
+
+    Type staticType = getStaticType(operand);
+    MethodElement staticMethod = lookUpMethod(staticType, methodName);
+    staticElementMap.put(node, staticMethod);
+
+    Type propagatedType = getPropagatedType(operand);
+    MethodElement propagatedMethod = lookUpMethod(propagatedType, methodName);
+    node.setElement(select(staticMethod, propagatedMethod));
+
+    if (shouldReportMissingMember(staticType, staticMethod)
+        && (propagatedType == null || shouldReportMissingMember(propagatedType, propagatedMethod))) {
       resolver.reportError(
           StaticWarningCode.UNDEFINED_OPERATOR,
-          operator,
+          node.getOperator(),
           methodName,
-          operandType.getName());
-    } else {
-      node.setElement(member);
+          staticType.getName());
     }
     return null;
   }
@@ -725,113 +705,25 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     SimpleIdentifier prefix = node.getPrefix();
     SimpleIdentifier identifier = node.getIdentifier();
     //
-    // First, check to see whether the "prefix" is really a prefix or whether it's an expression
-    // that happens to be a simple identifier.
+    // First, check to see whether the prefix is really a prefix.
     //
     Element prefixElement = prefix.getElement();
     if (prefixElement instanceof PrefixElement) {
-      // TODO(brianwilkerson) The prefix needs to be resolved to the element for the import that
-      // defines the prefix, not the prefix's element.
-
       Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
       if (element == null) {
         // TODO(brianwilkerson) Report this error.
         return null;
       }
+      // TODO(brianwilkerson) The prefix needs to be resolved to the element for the import that
+      // defines the prefix, not the prefix's element.
       recordResolution(identifier, element);
       return null;
     }
     //
-    // Otherwise, this is really equivalent to a property access node.
+    // Otherwise, the prefix is really an expression that happens to be a simple identifier and this
+    // is really equivalent to a property access node.
     //
-    // Look to see whether we're accessing a static member of a class.
-    //
-    if (prefixElement instanceof ClassElement) {
-      Element memberElement;
-      if (node.getIdentifier().inSetterContext()) {
-        memberElement = ((ClassElementImpl) prefixElement).getSetter(identifier.getName());
-      } else {
-        memberElement = ((ClassElementImpl) prefixElement).getGetter(identifier.getName());
-      }
-      if (memberElement == null) {
-        MethodElement methodElement = lookUpMethod(
-            ((ClassElement) prefixElement).getType(),
-            identifier.getName());
-        if (methodElement != null) {
-          // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
-          // type with no parameters and a return type that is equal to the function type of the method.
-          recordResolution(identifier, methodElement);
-          return null;
-        }
-      }
-      if (memberElement == null) {
-        reportGetterOrSetterNotFound(node, identifier, prefixElement.getDisplayName());
-      } else {
-//      if (!element.isStatic()) {
-//        reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
-//      }
-        recordResolution(identifier, memberElement);
-      }
-      return null;
-    }
-    //
-    // Otherwise, determine the type of the left-hand side.
-    //
-    Type variableType;
-    if (prefixElement instanceof PropertyAccessorElement) {
-      PropertyAccessorElement accessor = (PropertyAccessorElement) prefixElement;
-      FunctionType type = accessor.getType();
-      if (type == null) {
-        // TODO(brianwilkerson) Figure out why the type is sometimes null and either prevent it or
-        // report it (here or at the point of origin)
-        return null;
-      }
-      if (accessor.isGetter()) {
-        variableType = type.getReturnType();
-      } else {
-        variableType = type.getNormalParameterTypes()[0];
-      }
-      if (variableType == null || variableType.isDynamic()) {
-        return null;
-      }
-    } else if (prefixElement instanceof VariableElement) {
-      variableType = resolver.getOverrideManager().getType(prefixElement);
-      if (variableType == null) {
-        variableType = ((VariableElement) prefixElement).getType();
-      }
-      if (variableType == null || variableType.isDynamic()) {
-        // TODO(brianwilkerson) Figure out why the type is sometimes null and either prevent it or
-        // report it (here or at the point of origin)
-        return null;
-      }
-    } else {
-      // reportError(ResolverErrorCode.UNDEFINED_PREFIX);
-      return null;
-    }
-    //
-    // Then find the property being accessed.
-    //
-    PropertyAccessorElement memberElement = null;
-    if (node.getIdentifier().inSetterContext()) {
-      memberElement = lookUpSetter(variableType, identifier.getName());
-    }
-    if (memberElement == null && node.getIdentifier().inGetterContext()) {
-      memberElement = lookUpGetter(variableType, identifier.getName());
-    }
-    if (memberElement == null) {
-      MethodElement methodElement = lookUpMethod(variableType, identifier.getName());
-      if (methodElement != null) {
-        // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
-        // type with no parameters and a return type that is equal to the function type of the method.
-        recordResolution(identifier, methodElement);
-        return null;
-      }
-    }
-    if (memberElement == null) {
-      reportGetterOrSetterNotFound(node, identifier, variableType.getElement().getDisplayName());
-    } else {
-      recordResolution(identifier, memberElement);
-    }
+    resolvePropertyAccess(prefix, identifier);
     return null;
   }
 
@@ -841,29 +733,24 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     TokenType operatorType = operator.getType();
     if (operatorType.isUserDefinableOperator() || operatorType == TokenType.PLUS_PLUS
         || operatorType == TokenType.MINUS_MINUS) {
-      Type operandType = getType(node.getOperand());
-      if (operandType == null || operandType.isDynamic()) {
-        return null;
-      }
-      String methodName;
-      if (operatorType == TokenType.PLUS_PLUS) {
-        methodName = TokenType.PLUS.getLexeme();
-      } else if (operatorType == TokenType.MINUS_MINUS) {
-        methodName = TokenType.MINUS.getLexeme();
-      } else if (operatorType == TokenType.MINUS) {
-        methodName = "unary-";
-      } else {
-        methodName = operator.getLexeme();
-      }
-      MethodElement member = lookUpMethod(operandType, methodName);
-      if (member == null) {
+      Expression operand = node.getOperand();
+      String methodName = getPrefixOperator(node);
+
+      Type staticType = getStaticType(operand);
+      MethodElement staticMethod = lookUpMethod(staticType, methodName);
+      staticElementMap.put(node, staticMethod);
+
+      Type propagatedType = getPropagatedType(operand);
+      MethodElement propagatedMethod = lookUpMethod(propagatedType, methodName);
+      node.setElement(select(staticMethod, propagatedMethod));
+
+      if (shouldReportMissingMember(staticType, staticMethod)
+          && (propagatedType == null || shouldReportMissingMember(propagatedType, propagatedMethod))) {
         resolver.reportError(
             StaticWarningCode.UNDEFINED_OPERATOR,
             operator,
             methodName,
-            operandType.getName());
-      } else {
-        node.setElement(member);
+            staticType.getName());
       }
     }
     return null;
@@ -871,58 +758,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitPropertyAccess(PropertyAccess node) {
-    Type targetType = getType(node.getRealTarget());
-    if (!(targetType instanceof InterfaceType)) {
-      // TODO(brianwilkerson) Report this error
-      return null;
-    }
-    SimpleIdentifier identifier = node.getPropertyName();
-    PropertyAccessorElement memberElement = null;
-    if (identifier.inSetterContext()) {
-      memberElement = lookUpSetter(targetType, identifier.getName());
-    }
-    if (memberElement == null && identifier.inGetterContext()) {
-      memberElement = lookUpGetter(targetType, identifier.getName());
-    }
-    if (memberElement == null) {
-      MethodElement methodElement = lookUpMethod(targetType, identifier.getName());
-      if (methodElement != null) {
-        // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
-        // type with no parameters and a return type that is equal to the function type of the method.
-        recordResolution(identifier, methodElement);
-        return null;
-      }
-    }
-    if (memberElement == null) {
-      if (!doesClassDeclareNoSuchMethod(targetType.getElement())) {
-        if (identifier.inSetterContext()) {
-          resolver.reportError(
-              StaticWarningCode.UNDEFINED_SETTER,
-              identifier,
-              identifier.getName(),
-              targetType.getName());
-        } else if (identifier.inGetterContext()) {
-          resolver.reportError(
-              StaticWarningCode.UNDEFINED_GETTER,
-              identifier,
-              identifier.getName(),
-              targetType.getName());
-        } else {
-          System.out.println("two " + identifier.getName());
-          resolver.reportError(
-              StaticWarningCode.UNDEFINED_IDENTIFIER,
-              identifier,
-              identifier.getName());
-        }
-//    } else if (!memberElement.isStatic()) {
-//      reportError(
-//          ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
-//          identifier,
-//          identifier.getName());
-      }
-    } else {
-      recordResolution(identifier, memberElement);
-    }
+    Expression target = node.getRealTarget();
+    SimpleIdentifier propertyName = node.getPropertyName();
+
+    resolvePropertyAccess(target, propertyName);
     return null;
   }
 
@@ -947,6 +786,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (name != null) {
       recordResolution(name, element);
     }
+    staticElementMap.put(node, element);
     node.setElement(element);
     resolveNamedArguments(node.getArgumentList(), element);
     return null;
@@ -989,9 +829,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     if (element == null) {
       // TODO(brianwilkerson) Recover from this error.
-      if (!doesClassDeclareNoSuchMethod(enclosingClass)) {
+      if (!classDeclaresNoSuchMethod(enclosingClass)) {
         resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, node.getName());
       }
+    } else if (element instanceof ExecutableElement) {
+      staticElementMap.put(node, (ExecutableElement) element);
     }
     recordResolution(node, element);
     return null;
@@ -1023,6 +865,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (name != null) {
       recordResolution(name, element);
     }
+    staticElementMap.put(node, element);
     node.setElement(element);
     resolveNamedArguments(node.getArgumentList(), element);
     return null;
@@ -1041,27 +884,125 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Return {@code true} if the passed {@link Element} is a {@link ClassElement} that declares a
-   * method "noSuchMethod".
+   * Given that we have found code to invoke the given element, return the error code that should be
+   * reported, or {@code null} if no error should be reported.
    * 
-   * @param element the {@link Element} to evaluate
-   * @return {@code true} if the passed {@link Element} is a {@link ClassElement} that declares a
-   *         method "noSuchMethod"
+   * @param target the target of the invocation, or {@code null} if there was no target
+   * @param element the element to be invoked
+   * @return the error code that should be reported
    */
-  private boolean doesClassDeclareNoSuchMethod(Element element) {
-    if (element == null) {
+  private ErrorCode checkForInvocationError(Expression target, Element element) {
+    if (element instanceof PropertyAccessorElement) {
+      //
+      // This is really a function expression invocation.
+      //
+      // TODO(brianwilkerson) Consider the possibility of re-writing the AST.
+      FunctionType getterType = ((PropertyAccessorElement) element).getType();
+      if (getterType != null) {
+        Type returnType = getterType.getReturnType();
+        if (!isExecutableType(returnType)) {
+          return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
+        }
+      }
+    } else if (element instanceof ExecutableElement) {
+      return null;
+    } else if (element == null && target instanceof SuperExpression) {
+      // TODO(jwren) We should split the UNDEFINED_METHOD into two error codes, this one, and
+      // a code that describes the situation where the method was found, but it was not
+      // accessible from the current library.
+      return StaticTypeWarningCode.UNDEFINED_SUPER_METHOD;
+    } else {
+      //
+      // This is really a function expression invocation.
+      //
+      // TODO(brianwilkerson) Consider the possibility of re-writing the AST.
+      if (element instanceof PropertyInducingElement) {
+        PropertyAccessorElement getter = ((PropertyInducingElement) element).getGetter();
+        FunctionType getterType = getter.getType();
+        if (getterType != null) {
+          Type returnType = getterType.getReturnType();
+          if (!isExecutableType(returnType)) {
+            return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
+          }
+        }
+      } else if (element instanceof VariableElement) {
+        Type variableType = resolver.getOverrideManager().getType(element);
+        if (variableType == null) {
+          variableType = ((VariableElement) element).getType();
+        }
+        if (!isExecutableType(variableType)) {
+          return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
+        }
+      } else {
+        if (target == null) {
+          ClassElement enclosingClass = resolver.getEnclosingClass();
+          if (enclosingClass == null) {
+            return StaticTypeWarningCode.UNDEFINED_FUNCTION;
+          } else if (element == null) {
+            if (!classDeclaresNoSuchMethod(enclosingClass)) {
+              return StaticTypeWarningCode.UNDEFINED_METHOD;
+            }
+          } else {
+            return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
+          }
+        } else {
+          Type targetType = getStaticType(target);
+          if (targetType == null) {
+            return StaticTypeWarningCode.UNDEFINED_FUNCTION;
+          } else if (!targetType.isDynamic() && !classDeclaresNoSuchMethod(targetType.getElement())) {
+            return StaticTypeWarningCode.UNDEFINED_METHOD;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return {@code true} if the given class declares a method named "noSuchMethod" and is not the
+   * class 'Object'.
+   * 
+   * @param element the class being tested
+   * @return {@code true} if the given class declares a method named "noSuchMethod"
+   */
+  private boolean classDeclaresNoSuchMethod(ClassElement classElement) {
+    if (classElement == null) {
       return false;
     }
-    if (!(element instanceof ClassElementImpl)) {
-      return false;
+    MethodElement methodElement = classElement.lookUpMethod(
+        NO_SUCH_METHOD_METHOD_NAME,
+        resolver.getDefiningLibrary());
+    return methodElement != null && methodElement.getEnclosingElement().getSupertype() != null;
+  }
+
+  /**
+   * Return {@code true} if the given element represents a class that declares a method named
+   * "noSuchMethod" and is not the class 'Object'.
+   * 
+   * @param element the element being tested
+   * @return {@code true} if the given element represents a class that declares a method named
+   *         "noSuchMethod"
+   */
+  private boolean classDeclaresNoSuchMethod(Element element) {
+    if (element instanceof ClassElement) {
+      return classDeclaresNoSuchMethod((ClassElement) element);
     }
-    ClassElementImpl classElement = (ClassElementImpl) element;
-    MethodElement method = classElement.lookUpMethod("noSuchMethod", resolver.getDefiningLibrary());
-    // if no method found, or if the method found is defined in Object, return false
-    if (method == null || method.getEnclosingElement().getSupertype() == null) {
-      return false;
+    return false;
+  }
+
+  /**
+   * If the given element is a setter, return the getter associated with it. Otherwise, return the
+   * element unchanged.
+   * 
+   * @param element the element to be normalized
+   * @return a non-setter element derived from the given element
+   */
+  private Element convertSetterToGetter(Element element) {
+    // TODO(brianwilkerson) Determine whether and why the element could ever be a setter.
+    if (element instanceof PropertyAccessorElement) {
+      return ((PropertyAccessorElement) element).getVariable().getGetter();
     }
-    return true;
+    return element;
   }
 
   /**
@@ -1085,18 +1026,81 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * If the given type represents a class that implements the call operator, return the element for
-   * the call method, otherwise {@code null}.
+   * Return the name of the method invoked by the given index expression.
    * 
-   * @param type the type defining the call method
-   * @return the element representing the call method
+   * @param node the index expression being invoked
+   * @return the name of the method invoked by the expression
    */
-  private MethodElement getExecutableElement(Type type) {
-    if (type instanceof InterfaceType) {
-      ClassElement classElement = ((InterfaceType) type).getElement();
-      return classElement.lookUpMethod("call", resolver.getDefiningLibrary());
+  private String getIndexOperator(IndexExpression node) {
+    return (node.inSetterContext()) ? TokenType.INDEX_EQ.getLexeme() : TokenType.INDEX.getLexeme();
+  }
+
+  /**
+   * Return the name of the method invoked by the given postfix expression.
+   * 
+   * @param node the postfix expression being invoked
+   * @return the name of the method invoked by the expression
+   */
+  private String getPostfixOperator(PostfixExpression node) {
+    return (node.getOperator().getType() == TokenType.PLUS_PLUS) ? TokenType.PLUS.getLexeme()
+        : TokenType.MINUS.getLexeme();
+  }
+
+  /**
+   * Return the name of the method invoked by the given postfix expression.
+   * 
+   * @param node the postfix expression being invoked
+   * @return the name of the method invoked by the expression
+   */
+  private String getPrefixOperator(PrefixExpression node) {
+    Token operator = node.getOperator();
+    TokenType operatorType = operator.getType();
+    if (operatorType == TokenType.PLUS_PLUS) {
+      return TokenType.PLUS.getLexeme();
+    } else if (operatorType == TokenType.MINUS_MINUS) {
+      return TokenType.MINUS.getLexeme();
+    } else if (operatorType == TokenType.MINUS) {
+      return "unary-";
+    } else {
+      return operator.getLexeme();
     }
-    return null;
+  }
+
+  /**
+   * Return the propagated type of the given expression that is to be used for type analysis.
+   * 
+   * @param expression the expression whose type is to be returned
+   * @return the type of the given expression
+   */
+  private Type getPropagatedType(Expression expression) {
+    Type propagatedType = resolveTypeVariable(expression.getPropagatedType());
+    if (propagatedType instanceof FunctionType) {
+      //
+      // All function types are subtypes of 'Function', which is itself a subclass of 'Object'.
+      //
+      propagatedType = resolver.getTypeProvider().getFunctionType();
+    }
+    return propagatedType;
+  }
+
+  /**
+   * Return the static type of the given expression that is to be used for type analysis.
+   * 
+   * @param expression the expression whose type is to be returned
+   * @return the type of the given expression
+   */
+  private Type getStaticType(Expression expression) {
+    if (expression instanceof NullLiteral) {
+      return resolver.getTypeProvider().getObjectType();
+    }
+    Type staticType = resolveTypeVariable(expression.getStaticType());
+    if (staticType instanceof FunctionType) {
+      //
+      // All function types are subtypes of 'Function', which is itself a subclass of 'Object'.
+      //
+      staticType = resolver.getTypeProvider().getFunctionType();
+    }
+    return staticType;
   }
 
   /**
@@ -1114,19 +1118,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Return the type of the given expression that is to be used for type analysis.
-   * 
-   * @param expression the expression whose type is to be returned
-   * @return the type of the given expression
-   */
-  private Type getType(Expression expression) {
-    if (expression instanceof NullLiteral) {
-      return resolver.getTypeProvider().getObjectType();
-    }
-    return expression.getStaticType();
-  }
-
-  /**
    * Return {@code true} if the given type represents an object that could be invoked using the call
    * operator '()'.
    * 
@@ -1138,8 +1129,25 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return true;
     } else if (type instanceof InterfaceType) {
       ClassElement classElement = ((InterfaceType) type).getElement();
-      MethodElement methodElement = classElement.lookUpMethod("call", resolver.getDefiningLibrary());
+      MethodElement methodElement = classElement.lookUpMethod(
+          CALL_METHOD_NAME,
+          resolver.getDefiningLibrary());
       return methodElement != null;
+    }
+    return false;
+  }
+
+  /**
+   * Return {@code true} if the given element is a static element.
+   * 
+   * @param element the element being tested
+   * @return {@code true} if the given element is a static element
+   */
+  private boolean isStatic(Element element) {
+    if (element instanceof ExecutableElement) {
+      return ((ExecutableElement) element).isStatic();
+    } else if (element instanceof PropertyInducingElement) {
+      return ((PropertyInducingElement) element).isStatic();
     }
     return false;
   }
@@ -1164,7 +1172,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
       return lookUpGetterInInterfaces(interfaceType, getterName, new HashSet<ClassElement>());
     }
-    // TODO(brianwilkerson) Decide whether/how to represent members defined in 'dynamic'.
     return null;
   }
 
@@ -1235,7 +1242,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           memberName,
           new HashSet<ClassElement>());
     }
-    // TODO(brianwilkerson) Decide whether/how to represent members defined in 'dynamic'.
     return null;
   }
 
@@ -1351,7 +1357,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
       return lookUpMethodInInterfaces(interfaceType, methodName, new HashSet<ClassElement>());
     }
-    // TODO(brianwilkerson) Decide whether/how to represent members defined in 'dynamic'.
     return null;
   }
 
@@ -1414,7 +1419,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
       return lookUpSetterInInterfaces(interfaceType, setterName, new HashSet<ClassElement>());
     }
-    // TODO(brianwilkerson) Decide whether/how to represent members defined in 'dynamic'.
     return null;
   }
 
@@ -1502,8 +1506,31 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    */
   private void recordResolution(SimpleIdentifier node, Element element) {
     if (element != null) {
+      if (element instanceof ExecutableElement) {
+        staticElementMap.put(node, (ExecutableElement) element);
+      }
       node.setElement(element);
     }
+  }
+
+  /**
+   * Record the fact that the given AST node was resolved to the given elements.
+   * 
+   * @param node the AST node that was resolved
+   * @param staticElement the element to which the AST node was resolved using static type
+   *          information
+   * @param propagatedElement the element to which the AST node was resolved using propagated type
+   *          information
+   * @return the element that was associated with the node
+   */
+  private Element recordResolution(SimpleIdentifier node, Element staticElement,
+      Element propagatedElement) {
+    if (staticElement instanceof ExecutableElement) {
+      staticElementMap.put(node, (ExecutableElement) staticElement);
+    }
+    Element element = propagatedElement == null ? staticElement : propagatedElement;
+    node.setElement(element);
+    return element;
   }
 
   /**
@@ -1518,15 +1545,23 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private void reportGetterOrSetterNotFound(PrefixedIdentifier node, SimpleIdentifier identifier,
       String typeName) {
     // This method is only invoked when the prefixed identifier is effectively a property access.
-    Type targetType = getType(node.getPrefix());
-    if (targetType != null && doesClassDeclareNoSuchMethod(targetType.getElement())) {
+    Type staticTargetType = getStaticType(node.getPrefix());
+    Type propagatedTargetType = getPropagatedType(node.getPrefix());
+    if ((staticTargetType == null || staticTargetType.isDynamic())
+        && (propagatedTargetType == null || propagatedTargetType.isDynamic())) {
       return;
     }
-    // TODO(jwren) This needs to be modified to also generate the error code StaticTypeWarningCode.INACCESSIBLE_SETTER
-    boolean isSetterContext = node.getIdentifier().inSetterContext();
-    ErrorCode errorCode = isSetterContext ? StaticTypeWarningCode.UNDEFINED_SETTER
-        : StaticTypeWarningCode.UNDEFINED_GETTER;
-    resolver.reportError(errorCode, identifier, identifier.getName(), typeName);
+    boolean staticNoSuchMethod = staticTargetType != null
+        && classDeclaresNoSuchMethod(staticTargetType.getElement());
+    boolean propagatedNoSuchMethod = propagatedTargetType != null
+        && classDeclaresNoSuchMethod(propagatedTargetType.getElement());
+    if (!staticNoSuchMethod && !propagatedNoSuchMethod) {
+      // TODO(jwren) This needs to be modified to also generate the error code StaticTypeWarningCode.INACCESSIBLE_SETTER
+      boolean isSetterContext = node.getIdentifier().inSetterContext();
+      ErrorCode errorCode = isSetterContext ? StaticTypeWarningCode.UNDEFINED_SETTER
+          : StaticTypeWarningCode.UNDEFINED_GETTER;
+      resolver.reportError(errorCode, identifier, identifier.getName(), typeName);
+    }
   }
 
   /**
@@ -1561,6 +1596,86 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
+   * Given an invocation of the form 'e.m(a1, ..., an)', resolve 'e.m' to the element being invoked.
+   * If the returned element is a method, then the method will be invoked. If the returned element
+   * is a getter, the getter will be invoked without arguments and the result of that invocation
+   * will then be invoked with the arguments.
+   * 
+   * @param target the target of the invocation ('e')
+   * @param targetType the type of the target
+   * @param methodName the name of the method being invoked ('m')
+   * @return the element being invoked
+   */
+  private Element resolveInvokedElement(Expression target, Type targetType,
+      SimpleIdentifier methodName) {
+    if (targetType instanceof InterfaceType) {
+      InterfaceType classType = (InterfaceType) targetType;
+      Element element = lookUpMethod(classType, methodName.getName());
+      if (element == null) {
+        //
+        // If there's no method, then it's possible that 'm' is a getter that returns a function.
+        //
+        element = classType.getGetter(methodName.getName());
+      }
+      return element;
+    } else if (target instanceof SimpleIdentifier) {
+      Element targetElement = ((SimpleIdentifier) target).getElement();
+      if (targetElement instanceof PrefixElement) {
+        //
+        // Look to see whether the name of the method is really part of a prefixed identifier for an
+        // imported top-level function or top-level getter that returns a function.
+        //
+        final String name = ((SimpleIdentifier) target).getName() + "." + methodName;
+        Identifier functionName = new SyntheticIdentifier(name);
+        Element element = resolver.getNameScope().lookup(
+            functionName,
+            resolver.getDefiningLibrary());
+        if (element != null) {
+          // TODO(brianwilkerson) This isn't a method invocation, it's a function invocation where
+          // the function name is a prefixed identifier. Consider re-writing the AST.
+          return element;
+        }
+      }
+      //return targetElement;
+    }
+    return null;
+  }
+
+  /**
+   * Given an invocation of the form 'm(a1, ..., an)', resolve 'm' to the element being invoked. If
+   * the returned element is a method, then the method will be invoked. If the returned element is a
+   * getter, the getter will be invoked without arguments and the result of that invocation will
+   * then be invoked with the arguments.
+   * 
+   * @param methodName the name of the method being invoked ('m')
+   * @return the element being invoked
+   */
+  private Element resolveInvokedElement(SimpleIdentifier methodName) {
+    //
+    // Look first in the lexical scope.
+    //
+    Element element = resolver.getNameScope().lookup(methodName, resolver.getDefiningLibrary());
+    if (element == null) {
+      //
+      // If it isn't defined in the lexical scope, and the invocation is within a class, then look
+      // in the inheritance scope.
+      //
+      ClassElement enclosingClass = resolver.getEnclosingClass();
+      if (enclosingClass != null) {
+        InterfaceType enclosingType = enclosingClass.getType();
+        element = lookUpMethod(enclosingType, methodName.getName());
+        if (element == null) {
+          //
+          // If there's no method, then it's possible that 'm' is a getter that returns a function.
+          //
+          element = lookUpGetter(enclosingType, methodName.getName());
+        }
+      }
+    }
+    return element;
+  }
+
+  /**
    * Resolve the names associated with any named arguments to the parameter elements named by the
    * argument.
    * 
@@ -1585,6 +1700,89 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
+   * Given that we are accessing a property of the given type with the given name, return the
+   * element that represents the property.
+   * 
+   * @param targetType the type in which the search for the property should begin
+   * @param propertyName the name of the property being accessed
+   * @return the element that represents the property
+   */
+  private ExecutableElement resolveProperty(Type targetType, SimpleIdentifier propertyName) {
+    ExecutableElement memberElement = null;
+    if (propertyName.inSetterContext()) {
+      memberElement = lookUpSetter(targetType, propertyName.getName());
+    }
+    if (memberElement == null && propertyName.inGetterContext()) {
+      memberElement = lookUpGetter(targetType, propertyName.getName());
+    }
+    if (memberElement == null) {
+      memberElement = lookUpMethod(targetType, propertyName.getName());
+    }
+    return memberElement;
+  }
+
+  private void resolvePropertyAccess(Expression target, SimpleIdentifier propertyName) {
+    Type staticType = getStaticType(target);
+    ExecutableElement staticElement = resolveProperty(staticType, propertyName);
+    staticElementMap.put(propertyName, staticElement);
+
+    Type propagatedType = getPropagatedType(target);
+    ExecutableElement propagatedElement = resolveProperty(propagatedType, propertyName);
+    Element selectedElement = select(staticElement, propagatedElement);
+    propertyName.setElement(selectedElement);
+
+    if (shouldReportMissingMember(staticType, staticElement)
+        && (propagatedType == null || shouldReportMissingMember(propagatedType, propagatedElement))) {
+      boolean staticNoSuchMethod = staticType != null
+          && classDeclaresNoSuchMethod(staticType.getElement());
+      boolean propagatedNoSuchMethod = propagatedType != null
+          && classDeclaresNoSuchMethod(propagatedType.getElement());
+      if (!staticNoSuchMethod && !propagatedNoSuchMethod) {
+        boolean isStaticProperty = isStatic(selectedElement);
+        if (propertyName.inSetterContext()) {
+          if (isStaticProperty) {
+            resolver.reportError(
+                StaticWarningCode.UNDEFINED_SETTER,
+                propertyName,
+                propertyName.getName(),
+                staticType.getName());
+          } else {
+            resolver.reportError(
+                StaticTypeWarningCode.UNDEFINED_SETTER,
+                propertyName,
+                propertyName.getName(),
+                staticType.getName());
+          }
+        } else if (propertyName.inGetterContext()) {
+          if (isStaticProperty) {
+            resolver.reportError(
+                StaticWarningCode.UNDEFINED_GETTER,
+                propertyName,
+                propertyName.getName(),
+                staticType.getName());
+          } else {
+            resolver.reportError(
+                StaticTypeWarningCode.UNDEFINED_GETTER,
+                propertyName,
+                propertyName.getName(),
+                staticType.getName());
+          }
+        } else {
+          resolver.reportError(
+              StaticWarningCode.UNDEFINED_IDENTIFIER,
+              propertyName,
+              propertyName.getName());
+        }
+      }
+//    } else if (selectedElement != null && !selectedElement.isStatic() && isTypeReference(target)) {
+//    reportError(
+//        ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+//        identifier,
+//        identifier.getName());
+    }
+  }
+
+  /**
    * If the given type is a type variable, resolve it to the type that should be used when looking
    * up members. Otherwise, return the original type.
    * 
@@ -1601,5 +1799,65 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return bound;
     }
     return type;
+  }
+
+  /**
+   * Given two possible error codes for the same piece of code, one computed using static type
+   * information and the other using propagated type information, return the error code that should
+   * be reported, or {@code null} if no error should be reported.
+   * 
+   * @param staticError the error code computed using static type information
+   * @param propagatedError the error code computed using propagated type information
+   * @return the error code that should be reported
+   */
+  private ErrorCode select(ErrorCode staticError, ErrorCode propagatedError) {
+    if (staticError == null || propagatedError == null) {
+      return null;
+    }
+    //
+    // If the errors are different, we assume that the propagated error is more relevant.
+    //
+    return propagatedError;
+  }
+
+  /**
+   * Return the propagated element if it is not {@code null}, or the static element if it is.
+   * 
+   * @param staticElement the element computed using static type information
+   * @param propagatedElement the element computed using propagated type information
+   * @return the more specific of the two elements
+   */
+  private ExecutableElement select(ExecutableElement staticElement,
+      ExecutableElement propagatedElement) {
+    return propagatedElement != null ? propagatedElement : staticElement;
+  }
+
+  /**
+   * Return the propagated method if it is not {@code null}, or the static method if it is.
+   * 
+   * @param staticMethod the method computed using static type information
+   * @param propagatedMethod the method computed using propagated type information
+   * @return the more specific of the two methods
+   */
+  private MethodElement select(MethodElement staticMethod, MethodElement propagatedMethod) {
+    return propagatedMethod != null ? propagatedMethod : staticMethod;
+  }
+
+  /**
+   * Return {@code true} if we should report an error as a result of looking up a member in the
+   * given type and not finding any member.
+   * 
+   * @param type the type in which we attempted to perform the look-up
+   * @param member the result of the look-up
+   * @return {@code true} if we should report an error
+   */
+  private boolean shouldReportMissingMember(Type type, ExecutableElement member) {
+    if (member != null || type == null || type.isDynamic()) {
+      return false;
+    }
+    if (type instanceof InterfaceType) {
+      return !classDeclaresNoSuchMethod(((InterfaceType) type).getElement());
+    }
+    return true;
   }
 }

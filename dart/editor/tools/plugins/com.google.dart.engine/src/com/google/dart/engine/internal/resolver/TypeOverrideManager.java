@@ -13,11 +13,14 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.type.Type;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Instances of the class {@code TypeOverrideManager} manage the ability to override the type of an
@@ -46,6 +49,50 @@ public class TypeOverrideManager {
      */
     public TypeOverrideScope(TypeOverrideScope outerScope) {
       this.outerScope = outerScope;
+    }
+
+    /**
+     * Apply a set of overrides that were previously captured.
+     * 
+     * @param overrides the overrides to be applied
+     */
+    public void applyOverrides(HashMap<Element, Type> overrides) {
+      for (Map.Entry<Element, Type> entry : overrides.entrySet()) {
+        overridenTypes.put(entry.getKey(), entry.getValue());
+      }
+    }
+
+    /**
+     * Return a table mapping the elements whose type is overridden in the current scope to the
+     * overriding type.
+     * 
+     * @return the overrides in the current scope
+     */
+    public HashMap<Element, Type> captureLocalOverrides() {
+      return overridenTypes;
+    }
+
+    /**
+     * Return a map from the elements for the variables in the given list that have their types
+     * overridden to the overriding type.
+     * 
+     * @param variableList the list of variables whose overriding types are to be captured
+     * @return a table mapping elements to their overriding types
+     */
+    public HashMap<Element, Type> captureOverrides(VariableDeclarationList variableList) {
+      HashMap<Element, Type> overrides = new HashMap<Element, Type>();
+      if (variableList.isConst() || variableList.isFinal()) {
+        for (VariableDeclaration variable : variableList.getVariables()) {
+          Element element = variable.getElement();
+          if (element != null) {
+            Type type = overridenTypes.get(element);
+            if (type != null) {
+              overrides.put(element, type);
+            }
+          }
+        }
+      }
+      return overrides;
     }
 
     /**
@@ -89,6 +136,45 @@ public class TypeOverrideManager {
    */
   public TypeOverrideManager() {
     super();
+  }
+
+  /**
+   * Apply a set of overrides that were previously captured.
+   * 
+   * @param overrides the overrides to be applied
+   */
+  public void applyOverrides(HashMap<Element, Type> overrides) {
+    if (currentScope == null) {
+      throw new IllegalStateException("Cannot apply overrides without a scope");
+    }
+    currentScope.applyOverrides(overrides);
+  }
+
+  /**
+   * Return a table mapping the elements whose type is overridden in the current scope to the
+   * overriding type.
+   * 
+   * @return the overrides in the current scope
+   */
+  public HashMap<Element, Type> captureLocalOverrides() {
+    if (currentScope == null) {
+      throw new IllegalStateException("Cannot capture local overrides without a scope");
+    }
+    return currentScope.captureLocalOverrides();
+  }
+
+  /**
+   * Return a map from the elements for the variables in the given list that have their types
+   * overridden to the overriding type.
+   * 
+   * @param variableList the list of variables whose overriding types are to be captured
+   * @return a table mapping elements to their overriding types
+   */
+  public HashMap<Element, Type> captureOverrides(VariableDeclarationList variableList) {
+    if (currentScope == null) {
+      throw new IllegalStateException("Cannot capture overrides without a scope");
+    }
+    return currentScope.captureOverrides(variableList);
   }
 
   /**

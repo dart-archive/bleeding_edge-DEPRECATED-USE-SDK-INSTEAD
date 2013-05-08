@@ -38,6 +38,7 @@ import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
+import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
@@ -64,15 +65,12 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
-import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
@@ -193,9 +191,9 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   private TypeOverrideManager overrideManager;
 
   /**
-   * A flag indicating whether type propagation should be enabled.
+   * A table mapping nodes in the AST to the element produced based on static type information.
    */
-  public static final boolean USE_TYPE_PROPAGATION = true;
+  private HashMap<ASTNode, ExecutableElement> staticElementMap;
 
   /**
    * A table mapping HTML tag names to the names of the classes (in 'dart:html') that implement
@@ -213,6 +211,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     typeProvider = resolver.getTypeProvider();
     dynamicType = typeProvider.getDynamicType();
     overrideManager = resolver.getOverrideManager();
+    staticElementMap = resolver.getStaticElementMap();
   }
 
   /**
@@ -230,7 +229,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitAdjacentStrings(AdjacentStrings node) {
-    return recordType(node, typeProvider.getStringType());
+    recordStaticType(node, typeProvider.getStringType());
+    return null;
   }
 
   /**
@@ -239,7 +239,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    return recordType(node, typeProvider.getBoolType());
+    recordStaticType(node, typeProvider.getBoolType());
+    return null;
   }
 
   /**
@@ -252,12 +253,13 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitAsExpression(AsExpression node) {
-    return recordType(node, getType(node.getType()));
+    recordStaticType(node, getType(node.getType()));
+    return null;
   }
 
   /**
-   * The Dart Language Specification, 12.18: <blockquote> ... an assignment <i>a</i> of the form
-   * <i>v = e</i> ...
+   * The Dart Language Specification, 12.18: <blockquote>... an assignment <i>a</i> of the form <i>v
+   * = e</i> ...
    * <p>
    * It is a static type warning if the static type of <i>e</i> may not be assigned to the static
    * type of <i>v</i>.
@@ -292,22 +294,46 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * <i>e<sub>2</sub></i>. A compound assignment of the form <i>e<sub>1</sub>[e<sub>2</sub>] op=
    * e<sub>3</sub></i> is equivalent to <i>((a, i) => a[i] = a[i] op e<sub>3</sub>)(e<sub>1</sub>,
    * e<sub>2</sub>)</i> where <i>a</i> and <i>i</i> are a variables that are not used in
-   * <i>e<sub>3</sub></i>. </blockquote>
+   * <i>e<sub>3</sub></i>.</blockquote>
    */
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operator = node.getOperator().getType();
-    if (operator != TokenType.EQ) {
-      return recordReturnType(node, node.getElement());
-    }
-    Type rightType = getType(node.getRightHandSide());
-    if (USE_TYPE_PROPAGATION) {
+    if (operator == TokenType.EQ) {
+      Expression rightHandSide = node.getRightHandSide();
+
+      Type staticType = getStaticType(rightHandSide);
+      recordStaticType(node, staticType);
+      Type overrideType = staticType;
+
+      Type propagatedType = getPropagatedType(rightHandSide);
+      if (propagatedType != null) {
+        if (propagatedType.isMoreSpecificThan(staticType)) {
+          recordPropagatedType(node, propagatedType);
+        }
+        overrideType = propagatedType;
+      }
       VariableElement element = resolver.getOverridableElement(node.getLeftHandSide());
       if (element != null) {
-        override(element, getType(element), rightType);
+        resolver.override(element, overrideType);
+      }
+    } else {
+      ExecutableElement staticMethodElement = staticElementMap.get(node);
+      if (staticMethodElement == null) {
+        staticMethodElement = node.getElement();
+      }
+      Type staticType = computeReturnType(staticMethodElement);
+      recordStaticType(node, staticType);
+
+      MethodElement propagatedMethodElement = node.getElement();
+      if (propagatedMethodElement != staticMethodElement) {
+        Type propagatedType = computeReturnType(propagatedMethodElement);
+        if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+          recordPropagatedType(node, propagatedType);
+        }
       }
     }
-    return recordType(node, rightType);
+    return null;
   }
 
   /**
@@ -350,40 +376,50 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitBinaryExpression(BinaryExpression node) {
     TokenType operator = node.getOperator().getType();
-    switch (operator) {
-      case AMPERSAND_AMPERSAND:
-      case BAR_BAR:
-      case EQ_EQ:
-      case BANG_EQ:
-        return recordType(node, typeProvider.getBoolType());
-      case MINUS:
-      case PERCENT:
-      case PLUS:
-      case STAR:
-      case TILDE_SLASH:
-        Type intType = typeProvider.getIntType();
-        if (getType(node.getLeftOperand()) == intType && getType(node.getRightOperand()) == intType) {
-          return recordType(node, intType);
+    if (operator == TokenType.AMPERSAND_AMPERSAND || operator == TokenType.BAR_BAR
+        || operator == TokenType.EQ_EQ || operator == TokenType.BANG_EQ) {
+      recordStaticType(node, typeProvider.getBoolType());
+    } else if (operator == TokenType.MINUS || operator == TokenType.PERCENT
+        || operator == TokenType.PLUS || operator == TokenType.STAR
+        || operator == TokenType.TILDE_SLASH) {
+      Type intType = typeProvider.getIntType();
+      if (getStaticType(node.getLeftOperand()) == intType
+          && getStaticType(node.getRightOperand()) == intType) {
+        recordStaticType(node, intType);
+      }
+    } else if (operator == TokenType.SLASH) {
+      Type doubleType = typeProvider.getDoubleType();
+      if (getStaticType(node.getLeftOperand()) == doubleType
+          || getStaticType(node.getRightOperand()) == doubleType) {
+        recordStaticType(node, doubleType);
+      }
+    } else {
+      ExecutableElement staticMethodElement = staticElementMap.get(node);
+      if (staticMethodElement == null) {
+        staticMethodElement = node.getElement();
+      }
+      Type staticType = computeReturnType(staticMethodElement);
+      recordStaticType(node, staticType);
+
+      MethodElement propagatedMethodElement = node.getElement();
+      if (propagatedMethodElement != staticMethodElement) {
+        Type propagatedType = computeReturnType(propagatedMethodElement);
+        if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+          recordPropagatedType(node, propagatedType);
         }
-        break;
-      case SLASH:
-        Type doubleType = typeProvider.getDoubleType();
-        if (getType(node.getLeftOperand()) == doubleType
-            || getType(node.getRightOperand()) == doubleType) {
-          return recordType(node, doubleType);
-        }
-        break;
+      }
     }
-    return recordReturnType(node, node.getElement());
+    return null;
   }
 
   /**
    * The Dart Language Specification, 12.4: <blockquote>The static type of a boolean literal is
-   * {@code bool}.</blockquote>
+   * bool.</blockquote>
    */
   @Override
   public Void visitBooleanLiteral(BooleanLiteral node) {
-    return recordType(node, typeProvider.getBoolType());
+    recordStaticType(node, typeProvider.getBoolType());
+    return null;
   }
 
   /**
@@ -393,7 +429,9 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitCascadeExpression(CascadeExpression node) {
-    return recordType(node, getType(node.getTarget()));
+    recordStaticType(node, getStaticType(node.getTarget()));
+    recordPropagatedType(node, getPropagatedType(node.getTarget()));
+    return null;
   }
 
   /**
@@ -407,24 +445,47 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitConditionalExpression(ConditionalExpression node) {
-    // Return the least-upper-bound of the then and else expressions.
-    Type thenType = getType(node.getThenExpression());
-    Type elseType = getType(node.getElseExpression());
-    if (thenType == null || elseType == null) {
+    Type staticThenType = getStaticType(node.getThenExpression());
+    Type staticElseType = getStaticType(node.getElseExpression());
+    if (staticThenType == null) {
       // TODO(brianwilkerson) Determine whether this can still happen.
-      return recordType(node, dynamicType);
+      staticThenType = dynamicType;
     }
-    Type resultType = thenType.getLeastUpperBound(elseType);
-    return recordType(node, resultType);
+    if (staticElseType == null) {
+      // TODO(brianwilkerson) Determine whether this can still happen.
+      staticElseType = dynamicType;
+    }
+    Type staticType = staticThenType.getLeastUpperBound(staticElseType);
+    if (staticType == null) {
+      staticType = dynamicType;
+    }
+    recordStaticType(node, staticType);
+
+    Type propagatedThenType = getPropagatedType(node.getThenExpression());
+    Type propagatedElseType = getPropagatedType(node.getElseExpression());
+    if (propagatedThenType != null || propagatedElseType != null) {
+      if (propagatedThenType == null) {
+        propagatedThenType = staticThenType;
+      }
+      if (propagatedElseType == null) {
+        propagatedElseType = staticElseType;
+      }
+      Type propagatedType = propagatedThenType.getLeastUpperBound(propagatedElseType);
+      if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+        recordPropagatedType(node, propagatedType);
+      }
+    }
+    return null;
   }
 
   /**
    * The Dart Language Specification, 12.3: <blockquote>The static type of a literal double is
-   * {@code double}.</blockquote>
+   * double.</blockquote>
    */
   @Override
   public Void visitDoubleLiteral(DoubleLiteral node) {
-    return recordType(node, typeProvider.getDoubleType());
+    recordStaticType(node, typeProvider.getDoubleType());
+    return null;
   }
 
   @Override
@@ -432,7 +493,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     FunctionExpression function = node.getFunctionExpression();
     FunctionTypeImpl functionType = (FunctionTypeImpl) node.getElement().getType();
     setTypeInformation(functionType, computeReturnType(node), function.getParameters());
-    return recordType(function, functionType);
+    recordStaticType(function, functionType);
+    return null;
   }
 
   /**
@@ -473,7 +535,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     }
     FunctionTypeImpl functionType = (FunctionTypeImpl) node.getElement().getType();
     setTypeInformation(functionType, computeReturnType(node), node.getParameters());
-    return recordType(node, functionType);
+    recordStaticType(node, functionType);
+    return null;
   }
 
   /**
@@ -490,7 +553,21 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    return recordReturnType(node, node.getElement());
+    ExecutableElement staticMethodElement = staticElementMap.get(node);
+    if (staticMethodElement == null) {
+      staticMethodElement = node.getElement();
+    }
+    Type staticType = computeReturnType(staticMethodElement);
+    recordStaticType(node, staticType);
+
+    ExecutableElement propagatedMethodElement = node.getElement();
+    Type propagatedType = computeReturnType(propagatedMethodElement);
+    if (staticType == null) {
+      recordStaticType(node, propagatedType);
+    } else if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+      recordPropagatedType(node, propagatedType);
+    }
+    return null;
   }
 
   /**
@@ -501,9 +578,37 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitIndexExpression(IndexExpression node) {
     if (node.inSetterContext()) {
-      return recordArgumentType(node, node.getElement());
+      ExecutableElement staticMethodElement = staticElementMap.get(node);
+      if (staticMethodElement == null) {
+        staticMethodElement = node.getElement();
+      }
+      Type staticType = computeArgumentType(staticMethodElement);
+      recordStaticType(node, staticType);
+
+      MethodElement propagatedMethodElement = node.getElement();
+      if (propagatedMethodElement != staticMethodElement) {
+        Type propagatedType = computeArgumentType(propagatedMethodElement);
+        if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+          recordPropagatedType(node, propagatedType);
+        }
+      }
+    } else {
+      ExecutableElement staticMethodElement = staticElementMap.get(node);
+      if (staticMethodElement == null) {
+        staticMethodElement = node.getElement();
+      }
+      Type staticType = computeReturnType(staticMethodElement);
+      recordStaticType(node, staticType);
+
+      MethodElement propagatedMethodElement = node.getElement();
+      if (propagatedMethodElement != staticMethodElement) {
+        Type propagatedType = computeReturnType(propagatedMethodElement);
+        if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+          recordPropagatedType(node, propagatedType);
+        }
+      }
     }
-    return recordReturnType(node, node.getElement());
+    return null;
   }
 
   /**
@@ -517,23 +622,23 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (USE_TYPE_PROPAGATION) {
-      ConstructorElement element = node.getElement();
-      if (element != null && "Element".equals(element.getEnclosingElement().getName())
-          && "tag".equals(element.getName())) {
-        LibraryElement library = element.getLibrary();
-        if (isHtmlLibrary(library)) {
-          Type returnType = getFirstArgumentAsType(
-              library,
-              node.getArgumentList(),
-              HTML_ELEMENT_TO_CLASS_MAP);
-          if (returnType != null) {
-            return recordType(node, returnType);
-          }
+    recordStaticType(node, node.getConstructorName().getType().getType());
+
+    ConstructorElement element = node.getElement();
+    if (element != null && "Element".equals(element.getEnclosingElement().getName())
+        && "tag".equals(element.getName())) {
+      LibraryElement library = element.getLibrary();
+      if (isHtmlLibrary(library)) {
+        Type returnType = getFirstArgumentAsType(
+            library,
+            node.getArgumentList(),
+            HTML_ELEMENT_TO_CLASS_MAP);
+        if (returnType != null) {
+          recordPropagatedType(node, returnType);
         }
       }
     }
-    return recordType(node, node.getConstructorName().getType().getType());
+    return null;
   }
 
   /**
@@ -542,7 +647,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitIntegerLiteral(IntegerLiteral node) {
-    return recordType(node, typeProvider.getIntType());
+    recordStaticType(node, typeProvider.getIntType());
+    return null;
   }
 
   /**
@@ -553,8 +659,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitIsExpression(IsExpression node) {
-    // TODO(brianwilkerson) Decide how to represent an undefined type
-    return recordType(node, typeProvider.getBoolType());
+    recordStaticType(node, typeProvider.getBoolType());
+    return null;
   }
 
   /**
@@ -567,19 +673,37 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitListLiteral(ListLiteral node) {
+    Type staticType = dynamicType;
     TypeArgumentList typeArguments = node.getTypeArguments();
     if (typeArguments != null) {
       NodeList<TypeName> arguments = typeArguments.getArguments();
       if (arguments != null && arguments.size() == 1) {
-        TypeName argumentType = arguments.get(0);
-        // Get the type defined by the type name and use it as a substitution for the listType's
-        // type parameter.
-        return recordType(
-            node,
-            typeProvider.getListType().substitute(new Type[] {getType(argumentType)}));
+        TypeName argumentTypeName = arguments.get(0);
+        Type argumentType = getType(argumentTypeName);
+        if (argumentType != null) {
+          staticType = argumentType;
+        }
       }
     }
-    return recordType(node, typeProvider.getListType().substitute(new Type[] {dynamicType}));
+    recordStaticType(node, typeProvider.getListType().substitute(new Type[] {staticType}));
+
+    NodeList<Expression> elements = node.getElements();
+    int count = elements.size();
+    if (count > 0) {
+      Type propagatedType = getBestType(elements.get(0));
+      for (int i = 1; i < count; i++) {
+        propagatedType = propagatedType.getLeastUpperBound(getBestType(elements.get(i)));
+        if (propagatedType == null) {
+          propagatedType = dynamicType;
+        }
+      }
+      if (propagatedType.isMoreSpecificThan(staticType)) {
+        recordPropagatedType(
+            node,
+            typeProvider.getListType().substitute(new Type[] {propagatedType}));
+      }
+    }
+    return null;
   }
 
   /**
@@ -596,27 +720,59 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitMapLiteral(MapLiteral node) {
+    // TODO(brianwilkerson) Map literals can now have non-String keys.
+    Type staticKeyType = typeProvider.getStringType();
+    Type staticValueType = dynamicType;
     TypeArgumentList typeArguments = node.getTypeArguments();
     if (typeArguments != null) {
       NodeList<TypeName> arguments = typeArguments.getArguments();
       if (arguments != null && arguments.size() == 2) {
-        TypeName keyType = arguments.get(0);
-        if (!keyType.equals(typeProvider.getStringType())) {
-          // TODO(brianwilkerson) Report the error.
-//          resolver.reportError(ResolverErrorCode.?, keyType);
+        TypeName entryKeyTypeName = arguments.get(0);
+        Type entryKeyType = getType(entryKeyTypeName);
+        if (entryKeyType != null) {
+          staticKeyType = entryKeyType;
         }
-        TypeName valueType = arguments.get(1);
-        // Get the type defined by the type name and use it as a substitution for the mapType's
-        // type parameter.
-        return recordType(
-            node,
-            typeProvider.getMapType().substitute(
-                new Type[] {typeProvider.getStringType(), getType(valueType)}));
+        TypeName entryValueTypeName = arguments.get(1);
+        Type entryValueType = getType(entryValueTypeName);
+        if (entryValueType != null) {
+          staticValueType = entryValueType;
+        }
       }
     }
-    return recordType(
+    recordStaticType(
         node,
-        typeProvider.getMapType().substitute(new Type[] {typeProvider.getStringType(), dynamicType}));
+        typeProvider.getMapType().substitute(new Type[] {staticKeyType, staticValueType}));
+
+    NodeList<MapLiteralEntry> entries = node.getEntries();
+    int count = entries.size();
+    if (count > 0) {
+      MapLiteralEntry entry = entries.get(0);
+      Type propagatedKeyType = getBestType(entry.getKey());
+      Type propagatedValueType = getBestType(entry.getValue());
+      for (int i = 1; i < count; i++) {
+        entry = entries.get(i);
+        propagatedKeyType = propagatedKeyType.getLeastUpperBound(getBestType(entry.getKey()));
+        propagatedValueType = propagatedValueType.getLeastUpperBound(getBestType(entry.getValue()));
+        if (propagatedValueType == null) {
+          propagatedValueType = dynamicType;
+        }
+      }
+      boolean betterKey = propagatedKeyType.isMoreSpecificThan(staticKeyType);
+      boolean betterValue = propagatedValueType.isMoreSpecificThan(staticValueType);
+      if (betterKey || betterValue) {
+        if (!betterKey) {
+          propagatedKeyType = staticKeyType;
+        }
+        if (!betterValue) {
+          propagatedValueType = staticValueType;
+        }
+        recordPropagatedType(
+            node,
+            typeProvider.getMapType().substitute(
+                new Type[] {propagatedKeyType, propagatedValueType}));
+      }
+    }
+    return null;
   }
 
   /**
@@ -657,54 +813,46 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
-    if (USE_TYPE_PROPAGATION) {
-      String methodName = node.getMethodName().getName();
-      if (methodName.equals("$dom_createEvent")) {
-        Expression target = node.getRealTarget();
-        if (target != null) {
-          Type targetType = getType(target);
-          if (targetType instanceof InterfaceType
-              && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals(
-                  "Document"))) {
-            LibraryElement library = targetType.getElement().getLibrary();
-            if (isHtmlLibrary(library)) {
-              Type returnType = getFirstArgumentAsType(library, node.getArgumentList());
-              if (returnType != null) {
-                return recordType(node, returnType);
-              }
+    SimpleIdentifier methodNameNode = node.getMethodName();
+    Element staticMethodElement = staticElementMap.get(methodNameNode);
+    if (staticMethodElement == null) {
+      staticMethodElement = methodNameNode.getElement();
+    }
+    Type staticType = computeReturnType(staticMethodElement);
+    recordStaticType(node, staticType);
+
+    String methodName = methodNameNode.getName();
+    if (methodName.equals("$dom_createEvent")) {
+      Expression target = node.getRealTarget();
+      if (target != null) {
+        Type targetType = getBestType(target);
+        if (targetType instanceof InterfaceType
+            && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals(
+                "Document"))) {
+          LibraryElement library = targetType.getElement().getLibrary();
+          if (isHtmlLibrary(library)) {
+            Type returnType = getFirstArgumentAsType(library, node.getArgumentList());
+            if (returnType != null) {
+              recordPropagatedType(node, returnType);
             }
           }
         }
-      } else if (methodName.equals("query")) {
-        Expression target = node.getRealTarget();
-        if (target == null) {
-          Element methodElement = node.getMethodName().getElement();
-          if (methodElement != null) {
-            LibraryElement library = methodElement.getLibrary();
-            if (isHtmlLibrary(library)) {
-              Type returnType = getFirstArgumentAsQuery(library, node.getArgumentList());
-              if (returnType != null) {
-                return recordType(node, returnType);
-              }
-            }
-          }
-        } else {
-          Type targetType = getType(target);
-          if (targetType instanceof InterfaceType
-              && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals(
-                  "Document"))) {
-            LibraryElement library = targetType.getElement().getLibrary();
-            if (isHtmlLibrary(library)) {
-              Type returnType = getFirstArgumentAsQuery(library, node.getArgumentList());
-              if (returnType != null) {
-                return recordType(node, returnType);
-              }
+      }
+    } else if (methodName.equals("query")) {
+      Expression target = node.getRealTarget();
+      if (target == null) {
+        Element methodElement = methodNameNode.getElement();
+        if (methodElement != null) {
+          LibraryElement library = methodElement.getLibrary();
+          if (isHtmlLibrary(library)) {
+            Type returnType = getFirstArgumentAsQuery(library, node.getArgumentList());
+            if (returnType != null) {
+              recordPropagatedType(node, returnType);
             }
           }
         }
-      } else if (methodName.equals("$dom_createElement")) {
-        Expression target = node.getRealTarget();
-        Type targetType = getType(target);
+      } else {
+        Type targetType = getBestType(target);
         if (targetType instanceof InterfaceType
             && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals(
                 "Document"))) {
@@ -712,25 +860,49 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
           if (isHtmlLibrary(library)) {
             Type returnType = getFirstArgumentAsQuery(library, node.getArgumentList());
             if (returnType != null) {
-              return recordType(node, returnType);
+              recordPropagatedType(node, returnType);
             }
           }
         }
-      } else if (methodName.equals("JS")) {
-        Type returnType = getFirstArgumentAsType(
-            typeProvider.getObjectType().getElement().getLibrary(),
-            node.getArgumentList());
-        if (returnType != null) {
-          return recordType(node, returnType);
+      }
+    } else if (methodName.equals("$dom_createElement")) {
+      Expression target = node.getRealTarget();
+      Type targetType = getBestType(target);
+      if (targetType instanceof InterfaceType
+          && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals("Document"))) {
+        LibraryElement library = targetType.getElement().getLibrary();
+        if (isHtmlLibrary(library)) {
+          Type returnType = getFirstArgumentAsQuery(library, node.getArgumentList());
+          if (returnType != null) {
+            recordPropagatedType(node, returnType);
+          }
+        }
+      }
+    } else if (methodName.equals("JS")) {
+      Type returnType = getFirstArgumentAsType(
+          typeProvider.getObjectType().getElement().getLibrary(),
+          node.getArgumentList());
+      if (returnType != null) {
+        recordPropagatedType(node, returnType);
+      }
+    } else {
+      Element propagatedElement = methodNameNode.getElement();
+      if (propagatedElement != staticMethodElement) {
+        Type propagatedType = computeReturnType(propagatedElement);
+        if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+          recordPropagatedType(node, propagatedType);
         }
       }
     }
-    return recordReturnType(node, node.getMethodName().getElement());
+    return null;
   }
 
   @Override
   public Void visitNamedExpression(NamedExpression node) {
-    return recordType(node, getType(node.getExpression()));
+    Expression expression = node.getExpression();
+    recordStaticType(node, getStaticType(expression));
+    recordPropagatedType(node, getPropagatedType(expression));
+    return null;
   }
 
   /**
@@ -739,12 +911,16 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitNullLiteral(NullLiteral node) {
-    return recordType(node, typeProvider.getBottomType());
+    recordStaticType(node, typeProvider.getBottomType());
+    return null;
   }
 
   @Override
   public Void visitParenthesizedExpression(ParenthesizedExpression node) {
-    return recordType(node, getType(node.getExpression()));
+    Expression expression = node.getExpression();
+    recordStaticType(node, getStaticType(expression));
+    recordPropagatedType(node, getPropagatedType(expression));
+    return null;
   }
 
   /**
@@ -775,7 +951,10 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitPostfixExpression(PostfixExpression node) {
-    return recordType(node, getType(node.getOperand()));
+    Expression operand = node.getOperand();
+    recordStaticType(node, getStaticType(operand));
+    recordPropagatedType(node, getPropagatedType(operand));
+    return null;
   }
 
   /**
@@ -785,44 +964,38 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefixedIdentifier = node.getIdentifier();
     Element element = prefixedIdentifier.getElement();
-    if (element == null) {
-      // The error should have been generated by the element resolver.
-      return recordType(node, dynamicType);
-    }
-    if (USE_TYPE_PROPAGATION) {
-      Type type = overrideManager.getType(element);
-      if (type != null) {
-        return recordType(node, type);
-      }
-    }
-    Type type;
+    Type staticType = dynamicType;
     if (element instanceof ClassElement) {
       if (isNotTypeLiteral(node)) {
-        type = ((ClassElement) element).getType();
+        staticType = ((ClassElement) element).getType();
       } else {
-        type = typeProvider.getTypeType();
+        staticType = typeProvider.getTypeType();
       }
     } else if (element instanceof FunctionTypeAliasElement) {
-      type = ((FunctionTypeAliasElement) element).getType();
+      staticType = ((FunctionTypeAliasElement) element).getType();
     } else if (element instanceof MethodElement) {
-      type = ((MethodElement) element).getType();
+      staticType = ((MethodElement) element).getType();
     } else if (element instanceof PropertyAccessorElement) {
-      type = getType((PropertyAccessorElement) element, node.getPrefix().getStaticType());
+      staticType = getType((PropertyAccessorElement) element, node.getPrefix().getStaticType());
     } else if (element instanceof ExecutableElement) {
-      type = ((ExecutableElement) element).getType();
+      staticType = ((ExecutableElement) element).getType();
     } else if (element instanceof TypeVariableElement) {
 //      if (isTypeName(node)) {
-      type = ((TypeVariableElement) element).getType();
+      staticType = ((TypeVariableElement) element).getType();
 //      } else {
 //        type = typeProvider.getTypeType());
 //      }
     } else if (element instanceof VariableElement) {
-      type = ((VariableElement) element).getType();
-    } else {
-      type = dynamicType;
+      staticType = ((VariableElement) element).getType();
     }
-    recordType(prefixedIdentifier, type);
-    return recordType(node, type);
+    recordStaticType(prefixedIdentifier, staticType);
+    recordStaticType(node, staticType);
+
+    Type propagatedType = overrideManager.getType(element);
+    if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+      recordPropagatedType(node, propagatedType);
+    }
+    return null;
   }
 
   /**
@@ -834,10 +1007,25 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitPrefixExpression(PrefixExpression node) {
     TokenType operator = node.getOperator().getType();
     if (operator == TokenType.BANG) {
-      return recordType(node, typeProvider.getBoolType());
+      recordStaticType(node, typeProvider.getBoolType());
+    } else {
+      // The other cases are equivalent to invoking a method.
+      ExecutableElement staticMethodElement = staticElementMap.get(node);
+      if (staticMethodElement == null) {
+        staticMethodElement = node.getElement();
+      }
+      Type staticType = computeReturnType(staticMethodElement);
+      recordStaticType(node, staticType);
+
+      MethodElement propagatedMethodElement = node.getElement();
+      if (propagatedMethodElement != staticMethodElement) {
+        Type propagatedType = computeReturnType(propagatedMethodElement);
+        if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+          recordPropagatedType(node, propagatedType);
+        }
+      }
     }
-    // The other cases are equivalent to invoking a method.
-    return recordReturnType(node, node.getElement());
+    return null;
   }
 
   /**
@@ -887,26 +1075,23 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitPropertyAccess(PropertyAccess node) {
     SimpleIdentifier propertyName = node.getPropertyName();
     Element element = propertyName.getElement();
-    if (USE_TYPE_PROPAGATION) {
-      Type type = overrideManager.getType(element);
-      if (type != null) {
-        return recordType(node, type);
-      }
-    }
+    Type staticType = dynamicType;
     if (element instanceof MethodElement) {
-      FunctionType type = ((MethodElement) element).getType();
-      recordType(propertyName, type);
-      return recordType(node, type);
+      staticType = ((MethodElement) element).getType();
     } else if (element instanceof PropertyAccessorElement) {
-      Type propertyType = getType((PropertyAccessorElement) element, node.getTarget() != null
-          ? node.getTarget().getStaticType() : null);
-      recordType(propertyName, propertyType);
-      return recordType(node, propertyType);
+      staticType = getType((PropertyAccessorElement) element, node.getTarget() != null
+          ? getStaticType(node.getTarget()) : null);
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
-    recordType(propertyName, dynamicType);
-    return recordType(node, dynamicType);
+    recordStaticType(propertyName, staticType);
+    recordStaticType(node, staticType);
+
+    Type propagatedType = overrideManager.getType(element);
+    if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+      recordPropagatedType(node, propagatedType);
+    }
+    return null;
   }
 
   /**
@@ -915,7 +1100,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitRethrowExpression(RethrowExpression node) {
-    return recordType(node, typeProvider.getBottomType());
+    recordStaticType(node, typeProvider.getBottomType());
+    return null;
   }
 
   /**
@@ -963,45 +1149,41 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.getElement();
-    if (element == null) {
-      // The error should have been generated by the element resolver.
-      return recordType(node, dynamicType);
-    }
-    if (USE_TYPE_PROPAGATION) {
-      Type type = overrideManager.getType(element);
-      if (type != null) {
-        return recordType(node, type);
-      }
-    }
-    Type type;
+    Type staticType = dynamicType;
     if (element instanceof ClassElement) {
       if (isNotTypeLiteral(node)) {
-        type = ((ClassElement) element).getType();
+        staticType = ((ClassElement) element).getType();
       } else {
-        type = typeProvider.getTypeType();
+        staticType = typeProvider.getTypeType();
       }
     } else if (element instanceof FunctionTypeAliasElement) {
-      type = ((FunctionTypeAliasElement) element).getType();
+      staticType = ((FunctionTypeAliasElement) element).getType();
     } else if (element instanceof MethodElement) {
-      type = ((MethodElement) element).getType();
+      staticType = ((MethodElement) element).getType();
     } else if (element instanceof PropertyAccessorElement) {
-      type = getType((PropertyAccessorElement) element, null);
+      staticType = getType((PropertyAccessorElement) element, null);
     } else if (element instanceof ExecutableElement) {
-      type = ((ExecutableElement) element).getType();
+      staticType = ((ExecutableElement) element).getType();
     } else if (element instanceof TypeVariableElement) {
 //      if (isTypeName(node)) {
-      type = ((TypeVariableElement) element).getType();
+      staticType = ((TypeVariableElement) element).getType();
 //      } else {
 //        type = typeProvider.getTypeType());
 //      }
     } else if (element instanceof VariableElement) {
-      type = ((VariableElement) element).getType();
+      staticType = ((VariableElement) element).getType();
     } else if (element instanceof PrefixElement) {
       return null;
     } else {
-      type = dynamicType;
+      staticType = dynamicType;
     }
-    return recordType(node, type);
+    recordStaticType(node, staticType);
+
+    Type propagatedType = overrideManager.getType(element);
+    if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+      recordPropagatedType(node, propagatedType);
+    }
+    return null;
   }
 
   /**
@@ -1010,7 +1192,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    return recordType(node, typeProvider.getStringType());
+    recordStaticType(node, typeProvider.getStringType());
+    return null;
   }
 
   /**
@@ -1019,17 +1202,19 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitStringInterpolation(StringInterpolation node) {
-    return recordType(node, typeProvider.getStringType());
+    recordStaticType(node, typeProvider.getStringType());
+    return null;
   }
 
   @Override
   public Void visitSuperExpression(SuperExpression node) {
     if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been reported
-      return recordType(node, dynamicType);
+      recordStaticType(node, dynamicType);
     } else {
-      return recordType(node, thisType.getSuperclass());
+      recordStaticType(node, thisType.getSuperclass());
     }
+    return null;
   }
 
   /**
@@ -1040,10 +1225,11 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitThisExpression(ThisExpression node) {
     if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been reported
-      return recordType(node, dynamicType);
+      recordStaticType(node, dynamicType);
     } else {
-      return recordType(node, thisType);
+      recordStaticType(node, thisType);
     }
+    return null;
   }
 
   /**
@@ -1052,22 +1238,79 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitThrowExpression(ThrowExpression node) {
-    return recordType(node, typeProvider.getBottomType());
+    recordStaticType(node, typeProvider.getBottomType());
+    return null;
   }
 
   @Override
   public Void visitVariableDeclaration(VariableDeclaration node) {
-    if (USE_TYPE_PROPAGATION) {
-      Expression initializer = node.getInitializer();
-      if (initializer != null) {
-        Type rightType = getType(initializer);
-        VariableElement element = (VariableElement) node.getName().getElement();
-        if (element != null) {
-          override(element, getType(element), rightType);
-        }
+    Expression initializer = node.getInitializer();
+    if (initializer != null) {
+      Type rightType = getBestType(initializer);
+      VariableElement element = (VariableElement) node.getName().getElement();
+      if (element != null) {
+        resolver.override(element, rightType);
       }
     }
     return null;
+  }
+
+  /**
+   * Record that the static type of the given node is the type of the second argument to the method
+   * represented by the given element.
+   * 
+   * @param element the element representing the method invoked by the given node
+   */
+  private Type computeArgumentType(ExecutableElement element) {
+    if (element != null) {
+      ParameterElement[] parameters = element.getParameters();
+      if (parameters != null && parameters.length == 2) {
+        return parameters[1].getType();
+      }
+    }
+    return dynamicType;
+  }
+
+  /**
+   * Compute the return type of the method or function represented by the given element.
+   * 
+   * @param element the element representing the method or function invoked by the given node
+   * @return the return type that was computed
+   */
+  private Type computeReturnType(Element element) {
+    if (element instanceof PropertyAccessorElement) {
+      //
+      // This is a function invocation expression disguised as something else. We are invoking a
+      // getter and then invoking the returned function.
+      //
+      FunctionType propertyType = ((PropertyAccessorElement) element).getType();
+      if (propertyType != null) {
+        Type returnType = propertyType.getReturnType();
+        if (returnType instanceof FunctionType) {
+          Type innerReturnType = ((FunctionType) returnType).getReturnType();
+          if (innerReturnType != null) {
+            return innerReturnType;
+          }
+        } else if (returnType.isDartCoreFunction()) {
+          return dynamicType;
+        }
+        if (returnType != null) {
+          return returnType;
+        }
+      }
+    } else if (element instanceof ExecutableElement) {
+      FunctionType type = ((ExecutableElement) element).getType();
+      if (type != null) {
+        // TODO(brianwilkerson) Figure out the conditions under which the type is null.
+        return type.getReturnType();
+      }
+    } else if (element instanceof VariableElement) {
+      Type variableType = ((VariableElement) element).getType();
+      if (variableType instanceof FunctionType) {
+        return ((FunctionType) variableType).getReturnType();
+      }
+    }
+    return dynamicType;
   }
 
   /**
@@ -1097,9 +1340,27 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   private Type computeReturnType(FunctionExpression node) {
     FunctionBody body = node.getBody();
     if (body instanceof ExpressionFunctionBody) {
-      return getType(((ExpressionFunctionBody) body).getExpression());
+      return getStaticType(((ExpressionFunctionBody) body).getExpression());
     }
     return dynamicType;
+  }
+
+  /**
+   * Return the propagated type of the given expression if it is available, or the static type if
+   * there is no propagated type.
+   * 
+   * @param expression the expression whose type is to be returned
+   * @return the propagated or static type of the given expression
+   */
+  private Type getBestType(Expression expression) {
+    Type type = expression.getPropagatedType();
+    if (type == null) {
+      type = expression.getStaticType();
+      if (type == null) {
+        return dynamicType;
+      }
+    }
+    return type;
   }
 
   /**
@@ -1195,30 +1456,26 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Return the type of the given (overridable) element.
+   * Return the propagated type of the given expression.
    * 
-   * @param element the element whose type is to be returned
-   * @return the type of the given element
+   * @param expression the expression whose type is to be returned
+   * @return the propagated type of the given expression
    */
-  private Type getType(Element element) {
-    if (element instanceof LocalVariableElement) {
-      return ((LocalVariableElement) element).getType();
-    } else if (element instanceof ParameterElement) {
-      return ((ParameterElement) element).getType();
-    }
-    return null;
+  private Type getPropagatedType(Expression expression) {
+    Type type = expression.getPropagatedType();
+    return type;
   }
 
   /**
-   * Return the type of the given expression that is to be used for type analysis.
+   * Return the static type of the given expression.
    * 
    * @param expression the expression whose type is to be returned
-   * @return the type of the given expression
+   * @return the static type of the given expression
    */
-  private Type getType(Expression expression) {
+  private Type getStaticType(Expression expression) {
     Type type = expression.getStaticType();
     if (type == null) {
-      //TODO(brianwilkerson) Determine the conditions for which the type is null.
+      // TODO(brianwilkerson) Determine the conditions for which the static type is null.
       return dynamicType;
     }
     return type;
@@ -1319,86 +1576,15 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * If it is appropriate to do so, override the type of the given element. Use the static type and
-   * inferred type of the element to determine whether or not it is appropriate.
-   * 
-   * @param element the element whose type might be overridden
-   * @param staticType the static type of the element
-   * @param inferredType the inferred type of the element
-   */
-  private void override(VariableElement element, Type staticType, Type inferredType) {
-    if (inferredType == BottomTypeImpl.getInstance()) {
-      return;
-    }
-    if (element instanceof PropertyInducingElement) {
-      PropertyInducingElement variable = (PropertyInducingElement) element;
-      if (!variable.isConst() && !variable.isFinal()) {
-        return;
-      }
-    }
-    if (staticType == null || (inferredType != null && inferredType.isMoreSpecificThan(staticType))) {
-      overrideManager.setType(element, inferredType);
-    }
-  }
-
-  /**
-   * Record that the static type of the given node is the type of the second argument to the method
-   * represented by the given element.
+   * Record that the propagated type of the given node is the given type.
    * 
    * @param expression the node whose type is to be recorded
-   * @param element the element representing the method invoked by the given node
+   * @param type the propagated type of the node
    */
-  private Void recordArgumentType(IndexExpression expression, MethodElement element) {
-    if (element != null) {
-      ParameterElement[] parameters = element.getParameters();
-      if (parameters != null && parameters.length == 2) {
-        return recordType(expression, parameters[1].getType());
-      }
+  private void recordPropagatedType(Expression expression, Type type) {
+    if (type != null && !type.isDynamic()) {
+      expression.setPropagatedType(type);
     }
-    return recordType(expression, dynamicType);
-  }
-
-  /**
-   * Record that the static type of the given node is the return type of the method or function
-   * represented by the given element.
-   * 
-   * @param expression the node whose type is to be recorded
-   * @param element the element representing the method or function invoked by the given node
-   */
-  private Void recordReturnType(Expression expression, Element element) {
-    if (element instanceof PropertyAccessorElement) {
-      //
-      // This is a function invocation expression disguised as something else. We are invoking a
-      // getter and then invoking the returned function.
-      //
-      FunctionType propertyType = ((PropertyAccessorElement) element).getType();
-      if (propertyType != null) {
-        Type returnType = propertyType.getReturnType();
-        if (returnType instanceof FunctionType) {
-          Type innerReturnType = ((FunctionType) returnType).getReturnType();
-          if (innerReturnType != null) {
-            return recordType(expression, innerReturnType);
-          }
-        } else if (returnType.isDartCoreFunction()) {
-          return recordType(expression, dynamicType);
-        }
-        if (returnType != null) {
-          return recordType(expression, returnType);
-        }
-      }
-    } else if (element instanceof ExecutableElement) {
-      FunctionType type = ((ExecutableElement) element).getType();
-      if (type != null) {
-        // TODO(brianwilkerson) Figure out the conditions under which the type is null.
-        return recordType(expression, type.getReturnType());
-      }
-    } else if (element instanceof VariableElement) {
-      Type variableType = ((VariableElement) element).getType();
-      if (variableType instanceof FunctionType) {
-        return recordType(expression, ((FunctionType) variableType).getReturnType());
-      }
-    }
-    return recordType(expression, dynamicType);
   }
 
   /**
@@ -1407,13 +1593,12 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @param expression the node whose type is to be recorded
    * @param type the static type of the node
    */
-  private Void recordType(Expression expression, Type type) {
+  private void recordStaticType(Expression expression, Type type) {
     if (type == null) {
       expression.setStaticType(dynamicType);
     } else {
       expression.setStaticType(type);
     }
-    return null;
   }
 
   /**
