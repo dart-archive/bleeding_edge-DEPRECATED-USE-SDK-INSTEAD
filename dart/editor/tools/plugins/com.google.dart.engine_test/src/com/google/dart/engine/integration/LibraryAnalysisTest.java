@@ -44,6 +44,11 @@ public abstract class LibraryAnalysisTest extends TestCase {
   private HashSet<LibraryElement> visitedLibraries = new HashSet<LibraryElement>();
 
   /**
+   * A flag indicating whether libraries that are part of the SDK should be validated.
+   */
+  private boolean validateSdk = false;
+
+  /**
    * A list to which all of the errors in the libraries will be added.
    */
   private ArrayList<AnalysisError> errorList = new ArrayList<AnalysisError>();
@@ -76,6 +81,16 @@ public abstract class LibraryAnalysisTest extends TestCase {
   }
 
   /**
+   * Mark the given library as one that should be ignored when validating the libraries that were
+   * analyzed.
+   * 
+   * @param library the library to be ignored
+   */
+  protected void validateSdk() {
+    validateSdk = true;
+  }
+
+  /**
    * Add all of the errors in the given library and all referenced libraries to the given list of
    * errors.
    * 
@@ -86,7 +101,8 @@ public abstract class LibraryAnalysisTest extends TestCase {
    * @throws AnalysisException if the errors could not be determined
    */
   protected void verify(LibraryElement library) throws AnalysisException {
-    if (library == null || visitedLibraries.contains(library)) {
+    if (library == null || visitedLibraries.contains(library)
+        || (!validateSdk && library.getSource().isInSystemLibrary())) {
       return;
     }
     visitedLibraries.add(library);
@@ -120,12 +136,13 @@ public abstract class LibraryAnalysisTest extends TestCase {
         int offset = error.getOffset();
         writer.println();
         writer.printf(
-            "  %s %s (%d..%d) \"%s\"",
+            "%s %s (%d..%d) \"%s\"%s",
             source == null ? "null" : source.getShortName(),
             code.getClass().getSimpleName() + "." + code,
             offset,
             offset + error.getLength(),
-            error.getMessage());
+            error.getMessage(),
+            source == null ? "" : " (" + source.getFullName() + ")");
       }
       Assert.fail(writer.toString());
     }

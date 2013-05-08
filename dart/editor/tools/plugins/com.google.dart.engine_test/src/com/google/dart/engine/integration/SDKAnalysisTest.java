@@ -57,6 +57,7 @@ public class SDKAnalysisTest extends LibraryAnalysisTest {
     //
     // Validate that there were no errors.
     //
+    validateSdk();
     for (LibraryElement library : libraries) {
       verify(library);
     }

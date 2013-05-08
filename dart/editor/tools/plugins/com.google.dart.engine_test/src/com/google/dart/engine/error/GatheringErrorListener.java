@@ -160,7 +160,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
         }
         builder.append(expectedCount);
         builder.append(" errors of type ");
-        builder.append(code);
+        builder.append(code.getClass().getSimpleName() + "." + code);
         builder.append(", found ");
         builder.append(actualCount);
       }
@@ -178,7 +178,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
         builder.append("; ");
       }
       builder.append("0 errors of type ");
-      builder.append(code);
+      builder.append(code.getClass().getSimpleName() + "." + code);
       builder.append(", found ");
       builder.append(actualCount);
       builder.append(" (");
