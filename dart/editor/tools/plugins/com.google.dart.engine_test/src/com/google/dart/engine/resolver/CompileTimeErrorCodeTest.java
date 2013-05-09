@@ -237,32 +237,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invalidReferenceToThis_staticMethod() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  static m() { return this; }",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
-    verify(source);
-  }
-
-  public void fail_invalidReferenceToThis_topLevelFunction() throws Exception {
-    Source source = addSource(createSource(//
-    "f() { return this; }"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
-    verify(source);
-  }
-
-  public void fail_invalidReferenceToThis_variableInitializer() throws Exception {
-    Source source = addSource(createSource(//
-    "int x = this;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
-    verify(source);
-  }
-
   public void fail_mixinDeclaresConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1580,6 +1554,73 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED);
+    verify(source);
+  }
+
+  public void test_invalidReferenceToThis_factoryConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A() { return this; }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    verify(source);
+  }
+
+  public void test_invalidReferenceToThis_instanceVariableInitializer_inConstructor()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var f;",
+        "  A() : f = this;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    verify(source);
+  }
+
+  public void test_invalidReferenceToThis_instanceVariableInitializer_inDeclaration()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var f = this;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    verify(source);
+  }
+
+  public void test_invalidReferenceToThis_staticMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static m() { return this; }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    verify(source);
+  }
+
+  public void test_invalidReferenceToThis_staticVariableInitializer() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static f = this;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    verify(source);
+  }
+
+  public void test_invalidReferenceToThis_topLevelFunction() throws Exception {
+    Source source = addSource("f() { return this; }");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    verify(source);
+  }
+
+  public void test_invalidReferenceToThis_variableInitializer() throws Exception {
+    Source source = addSource("int x = this;");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
     verify(source);
   }
 

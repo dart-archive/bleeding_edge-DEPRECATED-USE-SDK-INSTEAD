@@ -499,7 +499,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * initializer, in a factory constructor, or in a static method or variable initializer, or in the
    * initializer of an instance variable.
    */
-  INVALID_REFERENCE_TO_THIS(""),
+  INVALID_REFERENCE_TO_THIS("Invalid reference to 'this' expression"),
 
   /**
    * 12.7 Maps: It is a compile-time error if the first type argument to a map literal is not

@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.ClassTypeAlias;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
@@ -59,6 +60,7 @@ import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
+import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeArgumentList;
@@ -493,6 +495,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     checkForCaseExpressionTypeImplementsEquals(node);
     checkForInconsistentCaseExpressionTypes(node);
     return super.visitSwitchStatement(node);
+  }
+
+  @Override
+  public Void visitThisExpression(ThisExpression node) {
+    checkForInvalidReferenceToThis(node);
+    return super.visitThisExpression(node);
   }
 
   @Override
@@ -1390,6 +1398,21 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This verifies that the usage of the passed 'this' is valid.
+   * 
+   * @param node the 'this' expression to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#INVALID_REFERENCE_TO_THIS
+   */
+  private boolean checkForInvalidReferenceToThis(ThisExpression node) {
+    if (!isThisInValidContext(node)) {
+      errorReporter.reportError(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, node);
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Checks to ensure that first type argument to a map literal must be the 'String' type.
    * 
    * @param arguments a non-{@code null}, non-empty {@link TypeName} node list from the respective
@@ -1846,5 +1869,29 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * @param node the 'this' expression to analyze
+   * @return {@code true} if the given 'this' expression is in the valid context
+   */
+  private boolean isThisInValidContext(ThisExpression node) {
+    for (ASTNode n = node; n != null; n = n.getParent()) {
+      if (n instanceof CompilationUnit) {
+        return false;
+      }
+      if (n instanceof ConstructorDeclaration) {
+        ConstructorDeclaration constructor = (ConstructorDeclaration) n;
+        return constructor.getFactoryKeyword() == null;
+      }
+      if (n instanceof ConstructorFieldInitializer) {
+        return false;
+      }
+      if (n instanceof MethodDeclaration) {
+        MethodDeclaration method = (MethodDeclaration) n;
+        return !method.isStatic();
+      }
+    }
+    return false;
   }
 }

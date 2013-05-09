@@ -457,6 +457,30 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidReferenceToThis_constructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {",
+        "    var v = this;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidReferenceToThis_instanceMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {",
+        "    var v = this;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invalidTypeArgumentInConstList() throws Exception {
     Source source = addSource(createSource(//
         "class A<E> {",
