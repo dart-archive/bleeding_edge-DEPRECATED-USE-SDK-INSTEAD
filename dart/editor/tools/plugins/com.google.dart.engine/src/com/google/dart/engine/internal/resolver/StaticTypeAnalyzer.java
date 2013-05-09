@@ -752,13 +752,18 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       for (int i = 1; i < count; i++) {
         entry = entries.get(i);
         propagatedKeyType = propagatedKeyType.getLeastUpperBound(getBestType(entry.getKey()));
+        if (propagatedKeyType == null) {
+          propagatedKeyType = dynamicType;
+        }
         propagatedValueType = propagatedValueType.getLeastUpperBound(getBestType(entry.getValue()));
         if (propagatedValueType == null) {
           propagatedValueType = dynamicType;
         }
       }
-      boolean betterKey = propagatedKeyType.isMoreSpecificThan(staticKeyType);
-      boolean betterValue = propagatedValueType.isMoreSpecificThan(staticValueType);
+      boolean betterKey = propagatedKeyType != null
+          && propagatedKeyType.isMoreSpecificThan(staticKeyType);
+      boolean betterValue = propagatedValueType != null
+          && propagatedValueType.isMoreSpecificThan(staticValueType);
       if (betterKey || betterValue) {
         if (!betterKey) {
           propagatedKeyType = staticKeyType;
