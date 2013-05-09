@@ -107,6 +107,11 @@ public abstract class TypeImpl implements Type {
   }
 
   @Override
+  public boolean isObject() {
+    return false;
+  }
+
+  @Override
   public boolean isSupertypeOf(Type type) {
     return type.isSubtypeOf(this);
   }

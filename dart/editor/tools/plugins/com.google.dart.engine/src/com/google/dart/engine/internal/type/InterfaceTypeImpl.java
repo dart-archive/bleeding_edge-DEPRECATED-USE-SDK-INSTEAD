@@ -450,6 +450,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
+  public boolean isObject() {
+    return getElement().getSupertype() == null;
+  }
+
+  @Override
   public boolean isSubtypeOf(Type type) {
     //
     // T is a subtype of S, written T <: S, iff [bottom/dynamic]T << S

@@ -83,6 +83,13 @@ public interface Type {
   public boolean isMoreSpecificThan(Type type);
 
   /**
+   * Return {@code true} if this type represents the type 'Object'.
+   * 
+   * @return {@code true} if this type represents the type 'Object'
+   */
+  public boolean isObject();
+
+  /**
    * Return {@code true} if this type is a subtype of the given type.
    * 
    * @param type the type being compared with this type

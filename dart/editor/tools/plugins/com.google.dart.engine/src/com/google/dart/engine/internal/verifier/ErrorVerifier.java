@@ -258,7 +258,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           node.getName(),
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       checkForMemberWithClassName();
-      checkForMixinDeclaresConstructor(node.getWithClause());
+      checkForMixins(node.getWithClause());
       // initialize initialFieldElementsMap
       ClassElement classElement = node.getElement();
       if (classElement != null) {
@@ -284,7 +284,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     checkForBuiltInIdentifierAsName(
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-    checkForMixinDeclaresConstructor(node.getWithClause());
+    checkForMixins(node.getWithClause());
     return super.visitClassTypeAlias(node);
   }
 
@@ -1461,14 +1461,57 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This verifies that the passed 'with' clause does not apply mixin with an explicitly declared
-   * constructor.
+   * This verifies that the passed mixin does not have an explicitly declared constructor.
+   * 
+   * @param mixinName the node to report problem on
+   * @param mixinElement the mixing to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#MIXIN_DECLARES_CONSTRUCTOR
+   */
+  private boolean checkForMixinDeclaresConstructor(TypeName mixinName, ClassElement mixinElement) {
+    for (ConstructorElement constructor : mixinElement.getConstructors()) {
+      if (!constructor.isSynthetic() && !constructor.isFactory()) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
+            mixinName,
+            mixinElement.getName());
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed mixin has the 'Object' superclass.
+   * 
+   * @param mixinName the node to report problem on
+   * @param mixinElement the mixing to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#MIXIN_INHERITS_FROM_NOT_OBJECT
+   */
+  private boolean checkForMixinInheritsNotFromObject(TypeName mixinName, ClassElement mixinElement) {
+    InterfaceType mixinSupertype = mixinElement.getSupertype();
+    if (mixinSupertype != null) {
+      if (!mixinSupertype.isObject() || !mixinElement.isTypedef()
+          && mixinElement.getMixins().length != 0) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
+            mixinName,
+            mixinElement.getName());
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that all classes of the passed 'with' clause are valid.
    * 
    * @param node the 'with' clause to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#MIXIN_DECLARES_CONSTRUCTOR
    */
-  private boolean checkForMixinDeclaresConstructor(WithClause withClause) {
+  private boolean checkForMixins(WithClause withClause) {
     if (withClause == null) {
       return false;
     }
@@ -1476,18 +1519,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     for (TypeName mixinName : withClause.getMixinTypes()) {
       Type mixinType = mixinName.getType();
       if (!(mixinType instanceof InterfaceType)) {
-        return false;
+        continue;
       }
       ClassElement mixinElement = ((InterfaceType) mixinType).getElement();
-      for (ConstructorElement constructor : mixinElement.getConstructors()) {
-        if (!constructor.isSynthetic() && !constructor.isFactory()) {
-          errorReporter.reportError(
-              CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
-              mixinName,
-              mixinElement.getName());
-          problemReported = true;
-        }
-      }
+      problemReported |= checkForMixinDeclaresConstructor(mixinName, mixinElement);
+      problemReported |= checkForMixinInheritsNotFromObject(mixinName, mixinElement);
     }
     return problemReported;
   }

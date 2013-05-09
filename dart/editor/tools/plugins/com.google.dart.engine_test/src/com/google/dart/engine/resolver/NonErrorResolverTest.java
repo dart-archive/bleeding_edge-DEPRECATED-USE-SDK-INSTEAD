@@ -553,6 +553,26 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_mixinInheritsFromNotObject_classDeclaration_mixTypedef() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "typedef B = Object with A {}",
+        "class C extends Object with B {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_mixinInheritsFromNotObject_typedef_mixTypedef() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "typedef B = Object with A {}",
+        "typedef C = Object with B {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_multipleSuperInitializers_no() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",

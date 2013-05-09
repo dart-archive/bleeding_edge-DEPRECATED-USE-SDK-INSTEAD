@@ -274,16 +274,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_mixinInheritsFromNotObject() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "class B extends A {}",
-        "class C extends Object mixin B {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
-    verify(source);
-  }
-
   public void fail_mixinOfNonClass() throws Exception {
     // TODO(brianwilkerson) Compare with MIXIN_WITH_NON_CLASS_SUPERCLASS.
     Source source = addSource(createSource(//
@@ -1743,6 +1733,46 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "typedef B = Object with A;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_mixinInheritsFromNotObject_classDeclaration_extends() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {}",
+        "class C extends Object with B {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
+    verify(source);
+  }
+
+  public void test_mixinInheritsFromNotObject_classDeclaration_with() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends Object with A {}",
+        "class C extends Object with B {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
+    verify(source);
+  }
+
+  public void test_mixinInheritsFromNotObject_typedef_extends() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {}",
+        "typedef C = Object with B {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
+    verify(source);
+  }
+
+  public void test_mixinInheritsFromNotObject_typedef_with() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends Object with A {}",
+        "typedef C = Object with B {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
     verify(source);
   }
 
