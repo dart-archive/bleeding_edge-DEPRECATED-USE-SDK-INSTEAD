@@ -163,7 +163,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * 
    * @param methodName the name of the method that is undefined
    */
-  UNDEFINED_FUNCTION("The FUNCTION '%s' is not defined"),
+  UNDEFINED_FUNCTION("The function '%s' is not defined"),
 
   /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is a static type
