@@ -59,7 +59,7 @@
             locationURI="menu:org.eclipse.ui.run?after=emptyLaunchGroup">
          <command commandId="com.google.dart.tools.debug.ui.launchDialog" />
          <!-- TODO(devoncarew): enable this once the command-line debugger works remotely -->
-         <!-- command commandId="com.google.dart.tools.debug.ui.remoteConnection" / -->
+         <command commandId="com.google.dart.tools.debug.ui.remoteConnection" />
       </menuContribution>
       <menuContribution
             allPopups="false"
