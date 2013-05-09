@@ -543,6 +543,16 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_memberWithClassName_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set A(v) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_newWithAbstractClass_factory() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",

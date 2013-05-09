@@ -79,6 +79,18 @@ public class ErrorReporter {
    * Report an error with the given error code and arguments.
    * 
    * @param errorCode the error code of the error to be reported
+   * @param offset the offset of the location of the error
+   * @param length the length of the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  public void reportError(ErrorCode errorCode, int offset, int length, Object... arguments) {
+    errorListener.onError(new AnalysisError(source, offset, length, errorCode, arguments));
+  }
+
+  /**
+   * Report an error with the given error code and arguments.
+   * 
+   * @param errorCode the error code of the error to be reported
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */

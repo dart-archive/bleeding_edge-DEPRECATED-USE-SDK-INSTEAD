@@ -256,6 +256,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForBuiltInIdentifierAsName(
           node.getName(),
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+      checkForMemberWithClassName();
       // initialize initialFieldElementsMap
       ClassElement classElement = node.getElement();
       if (classElement != null) {
@@ -1439,6 +1440,37 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return numSuperInitializers > 0;
+  }
+
+  /**
+   * This verifies that the {@link #enclosingClass} does not define members with the same name as
+   * the enclosing class.
+   * 
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#MEMBER_WITH_CLASS_NAME
+   */
+  private boolean checkForMemberWithClassName() {
+    if (enclosingClass == null) {
+      return false;
+    }
+    String className = enclosingClass.getName();
+    if (className == null) {
+      return false;
+    }
+    boolean problemReported = false;
+    // check accessors
+    for (PropertyAccessorElement accessor : enclosingClass.getAccessors()) {
+      if (className.equals(accessor.getName())) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME,
+            accessor.getNameOffset(),
+            className.length());
+        problemReported = true;
+      }
+    }
+    // don't check methods, they would be constructors
+    // done
+    return problemReported;
   }
 
   /**

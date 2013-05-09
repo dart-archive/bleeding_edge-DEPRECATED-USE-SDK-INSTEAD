@@ -272,16 +272,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_memberWithClassName() throws Exception { // field, getter, setter, method
-    Source source = addSource(createSource(//
-        "class A {",
-        "  int A = 0;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME);
-    verify(source);
-  }
-
   public void fail_mixinDeclaresConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1697,6 +1687,40 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.LABEL_UNDEFINED);
     // We cannot verify resolution with undefined labels
+  }
+
+  public void test_memberWithClassName_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int A = 0;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME);
+    verify(source);
+  }
+
+  public void test_memberWithClassName_field2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int z, A, b = 0;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME);
+    verify(source);
+  }
+
+  public void test_memberWithClassName_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  get A() => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME);
+    verify(source);
+  }
+
+  public void test_memberWithClassName_method() throws Exception {
+    // no test because indistinguishable from constructor
   }
 
   public void test_mixinOfNonClass_class() throws Exception {

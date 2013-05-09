@@ -566,7 +566,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member with the same name
    * as <i>C</i>.
    */
-  MEMBER_WITH_CLASS_NAME(""),
+  MEMBER_WITH_CLASS_NAME("Class members cannot have the same name as the enclosing class"),
 
   /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin explicitly declares a
