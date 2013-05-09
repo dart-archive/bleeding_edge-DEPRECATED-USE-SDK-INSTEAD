@@ -572,7 +572,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 9 Mixins: It is a compile-time error if a declared or derived mixin explicitly declares a
    * constructor.
    */
-  MIXIN_DECLARES_CONSTRUCTOR(""),
+  MIXIN_DECLARES_CONSTRUCTOR("Class '%s' declares constructor and cannot be used as a mixin"),
 
   /**
    * 9 Mixins: It is a compile-time error if a mixin is derived from a class whose superclass is not

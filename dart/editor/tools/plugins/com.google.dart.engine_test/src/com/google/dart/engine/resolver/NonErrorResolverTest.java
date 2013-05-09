@@ -521,6 +521,38 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_memberWithClassName_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set A(v) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_mixinDeclaresConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "}",
+        "class B extends Object with A {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_mixinDeclaresConstructor_factory() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A() {}",
+        "}",
+        "class B extends Object with A {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_multipleSuperInitializers_no() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
@@ -537,16 +569,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class A {}",
         "class B extends A {",
         "  B() : super() {}",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-    verify(source);
-  }
-
-  public void test_memberWithClassName_setter() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  set A(v) {}",
         "}"));
     resolve(source);
     assertNoErrors();

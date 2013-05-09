@@ -1724,6 +1724,28 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     // no test because indistinguishable from constructor
   }
 
+  public void test_mixinDeclaresConstructor_classDeclaration() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {}",
+        "}",
+        "class B extends Object with A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_mixinDeclaresConstructor_typedef() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {}",
+        "}",
+        "typedef B = Object with A;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
+    verify(source);
+  }
+
   public void test_mixinOfNonClass_class() throws Exception {
     Source source = addSource(createSource(//
         "int A;",

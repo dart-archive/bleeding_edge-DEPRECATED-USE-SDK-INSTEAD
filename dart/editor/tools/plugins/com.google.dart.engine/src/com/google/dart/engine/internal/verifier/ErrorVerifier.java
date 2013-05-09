@@ -68,6 +68,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
+import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -257,6 +258,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           node.getName(),
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       checkForMemberWithClassName();
+      checkForMixinDeclaresConstructor(node.getWithClause());
       // initialize initialFieldElementsMap
       ClassElement classElement = node.getElement();
       if (classElement != null) {
@@ -282,6 +284,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     checkForBuiltInIdentifierAsName(
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    checkForMixinDeclaresConstructor(node.getWithClause());
     return super.visitClassTypeAlias(node);
   }
 
@@ -1423,26 +1426,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This verifies that the passed constructor has at most one 'super' initializer.
-   * 
-   * @param node the constructor declaration to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#MULTIPLE_SUPER_INITIALIZERS
-   */
-  private boolean checkForMultipleSuperInitializers(ConstructorDeclaration node) {
-    int numSuperInitializers = 0;
-    for (ConstructorInitializer initializer : node.getInitializers()) {
-      if (initializer instanceof SuperConstructorInvocation) {
-        numSuperInitializers++;
-        if (numSuperInitializers > 1) {
-          errorReporter.reportError(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, initializer);
-        }
-      }
-    }
-    return numSuperInitializers > 0;
-  }
-
-  /**
    * This verifies that the {@link #enclosingClass} does not define members with the same name as
    * the enclosing class.
    * 
@@ -1471,6 +1454,58 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     // don't check methods, they would be constructors
     // done
     return problemReported;
+  }
+
+  /**
+   * This verifies that the passed 'with' clause does not apply mixin with an explicitly declared
+   * constructor.
+   * 
+   * @param node the 'with' clause to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#MIXIN_DECLARES_CONSTRUCTOR
+   */
+  private boolean checkForMixinDeclaresConstructor(WithClause withClause) {
+    if (withClause == null) {
+      return false;
+    }
+    boolean problemReported = false;
+    for (TypeName mixinName : withClause.getMixinTypes()) {
+      Type mixinType = mixinName.getType();
+      if (!(mixinType instanceof InterfaceType)) {
+        return false;
+      }
+      ClassElement mixinElement = ((InterfaceType) mixinType).getElement();
+      for (ConstructorElement constructor : mixinElement.getConstructors()) {
+        if (!constructor.isSynthetic() && !constructor.isFactory()) {
+          errorReporter.reportError(
+              CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
+              mixinName,
+              mixinElement.getName());
+          problemReported = true;
+        }
+      }
+    }
+    return problemReported;
+  }
+
+  /**
+   * This verifies that the passed constructor has at most one 'super' initializer.
+   * 
+   * @param node the constructor declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#MULTIPLE_SUPER_INITIALIZERS
+   */
+  private boolean checkForMultipleSuperInitializers(ConstructorDeclaration node) {
+    int numSuperInitializers = 0;
+    for (ConstructorInitializer initializer : node.getInitializers()) {
+      if (initializer instanceof SuperConstructorInvocation) {
+        numSuperInitializers++;
+        if (numSuperInitializers > 1) {
+          errorReporter.reportError(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, initializer);
+        }
+      }
+    }
+    return numSuperInitializers > 0;
   }
 
   /**
