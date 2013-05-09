@@ -282,6 +282,11 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public boolean hasReferenceToSuper() {
+    return hasModifier(Modifier.REFERENCES_SUPER);
+  }
+
+  @Override
   public boolean isAbstract() {
     return hasModifier(Modifier.ABSTRACT);
   }
@@ -411,6 +416,15 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
       ((FieldElementImpl) field).setEnclosingElement(this);
     }
     this.fields = fields;
+  }
+
+  /**
+   * Set whether this class references 'super' to the given value.
+   * 
+   * @param isReferencedSuper {@code true} references 'super'
+   */
+  public void setHasReferenceToSuper(boolean isReferencedSuper) {
+    setModifier(Modifier.REFERENCES_SUPER, isReferencedSuper);
   }
 
   /**

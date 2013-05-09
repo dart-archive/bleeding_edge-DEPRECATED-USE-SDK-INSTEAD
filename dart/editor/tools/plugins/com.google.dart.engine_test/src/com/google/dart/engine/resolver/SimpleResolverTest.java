@@ -179,6 +179,22 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_hasReferenceToSuper() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {toString() => super.toString()}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    ClassElement[] classes = unit.getTypes();
+    assertLength(2, classes);
+    assertFalse(classes[0].hasReferenceToSuper());
+    assertTrue(classes[1].hasReferenceToSuper());
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_importWithPrefix() throws Exception {
     addSource("/two.dart", createSource(//
         "library two;",

@@ -108,6 +108,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public boolean hasReferenceToSuper() {
+    return getActualElement().hasReferenceToSuper();
+  }
+
+  @Override
   public boolean isAbstract() {
     return getActualElement().isAbstract();
   }

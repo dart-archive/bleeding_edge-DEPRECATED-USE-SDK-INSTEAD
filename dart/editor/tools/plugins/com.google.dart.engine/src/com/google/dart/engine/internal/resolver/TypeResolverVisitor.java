@@ -37,6 +37,7 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
@@ -94,6 +95,11 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * The type representing the type 'dynamic'.
    */
   private Type dynamicType;
+
+  /**
+   * The flag specifying if currently visited class references 'super' expression.
+   */
+  private boolean hasReferenceToSuper;
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -154,6 +160,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
+    hasReferenceToSuper = false;
     super.visitClassDeclaration(node);
     ClassElementImpl classElement = getClassElement(node.getName());
     InterfaceType superclassType = null;
@@ -174,6 +181,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
         }
       }
       classElement.setSupertype(superclassType);
+      classElement.setHasReferenceToSuper(hasReferenceToSuper);
     }
     resolve(classElement, node.getWithClause(), node.getImplementsClause());
     return null;
@@ -222,16 +230,6 @@ public class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
-//  @Override
-//  public Void visitFunctionExpression(FunctionExpression node) {
-//    super.visitFunctionExpression(node);
-//    ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
-//    FunctionTypeImpl type = new FunctionTypeImpl(element);
-//    setTypeInformation(type, null, element.getParameters());
-//    element.setType(type);
-//    return null;
-//  }
-
   @Override
   public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
@@ -269,6 +267,16 @@ public class TypeResolverVisitor extends ScopedVisitor {
     }
     return null;
   }
+
+//  @Override
+//  public Void visitFunctionExpression(FunctionExpression node) {
+//    super.visitFunctionExpression(node);
+//    ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
+//    FunctionTypeImpl type = new FunctionTypeImpl(element);
+//    setTypeInformation(type, null, element.getParameters());
+//    element.setType(type);
+//    return null;
+//  }
 
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
@@ -338,6 +346,12 @@ public class TypeResolverVisitor extends ScopedVisitor {
       // TODO(brianwilkerson) Report the internal error.
     }
     return null;
+  }
+
+  @Override
+  public Void visitSuperExpression(SuperExpression node) {
+    hasReferenceToSuper = true;
+    return super.visitSuperExpression(node);
   }
 
   @Override

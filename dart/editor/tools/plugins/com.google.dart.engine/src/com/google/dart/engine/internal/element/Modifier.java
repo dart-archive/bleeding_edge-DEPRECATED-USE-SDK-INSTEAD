@@ -26,6 +26,7 @@ public enum Modifier {
   FINAL,
   GETTER,
   MIXIN,
+  REFERENCES_SUPER,
   SETTER,
   STATIC,
   SYNTHETIC,

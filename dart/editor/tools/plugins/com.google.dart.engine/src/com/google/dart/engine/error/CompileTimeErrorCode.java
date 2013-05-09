@@ -601,7 +601,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin refers to super.
    */
-  MIXIN_REFERENCES_SUPER(""),
+  MIXIN_REFERENCES_SUPER("The class '%s' cannot be used as a mixin because it references 'super'"),
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if <i>S</i> does not denote a class available

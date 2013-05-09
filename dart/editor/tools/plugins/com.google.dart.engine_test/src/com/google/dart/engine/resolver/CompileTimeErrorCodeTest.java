@@ -268,17 +268,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_mixinReferencesSuper() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  toString() -> super.toString();",
-        "}",
-        "class B extends Object mixin A {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_REFERENCES_SUPER);
-    verify(source);
-  }
-
   public void fail_mixinWithNonClassSuperclass() throws Exception {
     // TODO(brianwilkerson) Compare with MIXIN_OF_NON_CLASS.
     Source source = addSource(createSource(//
@@ -1833,6 +1822,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "typedef C = A with B;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
+    verify(source);
+  }
+
+  public void test_mixinReferencesSuper() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  toString() => super.toString();",
+        "}",
+        "class B extends Object with A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MIXIN_REFERENCES_SUPER);
     verify(source);
   }
 

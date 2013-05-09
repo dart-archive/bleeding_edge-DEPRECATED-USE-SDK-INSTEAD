@@ -1528,6 +1528,24 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This verifies that the passed mixin does not reference 'super'.
+   * 
+   * @param mixinName the node to report problem on
+   * @param mixinElement the mixing to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#MIXIN_REFERENCES_SUPER
+   */
+  private boolean checkForMixinReferencesSuper(TypeName mixinName, ClassElement mixinElement) {
+    if (mixinElement.hasReferenceToSuper()) {
+      errorReporter.reportError(
+          CompileTimeErrorCode.MIXIN_REFERENCES_SUPER,
+          mixinName,
+          mixinElement.getName());
+    }
+    return false;
+  }
+
+  /**
    * This verifies that all classes of the passed 'with' clause are valid.
    * 
    * @param node the 'with' clause to evaluate
@@ -1547,6 +1565,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       ClassElement mixinElement = ((InterfaceType) mixinType).getElement();
       problemReported |= checkForMixinDeclaresConstructor(mixinName, mixinElement);
       problemReported |= checkForMixinInheritsNotFromObject(mixinName, mixinElement);
+      problemReported |= checkForMixinReferencesSuper(mixinName, mixinElement);
     }
     return problemReported;
   }

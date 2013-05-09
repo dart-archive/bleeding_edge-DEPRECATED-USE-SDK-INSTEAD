@@ -114,6 +114,14 @@ public interface ClassElement extends Element {
   public ConstructorElement getUnnamedConstructor();
 
   /**
+   * Return {@code true} if this class has reference to super (so, for example, cannot be used as a
+   * mixin).
+   * 
+   * @return {@code true} if this class has reference to super
+   */
+  public boolean hasReferenceToSuper();
+
+  /**
    * Return {@code true} if this class is abstract. A class is abstract if it has an explicit
    * {@code abstract} modifier. Note, that this definition of <i>abstract</i> is different from
    * <i>has unimplemented members</i>.
