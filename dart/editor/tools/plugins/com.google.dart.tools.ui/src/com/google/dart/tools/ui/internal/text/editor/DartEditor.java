@@ -28,6 +28,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -2408,13 +2409,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           context.getSourceFactory().getContentCache(),
           inputJavaFile);
       Source[] librarySources = context.getLibrariesContaining(source);
-      if (librarySources.length != 1) {
-        return null;
+      if (librarySources.length == 1) {
+        return source;
       }
       return source;
     }
-    // unknown source
-    return null;
+    // some random external file
+    return new FileBasedSource(new ContentCache(), inputJavaFile);
   }
 
   public com.google.dart.engine.ast.CompilationUnit getInputUnit() {
