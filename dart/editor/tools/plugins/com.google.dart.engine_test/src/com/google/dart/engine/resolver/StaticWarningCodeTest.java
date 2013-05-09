@@ -296,18 +296,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonVoidReturnForSetter() throws Exception {
-    Source source = addSource(createSource(//
-        "int set x(int v) {",
-        "  var s = x;",
-        "  x = v;",
-        "  return s;",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER);
-    verify(source);
-  }
-
   public void fail_overrideNotSubtype() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -582,6 +570,28 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR);
+    verify(source);
+  }
+
+  public void test_nonVoidReturnForSetter_function() throws Exception {
+    Source source = addSource(createSource(//
+        "int set x(int v) {",
+        "  return 42;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER);
+    verify(source);
+  }
+
+  public void test_nonVoidReturnForSetter_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int set x(int v) {",
+        "    return 42;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER);
     verify(source);
   }
 

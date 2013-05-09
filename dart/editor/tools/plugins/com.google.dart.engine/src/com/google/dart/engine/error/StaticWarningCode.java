@@ -284,7 +284,7 @@ public enum StaticWarningCode implements ErrorCode {
   /**
    * 7.3 Setters: It is a static warning if a setter declares a return type other than void.
    */
-  NON_VOID_RETURN_FOR_SETTER(""),
+  NON_VOID_RETURN_FOR_SETTER("The return type of the setter must be 'void'"),
 
   /**
    * 8 Interfaces: It is a static warning if an interface member <i>m1</i> overrides an interface

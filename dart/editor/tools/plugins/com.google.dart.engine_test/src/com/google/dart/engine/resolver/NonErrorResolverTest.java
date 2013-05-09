@@ -578,6 +578,40 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonVoidReturnForSetter_function_no() throws Exception {
+    Source source = addSource("set x(v) {}");
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonVoidReturnForSetter_function_void() throws Exception {
+    Source source = addSource("void set x(v) {}");
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonVoidReturnForSetter_method_no() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set x(v) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonVoidReturnForSetter_method_void() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void set x(v) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_optionalParameterInOperator_required() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

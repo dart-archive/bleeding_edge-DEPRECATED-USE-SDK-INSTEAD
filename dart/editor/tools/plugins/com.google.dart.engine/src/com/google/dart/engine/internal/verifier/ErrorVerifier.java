@@ -335,6 +335,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ExecutableElement outerFunction = enclosingFunction;
     try {
       enclosingFunction = node.getElement();
+      if (node.isSetter()) {
+        // TODO(scheglov) add also this
+//        checkForWrongNumberOfParametersForSetter(node);
+        checkForNonVoidReturnTypeForSetter(node.getReturnType());
+      }
       return super.visitFunctionDeclaration(node);
     } finally {
       enclosingFunction = outerFunction;
@@ -430,6 +435,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       enclosingFunction = node.getElement();
       if (node.isSetter()) {
         checkForWrongNumberOfParametersForSetter(node);
+        checkForNonVoidReturnTypeForSetter(node.getReturnType());
       } else if (node.isOperator()) {
         checkForOptionalParameterInOperator(node);
         checkForNonVoidReturnTypeForOperator(node);
@@ -1495,6 +1501,23 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     // no warning
+    return false;
+  }
+
+  /**
+   * This verifies the passed setter has no return type or the {@code void} return type.
+   * 
+   * @param typeName the type name to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#NON_VOID_RETURN_FOR_SETTER
+   */
+  private boolean checkForNonVoidReturnTypeForSetter(TypeName typeName) {
+    if (typeName != null) {
+      Type type = typeName.getType();
+      if (type != null && !type.isVoid()) {
+        errorReporter.reportError(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, typeName);
+      }
+    }
     return false;
   }
 
