@@ -342,8 +342,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     try {
       enclosingFunction = node.getElement();
       if (node.isSetter()) {
-        // TODO(scheglov) add also this
-//        checkForWrongNumberOfParametersForSetter(node);
+        FunctionExpression functionExpression = node.getFunctionExpression();
+        if (functionExpression != null) {
+          checkForWrongNumberOfParametersForSetter(
+              node.getName(),
+              functionExpression.getParameters());
+        }
         checkForNonVoidReturnTypeForSetter(node.getReturnType());
       }
       return super.visitFunctionDeclaration(node);
@@ -440,7 +444,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     try {
       enclosingFunction = node.getElement();
       if (node.isSetter()) {
-        checkForWrongNumberOfParametersForSetter(node);
+        checkForWrongNumberOfParametersForSetter(node.getName(), node.getParameters());
         checkForNonVoidReturnTypeForSetter(node.getReturnType());
       } else if (node.isOperator()) {
         checkForOptionalParameterInOperator(node);
@@ -1713,25 +1717,28 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This verifies if the passed setter method declaration, has only one parameter.
+   * This verifies if the passed setter parameter list have only one parameter.
    * <p>
    * This method assumes that the method declaration was tested to be a setter before being called.
    * 
-   * @param node the method declaration to evaluate
+   * @param setterName the name of the setter to report problems on
+   * @param parameterList the parameter list to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
    */
-  private boolean checkForWrongNumberOfParametersForSetter(MethodDeclaration node) {
-    FormalParameterList parameterList = node.getParameters();
+  private boolean checkForWrongNumberOfParametersForSetter(SimpleIdentifier setterName,
+      FormalParameterList parameterList) {
+    if (setterName == null) {
+      return false;
+    }
     if (parameterList == null) {
       return false;
     }
-    NodeList<FormalParameter> formalParameters = parameterList.getParameters();
-    int numberOfParameters = formalParameters.size();
+    int numberOfParameters = parameterList.getParameters().size();
     if (numberOfParameters != 1) {
       errorReporter.reportError(
           CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
-          node.getName(),
+          setterName,
           numberOfParameters);
       return true;
     }

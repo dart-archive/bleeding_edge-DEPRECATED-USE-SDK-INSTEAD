@@ -1949,7 +1949,21 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     // We cannot verify resolution with an unresolvable URI: '${'a'}.dart'
   }
 
-  public void test_wrongNumberOfParametersForSetter_tooFew() throws Exception {
+  public void test_wrongNumberOfParametersForSetter_function_tooFew() throws Exception {
+    Source source = addSource("set x() {}");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    verify(source);
+  }
+
+  public void test_wrongNumberOfParametersForSetter_function_tooMany() throws Exception {
+    Source source = addSource("set x(a, b) {}");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    verify(source);
+  }
+
+  public void test_wrongNumberOfParametersForSetter_method_tooFew() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  set x() {}",
@@ -1959,7 +1973,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_wrongNumberOfParametersForSetter_tooMany() throws Exception {
+  public void test_wrongNumberOfParametersForSetter_method_tooMany() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  set x(a, b) {}",
