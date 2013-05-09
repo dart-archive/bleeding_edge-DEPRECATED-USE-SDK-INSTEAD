@@ -22,7 +22,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
-import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
@@ -86,7 +86,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
       Identifier identifier = identifier(typeNameB);
       methodDeclaration(null, typeName(identifier), null, null, identifier("foo"), null);
       Element element = scope.lookup(identifier, importingLibrary);
-      errorListener.assertErrors(StaticTypeWarningCode.AMBIGUOUS_IMPORT);
+      errorListener.assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT);
       assertInstanceOf(MultiplyDefinedElement.class, element);
     }
   }

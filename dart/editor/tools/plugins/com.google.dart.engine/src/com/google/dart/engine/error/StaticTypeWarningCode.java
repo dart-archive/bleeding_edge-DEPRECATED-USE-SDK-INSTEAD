@@ -23,22 +23,6 @@ package com.google.dart.engine.error;
  */
 public enum StaticTypeWarningCode implements ErrorCode {
   /**
-   * 14.1 Imports: If a name <i>N</i> is referenced by a library <i>L</i> and <i>N</i> is introduced
-   * into the top level scope <i>L</i> by more than one import then:
-   * <ol>
-   * <li>It is a static warning if <i>N</i> is used as a type annotation.
-   * <li>In checked mode, it is a dynamic error if <i>N</i> is used as a type annotation and
-   * referenced during a subtype test.
-   * <li>Otherwise, it is a compile-time error.
-   * </ol>
-   * 
-   * @param ambiguousTypeName the name of the ambiguous type
-   * @param firstLibraryName the name of the first library that the type is found
-   * @param secondLibraryName the name of the second library that the type is found
-   */
-  AMBIGUOUS_IMPORT("The type '%s' is defined in the libraries '%s' and '%s'"),
-
-  /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
    * warning if <i>T</i> does not have an accessible instance setter named <i>v=</i>.
    * 

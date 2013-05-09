@@ -30,7 +30,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
-import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
 
 import java.util.ArrayList;
@@ -166,7 +166,7 @@ public class LibraryImportScope extends Scope {
       }
       // TODO (jwren) Change the error message to include a list of all library names instead of
       // just the first two
-      ErrorCode errorCode = isTypeAnnotation(identifier) ? StaticTypeWarningCode.AMBIGUOUS_IMPORT
+      ErrorCode errorCode = isTypeAnnotation(identifier) ? StaticWarningCode.AMBIGUOUS_IMPORT
           : CompileTimeErrorCode.AMBIGUOUS_IMPORT;
       errorListener.onError(new AnalysisError(
           getSource(),

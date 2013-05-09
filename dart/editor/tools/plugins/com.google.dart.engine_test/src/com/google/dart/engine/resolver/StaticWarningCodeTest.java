@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.resolver;
 
-import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
@@ -440,13 +439,13 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     addSource("/lib2.dart", "class N {}");
     resolve(source);
     assertErrors(
-        StaticTypeWarningCode.AMBIGUOUS_IMPORT,
-        StaticTypeWarningCode.AMBIGUOUS_IMPORT,
-        StaticTypeWarningCode.AMBIGUOUS_IMPORT,
-        StaticTypeWarningCode.AMBIGUOUS_IMPORT,
-        StaticTypeWarningCode.AMBIGUOUS_IMPORT,
-        StaticTypeWarningCode.AMBIGUOUS_IMPORT,
-        StaticTypeWarningCode.AMBIGUOUS_IMPORT);
+        StaticWarningCode.AMBIGUOUS_IMPORT,
+        StaticWarningCode.AMBIGUOUS_IMPORT,
+        StaticWarningCode.AMBIGUOUS_IMPORT,
+        StaticWarningCode.AMBIGUOUS_IMPORT,
+        StaticWarningCode.AMBIGUOUS_IMPORT,
+        StaticWarningCode.AMBIGUOUS_IMPORT,
+        StaticWarningCode.AMBIGUOUS_IMPORT);
   }
 
   public void test_ambiguousImport_typeArgument_annotation() throws Exception {
@@ -458,7 +457,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     addSource("/lib1.dart", "class N {}");
     addSource("/lib2.dart", "class N {}");
     resolve(source);
-    assertErrors(StaticTypeWarningCode.AMBIGUOUS_IMPORT);
+    assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT);
   }
 
   public void test_assignmentToFinal_instanceVariable() throws Exception {
