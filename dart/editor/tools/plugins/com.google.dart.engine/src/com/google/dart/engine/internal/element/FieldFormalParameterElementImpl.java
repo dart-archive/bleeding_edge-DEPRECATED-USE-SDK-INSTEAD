@@ -51,6 +51,11 @@ public class FieldFormalParameterElementImpl extends ParameterElementImpl implem
     return field;
   }
 
+  @Override
+  public boolean isInitializingFormal() {
+    return true;
+  }
+
   /**
    * Set the field element associated with this field formal parameter to the given element.
    * 

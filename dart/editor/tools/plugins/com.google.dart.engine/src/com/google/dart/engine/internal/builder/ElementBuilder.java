@@ -310,7 +310,6 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       SimpleIdentifier parameterName = node.getIdentifier();
       FieldFormalParameterElementImpl parameter = new FieldFormalParameterElementImpl(parameterName);
       parameter.setConst(node.isConst());
-      parameter.setInitializingFormal(true);
       parameter.setFinal(node.isFinal());
       parameter.setParameterKind(node.getKind());
 

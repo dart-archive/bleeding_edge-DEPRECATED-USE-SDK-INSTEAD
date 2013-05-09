@@ -92,16 +92,7 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
 
   @Override
   public boolean isInitializingFormal() {
-    return hasModifier(Modifier.INITIALIZING_FORMAL);
-  }
-
-  /**
-   * Set whether this parameter is an initializing formal parameter to match the given value.
-   * 
-   * @param isInitializingFormal {@code true} if this parameter is an initializing formal parameter
-   */
-  public void setInitializingFormal(boolean isInitializingFormal) {
-    setModifier(Modifier.INITIALIZING_FORMAL, isInitializingFormal);
+    return false;
   }
 
   /**
