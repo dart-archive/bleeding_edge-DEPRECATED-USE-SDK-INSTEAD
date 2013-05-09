@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.CommentReference;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
@@ -197,6 +198,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     @Override
     public void visitChildren(ASTVisitor<?> visitor) {
     }
+  }
+
+  /**
+   * @return {@code true} if the given identifier is the return type of a constructor declaration.
+   */
+  private static boolean isConstructorReturnType(SimpleIdentifier node) {
+    ASTNode parent = node.getParent();
+    if (parent instanceof ConstructorDeclaration) {
+      ConstructorDeclaration constructor = (ConstructorDeclaration) parent;
+      return constructor.getReturnType() == node;
+    }
+    return false;
   }
 
   /**
@@ -829,7 +842,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     if (element == null) {
       // TODO(brianwilkerson) Recover from this error.
-      if (!classDeclaresNoSuchMethod(enclosingClass)) {
+      if (isConstructorReturnType(node)) {
+        resolver.reportError(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
+      } else if (!classDeclaresNoSuchMethod(enclosingClass)) {
         resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, node.getName());
       }
     } else if (element instanceof ExecutableElement) {

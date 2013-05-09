@@ -215,15 +215,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invalidConstructorName() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME);
-    verify(source);
-  }
-
   public void fail_invalidFactoryNameNotAClass() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -1551,6 +1542,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD);
     verify(source);
+  }
+
+  public void test_invalidConstructorName_notEnclosingClassName() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  B() : super();", // add ": super()" to force parsing as constructor
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME);
+    // no verify() call, "B" is not resolved
   }
 
   public void test_invalidOverrideNamed() throws Exception {
