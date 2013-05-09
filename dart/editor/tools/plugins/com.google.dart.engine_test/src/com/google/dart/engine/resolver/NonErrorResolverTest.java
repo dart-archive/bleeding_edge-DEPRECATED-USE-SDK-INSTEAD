@@ -521,6 +521,28 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_multipleSuperInitializers_no() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  B() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_multipleSuperInitializers_single() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  B() : super() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_newWithAbstractClass_factory() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",

@@ -55,6 +55,7 @@ import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
@@ -298,6 +299,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForConstConstructorWithNonFinalField(node);
       checkForConflictingConstructorNameAndMember(node);
       checkForAllFinalInitializedErrorCodes(node);
+      checkForMultipleSuperInitializers(node);
       return super.visitConstructorDeclaration(node);
     } finally {
       isEnclosingConstructorConst = false;
@@ -1417,6 +1419,26 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return foundError;
+  }
+
+  /**
+   * This verifies that the passed constructor has at most one 'super' initializer.
+   * 
+   * @param node the constructor declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#MULTIPLE_SUPER_INITIALIZERS
+   */
+  private boolean checkForMultipleSuperInitializers(ConstructorDeclaration node) {
+    int numSuperInitializers = 0;
+    for (ConstructorInitializer initializer : node.getInitializers()) {
+      if (initializer instanceof SuperConstructorInvocation) {
+        numSuperInitializers++;
+        if (numSuperInitializers > 1) {
+          errorReporter.reportError(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, initializer);
+        }
+      }
+    }
+    return numSuperInitializers > 0;
   }
 
   /**

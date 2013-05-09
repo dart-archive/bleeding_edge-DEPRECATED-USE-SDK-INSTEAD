@@ -609,7 +609,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. Then <i>k</i> may
    * include at most one superinitializer in its initializer list or a compile time error occurs.
    */
-  MULTIPLE_SUPER_INITIALIZERS(""),
+  MULTIPLE_SUPER_INITIALIZERS("Constructor may have at most one 'super' initializer"),
 
   /**
    * 12.11.1 New: It is a compile time error if <i>S</i> is not a generic type with <i>m</i> type

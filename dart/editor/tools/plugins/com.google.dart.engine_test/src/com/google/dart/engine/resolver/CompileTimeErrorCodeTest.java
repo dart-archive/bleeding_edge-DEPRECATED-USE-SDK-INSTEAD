@@ -344,17 +344,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_multipleSuperInitializers() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "class B extends A {",
-        "  B() : super(), super() {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS);
-    verify(source);
-  }
-
   public void fail_nonConstantDefaultValue_named() throws Exception {
     Source source = addSource(createSource(//
     "f({x : 2 + 3}) {}"));
@@ -1726,6 +1715,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "typedef C = A with B;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
+    verify(source);
+  }
+
+  public void test_multipleSuperInitializers() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  B() : super(), super() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS);
     verify(source);
   }
 
