@@ -109,6 +109,7 @@ public final class ElementFactory {
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.setGetter(true);
     getter.setSynthetic(true);
+    getter.setVariable(field);
     field.setGetter(getter);
 
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
@@ -119,6 +120,7 @@ public final class ElementFactory {
       PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
       setter.setSetter(true);
       setter.setSynthetic(true);
+      setter.setVariable(field);
       field.setSetter(setter);
 
       FunctionTypeImpl setterType = new FunctionTypeImpl(getter);
@@ -237,6 +239,7 @@ public final class ElementFactory {
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.setGetter(true);
+    getter.setVariable(field);
     field.setGetter(getter);
 
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
@@ -326,6 +329,7 @@ public final class ElementFactory {
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.setGetter(true);
+    getter.setVariable(field);
     field.setGetter(getter);
 
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
@@ -335,6 +339,7 @@ public final class ElementFactory {
     PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
     setter.setSetter(true);
     setter.setSynthetic(true);
+    setter.setVariable(field);
     field.setSetter(setter);
 
     FunctionTypeImpl setterType = new FunctionTypeImpl(getter);
@@ -361,6 +366,7 @@ public final class ElementFactory {
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);
     getter.setGetter(true);
     getter.setSynthetic(true);
+    getter.setVariable(variable);
     variable.setGetter(getter);
 
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
@@ -371,6 +377,7 @@ public final class ElementFactory {
       PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(variable);
       setter.setSetter(true);
       setter.setSynthetic(true);
+      setter.setVariable(variable);
       variable.setSetter(setter);
 
       FunctionTypeImpl setterType = new FunctionTypeImpl(getter);

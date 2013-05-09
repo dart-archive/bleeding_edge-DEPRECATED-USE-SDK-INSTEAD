@@ -21,6 +21,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -221,6 +222,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.text.CharacterIterator;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -1358,18 +1360,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (window == getEditorSite().getWorkbenchWindow() && fMarkOccurrenceAnnotations
           && isActivePart()) {
         fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
-        try {
-          DartElement input = getInputDartElement();
-          if (input != null) {
-            updateOccurrenceAnnotations(
-                (ITextSelection) fForcedMarkOccurrencesSelection,
-                DartToolsPlugin.getDefault().getASTProvider().getAST(
-                    input,
-                    ASTProvider.WAIT_NO,
-                    getProgressMonitor()));
-          }
-        } catch (Exception ex) {
-          // ignore it
+        com.google.dart.engine.ast.CompilationUnit unit = getParsedUnit();
+        if (unit != null) {
+          updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, unit);
         }
       }
     }
@@ -1830,7 +1823,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * The internal shell activation listener for updating occurrences.
    */
   private ActivationListener fActivationListener = new ActivationListener();
-  private ISelectionListenerWithAST fPostSelectionListenerWithAST;
+  private ISelectionListenerWithAST fPostSelectionListenerWithAST; /* obsolete */
+  private ISelectionChangedListener occurrencesResponder;
   private OccurrencesFinderJob fOccurrencesFinderJob;
   /** The occurrences finder job canceler */
   private OccurrencesFinderJobCanceler fOccurrencesFinderJobCanceler;
@@ -2673,6 +2667,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       textWidget.setRedraw(false);
       sourceViewer.revealRange(offset, length);
       sourceViewer.setSelectedRange(offset, length);
+      fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
+      updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, getParsedUnit());
     } finally {
       textWidget.setRedraw(true);
     }
@@ -3808,23 +3804,45 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected void installOccurrencesFinder(boolean forceUpdate) {
     fMarkOccurrenceAnnotations = true;
 
-    fPostSelectionListenerWithAST = new ISelectionListenerWithAST() {
-      @Override
-      public void selectionChanged(IEditorPart part, ITextSelection selection, DartUnit astRoot) {
-        updateOccurrenceAnnotations(selection, astRoot);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      occurrencesResponder = new ISelectionChangedListener() {
+        @Override
+        public void selectionChanged(SelectionChangedEvent event) {
+          ISelection selection = event.getSelection();
+          if (selection instanceof ITextSelection) {
+            fForcedMarkOccurrencesSelection = selection;
+            updateOccurrenceAnnotations((ITextSelection) selection, getParsedUnit());
+          }
+        }
+      };
+      getSelectionProvider().addSelectionChangedListener(occurrencesResponder);
+      if (forceUpdate && getSelectionProvider() != null) {
+        fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
+        if (getParsedUnit() != null) {
+          updateOccurrenceAnnotations(
+              (ITextSelection) fForcedMarkOccurrencesSelection,
+              getParsedUnit());
+        }
       }
-    };
-    SelectionListenerWithASTManager.getDefault().addListener(this, fPostSelectionListenerWithAST);
-    if (forceUpdate && getSelectionProvider() != null) {
-      fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
-      DartElement input = getInputDartElement();
-      if (input != null) {
-        updateOccurrenceAnnotations(
-            (ITextSelection) fForcedMarkOccurrencesSelection,
-            DartToolsPlugin.getDefault().getASTProvider().getAST(
-                getInputDartElement(),
-                ASTProvider.WAIT_NO,
-                getProgressMonitor()));
+    } else {
+      fPostSelectionListenerWithAST = new ISelectionListenerWithAST() {
+        @Override
+        public void selectionChanged(IEditorPart part, ITextSelection selection, DartUnit astRoot) {
+          updateOccurrenceAnnotations(selection, astRoot);
+        }
+      };
+      SelectionListenerWithASTManager.getDefault().addListener(this, fPostSelectionListenerWithAST);
+      if (forceUpdate && getSelectionProvider() != null) {
+        fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
+        DartElement input = getInputDartElement();
+        if (input != null) {
+          updateOccurrenceAnnotations(
+              (ITextSelection) fForcedMarkOccurrencesSelection,
+              DartToolsPlugin.getDefault().getASTProvider().getAST(
+                  getInputDartElement(),
+                  ASTProvider.WAIT_NO,
+                  getProgressMonitor()));
+        }
       }
     }
 
@@ -3962,6 +3980,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
 
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
+      updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, getParsedUnit());
       // TODO(scheglov)
 //      LightNodeElement element = computeHighlightRangeSourceElement();
 //      if (getPreferenceStore().getBoolean(PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE)) {
@@ -4165,7 +4185,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           fPostSelectionListenerWithAST);
       fPostSelectionListenerWithAST = null;
     }
-
+    if (occurrencesResponder != null) {
+      getSelectionProvider().removeSelectionChangedListener(occurrencesResponder);
+      occurrencesResponder = null;
+    }
     removeOccurrenceAnnotations();
   }
 
@@ -4192,6 +4215,152 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return;
     }
     super.updateMarkerViews(annotation);
+  }
+
+  /**
+   * Updates the occurrences annotations based on the current selection.
+   * 
+   * @param selection the text selection
+   * @param astRoot the compilation unit AST
+   */
+  protected void updateOccurrenceAnnotations(ITextSelection selection,
+      com.google.dart.engine.ast.CompilationUnit unit) {
+
+    if (fOccurrencesFinderJob != null) {
+      fOccurrencesFinderJob.cancel();
+    }
+
+    if (!fMarkOccurrenceAnnotations) {
+      return;
+    }
+
+    if (unit == null || selection == null) {
+      return;
+    }
+
+    IDocument document = getSourceViewer().getDocument();
+    if (document == null) {
+      return;
+    }
+
+    if (document instanceof IDocumentExtension4) {
+      int offset = selection.getOffset();
+      long currentModificationStamp = ((IDocumentExtension4) document).getModificationStamp();
+      IRegion markOccurrenceTargetRegion = fMarkOccurrenceTargetRegion;
+      if (markOccurrenceTargetRegion != null
+          && currentModificationStamp == fMarkOccurrenceModificationStamp) {
+        if (markOccurrenceTargetRegion.getOffset() <= offset
+            && offset <= markOccurrenceTargetRegion.getOffset()
+                + markOccurrenceTargetRegion.getLength()) {
+          return;
+        }
+      }
+      fMarkOccurrenceTargetRegion = DartWordFinder.findWord(document, offset);
+      fMarkOccurrenceModificationStamp = currentModificationStamp;
+    }
+
+    DartX.todo("marking");
+    Collection<ASTNode> matches = null;
+
+    NodeLocator locator = new NodeLocator(selection.getOffset(), selection.getOffset()
+        + selection.getLength());
+    ASTNode selectedNode = locator.searchWithin(unit);
+
+//    try {
+//      if (astRoot.getLibrary() == null) {
+//        // if astRoot is from ExternalCompilationUnit then it needs to be resolved; it is apparently not cached
+//        astRoot = DartCompilerUtilities.resolveUnit(input); // TODO clean up astRoot
+//      }
+//    } catch (DartModelException e) {
+//      DartToolsPlugin.log(e);
+//    }
+//    /* DartElement selectedModelNode = */locator.searchWithin(astRoot);
+//    Element selectedNode = locator.getResolvedElement();
+
+//    if (fMarkExceptions || fMarkTypeOccurrences) {
+//      ExceptionOccurrencesFinder exceptionFinder = new ExceptionOccurrencesFinder();
+//      String message = exceptionFinder.initialize(astRoot, selectedNode);
+//      if (message == null) {
+//        matches = exceptionFinder.perform();
+//        if (!fMarkExceptions && !matches.isEmpty())
+//          matches.clear();
+//      }
+//    }
+
+//    if ((matches == null || matches.isEmpty())
+//        && (fMarkMethodExitPoints || fMarkTypeOccurrences)) {
+//      MethodExitsFinder finder = new MethodExitsFinder();
+//      String message = finder.initialize(astRoot, selectedNode);
+//      if (message == null) {
+//        matches = finder.perform();
+//        if (!fMarkMethodExitPoints && !matches.isEmpty())
+//          matches.clear();
+//      }
+//    }
+
+//    if ((matches == null || matches.isEmpty())
+//        && (fMarkBreakContinueTargets || fMarkTypeOccurrences)) {
+//      BreakContinueTargetFinder finder = new BreakContinueTargetFinder();
+//      String message = finder.initialize(astRoot, selectedNode);
+//      if (message == null) {
+//        matches = finder.perform();
+//        if (!fMarkBreakContinueTargets && !matches.isEmpty())
+//          matches.clear();
+//      }
+//    }
+
+//    if ((matches == null || matches.isEmpty())
+//        && (fMarkImplementors || fMarkTypeOccurrences)) {
+//      ImplementOccurrencesFinder finder = new ImplementOccurrencesFinder();
+//      String message = finder.initialize(astRoot, selectedNode);
+//      if (message == null) {
+//        matches = finder.perform();
+//        if (!fMarkImplementors && !matches.isEmpty())
+//          matches.clear();
+//      }
+//    }
+
+//    if (matches == null) {
+//      IBinding binding = null;
+//      if (selectedNode instanceof Name) {
+//        binding = ((Name) selectedNode).resolveBinding();
+//      }
+//
+//      if (binding != null && markOccurrencesOfType(binding)) {
+//        // Find the matches && extract positions so we can forget the AST
+//        NameOccurrencesFinder finder = new NameOccurrencesFinder(binding);
+//        String message = finder.initialize(astRoot, selectedNode);
+//        if (message == null) {
+//          matches = finder.perform();
+//        }
+//      }
+//    }
+
+    if (matches == null && selectedNode != null) {
+      if (selectedNode instanceof SimpleIdentifier) {
+        SimpleIdentifier ident = (SimpleIdentifier) selectedNode;
+        matches = com.google.dart.engine.services.util.NameOccurrencesFinder.findIn(ident, unit);
+      }
+    }
+    if (matches == null || matches.size() == 0) {
+      if (!fStickyOccurrenceAnnotations) {
+        removeOccurrenceAnnotations();
+      }
+      return;
+    }
+
+    Position[] positions = new Position[matches.size()];
+    int i = 0;
+    for (Iterator<ASTNode> each = matches.iterator(); each.hasNext();) {
+      ASTNode currentNode = each.next();
+      positions[i++] = new Position(currentNode.getOffset(), currentNode.getLength());
+    }
+
+    fOccurrencesFinderJob = new OccurrencesFinderJob(document, positions, selection);
+//      fOccurrencesFinderJob.setPriority(Job.DECORATE);
+//      fOccurrencesFinderJob.setSystem(true);
+//      fOccurrencesFinderJob.schedule();
+    fOccurrencesFinderJob.run(new NullProgressMonitor());
   }
 
   /**
