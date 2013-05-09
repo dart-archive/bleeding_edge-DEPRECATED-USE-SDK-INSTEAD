@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.scope;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.VariableElement;
@@ -58,7 +59,7 @@ public class ScopeTest extends ResolverTestCase {
     }
 
     @Override
-    protected Element lookup(String name, LibraryElement referencingLibrary) {
+    protected Element lookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
       return localLookup(name, referencingLibrary);
     }
   }

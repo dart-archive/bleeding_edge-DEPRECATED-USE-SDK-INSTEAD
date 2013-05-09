@@ -101,7 +101,7 @@ public abstract class Scope {
    * @return the element with which the given identifier is associated
    */
   public Element lookup(Identifier identifier, LibraryElement referencingLibrary) {
-    return lookup(identifier.getName(), referencingLibrary);
+    return lookup(identifier, identifier.getName(), referencingLibrary);
   }
 
   /**
@@ -179,12 +179,15 @@ public abstract class Scope {
    * Return the element with which the given name is associated, or {@code null} if the name is not
    * defined within this scope.
    * 
+   * @param identifier the identifier node to lookup element for, used to report correct kind of a
+   *          problem and associate problem with
    * @param name the name associated with the element to be returned
    * @param referencingLibrary the library that contains the reference to the name, used to
    *          implement library-level privacy
    * @return the element with which the given name is associated
    */
-  protected abstract Element lookup(String name, LibraryElement referencingLibrary);
+  protected abstract Element lookup(Identifier identifier, String name,
+      LibraryElement referencingLibrary);
 
   /**
    * Return the name that will be used to look up the given element.

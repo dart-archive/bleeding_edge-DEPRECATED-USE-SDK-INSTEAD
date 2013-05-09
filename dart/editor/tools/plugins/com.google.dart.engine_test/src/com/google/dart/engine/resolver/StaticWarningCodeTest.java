@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
@@ -421,6 +422,43 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(StaticWarningCode.UNDEFINED_STATIC_METHOD_OR_GETTER);
     verify(source);
+  }
+
+  public void test_ambiguousImport_typeAnnotation() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "typedef N FT(N p);",
+        "N f(N p) {",
+        "  N v;",
+        "}",
+        "class A {",
+        "  N m() {}",
+        "}",
+        "class B<T extends N> {}"));
+    addSource("/lib1.dart", "class N {}");
+    addSource("/lib2.dart", "class N {}");
+    resolve(source);
+    assertErrors(
+        StaticTypeWarningCode.AMBIGUOUS_IMPORT,
+        StaticTypeWarningCode.AMBIGUOUS_IMPORT,
+        StaticTypeWarningCode.AMBIGUOUS_IMPORT,
+        StaticTypeWarningCode.AMBIGUOUS_IMPORT,
+        StaticTypeWarningCode.AMBIGUOUS_IMPORT,
+        StaticTypeWarningCode.AMBIGUOUS_IMPORT,
+        StaticTypeWarningCode.AMBIGUOUS_IMPORT);
+  }
+
+  public void test_ambiguousImport_typeArgument_annotation() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "class A<T> {}",
+        "A<N> f() {}"));
+    addSource("/lib1.dart", "class N {}");
+    addSource("/lib2.dart", "class N {}");
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.AMBIGUOUS_IMPORT);
   }
 
   public void test_assignmentToFinal_instanceVariable() throws Exception {

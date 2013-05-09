@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.scope;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -58,11 +59,11 @@ public class EnclosedScope extends Scope {
   }
 
   @Override
-  protected Element lookup(String name, LibraryElement referencingLibrary) {
+  protected Element lookup(Identifier identifier, String name, LibraryElement referencingLibrary) {
     Element element = localLookup(name, referencingLibrary);
     if (element != null) {
       return element;
     }
-    return enclosingScope.lookup(name, referencingLibrary);
+    return enclosingScope.lookup(identifier, name, referencingLibrary);
   }
 }

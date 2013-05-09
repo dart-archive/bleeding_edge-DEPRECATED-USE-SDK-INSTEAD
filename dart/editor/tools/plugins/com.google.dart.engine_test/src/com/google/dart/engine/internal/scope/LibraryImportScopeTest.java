@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.scope;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
@@ -21,6 +22,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
@@ -29,6 +31,8 @@ import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.typeName;
 
 public class LibraryImportScopeTest extends ResolverTestCase {
   public void test_conflictingImports() {
@@ -55,19 +59,36 @@ public class LibraryImportScopeTest extends ResolverTestCase {
 
     LibraryElementImpl importingLibrary = createTestLibrary(context, "importing");
     importingLibrary.setImports(new ImportElement[] {import1, import2});
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryImportScope(importingLibrary, errorListener);
-    assertEquals(typeA, scope.lookup(typeNameA, importingLibrary));
-    errorListener.assertNoErrors();
-    assertEquals(typeC, scope.lookup(typeNameC, importingLibrary));
-    errorListener.assertNoErrors();
-    Element element = scope.lookup(typeNameB, importingLibrary);
-    errorListener.assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
-    assertInstanceOf(MultiplyDefinedElement.class, element);
-    Element[] conflictingElements = ((MultiplyDefinedElement) element).getConflictingElements();
-    assertEquals(typeB1, conflictingElements[0]);
-    assertEquals(typeB2, conflictingElements[1]);
-    assertEquals(2, conflictingElements.length);
+    {
+      GatheringErrorListener errorListener = new GatheringErrorListener();
+      Scope scope = new LibraryImportScope(importingLibrary, errorListener);
+
+      assertEquals(typeA, scope.lookup(identifier(typeNameA), importingLibrary));
+      errorListener.assertNoErrors();
+
+      assertEquals(typeC, scope.lookup(identifier(typeNameC), importingLibrary));
+      errorListener.assertNoErrors();
+
+      Element element = scope.lookup(identifier(typeNameB), importingLibrary);
+      errorListener.assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
+      assertInstanceOf(MultiplyDefinedElement.class, element);
+
+      Element[] conflictingElements = ((MultiplyDefinedElement) element).getConflictingElements();
+      assertEquals(typeB1, conflictingElements[0]);
+      assertEquals(typeB2, conflictingElements[1]);
+      assertEquals(2, conflictingElements.length);
+    }
+
+    {
+      GatheringErrorListener errorListener = new GatheringErrorListener();
+      Scope scope = new LibraryImportScope(importingLibrary, errorListener);
+
+      Identifier identifier = identifier(typeNameB);
+      methodDeclaration(null, typeName(identifier), null, null, identifier("foo"), null);
+      Element element = scope.lookup(identifier, importingLibrary);
+      errorListener.assertErrors(StaticTypeWarningCode.AMBIGUOUS_IMPORT);
+      assertInstanceOf(MultiplyDefinedElement.class, element);
+    }
   }
 
   public void test_creation_empty() {
@@ -88,7 +109,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
     definingLibrary.setImports(new ImportElement[] {importElement});
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new LibraryImportScope(definingLibrary, errorListener);
-    assertEquals(importedType, scope.lookup(importedTypeName, definingLibrary));
+    assertEquals(importedType, scope.lookup(identifier(importedTypeName), definingLibrary));
   }
 
   public void test_getDefiningLibrary() throws Exception {

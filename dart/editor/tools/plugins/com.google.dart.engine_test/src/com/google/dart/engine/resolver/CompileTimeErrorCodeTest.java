@@ -754,32 +754,117 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_ambiguousImport_as() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "f(p) {p as N}"));
+    addSource("/lib1.dart", "class N {}");
+    addSource("/lib2.dart", "class N {}");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
+  }
+
+  public void test_ambiguousImport_extends() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "class A extends N {}"));
+    addSource("/lib1.dart", "class N {}");
+    addSource("/lib2.dart", "class N {}");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT, CompileTimeErrorCode.EXTENDS_NON_CLASS);
+  }
+
   public void test_ambiguousImport_function() throws Exception {
     Source source = addSource(createSource(//
-        "library L;",
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "g() { return f(); }"));
-    addSource("/lib1.dart", createSource(//
-        "f() {}"));
-    addSource("/lib2.dart", createSource(//
-        "f() {}"));
+    addSource("/lib1.dart", "f() {}");
+    addSource("/lib2.dart", "f() {}");
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT, StaticTypeWarningCode.UNDEFINED_FUNCTION);
   }
 
-  public void test_ambiguousImport_typeAnnotation() throws Exception {
+  public void test_ambiguousImport_implements() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "class A implements N {}"));
+    addSource("/lib1.dart", "class N {}");
+    addSource("/lib2.dart", "class N {}");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT, CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
+  }
+
+  public void test_ambiguousImport_instanceCreation() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
         "import 'lib1.dart';",
         "import 'lib2.dart';",
-        "class A extends N {}"));
-    addSource("/lib1.dart", createSource(//
-        "class N {}"));
-    addSource("/lib2.dart", createSource(//
-        "class N {}"));
+        "f() {new N();}"));
+    addSource("/lib1.dart", "class N {}");
+    addSource("/lib2.dart", "class N {}");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT, CompileTimeErrorCode.EXTENDS_NON_CLASS);
+    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
+  }
+
+  public void test_ambiguousImport_is() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "f(p) {p is N}"));
+    addSource("/lib1.dart", "class N {}");
+    addSource("/lib2.dart", "class N {}");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
+  }
+
+  public void test_ambiguousImport_qualifier() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "g() { N.FOO; }"));
+    addSource("/lib1.dart", "class N {}");
+    addSource("/lib2.dart", "class N {}");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
+  }
+
+  public void test_ambiguousImport_typeArgument_instanceCreation() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "class A<T> {}",
+        "f() {new A<N>()}"));
+    addSource("/lib1.dart", "class N {}");
+    addSource("/lib2.dart", "class N {}");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
+  }
+
+  public void test_ambiguousImport_varRead() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "f() { g(v); }",
+        "g(p) {}"));
+    addSource("/lib1.dart", "var v;");
+    addSource("/lib2.dart", "var v;");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
+  }
+
+  public void test_ambiguousImport_varWrite() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "f() { v = 0; }"));
+    addSource("/lib1.dart", "var v;");
+    addSource("/lib2.dart", "var v;");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
   }
 
   public void test_argumentDefinitionTestNonParameter() throws Exception {

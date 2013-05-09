@@ -46,7 +46,7 @@ public class LibraryScopeTest extends ResolverTestCase {
     definingLibrary.setImports(new ImportElement[] {importElement});
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new LibraryScope(definingLibrary, errorListener);
-    assertEquals(importedType, scope.lookup(importedTypeName, definingLibrary));
+    assertEquals(importedType, scope.lookup(identifier(importedTypeName), definingLibrary));
   }
 
   public void test_getDefiningLibrary() throws Exception {
