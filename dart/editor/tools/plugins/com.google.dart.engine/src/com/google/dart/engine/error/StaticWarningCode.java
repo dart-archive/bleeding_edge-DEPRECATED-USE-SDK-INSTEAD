@@ -244,8 +244,10 @@ public enum StaticWarningCode implements ErrorCode {
   /**
    * 12.11.1 New: It is a static warning if <i>T</i> is not a class accessible in the current scope,
    * optionally followed by type arguments.
+   * 
+   * @param name the name of the non-type element
    */
-  NEW_WITH_NON_TYPE(""),
+  NEW_WITH_NON_TYPE("The name '%s' is not a class"),
 
   /**
    * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the current scope then:

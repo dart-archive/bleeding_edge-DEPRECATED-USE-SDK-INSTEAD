@@ -173,8 +173,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a
    * compile-time error if <i>T</i> is not a class accessible in the current scope, optionally
    * followed by type arguments.
+   * 
+   * @param name the name of the non-type element
    */
-  CONST_WITH_NON_TYPE(""),
+  CONST_WITH_NON_TYPE("The name '%s' is not a class"),
 
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T</i> includes any type parameters.
@@ -818,6 +820,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * <i>n</i> type parameters.
    */
   TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS(""),
+
+  /**
+   * 12.11.2 Const: It is a compile-time error if <i>T</i> is not a class accessible in the current
+   * scope, optionally followed by type arguments.
+   */
+  UNDEFINED_CLASS("Undefined class '%s'"),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the superinitializer appears

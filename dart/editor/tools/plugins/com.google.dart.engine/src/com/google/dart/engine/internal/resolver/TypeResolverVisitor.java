@@ -417,22 +417,40 @@ public class TypeResolverVisitor extends ScopedVisitor {
         }
       }
     }
-    if (element == null) {
+    // check element
+    boolean elementValid = !(element instanceof MultiplyDefinedElement);
+    if (elementValid && !(element instanceof ClassElement)
+        && isTypeNameInInstanceCreationExpression(node)) {
+      SimpleIdentifier typeNameSimple = getTypeSimpleIdentifier(typeName);
+      InstanceCreationExpression creation = (InstanceCreationExpression) node.getParent().getParent();
+      if (creation.isConst()) {
+        if (element == null) {
+          reportError(CompileTimeErrorCode.UNDEFINED_CLASS, typeNameSimple, typeName);
+        } else {
+          reportError(CompileTimeErrorCode.CONST_WITH_NON_TYPE, typeNameSimple, typeName);
+        }
+        elementValid = false;
+      } else {
+        if (element != null) {
+          reportError(StaticWarningCode.NEW_WITH_NON_TYPE, typeNameSimple, typeName);
+          elementValid = false;
+        }
+      }
+    }
+    if (elementValid && element == null) {
       // We couldn't resolve the type name.
       // TODO(jwren) Consider moving the check for CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE
       // from the ErrorVerifier, so that we don't have two errors on a built in identifier being
       // used as a class name. See CompileTimeErrorCodeTest.test_builtInIdentifierAsType().
-      Identifier simpleIdentifier;
-      if (typeName instanceof SimpleIdentifier) {
-        simpleIdentifier = typeName;
+      SimpleIdentifier typeNameSimple = getTypeSimpleIdentifier(typeName);
+      if (typeNameSimple.getName().equals("boolean")) {
+        reportError(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple);
       } else {
-        simpleIdentifier = ((PrefixedIdentifier) typeName).getPrefix();
+        reportError(StaticWarningCode.UNDEFINED_CLASS, typeNameSimple, typeNameSimple.getName());
       }
-      if (simpleIdentifier.getName().equals("boolean")) {
-        reportError(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, simpleIdentifier);
-      } else {
-        reportError(StaticWarningCode.UNDEFINED_CLASS, simpleIdentifier, simpleIdentifier.getName());
-      }
+      elementValid = false;
+    }
+    if (!elementValid) {
       setElement(typeName, dynamicType.getElement());
       typeName.setStaticType(dynamicType);
       node.setType(dynamicType);
@@ -673,6 +691,37 @@ public class TypeResolverVisitor extends ScopedVisitor {
       return ((FunctionType) type).getTypeArguments();
     }
     return TypeImpl.EMPTY_ARRAY;
+  }
+
+  /**
+   * Returns the simple identifier of the given (may be qualified) type name.
+   * 
+   * @param typeName the (may be qualified) qualified type name
+   * @return the simple identifier of the given (may be qualified) type name.
+   */
+  private SimpleIdentifier getTypeSimpleIdentifier(Identifier typeName) {
+    if (typeName instanceof SimpleIdentifier) {
+      return (SimpleIdentifier) typeName;
+    } else {
+      return ((PrefixedIdentifier) typeName).getIdentifier();
+    }
+  }
+
+  /**
+   * Checks if the given type name is used as the type in the instance creation expression.
+   * 
+   * @param typeName the type name to analyzer
+   * @return {@code true} if the given type name is used as the type in the instance creation
+   *         expression
+   */
+  private boolean isTypeNameInInstanceCreationExpression(TypeName typeName) {
+    ASTNode parent = typeName.getParent();
+    if (parent instanceof ConstructorName
+        && parent.getParent() instanceof InstanceCreationExpression) {
+      ConstructorName constructorName = (ConstructorName) parent;
+      return constructorName != null && constructorName.getType() == typeName;
+    }
+    return false;
   }
 
   /**

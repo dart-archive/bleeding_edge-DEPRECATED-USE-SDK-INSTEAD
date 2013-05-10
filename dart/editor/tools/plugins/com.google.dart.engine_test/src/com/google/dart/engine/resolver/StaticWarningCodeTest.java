@@ -223,17 +223,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_newWithNonType() throws Exception {
-    Source source = addSource(createSource(//
-        "var A = 0;",
-        "void f() {",
-        "  A a = new A();",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.NEW_WITH_NON_TYPE);
-    verify(source);
-  }
-
   public void fail_newWithUndefinedConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -589,6 +578,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS);
+    verify(source);
+  }
+
+  public void test_newWithNonType() throws Exception {
+    Source source = addSource(createSource(//
+        "var A = 0;",
+        "void f() {",
+        "  A a = new A();",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NEW_WITH_NON_TYPE);
     verify(source);
   }
 

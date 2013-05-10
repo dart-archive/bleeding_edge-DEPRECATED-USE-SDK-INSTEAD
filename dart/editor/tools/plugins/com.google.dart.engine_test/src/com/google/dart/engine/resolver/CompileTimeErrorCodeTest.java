@@ -40,17 +40,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_constWithNonType() throws Exception {
-    Source source = addSource(createSource(//
-        "int A;",
-        "f() {",
-        "  return const A();",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_TYPE);
-    verify(source);
-  }
-
   public void fail_constWithTypeParameters() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -966,6 +955,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "f() { return const T(0, 1, c: 2, d: 3); }"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_WITH_NON_CONST);
+    verify(source);
+  }
+
+  public void test_constWithNonType() throws Exception {
+    Source source = addSource(createSource(//
+        "int A;",
+        "f() {",
+        "  return const A();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_TYPE);
     verify(source);
   }
 
@@ -2022,6 +2022,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_undefinedClass_const() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  return const A();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.UNDEFINED_CLASS);
     verify(source);
   }
 
