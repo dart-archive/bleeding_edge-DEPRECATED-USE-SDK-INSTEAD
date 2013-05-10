@@ -14,9 +14,12 @@
 package com.google.dart.engine.internal.scope;
 
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 
 /**
  * Instances of the class {@code ClassScope} implement the scope defined by a class.
@@ -38,6 +41,28 @@ public class ClassScope extends EnclosedScope {
     super(new EnclosedScope(enclosingScope));
     defineTypeParameters(typeElement);
     defineMembers(typeElement);
+  }
+
+  @Override
+  protected AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
+    if (existing instanceof PropertyAccessorElement && duplicate instanceof MethodElement) {
+      if (existing.getNameOffset() < duplicate.getNameOffset()) {
+        return new AnalysisError(
+            duplicate.getSource(),
+            duplicate.getNameOffset(),
+            duplicate.getDisplayName().length(),
+            CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
+            existing.getDisplayName());
+      } else {
+        return new AnalysisError(
+            existing.getSource(),
+            existing.getNameOffset(),
+            existing.getDisplayName().length(),
+            CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
+            existing.getDisplayName());
+      }
+    }
+    return super.getErrorForDuplicate(existing, duplicate);
   }
 
   /**

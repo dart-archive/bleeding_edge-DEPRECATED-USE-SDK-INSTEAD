@@ -337,8 +337,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 7.2 Getters: It is a compile-time error if a class has both a getter and a method with the same
    * name.
+   * 
+   * @param name the conflicting name of the getter and method
    */
-  GETTER_AND_METHOD_WITH_SAME_NAME(""),
+  GETTER_AND_METHOD_WITH_SAME_NAME(
+      "'%s' cannot be used to name a getter, there is already a method with the same name"),
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause of a class includes
@@ -566,6 +569,15 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * as <i>C</i>.
    */
   MEMBER_WITH_CLASS_NAME("Class members cannot have the same name as the enclosing class"),
+
+  /**
+   * 7.2 Getters: It is a compile-time error if a class has both a getter and a method with the same
+   * name.
+   * 
+   * @param name the conflicting name of the getter and method
+   */
+  METHOD_AND_GETTER_WITH_SAME_NAME(
+      "'%s' cannot be used to name a method, there is already a getter with the same name"),
 
   /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin explicitly declares a

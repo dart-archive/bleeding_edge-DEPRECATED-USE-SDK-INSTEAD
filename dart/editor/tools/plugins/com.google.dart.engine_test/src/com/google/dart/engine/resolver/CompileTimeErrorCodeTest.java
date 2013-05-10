@@ -95,17 +95,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(librarySource);
   }
 
-  public void fail_duplicateMemberError_classMembers_methods() throws Exception {
-    Source librarySource = addSource(createSource(//
-        "class A {",
-        "  m() {}",
-        "  m() {}",
-        "}"));
-    resolve(librarySource);
-    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION);
-    verify(librarySource);
-  }
-
   public void fail_duplicateMemberError_localFields() throws Exception {
     Source librarySource = addSource(createSource(//
         "class A {",
@@ -173,17 +162,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
-  public void fail_getterAndMethodWithSameName() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  get x -> 0;",
-        "  x(y) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME);
     verify(source);
   }
 
@@ -1018,6 +996,19 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(librarySource, sourceA, sourceB);
   }
 
+  public void test_duplicateMemberError_classMembers_methods() throws Exception {
+    Source librarySource = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "  m() {}",
+        "}"));
+    resolve(librarySource);
+    assertErrors(
+        CompileTimeErrorCode.DUPLICATE_DEFINITION,
+        CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    verify(librarySource);
+  }
+
   public void test_exportOfNonLibrary() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
@@ -1357,6 +1348,19 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_getterAndMethodWithSameName() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  x(y) {}",
+        "  get x => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
+        CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME);
     verify(source);
   }
 
@@ -1770,6 +1774,19 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_memberWithClassName_method() throws Exception {
     // no test because indistinguishable from constructor
+  }
+
+  public void test_methodAndGetterWithSameName() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  get x => 0;",
+        "  x(y) {}",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
+        CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME);
+    verify(source);
   }
 
   public void test_mixinDeclaresConstructor_classDeclaration() throws Exception {
