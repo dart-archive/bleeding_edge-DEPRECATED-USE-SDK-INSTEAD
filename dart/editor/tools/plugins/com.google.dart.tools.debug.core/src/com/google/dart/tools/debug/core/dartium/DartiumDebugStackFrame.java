@@ -35,6 +35,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
@@ -364,6 +365,12 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
       if (url.startsWith("package:")) {
         return resolvePackageUrl(url);
+      }
+
+      IResource resource = getTarget().getResourceResolver().resolveUrl(url);
+
+      if (resource != null) {
+        return resource.getFullPath().toString();
       }
 
       try {

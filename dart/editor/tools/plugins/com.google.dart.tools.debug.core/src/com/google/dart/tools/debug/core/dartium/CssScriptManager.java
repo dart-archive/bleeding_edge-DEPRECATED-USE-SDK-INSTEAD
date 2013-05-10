@@ -16,7 +16,6 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
-import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.util.ResourceChangeManager;
 import com.google.dart.tools.debug.core.util.ResourceChangeParticipant;
 import com.google.dart.tools.debug.core.webkit.WebkitCallback;
@@ -38,13 +37,11 @@ import java.util.List;
  */
 class CssScriptManager implements ResourceChangeParticipant {
   private DartiumDebugTarget target;
-  private IResourceResolver resourceResolver;
 
   private List<WebkitStyleSheetRef> styleSheets = Collections.synchronizedList(new ArrayList<WebkitStyleSheetRef>());
 
-  public CssScriptManager(DartiumDebugTarget target, IResourceResolver resourceResolver) {
+  public CssScriptManager(DartiumDebugTarget target) {
     this.target = target;
-    this.resourceResolver = resourceResolver;
 
     ResourceChangeManager.getManager().addChangeParticipant(this);
   }
@@ -61,11 +58,13 @@ class CssScriptManager implements ResourceChangeParticipant {
   @Override
   public void handleFileChanged(IFile file) {
     if ("css".equals(file.getFileExtension())) {
-      String fileUrl = resourceResolver.getUrlForResource(file);
+      String fileUrl = target.getResourceResolver().getUrlForResource(file);
 
-      for (WebkitStyleSheetRef ref : styleSheets) {
-        if (fileUrl.equals(ref.getSourceURL())) {
-          uploadNewSource(ref, file);
+      if (fileUrl != null) {
+        for (WebkitStyleSheetRef ref : styleSheets) {
+          if (fileUrl.equals(ref.getSourceURL())) {
+            uploadNewSource(ref, file);
+          }
         }
       }
     }

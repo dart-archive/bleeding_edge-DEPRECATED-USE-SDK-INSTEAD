@@ -49,4 +49,13 @@ public interface IResourceResolver {
    */
   public String getUrlRegexForResource(IResource resource);
 
+  /**
+   * Given a url, return the associated workspace resource. Return null if there is no such
+   * resource.
+   * 
+   * @param url
+   * @return
+   */
+  public IResource resolveUrl(String url);
+
 }

@@ -104,9 +104,17 @@ public class BrowserManager {
     return manager;
   }
 
-  private static IResourceResolver getResourceServer() throws IOException {
+  private static IResourceResolver getResourceServer() throws CoreException {
     if (resourceResolver == null) {
-      resourceResolver = ResourceServerManager.getServer();
+      try {
+        resourceResolver = ResourceServerManager.getServer();
+      } catch (IOException ioe) {
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            ioe.getMessage(),
+            ioe));
+      }
     }
 
     return resourceResolver;
@@ -249,6 +257,9 @@ public class BrowserManager {
 
     url = launchConfig.appendQueryParams(url);
 
+    IResourceResolver resolver = launchConfig.getShouldLaunchFile() ? getResourceServer()
+        : new LaunchConfigResourceResolver(launchConfig);
+
     // for now, check if browser is open, and connection is alive
     boolean restart = browserProcess == null || isProcessTerminated(browserProcess)
         || DartiumDebugTarget.getActiveTarget() == null
@@ -261,7 +272,8 @@ public class BrowserManager {
         DartiumDebugTarget.getActiveTarget().navigateToUrl(
             launch.getLaunchConfiguration(),
             url,
-            enableBreakpoints);
+            enableBreakpoints,
+            resolver);
       } catch (IOException e) {
         DartDebugCorePlugin.logError(e);
       }
@@ -304,7 +316,8 @@ public class BrowserManager {
           enableBreakpoints,
           devToolsPortNumber,
           dartiumOutput,
-          processDescription.toString());
+          processDescription.toString(),
+          resolver);
     }
 
     DebugUIHelper.getHelper().activateApplication(dartium, "Chromium");
@@ -322,7 +335,8 @@ public class BrowserManager {
   void connectToChromiumDebug(String browserName, ILaunch launch,
       DartLaunchConfigWrapper launchConfig, String url, IProgressMonitor monitor,
       Process runtimeProcess, LogTimer timer, boolean enableBreakpoints, int devToolsPortNumber,
-      ListeningStream dartiumOutput, String processDescription) throws CoreException {
+      ListeningStream dartiumOutput, String processDescription, IResourceResolver resolver)
+      throws CoreException {
     monitor.worked(1);
 
     try {
@@ -359,7 +373,7 @@ public class BrowserManager {
           connection,
           launch,
           runtimeProcess,
-          getResourceServer(),
+          resolver,
           enableBreakpoints,
           false);
 
@@ -612,16 +626,8 @@ public class BrowserManager {
    * @throws CoreException
    */
   private String resolveLaunchUrl(IFile file, String url) throws CoreException {
-    try {
-      if (file != null) {
-        return getResourceServer().getUrlForResource(file);
-      }
-    } catch (IOException exception) {
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartDebugCorePlugin.PLUGIN_ID,
-          "Could not launch browser - unable to start embedded server",
-          exception));
+    if (file != null) {
+      return getResourceServer().getUrlForResource(file);
     }
 
     return url;
@@ -667,18 +673,14 @@ public class BrowserManager {
     File packageRoot = packageRootProvider.getPackageRoot(launchConfig.getProject());
 
     if (packageRoot != null && launchConfig.getShouldLaunchFile()) {
-      try {
-        String packageRootUri = getResourceServer().getUrlForFile(packageRoot);
+      String packageRootUri = getResourceServer().getUrlForFile(packageRoot);
 
-        // Strip a trailing slash off the uri if the user setting didn't have one.
-        if (!packageRoot.getPath().endsWith("/") && packageRootUri.endsWith("/")) {
-          packageRootUri = packageRootUri.substring(0, packageRootUri.length() - 1);
-        }
-
-        env.put("DART_PACKAGE_ROOT", packageRootUri);
-      } catch (IOException e) {
-        DartDebugCorePlugin.logError(e);
+      // Strip a trailing slash off the uri if the user setting didn't have one.
+      if (!packageRoot.getPath().endsWith("/") && packageRootUri.endsWith("/")) {
+        packageRootUri = packageRootUri.substring(0, packageRootUri.length() - 1);
       }
+
+      env.put("DART_PACKAGE_ROOT", packageRootUri);
     }
 
     // This flag allows us to retrieve the dart: core sources from Dartium.

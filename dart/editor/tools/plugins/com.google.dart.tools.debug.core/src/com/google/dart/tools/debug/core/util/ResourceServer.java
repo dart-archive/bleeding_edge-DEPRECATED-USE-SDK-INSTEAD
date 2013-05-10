@@ -111,6 +111,23 @@ public class ResourceServer implements IResourceResolver {
     return projectDir.getName() + "/" + resource.getProjectRelativePath().toPortableString();
   }
 
+  @Override
+  public IResource resolveUrl(String url) {
+    try {
+      URI uri = new URI(url);
+      String filePath = uri.getPath();
+      IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(filePath);
+
+      if (resource.exists()) {
+        return resource;
+      }
+
+      return null;
+    } catch (Throwable t) {
+      return null;
+    }
+  }
+
   /**
    * Close the resource server.
    */

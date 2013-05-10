@@ -16,7 +16,6 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
-import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.util.ResourceChangeManager;
 import com.google.dart.tools.debug.core.util.ResourceChangeParticipant;
 import com.google.dart.tools.debug.core.webkit.WebkitCallback;
@@ -34,13 +33,11 @@ import java.io.IOException;
  */
 public class HtmlScriptManager implements ResourceChangeParticipant {
   private DartiumDebugTarget target;
-  private IResourceResolver resourceResolver;
 
   private WebkitNode rootNode;
 
-  public HtmlScriptManager(DartiumDebugTarget target, IResourceResolver resourceResolver) {
+  public HtmlScriptManager(DartiumDebugTarget target) {
     this.target = target;
-    this.resourceResolver = resourceResolver;
 
     ResourceChangeManager.getManager().addChangeParticipant(this);
   }
@@ -61,9 +58,9 @@ public class HtmlScriptManager implements ResourceChangeParticipant {
   @Override
   public final void handleFileChanged(IFile file) {
     if ("html".equals(file.getFileExtension())) {
-      String fileUrl = resourceResolver.getUrlForResource(file);
+      String fileUrl = target.getResourceResolver().getUrlForResource(file);
 
-      if (fileUrl.equals(rootNode.getDocumentURL())) {
+      if (fileUrl != null && fileUrl.equals(rootNode.getDocumentURL())) {
         uploadNewSource(rootNode, file);
       }
     }

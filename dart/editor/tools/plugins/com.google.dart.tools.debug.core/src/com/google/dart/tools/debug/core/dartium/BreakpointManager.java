@@ -47,16 +47,14 @@ class BreakpointManager implements IBreakpointListener {
   private static String LIB_DIRECTORY_PATH = "/lib/";
 
   private DartiumDebugTarget debugTarget;
-  private IResourceResolver resourceResolver;
 
   private Map<IBreakpoint, List<String>> breakpointToIdMap = new HashMap<IBreakpoint, List<String>>();
   private Map<String, DartBreakpoint> breakpointsToUpdateMap = new HashMap<String, DartBreakpoint>();
 
   private List<IBreakpoint> ignoredBreakpoints = new ArrayList<IBreakpoint>();
 
-  public BreakpointManager(DartiumDebugTarget debugTarget, IResourceResolver resourceResolver) {
+  public BreakpointManager(DartiumDebugTarget debugTarget) {
     this.debugTarget = debugTarget;
-    this.resourceResolver = resourceResolver;
   }
 
   @Override
@@ -163,9 +161,9 @@ class BreakpointManager implements IBreakpointListener {
         DartBreakpoint breakpoint = (DartBreakpoint) bp;
 
         if (breakpoint.getLine() == line) {
-          String bpUrl = resourceResolver.getUrlForResource(breakpoint.getFile());
+          String bpUrl = getResourceResolver().getUrlForResource(breakpoint.getFile());
 
-          if (bpUrl.equals(url)) {
+          if (bpUrl != null && bpUrl.equals(url)) {
             return breakpoint;
           }
         }
@@ -209,7 +207,12 @@ class BreakpointManager implements IBreakpointListener {
 
   private void addBreakpoint(final DartBreakpoint breakpoint) throws IOException {
     if (breakpoint.isBreakpointEnabled()) {
-      String regex = resourceResolver.getUrlRegexForResource(breakpoint.getFile());
+      String regex = getResourceResolver().getUrlRegexForResource(breakpoint.getFile());
+
+      if (regex == null) {
+        return;
+      }
+
       int line = WebkitLocation.eclipseToWebkitLine(breakpoint.getLine());
 
       int packagesIndex = regex.indexOf(PACKAGES_DIRECTORY_PATH);
@@ -268,30 +271,36 @@ class BreakpointManager implements IBreakpointListener {
             line);
 
         if (location != null) {
-          String mappedRegex = resourceResolver.getUrlRegexForResource(location.getFile());
+          String mappedRegex = getResourceResolver().getUrlRegexForResource(location.getFile());
 
-          if (DartDebugCorePlugin.LOGGING) {
-            System.out.println("breakpoint [" + regex + "," + breakpoint.getLine()
-                + ",-1] ==> mapped to [" + mappedRegex + "," + location.getLine() + ","
-                + location.getColumn() + "]");
-          }
+          if (mappedRegex != null) {
+            if (DartDebugCorePlugin.LOGGING) {
+              System.out.println("breakpoint [" + regex + "," + breakpoint.getLine()
+                  + ",-1] ==> mapped to [" + mappedRegex + "," + location.getLine() + ","
+                  + location.getColumn() + "]");
+            }
 
-          debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(
-              null,
-              mappedRegex,
-              location.getLine(),
-              location.getColumn(),
-              new WebkitCallback<String>() {
-                @Override
-                public void handleResult(WebkitResult<String> result) {
-                  if (!result.isError()) {
-                    addToBreakpointMap(breakpoint, result.getResult(), false);
+            debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(
+                null,
+                mappedRegex,
+                location.getLine(),
+                location.getColumn(),
+                new WebkitCallback<String>() {
+                  @Override
+                  public void handleResult(WebkitResult<String> result) {
+                    if (!result.isError()) {
+                      addToBreakpointMap(breakpoint, result.getResult(), false);
+                    }
                   }
-                }
-              });
+                });
+          }
         }
       }
     }
+  }
+
+  private IResourceResolver getResourceResolver() {
+    return debugTarget.getResourceResolver();
   }
 
   private boolean isInSelfLinkedLib(IFile file) {

@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.core;
 
 import com.google.dart.tools.core.utilities.general.StringUtilities;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -33,6 +34,7 @@ import java.util.List;
 public class DartLaunchConfigWrapper {
   private static final String APPLICATION_ARGUMENTS = "applicationArguments";
   private static final String APPLICATION_NAME = "applicationName";
+  private static final String SOURCE_DIRECTORY = "sourceDirectory";
   private static final String URL_QUERY_PARAMS = "urlQueryParams";
 
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
@@ -178,19 +180,27 @@ public class DartLaunchConfigWrapper {
    * @return the DartProject that contains the application to run
    */
   public IProject getProject() {
-    String projectName = getProjectName();
-
-    if (projectName.length() == 0) {
+    if (getShouldLaunchFile()) {
       IResource resource = getApplicationResource();
 
-      if (resource == null) {
-        return null;
-      } else {
+      if (resource != null) {
         return resource.getProject();
       }
     } else {
+      IContainer container = getSourceDirectory();
+
+      if (container != null) {
+        return container.getProject();
+      }
+    }
+
+    String projectName = getProjectName();
+
+    if (projectName.length() > 0) {
       return ResourcesPlugin.getWorkspace().getRoot().getProject(getProjectName());
     }
+
+    return null;
   }
 
   /**
@@ -223,6 +233,28 @@ public class DartLaunchConfigWrapper {
       DartDebugCorePlugin.logError(e);
 
       return false;
+    }
+  }
+
+  public IContainer getSourceDirectory() {
+    String path = getSourceDirectoryName();
+
+    if (path == null || path.length() == 0) {
+      return null;
+    } else {
+      IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
+
+      return (resource instanceof IContainer ? (IContainer) resource : null);
+    }
+  }
+
+  public String getSourceDirectoryName() {
+    try {
+      return launchConfig.getAttribute(SOURCE_DIRECTORY, "");
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return "";
     }
   }
 
@@ -370,6 +402,13 @@ public class DartLaunchConfigWrapper {
 
   public void setShowLaunchOutput(boolean value) {
     getWorkingCopy().setAttribute(SHOW_LAUNCH_OUTPUT, value);
+  }
+
+  /**
+   * @see #getSourceDirectoryName()
+   */
+  public void setSourceDirectoryName(String value) {
+    getWorkingCopy().setAttribute(SOURCE_DIRECTORY, value);
   }
 
   /**

@@ -117,17 +117,17 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
 
     if (enableBreakpoints) {
-      breakpointManager = new BreakpointManager(this, resourceResolver);
+      breakpointManager = new BreakpointManager(this);
     }
 
-    cssScriptManager = new CssScriptManager(this, resourceResolver);
+    cssScriptManager = new CssScriptManager(this);
 
     if (DartDebugCorePlugin.SEND_MODIFIED_HTML) {
-      htmlScriptManager = new HtmlScriptManager(this, resourceResolver);
+      htmlScriptManager = new HtmlScriptManager(this);
     }
 
     if (DartDebugCorePlugin.SEND_MODIFIED_DART) {
-      dartCodeManager = new DartCodeManager(this, resourceResolver);
+      dartCodeManager = new DartCodeManager(this);
     }
 
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(launch.getLaunchConfiguration());
@@ -276,11 +276,13 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
    * @throws IOException
    */
   public void navigateToUrl(ILaunchConfiguration launchConfig, final String url,
-      boolean enableBreakpoints) throws IOException {
+      boolean enableBreakpoints, IResourceResolver resolver) throws IOException {
     if (breakpointManager != null) {
       breakpointManager.dispose(true);
       breakpointManager = null;
     }
+
+    this.resourceResolver = resolver;
 
     if (enableBreakpoints) {
       connection.getDebugger().setPauseOnExceptions(
@@ -291,7 +293,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
 
     if (enableBreakpoints) {
-      breakpointManager = new BreakpointManager(this, resourceResolver);
+      breakpointManager = new BreakpointManager(this);
       breakpointManager.connect();
     }
 
@@ -501,6 +503,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   protected BreakpointManager getBreakpointManager() {
     return breakpointManager;
+  }
+
+  protected IResourceResolver getResourceResolver() {
+    return resourceResolver;
   }
 
   protected SourceMapManager getSourceMapManager() {

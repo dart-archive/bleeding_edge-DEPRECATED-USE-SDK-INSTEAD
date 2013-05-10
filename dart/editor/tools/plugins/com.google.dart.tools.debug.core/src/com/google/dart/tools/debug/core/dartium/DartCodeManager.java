@@ -16,7 +16,6 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
-import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.util.ResourceChangeManager;
 import com.google.dart.tools.debug.core.util.ResourceChangeParticipant;
 import com.google.dart.tools.debug.core.webkit.WebkitScript;
@@ -33,11 +32,9 @@ import java.io.IOException;
  */
 public class DartCodeManager implements ResourceChangeParticipant {
   private DartiumDebugTarget target;
-  private IResourceResolver resourceResolver;
 
-  public DartCodeManager(DartiumDebugTarget target, IResourceResolver resourceResolver) {
+  public DartCodeManager(DartiumDebugTarget target) {
     this.target = target;
-    this.resourceResolver = resourceResolver;
 
     ResourceChangeManager.getManager().addChangeParticipant(this);
   }
@@ -58,11 +55,13 @@ public class DartCodeManager implements ResourceChangeParticipant {
     }
 
     if ("dart".equals(file.getFileExtension())) {
-      String fileUrl = resourceResolver.getUrlForResource(file);
+      String fileUrl = target.getResourceResolver().getUrlForResource(file);
 
-      for (WebkitScript script : target.getConnection().getDebugger().getAllScripts()) {
-        if (fileUrl.equals(script.getUrl())) {
-          uploadNewSource(script.getScriptId(), file);
+      if (fileUrl != null) {
+        for (WebkitScript script : target.getConnection().getDebugger().getAllScripts()) {
+          if (fileUrl.equals(script.getUrl())) {
+            uploadNewSource(script.getScriptId(), file);
+          }
         }
       }
     }
