@@ -24,8 +24,10 @@ import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.LibraryDirective;
+import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -35,6 +37,7 @@ import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LibraryElement;
 
 /**
  * Instances of the class {@code ElementLocator} locate the {@link Element Dart model element}
@@ -88,6 +91,15 @@ public class ElementLocator {
           Element element = node.getElement();
           if (element instanceof ClassElement) {
             return ((ClassElement) element).getUnnamedConstructor();
+          }
+        }
+      }
+      if (parent instanceof LibraryIdentifier) {
+        ASTNode grandParent = ((LibraryIdentifier) parent).getParent();
+        if (grandParent instanceof PartOfDirective) {
+          Element element = ((PartOfDirective) grandParent).getElement();
+          if (element instanceof LibraryElement) {
+            return ((LibraryElement) element).getDefiningCompilationUnit();
           }
         }
       }

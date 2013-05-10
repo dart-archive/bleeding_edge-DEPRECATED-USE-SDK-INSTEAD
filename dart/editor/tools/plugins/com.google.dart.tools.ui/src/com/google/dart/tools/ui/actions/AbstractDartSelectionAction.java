@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.actions;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
@@ -134,7 +135,8 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
     }
     // CompilationUnit, bad selection in the most cases
     if (element instanceof CompilationUnitElement) {
-      if (node != null && node.getAncestor(PartDirective.class) != null) {
+      if (node != null
+          && (node.getAncestor(PartDirective.class) != null || node.getAncestor(PartOfDirective.class) != null)) {
         // OK, unit reference in "part" 
       } else {
         // cursor outside of any node
