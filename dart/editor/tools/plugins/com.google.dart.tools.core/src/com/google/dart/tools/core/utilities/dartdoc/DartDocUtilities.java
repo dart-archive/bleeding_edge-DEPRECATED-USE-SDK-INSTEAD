@@ -30,6 +30,7 @@ import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.SimpleElementVisitor;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
@@ -222,7 +223,28 @@ public final class DartDocUtilities {
       if (type != null) {
         String name = type.getName();
         if (name != null) {
-          return name;
+
+          StringBuilder buf = new StringBuilder();
+          buf.append(name);
+
+          if (type instanceof InterfaceType) {
+            com.google.dart.engine.type.Type[] args = ((InterfaceType) type).getTypeArguments();
+            if (args.length > 0) {
+
+              buf.append("<");
+
+              for (int i = 0; i < args.length; i++) {
+                if (i > 0) {
+                  buf.append(", ");
+                }
+                buf.append(getName(args[i]));
+              }
+
+              buf.append(">");
+            }
+          }
+
+          return buf.toString();
         }
       }
       return "dynamic";

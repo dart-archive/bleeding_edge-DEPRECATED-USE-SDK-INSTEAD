@@ -112,10 +112,24 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
     assertEquals("void x(int unnamed, {String named})", DartDocUtilities.getTextSummary(element));
   }
 
+  public void test_method_null_body() throws Exception {
+    ASTNode id = findNodeIn("null", createSource(//
+        "List<String> x()=> null;"));
+    Element element = ElementLocator.locate(id);
+    assertEquals(null, DartDocUtilities.getTextSummary(element));
+  }
+
   public void test_method_optional_doc() throws Exception {
     ASTNode id = findNodeIn("x", "void x([bool opt = false, bool opt2 = true]) {}");
     Element element = ElementLocator.locate(id);
     assertEquals("void x([bool opt, bool opt2])", DartDocUtilities.getTextSummary(element));
+  }
+
+  public void test_method_paramed_text() throws Exception {
+    ASTNode id = findNodeIn("x", createSource(//
+        "List<String> x()=> null;"));
+    Element element = ElementLocator.locate(id);
+    assertEquals("List<String> x()", DartDocUtilities.getTextSummary(element));
   }
 
   public void test_param_text_summary() throws Exception {
