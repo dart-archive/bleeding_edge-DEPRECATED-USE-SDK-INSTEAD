@@ -319,9 +319,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       }
     } else {
       ExecutableElement staticMethodElement = staticElementMap.get(node);
-      if (staticMethodElement == null) {
-        staticMethodElement = node.getElement();
-      }
       Type staticType = computeReturnType(staticMethodElement);
       recordStaticType(node, staticType);
 
@@ -395,9 +392,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       }
     } else {
       ExecutableElement staticMethodElement = staticElementMap.get(node);
-      if (staticMethodElement == null) {
-        staticMethodElement = node.getElement();
-      }
       Type staticType = computeReturnType(staticMethodElement);
       recordStaticType(node, staticType);
 
@@ -554,9 +548,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     ExecutableElement staticMethodElement = staticElementMap.get(node);
-    if (staticMethodElement == null) {
-      staticMethodElement = node.getElement();
-    }
     Type staticType = computeReturnType(staticMethodElement);
     recordStaticType(node, staticType);
 
@@ -579,9 +570,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitIndexExpression(IndexExpression node) {
     if (node.inSetterContext()) {
       ExecutableElement staticMethodElement = staticElementMap.get(node);
-      if (staticMethodElement == null) {
-        staticMethodElement = node.getElement();
-      }
       Type staticType = computeArgumentType(staticMethodElement);
       recordStaticType(node, staticType);
 
@@ -594,9 +582,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       }
     } else {
       ExecutableElement staticMethodElement = staticElementMap.get(node);
-      if (staticMethodElement == null) {
-        staticMethodElement = node.getElement();
-      }
       Type staticType = computeReturnType(staticMethodElement);
       recordStaticType(node, staticType);
 
@@ -1016,9 +1001,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     } else {
       // The other cases are equivalent to invoking a method.
       ExecutableElement staticMethodElement = staticElementMap.get(node);
-      if (staticMethodElement == null) {
-        staticMethodElement = node.getElement();
-      }
       Type staticType = computeReturnType(staticMethodElement);
       recordStaticType(node, staticType);
 
