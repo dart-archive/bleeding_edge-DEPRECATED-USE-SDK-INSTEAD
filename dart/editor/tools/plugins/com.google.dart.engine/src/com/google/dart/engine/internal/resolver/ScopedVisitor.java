@@ -473,6 +473,17 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
+   * Visit the given AST node if it is not null.
+   * 
+   * @param node the node to be visited
+   */
+  protected void safelyVisit(ASTNode node) {
+    if (node != null) {
+      node.accept(this);
+    }
+  }
+
+  /**
    * Visit the given statement after it's scope has been created. This replaces the normal call to
    * the inherited visit method so that ResolverVisitor can intervene when type propagation is
    * enabled.
@@ -480,7 +491,13 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
    * @param node the statement to be visited
    */
   protected void visitForEachStatementInScope(ForEachStatement node) {
-    super.visitForEachStatement(node);
+    //
+    // We visit the iterator before the loop variable because the loop variable cannot be in scope
+    // while visiting the iterator.
+    //
+    safelyVisit(node.getIterator());
+    safelyVisit(node.getLoopVariable());
+    safelyVisit(node.getBody());
   }
 
   /**

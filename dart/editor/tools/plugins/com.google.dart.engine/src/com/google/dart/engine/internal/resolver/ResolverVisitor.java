@@ -758,10 +758,14 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   protected void visitForEachStatementInScope(ForEachStatement node) {
-    DeclaredIdentifier loopVariable = node.getLoopVariable();
-    safelyVisit(loopVariable);
+    //
+    // We visit the iterator before the loop variable because the loop variable cannot be in scope
+    // while visiting the iterator.
+    //
     Expression iterator = node.getIterator();
     safelyVisit(iterator);
+    DeclaredIdentifier loopVariable = node.getLoopVariable();
+    safelyVisit(loopVariable);
     Statement body = node.getBody();
     if (body != null) {
       try {
@@ -963,17 +967,6 @@ public class ResolverVisitor extends ScopedVisitor {
       }
     } else if (condition instanceof ParenthesizedExpression) {
       propagateTrueState(((ParenthesizedExpression) condition).getExpression());
-    }
-  }
-
-  /**
-   * Visit the given AST node if it is not null.
-   * 
-   * @param node the node to be visited
-   */
-  private void safelyVisit(ASTNode node) {
-    if (node != null) {
-      node.accept(this);
     }
   }
 }
