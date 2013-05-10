@@ -66,6 +66,7 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.MultiplyDefinedElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -78,10 +79,12 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
+import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
+import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
@@ -226,7 +229,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * The name of the method that can be implemented by a class to allow its instances to be invoked
    * as if they were a function.
    */
-  private static final String CALL_METHOD_NAME = "call";
+  public static final String CALL_METHOD_NAME = "call";
 
   /**
    * The name of the method that will be invoked if an attempt is made to invoke an undefined method
@@ -323,12 +326,28 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Identifier identifier = node.getIdentifier();
     if (identifier instanceof SimpleIdentifier) {
       SimpleIdentifier simpleIdentifier = (SimpleIdentifier) identifier;
-      visitSimpleIdentifier(simpleIdentifier);
-      Element element = simpleIdentifier.getElement();
-      if (element != null) {
+      Element element = resolveSimpleIdentifier(simpleIdentifier);
+      if (element == null) {
+        //
+        // This might be a reference to an imported name that is missing the prefix.
+        //
+        element = findImportWithoutPrefix(simpleIdentifier);
+        if (element instanceof MultiplyDefinedElement) {
+          // TODO(brianwilkerson) Report this error?
+          element = null;
+        }
+      }
+      if (element == null) {
+        // TODO(brianwilkerson) Report this error?
+//        resolver.reportError(
+//            StaticWarningCode.UNDEFINED_IDENTIFIER,
+//            simpleIdentifier,
+//            simpleIdentifier.getName());
+      } else {
         if (!element.getLibrary().equals(resolver.getDefiningLibrary())) {
           // TODO(brianwilkerson) Report this error?
         }
+        recordResolution(simpleIdentifier, element);
         if (node.getNewKeyword() != null) {
           if (element instanceof ClassElement) {
             ConstructorElement constructor = ((ClassElement) element).getUnnamedConstructor();
@@ -346,10 +365,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       PrefixedIdentifier prefixedIdentifier = (PrefixedIdentifier) identifier;
       SimpleIdentifier prefix = prefixedIdentifier.getPrefix();
       SimpleIdentifier name = prefixedIdentifier.getIdentifier();
-      visitSimpleIdentifier(prefix);
-      Element element = prefix.getElement();
-      if (element != null) {
+      Element element = resolveSimpleIdentifier(prefix);
+      if (element == null) {
+//        resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
+      } else {
         if (element instanceof PrefixElement) {
+          recordResolution(prefix, element);
           // TODO(brianwilkerson) The prefix needs to be resolved to the element for the import that
           // defines the prefix, not the prefix's element.
 
@@ -361,6 +382,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         if (!element.getLibrary().equals(resolver.getDefiningLibrary())) {
           // TODO(brianwilkerson) Report this error.
         }
+        recordResolution(name, element);
         if (node.getNewKeyword() == null) {
           if (element instanceof ClassElement) {
             Element memberElement = lookupGetterOrMethod(
@@ -373,7 +395,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
               }
             }
             if (memberElement == null) {
-              reportGetterOrSetterNotFound(prefixedIdentifier, name, element.getDisplayName());
+//              reportGetterOrSetterNotFound(prefixedIdentifier, name, element.getDisplayName());
             } else {
               recordResolution(name, memberElement);
             }
@@ -629,7 +651,28 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // Record the results.
     //
     Element recordedElement = recordResolution(methodName, staticElement, propagatedElement);
-    if (recordedElement instanceof ExecutableElement) {
+    if (recordedElement instanceof PropertyAccessorElement) {
+      //
+      // This is an invocation of the call method defined on the value returned by the getter.
+      //
+      FunctionType getterType = ((PropertyAccessorElement) recordedElement).getType();
+      if (getterType != null) {
+        Type getterReturnType = getterType.getReturnType();
+        if (getterReturnType instanceof InterfaceType) {
+          MethodElement callMethod = ((InterfaceType) getterReturnType).lookUpMethod(
+              CALL_METHOD_NAME,
+              resolver.getDefiningLibrary());
+          if (callMethod != null) {
+            resolveNamedArguments(node.getArgumentList(), callMethod);
+          }
+        } else if (getterReturnType instanceof FunctionType) {
+          Element functionElement = ((FunctionType) getterReturnType).getElement();
+          if (functionElement instanceof ExecutableElement) {
+            resolveNamedArguments(node.getArgumentList(), (ExecutableElement) functionElement);
+          }
+        }
+      }
+    } else if (recordedElement instanceof ExecutableElement) {
       resolveNamedArguments(node.getArgumentList(), (ExecutableElement) recordedElement);
     }
     //
@@ -821,34 +864,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     // Otherwise, the node should be resolved.
     //
-    Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
-    if (element instanceof PropertyAccessorElement && node.inSetterContext()) {
-      PropertyInducingElement variable = ((PropertyAccessorElement) element).getVariable();
-      if (variable != null) {
-        PropertyAccessorElement setter = variable.getSetter();
-        if (setter != null) {
-          element = setter;
-        }
-      }
-    }
-    ClassElement enclosingClass = resolver.getEnclosingClass();
-    if (element == null && enclosingClass != null) {
-      InterfaceType enclosingType = enclosingClass.getType();
-      if (element == null && node.inSetterContext()) {
-        element = lookUpSetter(enclosingType, node.getName());
-      }
-      if (element == null && node.inGetterContext()) {
-        element = lookUpGetter(enclosingType, node.getName());
-      }
-      if (element == null) {
-        element = lookUpMethod(enclosingType, node.getName());
-      }
-    }
+    Element element = resolveSimpleIdentifier(node);
     if (element == null) {
       // TODO(brianwilkerson) Recover from this error.
       if (isConstructorReturnType(node)) {
         resolver.reportError(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
-      } else if (!classDeclaresNoSuchMethod(enclosingClass)) {
+      } else if (!classDeclaresNoSuchMethod(resolver.getEnclosingClass())) {
         resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, node.getName());
       }
     } else if (element instanceof ExecutableElement) {
@@ -1020,6 +1041,38 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // TODO(brianwilkerson) Determine whether and why the element could ever be a setter.
     if (element instanceof PropertyAccessorElement) {
       return ((PropertyAccessorElement) element).getVariable().getGetter();
+    }
+    return element;
+  }
+
+  /**
+   * Look for any declarations of the given identifier that are imported using a prefix. Return the
+   * element that was found, or {@code null} if the name is not imported using a prefix.
+   * 
+   * @param identifier the identifier that might have been imported using a prefix
+   * @return the element that was found
+   */
+  private Element findImportWithoutPrefix(SimpleIdentifier identifier) {
+    Element element = null;
+    Scope nameScope = resolver.getNameScope();
+    LibraryElement definingLibrary = resolver.getDefiningLibrary();
+    for (ImportElement importElement : definingLibrary.getImports()) {
+      PrefixElement prefixElement = importElement.getPrefix();
+      if (prefixElement != null) {
+        Identifier prefixedIdentifier = new SyntheticIdentifier(prefixElement.getName() + "."
+            + identifier.getName());
+        Element importedElement = nameScope.lookup(prefixedIdentifier, definingLibrary);
+        if (importedElement != null) {
+          if (element == null) {
+            element = importedElement;
+          } else {
+            element = new MultiplyDefinedElementImpl(
+                definingLibrary.getContext(),
+                element,
+                importedElement);
+          }
+        }
+      }
     }
     return element;
   }
@@ -1799,6 +1852,41 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 //        identifier,
 //        identifier.getName());
     }
+  }
+
+  /**
+   * Resolve the given simple identifier if possible. Return the element to which it could be
+   * resolved, or {@code null} if it could not be resolved. This does not record the results of the
+   * resolution.
+   * 
+   * @param node the identifier to be resolved
+   * @return the element to which the identifier could be resolved
+   */
+  private Element resolveSimpleIdentifier(SimpleIdentifier node) {
+    Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
+    if (element instanceof PropertyAccessorElement && node.inSetterContext()) {
+      PropertyInducingElement variable = ((PropertyAccessorElement) element).getVariable();
+      if (variable != null) {
+        PropertyAccessorElement setter = variable.getSetter();
+        if (setter != null) {
+          element = setter;
+        }
+      }
+    }
+    ClassElement enclosingClass = resolver.getEnclosingClass();
+    if (element == null && enclosingClass != null) {
+      InterfaceType enclosingType = enclosingClass.getType();
+      if (element == null && node.inSetterContext()) {
+        element = lookUpSetter(enclosingType, node.getName());
+      }
+      if (element == null && node.inGetterContext()) {
+        element = lookUpGetter(enclosingType, node.getName());
+      }
+      if (element == null) {
+        element = lookUpMethod(enclosingType, node.getName());
+      }
+    }
+    return element;
   }
 
   /**

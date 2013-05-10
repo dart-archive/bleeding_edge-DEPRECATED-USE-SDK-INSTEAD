@@ -238,6 +238,28 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_indirectOperatorThroughCall() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  B call() { return new B(); }",
+        "}",
+        "",
+        "class B {",
+        "  int operator [](int i) { return i; }",
+        "}",
+        "",
+        "A f = new A();",
+        "",
+        "g(int x) {}",
+        "",
+        "main() {",
+        "  g(f()[0]);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invoke_dynamicThroughGetter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

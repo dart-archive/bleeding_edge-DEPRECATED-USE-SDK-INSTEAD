@@ -370,6 +370,15 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_undefinedIdentifier_commentReference() throws Exception {
+    Source source = addSource(createSource(//
+        "/** [m] xxx [new B.c] */",
+        "class A {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER, StaticWarningCode.UNDEFINED_IDENTIFIER);
+  }
+
   public void fail_undefinedIdentifier_function() throws Exception {
     Source source = addSource(createSource(//
     "int a() -> b;"));
@@ -653,15 +662,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     "f() { boolean v; }"));
     resolve(source);
     assertErrors(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN);
-  }
-
-  public void test_undefinedIdentifier_commentReference() throws Exception {
-    Source source = addSource(createSource(//
-        "/** [m] xxx [new B.c] */",
-        "class A {",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER, StaticWarningCode.UNDEFINED_IDENTIFIER);
   }
 
   public void test_undefinedIdentifier_initializer() throws Exception {

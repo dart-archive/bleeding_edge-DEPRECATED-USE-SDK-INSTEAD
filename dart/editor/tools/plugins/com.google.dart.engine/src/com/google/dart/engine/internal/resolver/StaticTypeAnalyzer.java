@@ -1291,7 +1291,14 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       FunctionType propertyType = ((PropertyAccessorElement) element).getType();
       if (propertyType != null) {
         Type returnType = propertyType.getReturnType();
-        if (returnType instanceof FunctionType) {
+        if (returnType instanceof InterfaceType) {
+          MethodElement callMethod = ((InterfaceType) returnType).lookUpMethod(
+              ElementResolver.CALL_METHOD_NAME,
+              resolver.getDefiningLibrary());
+          if (callMethod != null) {
+            return callMethod.getType().getReturnType();
+          }
+        } else if (returnType instanceof FunctionType) {
           Type innerReturnType = ((FunctionType) returnType).getReturnType();
           if (innerReturnType != null) {
             return innerReturnType;
