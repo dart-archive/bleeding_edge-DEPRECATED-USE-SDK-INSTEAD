@@ -16,6 +16,54 @@ package com.google.dart.engine.resolver;
 import com.google.dart.engine.source.Source;
 
 public class NonErrorResolverTest extends ResolverTestCase {
+  public void test_ambiguousExport() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "export 'lib1.dart';",
+        "export 'lib2.dart';"));
+    addSource("/lib1.dart", "class M {}");
+    addSource("/lib2.dart", "class N {}");
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_ambiguousExport_combinators_hide() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "export 'lib1.dart';",
+        "export 'lib2.dart' hide B;"));
+    addSource("/lib1.dart", createSource(//
+        "library L1;",
+        "class A {}",
+        "class B {}"));
+    addSource("/lib2.dart", createSource(//
+        "library L2;",
+        "class B {}",
+        "class C {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_ambiguousExport_combinators_show() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "export 'lib1.dart';",
+        "export 'lib2.dart' show C;"));
+    addSource("/lib1.dart", createSource(//
+        "library L1;",
+        "class A {}",
+        "class B {}"));
+    addSource("/lib2.dart", createSource(//
+        "library L2;",
+        "class B {}",
+        "class C {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_argumentDefinitionTestNonParameter_formalParameter() throws Exception {
     Source source = addSource(createSource(//
         "f(var v) {",

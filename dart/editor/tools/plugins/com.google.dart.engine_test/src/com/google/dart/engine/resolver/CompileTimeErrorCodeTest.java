@@ -20,20 +20,6 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class CompileTimeErrorCodeTest extends ResolverTestCase {
-  public void fail_ambiguousExport() throws Exception {
-    Source source = addSource(createSource(//
-        "library L;",
-        "export 'lib1.dart';",
-        "export 'lib2.dart';"));
-    addSource("/lib1.dart", createSource(//
-        "class N {}"));
-    addSource("/lib2.dart", createSource(//
-        "class N {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.AMBIGUOUS_EXPORT);
-    verify(source);
-  }
-
   public void fail_compileTimeConstantRaisesException() throws Exception {
     Source source = addSource(createSource(//
     // TODO Find an expression that would raise an exception
@@ -674,6 +660,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    verify(source);
+  }
+
+  public void test_ambiguousExport() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "export 'lib1.dart';",
+        "export 'lib2.dart';"));
+    addSource("/lib1.dart", "class N {}");
+    addSource("/lib2.dart", "class N {}");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.AMBIGUOUS_EXPORT);
     verify(source);
   }
 

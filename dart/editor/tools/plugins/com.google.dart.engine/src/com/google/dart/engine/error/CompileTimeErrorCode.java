@@ -26,8 +26,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 14.2 Exports: It is a compile-time error if a name <i>N</i> is re-exported by a library
    * <i>L</i> and <i>N</i> is introduced into the export namespace of <i>L</i> by more than one
    * export.
+   * 
+   * @param ambiguousElementName the name of the ambiguous element
+   * @param firstLibraryName the name of the first library that the type is found
+   * @param secondLibraryName the name of the second library that the type is found
    */
-  AMBIGUOUS_EXPORT(""),
+  AMBIGUOUS_EXPORT("The element '%s' is defined in the libraries '%s' and '%s'"),
 
   /**
    * 14.1 Imports: If a name <i>N</i> is referenced by a library <i>L</i> and <i>N</i> is introduced
@@ -39,11 +43,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * <li>Otherwise, it is a compile-time error.
    * </ol>
    * 
-   * @param ambiguousTypeName the name of the ambiguous type
+   * @param ambiguousElementName the name of the ambiguous element
    * @param firstLibraryName the name of the first library that the type is found
    * @param secondLibraryName the name of the second library that the type is found
    */
-  AMBIGUOUS_IMPORT("The type '%s' is defined in the libraries '%s' and '%s'"),
+  AMBIGUOUS_IMPORT("The element '%s' is defined in the libraries '%s' and '%s'"),
 
   /**
    * 12.33 Argument Definition Test: It is a compile time error if <i>v</i> does not denote a formal

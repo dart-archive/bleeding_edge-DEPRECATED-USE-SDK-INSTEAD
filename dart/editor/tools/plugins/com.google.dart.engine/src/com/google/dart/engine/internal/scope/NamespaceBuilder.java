@@ -48,6 +48,27 @@ public class NamespaceBuilder {
   }
 
   /**
+   * Create a namespace representing the export namespace of the given {@link ExportElement}.
+   * 
+   * @param element the export element whose export namespace is to be created
+   * @return the export namespace that was created
+   */
+  public Namespace createExportNamespace(ExportElement element) {
+    LibraryElement exportedLibrary = element.getExportedLibrary();
+    if (exportedLibrary == null) {
+      //
+      // The exported library will be null if the URI does not reference a valid library.
+      //
+      return Namespace.EMPTY;
+    }
+    HashMap<String, Element> definedNames = createExportMapping(
+        exportedLibrary,
+        new HashSet<LibraryElement>());
+    definedNames = apply(definedNames, element.getCombinators());
+    return new Namespace(definedNames);
+  }
+
+  /**
    * Create a namespace representing the export namespace of the given library.
    * 
    * @param library the library whose export namespace is to be created

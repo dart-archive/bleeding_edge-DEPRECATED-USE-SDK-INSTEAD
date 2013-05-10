@@ -31,6 +31,7 @@ import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.DoStatement;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.ExtendsClause;
@@ -76,6 +77,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
@@ -91,6 +93,8 @@ import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
@@ -105,6 +109,7 @@ import com.google.dart.engine.type.TypeVariableType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * Instances of the class {@code ErrorVerifier} traverse an AST structure looking for additional
@@ -199,6 +204,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see #checkForAllFinalInitializedErrorCodes(ConstructorDeclaration)
    */
   private HashMap<FieldElement, INIT_STATE> initialFieldElementsMap;
+
+  /**
+   * A table mapping names to the export elements exported them.
+   */
+  private HashMap<String, ExportElement> exportedNames = new HashMap<String, ExportElement>();
 
   /**
    * A list of types used by the {@link CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS} and
@@ -323,6 +333,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitDoStatement(DoStatement node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitDoStatement(node);
+  }
+
+  @Override
+  public Void visitExportDirective(ExportDirective node) {
+    checkForAmbiguousExport(node);
+    return super.visitExportDirective(node);
   }
 
   @Override
@@ -815,6 +831,45 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
 
+    return false;
+  }
+
+  /**
+   * This verifies that the export namespace of the passed export directive does not export any name
+   * already exported by other export directive.
+   * 
+   * @param node the export directive node to report problem on
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#AMBIGUOUS_EXPORT
+   */
+  private boolean checkForAmbiguousExport(ExportDirective node) {
+    // prepare ExportElement
+    if (!(node.getElement() instanceof ExportElement)) {
+      return false;
+    }
+    ExportElement exportElement = (ExportElement) node.getElement();
+    // prepare exported library
+    LibraryElement exportedLibrary = exportElement.getExportedLibrary();
+    if (exportedLibrary == null) {
+      return false;
+    }
+    // check exported names
+    Namespace namespace = new NamespaceBuilder().createExportNamespace(exportElement);
+    Set<String> newNames = namespace.getDefinedNames().keySet();
+    for (String name : newNames) {
+      ExportElement prevElement = exportedNames.get(name);
+      if (prevElement != null && prevElement != exportElement) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+            node,
+            name,
+            prevElement.getExportedLibrary().getDefiningCompilationUnit().getDisplayName(),
+            exportedLibrary.getDefiningCompilationUnit().getDisplayName());
+        return true;
+      } else {
+        exportedNames.put(name, exportElement);
+      }
+    }
     return false;
   }
 
