@@ -114,6 +114,16 @@ public abstract class Scope {
   }
 
   /**
+   * Add the given element to this scope without checking for duplication or hiding.
+   * 
+   * @param name the name of the element to be added
+   * @param element the element to be added to this scope
+   */
+  protected void defineWithoutChecking(String name, Element element) {
+    definedNames.put(name, element);
+  }
+
+  /**
    * Return the element representing the library in which this scope is enclosed.
    * 
    * @return the element representing the library in which this scope is enclosed

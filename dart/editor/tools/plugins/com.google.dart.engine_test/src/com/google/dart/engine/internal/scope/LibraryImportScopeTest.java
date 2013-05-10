@@ -33,6 +33,9 @@ import com.google.dart.engine.resolver.ResolverTestCase;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.typeName;
+import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.importFor;
+import static com.google.dart.engine.element.ElementFactory.prefix;
 
 public class LibraryImportScopeTest extends ResolverTestCase {
   public void test_conflictingImports() {
@@ -40,22 +43,20 @@ public class LibraryImportScopeTest extends ResolverTestCase {
     String typeNameA = "A";
     String typeNameB = "B";
     String typeNameC = "C";
-    ClassElement typeA = new ClassElementImpl(identifier(typeNameA));
-    ClassElement typeB1 = new ClassElementImpl(identifier(typeNameB));
-    ClassElement typeB2 = new ClassElementImpl(identifier(typeNameB));
-    ClassElement typeC = new ClassElementImpl(identifier(typeNameC));
+    ClassElement typeA = classElement(typeNameA);
+    ClassElement typeB1 = classElement(typeNameB);
+    ClassElement typeB2 = classElement(typeNameB);
+    ClassElement typeC = classElement(typeNameC);
 
     LibraryElement importedLibrary1 = createTestLibrary(context, "imported1");
     ((CompilationUnitElementImpl) importedLibrary1.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
         typeA, typeB1});
-    ImportElementImpl import1 = new ImportElementImpl();
-    import1.setImportedLibrary(importedLibrary1);
+    ImportElementImpl import1 = importFor(importedLibrary1, null);
 
     LibraryElement importedLibrary2 = createTestLibrary(context, "imported2");
     ((CompilationUnitElementImpl) importedLibrary2.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
         typeB2, typeC});
-    ImportElementImpl import2 = new ImportElementImpl();
-    import2.setImportedLibrary(importedLibrary2);
+    ImportElementImpl import2 = importFor(importedLibrary2, null);
 
     LibraryElementImpl importingLibrary = createTestLibrary(context, "importing");
     importingLibrary.setImports(new ImportElement[] {import1, import2});
@@ -124,5 +125,35 @@ public class LibraryImportScopeTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new LibraryImportScope(definingLibrary, errorListener);
     assertEquals(errorListener, scope.getErrorListener());
+  }
+
+  public void test_prefixedAndNonPrefixed() {
+    AnalysisContext context = new AnalysisContextImpl();
+    String typeName = "C";
+    String prefixName = "p";
+    ClassElement prefixedType = classElement(typeName);
+    ClassElement nonPrefixedType = classElement(typeName);
+
+    LibraryElement prefixedLibrary = createTestLibrary(context, "import.prefixed");
+    ((CompilationUnitElementImpl) prefixedLibrary.getDefiningCompilationUnit()).setTypes(new ClassElement[] {prefixedType});
+    ImportElementImpl prefixedImport = importFor(prefixedLibrary, prefix(prefixName));
+
+    LibraryElement nonPrefixedLibrary = createTestLibrary(context, "import.nonPrefixed");
+    ((CompilationUnitElementImpl) nonPrefixedLibrary.getDefiningCompilationUnit()).setTypes(new ClassElement[] {nonPrefixedType});
+    ImportElementImpl nonPrefixedImport = importFor(nonPrefixedLibrary, null);
+
+    LibraryElementImpl importingLibrary = createTestLibrary(context, "importing");
+    importingLibrary.setImports(new ImportElement[] {prefixedImport, nonPrefixedImport});
+
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    Scope scope = new LibraryImportScope(importingLibrary, errorListener);
+
+    Element prefixedElement = scope.lookup(identifier(prefixName, typeName), importingLibrary);
+    errorListener.assertNoErrors();
+    assertSame(prefixedType, prefixedElement);
+
+    Element nonPrefixedElement = scope.lookup(identifier(typeName), importingLibrary);
+    errorListener.assertNoErrors();
+    assertSame(nonPrefixedType, nonPrefixedElement);
   }
 }

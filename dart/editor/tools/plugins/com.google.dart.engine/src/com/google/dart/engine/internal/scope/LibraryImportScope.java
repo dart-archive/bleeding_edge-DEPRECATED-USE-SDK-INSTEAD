@@ -179,7 +179,7 @@ public class LibraryImportScope extends Scope {
       return foundElement;
     }
     if (foundElement != null) {
-      defineWithoutChecking(foundElement);
+      defineWithoutChecking(name, foundElement);
     }
     return foundElement;
   }
