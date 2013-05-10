@@ -173,6 +173,16 @@ public enum StaticWarningCode implements ErrorCode {
       "The parameter type '%s' is incompatable with the field type '%s'"),
 
   /**
+   * 14.1 Imports: It is a static warning to import two different libraries with the same name.
+   * 
+   * @param uri1 the uri pointing to a first library
+   * @param uri2 the uri pointing to a second library
+   * @param name the shared name of the imported libraries
+   */
+  IMPORT_DUPLICATED_LIBRARY_NAME(
+      "The different imported libraries '%s' and '%s' should not have the same name '%s'"),
+
+  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;
    * n</i>.
    */

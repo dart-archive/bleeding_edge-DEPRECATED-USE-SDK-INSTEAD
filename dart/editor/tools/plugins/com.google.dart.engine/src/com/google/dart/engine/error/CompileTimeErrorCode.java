@@ -372,11 +372,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   IMPLEMENTS_SELF("'%s' cannot implement itself"),
 
   /**
-   * 14.1 Imports: It is a compile-time error to import two different libraries with the same name.
-   */
-  IMPORT_DUPLICATED_LIBRARY_NAME(""),
-
-  /**
    * 14.1 Imports: It is a compile-time error if the compilation unit found at the specified URI is
    * not a library declaration.
    * 

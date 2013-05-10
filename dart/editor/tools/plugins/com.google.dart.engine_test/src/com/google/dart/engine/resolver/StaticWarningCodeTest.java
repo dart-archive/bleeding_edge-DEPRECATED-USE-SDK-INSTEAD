@@ -423,8 +423,12 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  N m() {}",
         "}",
         "class B<T extends N> {}"));
-    addSource("/lib1.dart", "class N {}");
-    addSource("/lib2.dart", "class N {}");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}"));
     resolve(source);
     assertErrors(
         StaticWarningCode.AMBIGUOUS_IMPORT,
@@ -442,8 +446,12 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "import 'lib2.dart';",
         "class A<T> {}",
         "A<N> f() {}"));
-    addSource("/lib1.dart", "class N {}");
-    addSource("/lib2.dart", "class N {}");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}"));
     resolve(source);
     assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT);
   }
@@ -549,6 +557,18 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.FIELD_INITIALIZER_WITH_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_importDuplicatedLibraryName() throws Exception {
+    Source source = addSource(createSource(//
+        "library test;",
+        "import 'lib1.dart';",
+        "import 'lib2.dart';"));
+    addSource("/lib1.dart", "library lib;");
+    addSource("/lib2.dart", "library lib;");
+    resolve(source);
+    assertErrors(StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME);
     verify(source);
   }
 

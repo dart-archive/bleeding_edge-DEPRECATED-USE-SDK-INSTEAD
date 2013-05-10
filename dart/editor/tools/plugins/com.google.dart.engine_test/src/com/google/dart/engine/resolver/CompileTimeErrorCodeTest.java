@@ -187,20 +187,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_importDuplicatedLibraryName() throws Exception {
-    Source source = addSource(createSource(//
-        "library test;",
-        "import 'lib1.dart';",
-        "import 'lib2.dart';"));
-    addSource("/lib1.dart", createSource(//
-        "library lib;"));
-    addSource("/lib2.dart", createSource(//
-        "library lib;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPORT_DUPLICATED_LIBRARY_NAME);
-    verify(source);
-  }
-
   public void fail_invalidFactoryNameNotAClass() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -668,8 +654,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library L;",
         "export 'lib1.dart';",
         "export 'lib2.dart';"));
-    addSource("/lib1.dart", "class N {}");
-    addSource("/lib2.dart", "class N {}");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_EXPORT);
     verify(source);
@@ -680,8 +670,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "f(p) {p as N}"));
-    addSource("/lib1.dart", "class N {}");
-    addSource("/lib2.dart", "class N {}");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
   }
@@ -691,8 +685,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "class A extends N {}"));
-    addSource("/lib1.dart", "class N {}");
-    addSource("/lib2.dart", "class N {}");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT, CompileTimeErrorCode.EXTENDS_NON_CLASS);
   }
@@ -702,8 +700,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "g() { return f(); }"));
-    addSource("/lib1.dart", "f() {}");
-    addSource("/lib2.dart", "f() {}");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "f() {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "f() {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT, StaticTypeWarningCode.UNDEFINED_FUNCTION);
   }
@@ -713,8 +715,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "class A implements N {}"));
-    addSource("/lib1.dart", "class N {}");
-    addSource("/lib2.dart", "class N {}");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT, CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
   }
@@ -725,8 +731,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "f() {new N();}"));
-    addSource("/lib1.dart", "class N {}");
-    addSource("/lib2.dart", "class N {}");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
   }
@@ -736,8 +746,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "f(p) {p is N}"));
-    addSource("/lib1.dart", "class N {}");
-    addSource("/lib2.dart", "class N {}");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
   }
@@ -747,8 +761,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "g() { N.FOO; }"));
-    addSource("/lib1.dart", "class N {}");
-    addSource("/lib2.dart", "class N {}");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
   }
@@ -759,8 +777,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib2.dart';",
         "class A<T> {}",
         "f() {new A<N>()}"));
-    addSource("/lib1.dart", "class N {}");
-    addSource("/lib2.dart", "class N {}");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class N {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
   }
@@ -771,8 +793,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib2.dart';",
         "f() { g(v); }",
         "g(p) {}"));
-    addSource("/lib1.dart", "var v;");
-    addSource("/lib2.dart", "var v;");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "var v;"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "var v;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
   }
@@ -782,8 +808,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "f() { v = 0; }"));
-    addSource("/lib1.dart", "var v;");
-    addSource("/lib2.dart", "var v;");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "var v;"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "var v;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
   }

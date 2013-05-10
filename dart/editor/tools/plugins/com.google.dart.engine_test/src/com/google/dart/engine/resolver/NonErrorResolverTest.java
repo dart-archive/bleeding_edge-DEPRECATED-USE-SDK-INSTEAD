@@ -408,6 +408,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_importDuplicatedLibraryName() throws Exception {
+    Source source = addSource(createSource(//
+        "library test;",
+        "import 'lib.dart';",
+        "import 'lib.dart';"));
+    addSource("/lib.dart", "library lib;");
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_importOfNonLibrary_libraryDeclared() throws Exception {
     Source source = addSource(createSource(//
         "library lib;",

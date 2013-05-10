@@ -45,6 +45,7 @@ import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
@@ -79,6 +80,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -204,6 +206,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see #checkForAllFinalInitializedErrorCodes(ConstructorDeclaration)
    */
   private HashMap<FieldElement, INIT_STATE> initialFieldElementsMap;
+
+  /**
+   * A table mapping name of the library to the import directive which import this library.
+   */
+  private HashMap<String, LibraryElement> nameToImportElement = new HashMap<String, LibraryElement>();
 
   /**
    * A table mapping names to the export elements exported them.
@@ -404,6 +411,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitImplementsClause(ImplementsClause node) {
     checkForImplementsDisallowedClass(node);
     return super.visitImplementsClause(node);
+  }
+
+  @Override
+  public Void visitImportDirective(ImportDirective node) {
+    checkForImportDuplicateLibraryName(node);
+    return super.visitImportDirective(node);
   }
 
   @Override
@@ -1378,6 +1391,46 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     }
     return foundError;
+  }
+
+  /**
+   * This verifies the passed import has unique name among other imported libraries.
+   * 
+   * @param node the import directive to evaluate
+   * @param library the imported library
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#IMPORT_DUPLICATED_LIBRARY_NAME
+   */
+  private boolean checkForImportDuplicateLibraryName(ImportDirective node) {
+    // prepare import element
+    Element nodeElement = node.getElement();
+    if (!(nodeElement instanceof ImportElement)) {
+      return false;
+    }
+    ImportElement nodeImportElement = (ImportElement) nodeElement;
+    // prepare imported library
+    LibraryElement nodeLibrary = nodeImportElement.getImportedLibrary();
+    if (nodeLibrary == null) {
+      return false;
+    }
+    String name = nodeLibrary.getName();
+    // check if there is other imported library with the same name
+    LibraryElement prevLibrary = nameToImportElement.get(name);
+    if (prevLibrary != null) {
+      if (!prevLibrary.equals(nodeLibrary)) {
+        errorReporter.reportError(
+            StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME,
+            node,
+            prevLibrary.getDefiningCompilationUnit().getDisplayName(),
+            nodeLibrary.getDefiningCompilationUnit().getDisplayName(),
+            name);
+        return true;
+      }
+    } else {
+      nameToImportElement.put(name, nodeLibrary);
+    }
+    // OK
+    return false;
   }
 
   /**
