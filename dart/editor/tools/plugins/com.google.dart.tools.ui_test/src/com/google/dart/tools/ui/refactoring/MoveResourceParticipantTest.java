@@ -13,11 +13,13 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
-import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.engine.internal.index.AbstractDartTest;
+import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.MoveResourceParticipant;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant_OLD;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.refactoring.MoveSupport;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -32,16 +34,22 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 /**
  * Test for {@link MoveResourceParticipant}.
  */
-public final class MoveResourceParticipantTest extends RefactoringTest {
+public final class MoveResourceParticipantTest extends AbstractDartTest {
+  /**
+   * Waits for background build and moves the given {@link IFile}.
+   */
+  private static void buildAndMove(IFile file, IFolder destination) throws Exception {
+    RefactoringUtils.waitReadyForRefactoring();
+    moveFile(file, destination);
+  }
 
   /**
    * Moves given {@link IFile}.
    */
-  private static void moveUnit(CompilationUnit unit, IFolder destination) throws Exception {
+  private static void moveFile(IFile file, IFolder destination) throws Exception {
     IProgressMonitor pm = new NullProgressMonitor();
     RefactoringStatus status = new RefactoringStatus();
     // create Refactoring
-    IFile file = (IFile) unit.getResource();
     Refactoring refactoring = MoveSupport.createMoveRefactoring(
         status,
         new IResource[] {file},
@@ -54,6 +62,8 @@ public final class MoveResourceParticipantTest extends RefactoringTest {
     // all OK
     assertTrue(status.toString(), status.isOK());
   }
+
+  protected TestProject testProject;
 
   /**
    * Just for coverage of {@link RenameResourceParticipant_OLD} accessors.
@@ -71,19 +81,41 @@ public final class MoveResourceParticipantTest extends RefactoringTest {
     }
   }
 
+  /**
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=10492
+   */
+  public void test_importSdk() throws Exception {
+    IFolder destination = testProject.createFolder("aaa");
+    IFile fileA = setProjectFileContent(
+        "A.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'dart:io';",
+            ""));
+    // do move
+    buildAndMove(fileA, destination);
+    assertProjectFileContent(
+        "aaa/A.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'dart:io';",
+            ""));
+  }
+
   public void test_OK_noReferences() throws Exception {
     IFolder destination = testProject.createFolder("aaa");
-    CompilationUnit unitA = setUnitContent(
+    IFile fileA = setProjectFileContent(
         "A.dart",
-        formatLines(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library a;",
             ""));
     // do move
-    moveUnit(unitA, destination);
-    assertUnitContent(
-        testProject.getUnit("aaa/A.dart"),
-        formatLines(
+    buildAndMove(fileA, destination);
+    assertProjectFileContent(
+        "aaa/A.dart",
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library a;",
             ""));
@@ -91,32 +123,32 @@ public final class MoveResourceParticipantTest extends RefactoringTest {
 
   public void test_OK_reference_inImport() throws Exception {
     IFolder destination = testProject.createFolder("aaa");
-    setUnitContent(
+    setProjectFileContent(
         "A.dart",
-        formatLines(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library a;",
             "import 'B.dart';",
             ""));
-    CompilationUnit unitB = setUnitContent(
+    IFile fileB = setProjectFileContent(
         "B.dart",
-        formatLines(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library b;",
             "import 'A.dart';",
             ""));
     // do move
-    moveUnit(unitB, destination);
-    assertUnitContent(
-        testProject.getUnit("A.dart"),
-        formatLines(
+    buildAndMove(fileB, destination);
+    assertProjectFileContent(
+        "A.dart",
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library a;",
             "import 'aaa/B.dart';",
             ""));
-    assertUnitContent(
-        testProject.getUnit("aaa/B.dart"),
-        formatLines(
+    assertProjectFileContent(
+        "aaa/B.dart",
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library b;",
             "import '../A.dart';",
@@ -130,32 +162,32 @@ public final class MoveResourceParticipantTest extends RefactoringTest {
   public void test_OK_reference_inImport_inDeepFolder() throws Exception {
     IFolder destination = testProject.createFolder("aaa");
     testProject.createFolder("aaa/bbb");
-    setUnitContent(
+    setProjectFileContent(
         "aaa/bbb/A.dart",
-        formatLines(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library a;",
             "import 'B.dart';",
             ""));
-    CompilationUnit unitB = setUnitContent(
+    IFile fileB = setProjectFileContent(
         "aaa/bbb/B.dart",
-        formatLines(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library b;",
             "import 'A.dart';",
             ""));
     // do move
-    moveUnit(unitB, destination);
-    assertUnitContent(
-        testProject.getUnit("aaa/bbb/A.dart"),
-        formatLines(
+    buildAndMove(fileB, destination);
+    assertProjectFileContent(
+        "aaa/bbb/A.dart",
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library a;",
             "import '../B.dart';",
             ""));
-    assertUnitContent(
-        testProject.getUnit("aaa/B.dart"),
-        formatLines(
+    assertProjectFileContent(
+        "aaa/B.dart",
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library b;",
             "import 'bbb/A.dart';",
@@ -164,66 +196,88 @@ public final class MoveResourceParticipantTest extends RefactoringTest {
 
   public void test_OK_reference_inPart() throws Exception {
     IFolder destination = testProject.createFolder("aaa");
-    setUnitContent(
+    setProjectFileContent(
         "A.dart",
-        formatLines(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library a;",
             "part 'B.dart';",
             ""));
-    CompilationUnit unitB = setUnitContent(
+    IFile fileB = setProjectFileContent(
         "B.dart",
-        formatLines(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
+            "part of a;",
             "void foo() {}",
             ""));
     // do move
-    moveUnit(unitB, destination);
-    assertUnitContent(
-        testProject.getUnit("A.dart"),
-        formatLines(
+    buildAndMove(fileB, destination);
+    assertProjectFileContent(
+        "A.dart",
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library a;",
             "part 'aaa/B.dart';",
             ""));
-    assertUnitContent(
-        testProject.getUnit("aaa/B.dart"),
-        formatLines(
+    assertProjectFileContent(
+        "aaa/B.dart",
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
+            "part of a;",
             "void foo() {}",
             ""));
   }
 
   public void test_OK_reference_toPart() throws Exception {
     IFolder destination = testProject.createFolder("aaa");
-    setUnitContent(
+    setProjectFileContent(
         "A.dart",
-        formatLines(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
+            "part of b;",
             "void foo() {}",
             ""));
-    CompilationUnit unitB = setUnitContent(
+    IFile fileB = setProjectFileContent(
         "B.dart",
-        formatLines(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library b;",
             "part 'A.dart';",
             ""));
     // do move
-    moveUnit(unitB, destination);
-    assertUnitContent(
-        testProject.getUnit("A.dart"),
-        formatLines(
+    buildAndMove(fileB, destination);
+    assertProjectFileContent(
+        "A.dart",
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
+            "part of b;",
             "void foo() {}",
             ""));
-    assertUnitContent(
-        testProject.getUnit("aaa/B.dart"),
-        formatLines(
+    assertProjectFileContent(
+        "aaa/B.dart",
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library b;",
             "part '../A.dart';",
             ""));
   }
 
+  @Override
+  protected void setUp() throws Exception {
+    testProject = new TestProject();
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    testProject.dispose();
+    testProject = null;
+  }
+
+  private void assertProjectFileContent(String path, String expectedContent) throws Exception {
+    assertEquals(expectedContent, testProject.getFileString(path));
+  }
+
+  private IFile setProjectFileContent(String path, String content) throws Exception {
+    return testProject.setFileContent(path, content);
+  }
 }

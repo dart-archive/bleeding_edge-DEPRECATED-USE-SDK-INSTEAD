@@ -56,7 +56,9 @@ public class RefactoringUtils {
     } catch (Throwable ie) {
       return false;
     } finally {
-      focusControl.setFocus();
+      if (focusControl != null) {
+        focusControl.setFocus();
+      }
     }
   }
 
@@ -65,8 +67,7 @@ public class RefactoringUtils {
    * 
    * @throws OperationCanceledException if {@link IProgressMonitor} was cancelled.
    */
-  public static void waitReadyForRefactoring(IProgressMonitor pm)
-      throws OperationCanceledException {
+  public static void waitReadyForRefactoring(IProgressMonitor pm) throws OperationCanceledException {
     pm.beginTask("Waiting for background analysis...", IProgressMonitor.UNKNOWN);
     // builder
     try {

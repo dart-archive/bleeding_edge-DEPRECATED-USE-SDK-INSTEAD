@@ -25,6 +25,7 @@ import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -113,6 +114,9 @@ public class TestProject {
         try {
           IProjectDescription description = workspace.newProjectDescription(projectName);
           description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
+          ICommand command = description.newCommand();
+          command.setBuilderName(DartCore.DART_BUILDER_ID);
+          description.setBuildSpec(new ICommand[] {command});
           project.create(description, latch);
           latch.await();
 

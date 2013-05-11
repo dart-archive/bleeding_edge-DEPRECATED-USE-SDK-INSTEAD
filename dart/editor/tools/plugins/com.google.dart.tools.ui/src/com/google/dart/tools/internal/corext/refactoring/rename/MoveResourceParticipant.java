@@ -17,6 +17,7 @@ import com.google.common.base.Objects;
 import com.google.dart.compiler.util.apache.FilenameUtils;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -58,6 +59,7 @@ import org.eclipse.text.edits.TextEdit;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 /**
@@ -77,6 +79,22 @@ public class MoveResourceParticipant extends MoveParticipant {
       return new File(fileBasedSource.getFullName()).getAbsoluteFile();
     }
     return null;
+  }
+
+  /**
+   * @return {@code true} if we can prove that the given URI is relative, so should be updated.
+   */
+  private static boolean isRelativeUri(StringLiteral uriNode) {
+    if (uriNode instanceof SimpleStringLiteral) {
+      String uriString = ((SimpleStringLiteral) uriNode).getValue();
+      try {
+        URI uri = new URI(uriString);
+        return !uri.isAbsolute();
+      } catch (URISyntaxException e) {
+        return false;
+      }
+    }
+    return false;
   }
 
   private final TextChangeManager changeManager = new TextChangeManager();
@@ -211,6 +229,9 @@ public class MoveResourceParticipant extends MoveParticipant {
           for (Directive directive : fileUnit.getDirectives()) {
             if (directive instanceof UriBasedDirective) {
               StringLiteral uriNode = ((UriBasedDirective) directive).getUri();
+              if (!isRelativeUri(uriNode)) {
+                continue;
+              }
               Element targetElement = directive.getElement();
               if (targetElement instanceof ImportElement) {
                 targetElement = ((ImportElement) targetElement).getImportedLibrary();
