@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.HtmlScriptElement;
@@ -24,11 +25,9 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.EmbeddedHtmlScriptElementImpl;
 import com.google.dart.engine.internal.element.ExternalHtmlScriptElementImpl;
 import com.google.dart.engine.internal.element.HtmlElementImpl;
-import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.TestSource;
-import com.google.dart.engine.source.UriResolver;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
@@ -181,10 +180,8 @@ public class HtmlUnitBuilderTest extends EngineTestCase {
 
   @Override
   protected void setUp() throws Exception {
-    UriResolver fileResolver = new FileUriResolver();
-    sourceFactory = new SourceFactory(fileResolver);
-    context = new AnalysisContextImpl();
-    context.setSourceFactory(sourceFactory);
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
   }
 
   ExpectedLibrary l(ExpectedVariable... expectedVariables) {

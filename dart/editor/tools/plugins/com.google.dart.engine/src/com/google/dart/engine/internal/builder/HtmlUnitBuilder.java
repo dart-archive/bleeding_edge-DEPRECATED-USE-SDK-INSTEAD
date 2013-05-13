@@ -27,11 +27,11 @@ import com.google.dart.engine.html.ast.visitor.XmlVisitor;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.html.scanner.TokenType;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
-import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.EmbeddedHtmlScriptElementImpl;
 import com.google.dart.engine.internal.element.ExternalHtmlScriptElementImpl;
 import com.google.dart.engine.internal.element.HtmlElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.source.Source;
@@ -153,15 +153,16 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
 
         //TODO (danrubel): Move parsing embedded scripts into AnalysisContextImpl
         // so that clients such as builder can scan, parse, and get errors without resolving
-        Parser parser = new Parser(null, errorListener);
+        Parser parser = new Parser(htmlSource, errorListener);
         CompilationUnit unit = parser.parseCompilationUnit(firstToken);
         unit.setLineInfo(new LineInfo(lineStarts));
 
         try {
-          CompilationUnitBuilder builder = new CompilationUnitBuilder();
-          CompilationUnitElementImpl elem = builder.buildCompilationUnit(htmlSource, unit);
-          LibraryElementImpl library = new LibraryElementImpl(context, null);
-          library.setDefiningCompilationUnit(elem);
+          LibraryResolver resolver = new LibraryResolver(context);
+          LibraryElementImpl library = (LibraryElementImpl) resolver.resolveEmbeddedLibrary(
+              htmlSource,
+              unit,
+              true);
           script.setScriptLibrary(library);
         } catch (AnalysisException exception) {
           //TODO (danrubel): Handle or forward the exception

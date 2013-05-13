@@ -322,6 +322,16 @@ public class Library {
   }
 
   /**
+   * Set the AST structure associated with the defining compilation unit for this library to the
+   * given AST structure.
+   * 
+   * @param unit the AST structure associated with the defining compilation unit for this library
+   */
+  public void setDefiningCompilationUnit(CompilationUnit unit) {
+    astMap.put(getLibrarySource(), unit);
+  }
+
+  /**
    * Set whether this library explicitly imports core to match the given value.
    * 
    * @param explicitlyImportsCore {@code true} if this library explicitly imports core

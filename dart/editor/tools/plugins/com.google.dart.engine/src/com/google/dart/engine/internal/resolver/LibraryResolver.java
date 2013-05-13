@@ -160,38 +160,33 @@ public class LibraryResolver {
   }
 
   /**
-   * Resolve the library specified by the given source in the given context.
-   * <p>
-   * Note that because Dart allows circular imports between libraries, it is possible that more than
-   * one library will need to be resolved. In such cases the error listener can receive errors from
-   * multiple libraries.
+   * Resolve the library specified by the given source in the given context. The library is assumed
+   * to be embedded in the given source.
    * 
    * @param librarySource the source specifying the defining compilation unit of the library to be
    *          resolved
+   * @param unit the compilation unit representing the embedded library
    * @param fullAnalysis {@code true} if a full analysis should be performed
    * @return the element representing the resolved library
    * @throws AnalysisException if the library could not be resolved for some reason
    */
-  public LibraryElement resolveLibrary(Source librarySource, boolean fullAnalysis)
-      throws AnalysisException {
+  public LibraryElement resolveEmbeddedLibrary(Source librarySource, CompilationUnit unit,
+      boolean fullAnalysis) throws AnalysisException {
 
-    InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.LibraryResolver.resolveLibrary");
+    InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.LibraryResolver.resolveEmbeddedLibrary");
     try {
       instrumentation.metric("fullAnalysis", fullAnalysis);
       instrumentation.data("fullName", librarySource.getFullName());
-
       //
       // Create the objects representing the library being resolved and the core library.
       //
-      Library targetLibrary = createLibrary(librarySource);
+      Library targetLibrary = createLibrary(librarySource, unit);
       coreLibrary = libraryMap.get(coreLibrarySource);
       if (coreLibrary == null) {
         // This will be true unless the library being analyzed is the core library.
         coreLibrary = createLibrary(coreLibrarySource);
       }
-
       instrumentation.metric("createLibrary", "complete");
-
       //
       // Compute the set of libraries that need to be resolved together.
       //
@@ -222,7 +217,97 @@ public class LibraryResolver {
       typeProvider = new TypeProviderImpl(coreElement);
       buildTypeHierarchies();
       instrumentation.metric("buildTypeHierarchies", "complete");
+      //
+      // Perform resolution and type analysis.
+      //
+      // TODO(brianwilkerson) Decide whether we want to resolve all of the libraries or whether we
+      // want to only resolve the target library. The advantage to resolving everything is that we
+      // have already done part of the work so we'll avoid duplicated effort. The disadvantage of
+      // resolving everything is that we might do extra work that we don't really care about. Another
+      // possibility is to add a parameter to this method and punt the decision to the clients.
+      //
+      //if (analyzeAll) {
+      resolveReferencesAndTypes();
+      instrumentation.metric("resolveReferencesAndTypes", "complete");
+      //} else {
+      //  resolveReferencesAndTypes(targetLibrary);
+      //}
+      performConstantEvaluation();
+      instrumentation.metric("performConstantEvaluation", "complete");
+      if (fullAnalysis) {
+        //
+        // Run additional analyses, such as constant expression analysis.
+        //
+        runAdditionalAnalyses();
+        instrumentation.metric("runAdditionalAnalyses", "complete");
+      }
+      recordResults();
+      instrumentation.metric("recordResults", "complete");
+      return targetLibrary.getLibraryElement();
+    } finally {
+      instrumentation.log();
+    }
+  }
 
+  /**
+   * Resolve the library specified by the given source in the given context.
+   * <p>
+   * Note that because Dart allows circular imports between libraries, it is possible that more than
+   * one library will need to be resolved. In such cases the error listener can receive errors from
+   * multiple libraries.
+   * 
+   * @param librarySource the source specifying the defining compilation unit of the library to be
+   *          resolved
+   * @param fullAnalysis {@code true} if a full analysis should be performed
+   * @return the element representing the resolved library
+   * @throws AnalysisException if the library could not be resolved for some reason
+   */
+  public LibraryElement resolveLibrary(Source librarySource, boolean fullAnalysis)
+      throws AnalysisException {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.LibraryResolver.resolveLibrary");
+    try {
+      instrumentation.metric("fullAnalysis", fullAnalysis);
+      instrumentation.data("fullName", librarySource.getFullName());
+      //
+      // Create the objects representing the library being resolved and the core library.
+      //
+      Library targetLibrary = createLibrary(librarySource);
+      coreLibrary = libraryMap.get(coreLibrarySource);
+      if (coreLibrary == null) {
+        // This will be true unless the library being analyzed is the core library.
+        coreLibrary = createLibrary(coreLibrarySource);
+      }
+      instrumentation.metric("createLibrary", "complete");
+      //
+      // Compute the set of libraries that need to be resolved together.
+      //
+      computeLibraryDependencies(targetLibrary);
+      librariesInCycles = computeLibrariesInCycles(targetLibrary);
+      //
+      // Build the element models representing the libraries being resolved. This is done in three
+      // steps:
+      //
+      // 1. Build the basic element models without making any connections between elements other than
+      //    the basic parent/child relationships. This includes building the elements representing the
+      //    libraries.
+      // 2. Build the elements for the import and export directives. This requires that we have the
+      //    elements built for the referenced libraries, but because of the possibility of circular
+      //    references needs to happen after all of the library elements have been created.
+      // 3. Build the rest of the type model by connecting superclasses, mixins, and interfaces. This
+      //    requires that we be able to compute the names visible in the libraries being resolved,
+      //    which in turn requires that we have resolved the import directives.
+      //
+      buildElementModels();
+      instrumentation.metric("buildElementModels", "complete");
+      LibraryElement coreElement = coreLibrary.getLibraryElement();
+      if (coreElement == null) {
+        throw new AnalysisException("Could not resolve dart:core");
+      }
+      buildDirectiveModels();
+      instrumentation.metric("buildDirectiveModels", "complete");
+      typeProvider = new TypeProviderImpl(coreElement);
+      buildTypeHierarchies();
+      instrumentation.metric("buildTypeHierarchies", "complete");
       //
       // Perform resolution and type analysis.
       //
@@ -250,7 +335,6 @@ public class LibraryResolver {
       recordResults();
       instrumentation.metric("recordResults", "complete");
       instrumentation.metric("librariesInCycles", librariesInCycles.size());
-
       for (Library lib : librariesInCycles) {
         instrumentation.metric(
             "librariesInCycles-CompilationUnitSources-Size",
@@ -260,7 +344,6 @@ public class LibraryResolver {
       return targetLibrary.getLibraryElement();
     } finally {
       instrumentation.log();
-
     }
   }
 
@@ -564,6 +647,22 @@ public class LibraryResolver {
   private Library createLibrary(Source librarySource) throws AnalysisException {
     Library library = new Library(analysisContext, errorListener, librarySource);
     library.getDefiningCompilationUnit();
+    libraryMap.put(librarySource, library);
+    return library;
+  }
+
+  /**
+   * Create an object to represent the information about the library defined by the compilation unit
+   * with the given source.
+   * 
+   * @param librarySource the source of the library's defining compilation unit
+   * @return the library object that was created
+   * @throws AnalysisException if the library source is not valid
+   */
+  private Library createLibrary(Source librarySource, CompilationUnit unit)
+      throws AnalysisException {
+    Library library = new Library(analysisContext, errorListener, librarySource);
+    library.setDefiningCompilationUnit(unit);
     libraryMap.put(librarySource, library);
     return library;
   }
