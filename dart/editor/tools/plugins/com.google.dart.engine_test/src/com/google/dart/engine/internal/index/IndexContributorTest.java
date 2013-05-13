@@ -871,11 +871,6 @@ public class IndexContributorTest extends AbstractDartTest {
         new ExpectedLocation(mainElement, findOffset("myVar = 1"), ""));
   }
 
-  /**
-   * TODO(scheglov) enable this test after analyzer fix
-   * <p>
-   * https://code.google.com/p/dart/issues/detail?id=10521
-   */
   public void test_isReferencedBy_ImportElement_withPrefix() throws Exception {
     setFileContent(
         "Lib.dart",
@@ -1243,6 +1238,46 @@ public class IndexContributorTest extends AbstractDartTest {
         IndexConstants.IS_REFERENCED_BY_QUALIFIED,
         new ExpectedLocation(mainElement, findOffset("foo = 42"), "foo"));
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
+  public void test_isReferencedByQualified_PropertyAccessorElement_topLevelField() throws Exception {
+    setFileContent(
+        "Lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;",
+            "var myVar;"));
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'Lib.dart' as pref;",
+        "main() {",
+        "  pref.myVar = 1;",
+        "  print(pref.myVar);",
+        "}",
+        "");
+    // set elements
+    Element mainElement = findElement("main(");
+    ImportElement importElement = (ImportElement) findNode(
+        "import 'Lib.dart",
+        ImportDirective.class).getElement();
+    CompilationUnitElement impUnit = importElement.getImportedLibrary().getDefiningCompilationUnit();
+    TopLevelVariableElement myVar = impUnit.getTopLevelVariables()[0];
+    PropertyAccessorElement getter = myVar.getGetter();
+    PropertyAccessorElement setter = myVar.getSetter();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        setter,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, findOffset("myVar ="), "myVar"));
+    assertRecordedRelation(
+        relations,
+        getter,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, findOffset("myVar);"), "myVar"));
   }
 
   public void test_isReferencedByQualifiedResolved_NameElement_field() throws Exception {
