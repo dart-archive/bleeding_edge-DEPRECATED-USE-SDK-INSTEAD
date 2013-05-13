@@ -696,6 +696,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 7.9 Superclasses: It is a compile-time error to specify an extends clause for class Object.
    */
+  // Low priority- Object is provided by the SDK
   OBJECT_CANNOT_EXTEND_ANOTHER_CLASS(""),
 
   /**
@@ -794,12 +795,14 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 6.1 Function Declarations: It is a compile-time error to preface a function declaration with
    * the built-in identifier static.
    */
+  // Low priority- case caught by parser: ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION
   STATIC_TOP_LEVEL_FUNCTION(""),
 
   /**
    * 5 Variables: It is a compile-time error to preface a top level variable declaration with the
    * built-in identifier static.
    */
+  // Low priority- case caught by parser: ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION
   STATIC_TOP_LEVEL_VARIABLE(""),
 
   /**
@@ -816,6 +819,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
    * error if a generative constructor of class Object includes a superinitializer.
    */
+  // Low priority- Object is provided by the SDK
   SUPER_INITIALIZER_IN_OBJECT(""),
 
   /**
