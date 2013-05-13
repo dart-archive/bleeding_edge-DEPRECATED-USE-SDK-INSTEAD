@@ -18,13 +18,8 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.ui.ImportedDartLibraryContainer;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.resources.IFile;
@@ -198,30 +193,18 @@ public class GenerateJavascriptAction extends InstrumentedAction implements IWor
   }
 
   private IFile getCurrentLibrary() {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      LibraryElement library = getCurrentLibrary_newModel();
+    LibraryElement library = getLibraryElement();
 
-      if (library != null) {
-        ProjectManager manager = DartCore.getProjectManager();
+    if (library != null) {
+      ProjectManager manager = DartCore.getProjectManager();
 
-        return (IFile) manager.getResource(library.getDefiningCompilationUnit().getSource());
-      }
-    } else {
-      DartLibrary library = getCurrentLibrary_oldModel();
-
-      if (library != null) {
-        try {
-          return (IFile) library.getDefiningCompilationUnit().getCorrespondingResource();
-        } catch (DartModelException e) {
-
-        }
-      }
+      return (IFile) manager.getResource(library.getDefiningCompilationUnit().getSource());
     }
 
     return null;
   }
 
-  private LibraryElement getCurrentLibrary_newModel() {
+  private LibraryElement getLibraryElement() {
     ProjectManager manager = DartCore.getProjectManager();
 
     IResource resource = null;
@@ -256,49 +239,6 @@ public class GenerateJavascriptAction extends InstrumentedAction implements IWor
     }
 
     return null;
-  }
-
-  @Deprecated
-  private DartLibrary getCurrentLibrary_oldModel() {
-    IResource resource = null;
-    DartElement element = null;
-
-    if (selectedObject == null) {
-      IWorkbenchPage page = window.getActivePage();
-
-      if (page != null) {
-        IEditorPart part = page.getActiveEditor();
-
-        if (part != null) {
-          selectedObject = part.getEditorInput().getAdapter(IResource.class);
-        }
-      }
-    }
-
-    if (selectedObject instanceof IResource) {
-      resource = (IResource) selectedObject;
-    }
-
-    if (resource != null) {
-      element = DartCore.create(resource);
-    }
-
-    if (selectedObject instanceof DartElement) {
-      element = (DartElement) selectedObject;
-    }
-
-    if (selectedObject instanceof ImportedDartLibraryContainer) {
-      element = ((ImportedDartLibraryContainer) selectedObject).getDartLibrary();
-    }
-
-    if (element == null) {
-      return null;
-    } else {
-      // DartElement in a library
-      DartLibrary library = element.getAncestor(DartLibrary.class);
-
-      return library;
-    }
   }
 
   private void handleEditorActivated(IEditorPart editorPart) {

@@ -23,10 +23,6 @@ import org.eclipse.core.runtime.Platform;
  */
 public class DartCoreDebug {
 
-  // User flags
-
-  public static final String ENABLE_NEW_ANALYSIS_USER_FLAG = "new_analyzer";
-
   // Debugging / Tracing options  
 
   public static final boolean DEBUG_ANALYSIS = isOptionTrue("debug/analysis/server");
