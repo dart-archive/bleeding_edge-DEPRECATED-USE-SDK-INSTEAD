@@ -1249,25 +1249,34 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
    */
   private boolean checkForConstWithUndefinedConstructor(InstanceCreationExpression node) {
+    // OK if resolved
     if (node.getElement() != null) {
       return false;
     }
+    // prepare constructor name
     ConstructorName constructorName = node.getConstructorName();
     if (constructorName == null) {
       return false;
     }
+    // prepare class name
+    TypeName type = constructorName.getType();
+    if (type == null) {
+      return false;
+    }
+    Identifier className = type.getName();
+    // report as named or default constructor absence
     SimpleIdentifier name = constructorName.getName();
     if (name != null) {
       errorReporter.reportError(
           CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
-          node,
-          constructorName.getType(),
+          name,
+          className,
           name);
     } else {
       errorReporter.reportError(
           CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
-          node,
-          constructorName.getType());
+          constructorName,
+          className);
     }
     return true;
   }
@@ -1778,22 +1787,34 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see StaticWarningCode#NEW_WITH_UNDEFINED_CONSTRUCTOR
    */
   private boolean checkForNewWithUndefinedConstructor(InstanceCreationExpression node) {
+    // OK if resolved
     if (node.getElement() != null) {
       return false;
     }
+    // prepare constructor name
     ConstructorName constructorName = node.getConstructorName();
     if (constructorName == null) {
       return false;
     }
+    // prepare class name
     TypeName type = constructorName.getType();
+    if (type == null) {
+      return false;
+    }
+    Identifier className = type.getName();
+    // report as named or default constructor absence
     SimpleIdentifier name = constructorName.getName();
     if (name != null) {
-      errorReporter.reportError(StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, name, type, name);
+      errorReporter.reportError(
+          StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
+          name,
+          className,
+          name);
     } else {
       errorReporter.reportError(
           StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
           constructorName,
-          type);
+          className);
     }
     return true;
   }
