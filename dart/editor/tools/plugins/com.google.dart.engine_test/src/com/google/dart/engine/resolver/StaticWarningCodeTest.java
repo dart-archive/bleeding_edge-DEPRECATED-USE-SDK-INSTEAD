@@ -272,19 +272,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonTypeInCatchClause() throws Exception {
-    Source source = addSource(createSource(//
-        "var T = 0;",
-        "f(var p) {",
-        "  try {",
-        "  } on T catch e {",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE);
-    verify(source);
-  }
-
   public void fail_overrideNotSubtype() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -589,6 +576,31 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.NEW_WITH_NON_TYPE);
+    verify(source);
+  }
+
+  public void test_nonTypeInCatchClause_noElement() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  try {",
+        "  } on T catch e {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE);
+    verify(source);
+  }
+
+  public void test_nonTypeInCatchClause_notType() throws Exception {
+    Source source = addSource(createSource(//
+        "var T = 0;",
+        "f() {",
+        "  try {",
+        "  } on T catch e {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE);
     verify(source);
   }
 

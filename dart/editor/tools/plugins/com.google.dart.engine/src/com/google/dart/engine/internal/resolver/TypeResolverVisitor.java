@@ -445,6 +445,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
       SimpleIdentifier typeNameSimple = getTypeSimpleIdentifier(typeName);
       if (typeNameSimple.getName().equals("boolean")) {
         reportError(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple);
+      } else if (isTypeNameInCatchClause(node)) {
+        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, node, node);
       } else {
         reportError(StaticWarningCode.UNDEFINED_CLASS, typeNameSimple, typeNameSimple.getName());
       }
@@ -480,6 +482,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
     } else {
       // The name does not represent a type.
       // TODO(brianwilkerson) Report this error
+      if (isTypeNameInCatchClause(node)) {
+        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, node, node);
+      }
       setElement(typeName, dynamicType.getElement());
       typeName.setStaticType(dynamicType);
       node.setType(dynamicType);
@@ -705,6 +710,21 @@ public class TypeResolverVisitor extends ScopedVisitor {
     } else {
       return ((PrefixedIdentifier) typeName).getIdentifier();
     }
+  }
+
+  /**
+   * Checks if the given type name is used as the exception type in the catch clause.
+   * 
+   * @param typeName the type name to analyzer
+   * @return {@code true} if the given type name is used as the exception type in the catch clause.
+   */
+  private boolean isTypeNameInCatchClause(TypeName typeName) {
+    ASTNode parent = typeName.getParent();
+    if (parent instanceof CatchClause) {
+      CatchClause catchClause = (CatchClause) parent;
+      return catchClause.getExceptionType() == typeName;
+    }
+    return false;
   }
 
   /**

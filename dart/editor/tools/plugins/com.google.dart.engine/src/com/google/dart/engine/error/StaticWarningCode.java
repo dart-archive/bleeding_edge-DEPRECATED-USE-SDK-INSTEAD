@@ -280,12 +280,14 @@ public enum StaticWarningCode implements ErrorCode {
   NON_TYPE(""),
 
   /**
-   * 13.10 Try: An on-catch clause of the form <i>on T catch (p<sub>1</sub>, p<sub>2</sub>) s</i> or
+   * 13.11 Try: An on-catch clause of the form <i>on T catch (p<sub>1</sub>, p<sub>2</sub>) s</i> or
    * <i>on T s</i> matches an object <i>o</i> if the type of <i>o</i> is a subtype of <i>T</i>. It
    * is a static warning if <i>T</i> does not denote a type available in the lexical scope of the
    * catch clause.
+   * 
+   * @param name the name of the non-type element
    */
-  NON_TYPE_IN_CATCH_CLAUSE(""),
+  NON_TYPE_IN_CATCH_CLAUSE("The name '%s' is not a type and cannot be used in an on-catch clause"),
 
   /**
    * 7.1.1 Operators: It is a static warning if the return type of the user-declared operator []= is

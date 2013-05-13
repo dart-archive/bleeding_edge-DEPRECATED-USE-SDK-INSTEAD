@@ -760,6 +760,57 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonTypeInCatchClause_isClass() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  try {",
+        "  } on String catch e {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonTypeInCatchClause_isFunctionTypeAlias() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef F();",
+        "f() {",
+        "  try {",
+        "  } on F catch e {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonTypeInCatchClause_isTypeVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  f() {",
+        "    try {",
+        "    } on T catch e {",
+        "    }",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonTypeInCatchClause_noType() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  try {",
+        "  } catch e {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_nonVoidReturnForOperator_no() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
