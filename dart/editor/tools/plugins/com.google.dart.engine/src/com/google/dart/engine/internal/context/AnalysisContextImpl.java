@@ -493,34 +493,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public AnalysisErrorInfo getErrors(Source source) {
-    synchronized (cacheLock) {
-      SourceEntry sourceEntry = getSourceEntry(source);
-      if (sourceEntry instanceof DartEntry) {
-        DartEntry dartEntry = (DartEntry) sourceEntry;
-        return new AnalysisErrorInfoImpl(
-            dartEntry.getAllErrors(),
-            dartEntry.getValue(SourceEntry.LINE_INFO));
-      } else if (sourceEntry instanceof HtmlEntry) {
-        HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
-        return new AnalysisErrorInfoImpl(
-            htmlEntry.getValue(HtmlEntry.RESOLUTION_ERRORS),
-            htmlEntry.getValue(SourceEntry.LINE_INFO));
-      }
+    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    if (sourceEntry instanceof DartEntry) {
+      DartEntry dartEntry = (DartEntry) sourceEntry;
       return new AnalysisErrorInfoImpl(
-          AnalysisError.NO_ERRORS,
-          sourceEntry.getValue(SourceEntry.LINE_INFO));
+          dartEntry.getAllErrors(),
+          dartEntry.getValue(SourceEntry.LINE_INFO));
+    } else if (sourceEntry instanceof HtmlEntry) {
+      HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+      return new AnalysisErrorInfoImpl(
+          htmlEntry.getAllErrors(),
+          htmlEntry.getValue(SourceEntry.LINE_INFO));
     }
+    return new AnalysisErrorInfoImpl(AnalysisError.NO_ERRORS, null);
   }
 
   @Override
   public HtmlElement getHtmlElement(Source source) {
-    synchronized (cacheLock) {
-      SourceEntry sourceEntry = getSourceEntry(source);
-      if (sourceEntry instanceof HtmlEntry) {
-        return ((HtmlEntry) sourceEntry).getValue(HtmlEntry.ELEMENT);
-      }
-      return null;
+    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    if (sourceEntry instanceof HtmlEntry) {
+      return ((HtmlEntry) sourceEntry).getValue(HtmlEntry.ELEMENT);
     }
+    return null;
   }
 
   @Override
@@ -565,13 +559,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public SourceKind getKindOf(Source source) {
-    synchronized (cacheLock) {
-      SourceEntry sourceEntry = getSourceEntry(source);
-      if (sourceEntry == null) {
-        return SourceKind.UNKNOWN;
+    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    if (sourceEntry == null) {
+      if (AnalysisEngine.isHtmlFileName(source.getShortName())) {
+        return SourceKind.HTML;
       }
-      return sourceEntry.getKind();
+      return SourceKind.UNKNOWN;
     }
+    return sourceEntry.getKind();
   }
 
   @Override
@@ -628,13 +623,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public LibraryElement getLibraryElement(Source source) {
-    synchronized (cacheLock) {
-      SourceEntry sourceEntry = getSourceEntry(source);
-      if (sourceEntry instanceof DartEntry) {
-        return ((DartEntry) sourceEntry).getValue(DartEntry.ELEMENT);
-      }
-      return null;
+    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    if (sourceEntry instanceof DartEntry) {
+      return ((DartEntry) sourceEntry).getValue(DartEntry.ELEMENT);
     }
+    return null;
   }
 
   @Override
@@ -644,13 +637,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public LineInfo getLineInfo(Source source) {
-    synchronized (cacheLock) {
-      SourceEntry sourceEntry = getSourceEntry(source);
-      if (sourceEntry != null) {
-        return sourceEntry.getValue(SourceEntry.LINE_INFO);
-      }
-      return null;
+    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    if (sourceEntry != null) {
+      return sourceEntry.getValue(SourceEntry.LINE_INFO);
     }
+    return null;
   }
 
   @Override
@@ -710,14 +701,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public CompilationUnit getResolvedCompilationUnit(Source unitSource, Source librarySource) {
-    synchronized (cacheLock) {
-      accessed(unitSource);
-      DartEntry dartEntry = getDartEntry(unitSource);
-      if (dartEntry == null) {
-        return null;
-      }
-      return dartEntry.getValue(DartEntry.RESOLVED_UNIT, librarySource);
+    SourceEntry sourceEntry = getReadableSourceEntry(unitSource);
+    if (sourceEntry instanceof DartEntry) {
+      return ((DartEntry) sourceEntry).getValue(DartEntry.RESOLVED_UNIT, librarySource);
     }
+    return null;
   }
 
   @Override
@@ -727,15 +715,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public boolean isClientLibrary(Source librarySource) {
-    SourceEntry sourceEntry = getSourceEntry(librarySource);
+    SourceEntry sourceEntry = getReadableSourceEntry(librarySource);
     if (sourceEntry instanceof DartEntry) {
       DartEntry dartEntry = (DartEntry) sourceEntry;
-      CacheState isClientState = dartEntry.getState(DartEntry.IS_CLIENT);
-      CacheState isLaunchableState = dartEntry.getState(DartEntry.IS_LAUNCHABLE);
-      if (isClientState == CacheState.INVALID || isClientState == CacheState.ERROR
-          || isLaunchableState == CacheState.INVALID || isLaunchableState == CacheState.ERROR) {
-        return false;
-      }
       return dartEntry.getValue(DartEntry.IS_CLIENT) && dartEntry.getValue(DartEntry.IS_LAUNCHABLE);
     }
     return false;
@@ -743,15 +725,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public boolean isServerLibrary(Source librarySource) {
-    SourceEntry sourceEntry = getSourceEntry(librarySource);
+    SourceEntry sourceEntry = getReadableSourceEntry(librarySource);
     if (sourceEntry instanceof DartEntry) {
       DartEntry dartEntry = (DartEntry) sourceEntry;
-      CacheState isClientState = dartEntry.getState(DartEntry.IS_CLIENT);
-      CacheState isLaunchableState = dartEntry.getState(DartEntry.IS_LAUNCHABLE);
-      if (isClientState == CacheState.INVALID || isClientState == CacheState.ERROR
-          || isLaunchableState == CacheState.INVALID || isLaunchableState == CacheState.ERROR) {
-        return false;
-      }
       return !dartEntry.getValue(DartEntry.IS_CLIENT)
           && dartEntry.getValue(DartEntry.IS_LAUNCHABLE);
     }
@@ -870,14 +846,22 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public void recordResolutionErrors(Source source, Source librarySource, AnalysisError[] errors,
       LineInfo lineInfo) {
     synchronized (cacheLock) {
-      DartEntry dartEntry = getDartEntry(source);
-      if (dartEntry != null) {
+      SourceEntry sourceEntry = getSourceEntry(source);
+      if (sourceEntry instanceof DartEntry) {
+        DartEntry dartEntry = (DartEntry) sourceEntry;
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
         dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
         sourceMap.put(source, dartCopy);
+        getNotice(source).setErrors(dartEntry.getAllErrors(), lineInfo);
+      } else if (sourceEntry instanceof HtmlEntry) {
+        HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        htmlCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
+        htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, errors);
+        sourceMap.put(source, htmlCopy);
+        getNotice(source).setErrors(htmlEntry.getAllErrors(), lineInfo);
       }
-      getNotice(source).setErrors(dartEntry.getAllErrors(), lineInfo);
     }
   }
 
@@ -1316,6 +1300,19 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       pendingNotices.put(source, notice);
     }
     return notice;
+  }
+
+  /**
+   * Return the cache entry associated with the given source, or {@code null} if there is no entry
+   * associated with the source.
+   * 
+   * @param source the source for which a cache entry is being sought
+   * @return the source cache entry associated with the given source
+   */
+  private SourceEntry getReadableSourceEntry(Source source) {
+    synchronized (cacheLock) {
+      return sourceMap.get(source);
+    }
   }
 
   /**

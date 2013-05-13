@@ -20,6 +20,8 @@ import com.google.dart.engine.internal.context.CacheState;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 
+import java.util.ArrayList;
+
 /**
  * Instances of the class {@code HtmlEntryImpl} implement an {@link HtmlEntry}.
  * 
@@ -83,6 +85,21 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    */
   public HtmlEntryImpl() {
     super();
+  }
+
+  @Override
+  public AnalysisError[] getAllErrors() {
+    ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
+//    for (AnalysisError error : parseErrors) {
+//      errors.add(error);
+//    }
+    for (AnalysisError error : resolutionErrors) {
+      errors.add(error);
+    }
+    if (errors.size() == 0) {
+      return AnalysisError.NO_ERRORS;
+    }
+    return errors.toArray(new AnalysisError[errors.size()]);
   }
 
   @Override
