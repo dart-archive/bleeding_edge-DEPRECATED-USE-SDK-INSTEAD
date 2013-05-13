@@ -68,8 +68,8 @@ void wrappedRandomArray(Dart_Port dest_port_id,
     Dart_CObject* param1 = message->value.as_array.values[1];
     if (param0->type == Dart_CObject::kInt32 &&
         param1->type == Dart_CObject::kInt32) {
-      int length = param0->value.as_int32;
-      int seed = param1->value.as_int32;
+      int seed = param0->value.as_int32;
+      int length = param1->value.as_int32;
 
       uint8_t* values = randomArray(seed, length);
 

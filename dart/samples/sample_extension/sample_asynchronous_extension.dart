@@ -4,6 +4,7 @@
 
 library sample_asynchronous_extension;
 
+import 'dart:isolate';
 import 'dart-ext:sample_extension';
 
 // A class caches the native port used to call an asynchronous extension.
