@@ -329,8 +329,7 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
         "typedef Test = Object with A;",
-        "main() {",
-        "  Test t = new Test();",
+        "f(Test t) {",
         "}");
     // configure refactoring
     createRenameRefactoring("Test =");
@@ -341,8 +340,7 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
         "typedef NewName = Object with A;",
-        "main() {",
-        "  NewName t = new NewName();",
+        "f(NewName t) {",
         "}");
   }
 

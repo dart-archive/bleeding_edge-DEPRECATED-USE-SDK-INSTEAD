@@ -430,6 +430,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       if (node.isConst()) {
         checkForConstWithNonConst(node);
         checkForConstWithUndefinedConstructor(node);
+      } else {
+        checkForNewWithUndefinedConstructor(node);
       }
       // TODO(jwren) Email Luke to make this determination: Should we always call all checks, if not,
       // which order should they be called in?
@@ -1754,6 +1756,36 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * This verifies that the passed 'new' instance creation expression invokes existing constructor.
+   * <p>
+   * This method assumes that the instance creation was tested to be 'new' before being called.
+   * 
+   * @param node the instance creation expression to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#NEW_WITH_UNDEFINED_CONSTRUCTOR
+   */
+  private boolean checkForNewWithUndefinedConstructor(InstanceCreationExpression node) {
+    if (node.getElement() != null) {
+      return false;
+    }
+    ConstructorName constructorName = node.getConstructorName();
+    if (constructorName == null) {
+      return false;
+    }
+    TypeName type = constructorName.getType();
+    SimpleIdentifier name = constructorName.getName();
+    if (name != null) {
+      errorReporter.reportError(StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, name, type, name);
+    } else {
+      errorReporter.reportError(
+          StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          constructorName,
+          type);
+    }
+    return true;
   }
 
   /**

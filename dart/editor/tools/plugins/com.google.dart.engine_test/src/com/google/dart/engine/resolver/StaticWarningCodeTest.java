@@ -223,19 +223,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_newWithUndefinedConstructor() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  A(int p) {}",
-        "}",
-        "A f() {",
-        "  return new A();",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR);
-    verify(source);
-  }
-
   public void fail_nonAbstractClassInheritsAbstractMember() throws Exception {
     Source source = addSource(createSource(//
         "class I {",
@@ -576,6 +563,32 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.NEW_WITH_NON_TYPE);
+    verify(source);
+  }
+
+  public void test_newWithUndefinedConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {}",
+        "}",
+        "f() {",
+        "  new A.name();",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR);
+    // no verify(), 'name' is not resolved
+  }
+
+  public void test_newWithUndefinedConstructorDefault() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.name() {}",
+        "}",
+        "f() {",
+        "  new A();",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT);
     verify(source);
   }
 

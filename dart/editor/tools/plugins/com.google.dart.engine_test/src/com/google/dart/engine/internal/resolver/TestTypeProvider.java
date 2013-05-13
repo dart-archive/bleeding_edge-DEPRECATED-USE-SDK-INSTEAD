@@ -227,7 +227,7 @@ public class TestTypeProvider implements TypeProvider {
       ClassElementImpl objectElement = getObject();
       objectType = objectElement.getType();
       if (objectElement.getMethods().length == 0) {
-        objectElement.setConstructors(new ConstructorElement[] {constructorElement("Object")});
+        objectElement.setConstructors(new ConstructorElement[] {constructorElement(null)});
         objectElement.setMethods(new MethodElement[] {
             methodElement("toString", getStringType()), methodElement("==", boolType, objectType),
             methodElement("noSuchMethod", getDynamicType(), getDynamicType())});

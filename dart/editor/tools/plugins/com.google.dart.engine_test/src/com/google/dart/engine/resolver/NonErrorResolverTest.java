@@ -735,6 +735,32 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_newWithUndefinedConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.name() {}",
+        "}",
+        "f() {",
+        "  new A.name();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_newWithUndefinedConstructorDefault() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {}",
+        "}",
+        "f() {",
+        "  new A();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_nonBoolExpression_assert_bool() throws Exception {
     Source source = addSource(createSource(//
         "f() {",

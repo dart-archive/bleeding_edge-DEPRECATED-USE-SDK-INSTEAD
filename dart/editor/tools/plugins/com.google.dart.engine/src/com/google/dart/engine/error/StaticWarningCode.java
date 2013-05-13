@@ -258,7 +258,18 @@ public enum StaticWarningCode implements ErrorCode {
    * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
    * type <i>T</i> does not declare a constructor with the same name as the declaration of <i>T</i>.
    */
-  NEW_WITH_UNDEFINED_CONSTRUCTOR(""),
+  NEW_WITH_UNDEFINED_CONSTRUCTOR("The class '%s' does not have a constructor '%s'"),
+
+  /**
+   * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the current scope then:
+   * 1. If <i>e</i> is of the form <i>new T.id(a<sub>1</sub>, &hellip;, a<sub>n</sub>,
+   * x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a
+   * static warning if <i>T.id</i> is not the name of a constructor declared by the type <i>T</i>.
+   * If <i>e</i> of the form <i>new T(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>:
+   * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
+   * type <i>T</i> does not declare a constructor with the same name as the declaration of <i>T</i>.
+   */
+  NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT("The class '%s' does not have a default constructor"),
 
   /**
    * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
