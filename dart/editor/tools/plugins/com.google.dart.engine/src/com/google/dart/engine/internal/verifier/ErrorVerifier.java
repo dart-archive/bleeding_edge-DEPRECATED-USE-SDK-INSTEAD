@@ -734,7 +734,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (overriddenExecutable == null || overriddenExecutable.isSynthetic()) {
       return false;
     }
-    boolean foundError = false;
+    // INVALID_OVERRIDE_REQUIRED, INVALID_OVERRIDE_POSITIONAL and INVALID_OVERRIDE_NAMED
     int[] parameterKindCounts_method = countParameterKinds(executableElement.getParameters());
     int[] parameterKindCounts_overriddenMethod = countParameterKinds(overriddenExecutable.getParameters());
     if (parameterKindCounts_method[0] != parameterKindCounts_overriddenMethod[0]) {
@@ -743,7 +743,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           methodName,
           parameterKindCounts_overriddenMethod[0],
           overriddenExecutable.getEnclosingElement().getDisplayName());
-      foundError = true;
+      return true;
     }
     if (parameterKindCounts_method[1] < parameterKindCounts_overriddenMethod[1]) {
       errorReporter.reportError(
@@ -751,7 +751,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           methodName,
           parameterKindCounts_overriddenMethod[1],
           overriddenExecutable.getEnclosingElement().getDisplayName());
-      foundError = true;
+      return true;
     }
     if (parameterKindCounts_method[2] < parameterKindCounts_overriddenMethod[2]) {
       // TODO (jwren) This only catches a subset of this error code, we still need to check that
@@ -761,26 +761,36 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           methodName,
           parameterKindCounts_overriddenMethod[2],
           overriddenExecutable.getEnclosingElement().getDisplayName());
-      foundError = true;
+      return true;
     }
 
-//    TypeName returnTypeName = node.getReturnType();
-//    if (returnTypeName == null) {
-//      // TODO(jwren) Report error: 'int m()' is being overridden by 'm()'
-//      return false;
-//    }
-//    Type overridingType = returnTypeName.getType();
-//    Type overriddenType = overriddenExecutable.getType().getReturnType();
-//    if (overridingType != null && !overridingType.isSubtypeOf(overriddenType)) {
-//      errorReporter.reportError(
-//          StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE,
-//          methodName,
-//          methodName.getName(),
-//          overridingType.getName(),
-//          overriddenType.getName());
-//      foundError = true;
-//    }
-    return foundError;
+    // INVALID_OVERRIDE_RETURN_TYPE
+    TypeName returnTypeName = node.getReturnType();
+    if (returnTypeName == null) {
+      // TODO(jwren) Report error: 'int m()' is being overridden by 'm()'
+      return false;
+    }
+    FunctionType overriddenFunctionType = overriddenExecutable.getType();
+    FunctionType overridingFunctionType = executableElement.getType();
+    //Type overriddenReturnType = overriddenFunctionType.getReturnType();
+    //Type overridingReturnType = returnTypeName.getType();
+    InterfaceType enclosingType = enclosingClass.getType();
+    overriddenFunctionType = inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
+        overriddenFunctionType,
+        methodName.getName(),
+        enclosingType);
+
+    if (overriddenFunctionType != null && overridingFunctionType != null
+        && !overridingFunctionType.isSubtypeOf(overriddenFunctionType)) {
+      // TODO (jwren) Split error code for messaging, return type versus parameter violation
+      errorReporter.reportError(
+          StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE,
+          methodName,
+          methodName.getName(),
+          overriddenExecutable.getEnclosingElement().getDisplayName());
+      return true;
+    }
+    return false;
   }
 
   /**

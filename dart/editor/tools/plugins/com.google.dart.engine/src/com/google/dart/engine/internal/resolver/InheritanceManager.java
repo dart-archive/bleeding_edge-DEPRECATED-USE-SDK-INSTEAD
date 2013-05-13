@@ -18,12 +18,15 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map.Entry;
 
 /**
@@ -113,6 +116,44 @@ public class InheritanceManager {
   }
 
   /**
+   * This method takes some inherited {@link FunctionType}, and resolves all the parameterized types
+   * in the function type, dependent on the class in which it is being overridden.
+   * 
+   * @param baseFunctionType the function type that is being overridden
+   * @param memberName the name of the member, this is used to lookup the inheritance path of the
+   *          override
+   * @param definingType the type that is overriding the member
+   * @return the passed function type with any parameterized types substituted
+   */
+  public FunctionType substituteTypeArgumentsInMemberFromInheritance(FunctionType baseFunctionType,
+      String memberName, InterfaceType definingType) {
+    if (baseFunctionType == null) {
+      return baseFunctionType;
+    }
+    // TODO (jwren) add optimization: first check to see if the baseFunctionType has any
+    // parameterized types, if it doesn't have any, return the baseFuntionType
+
+    // First, generate the path from the defining type to the overridden member
+    LinkedList<InterfaceType> inheritancePath = new LinkedList<InterfaceType>();
+    computeInheritancePath(inheritancePath, definingType, memberName);
+
+    if (inheritancePath == null || inheritancePath.size() < 2) {
+      // TODO(jwren) log analysis engine error
+      return baseFunctionType;
+    }
+    FunctionType functionTypeToReturn = baseFunctionType;
+    // loop backward through the list substituting as we go:
+    InterfaceType lastType = inheritancePath.removeLast();
+    while (inheritancePath.size() > 0) {
+      Type[] paramTypes = TypeVariableTypeImpl.getTypes(lastType.getElement().getTypeVariables());
+      Type[] argTypes = lastType.getTypeArguments();
+      functionTypeToReturn = functionTypeToReturn.substitute(argTypes, paramTypes);
+      lastType = inheritancePath.removeLast();
+    }
+    return functionTypeToReturn;
+  }
+
+  /**
    * TODO (jwren) add missing javadoc
    * 
    * @param classElt
@@ -147,7 +188,6 @@ public class InheritanceManager {
         classLookup.put(superclassElt, resultMap);
         return resultMap;
       }
-
       // put the members from the superclass
       populateMapWithClassMembers(resultMap, superclassElt);
     }
@@ -162,6 +202,74 @@ public class InheritanceManager {
 
     classLookup.put(classElt, resultMap);
     return resultMap;
+  }
+
+  /**
+   * Compute and return the inheritance path given the context of a type and a member that is
+   * overridden in the inheritance path (for which the type is in the path).
+   * 
+   * @param chain the inheritance path that is built up as this method calls itself recursively,
+   *          when this method is called an empty {@link LinkedList} should be provided
+   * @param currentType the current type in the inheritance path
+   * @param memberName the name of the member that is being looked up the inheritance path
+   */
+  private void computeInheritancePath(LinkedList<InterfaceType> chain, InterfaceType currentType,
+      String memberName) {
+    // TODO (jwren) create a public version of this method which doesn't require the initial chain
+    // to be provided, then provided tests for this functionality in InheritanceManagerTest
+    chain.add(currentType);
+    ClassElement classElt = currentType.getElement();
+    InterfaceType supertype = classElt.getSupertype();
+    // Base case- reached Object
+    if (supertype == null) {
+      // Looked up the chain all the way to Object, return null.
+      // This should never happen.
+      return;
+    }
+
+    // If we are done, return the chain
+    // We are not done if this is the first recursive call on this method.
+    if (chain.size() != 1) {
+      // We are done however if the member is in this classElt
+      if (lookupMemberInClass(classElt, memberName) != null) {
+        return;
+      }
+    }
+
+    // Otherwise, determine the next type (up the inheritance graph) to search for our member, start
+    // with the mixins, followed by the superclass, and finally the interfaces:
+
+    // Mixins- note that mixins call lookupMemberInClass, not lookupMember
+    InterfaceType[] mixins = classElt.getMixins();
+    for (int i = mixins.length - 1; i >= 0; i--) {
+      ClassElement mixinElement = mixins[i].getElement();
+      if (mixinElement != null) {
+        ExecutableElement elt = lookupMemberInClass(mixinElement, memberName);
+        if (elt != null) {
+          // this is equivalent (but faster than) calling this method recursively
+          // (return computeInheritancePath(chain, mixins[i], memberName);)
+          chain.add(mixins[i]);
+          return;
+        }
+      }
+    }
+
+    // Superclass
+    ClassElement superclassElt = supertype.getElement();
+    if (lookupMember(superclassElt, memberName) != null) {
+      computeInheritancePath(chain, supertype, memberName);
+      return;
+    }
+
+    // Interfaces
+    InterfaceType[] interfaces = classElt.getInterfaces();
+    for (InterfaceType interfaceType : interfaces) {
+      ClassElement interfaceElement = interfaceType.getElement();
+      if (interfaceElement != null && lookupMember(interfaceElement, memberName) != null) {
+        computeInheritancePath(chain, interfaceType, memberName);
+        return;
+      }
+    }
   }
 
   /**
@@ -309,7 +417,6 @@ public class InheritanceManager {
         }
       }
     }
-    resultMap = populateMapWithClassMembers(resultMap, classElt);
     interfaceLookup.put(classElt, resultMap);
     return resultMap;
   }

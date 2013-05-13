@@ -531,7 +531,61 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidOverrideReturnType_sameType() throws Exception {
+  public void test_invalidOverrideReturnType_returnType_interface() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "abstract class A {",
+        "  num m();",
+        "}",
+        "class B implements A {",
+        "  int m() { return 1; }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_returnType_interface2() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "abstract class A {",
+        "  num m();",
+        "}",
+        "abstract class B implements A {",
+        "}",
+        "class C implements B {",
+        "  int m() { return 1; }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_returnType_mixin() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  num m() { return 0; }",
+        "}",
+        "class B with A {",
+        "  int m() { return 1; }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_returnType_parameterizedTypes() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A<E> {",
+        "  List<E> m();",
+        "}",
+        "class B extends A<dynamic> {",
+        "  List<dynamic> m() { return new List<dynamic>(); }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_returnType_sameType() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
         "  int m() { return 0; }",
@@ -544,13 +598,41 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidOverrideReturnType_subclassType() throws Exception {
+  public void test_invalidOverrideReturnType_returnType_superclass() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
         "  num m() { return 0; }",
         "}",
         "class B extends A {",
         "  int m() { return 1; }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_returnType_superclass2() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  num m() { return 0; }",
+        "}",
+        "class B extends A {",
+        "}",
+        "class C extends B {",
+        "  int m() { return 1; }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_returnType_void() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void m() {}",
+        "}",
+        "class B extends A {",
+        "  int m() {}",
         "}"));
     resolve(source);
     assertNoErrors();

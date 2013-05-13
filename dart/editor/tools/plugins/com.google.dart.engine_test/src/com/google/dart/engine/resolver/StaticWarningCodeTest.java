@@ -177,19 +177,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invalidOverrideReturnType() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  int m() { return 0; }",
-        "}",
-        "class B extends A {",
-        "  String m() { return 'a'; }",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
-    verify(source);
-  }
-
   public void fail_invalidOverrideSetterReturnType() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -541,6 +528,88 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     addSource("/lib2.dart", "library lib;");
     resolve(source);
     assertErrors(StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME);
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_returnType_interface() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m() { return 0; }",
+        "}",
+        "class B implements A {",
+        "  String m() { return 'a'; }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_returnType_interface2() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  int m();",
+        "}",
+        "abstract class B implements A {",
+        "}",
+        "class C implements B {",
+        "  String m() { return 'a'; }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_returnType_mixin() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m() { return 0; }",
+        "}",
+        "class B with A {",
+        "  String m() { return 'a'; }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_returnType_superclass() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m() { return 0; }",
+        "}",
+        "class B extends A {",
+        "  String m() { return 'a'; }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_returnType_superclass2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m() { return 0; }",
+        "}",
+        "class B extends A {",
+        "}",
+        "class C extends B {",
+        "  String m() { return 'a'; }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidOverrideReturnType_returnType_void() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m() {}",
+        "}",
+        "class B extends A {",
+        "  void m() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
     verify(source);
   }
 
