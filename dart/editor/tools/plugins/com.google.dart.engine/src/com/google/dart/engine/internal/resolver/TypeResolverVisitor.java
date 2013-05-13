@@ -166,9 +166,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
     InterfaceType superclassType = null;
     ExtendsClause extendsClause = node.getExtendsClause();
     if (extendsClause != null) {
-      superclassType = resolveType(
-          extendsClause.getSuperclass(),
-          CompileTimeErrorCode.EXTENDS_NON_CLASS);
+      ErrorCode errorCode = node.getWithClause() == null ? CompileTimeErrorCode.EXTENDS_NON_CLASS
+          : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
+      superclassType = resolveType(extendsClause.getSuperclass(), errorCode);
       if (superclassType != getTypeProvider().getObjectType()) {
         classElement.setValidMixin(false);
       }
@@ -193,7 +193,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     ClassElementImpl classElement = getClassElement(node.getName());
     InterfaceType superclassType = resolveType(
         node.getSuperclass(),
-        CompileTimeErrorCode.EXTENDS_NON_CLASS);
+        CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
     if (superclassType == null) {
       superclassType = getTypeProvider().getObjectType();
     }

@@ -197,26 +197,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_mixinOfNonMixin() throws Exception {
-    // TODO(brianwilkerson) This might be covered by more specific errors.
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_OF_NON_MIXIN);
-    verify(source);
-  }
-
-  public void fail_mixinWithNonClassSuperclass() throws Exception {
-    // TODO(brianwilkerson) Compare with MIXIN_OF_NON_CLASS.
-    Source source = addSource(createSource(//
-        "int A;",
-        "class B extends Object mixin A {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
-    verify(source);
-  }
-
   public void fail_nonConstantDefaultValue_named() throws Exception {
     Source source = addSource(createSource(//
     "f({x : 2 + 3}) {}"));
@@ -1878,6 +1858,26 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends Object with A {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.MIXIN_REFERENCES_SUPER);
+    verify(source);
+  }
+
+  public void test_mixinWithNonClassSuperclass_class() throws Exception {
+    Source source = addSource(createSource(//
+        "int A;",
+        "class B {}",
+        "class C extends A with B {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
+    verify(source);
+  }
+
+  public void test_mixinWithNonClassSuperclass_typedef() throws Exception {
+    Source source = addSource(createSource(//
+        "int A;",
+        "class B {}",
+        "typedef C = A with B {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
     verify(source);
   }
 

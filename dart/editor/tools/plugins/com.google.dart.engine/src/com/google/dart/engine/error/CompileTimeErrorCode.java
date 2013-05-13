@@ -606,12 +606,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   MIXIN_OF_NON_CLASS("Classes can only mixin other classes"),
 
   /**
-   * 9.1 Mixin Application: If <i>M</i> is a class, it is a compile time error if a well formed
-   * mixin cannot be derived from <i>M</i>.
-   */
-  MIXIN_OF_NON_MIXIN(""), // TODO(brianwilkerson) This might be covered by more specific errors.
-
-  /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin refers to super.
    */
   MIXIN_REFERENCES_SUPER("The class '%s' cannot be used as a mixin because it references 'super'"),
@@ -620,7 +614,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 9.1 Mixin Application: It is a compile-time error if <i>S</i> does not denote a class available
    * in the immediately enclosing scope.
    */
-  MIXIN_WITH_NON_CLASS_SUPERCLASS(""),
+  MIXIN_WITH_NON_CLASS_SUPERCLASS("Mixin can only be applied to class"),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. Then <i>k</i> may
