@@ -62,6 +62,17 @@ public class OpenAction extends AbstractDartSelectionAction {
     setEnabled(isValidSelection(selection));
   }
 
+  public void updateLabel() {
+    //TODO (pquitslund): once there was logic here --- (re)assess and add back or remove
+//    ISelection selection = fEditor.createElementSelection();
+//    if (ActionUtil.isOpenDeclarationAvailable_OLD((DartElementSelection) selection)) {
+//      update(selection);
+//    } else {
+//      setText(ActionMessages.OpenAction_declaration_label);
+//      setEnabled(false);
+//    }
+  }
+
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {

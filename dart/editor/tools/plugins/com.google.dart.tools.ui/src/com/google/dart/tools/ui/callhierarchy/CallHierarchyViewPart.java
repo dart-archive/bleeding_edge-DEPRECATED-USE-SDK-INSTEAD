@@ -24,7 +24,7 @@ import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.actions.CCPActionGroup;
 import com.google.dart.tools.ui.actions.GenerateActionGroup;
-import com.google.dart.tools.ui.actions.OpenEditorActionGroup_OLD;
+import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
 import com.google.dart.tools.ui.internal.callhierarchy.CallHierarchy;
 import com.google.dart.tools.ui.internal.callhierarchy.CallLocation;
 import com.google.dart.tools.ui.internal.callhierarchy.MethodWrapper;
@@ -1198,7 +1198,7 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
 //        new SelectFieldModeAction(this, IJavaSearchConstants.READ_ACCESSES),
 //        new SelectFieldModeAction(this, IJavaSearchConstants.WRITE_ACCESSES)};
     actionGroups = new CompositeActionGroup(new ActionGroup[] {
-        new OpenEditorActionGroup_OLD(this), new CCPActionGroup(this), new GenerateActionGroup(this),
+        new OpenEditorActionGroup(this), new CCPActionGroup(this), new GenerateActionGroup(this),
         new DartSearchActionGroup_OLD(this), searchScopeActions, filtersActionGroup});
   }
 

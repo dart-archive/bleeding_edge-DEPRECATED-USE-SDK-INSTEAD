@@ -54,7 +54,7 @@ import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.DartdocActionGroup;
-import com.google.dart.tools.ui.actions.OpenEditorActionGroup_OLD;
+import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.actions.ShowSelectionLabelAction;
@@ -2864,7 +2864,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     ActionGroup oeg, ovg;
     ActionGroup dsg, ddg;
     fActionGroups = new CompositeActionGroup(new ActionGroup[] {
-        oeg = new OpenEditorActionGroup_OLD(this), ovg = new OpenViewActionGroup(this),
+        oeg = new OpenEditorActionGroup(this), ovg = new OpenViewActionGroup(this),
         dsg = new DartSearchActionGroup(this), ddg = new DartdocActionGroup(this)});
     fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
 

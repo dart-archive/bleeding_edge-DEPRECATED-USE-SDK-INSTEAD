@@ -43,10 +43,10 @@ import org.eclipse.ui.actions.OpenWithMenu;
  * 
  * @noextend This class is not intended to be subclassed by clients.
  */
-public class OpenEditorActionGroup_OLD extends ActionGroup {
+public class OpenEditorActionGroup extends ActionGroup {
 
   private boolean fIsEditorOwner;
-  private OpenAction_OLD fOpen;
+  private OpenAction fOpen;
   private ISelectionProvider fSelectionProvider;
   private IWorkbenchSite fSite;
 
@@ -56,9 +56,9 @@ public class OpenEditorActionGroup_OLD extends ActionGroup {
    * @param editor the Dart editor
    * @noreference This constructor is not intended to be referenced by clients.
    */
-  public OpenEditorActionGroup_OLD(DartEditor editor) {
+  public OpenEditorActionGroup(DartEditor editor) {
     fIsEditorOwner = true;
-    fOpen = new OpenAction_OLD(editor);
+    fOpen = new OpenAction(editor);
     fOpen.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
     fOpen.setId(DartEditorActionDefinitionIds.OPEN_EDITOR);
     editor.setAction("OpenEditor", fOpen); //$NON-NLS-1$
@@ -74,7 +74,7 @@ public class OpenEditorActionGroup_OLD extends ActionGroup {
    * 
    * @param part the view part that owns this action group
    */
-  public OpenEditorActionGroup_OLD(IViewPart part) {
+  public OpenEditorActionGroup(IViewPart part) {
     this(part.getSite(), null);
   }
 
@@ -86,9 +86,9 @@ public class OpenEditorActionGroup_OLD extends ActionGroup {
    * @param specialSelectionProvider the selection provider used instead of the site's selection
    *          provider.
    */
-  public OpenEditorActionGroup_OLD(IWorkbenchPartSite site, ISelectionProvider specialSelectionProvider) {
+  public OpenEditorActionGroup(IWorkbenchPartSite site, ISelectionProvider specialSelectionProvider) {
     fSite = site;
-    fOpen = new OpenAction_OLD(fSite);
+    fOpen = new OpenAction(fSite);
     fOpen.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
     fOpen.setId(DartEditorActionDefinitionIds.OPEN_EDITOR);
     fSelectionProvider = specialSelectionProvider == null ? fSite.getSelectionProvider()
@@ -99,27 +99,18 @@ public class OpenEditorActionGroup_OLD extends ActionGroup {
     }
   }
 
-  /*
-   * @see ActionGroup#dispose()
-   */
   @Override
   public void dispose() {
     fSelectionProvider.removeSelectionChangedListener(fOpen);
     super.dispose();
   }
 
-  /*
-   * (non-Javadoc) Method declared in ActionGroup
-   */
   @Override
   public void fillActionBars(IActionBars actionBar) {
     super.fillActionBars(actionBar);
     setGlobalActionHandlers(actionBar);
   }
 
-  /*
-   * (non-Javadoc) Method declared in ActionGroup
-   */
   @Override
   public void fillContextMenu(IMenuManager menu) {
     super.fillContextMenu(menu);

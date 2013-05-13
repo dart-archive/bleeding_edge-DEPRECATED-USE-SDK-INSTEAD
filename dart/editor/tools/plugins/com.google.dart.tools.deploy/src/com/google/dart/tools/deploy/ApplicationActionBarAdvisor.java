@@ -23,7 +23,7 @@ import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.GenerateDartdocAction;
 import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
-import com.google.dart.tools.ui.actions.OpenAction_OLD;
+import com.google.dart.tools.ui.actions.OpenAction;
 import com.google.dart.tools.ui.actions.OpenApiDocsAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
@@ -1224,7 +1224,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       SubContributionItem item = (SubContributionItem) manager.findUsingPath(DartEditorActionDefinitionIds.OPEN_EDITOR);
       ActionContributionItem inner = (ActionContributionItem) item.getInnerItem();
       RetargetTextEditorAction reaction = (RetargetTextEditorAction) inner.getAction();
-      OpenAction_OLD action = (OpenAction_OLD) ReflectionUtils.getFieldObject(reaction, "fAction");
+      OpenAction action = (OpenAction) ReflectionUtils.getFieldObject(reaction, "fAction");
       action.updateLabel();
     } catch (Exception ex) {
       // initialization order can cause exception

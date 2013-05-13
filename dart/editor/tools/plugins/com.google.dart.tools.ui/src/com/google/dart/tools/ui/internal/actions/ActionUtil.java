@@ -474,6 +474,7 @@ public class ActionUtil {
     return true;
   }
 
+  @Deprecated
   public static boolean isOpenDeclarationAvailable_OLD(DartElementSelection selection) {
     if (selection.toArray().length == 1) {
       com.google.dart.compiler.type.Type type;
