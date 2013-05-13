@@ -227,6 +227,65 @@ public class Parser {
   }
 
   /**
+   * Convert the given method declaration into the nearest valid top-level function declaration.
+   * 
+   * @param method the method to be converted
+   * @return the function declaration that most closely captures the components of the given method
+   *         declaration
+   */
+  private FunctionDeclaration convertToFunctionDeclaration(MethodDeclaration method) {
+    return new FunctionDeclaration(
+        method.getDocumentationComment(),
+        method.getMetadata(),
+        method.getExternalKeyword(),
+        method.getReturnType(),
+        method.getPropertyKeyword(),
+        method.getName(),
+        new FunctionExpression(method.getParameters(), method.getBody()));
+  }
+
+  /**
+   * Return {@code true} if the current token could be the start of a compilation unit member. This
+   * method is used for recovery purposes to decide when to stop skipping tokens after finding an
+   * error while parsing a compilation unit member.
+   * 
+   * @return {@code true} if the current token could be the start of a compilation unit member
+   */
+  private boolean couldBeStartOfCompilationUnitMember() {
+    if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART))
+        && !matches(peek(), TokenType.PERIOD) && !matches(peek(), TokenType.LT)) {
+      // This looks like the start of a directive
+      return true;
+    } else if (matches(Keyword.CLASS)) {
+      // This looks like the start of a class definition
+      return true;
+    } else if (matches(Keyword.TYPEDEF) && !matches(peek(), TokenType.PERIOD)
+        && !matches(peek(), TokenType.LT)) {
+      // This looks like the start of a typedef
+      return true;
+    } else if (matches(Keyword.VOID)
+        || ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier(peek()))
+        || (matches(Keyword.OPERATOR) && isOperator(peek()))) {
+      // This looks like the start of a function
+      return true;
+    } else if (matchesIdentifier()) {
+      if (matches(peek(), TokenType.OPEN_PAREN)) {
+        // This looks like the start of a function
+        return true;
+      }
+      Token token = skipReturnType(currentToken);
+      if (token == null) {
+        return false;
+      }
+      if (matches(Keyword.GET) || matches(Keyword.SET)
+          || (matches(Keyword.OPERATOR) && isOperator(peek())) || matchesIdentifier()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Create a synthetic identifier.
    * 
    * @return the synthetic identifier that was created
@@ -258,6 +317,23 @@ public class Parser {
     };
   }
 
+//  /**
+//   * If the current token is an identifier matching the given identifier, return it after advancing
+//   * to the next token. Otherwise report an error and return the current token without advancing.
+//   * 
+//   * @param identifier the identifier that is expected
+//   * @return the token that matched the given type
+//   */
+//  private Token expect(String identifier) {
+//    if (matches(identifier)) {
+//      return getAndAdvance();
+//    }
+//    // Remove uses of this method in favor of matches?
+//    // Pass in the error code to use to report the error?
+//    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
+//    return currentToken;
+//  }
+
   /**
    * Create a synthetic token with the given type.
    * 
@@ -288,23 +364,6 @@ public class Parser {
       reportError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE);
     }
   }
-
-//  /**
-//   * If the current token is an identifier matching the given identifier, return it after advancing
-//   * to the next token. Otherwise report an error and return the current token without advancing.
-//   * 
-//   * @param identifier the identifier that is expected
-//   * @return the token that matched the given type
-//   */
-//  private Token expect(String identifier) {
-//    if (matches(identifier)) {
-//      return getAndAdvance();
-//    }
-//    // Remove uses of this method in favor of matches?
-//    // Pass in the error code to use to report the error?
-//    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
-//    return currentToken;
-//  }
 
   /**
    * If the current token is a keyword matching the given string, return it after advancing to the
@@ -418,6 +477,20 @@ public class Parser {
   }
 
   /**
+   * Return the end token associated with the given begin token, or {@code null} if either the given
+   * token is not a begin token or it does not have an end token associated with it.
+   * 
+   * @param beginToken the token that is expected to have an end token associated with it
+   * @return the end token associated with the begin token
+   */
+  private Token getEndToken(Token beginToken) {
+    if (beginToken instanceof BeginToken) {
+      return ((BeginToken) beginToken).getEndToken();
+    }
+    return null;
+  }
+
+  /**
    * Return {@code true} if the current token is the first token of a return type that is followed
    * by an identifier, possibly followed by a list of type parameters, followed by a
    * left-parenthesis. This is used by parseTypeAlias to determine whether or not to parse a return
@@ -514,9 +587,19 @@ public class Parser {
    *         declaration
    */
   private boolean isInitializedVariableDeclaration() {
-    if (matches(Keyword.FINAL) || matches(Keyword.CONST) || matches(Keyword.VAR)) {
-      // An expression cannot start with a keyword other than 'throw'.
+    if (matches(Keyword.FINAL) || matches(Keyword.VAR)) {
+      // An expression cannot start with a keyword other than 'const', 'rethrow', or 'throw'.
       return true;
+    }
+    if (matches(Keyword.CONST)) {
+      // Look to see whether we might be at the start of a list or map literal, otherwise this
+      // should be the start of a variable declaration.
+      return !matchesAny(
+          peek(),
+          TokenType.LT,
+          TokenType.OPEN_CURLY_BRACKET,
+          TokenType.OPEN_SQUARE_BRACKET,
+          TokenType.INDEX);
     }
     // We know that we have an identifier, and need to see whether it might be a type name.
     Token token = skipTypeName(currentToken);
@@ -1013,7 +1096,7 @@ public class Parser {
    * @param optional {@code true} if the selector is optional
    * @return the assignable selector that was parsed
    */
-  private Expression parseAssignableSelector(Expression prefix, boolean optional) { //## prefix must be non-null
+  private Expression parseAssignableSelector(Expression prefix, boolean optional) {
     if (matches(TokenType.OPEN_SQUARE_BRACKET)) {
       Token leftBracket = getAndAdvance();
       Expression index = parseExpression();
@@ -1189,8 +1272,8 @@ public class Parser {
       expression = new IndexExpression(period, leftBracket, index, rightBracket);
       period = null;
     } else {
-      reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
-      return expression; //##
+      reportError(ParserErrorCode.MISSING_IDENTIFIER, currentToken, currentToken.getLexeme());
+      functionName = createSyntheticIdentifier();
     }
     if (currentToken.getType() == TokenType.OPEN_PAREN) {
       while (currentToken.getType() == TokenType.OPEN_PAREN) {
@@ -1200,7 +1283,11 @@ public class Parser {
           functionName = null;
         } else if (expression == null) {
           // It should not be possible to get here.
-          return null; //##
+          expression = new MethodInvocation(
+              expression,
+              period,
+              createSyntheticIdentifier(),
+              parseArgumentList());
         } else {
           expression = new FunctionExpressionInvocation(expression, parseArgumentList());
         }
@@ -1313,7 +1400,7 @@ public class Parser {
     Token rightBracket = null;
     if (matches(TokenType.OPEN_CURLY_BRACKET)) {
       leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
-      members = parseClassMembers(className, ((BeginToken) leftBracket).getEndToken() != null);
+      members = parseClassMembers(className, getEndToken(leftBracket));
       rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
     } else {
       leftBracket = createSyntheticToken(TokenType.OPEN_CURLY_BRACKET);
@@ -1345,7 +1432,8 @@ public class Parser {
    * </pre>
    * 
    * @param className the name of the class containing the member being parsed
-   * @return the class member that was parsed
+   * @return the class member that was parsed, or {@code null} if what was found was not a valid
+   *         class member
    */
   private ClassMember parseClassMember(String className) {
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
@@ -1406,7 +1494,7 @@ public class Parser {
           return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), returnType);
         }
         reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
-        return null; //##
+        return null;
       }
     } else if (matches(Keyword.GET) && matchesIdentifier(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
@@ -1434,7 +1522,7 @@ public class Parser {
         return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
       }
       reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
-      return null; //##
+      return null;
     } else if (matches(peek(), TokenType.PERIOD) && matchesIdentifier(peek(2))
         && matches(peek(3), TokenType.OPEN_PAREN)) {
       return parseConstructor(
@@ -1516,7 +1604,7 @@ public class Parser {
         return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), type);
       }
       reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
-      return null; //##
+      return null;
     } else if (matches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseMethodDeclaration(
@@ -1541,15 +1629,15 @@ public class Parser {
    * </pre>
    * 
    * @param className the name of the class whose members are being parsed
-   * @param balancedBrackets {@code true} if the opening and closing brackets for the class are
-   *          balanced
+   * @param closingBracket the closing bracket for the class, or {@code null} if the closing bracket
+   *          is missing
    * @return the list of class members that were parsed
    */
-  private List<ClassMember> parseClassMembers(String className, boolean balancedBrackets) {
+  private List<ClassMember> parseClassMembers(String className, Token closingBracket) {
     List<ClassMember> members = new ArrayList<ClassMember>();
     Token memberStart = currentToken;
     while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)
-        && (balancedBrackets || (!matches(Keyword.CLASS) && !matches(Keyword.TYPEDEF)))) {
+        && (closingBracket != null || (!matches(Keyword.CLASS) && !matches(Keyword.TYPEDEF)))) {
       if (matches(TokenType.SEMICOLON)) {
         reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
         advance();
@@ -1680,12 +1768,12 @@ public class Parser {
    * @param referenceSource the source occurring between the square brackets within a documentation
    *          comment
    * @param sourceOffset the offset of the first character of the reference source
-   * @return the comment reference that was parsed
+   * @return the comment reference that was parsed, or {@code null} if no reference could be found
    */
   private CommentReference parseCommentReference(String referenceSource, int sourceOffset) {
     // TODO(brianwilkerson) The errors are not getting the right offset/length and are being duplicated.
     if (referenceSource.length() == 0) {
-      return null; //##
+      return null;
     }
     try {
       final boolean[] errorFound = {false};
@@ -1699,7 +1787,7 @@ public class Parser {
       scanner.setSourceStart(1, 1, sourceOffset);
       Token firstToken = scanner.tokenize();
       if (errorFound[0]) {
-        return null; //##
+        return null;
       }
       Token newKeyword = null;
       if (matches(firstToken, Keyword.NEW)) {
@@ -1722,7 +1810,7 @@ public class Parser {
           nextToken = firstToken.getNext();
         }
         if (nextToken.getType() != TokenType.EOF) {
-          return null; //##
+          return null;
         }
         return new CommentReference(newKeyword, identifier);
       } else if (matches(firstToken, Keyword.THIS) || matches(firstToken, Keyword.NULL)
@@ -1731,12 +1819,12 @@ public class Parser {
         // of CommentReference to take an expression rather than an identifier. For now we just
         // ignore it to reduce the number of errors produced, but that's probably not a valid
         // long term approach.
-        return null; //##
+        return null;
       }
     } catch (Exception exception) {
       // Ignored because we assume that it wasn't a real comment reference.
     }
-    return null; //##
+    return null;
   }
 
   /**
@@ -1889,6 +1977,9 @@ public class Parser {
       if (currentToken == memberStart) {
         reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
         advance();
+        while (!matches(TokenType.EOF) && !couldBeStartOfCompilationUnitMember()) {
+          advance();
+        }
       }
       memberStart = currentToken;
     }
@@ -1912,7 +2003,8 @@ public class Parser {
    * </pre>
    * 
    * @param commentAndMetadata the metadata to be associated with the member
-   * @return the compilation unit member that was parsed
+   * @return the compilation unit member that was parsed, or {@code null} if what was parsed could
+   *         not be represented as a compilation unit member
    */
   private CompilationUnitMember parseCompilationUnitMember(CommentAndMetadata commentAndMetadata) {
     Modifiers modifiers = parseModifiers();
@@ -1930,9 +2022,10 @@ public class Parser {
         return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
       } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
         reportError(ParserErrorCode.TOP_LEVEL_OPERATOR, currentToken);
-        // TODO(brianwilkerson) Recovery: We probably want to try parsing an operator at this point
-        // even though we can't add it to the AST structure.
-        return null; //##
+        return convertToFunctionDeclaration(parseOperator(
+            commentAndMetadata,
+            modifiers.getExternalKeyword(),
+            returnType));
       } else if (matchesIdentifier()
           && matchesAny(
               peek(),
@@ -1964,19 +2057,20 @@ public class Parser {
           }
         }
         reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
-        return null; //##
+        return null;
       }
     } else if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier(peek())) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
     } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
       reportError(ParserErrorCode.TOP_LEVEL_OPERATOR, currentToken);
-      // TODO(brianwilkerson) Recovery: We probably want to try parsing an operator at this point
-      // even though we can't (?) add it to the AST structure.
-      return null; //##
+      return convertToFunctionDeclaration(parseOperator(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          null));
     } else if (!matchesIdentifier()) {
       reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
-      return null; //##
+      return null;
     } else if (matches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
@@ -1996,12 +2090,13 @@ public class Parser {
           returnType);
     } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
       reportError(ParserErrorCode.TOP_LEVEL_OPERATOR, currentToken);
-      // TODO(brianwilkerson) Recovery: We probably want to try parsing an operator at this point
-      // even though we can't (?) add it to the AST structure.
-      return null; //##
+      return convertToFunctionDeclaration(parseOperator(
+          commentAndMetadata,
+          modifiers.getExternalKeyword(),
+          returnType));
     } else if (!matchesIdentifier()) {
       reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
-      return null; //##
+      return null;
     }
     if (matchesAny(peek(), TokenType.OPEN_PAREN, TokenType.FUNCTION, TokenType.OPEN_CURLY_BRACKET)) {
       validateModifiersForTopLevelFunction(modifiers);
@@ -2226,8 +2321,10 @@ public class Parser {
     } else if (matches(Keyword.PART)) {
       return parsePartDirective(commentAndMetadata);
     } else {
-      // Internal error
-      return null; //##
+      // Internal error: this method should not have been invoked if the current token was something
+      // other than one of the above.
+      throw new IllegalStateException("parseDirective invoked in an invalid state; currentToken = "
+          + currentToken);
     }
   }
 
@@ -2262,7 +2359,7 @@ public class Parser {
       commentToken = commentToken.getNext();
     }
     if (commentTokens.isEmpty()) {
-      return null; //##
+      return null;
     }
     Token[] tokens = commentTokens.toArray(new Token[commentTokens.size()]);
     List<CommentReference> references = parseCommentReferences(tokens);
@@ -2636,8 +2733,7 @@ public class Parser {
         firstParameter = false;
       } else if (!optional(TokenType.COMMA)) {
         // TODO(brianwilkerson) The token is wrong, we need to recover from this case.
-        if ((leftParenthesis instanceof BeginToken)
-            && ((BeginToken) leftParenthesis).getEndToken() != null) {
+        if (getEndToken(leftParenthesis) != null) {
           reportError(ParserErrorCode.EXPECTED_TOKEN, TokenType.COMMA.getLexeme());
         } else {
           reportError(ParserErrorCode.MISSING_CLOSING_PARENTHESIS, currentToken.getPrevious());
@@ -3065,8 +3161,22 @@ public class Parser {
     } else if (!matches(TokenType.OPEN_PAREN)) {
       reportError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
       // TODO(brianwilkerson) Recover from this error. At the very least we should skip to the start
-      // of the next valid compilation unit member.
-      return null; //##
+      // of the next valid compilation unit member, allowing for the possibility of finding the
+      // typedef parameters before that point.
+      return new FunctionTypeAlias(
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
+          keyword,
+          returnType,
+          name,
+          typeParameters,
+          new FormalParameterList(
+              createSyntheticToken(TokenType.OPEN_PAREN),
+              null,
+              null,
+              null,
+              createSyntheticToken(TokenType.CLOSE_PAREN)),
+          createSyntheticToken(TokenType.SEMICOLON));
     }
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
@@ -3994,7 +4104,7 @@ public class Parser {
         && (matchesIdentifier(peek(3)) || matches(peek(3), TokenType.LT))) {
       return parseReturnType();
     }
-    return null; //##
+    return null;
   }
 
   /**
