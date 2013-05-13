@@ -29,17 +29,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_constWithNonConstantArgument() throws Exception {
-    Source source = addSource(createSource(//
-        "class T {",
-        "  T(a) {};",
-        "}",
-        "f(p) { return const T(p); }"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
-    verify(source);
-  }
-
   public void fail_constWithTypeParameters() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -901,6 +890,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "f() { return const T(0, 1, c: 2, d: 3); }"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_WITH_NON_CONST);
+    verify(source);
+  }
+
+  public void test_constWithNonConstantArgument() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A(a) {};",
+        "}",
+        "f(p) { return const A(p); }"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
     verify(source);
   }
 

@@ -260,6 +260,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constWithNonConstantArgument_literals() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A(a, b, c, d) {};",
+        "}",
+        "f() { return const A(true, 0, 1.0, '2'); }"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_constWithUndefinedConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

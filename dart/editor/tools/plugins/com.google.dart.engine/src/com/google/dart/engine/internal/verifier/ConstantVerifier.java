@@ -13,15 +13,18 @@
  */
 package com.google.dart.engine.internal.verifier;
 
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
@@ -65,6 +68,12 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     super.visitFunctionExpression(node);
     validateDefaultValues(node.getParameters());
     return null;
+  }
+
+  @Override
+  public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    validateConstantArguments(node);
+    return super.visitInstanceCreationExpression(node);
   }
 
   @Override
@@ -198,6 +207,28 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     EvaluationResultImpl result = expression.accept(new ConstantVisitor());
     reportErrors(result, errorCode);
     return result;
+  }
+
+  /**
+   * Validate that if the passed instance creation is 'const' then all its arguments are constant
+   * expressions.
+   * 
+   * @param node the instance creation evaluate
+   */
+  private void validateConstantArguments(InstanceCreationExpression node) {
+    if (!node.isConst()) {
+      return;
+    }
+    ArgumentList argumentList = node.getArgumentList();
+    if (argumentList == null) {
+      return;
+    }
+    for (Expression argument : argumentList.getArguments()) {
+      if (argument instanceof NamedExpression) {
+        argument = ((NamedExpression) argument).getExpression();
+      }
+      validate(argument, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
+    }
   }
 
   /**

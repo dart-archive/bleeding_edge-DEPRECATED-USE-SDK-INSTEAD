@@ -163,7 +163,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.11.2 Const: In all of the above cases, it is a compile-time error if <i>a<sub>i</sub>, 1
    * &lt;= i &lt;= n + k</i>, is not a compile-time constant expression.
    */
-  CONST_WITH_NON_CONSTANT_ARGUMENT(""),
+  CONST_WITH_NON_CONSTANT_ARGUMENT("Arguments of a constant creation must be constant expressions"),
 
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T</i> is not a class accessible in the current
