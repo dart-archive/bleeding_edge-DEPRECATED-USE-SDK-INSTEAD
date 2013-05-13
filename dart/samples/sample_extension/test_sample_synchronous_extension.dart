@@ -6,21 +6,27 @@ library test_sample_extension;
 
 import 'sample_synchronous_extension.dart';
 
+void check(bool condition, String message) {
+  if (!condition) {
+    throw new StateError(message);
+  }
+}
+
 // TODO(3008): Run this test automatically on buildbot (dart:3008).
 void main() {
   systemSrand(17);
   var x1 = systemRand();
   var x2 = systemRand();
   var x3 = systemRand();
-  Expect.notEquals(x1, x2);
-  Expect.notEquals(x1, x3);
-  Expect.notEquals(x2, x3);
+  check(x1 != x2, "x1 != x2");
+  check(x1 != x3, "x1 != x3");
+  check(x2 != x3, "x2 != x3");
   systemSrand(17);
-  Expect.equals(x1, systemRand());
-  Expect.equals(x2, systemRand());
-  Expect.equals(x3, systemRand());
+  check(x1 == systemRand(), "x1 == systemRand()");
+  check(x2 == systemRand(), "x2 == systemRand()");
+  check(x3 == systemRand(), "x3 == systemRand()");
   systemSrand(18);
-  Expect.notEquals(x1, systemRand());
-  Expect.notEquals(x2, systemRand());
-  Expect.notEquals(x3, systemRand());
+  check(x1 != systemRand(), "x1 != systemRand()");
+  check(x2 != systemRand(), "x2 != systemRand()");
+  check(x3 != systemRand(), "x3 != systemRand()");
 }

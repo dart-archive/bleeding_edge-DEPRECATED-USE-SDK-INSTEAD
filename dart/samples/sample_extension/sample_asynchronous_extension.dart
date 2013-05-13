@@ -4,6 +4,7 @@
 
 library sample_asynchronous_extension;
 
+import 'dart:async';
 import 'dart:isolate';
 import 'dart-ext:sample_extension';
 
@@ -11,13 +12,13 @@ import 'dart-ext:sample_extension';
 class RandomArray {
   static SendPort _port;
 
-  void randomArray(int seed, int length, void callback(List result)) {
+  Future<List<int> > randomArray(int seed, int length) {
     var args = new List(2);
     args[0] = seed;
     args[1] = length;
-    _servicePort.call(args).then((result) {
+    return _servicePort.call(args).then((result) {
       if (result != null) {
-        callback(result);
+        return result;
       } else {
         throw new Exception("Random array creation failed");
       }
