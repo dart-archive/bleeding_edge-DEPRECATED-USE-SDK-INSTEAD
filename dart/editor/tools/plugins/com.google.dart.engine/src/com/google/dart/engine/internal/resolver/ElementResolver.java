@@ -774,6 +774,15 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         // TODO(brianwilkerson) Report this error.
         return null;
       }
+      if (element instanceof PropertyAccessorElement && identifier.inSetterContext()) {
+        PropertyInducingElement variable = ((PropertyAccessorElement) element).getVariable();
+        if (variable != null) {
+          PropertyAccessorElement setter = variable.getSetter();
+          if (setter != null) {
+            element = setter;
+          }
+        }
+      }
       // TODO(brianwilkerson) The prefix needs to be resolved to the element for the import that
       // defines the prefix, not the prefix's element.
       recordResolution(identifier, element);

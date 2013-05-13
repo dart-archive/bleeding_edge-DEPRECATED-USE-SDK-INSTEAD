@@ -200,43 +200,6 @@ public class IndexContributorTest extends AbstractDartTest {
   private IndexStore store = mock(IndexStore.class);
   private IndexContributor index = new IndexContributor(store);
 
-  /**
-   * TODO(scheglov) enable this test after analyzer fix
-   * <p>
-   * https://code.google.com/p/dart/issues/detail?id=10521
-   */
-  public void fail_isReferencedBy_ImportElement_withPrefix() throws Exception {
-    setFileContent(
-        "Lib.dart",
-        makeSource(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "library lib;",
-            "var myVar;"));
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'Lib.dart' as pref;",
-        "main() {",
-        "  pref.myVar = 1;",
-        "}",
-        "");
-    // set elements
-    Element mainElement = findElement("main(");
-    ImportElement importElement = (ImportElement) findNode(
-        "import 'Lib.dart",
-        ImportDirective.class).getElement();
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    // TODO(scheglov) we have problem - PrefixElement recorded for "pref" and we don't know
-    // which ImportElement it is.
-//    List<RecordedRelation> relations = captureRecordedRelations();
-//    assertRecordedRelation(
-//        relations,
-//        importElement,
-//        IndexConstants.IS_REFERENCED_BY,
-//        new ExpectedLocation(mainElement, findOffset("pref.myVar"), "pref"));
-  }
-
   public void test_createElementLocation() throws Exception {
     ElementLocation elementLocation = mock(ElementLocation.class);
     Element element = mockElement(Element.class, elementLocation, 42, "myName");
@@ -906,6 +869,43 @@ public class IndexContributorTest extends AbstractDartTest {
         importElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, findOffset("myVar = 1"), ""));
+  }
+
+  /**
+   * TODO(scheglov) enable this test after analyzer fix
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=10521
+   */
+  public void test_isReferencedBy_ImportElement_withPrefix() throws Exception {
+    setFileContent(
+        "Lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;",
+            "var myVar;"));
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'Lib.dart' as pref;",
+        "main() {",
+        "  pref.myVar = 1;",
+        "}",
+        "");
+    // set elements
+    Element mainElement = findElement("main(");
+    ImportElement importElement = (ImportElement) findNode(
+        "import 'Lib.dart",
+        ImportDirective.class).getElement();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    // TODO(scheglov) we have problem - PrefixElement recorded for "pref" and we don't know
+    // which ImportElement it is.
+//    List<RecordedRelation> relations = captureRecordedRelations();
+//    assertRecordedRelation(
+//        relations,
+//        importElement,
+//        IndexConstants.IS_REFERENCED_BY,
+//        new ExpectedLocation(mainElement, findOffset("pref.myVar"), "pref"));
   }
 
   public void test_isReferencedBy_LabelElement() throws Exception {

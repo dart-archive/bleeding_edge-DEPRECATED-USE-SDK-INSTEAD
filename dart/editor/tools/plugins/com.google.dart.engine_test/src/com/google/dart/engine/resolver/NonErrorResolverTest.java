@@ -94,6 +94,21 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_assignmentToFinals_importWithPrefix() throws Exception {
+    Source source = addSource(createSource(//
+        "library lib;",
+        "import 'lib1.dart' as foo;",
+        "main() {",
+        "  foo.x = true;",
+        "}"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "bool x = false;"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_breakWithoutLabelInSwitch() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
