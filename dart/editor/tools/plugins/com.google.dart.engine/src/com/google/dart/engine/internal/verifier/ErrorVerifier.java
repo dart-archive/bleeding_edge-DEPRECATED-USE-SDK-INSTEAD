@@ -430,6 +430,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       if (node.isConst()) {
         checkForConstWithNonConst(node);
         checkForConstWithUndefinedConstructor(node);
+        checkForConstWithTypeParameters(node);
       } else {
         checkForNewWithUndefinedConstructor(node);
       }
@@ -1222,7 +1223,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This verifies that the passed 'const' instance creation expression is not being invoked on a
    * constructor that is not 'const'.
    * <p>
-   * This method assumes that the instance creation was tested to be 'setter' before being called.
+   * This method assumes that the instance creation was tested to be 'const' before being called.
    * 
    * @param node the instance creation expression to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
@@ -1238,10 +1239,62 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This verifies that the passed 'const' instance creation expression does not reference any type
+   * parameters.
+   * <p>
+   * This method assumes that the instance creation was tested to be 'const' before being called.
+   * 
+   * @param node the instance creation expression to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_WITH_TYPE_PARAMETERS
+   */
+  private boolean checkForConstWithTypeParameters(InstanceCreationExpression node) {
+    ConstructorName constructorName = node.getConstructorName();
+    if (constructorName == null) {
+      return false;
+    }
+    TypeName typeName = constructorName.getType();
+    return checkForConstWithTypeParameters(typeName);
+  }
+
+  /**
+   * This verifies that the passed type name does not reference any type parameters.
+   * 
+   * @param typeName the type name to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_WITH_TYPE_PARAMETERS
+   */
+  private boolean checkForConstWithTypeParameters(TypeName typeName) {
+    // something wrong with AST
+    if (typeName == null) {
+      return false;
+    }
+    Identifier name = typeName.getName();
+    if (name == null) {
+      return false;
+    }
+    // should not be a type parameter
+    if (name.getElement() instanceof TypeVariableElement) {
+      errorReporter.reportError(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, name);
+    }
+    // check type arguments
+    TypeArgumentList typeArguments = typeName.getTypeArguments();
+    if (typeArguments != null) {
+      boolean hasError = false;
+      for (TypeName argument : typeArguments.getArguments()) {
+        hasError |= checkForConstWithTypeParameters(argument);
+      }
+      return hasError;
+    }
+    // OK
+    return false;
+  }
+
+  /**
    * This verifies that if the passed 'const' instance creation expression is being invoked on the
    * resolved constructor.
    * <p>
-   * This method assumes that the instance creation was tested to be 'setter' before being called.
+   * This method assumes that the instance creation was tested to be 'const' before being called.
    * 
    * @param node the instance creation expression to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node

@@ -271,6 +271,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constWithTypeParameters_direct() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  const V = const A<int>();",
+        "  const A();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_constWithUndefinedConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

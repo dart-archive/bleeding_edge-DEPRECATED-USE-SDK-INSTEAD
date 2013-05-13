@@ -29,15 +29,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_constWithTypeParameters() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
-    verify(source);
-  }
-
   public void fail_duplicateDefinition() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -912,6 +903,28 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_WITH_NON_TYPE);
+    verify(source);
+  }
+
+  public void test_constWithTypeParameters_direct() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  const V = const A<T>();",
+        "  const A();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
+    verify(source);
+  }
+
+  public void test_constWithTypeParameters_indirect() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  const V = const A<List<T>>();",
+        "  const A();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
     verify(source);
   }
 

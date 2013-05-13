@@ -181,7 +181,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T</i> includes any type parameters.
    */
-  CONST_WITH_TYPE_PARAMETERS(""),
+  CONST_WITH_TYPE_PARAMETERS("The constant creation cannot use a type parameter"),
 
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T.id</i> is not the name of a constant
