@@ -876,8 +876,22 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * names: &lt;, &gt;, &lt;=, &gt;=, ==, +, /, ~/, *, %, |, ^, &, &lt;&lt;, &gt;&gt;, [] is not 1.
    * It is a compile time error if the arity of the user-declared operator - is not 0 or 1. It is a
    * compile time error if the arity of the user-declared operator ~ is not 0.
+   * 
+   * @param operatorName the name of the declared operator
+   * @param expectedNumberOfParameters the number of parameters expected
+   * @param actualNumberOfParameters the number of parameters found in the operator declaration
    */
-  WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR(""),
+  WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR(
+      "Operator '%s' should declare exactly %d parameter(s), but %d found"),
+
+  /**
+   * 7.1.1 Operators: It is a compile time error if the arity of the user-declared operator - is not
+   * 0 or 1.
+   * 
+   * @param actualNumberOfParameters the number of parameters found in the operator declaration
+   */
+  WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS(
+      "Operator '-' should declare 0 or 1 parameter, but %d found"),
 
   /**
    * 7.3 Setters: It is a compile-time error if a setter's formal parameter list does not include

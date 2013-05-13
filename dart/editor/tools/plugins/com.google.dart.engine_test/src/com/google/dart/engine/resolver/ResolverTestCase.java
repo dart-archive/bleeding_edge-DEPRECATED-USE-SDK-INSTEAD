@@ -73,9 +73,7 @@ public class ResolverTestCase extends EngineTestCase {
 
   @Override
   public void setUp() {
-    errorListener = new GatheringErrorListener();
-    analysisContext = AnalysisContextFactory.contextWithCore();
-    sourceFactory = analysisContext.getSourceFactory();
+    reset();
   }
 
   /**
@@ -177,6 +175,16 @@ public class ResolverTestCase extends EngineTestCase {
     Source coreSource = analysisContext.getSourceFactory().forUri(DartSdk.DART_CORE);
     LibraryElement coreElement = analysisContext.getLibraryElement(coreSource);
     return new TypeProviderImpl(coreElement);
+  }
+
+  /**
+   * In the rare cases we want to group several tests into single "test_" method, so need a way to
+   * reset test instance to reuse it.
+   */
+  protected void reset() {
+    errorListener = new GatheringErrorListener();
+    analysisContext = AnalysisContextFactory.contextWithCore();
+    sourceFactory = analysisContext.getSourceFactory();
   }
 
   /**

@@ -480,6 +480,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         checkForNonVoidReturnTypeForSetter(node.getReturnType());
       } else if (node.isOperator()) {
         checkForOptionalParameterInOperator(node);
+        checkForWrongNumberOfParametersForOperator(node);
         checkForNonVoidReturnTypeForOperator(node);
       }
       checkForConcreteClassWithAbstractMember(node);
@@ -1926,6 +1927,62 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         }
       }
     }
+    return false;
+  }
+
+  /**
+   * This verifies the passed operator-method declaration, has correct number of parameters.
+   * <p>
+   * This method assumes that the method declaration was tested to be an operator declaration before
+   * being called.
+   * 
+   * @param node the method declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
+   */
+  private boolean checkForWrongNumberOfParametersForOperator(MethodDeclaration node) {
+    // prepare number of parameters
+    FormalParameterList parameterList = node.getParameters();
+    if (parameterList == null) {
+      return false;
+    }
+    int numParameters = parameterList.getParameters().size();
+    // prepare operator name
+    SimpleIdentifier nameNode = node.getName();
+    if (nameNode == null) {
+      return false;
+    }
+    String name = nameNode.getName();
+    // check for exact number of parameters
+    int expected = -1;
+    if ("[]=".equals(name)) {
+      expected = 2;
+    } else if ("<".equals(name) || ">".equals(name) || "<=".equals(name) || ">=".equals(name)
+        || "==".equals(name) || "+".equals(name) || "/".equals(name) || "~/".equals(name)
+        || "*".equals(name) || "%".equals(name) || "|".equals(name) || "^".equals(name)
+        || "&".equals(name) || "<<".equals(name) || ">>".equals(name) || "[]".equals(name)) {
+      expected = 1;
+    } else if ("~".equals(name)) {
+      expected = 0;
+    }
+    if (expected != -1 && numParameters != expected) {
+      errorReporter.reportError(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR,
+          nameNode,
+          name,
+          expected,
+          numParameters);
+      return true;
+    }
+    // check for operator "-"
+    if ("-".equals(name) && numParameters > 1) {
+      errorReporter.reportError(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS,
+          nameNode,
+          numParameters);
+      return true;
+    }
+    // OK
     return false;
   }
 

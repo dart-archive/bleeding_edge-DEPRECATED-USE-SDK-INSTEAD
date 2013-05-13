@@ -814,7 +814,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_nonVoidReturnForOperator_no() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  operator []=() {}",
+        "  operator []=(a, b) {}",
         "}"));
     resolve(source);
     assertNoErrors();
@@ -824,7 +824,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_nonVoidReturnForOperator_void() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  void operator []=() {}",
+        "  void operator []=(a, b) {}",
         "}"));
     resolve(source);
     assertNoErrors();
@@ -1085,6 +1085,39 @@ public class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
   }
 
+  public void test_wrongNumberOfParametersForOperator_index() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  operator []=(a, b) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_wrongNumberOfParametersForOperator_minus() throws Exception {
+    check_wrongNumberOfParametersForOperator("-", "");
+    check_wrongNumberOfParametersForOperator("-", "a");
+  }
+
+  public void test_wrongNumberOfParametersForOperator1() throws Exception {
+    check_wrongNumberOfParametersForOperator1("<");
+    check_wrongNumberOfParametersForOperator1(">");
+    check_wrongNumberOfParametersForOperator1("<=");
+    check_wrongNumberOfParametersForOperator1(">=");
+    check_wrongNumberOfParametersForOperator1("+");
+    check_wrongNumberOfParametersForOperator1("/");
+    check_wrongNumberOfParametersForOperator1("~/");
+    check_wrongNumberOfParametersForOperator1("*");
+    check_wrongNumberOfParametersForOperator1("%");
+    check_wrongNumberOfParametersForOperator1("|");
+    check_wrongNumberOfParametersForOperator1("^");
+    check_wrongNumberOfParametersForOperator1("&");
+    check_wrongNumberOfParametersForOperator1("<<");
+    check_wrongNumberOfParametersForOperator1(">>");
+    check_wrongNumberOfParametersForOperator1("[]");
+  }
+
   public void test_wrongNumberOfParametersForSetter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1093,5 +1126,21 @@ public class NonErrorResolverTest extends ResolverTestCase {
     resolve(source);
     assertNoErrors();
     verify(source);
+  }
+
+  private void check_wrongNumberOfParametersForOperator(String name, String parameters)
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  operator " + name + "(" + parameters + ") {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+    reset();
+  }
+
+  private void check_wrongNumberOfParametersForOperator1(String name) throws Exception {
+    check_wrongNumberOfParametersForOperator(name, "a");
   }
 }

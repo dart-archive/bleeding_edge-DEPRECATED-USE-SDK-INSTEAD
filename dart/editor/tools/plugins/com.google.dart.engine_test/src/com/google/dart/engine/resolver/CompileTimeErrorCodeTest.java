@@ -503,17 +503,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_wrongNumberOfParametersForOperator() throws Exception {
-    // Do we need _tooMany and _tooFew variants for every operator?
-    Source source = addSource(createSource(//
-        "class A {",
-        "  operator []=(i) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR);
-    verify(source);
-  }
-
   public void fail_wrongNumberOfTypeArguments_creation_const_tooFew() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
@@ -2075,6 +2064,40 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     // We cannot verify resolution with an unresolvable URI: '${'a'}.dart'
   }
 
+  public void test_wrongNumberOfParametersForOperator_minus() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  operator -(a, b) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS);
+    verify(source);
+    reset();
+  }
+
+  public void test_wrongNumberOfParametersForOperator_tilde() throws Exception {
+    check_wrongNumberOfParametersForOperator("~", "a");
+    check_wrongNumberOfParametersForOperator("~", "a, b");
+  }
+
+  public void test_wrongNumberOfParametersForOperator1() throws Exception {
+    check_wrongNumberOfParametersForOperator1("<");
+    check_wrongNumberOfParametersForOperator1(">");
+    check_wrongNumberOfParametersForOperator1("<=");
+    check_wrongNumberOfParametersForOperator1(">=");
+    check_wrongNumberOfParametersForOperator1("+");
+    check_wrongNumberOfParametersForOperator1("/");
+    check_wrongNumberOfParametersForOperator1("~/");
+    check_wrongNumberOfParametersForOperator1("*");
+    check_wrongNumberOfParametersForOperator1("%");
+    check_wrongNumberOfParametersForOperator1("|");
+    check_wrongNumberOfParametersForOperator1("^");
+    check_wrongNumberOfParametersForOperator1("&");
+    check_wrongNumberOfParametersForOperator1("<<");
+    check_wrongNumberOfParametersForOperator1(">>");
+    check_wrongNumberOfParametersForOperator1("[]");
+  }
+
   public void test_wrongNumberOfParametersForSetter_function_tooFew() throws Exception {
     Source source = addSource("set x() {}");
     resolve(source);
@@ -2107,5 +2130,22 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
+  }
+
+  private void check_wrongNumberOfParametersForOperator(String name, String parameters)
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  operator " + name + "(" + parameters + ") {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR);
+    verify(source);
+    reset();
+  }
+
+  private void check_wrongNumberOfParametersForOperator1(String name) throws Exception {
+    check_wrongNumberOfParametersForOperator(name, "");
+    check_wrongNumberOfParametersForOperator(name, "a, b");
   }
 }

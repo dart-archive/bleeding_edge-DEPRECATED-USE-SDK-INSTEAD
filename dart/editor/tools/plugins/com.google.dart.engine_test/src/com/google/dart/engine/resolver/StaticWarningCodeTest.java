@@ -607,7 +607,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_nonVoidReturnForOperator() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  int operator []=() {}",
+        "  int operator []=(a, b) {}",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR);
