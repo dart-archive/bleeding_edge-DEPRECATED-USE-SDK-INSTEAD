@@ -49,19 +49,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_constWithUndefinedConstructor() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  A(x) {}",
-        "}",
-        "f() {",
-        "  return const A(0);",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR);
-    verify(source);
-  }
-
   public void fail_duplicateDefinition() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -925,6 +912,32 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_WITH_NON_TYPE);
+    verify(source);
+  }
+
+  public void test_constWithUndefinedConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "}",
+        "f() {",
+        "  return const A.noSuchConstructor();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR);
+    // no verify(), 'noSuchConstructor' is not resolved
+  }
+
+  public void test_constWithUndefinedConstructorDefault() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A.name();",
+        "}",
+        "f() {",
+        "  return const A();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT);
     verify(source);
   }
 

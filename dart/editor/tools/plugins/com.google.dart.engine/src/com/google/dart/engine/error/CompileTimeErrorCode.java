@@ -186,8 +186,20 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T.id</i> is not the name of a constant
    * constructor declared by the type <i>T</i>.
+   * 
+   * @param typeName the name of the type
+   * @param constructorName the name of the requested constant constructor
    */
-  CONST_WITH_UNDEFINED_CONSTRUCTOR(""),
+  CONST_WITH_UNDEFINED_CONSTRUCTOR("The class '%s' does not have a constant constructor '%s'"),
+
+  /**
+   * 12.11.2 Const: It is a compile-time error if <i>T.id</i> is not the name of a constant
+   * constructor declared by the type <i>T</i>.
+   * 
+   * @param typeName the name of the type
+   */
+  CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT(
+      "The class '%s' does not have a default constant constructor"),
 
   /**
    * 15.3.1 Typedef: It is a compile-time error if any default values are specified in the signature

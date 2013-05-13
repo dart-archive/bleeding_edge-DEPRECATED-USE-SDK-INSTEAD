@@ -260,6 +260,32 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constWithUndefinedConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A.name();",
+        "}",
+        "f() {",
+        "  return const A.name();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_constWithUndefinedConstructorDefault() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "}",
+        "f() {",
+        "  return const A();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_defaultValueInFunctionTypeAlias() throws Exception {
     Source source = addSource(createSource(//
     "typedef F([x]);"));

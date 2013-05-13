@@ -426,8 +426,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Type type = typeName.getType();
     if (type instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) type;
-      checkForConstWithNonConst(node);
       checkForConstOrNewWithAbstractClass(node, typeName, interfaceType);
+      if (node.isConst()) {
+        checkForConstWithNonConst(node);
+        checkForConstWithUndefinedConstructor(node);
+      }
       // TODO(jwren) Email Luke to make this determination: Should we always call all checks, if not,
       // which order should they be called in?
       // (Should we provide as many errors as possible, or try to be as concise as possible?)
@@ -1204,8 +1207,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This verifies that if the passed instance creation expression is 'const', then it is not being
-   * invoked on a constructor that is not 'const'.
+   * This verifies that the passed 'const' instance creation expression is not being invoked on a
+   * constructor that is not 'const'.
+   * <p>
+   * This method assumes that the instance creation was tested to be 'setter' before being called.
    * 
    * @param node the instance creation expression to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
@@ -1213,11 +1218,46 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForConstWithNonConst(InstanceCreationExpression node) {
     ConstructorElement constructorElement = node.getElement();
-    if (node.isConst() && constructorElement != null && !constructorElement.isConst()) {
+    if (constructorElement != null && !constructorElement.isConst()) {
       errorReporter.reportError(CompileTimeErrorCode.CONST_WITH_NON_CONST, node);
       return true;
     }
     return false;
+  }
+
+  /**
+   * This verifies that if the passed 'const' instance creation expression is being invoked on the
+   * resolved constructor.
+   * <p>
+   * This method assumes that the instance creation was tested to be 'setter' before being called.
+   * 
+   * @param node the instance creation expression to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_WITH_UNDEFINED_CONSTRUCTOR
+   * @see CompileTimeErrorCode#CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
+   */
+  private boolean checkForConstWithUndefinedConstructor(InstanceCreationExpression node) {
+    if (node.getElement() != null) {
+      return false;
+    }
+    ConstructorName constructorName = node.getConstructorName();
+    if (constructorName == null) {
+      return false;
+    }
+    SimpleIdentifier name = constructorName.getName();
+    if (name != null) {
+      errorReporter.reportError(
+          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
+          node,
+          constructorName.getType(),
+          name);
+    } else {
+      errorReporter.reportError(
+          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          node,
+          constructorName.getType());
+    }
+    return true;
   }
 
   /**
