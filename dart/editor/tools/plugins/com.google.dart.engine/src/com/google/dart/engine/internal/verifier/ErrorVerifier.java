@@ -466,6 +466,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         }
       }
     }
+    checkForNonConstMapAsExpressionStatement(node);
     return super.visitMapLiteral(node);
   }
 
@@ -1755,6 +1756,32 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * This verifies the passed map literal either:
+   * <ul>
+   * <li>has {@code const modifier}</li>
+   * <li>has explicit type arguments</li>
+   * <li>is not expression of the expression statement</li>
+   * <ul>
+   * 
+   * @param node the map literal to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#NON_CONST_MAP_AS_EXPRESSION_STATEMENT
+   */
+  private boolean checkForNonConstMapAsExpressionStatement(MapLiteral node) {
+    if (node.getModifier() != null) {
+      return false;
+    }
+    if (node.getTypeArguments() != null) {
+      return false;
+    }
+    if (!(node.getParent() instanceof ExpressionStatement)) {
+      return false;
+    }
+    errorReporter.reportError(CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, node);
+    return true;
   }
 
   /**

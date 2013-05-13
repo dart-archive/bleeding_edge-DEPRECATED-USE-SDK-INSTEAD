@@ -637,7 +637,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 13.2 Expression Statements: It is a compile-time error if a non-constant map literal that has
    * no explicit type arguments appears in a place where a statement is expected.
    */
-  NON_CONST_MAP_AS_EXPRESSION_STATEMENT(""),
+  NON_CONST_MAP_AS_EXPRESSION_STATEMENT(
+      "A non-constant map literal without type arguments cannot be used as an expression statement"),
 
   /**
    * 13.9 Switch: Given a switch statement of the form <i>switch (e) { label<sub>11</sub> &hellip;

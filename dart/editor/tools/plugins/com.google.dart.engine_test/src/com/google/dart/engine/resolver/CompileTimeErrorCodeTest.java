@@ -213,16 +213,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonConstMapAsExpressionStatement() throws Exception {
-    Source source = addSource(createSource(//
-        "f() {",
-        "  {'a' : 0, 'b' : 1};",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT);
-    verify(source);
-  }
-
   public void fail_nonConstValueInInitializer() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1943,6 +1933,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+    verify(source);
+  }
+
+  public void test_nonConstMapAsExpressionStatement() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  {'a' : 0, 'b' : 1};",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT);
     verify(source);
   }
 

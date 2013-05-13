@@ -715,6 +715,36 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonConstMapAsExpressionStatement_const() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  const {'a' : 0, 'b' : 1};",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstMapAsExpressionStatement_notExpressionStatement() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  var m = {'a' : 0, 'b' : 1};",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstMapAsExpressionStatement_typeArguments() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  <String, int> {'a' : 0, 'b' : 1};",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_nonVoidReturnForOperator_no() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
