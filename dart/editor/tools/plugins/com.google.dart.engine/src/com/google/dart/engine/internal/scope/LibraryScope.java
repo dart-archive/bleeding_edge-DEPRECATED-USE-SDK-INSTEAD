@@ -15,12 +15,15 @@ package com.google.dart.engine.internal.scope;
 
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 
 /**
  * Instances of the class {@code LibraryScope} implement a scope containing all of the names defined
@@ -38,6 +41,27 @@ public class LibraryScope extends EnclosedScope {
   public LibraryScope(LibraryElement definingLibrary, AnalysisErrorListener errorListener) {
     super(new LibraryImportScope(definingLibrary, errorListener));
     defineTopLevelNames(definingLibrary);
+  }
+
+  @Override
+  protected AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
+    if (existing instanceof PrefixElement) {
+      // TODO(scheglov) consider providing actual 'nameOffset' from the synthetic accessor
+      int offset = duplicate.getNameOffset();
+      if (duplicate instanceof PropertyAccessorElement) {
+        PropertyAccessorElement accessor = (PropertyAccessorElement) duplicate;
+        if (accessor.isSynthetic()) {
+          offset = accessor.getVariable().getNameOffset();
+        }
+      }
+      return new AnalysisError(
+          getSource(),
+          offset,
+          duplicate.getDisplayName().length(),
+          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+          existing.getDisplayName());
+    }
+    return super.getErrorForDuplicate(existing, duplicate);
   }
 
   /**

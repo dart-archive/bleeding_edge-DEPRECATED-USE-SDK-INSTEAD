@@ -227,16 +227,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_prefixCollidesWithTopLevelMembers() throws Exception {
-    addSource("lib.dart", createSource(""));
-    Source source = addSource(createSource(//
-        "import 'lib.dart' as uri;",
-        "var uri = null;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
-    verify(source);
-  }
-
   public void fail_recursiveCompileTimeConstant() throws Exception {
     Source source = addSource(createSource(//
         "const x = y + 1;",
@@ -2009,6 +1999,46 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library l2;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.PART_OF_NON_PART);
+    verify(source);
+  }
+
+  public void test_prefixCollidesWithTopLevelMembers_functionTypeAlias() throws Exception {
+    addSource("/lib.dart", "library lib;");
+    Source source = addSource(createSource(//
+        "import '/lib.dart' as p;",
+        "typedef p();"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
+    verify(source);
+  }
+
+  public void test_prefixCollidesWithTopLevelMembers_topLevelFunction() throws Exception {
+    addSource("/lib.dart", "library lib;");
+    Source source = addSource(createSource(//
+        "import '/lib.dart' as p;",
+        "p() {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
+    verify(source);
+  }
+
+  public void test_prefixCollidesWithTopLevelMembers_topLevelVariable() throws Exception {
+    addSource("/lib.dart", "library lib;");
+    Source source = addSource(createSource(//
+        "import '/lib.dart' as p;",
+        "var p = null;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
+    verify(source);
+  }
+
+  public void test_prefixCollidesWithTopLevelMembers_type() throws Exception {
+    addSource("/lib.dart", "library lib;");
+    Source source = addSource(createSource(//
+        "import '/lib.dart' as p;",
+        "class p {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
     verify(source);
   }
 

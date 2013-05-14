@@ -730,7 +730,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 14.1 Imports: It is a compile-time error if the current library declares a top-level member
    * named <i>p</i>.
    */
-  PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER(""),
+  PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER(
+      "The name '%s' is already used as an import prefix and cannot be used to name a top-level element"),
 
   /**
    * 6.2.2 Optional Formals: It is a compile-time error if the name of a named optional parameter

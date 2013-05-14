@@ -53,7 +53,7 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
    * @param variable the variable with which this access is associated
    */
   public PropertyAccessorElementImpl(PropertyInducingElementImpl variable) {
-    super(variable.getName(), -1);
+    super(variable.getName(), variable.getNameOffset());
     this.variable = variable;
     setSynthetic(true);
   }

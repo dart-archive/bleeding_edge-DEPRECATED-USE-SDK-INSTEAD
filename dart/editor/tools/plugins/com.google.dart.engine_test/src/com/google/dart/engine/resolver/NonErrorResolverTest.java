@@ -1031,6 +1031,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_prefixCollidesWithTopLevelMembers() throws Exception {
+    addSource("/lib.dart", "library lib;");
+    Source source = addSource(createSource(//
+        "import '/lib.dart' as p;",
+        "typedef P();",
+        "p2() {}",
+        "var p3;",
+        "class p4 {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_rethrowOutsideCatch() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
