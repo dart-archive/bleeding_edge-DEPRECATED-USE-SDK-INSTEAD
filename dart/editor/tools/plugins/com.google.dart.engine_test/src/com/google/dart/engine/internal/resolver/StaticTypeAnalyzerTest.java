@@ -751,7 +751,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     MethodElement minusMethod = getMethod(typeProvider.getNumType(), "-");
     map(node, minusMethod);
     node.setElement(minusMethod);
-    assertSame(typeProvider.getNumType(), analyze(node));
+    assertSame(typeProvider.getIntType(), analyze(node));
     listener.assertNoErrors();
   }
 
@@ -768,7 +768,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     MethodElement plusMethod = getMethod(typeProvider.getNumType(), "+");
     map(node, plusMethod);
     node.setElement(plusMethod);
-    assertSame(typeProvider.getNumType(), analyze(node));
+    assertSame(typeProvider.getIntType(), analyze(node));
     listener.assertNoErrors();
   }
 

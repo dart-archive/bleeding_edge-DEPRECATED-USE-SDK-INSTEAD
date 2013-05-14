@@ -941,7 +941,15 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.getOperand();
-    recordStaticType(node, getStaticType(operand));
+    Type staticType = getStaticType(operand);
+    TokenType operator = node.getOperator().getType();
+    if (operator == TokenType.MINUS_MINUS || operator == TokenType.PLUS_PLUS) {
+      Type intType = typeProvider.getIntType();
+      if (getStaticType(node.getOperand()) == intType) {
+        staticType = intType;
+      }
+    }
+    recordStaticType(node, staticType);
     recordPropagatedType(node, getPropagatedType(operand));
     return null;
   }
@@ -1002,6 +1010,12 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       // The other cases are equivalent to invoking a method.
       ExecutableElement staticMethodElement = staticElementMap.get(node);
       Type staticType = computeReturnType(staticMethodElement);
+      if (operator == TokenType.MINUS_MINUS || operator == TokenType.PLUS_PLUS) {
+        Type intType = typeProvider.getIntType();
+        if (getStaticType(node.getOperand()) == intType) {
+          staticType = intType;
+        }
+      }
       recordStaticType(node, staticType);
 
       MethodElement propagatedMethodElement = node.getElement();
