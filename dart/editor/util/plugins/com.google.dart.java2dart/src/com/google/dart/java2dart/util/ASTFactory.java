@@ -15,6 +15,8 @@ package com.google.dart.java2dart.util;
 
 import com.google.dart.engine.ast.*;
 import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.StringToken;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
@@ -503,6 +505,11 @@ public final class ASTFactory {
         isStatic ? token(Keyword.STATIC) : null,
         variableDeclarationList(keyword, type, variables),
         token(TokenType.SEMICOLON));
+  }
+
+  public static FieldDeclaration fieldDeclaration(Comment comment, boolean isStatic,
+      Keyword keyword, TypeName type, VariableDeclaration... variables) {
+    return fieldDeclaration(comment, isStatic, keyword, type, list(variables));
   }
 
   public static FieldDeclaration fieldDeclaration(Comment comment, boolean isStatic,
@@ -1351,5 +1358,12 @@ public final class ASTFactory {
    * Prevent the creation of instances of this class.
    */
   private ASTFactory() {
+  }
+
+  public static Comment eolDocComment(String commentText) {
+    return Comment.createEndOfLineComment(new Token[] {new StringToken(
+        TokenType.SINGLE_LINE_COMMENT,
+        commentText,
+        0)});
   }
 }

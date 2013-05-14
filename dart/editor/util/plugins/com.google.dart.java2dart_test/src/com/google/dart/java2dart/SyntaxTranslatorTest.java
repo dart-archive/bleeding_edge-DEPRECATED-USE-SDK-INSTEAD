@@ -246,13 +246,16 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "}",
         "class Direction implements Comparable<Direction>, I {",
         "  static final List<Direction> values = [];",
-        "  final String __name;",
-        "  final int __ordinal;",
-        "  int get ordinal => __ordinal;",
-        "  Direction.jtd_constructor_0_decl(this.__name, this.__ordinal) {",
+        "  ",
+        "  /// The name of this enum constant, as declared in the enum declaration.",
+        "  final String name;",
+        "  ",
+        "  /// The position in the enum declaration.",
+        "  final int ordinal;",
+        "  Direction.jtd_constructor_0_decl(this.name, this.ordinal) {",
         "  }",
-        "  int compareTo(Direction other) => __ordinal - other.__ordinal;",
-        "  String toString() => __name;",
+        "  int compareTo(Direction other) => ordinal - other.ordinal;",
+        "  String toString() => name;",
         "}");
   }
 

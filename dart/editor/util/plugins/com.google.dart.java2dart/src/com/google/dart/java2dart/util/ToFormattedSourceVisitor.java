@@ -212,7 +212,9 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
       for (String line : StringUtils.split(token.getLexeme(), "\n")) {
         if (firstLine) {
           firstLine = false;
-          if (node.isDocumentation()) {
+          // TODO (danrubel): clean this up if isDocumentation() is modified to include ///
+          if (node.isDocumentation() || node.isEndOfLine()
+              || node.getBeginToken().getLexeme().startsWith("///")) {
             nl2();
           }
         } else {
