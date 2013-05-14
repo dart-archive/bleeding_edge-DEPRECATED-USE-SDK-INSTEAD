@@ -22,6 +22,7 @@ public class TestAll {
     suite.addTestSuite(RunPubJobTest.class);
     suite.addTestSuite(RunPubCacheListJobTest.class);
     suite.addTestSuite(PubBuildParticipantTest.class);
+    suite.addTestSuite(PubCacheManagerTest.class);
     suite.addTestSuite(PubspecModelTest.class);
     suite.addTestSuite(PubYamlUtilsTest.class);
     return suite;

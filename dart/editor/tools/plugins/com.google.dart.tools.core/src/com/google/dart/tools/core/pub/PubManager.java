@@ -16,6 +16,8 @@ package com.google.dart.tools.core.pub;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.ListenerList;
 
+import java.util.Map;
+
 /**
  * The unique instance of the class <code>PubManager</code> is used to manage the listeners for pub
  * updates.
@@ -37,6 +39,12 @@ public class PubManager {
   public void notifyListeners(IContainer container) {
     for (Object listener : listeners.getListeners()) {
       ((IPubUpdateListener) listener).packagesUpdated(container);
+    }
+  }
+
+  public void notifyListeners(Map<String, Object> added, Map<String, Object> removed) {
+    for (Object listener : listeners.getListeners()) {
+      ((IPubUpdateListener) listener).pubCacheChanged(added, removed);
     }
   }
 

@@ -15,6 +15,8 @@ package com.google.dart.tools.core.pub;
 
 import org.eclipse.core.resources.IContainer;
 
+import java.util.Map;
+
 /**
  * A pub update listener is notified when the pub packages have been updated
  */
@@ -25,4 +27,8 @@ public interface IPubUpdateListener {
    */
   void packagesUpdated(IContainer container);
 
+  /**
+   * Notifies that pub cache has been changed and the packages added/removed
+   */
+  void pubCacheChanged(Map<String, Object> added, Map<String, Object> removed);
 }

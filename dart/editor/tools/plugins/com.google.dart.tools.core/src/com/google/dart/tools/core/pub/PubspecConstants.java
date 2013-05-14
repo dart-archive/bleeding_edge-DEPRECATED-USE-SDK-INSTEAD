@@ -35,4 +35,7 @@ public interface PubspecConstants {
   public static final String REF = "ref";
   public static final String ANY = "any";
 
+  public static final String PACKAGES = "packages";
+  public static final String LOCATION = "location";
+
 }
