@@ -7,9 +7,6 @@
 chat/chat_server_test: Skip
 standalone/*: Skip
 
-[ $runtime == drt ]
-lib/touch/touch_test: Skip # Issue 157
-
 [ $compiler == none && $runtime == drt ]
 dartcombat/dartcombat_test: Skip # Issue 2790
 swarm/swarm_test: Pass, Fail # Issue 3977
@@ -43,25 +40,18 @@ dartcombat/dartcombat_test: Skip
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $runtime == chrome && $system == macos ]
-lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
-
-[ $compiler == dart2js && $runtime == chrome && $system == windows ]
+[ $compiler == dart2js && $runtime == browser ]
+# This may be related to issue 157
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
 [ $compiler == dart2js && $runtime == ff ]
 swarm/swarm_test: Fail # BUG(5633)
-lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
 [ $compiler == dart2js && $runtime == drt && $system == windows ]
 swarm/swarm_test: Fail # Issue 4517
 
 [ $compiler == dart2js && $runtime == ie9 ]
 swarm/swarm_test: Skip, Timeout, Fail # BUG(5633) # Added Skip because selenium causes servere issues if we run this on IE9
-lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
-
-[ $compiler == dart2js && $runtime == safari ]
-lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
