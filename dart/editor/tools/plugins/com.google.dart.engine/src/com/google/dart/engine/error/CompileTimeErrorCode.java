@@ -94,6 +94,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.1 Constants: It is a compile-time error if evaluation of a compile-time constant would raise
    * an exception.
    */
+  // Low priority- no priority until we can come up with an example of such constant
   COMPILE_TIME_CONSTANT_RAISES_EXCEPTION(""),
 
   /**
