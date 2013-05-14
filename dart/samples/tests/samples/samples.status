@@ -40,7 +40,7 @@ dartcombat/dartcombat_test: Skip
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $browser ]
+[ $browser ]
 # This may be related to issue 157
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
