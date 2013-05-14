@@ -553,6 +553,16 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidFactoryNameNotAClass() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invalidOverrideReturnType_returnType_interface() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "abstract class A {",

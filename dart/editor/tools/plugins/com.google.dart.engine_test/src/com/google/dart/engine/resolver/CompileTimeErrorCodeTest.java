@@ -121,15 +121,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invalidFactoryNameNotAClass() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS);
-    verify(source);
-  }
-
   public void fail_invalidOverrideDefaultValue() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1445,6 +1436,27 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME);
+    // no verify() call, "B" is not resolved
+  }
+
+  public void test_invalidFactoryNameNotAClass_notClassName() throws Exception {
+    Source source = addSource(createSource(//
+        "int B;",
+        "class A {",
+        "  factory B() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS);
+    verify(source);
+  }
+
+  public void test_invalidFactoryNameNotAClass_notEnclosingClassName() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory B() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS);
     // no verify() call, "B" is not resolved
   }
 

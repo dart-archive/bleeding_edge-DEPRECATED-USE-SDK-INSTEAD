@@ -218,6 +218,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
+   * @return {@code true} if the given identifier is the return type of a factory constructor
+   *         declaration.
+   */
+  private static boolean isFactoryConstructorReturnType(SimpleIdentifier node) {
+    ASTNode parent = node.getParent();
+    if (parent instanceof ConstructorDeclaration) {
+      ConstructorDeclaration constructor = (ConstructorDeclaration) parent;
+      return constructor.getReturnType() == node && constructor.getFactoryKeyword() != null;
+    }
+    return false;
+  }
+
+  /**
    * Checks if the given 'super' expression is used in the valid context.
    * 
    * @param node the 'super' expression to analyze
@@ -907,7 +920,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // Otherwise, the node should be resolved.
     //
     Element element = resolveSimpleIdentifier(node);
-    if (element == null) {
+    if (isFactoryConstructorReturnType(node) && element != resolver.getEnclosingClass()) {
+      resolver.reportError(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
+    } else if (element == null) {
       // TODO(brianwilkerson) Recover from this error.
       if (isConstructorReturnType(node)) {
         resolver.reportError(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
@@ -917,6 +932,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else if (element instanceof ExecutableElement) {
       staticElementMap.put(node, (ExecutableElement) element);
     }
+
     recordResolution(node, element);
     return null;
   }

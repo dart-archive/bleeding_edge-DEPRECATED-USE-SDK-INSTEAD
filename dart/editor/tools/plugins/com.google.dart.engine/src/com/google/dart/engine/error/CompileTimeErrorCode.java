@@ -469,7 +469,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.6.2 Factories: It is a compile-time error if <i>M</i> is not the name of the immediately
    * enclosing class.
    */
-  INVALID_FACTORY_NAME_NOT_A_CLASS(""),
+  INVALID_FACTORY_NAME_NOT_A_CLASS("The name of the immediately enclosing class expected"),
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
