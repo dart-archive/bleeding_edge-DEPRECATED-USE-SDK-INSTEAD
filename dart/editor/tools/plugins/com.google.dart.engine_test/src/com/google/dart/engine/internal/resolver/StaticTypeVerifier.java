@@ -14,9 +14,13 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.ContinueStatement;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.Label;
@@ -115,8 +119,26 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
+  public Void visitBreakStatement(BreakStatement node) {
+    // Don't visit the children because the identifier (if it exists) is not expected to have a type.
+    return null;
+  }
+
+  @Override
   public Void visitCommentReference(CommentReference node) {
     // Do nothing.
+    return null;
+  }
+
+  @Override
+  public Void visitContinueStatement(ContinueStatement node) {
+    // Don't visit the children because the identifier (if it exists) is not expected to have a type.
+    return null;
+  }
+
+  @Override
+  public Void visitExportDirective(ExportDirective node) {
+    // Don't visit the children because they are not expected to have a type.
     return null;
   }
 
@@ -128,6 +150,18 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
     } else {
       resolvedExpressionCount++;
     }
+    return null;
+  }
+
+  @Override
+  public Void visitImportDirective(ImportDirective node) {
+    // Don't visit the children because they are not expected to have a type.
+    return null;
+  }
+
+  @Override
+  public Void visitLabel(Label node) {
+    // Don't visit the children because the identifier is not expected to have a type.
     return null;
   }
 
@@ -163,9 +197,8 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
       return null;
     } else if (parent instanceof ConstructorName && node == ((ConstructorName) parent).getName()) {
       return null;
-    } else if (parent instanceof Label && node == ((Label) parent).getLabel()) {
-      return null;
-    } else if (parent instanceof ImportDirective && node == ((ImportDirective) parent).getPrefix()) {
+    } else if (parent instanceof ConstructorFieldInitializer
+        && node == ((ConstructorFieldInitializer) parent).getFieldName()) {
       return null;
     } else if (node.getElement() instanceof PrefixElement) {
       // Prefixes don't have a type.
