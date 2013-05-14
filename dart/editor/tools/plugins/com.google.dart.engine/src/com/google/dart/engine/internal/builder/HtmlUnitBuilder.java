@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.builder;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.HtmlScriptElement;
@@ -74,6 +75,11 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
   private HtmlElementImpl htmlElement;
 
   /**
+   * The elements in the path from the HTML unit to the current tag node.
+   */
+  private ArrayList<XmlTagNode> parentNodes;
+
+  /**
    * The script elements being built.
    */
   private ArrayList<HtmlScriptElement> scripts;
@@ -120,10 +126,15 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
 
   @Override
   public Void visitHtmlUnit(HtmlUnit node) {
+    parentNodes = new ArrayList<XmlTagNode>();
     scripts = new ArrayList<HtmlScriptElement>();
-    node.visitChildren(this);
-    htmlElement.setScripts(scripts.toArray(new HtmlScriptElement[scripts.size()]));
-    scripts = null;
+    try {
+      node.visitChildren(this);
+      htmlElement.setScripts(scripts.toArray(new HtmlScriptElement[scripts.size()]));
+    } finally {
+      scripts = null;
+      parentNodes = null;
+    }
     return null;
   }
 
@@ -134,70 +145,101 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
 
   @Override
   public Void visitXmlTagNode(XmlTagNode node) {
-    if (isScriptNode(node)) {
-      Source htmlSource = htmlElement.getSource();
-      XmlAttributeNode scriptAttribute = getScriptSourcePath(node);
-      String scriptSourcePath = scriptAttribute == null ? null : scriptAttribute.getText();
-      if (node.getAttributeEnd().getType() == TokenType.GT && scriptSourcePath == null) {
-        EmbeddedHtmlScriptElementImpl script = new EmbeddedHtmlScriptElementImpl(node);
-        String contents = node.getContent();
-
-        //TODO (danrubel): Move scanning embedded scripts into AnalysisContextImpl
-        // so that clients such as builder can scan, parse, and get errors without resolving
-        int attributeEnd = node.getAttributeEnd().getEnd();
-        Location location = lineInfo.getLocation(attributeEnd);
-        StringScanner scanner = new StringScanner(htmlSource, contents, errorListener);
-        scanner.setSourceStart(location.getLineNumber(), location.getColumnNumber(), attributeEnd);
-        com.google.dart.engine.scanner.Token firstToken = scanner.tokenize();
-        int[] lineStarts = scanner.getLineStarts();
-
-        //TODO (danrubel): Move parsing embedded scripts into AnalysisContextImpl
-        // so that clients such as builder can scan, parse, and get errors without resolving
-        Parser parser = new Parser(htmlSource, errorListener);
-        CompilationUnit unit = parser.parseCompilationUnit(firstToken);
-        unit.setLineInfo(new LineInfo(lineStarts));
-
-        try {
-          LibraryResolver resolver = new LibraryResolver(context);
-          LibraryElementImpl library = (LibraryElementImpl) resolver.resolveEmbeddedLibrary(
-              htmlSource,
-              unit,
-              true);
-          script.setScriptLibrary(library);
-        } catch (AnalysisException exception) {
-          //TODO (danrubel): Handle or forward the exception
-          exception.printStackTrace();
+    if (parentNodes.contains(node)) {
+      //
+      // This should not be possible, but we have an error report that suggests that it happened at
+      // least once. This code will guard against infinite recursion and might help us identify the
+      // cause of the issue.
+      //
+      StringBuilder builder = new StringBuilder();
+      builder.append("Found circularity in XML nodes: ");
+      boolean first = true;
+      for (XmlTagNode pathNode : parentNodes) {
+        if (first) {
+          first = false;
+        } else {
+          builder.append(", ");
         }
+        String tagName = pathNode.getTag().getLexeme();
+        if (pathNode == node) {
+          builder.append("*");
+          builder.append(tagName);
+          builder.append("*");
+        } else {
+          builder.append(tagName);
+        }
+      }
+      AnalysisEngine.getInstance().getLogger().logError(builder.toString());
+      return null;
+    }
+    parentNodes.add(node);
+    try {
+      if (isScriptNode(node)) {
+        Source htmlSource = htmlElement.getSource();
+        XmlAttributeNode scriptAttribute = getScriptSourcePath(node);
+        String scriptSourcePath = scriptAttribute == null ? null : scriptAttribute.getText();
+        if (node.getAttributeEnd().getType() == TokenType.GT && scriptSourcePath == null) {
+          EmbeddedHtmlScriptElementImpl script = new EmbeddedHtmlScriptElementImpl(node);
+          String contents = node.getContent();
 
-        scripts.add(script);
-      } else {
-        ExternalHtmlScriptElementImpl script = new ExternalHtmlScriptElementImpl(node);
-        if (scriptSourcePath != null) {
+          //TODO (danrubel): Move scanning embedded scripts into AnalysisContextImpl
+          // so that clients such as builder can scan, parse, and get errors without resolving
+          int attributeEnd = node.getAttributeEnd().getEnd();
+          Location location = lineInfo.getLocation(attributeEnd);
+          StringScanner scanner = new StringScanner(htmlSource, contents, errorListener);
+          scanner.setSourceStart(location.getLineNumber(), location.getColumnNumber(), attributeEnd);
+          com.google.dart.engine.scanner.Token firstToken = scanner.tokenize();
+          int[] lineStarts = scanner.getLineStarts();
+
+          //TODO (danrubel): Move parsing embedded scripts into AnalysisContextImpl
+          // so that clients such as builder can scan, parse, and get errors without resolving
+          Parser parser = new Parser(htmlSource, errorListener);
+          CompilationUnit unit = parser.parseCompilationUnit(firstToken);
+          unit.setLineInfo(new LineInfo(lineStarts));
+
           try {
-            new URI(scriptSourcePath);
-            Source scriptSource = context.getSourceFactory().resolveUri(
+            LibraryResolver resolver = new LibraryResolver(context);
+            LibraryElementImpl library = (LibraryElementImpl) resolver.resolveEmbeddedLibrary(
                 htmlSource,
-                scriptSourcePath);
-            script.setScriptSource(scriptSource);
-            if (!scriptSource.exists()) {
+                unit,
+                true);
+            script.setScriptLibrary(library);
+          } catch (AnalysisException exception) {
+            //TODO (danrubel): Handle or forward the exception
+            exception.printStackTrace();
+          }
+          scripts.add(script);
+        } else {
+          ExternalHtmlScriptElementImpl script = new ExternalHtmlScriptElementImpl(node);
+          if (scriptSourcePath != null) {
+            try {
+              new URI(scriptSourcePath);
+              Source scriptSource = context.getSourceFactory().resolveUri(
+                  htmlSource,
+                  scriptSourcePath);
+              script.setScriptSource(scriptSource);
+              if (!scriptSource.exists()) {
+                reportError(
+                    HtmlWarningCode.URI_DOES_NOT_EXIST,
+                    scriptAttribute.getOffset() + 1,
+                    scriptSourcePath.length(),
+                    scriptSourcePath);
+              }
+            } catch (URISyntaxException exception) {
               reportError(
-                  HtmlWarningCode.URI_DOES_NOT_EXIST,
+                  HtmlWarningCode.INVALID_URI,
                   scriptAttribute.getOffset() + 1,
                   scriptSourcePath.length(),
                   scriptSourcePath);
             }
-          } catch (URISyntaxException exception) {
-            reportError(
-                HtmlWarningCode.INVALID_URI,
-                scriptAttribute.getOffset() + 1,
-                scriptSourcePath.length(),
-                scriptSourcePath);
           }
+          scripts.add(script);
         }
-        scripts.add(script);
+      } else {
+        node.visitChildren(this);
       }
-    } else {
-      node.visitChildren(this);
+    } finally {
+      parentNodes.remove(node);
     }
     return null;
   }
