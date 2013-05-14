@@ -96,6 +96,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * File-oriented view for navigating Dart projects.
@@ -130,6 +131,13 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         }
       });
     }
+
+    @Override
+    public void pubCacheChanged(Map<String, Object> added, Map<String, Object> removed) {
+      // TODO Auto-generated method stub
+
+    }
+
   }
 
   public static final String VIEW_ID = "com.google.dart.tools.ui.FileExplorer"; // from plugin.xml
