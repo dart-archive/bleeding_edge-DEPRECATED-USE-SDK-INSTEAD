@@ -1188,7 +1188,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class TreeNode {}",
         "main() {",
-        "  double res = 0;",
+        "  double res = 0.0;",
         "}");
     Expression expression = findNode("0;", Expression.class);
     Type expectedType = ((VariableDeclaration) expression.getParent()).getElement().getType();

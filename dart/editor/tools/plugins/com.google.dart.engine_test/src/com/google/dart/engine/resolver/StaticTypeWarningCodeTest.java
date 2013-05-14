@@ -35,15 +35,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invalidAssignment_field() throws Exception {
-    // TODO (jwren) fix by visiting the TopLevelVariableDeclaration, as well as AssignmentExpression for the INVALID_ASSIGNMENT
-    Source source = addSource(createSource(//
-    "int x = 'string';"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
-    verify(source);
-  }
-
   public void fail_nonTypeAsTypeArgument() throws Exception {
     Source source = addSource(createSource(//
         "int A;",
@@ -104,6 +95,24 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}",
         "f() {",
         "  A.x = '0';",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
+  public void test_invalidAssignment_topLevelVariableDeclaration() throws Exception {
+    Source source = addSource(createSource(//
+    "int x = 'string';"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
+  public void test_invalidAssignment_variableDeclaration() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int x = 'string';",
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);

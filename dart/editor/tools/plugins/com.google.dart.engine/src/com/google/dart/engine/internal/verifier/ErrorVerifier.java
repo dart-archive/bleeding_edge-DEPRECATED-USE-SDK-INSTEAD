@@ -255,7 +255,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
-    checkForInvalidAssignment(node);
+    checkForInvalidAssignment(node.getLeftHandSide(), node.getRightHandSide());
     checkForAssignmentToFinal(node);
     return super.visitAssignmentExpression(node);
   }
@@ -280,7 +280,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           node.getName(),
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       checkForMemberWithClassName();
-      checkForMixins(node.getWithClause());
+      checkForAllMixinErrorCodes(node.getWithClause());
       // initialize initialFieldElementsMap
       ClassElement classElement = node.getElement();
       if (classElement != null) {
@@ -306,7 +306,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     checkForBuiltInIdentifierAsName(
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-    checkForMixins(node.getWithClause());
+    checkForAllMixinErrorCodes(node.getWithClause());
     return super.visitClassTypeAlias(node);
   }
 
@@ -561,6 +561,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
     return super.visitTypeParameter(node);
+  }
+
+  @Override
+  public Void visitVariableDeclaration(VariableDeclaration node) {
+    checkForInvalidAssignment(node.getName(), node.getInitializer());
+    return super.visitVariableDeclaration(node);
   }
 
   @Override
@@ -891,6 +897,33 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * This verifies that all classes of the passed 'with' clause are valid.
+   * 
+   * @param node the 'with' clause to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#MIXIN_DECLARES_CONSTRUCTOR
+   * @see CompileTimeErrorCode#MIXIN_INHERITS_FROM_NOT_OBJECT
+   * @see CompileTimeErrorCode#MIXIN_REFERENCES_SUPER
+   */
+  private boolean checkForAllMixinErrorCodes(WithClause withClause) {
+    if (withClause == null) {
+      return false;
+    }
+    boolean problemReported = false;
+    for (TypeName mixinName : withClause.getMixinTypes()) {
+      Type mixinType = mixinName.getType();
+      if (!(mixinType instanceof InterfaceType)) {
+        continue;
+      }
+      ClassElement mixinElement = ((InterfaceType) mixinType).getElement();
+      problemReported |= checkForMixinDeclaresConstructor(mixinName, mixinElement);
+      problemReported |= checkForMixinInheritsNotFromObject(mixinName, mixinElement);
+      problemReported |= checkForMixinReferencesSuper(mixinName, mixinElement);
+    }
+    return problemReported;
   }
 
   /**
@@ -1683,15 +1716,17 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This verifies that the passed assignment expression represents a valid assignment.
+   * This verifies that the passed left hand side and right hand side represent a valid assignment.
    * 
-   * @param node the assignment expression to evaluate
+   * @param lhs the left hand side expression
+   * @param rhs the right hand side expression
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
    */
-  private boolean checkForInvalidAssignment(AssignmentExpression node) {
-    Expression lhs = node.getLeftHandSide();
-    Expression rhs = node.getRightHandSide();
+  private boolean checkForInvalidAssignment(Expression lhs, Expression rhs) {
+    if (lhs == null || rhs == null) {
+      return false;
+    }
     VariableElement leftElement = getVariableElement(lhs);
     Type leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.getType();
     Type staticRightType = getStaticType(rhs);
@@ -1866,31 +1901,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           mixinElement.getName());
     }
     return false;
-  }
-
-  /**
-   * This verifies that all classes of the passed 'with' clause are valid.
-   * 
-   * @param node the 'with' clause to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#MIXIN_DECLARES_CONSTRUCTOR
-   */
-  private boolean checkForMixins(WithClause withClause) {
-    if (withClause == null) {
-      return false;
-    }
-    boolean problemReported = false;
-    for (TypeName mixinName : withClause.getMixinTypes()) {
-      Type mixinType = mixinName.getType();
-      if (!(mixinType instanceof InterfaceType)) {
-        continue;
-      }
-      ClassElement mixinElement = ((InterfaceType) mixinType).getElement();
-      problemReported |= checkForMixinDeclaresConstructor(mixinName, mixinElement);
-      problemReported |= checkForMixinInheritsNotFromObject(mixinName, mixinElement);
-      problemReported |= checkForMixinReferencesSuper(mixinName, mixinElement);
-    }
-    return problemReported;
   }
 
   /**
