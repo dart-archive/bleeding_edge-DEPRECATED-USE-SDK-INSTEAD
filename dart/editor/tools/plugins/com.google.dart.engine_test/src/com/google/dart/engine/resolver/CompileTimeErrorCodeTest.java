@@ -333,72 +333,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_superInInvalidContext_factoryConstructor() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
-    verify(source);
-  }
-
-  public void fail_superInInvalidContext_instanceVariableInitializer() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  var a;",
-        "}",
-        "class B extends A {",
-        " var b = super.a;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
-    verify(source);
-  }
-
-  public void fail_superInInvalidContext_staticMethod() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  static m() {}",
-        "}",
-        "class B extends A {",
-        "  static n() { return super.m(); }",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
-    verify(source);
-  }
-
-  public void fail_superInInvalidContext_staticVariableInitializer() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  static a = 0;",
-        "}",
-        "class B extends A {",
-        "  static b = super.a;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
-    verify(source);
-  }
-
-  public void fail_superInInvalidContext_topLevelFunction() throws Exception {
-    Source source = addSource(createSource(//
-        "f() {",
-        "  super.f();",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
-    verify(source);
-  }
-
-  public void fail_superInInvalidContext_variableInitializer() throws Exception {
-    Source source = addSource(createSource(//
-    "var v = super.v;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
-    verify(source);
-  }
-
   public void fail_superInitializerInObject() throws Exception {
     Source source = addSource(createSource(//
     // TODO(brianwilkerson) Figure out how to mock Object
@@ -2081,6 +2015,100 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR);
     verify(source);
+  }
+
+  public void test_superInInvalidContext_binaryExpression() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = super + 0;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    // no verify(), 'super.v' is not resolved
+  }
+
+  public void test_superInInvalidContext_constructorFieldInitializer() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "}",
+        "class B extends A {",
+        "  var f;",
+        "  B() : f = super.m();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    // no verify(), 'super.m' is not resolved
+  }
+
+  public void test_superInInvalidContext_factoryConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "}",
+        "class B extends A {",
+        "  factory B() {",
+        "    super.m();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    // no verify(), 'super.m' is not resolved
+  }
+
+  public void test_superInInvalidContext_instanceVariableInitializer() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var a;",
+        "}",
+        "class B extends A {",
+        " var b = super.a;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    // no verify(), 'super.a' is not resolved
+  }
+
+  public void test_superInInvalidContext_staticMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static m() {}",
+        "}",
+        "class B extends A {",
+        "  static n() { return super.m(); }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    // no verify(), 'super.m' is not resolved
+  }
+
+  public void test_superInInvalidContext_staticVariableInitializer() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static a = 0;",
+        "}",
+        "class B extends A {",
+        "  static b = super.a;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    // no verify(), 'super.a' is not resolved
+  }
+
+  public void test_superInInvalidContext_topLevelFunction() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  super.f();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    // no verify(), 'super.f' is not resolved
+  }
+
+  public void test_superInInvalidContext_topLevelVariableInitializer() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = super.v;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    // no verify(), 'super.v' is not resolved
   }
 
   public void test_undefinedClass_const() throws Exception {

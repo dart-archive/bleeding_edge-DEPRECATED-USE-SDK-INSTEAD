@@ -75,13 +75,16 @@ import static com.google.dart.engine.ast.ASTFactory.breakStatement;
 import static com.google.dart.engine.ast.ASTFactory.constructorName;
 import static com.google.dart.engine.ast.ASTFactory.continueStatement;
 import static com.google.dart.engine.ast.ASTFactory.exportDirective;
+import static com.google.dart.engine.ast.ASTFactory.expressionFunctionBody;
 import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
+import static com.google.dart.engine.ast.ASTFactory.formalParameterList;
 import static com.google.dart.engine.ast.ASTFactory.hideCombinator;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.importDirective;
 import static com.google.dart.engine.ast.ASTFactory.indexExpression;
 import static com.google.dart.engine.ast.ASTFactory.instanceCreationExpression;
 import static com.google.dart.engine.ast.ASTFactory.integer;
+import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.methodInvocation;
 import static com.google.dart.engine.ast.ASTFactory.namedExpression;
 import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
@@ -484,6 +487,14 @@ public class ElementResolverTest extends EngineTestCase {
     SuperExpression target = superExpression();
     target.setStaticType(classA.getType());
     PropertyAccess access = propertyAccess(target, getterName);
+    methodDeclaration(
+        null,
+        null,
+        null,
+        null,
+        identifier("m"),
+        formalParameterList(),
+        expressionFunctionBody(access));
     resolveNode(access);
     assertSame(getter, access.getPropertyName().getElement());
     listener.assertNoErrors();

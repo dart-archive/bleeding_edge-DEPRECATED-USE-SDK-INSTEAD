@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.CommentReference;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
@@ -36,6 +37,7 @@ import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.LibraryDirective;
+import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
@@ -211,6 +213,32 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (parent instanceof ConstructorDeclaration) {
       ConstructorDeclaration constructor = (ConstructorDeclaration) parent;
       return constructor.getReturnType() == node;
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given 'super' expression is used in the valid context.
+   * 
+   * @param node the 'super' expression to analyze
+   * @return {@code true} if the given 'super' expression is in the valid context
+   */
+  private static boolean isSuperInValidContext(SuperExpression node) {
+    for (ASTNode n = node; n != null; n = n.getParent()) {
+      if (n instanceof CompilationUnit) {
+        return false;
+      }
+      if (n instanceof ConstructorDeclaration) {
+        ConstructorDeclaration constructor = (ConstructorDeclaration) n;
+        return constructor.getFactoryKeyword() == null;
+      }
+      if (n instanceof ConstructorFieldInitializer) {
+        return false;
+      }
+      if (n instanceof MethodDeclaration) {
+        MethodDeclaration method = (MethodDeclaration) n;
+        return !method.isStatic();
+      }
     }
     return false;
   }
@@ -637,6 +665,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Expression target = node.getRealTarget();
     Element staticElement;
     Element propagatedElement;
+    if (target instanceof SuperExpression && !isSuperInValidContext((SuperExpression) target)) {
+      return null;
+    }
     if (target == null) {
       staticElement = resolveInvokedElement(methodName);
       propagatedElement = null;
@@ -828,8 +859,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitPropertyAccess(PropertyAccess node) {
     Expression target = node.getRealTarget();
+    if (target instanceof SuperExpression && !isSuperInValidContext((SuperExpression) target)) {
+      return null;
+    }
     SimpleIdentifier propertyName = node.getPropertyName();
-
     resolvePropertyAccess(target, propertyName);
     return null;
   }
@@ -918,6 +951,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     node.setElement(element);
     resolveNamedArguments(node.getArgumentList(), element);
     return null;
+  }
+
+  @Override
+  public Void visitSuperExpression(SuperExpression node) {
+    if (!isSuperInValidContext(node)) {
+      resolver.reportError(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
+    }
+    return super.visitSuperExpression(node);
   }
 
   @Override

@@ -815,7 +815,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * initializer list, in class Object, in a factory constructor, or in a static method or variable
    * initializer.
    */
-  SUPER_IN_INVALID_CONTEXT(""),
+  SUPER_IN_INVALID_CONTEXT("Invalid context for 'super' invocation"),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
