@@ -67,7 +67,10 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
 
     @Override
     public Object[] getElements(Object inputElement) {
-      return model.getDependecies();
+      if (model != null) {
+        return model.getDependecies();
+      }
+      return new Object[0];
     }
 
     @Override

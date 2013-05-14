@@ -415,7 +415,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     });
     ignoreModify = true;
     updateInfoSection();
-    if (model.isErrorOnParse()) {
+    if (model != null && model.isErrorOnParse()) {
       MessageDialog.openError(
           null,
           "Pubspec Editor",
