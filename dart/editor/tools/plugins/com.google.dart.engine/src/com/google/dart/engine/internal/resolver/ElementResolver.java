@@ -1525,7 +1525,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     }
     visitedInterfaces.add(targetClass);
-    PropertyAccessorElement setter = targetType.getGetter(setterName);
+    PropertyAccessorElement setter = targetType.getSetter(setterName);
     if (setter != null) {
       return setter;
     }
@@ -1793,7 +1793,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (propertyName.inSetterContext()) {
       memberElement = lookUpSetter(targetType, propertyName.getName());
     }
-    if (memberElement == null && propertyName.inGetterContext()) {
+    if (memberElement == null) {
       memberElement = lookUpGetter(targetType, propertyName.getName());
     }
     if (memberElement == null) {

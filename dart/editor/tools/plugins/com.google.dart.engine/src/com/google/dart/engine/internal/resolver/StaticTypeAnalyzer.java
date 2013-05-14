@@ -372,35 +372,34 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitBinaryExpression(BinaryExpression node) {
+    ExecutableElement staticMethodElement = staticElementMap.get(node);
+    Type staticType = computeReturnType(staticMethodElement);
     TokenType operator = node.getOperator().getType();
     if (operator == TokenType.AMPERSAND_AMPERSAND || operator == TokenType.BAR_BAR
         || operator == TokenType.EQ_EQ || operator == TokenType.BANG_EQ) {
-      recordStaticType(node, typeProvider.getBoolType());
+      staticType = typeProvider.getBoolType();
     } else if (operator == TokenType.MINUS || operator == TokenType.PERCENT
         || operator == TokenType.PLUS || operator == TokenType.STAR
         || operator == TokenType.TILDE_SLASH) {
       Type intType = typeProvider.getIntType();
       if (getStaticType(node.getLeftOperand()) == intType
           && getStaticType(node.getRightOperand()) == intType) {
-        recordStaticType(node, intType);
+        staticType = intType;
       }
     } else if (operator == TokenType.SLASH) {
       Type doubleType = typeProvider.getDoubleType();
       if (getStaticType(node.getLeftOperand()) == doubleType
           || getStaticType(node.getRightOperand()) == doubleType) {
-        recordStaticType(node, doubleType);
+        staticType = doubleType;
       }
-    } else {
-      ExecutableElement staticMethodElement = staticElementMap.get(node);
-      Type staticType = computeReturnType(staticMethodElement);
-      recordStaticType(node, staticType);
+    }
+    recordStaticType(node, staticType);
 
-      MethodElement propagatedMethodElement = node.getElement();
-      if (propagatedMethodElement != staticMethodElement) {
-        Type propagatedType = computeReturnType(propagatedMethodElement);
-        if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
-          recordPropagatedType(node, propagatedType);
-        }
+    MethodElement propagatedMethodElement = node.getElement();
+    if (propagatedMethodElement != staticMethodElement) {
+      Type propagatedType = computeReturnType(propagatedMethodElement);
+      if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+        recordPropagatedType(node, propagatedType);
       }
     }
     return null;
@@ -983,6 +982,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
 
     Type propagatedType = overrideManager.getType(element);
     if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
+      recordPropagatedType(prefixedIdentifier, propagatedType);
       recordPropagatedType(node, propagatedType);
     }
     return null;
@@ -1274,6 +1274,9 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       if (propertyType != null) {
         Type returnType = propertyType.getReturnType();
         if (returnType instanceof InterfaceType) {
+          if (returnType == typeProvider.getFunctionType()) {
+            return dynamicType;
+          }
           MethodElement callMethod = ((InterfaceType) returnType).lookUpMethod(
               ElementResolver.CALL_METHOD_NAME,
               resolver.getDefiningLibrary());
