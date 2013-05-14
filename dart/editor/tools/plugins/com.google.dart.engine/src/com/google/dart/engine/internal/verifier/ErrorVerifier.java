@@ -719,6 +719,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param node the {@link MethodDeclaration} to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
    * @see CompileTimeErrorCode#INVALID_OVERRIDE_NAMED
    * @see CompileTimeErrorCode#INVALID_OVERRIDE_POSITIONAL
    * @see CompileTimeErrorCode#INVALID_OVERRIDE_REQUIRED
@@ -738,13 +739,63 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (methodName.isSynthetic()) {
       return false;
     }
+    String methodNameStr = methodName.getName();
     ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
         enclosingClass,
         executableElement.getName());
-    if (overriddenExecutable == null || overriddenExecutable.isSynthetic()) {
+
+    // SWC.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
+    if (overriddenExecutable == null) {
+      if (!node.isGetter() && !node.isSetter() && !node.isOperator()) {
+        ClassElement superclassClassElement = null;
+        InterfaceType superclassType = enclosingClass.getSupertype();
+        if (superclassType != null) {
+          superclassClassElement = superclassType.getElement();
+        }
+        while (superclassClassElement != null) {
+          FieldElement[] fieldElts = superclassClassElement.getFields();
+          for (FieldElement fieldElt : fieldElts) {
+            if (fieldElt.getName().equals(methodNameStr) && fieldElt.isStatic()) {
+              errorReporter.reportError(
+                  StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
+                  methodName,
+                  methodNameStr,
+                  fieldElt.getEnclosingElement().getDisplayName());
+              return true;
+            }
+          }
+          PropertyAccessorElement[] propertyAccessorElts = superclassClassElement.getAccessors();
+          for (PropertyAccessorElement accessorElt : propertyAccessorElts) {
+            if (accessorElt.getName().equals(methodNameStr) && accessorElt.isStatic()) {
+              errorReporter.reportError(
+                  StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
+                  methodName,
+                  methodNameStr,
+                  accessorElt.getEnclosingElement().getDisplayName());
+              return true;
+            }
+          }
+          MethodElement[] methodElements = superclassClassElement.getMethods();
+          for (MethodElement methodElement : methodElements) {
+            if (methodElement.getName().equals(methodNameStr) && methodElement.isStatic()) {
+              errorReporter.reportError(
+                  StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
+                  methodName,
+                  methodNameStr,
+                  methodElement.getEnclosingElement().getDisplayName());
+              return true;
+            }
+          }
+          superclassClassElement = superclassClassElement.getSupertype() != null
+              ? superclassClassElement.getSupertype().getElement() : null;
+        }
+      }
       return false;
     }
-    // INVALID_OVERRIDE_REQUIRED, INVALID_OVERRIDE_POSITIONAL and INVALID_OVERRIDE_NAMED
+    if (overriddenExecutable.isSynthetic()) {
+      return false;
+    }
+    // CTEC.INVALID_OVERRIDE_REQUIRED, CTEC.INVALID_OVERRIDE_POSITIONAL and CTEC.INVALID_OVERRIDE_NAMED
     ParameterElement[] overridingMethodParameterElements = executableElement.getParameters();
     ParameterElement[] overriddenMethodParameterElements = overriddenExecutable.getParameters();
     int[] parameterKindCounts_overridingMethod = countParameterKinds(overridingMethodParameterElements);
@@ -791,13 +842,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
 
-    // INVALID_MEMBER_OVERRIDE_*
+    // SWC.INVALID_MEMBER_OVERRIDE_*
     FunctionType overriddenFT = overriddenExecutable.getType();
     FunctionType overridingFT = executableElement.getType();
     InterfaceType enclosingType = enclosingClass.getType();
     overriddenFT = inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
         overriddenFT,
-        methodName.getName(),
+        methodNameStr,
         enclosingType);
 
     if (overriddenFT == null || overridingFT == null) {
@@ -808,7 +859,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     // is equivalent to the following checks, we break it is split up for the purposes of
     // providing better error messages.
 
-    // INVALID_MEMBER_OVERRIDE_RETURN_TYPE
+    // SWC.INVALID_MEMBER_OVERRIDE_RETURN_TYPE
     if (!overriddenFT.getReturnType().equals(VoidTypeImpl.getInstance())
         && !overridingFT.getReturnType().isAssignableTo(overriddenFT.getReturnType())) {
       errorReporter.reportError(
@@ -820,7 +871,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
 
-    // INVALID_MEMBER_OVERRIDE_NORMAL_PARAM_TYPE
+    // SWC.INVALID_MEMBER_OVERRIDE_NORMAL_PARAM_TYPE
     FormalParameterList formalParameterList = node.getParameters();
     if (formalParameterList == null) {
       return false;
@@ -842,7 +893,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       parameterIndex++;
     }
 
-    // INVALID_MEMBER_OVERRIDE_OPTIONAL_PARAM_TYPE
+    // SWC.INVALID_MEMBER_OVERRIDE_OPTIONAL_PARAM_TYPE
     Type[] overridingOptionalPT = overridingFT.getOptionalParameterTypes();
     Type[] overriddenOptionalPT = overriddenFT.getOptionalParameterTypes();
     for (int i = 0; i < overriddenOptionalPT.length; i++) {
@@ -858,7 +909,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       parameterIndex++;
     }
 
-    // INVALID_MEMBER_OVERRIDE_NAMED_PARAM_TYPE
+    // SWC.INVALID_MEMBER_OVERRIDE_NAMED_PARAM_TYPE
     Map<String, Type> overridingNamedPT = overridingFT.getNamedParameterTypes();
     Map<String, Type> overriddenNamedPT = overriddenFT.getNamedParameterTypes();
     Iterator<Entry<String, Type>> overriddenNamedPTIterator = overriddenNamedPT.entrySet().iterator();

@@ -142,19 +142,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_instanceMethodNameCollidesWithSuperclassStatic() throws Exception { // superclass, interface, mixin
-    Source source = addSource(createSource(//
-        "class A {",
-        "  static n",
-        "}",
-        "class C extends A {",
-        "  void n() {}",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC);
-    verify(source);
-  }
-
   public void fail_invalidFactoryName() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -528,6 +515,120 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     addSource("/lib2.dart", "library lib;");
     resolve(source);
     assertErrors(StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME);
+    verify(source);
+  }
+
+  public void test_instanceMethodNameCollidesWithSuperclassStatic_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static n;",
+        "}",
+        "class B extends A {",
+        "  void n() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC);
+    verify(source);
+  }
+
+  public void test_instanceMethodNameCollidesWithSuperclassStatic_field2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static n;",
+        "}",
+        "class B extends A {",
+        "}",
+        "class C extends B {",
+        "  void n() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC);
+    verify(source);
+  }
+
+  public void test_instanceMethodNameCollidesWithSuperclassStatic_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static get n {return 0;}",
+        "}",
+        "class B extends A {",
+        "  void n() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC);
+    verify(source);
+  }
+
+  public void test_instanceMethodNameCollidesWithSuperclassStatic_getter2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static get n {return 0;}",
+        "}",
+        "class B extends A {",
+        "}",
+        "class C extends B {",
+        "  void n() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC);
+    verify(source);
+  }
+
+  public void test_instanceMethodNameCollidesWithSuperclassStatic_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static n () {}",
+        "}",
+        "class B extends A {",
+        "  void n() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC);
+    verify(source);
+  }
+
+  public void test_instanceMethodNameCollidesWithSuperclassStatic_method2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static n () {}",
+        "}",
+        "class B extends A {",
+        "}",
+        "class C extends B {",
+        "  void n() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC);
+    verify(source);
+  }
+
+  public void test_instanceMethodNameCollidesWithSuperclassStatic_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int i = 0;",
+        "  static set n(int x) {i = x;}",
+        "}",
+        "class B extends A {",
+        "  void n() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC);
+    verify(source);
+  }
+
+  public void test_instanceMethodNameCollidesWithSuperclassStatic_setter2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int i = 0;",
+        "  static set n(int x) {i = x;}",
+        "}",
+        "class B extends A {",
+        "}",
+        "class C extends B {",
+        "  void n() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC);
     verify(source);
   }
 

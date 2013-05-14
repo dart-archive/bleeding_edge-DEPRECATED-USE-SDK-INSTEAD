@@ -193,7 +193,8 @@ public enum StaticWarningCode implements ErrorCode {
    * named <i>n</i> and an accessible static member named <i>n</i> is declared in a superclass of
    * <i>C</i>.
    */
-  INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC(""),
+  INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC(
+      "'%s' collides with a static member in the superclass '%s'"),
 
   /**
    * 7.6.2 Factories: It is a static warning if <i>M.id</i> is not a constructor name.
