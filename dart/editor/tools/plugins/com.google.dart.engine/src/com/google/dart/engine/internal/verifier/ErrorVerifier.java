@@ -111,6 +111,9 @@ import com.google.dart.engine.type.TypeVariableType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -715,7 +718,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#INVALID_OVERRIDE_REQUIRED
    * @see CompileTimeErrorCode#OVERRIDE_MISSING_NAMED_PARAMETERS
    * @see CompileTimeErrorCode#OVERRIDE_MISSING_REQUIRED_PARAMETERS
-   * @see StaticWarningCode#INVALID_OVERRIDE_RETURN_TYPE
+   * @see StaticWarningCode#INVALID_MEMBER_OVERRIDE_RETURN_TYPE
    */
   private boolean checkForAllInvalidOverrideErrorCodes(MethodDeclaration node) {
     if (enclosingClass == null || node.isStatic() || node.getBody() instanceof NativeFunctionBody) {
@@ -736,9 +739,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     // INVALID_OVERRIDE_REQUIRED, INVALID_OVERRIDE_POSITIONAL and INVALID_OVERRIDE_NAMED
-    int[] parameterKindCounts_method = countParameterKinds(executableElement.getParameters());
-    int[] parameterKindCounts_overriddenMethod = countParameterKinds(overriddenExecutable.getParameters());
-    if (parameterKindCounts_method[0] != parameterKindCounts_overriddenMethod[0]) {
+    ParameterElement[] overridingMethodParameterElements = executableElement.getParameters();
+    ParameterElement[] overriddenMethodParameterElements = overriddenExecutable.getParameters();
+    int[] parameterKindCounts_overridingMethod = countParameterKinds(overridingMethodParameterElements);
+    int[] parameterKindCounts_overriddenMethod = countParameterKinds(overriddenMethodParameterElements);
+    if (parameterKindCounts_overridingMethod[0] != parameterKindCounts_overriddenMethod[0]) {
       errorReporter.reportError(
           CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED,
           methodName,
@@ -746,7 +751,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           overriddenExecutable.getEnclosingElement().getDisplayName());
       return true;
     }
-    if (parameterKindCounts_method[1] < parameterKindCounts_overriddenMethod[1]) {
+    if (parameterKindCounts_overridingMethod[1] < parameterKindCounts_overriddenMethod[1]) {
       errorReporter.reportError(
           CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL,
           methodName,
@@ -754,42 +759,136 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           overriddenExecutable.getEnclosingElement().getDisplayName());
       return true;
     }
-    if (parameterKindCounts_method[2] < parameterKindCounts_overriddenMethod[2]) {
-      // TODO (jwren) This only catches a subset of this error code, we still need to check that
-      // the names of the parameters are correct in the override.
-      errorReporter.reportError(
-          CompileTimeErrorCode.INVALID_OVERRIDE_NAMED,
-          methodName,
-          parameterKindCounts_overriddenMethod[2],
-          overriddenExecutable.getEnclosingElement().getDisplayName());
-      return true;
+    // For each named parameter in the overridden method, verify that there is the same name in
+    // the overriding method.
+    for (ParameterElement overriddenPE : overriddenMethodParameterElements) {
+      if (overriddenPE.getParameterKind() == ParameterKind.NAMED) {
+        String parameterName = overriddenPE.getName();
+        if (parameterName != null && !overriddenPE.isSynthetic()) {
+          boolean overridingMethodHasNamedParameter = false;
+          for (ParameterElement overridingPE : overridingMethodParameterElements) {
+            if (overridingPE.getParameterKind() == ParameterKind.NAMED
+                && overridingPE.getName().equals(parameterName)) {
+              overridingMethodHasNamedParameter = true;
+              break;
+            }
+          }
+          if (!overridingMethodHasNamedParameter) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.INVALID_OVERRIDE_NAMED,
+                methodName,
+                parameterName,
+                overriddenExecutable.getEnclosingElement().getDisplayName());
+            return true;
+          }
+        }
+      }
     }
 
-    // INVALID_OVERRIDE_RETURN_TYPE
-    TypeName returnTypeName = node.getReturnType();
-    if (returnTypeName == null) {
-      // TODO(jwren) Report error: 'int m()' is being overridden by 'm()'
-      return false;
-    }
-    FunctionType overriddenFunctionType = overriddenExecutable.getType();
-    FunctionType overridingFunctionType = executableElement.getType();
-    //Type overriddenReturnType = overriddenFunctionType.getReturnType();
-    //Type overridingReturnType = returnTypeName.getType();
+    // INVALID_MEMBER_OVERRIDE_*
+    FunctionType overriddenFT = overriddenExecutable.getType();
+    FunctionType overridingFT = executableElement.getType();
     InterfaceType enclosingType = enclosingClass.getType();
-    overriddenFunctionType = inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
-        overriddenFunctionType,
+    overriddenFT = inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
+        overriddenFT,
         methodName.getName(),
         enclosingType);
 
-    if (overriddenFunctionType != null && overridingFunctionType != null
-        && !overridingFunctionType.isSubtypeOf(overriddenFunctionType)) {
-      // TODO (jwren) Split error code for messaging, return type versus parameter violation
+    if (overriddenFT == null || overridingFT == null) {
+      return false;
+    }
+    // The following (comparing the function types with isSubtypeOf):
+    // !overridingFT.isSubtypeOf(overriddenFT)
+    // is equivalent to the following checks, we break it is split up for the purposes of
+    // providing better error messages.
+
+    // INVALID_MEMBER_OVERRIDE_RETURN_TYPE
+    if (!overriddenFT.getReturnType().equals(VoidTypeImpl.getInstance())
+        && !overridingFT.getReturnType().isAssignableTo(overriddenFT.getReturnType())) {
       errorReporter.reportError(
-          StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE,
+          StaticWarningCode.INVALID_MEMBER_OVERRIDE_RETURN_TYPE,
           methodName,
-          methodName.getName(),
+          overridingFT.getReturnType().getName(),
+          overriddenFT.getReturnType().getName(),
           overriddenExecutable.getEnclosingElement().getDisplayName());
       return true;
+    }
+
+    // INVALID_MEMBER_OVERRIDE_NORMAL_PARAM_TYPE
+    FormalParameterList formalParameterList = node.getParameters();
+    if (formalParameterList == null) {
+      return false;
+    }
+    NodeList<FormalParameter> parameterNodeList = formalParameterList.getParameters();
+    int parameterIndex = 0;
+    Type[] overridingNormalPT = overridingFT.getNormalParameterTypes();
+    Type[] overriddenNormalPT = overriddenFT.getNormalParameterTypes();
+    for (int i = 0; i < overridingNormalPT.length; i++) {
+      if (!overridingNormalPT[i].isAssignableTo(overriddenNormalPT[i])) {
+        errorReporter.reportError(
+            StaticWarningCode.INVALID_MEMBER_OVERRIDE_NORMAL_PARAM_TYPE,
+            parameterNodeList.get(parameterIndex),
+            overridingNormalPT[i].getName(),
+            overriddenNormalPT[i].getName(),
+            overriddenExecutable.getEnclosingElement().getDisplayName());
+        return true;
+      }
+      parameterIndex++;
+    }
+
+    // INVALID_MEMBER_OVERRIDE_OPTIONAL_PARAM_TYPE
+    Type[] overridingOptionalPT = overridingFT.getOptionalParameterTypes();
+    Type[] overriddenOptionalPT = overriddenFT.getOptionalParameterTypes();
+    for (int i = 0; i < overriddenOptionalPT.length; i++) {
+      if (!overridingOptionalPT[i].isAssignableTo(overriddenOptionalPT[i])) {
+        errorReporter.reportError(
+            StaticWarningCode.INVALID_MEMBER_OVERRIDE_OPTIONAL_PARAM_TYPE,
+            parameterNodeList.get(parameterIndex),
+            overridingOptionalPT[i].getName(),
+            overriddenOptionalPT[i].getName(),
+            overriddenExecutable.getEnclosingElement().getDisplayName());
+        return true;
+      }
+      parameterIndex++;
+    }
+
+    // INVALID_MEMBER_OVERRIDE_NAMED_PARAM_TYPE
+    Map<String, Type> overridingNamedPT = overridingFT.getNamedParameterTypes();
+    Map<String, Type> overriddenNamedPT = overriddenFT.getNamedParameterTypes();
+    Iterator<Entry<String, Type>> overriddenNamedPTIterator = overriddenNamedPT.entrySet().iterator();
+    while (overriddenNamedPTIterator.hasNext()) {
+      Entry<String, Type> overriddenNamedPTEntry = overriddenNamedPTIterator.next();
+      Type overridingType = overridingNamedPT.get(overriddenNamedPTEntry.getKey());
+      if (overridingType == null) {
+        // Error, this is never reached- INVALID_OVERRIDE_NAMED would have been created above if
+        // this could be reached.
+        continue;
+      }
+      if (!overriddenNamedPTEntry.getValue().isAssignableTo(overridingType)) {
+        // lookup the ast parameter node for the error to select
+        NormalFormalParameter parameterToSelect = null;
+        for (FormalParameter formalParameter : parameterNodeList) {
+          if (formalParameter instanceof DefaultFormalParameter
+              && formalParameter.getKind() == ParameterKind.NAMED) {
+            DefaultFormalParameter defaultFormalParameter = (DefaultFormalParameter) formalParameter;
+            NormalFormalParameter normalFormalParameter = defaultFormalParameter.getParameter();
+            if (overriddenNamedPTEntry.getKey().equals(
+                normalFormalParameter.getIdentifier().getName())) {
+              parameterToSelect = normalFormalParameter;
+              break;
+            }
+          }
+        }
+        if (parameterToSelect != null) {
+          errorReporter.reportError(
+              StaticWarningCode.INVALID_MEMBER_OVERRIDE_NAMED_PARAM_TYPE,
+              parameterToSelect,
+              overridingType.getName(),
+              overriddenNamedPTEntry.getValue().getName(),
+              overriddenExecutable.getEnclosingElement().getDisplayName());
+          return true;
+        }
+      }
     }
     return false;
   }

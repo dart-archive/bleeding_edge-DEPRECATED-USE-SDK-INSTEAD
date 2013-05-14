@@ -1514,13 +1514,26 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     // no verify() call, "B" is not resolved
   }
 
-  public void test_invalidOverrideNamed() throws Exception {
+  public void test_invalidOverrideNamed_fewerNamedParameters() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  m({a, b}) {}",
         "}",
         "class B extends A {",
         "  m({a}) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_NAMED);
+    verify(source);
+  }
+
+  public void test_invalidOverrideNamed_missingNamedParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m({a, b}) {}",
+        "}",
+        "class B extends A {",
+        "  m({a, c}) {}",
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_NAMED);

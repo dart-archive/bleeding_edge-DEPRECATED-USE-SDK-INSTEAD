@@ -531,7 +531,46 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidOverrideReturnType_returnType_interface() throws Exception {
+  public void test_invalidMemberOverrideNamedParamType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m({int a}) {}",
+        "}",
+        "class B implements A {",
+        "  m({String a}) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_MEMBER_OVERRIDE_NAMED_PARAM_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidMemberOverrideNormalParamType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m(int a) {}",
+        "}",
+        "class B implements A {",
+        "  m(String a) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_MEMBER_OVERRIDE_NORMAL_PARAM_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidMemberOverrideOptionalParamType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m([int a]) {}",
+        "}",
+        "class B implements A {",
+        "  m([String a]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_MEMBER_OVERRIDE_OPTIONAL_PARAM_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidMemberOverrideReturnType_interface() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  int m() { return 0; }",
@@ -540,11 +579,11 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  String m() { return 'a'; }",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
+    assertErrors(StaticWarningCode.INVALID_MEMBER_OVERRIDE_RETURN_TYPE);
     verify(source);
   }
 
-  public void test_invalidOverrideReturnType_returnType_interface2() throws Exception {
+  public void test_invalidMemberOverrideReturnType_interface2() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
         "  int m();",
@@ -555,11 +594,11 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  String m() { return 'a'; }",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
+    assertErrors(StaticWarningCode.INVALID_MEMBER_OVERRIDE_RETURN_TYPE);
     verify(source);
   }
 
-  public void test_invalidOverrideReturnType_returnType_mixin() throws Exception {
+  public void test_invalidMemberOverrideReturnType_mixin() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  int m() { return 0; }",
@@ -568,11 +607,11 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  String m() { return 'a'; }",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
+    assertErrors(StaticWarningCode.INVALID_MEMBER_OVERRIDE_RETURN_TYPE);
     verify(source);
   }
 
-  public void test_invalidOverrideReturnType_returnType_superclass() throws Exception {
+  public void test_invalidMemberOverrideReturnType_superclass() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  int m() { return 0; }",
@@ -581,11 +620,11 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  String m() { return 'a'; }",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
+    assertErrors(StaticWarningCode.INVALID_MEMBER_OVERRIDE_RETURN_TYPE);
     verify(source);
   }
 
-  public void test_invalidOverrideReturnType_returnType_superclass2() throws Exception {
+  public void test_invalidMemberOverrideReturnType_superclass2() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  int m() { return 0; }",
@@ -596,11 +635,11 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  String m() { return 'a'; }",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
+    assertErrors(StaticWarningCode.INVALID_MEMBER_OVERRIDE_RETURN_TYPE);
     verify(source);
   }
 
-  public void test_invalidOverrideReturnType_returnType_void() throws Exception {
+  public void test_invalidMemberOverrideReturnType_void() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  int m() {}",
@@ -609,7 +648,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  void m() {}",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.INVALID_OVERRIDE_RETURN_TYPE);
+    assertErrors(StaticWarningCode.INVALID_MEMBER_OVERRIDE_RETURN_TYPE);
     verify(source);
   }
 
