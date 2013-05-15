@@ -14,9 +14,7 @@
 package com.google.dart.tools.core.utilities.resource;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.refresh.DartPackagesFolderMatcher;
 
 import org.eclipse.core.resources.FileInfoMatcherDescription;
@@ -93,21 +91,9 @@ public final class IProjectUtilities {
   public static IResource createOrOpenProject(File file, IProgressMonitor monitor)
       throws CoreException {
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      IResource existingResource = getIFileForAbsolutePath(file);
-      if (existingResource != null) {
-        return existingResource;
-      }
-    } else {
-      IResource[] existingResources = ResourceUtil.getResources(file);
-      if (existingResources.length == 1) {
-        return existingResources[0];
-      } else if (existingResources.length > 1) {
-        throw new CoreException(new Status(
-            IStatus.ERROR,
-            DartCore.PLUGIN_ID,
-            "Too many files representing " + file.getAbsolutePath()));
-      }
+    IResource existingResource = getIFileForAbsolutePath(file);
+    if (existingResource != null) {
+      return existingResource;
     }
 
     final File projectDirectory;
@@ -147,24 +133,8 @@ public final class IProjectUtilities {
     },
         monitor);
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      String projectName = projectDirectory.getName();
-      return getProject(workspace, projectName);
-    }
-
-    IResource[] newResources = ResourceUtil.getResources(file);
-    if (newResources.length == 1) {
-      return newResources[0];
-    } else if (newResources.length == 0) {
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartCore.PLUGIN_ID,
-          "No files representing " + file.getAbsolutePath()));
-    }
-    throw new CoreException(new Status(
-        IStatus.ERROR,
-        DartCore.PLUGIN_ID,
-        "Too many files representing " + file.getAbsolutePath()));
+    String projectName = projectDirectory.getName();
+    return getProject(workspace, projectName);
   }
 
   /**

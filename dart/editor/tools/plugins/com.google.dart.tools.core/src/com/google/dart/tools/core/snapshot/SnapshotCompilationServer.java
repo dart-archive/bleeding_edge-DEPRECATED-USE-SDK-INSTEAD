@@ -16,23 +16,13 @@ package com.google.dart.tools.core.snapshot;
 
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * This class uses the {@link SnapshotCompiler} class to automatically recompile Dart snapshots if
@@ -41,7 +31,8 @@ import java.util.Set;
  * @see SnapshotCompiler
  */
 public class SnapshotCompilationServer {
-  private File sourceFile;
+
+  private final File sourceFile;
 
   /**
    * Create a compilation server which can recompile the given Dart source file.
@@ -106,27 +97,14 @@ public class SnapshotCompilationServer {
     if (resources.length > 0) {
       IFile file = resources[0];
 
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        LibraryElement library = DartCore.getProjectManager().getLibraryElement(file);
+      LibraryElement library = DartCore.getProjectManager().getLibraryElement(file);
 
-        if (library == null) {
-          return true;
-        } else {
-          return !library.isUpToDate(getDestFile().lastModified());
-        }
+      if (library == null) {
+        return true;
       } else {
-        // TODO: this call can take a long time
-        DartElement element = DartCore.create(file);
-
-        if (element instanceof CompilationUnit) {
-          CompilationUnit compilationUnit = (CompilationUnit) element;
-
-          // Is the .snapshot file older then any of the .dart files?
-          if (needsRecompilation(compilationUnit, getDestFile())) {
-            return true;
-          }
-        }
+        return !library.isUpToDate(getDestFile().lastModified());
       }
+
     }
 
     return false;
@@ -136,60 +114,6 @@ public class SnapshotCompilationServer {
     SnapshotCompiler compiler = new SnapshotCompiler();
 
     return compiler.compile(getSourceFile(), getDestFile());
-  }
-
-  @Deprecated
-  private List<File> getFilesFor(List<CompilationUnit> compilationUnits) {
-    Set<File> files = new HashSet<File>();
-
-    for (CompilationUnit unit : compilationUnits) {
-      IResource resource = unit.getResource();
-
-      if (resource != null) {
-        if (resource.getLocation() != null) {
-          File file = resource.getLocation().toFile();
-
-          if (file != null && file.exists()) {
-            files.add(file);
-          }
-        }
-      } else {
-        // Check for non-workspace (external) CompilationUnits.
-        IPath path = unit.getPath();
-
-        File file = path.toFile();
-
-        if (file != null && file.exists()) {
-          files.add(file);
-        }
-      }
-    }
-
-    return new ArrayList<File>(files);
-  }
-
-  @Deprecated
-  private boolean needsRecompilation(CompilationUnit compilationUnit, File outputFile) {
-    if (outputFile == null || !outputFile.exists()) {
-      return true;
-    }
-
-    try {
-      // TODO: this call can take a long time
-      List<CompilationUnit> compilationUnits = compilationUnit.getLibrary().getCompilationUnitsTransitively();
-
-      for (File sourceFile : getFilesFor(compilationUnits)) {
-        if (sourceFile.lastModified() > outputFile.lastModified()) {
-          return true;
-        }
-      }
-
-      return false;
-    } catch (DartModelException e) {
-      DartCore.logError(e);
-
-      return true;
-    }
   }
 
 }
