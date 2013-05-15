@@ -44,6 +44,11 @@ public class ConstructorElementHandle extends ExecutableElementHandle implements
   }
 
   @Override
+  public ConstructorElement getRedirectedConstructor() {
+    return getActualElement().getRedirectedConstructor();
+  }
+
+  @Override
   public boolean isConst() {
     return getActualElement().isConst();
   }

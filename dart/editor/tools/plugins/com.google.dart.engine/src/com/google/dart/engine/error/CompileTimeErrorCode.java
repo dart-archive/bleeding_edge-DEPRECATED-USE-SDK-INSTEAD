@@ -784,7 +784,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.6.2 Factories: It is a compile-time error if a redirecting factory constructor redirects to
    * itself, either directly or indirectly via a sequence of redirections.
    */
-  RECURSIVE_FACTORY_REDIRECT(""),
+  RECURSIVE_FACTORY_REDIRECT("Cycle in redirecting factory constructors"),
 
   /**
    * 15.3.1 Typedef: It is a compile-time error if a typedef refers to itself via a chain of

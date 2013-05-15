@@ -1258,6 +1258,22 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_recursiveFactoryRedirect() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A() = B;",
+        "}",
+        "class B {",
+        "  factory B() = C;",
+        "}",
+        "class C {",
+        "  factory C() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_rethrowOutsideCatch() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

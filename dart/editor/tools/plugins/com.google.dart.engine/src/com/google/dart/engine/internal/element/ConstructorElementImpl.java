@@ -31,6 +31,11 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
   public static final ConstructorElement[] EMPTY_ARRAY = new ConstructorElement[0];
 
   /**
+   * The constructor to which this constructor is redirecting.
+   */
+  private ConstructorElement redirectedConstructor;
+
+  /**
    * Initialize a newly created constructor element to have the given name.
    * 
    * @param name the name of this element
@@ -52,6 +57,11 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
   @Override
   public ElementKind getKind() {
     return ElementKind.CONSTRUCTOR;
+  }
+
+  @Override
+  public ConstructorElement getRedirectedConstructor() {
+    return redirectedConstructor;
   }
 
   @Override
@@ -85,6 +95,15 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
    */
   public void setFactory(boolean isFactory) {
     setModifier(Modifier.FACTORY, isFactory);
+  }
+
+  /**
+   * Sets the constructor to which this constructor is redirecting.
+   * 
+   * @param redirectedConstructor the constructor to which this constructor is redirecting
+   */
+  public void setRedirectedConstructor(ConstructorElement redirectedConstructor) {
+    this.redirectedConstructor = redirectedConstructor;
   }
 
   @Override

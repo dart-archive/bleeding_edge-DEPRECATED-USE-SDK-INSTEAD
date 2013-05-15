@@ -215,15 +215,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_recursiveFactoryRedirect() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
-    verify(source);
-  }
-
   public void fail_recursiveFunctionTypeAlias_direct() throws Exception {
     Source source = addSource(createSource(//
     "typedef F(F f);"));
@@ -2165,6 +2156,76 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     "f({_p : 0}) {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
+    verify(source);
+  }
+
+  public void test_recursiveFactoryRedirect() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A() = C;",
+        "}",
+        "class B {",
+        "  factory B() = A;",
+        "}",
+        "class C {",
+        "  factory C() = B;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
+    verify(source);
+  }
+
+  public void test_recursiveFactoryRedirect_directSelfReference() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A() = A;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
+    verify(source);
+  }
+
+  public void test_recursiveFactoryRedirect_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A.nameA() = C.nameC;",
+        "}",
+        "class B {",
+        "  factory B.nameB() = A.nameA;",
+        "}",
+        "class C {",
+        "  factory C.nameC() = B.nameB;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
+    verify(source);
+  }
+
+  /**
+   * "A" references "C" which has cycle with "B". But we should not report problem for "A" - it is
+   * not the part of a cycle.
+   */
+  public void test_recursiveFactoryRedirect_outsideCycle() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A() = C;",
+        "}",
+        "class B {",
+        "  factory B() = C;",
+        "}",
+        "class C {",
+        "  factory C() = B;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
     verify(source);
   }
 

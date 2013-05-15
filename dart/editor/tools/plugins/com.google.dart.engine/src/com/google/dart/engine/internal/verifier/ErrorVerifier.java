@@ -111,6 +111,7 @@ import com.google.dart.engine.type.TypeVariableType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -326,6 +327,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForConflictingConstructorNameAndMember(node);
       checkForAllFinalInitializedErrorCodes(node);
       checkForMultipleSuperInitializers(node);
+      checkForRecursiveFactoryRedirect(node);
       return super.visitConstructorDeclaration(node);
     } finally {
       isEnclosingConstructorConst = false;
@@ -2194,6 +2196,32 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This checks if the passed constructor declaration has redirected constructor and references
+   * itself directly or indirectly.
+   * 
+   * @param node the constructor declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#RECURSIVE_FACTORY_REDIRECT
+   */
+  private boolean checkForRecursiveFactoryRedirect(ConstructorDeclaration node) {
+    // prepare redirected constructor
+    ConstructorName redirectedConstructorNode = node.getRedirectedConstructor();
+    if (redirectedConstructorNode == null) {
+      return false;
+    }
+    // OK if no cycle
+    ConstructorElement element = node.getElement();
+    if (!hasRedirectingFactoryConstructorCycle(element)) {
+      return false;
+    }
+    // report error
+    errorReporter.reportError(
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        redirectedConstructorNode);
+    return true;
+  }
+
+  /**
    * This checks that the rethrow is inside of a catch clause.
    * 
    * @param node the rethrow expression to evaluate
@@ -2437,6 +2465,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * @return {@code true} if the given constructor redirects to itself, directly or indirectly
+   */
+  private boolean hasRedirectingFactoryConstructorCycle(ConstructorElement element) {
+    Set<ConstructorElement> constructors = new HashSet<ConstructorElement>();
+    ConstructorElement current = element;
+    while (current != null) {
+      if (constructors.contains(current)) {
+        return current == element;
+      }
+      constructors.add(current);
+      current = current.getRedirectedConstructor();
+    }
+    return false;
   }
 
   /**

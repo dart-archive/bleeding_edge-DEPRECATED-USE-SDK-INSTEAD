@@ -29,6 +29,13 @@ public interface ConstructorElement extends ExecutableElement {
   public ClassElement getEnclosingElement();
 
   /**
+   * Return the constructor to which this constructor is redirecting.
+   * 
+   * @return the constructor to which this constructor is redirecting
+   */
+  public ConstructorElement getRedirectedConstructor();
+
+  /**
    * Return {@code true} if this constructor is a const constructor.
    * 
    * @return {@code true} if this constructor is a const constructor

@@ -79,6 +79,7 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
@@ -457,6 +458,24 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         }
       }
     }
+    return null;
+  }
+
+  @Override
+  public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+    super.visitConstructorDeclaration(node);
+    // set redirected constructor
+    {
+      ConstructorName redirectedNode = node.getRedirectedConstructor();
+      if (redirectedNode != null) {
+        ConstructorElement redirectedElement = redirectedNode.getElement();
+        ConstructorElement element = node.getElement();
+        if (element instanceof ConstructorElementImpl) {
+          ((ConstructorElementImpl) element).setRedirectedConstructor(redirectedElement);
+        }
+      }
+    }
+    // done
     return null;
   }
 
