@@ -134,11 +134,6 @@
              priority="70">
        </buildParticipant>
        <buildParticipant
-             class="com.google.dart.tools.core.internal.builder.AnalysisServerParticipant"
-             id="com.google.dart.tools.core.buildParticipant.analysis.server"
-             priority="80">
-       </buildParticipant>
-       <buildParticipant
              class="com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant"
              id="com.google.dart.tools.core.buildParticipant.analysis.engine"
              priority="80">

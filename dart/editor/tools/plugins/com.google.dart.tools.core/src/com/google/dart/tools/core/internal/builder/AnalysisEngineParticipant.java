@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -36,13 +35,8 @@ import static org.eclipse.core.resources.IResource.DEPTH_INFINITE;
 
 /**
  * Performs source analysis using instances of {@link AnalysisContext}.
- * {@link AnalysisServerParticipant} should be disabled when this participant is enabled.
- * 
- * @see DartCoreDebug#ENABLE_NEW_ANALYSIS
  */
 public class AnalysisEngineParticipant implements BuildParticipant {
-
-  private final boolean enabled;
 
   /**
    * The marker manager used to translate errors to Eclipse markers (not {@code null}).
@@ -62,18 +56,14 @@ public class AnalysisEngineParticipant implements BuildParticipant {
   private Project project;
 
   public AnalysisEngineParticipant() {
-    this(
-        DartCoreDebug.ENABLE_NEW_ANALYSIS,
-        DartCore.getProjectManager(),
-        AnalysisMarkerManager.getInstance());
+    this(DartCore.getProjectManager(), AnalysisMarkerManager.getInstance());
   }
 
-  public AnalysisEngineParticipant(boolean enabled, ProjectManager projectManager,
+  public AnalysisEngineParticipant(ProjectManager projectManager,
       AnalysisMarkerManager markerManager) {
     if (projectManager == null) {
       throw new IllegalArgumentException();
     }
-    this.enabled = enabled;
     this.projectManager = projectManager;
     this.markerManager = markerManager;
   }
@@ -84,8 +74,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
   @Override
   public void build(BuildEvent event, IProgressMonitor monitor) throws CoreException {
 
-    // This participant and AnalysisServerParticipant are mutually exclusive
-    if (!enabled || monitor.isCanceled()) {
+    if (monitor.isCanceled()) {
       return;
     }
 
@@ -147,8 +136,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
   @Override
   public void clean(CleanEvent event, IProgressMonitor monitor) throws CoreException {
 
-    // This participant and AnalysisServerParticipant are mutually exclusive
-    if (!enabled || monitor.isCanceled()) {
+    if (monitor.isCanceled()) {
       return;
     }
 

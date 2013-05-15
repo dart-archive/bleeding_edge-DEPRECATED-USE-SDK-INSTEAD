@@ -336,7 +336,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     for (Project project : getProjects()) {
       BuildEvent event = new BuildEvent(project.getResource(), null, new NullProgressMonitor());
       AnalysisEngineParticipant participant = new AnalysisEngineParticipant(
-          true,
           this,
           AnalysisMarkerManager.getInstance());
       try {

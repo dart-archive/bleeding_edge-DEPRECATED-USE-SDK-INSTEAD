@@ -523,7 +523,6 @@ public class ScanTimings extends TestCase {
     IProgressMonitor monitor = new NullProgressMonitor();
     MockWorkspace workspace = new MockWorkspace();
     final AnalysisEngineParticipant participant = new AnalysisEngineParticipant(
-        true,
         new MockProjectManagerForScan(),
         new AnalysisMarkerManager(workspace)) {
 
