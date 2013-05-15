@@ -260,6 +260,66 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constEvalTypeBoolNumString_equal() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "}",
+        "class B {",
+        "  final v;",
+        "  const B.a1(bool p) : v = p == true;",
+        "  const B.a2(bool p) : v = p == false;",
+        "  const B.a3(bool p) : v = p == 0;",
+        "  const B.a4(bool p) : v = p == 0.0;",
+        "  const B.a5(bool p) : v = p == '';",
+        "  const B.b1(int p) : v = p == true;",
+        "  const B.b2(int p) : v = p == false;",
+        "  const B.b3(int p) : v = p == 0;",
+        "  const B.b4(int p) : v = p == 0.0;",
+        "  const B.b5(int p) : v = p == '';",
+        "  const B.c1(String p) : v = p == true;",
+        "  const B.c2(String p) : v = p == false;",
+        "  const B.c3(String p) : v = p == 0;",
+        "  const B.c4(String p) : v = p == 0.0;",
+        "  const B.c5(String p) : v = p == '';",
+        "  const B.n1(num p) : v = p == null;",
+        "  const B.n2(num p) : v = null == p;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_constEvalTypeBoolNumString_notEqual() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "}",
+        "class B {",
+        "  final v;",
+        "  const B.a1(bool p) : v = p != true;",
+        "  const B.a2(bool p) : v = p != false;",
+        "  const B.a3(bool p) : v = p != 0;",
+        "  const B.a4(bool p) : v = p != 0.0;",
+        "  const B.a5(bool p) : v = p != '';",
+        "  const B.b1(int p) : v = p != true;",
+        "  const B.b2(int p) : v = p != false;",
+        "  const B.b3(int p) : v = p != 0;",
+        "  const B.b4(int p) : v = p != 0.0;",
+        "  const B.b5(int p) : v = p != '';",
+        "  const B.c1(String p) : v = p != true;",
+        "  const B.c2(String p) : v = p != false;",
+        "  const B.c3(String p) : v = p != 0;",
+        "  const B.c4(String p) : v = p != 0.0;",
+        "  const B.c5(String p) : v = p != '';",
+        "  const B.n1(num p) : v = p != null;",
+        "  const B.n2(num p) : v = null != p;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_constWithNonConstantArgument_literals() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -920,6 +980,150 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "f() {",
         "  <String, int> {'a' : 0, 'b' : 1};",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_binary_bool() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final v;",
+        "  const A.a1(bool p) : v = p && true;",
+        "  const A.a2(bool p) : v = true && p;",
+        "  const A.b1(bool p) : v = p || true;",
+        "  const A.b2(bool p) : v = true || p;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_binary_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final v;",
+        "  const A.a1(p) : v = p + 5;",
+        "  const A.a2(p) : v = 5 + p;",
+        "  const A.b1(p) : v = p - 5;",
+        "  const A.b2(p) : v = 5 - p;",
+        "  const A.c1(p) : v = p * 5;",
+        "  const A.c2(p) : v = 5 * p;",
+        "  const A.d1(p) : v = p / 5;",
+        "  const A.d2(p) : v = 5 / p;",
+        "  const A.e1(p) : v = p ~/ 5;",
+        "  const A.e2(p) : v = 5 ~/ p;",
+        "  const A.f1(p) : v = p > 5;",
+        "  const A.f2(p) : v = 5 > p;",
+        "  const A.g1(p) : v = p < 5;",
+        "  const A.g2(p) : v = 5 < p;",
+        "  const A.h1(p) : v = p >= 5;",
+        "  const A.h2(p) : v = 5 >= p;",
+        "  const A.i1(p) : v = p <= 5;",
+        "  const A.i2(p) : v = 5 <= p;",
+        "  const A.j1(p) : v = p % 5;",
+        "  const A.j2(p) : v = 5 % p;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    // operations on "p" are not resolved
+  }
+
+  public void test_nonConstValueInInitializer_binary_int() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final v;",
+        "  const A.a1(int p) : v = p ^ 5;",
+        "  const A.a2(int p) : v = 5 ^ p;",
+        "  const A.b1(int p) : v = p & 5;",
+        "  const A.b2(int p) : v = 5 & p;",
+        "  const A.c1(int p) : v = p | 5;",
+        "  const A.c2(int p) : v = 5 | p;",
+        "  const A.d1(int p) : v = p >> 5;",
+        "  const A.d2(int p) : v = 5 >> p;",
+        "  const A.e1(int p) : v = p << 5;",
+        "  const A.e2(int p) : v = 5 << p;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_binary_num() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final v;",
+        "  const A.a1(num p) : v = p + 5;",
+        "  const A.a2(num p) : v = 5 + p;",
+        "  const A.b1(num p) : v = p - 5;",
+        "  const A.b2(num p) : v = 5 - p;",
+        "  const A.c1(num p) : v = p * 5;",
+        "  const A.c2(num p) : v = 5 * p;",
+        "  const A.d1(num p) : v = p / 5;",
+        "  const A.d2(num p) : v = 5 / p;",
+        "  const A.e1(num p) : v = p ~/ 5;",
+        "  const A.e2(num p) : v = 5 ~/ p;",
+        "  const A.f1(num p) : v = p > 5;",
+        "  const A.f2(num p) : v = 5 > p;",
+        "  const A.g1(num p) : v = p < 5;",
+        "  const A.g2(num p) : v = 5 < p;",
+        "  const A.h1(num p) : v = p >= 5;",
+        "  const A.h2(num p) : v = 5 >= p;",
+        "  const A.i1(num p) : v = p <= 5;",
+        "  const A.i2(num p) : v = 5 <= p;",
+        "  const A.j1(num p) : v = p % 5;",
+        "  const A.j2(num p) : v = 5 % p;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final int a;",
+        "  const A() : a = 5;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_redirecting() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static C;",
+        "  const A.named(p);",
+        "  const A() : this.named(42);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_super() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A(p);",
+        "}",
+        "class B {",
+        "  static C;",
+        "  const B() : super(42);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_unary() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final v;",
+        "  const A.a(bool p) : v = !p;",
+        "  const A.b(int p) : v = ~p;",
+        "  const A.c(num p) : v = -p;",
         "}"));
     resolve(source);
     assertNoErrors();

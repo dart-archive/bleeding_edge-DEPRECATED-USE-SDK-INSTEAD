@@ -171,18 +171,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonConstValueInInitializer() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  static C;",
-        "  int a;",
-        "  A() : a = C {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
-    verify(source);
-  }
-
   public void fail_objectCannotExtendAnotherClass() throws Exception {
     Source source = addSource(createSource(//
     // TODO(brianwilkerson) Figure out how to mock Object
@@ -744,8 +732,97 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "f() { return const C(); }"));
     resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION);
+    verify(source);
+  }
+
+  public void test_constEvalThrowsException_binaryMinus_null() throws Exception {
+    check_constEvalThrowsException_binary_null("null - 5", false);
+    check_constEvalThrowsException_binary_null("5 - null", true);
+  }
+
+  public void test_constEvalThrowsException_binaryPlus_null() throws Exception {
+    check_constEvalThrowsException_binary_null("null + 5", false);
+    check_constEvalThrowsException_binary_null("5 + null", true);
+  }
+
+  public void test_constEvalThrowsException_unaryBitNot_null() throws Exception {
+    Source source = addSource("const C = ~null;");
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        StaticWarningCode.UNDEFINED_OPERATOR);
+    // no verify(), '~null' is not resolved
+  }
+
+  public void test_constEvalThrowsException_unaryNegated_null() throws Exception {
+    Source source = addSource("const C = -null;");
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        StaticWarningCode.UNDEFINED_OPERATOR);
+    // no verify(), '-null' is not resolved
+  }
+
+  public void test_constEvalThrowsException_unaryNot_null() throws Exception {
+    Source source = addSource("const C = !null;");
+    resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     verify(source);
+  }
+
+  public void test_constEvalTypeBool_binary() throws Exception {
+    check_constEvalTypeBool_withParameter_binary("p && ''");
+    check_constEvalTypeBool_withParameter_binary("p || ''");
+  }
+
+  public void test_constEvalTypeBoolNumString_equal() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "}",
+        "class B {",
+        "  final a;",
+        "  const B(num p) : a = p == const A();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+    verify(source);
+  }
+
+  public void test_constEvalTypeBoolNumString_notEqual() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "}",
+        "class B {",
+        "  final a;",
+        "  const B(String p) : a = p != const A();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+    verify(source);
+  }
+
+  public void test_constEvalTypeInt_binary() throws Exception {
+    check_constEvalTypeInt_withParameter_binary("p ^ ''");
+    check_constEvalTypeInt_withParameter_binary("p & ''");
+    check_constEvalTypeInt_withParameter_binary("p | ''");
+    check_constEvalTypeInt_withParameter_binary("p >> ''");
+    check_constEvalTypeInt_withParameter_binary("p << ''");
+  }
+
+  public void test_constEvalTypeNum_binary() throws Exception {
+    check_constEvalTypeNum_withParameter_binary("p + ''");
+    check_constEvalTypeNum_withParameter_binary("p - ''");
+    check_constEvalTypeNum_withParameter_binary("p * ''");
+    check_constEvalTypeNum_withParameter_binary("p / ''");
+    check_constEvalTypeNum_withParameter_binary("p ~/ ''");
+    check_constEvalTypeNum_withParameter_binary("p > ''");
+    check_constEvalTypeNum_withParameter_binary("p < ''");
+    check_constEvalTypeNum_withParameter_binary("p >= ''");
+    check_constEvalTypeNum_withParameter_binary("p <= ''");
+    check_constEvalTypeNum_withParameter_binary("p % ''");
   }
 
   public void test_constFormalParameter_fieldFormalParameter() throws Exception {
@@ -1930,6 +2007,88 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonConstValueInInitializer_binary_notBool_left() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final int a;",
+        "  const A(String p) : a = p && true;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_binary_notBool_right() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final int a;",
+        "  const A(String p) : a = true && p;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_binary_notInt() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final int a;",
+        "  const A(String p) : a = 5 & p;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_binary_notNum() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final int a;",
+        "  const A(String p) : a = 5 + p;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static C;",
+        "  final int a;",
+        "  const A() : a = C;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_redirecting() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static C;",
+        "  const A.named(p);",
+        "  const A() : this.named(C);",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    verify(source);
+  }
+
+  public void test_nonConstValueInInitializer_super() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A(p);",
+        "}",
+        "class B {",
+        "  static C;",
+        "  const B() : super(C);",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    verify(source);
+  }
+
   public void test_optionalParameterInOperator_named() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2239,6 +2398,58 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
+  }
+
+  private void check_constEvalThrowsException_binary_null(String expr, boolean resolved)
+      throws Exception {
+    Source source = addSource("const C = " + expr + ";");
+    resolve(source);
+    if (resolved) {
+      assertErrors(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+      verify(source);
+    } else {
+      assertErrors(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          StaticWarningCode.UNDEFINED_OPERATOR);
+      // no verify(), 'null x' is not resolved
+    }
+    reset();
+  }
+
+  private void check_constEvalTypeBool_withParameter_binary(String expr) throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final a;",
+        "  const A(bool p) : a = " + expr + ";",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    verify(source);
+    reset();
+  }
+
+  private void check_constEvalTypeInt_withParameter_binary(String expr) throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final a;",
+        "  const A(int p) : a = " + expr + ";",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+    verify(source);
+    reset();
+  }
+
+  private void check_constEvalTypeNum_withParameter_binary(String expr) throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final a;",
+        "  const A(num p) : a = " + expr + ";",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    verify(source);
+    reset();
   }
 
   private void check_wrongNumberOfParametersForOperator(String name, String parameters)

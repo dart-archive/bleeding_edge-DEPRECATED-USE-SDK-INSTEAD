@@ -116,6 +116,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "'%s' cannot be used to name a constructor and a field in this class"),
 
   /**
+   * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
+   * uncaught exception being thrown.
+   */
+  CONST_CONSTRUCTOR_THROWS_EXCEPTION("'const' constructors cannot throw exceptions"),
+
+  /**
    * 7.6.3 Constant Constructors: It is a compile-time error if a constant constructor is declared
    * by a class that has a non-final instance variable.
    */
@@ -135,10 +141,37 @@ public enum CompileTimeErrorCode implements ErrorCode {
   CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE("'const' variables must be constant value"),
 
   /**
+   * 12.11.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2, where e, e1 and e2
+   * are constant expressions that evaluate to a boolean value.
+   */
+  CONST_EVAL_TYPE_BOOL("An expression of type 'bool' was expected"),
+
+  /**
+   * 12.11.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where e1 and e2 are
+   * constant expressions that evaluate to a numeric, string or boolean value or to null.
+   */
+  CONST_EVAL_TYPE_BOOL_NUM_STRING(
+      "An expression of type 'bool', 'num', 'String' or 'null' was expected"),
+
+  /**
+   * 12.11.2 Const: An expression of one of the forms ~e, e1 ^ e2, e1 & e2, e1 | e2, e1 >> e2 or e1
+   * << e2, where e, e1 and e2 are constant expressions that evaluate to an integer value or to
+   * null.
+   */
+  CONST_EVAL_TYPE_INT("An expression of type 'int' was expected"),
+
+  /**
+   * 12.11.2 Const: An expression of one of the forms e, e1 + e2, e1 - e2, e1 * e2, e1 / e2, e1 ~/
+   * e2, e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2, where e, e1 and e2 are constant
+   * expressions that evaluate to a numeric value or to null..
+   */
+  CONST_EVAL_TYPE_NUM("An expression of type 'num' was expected"),
+
+  /**
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
    * uncaught exception being thrown.
    */
-  CONST_EVAL_THROWS_EXCEPTION("'const' constructors cannot throw exceptions"),
+  CONST_EVAL_THROWS_EXCEPTION("Evaluation of this constant expression causes exception"),
 
   /**
    * 12.11.2 Const: If <i>T</i> is a parameterized type <i>S&lt;U<sub>1</sub>, &hellip;,
@@ -692,7 +725,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.6.3 Constant Constructors: Any expression that appears within the initializer list of a
    * constant constructor must be a potentially constant expression, or a compile-time error occurs.
    */
-  NON_CONSTANT_VALUE_IN_INITIALIZER(""),
+  NON_CONSTANT_VALUE_IN_INITIALIZER(
+      "Initializer expressions in constant constructors must be constants"),
 
   /**
    * 7.9 Superclasses: It is a compile-time error to specify an extends clause for class Object.

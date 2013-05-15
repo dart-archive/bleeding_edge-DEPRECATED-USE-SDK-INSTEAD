@@ -944,7 +944,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 new InheritanceManager(libraryElement));
             unitAST.accept(errorVerifier);
 
-            ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter);
+            ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
             unitAST.accept(constantVerifier);
             //
             // Capture the results.

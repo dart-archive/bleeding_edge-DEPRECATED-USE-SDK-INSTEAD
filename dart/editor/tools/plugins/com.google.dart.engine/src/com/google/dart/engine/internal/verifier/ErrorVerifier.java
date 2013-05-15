@@ -1349,11 +1349,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param node the throw expression expression to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#CONST_EVAL_THROWS_EXCEPTION
+   * @see CompileTimeErrorCode#CONST_CONSTRUCTOR_THROWS_EXCEPTION
    */
   private boolean checkForConstEvalThrowsException(ThrowExpression node) {
     if (isEnclosingConstructorConst) {
-      errorReporter.reportError(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
+      errorReporter.reportError(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, node);
       return true;
     }
     return false;

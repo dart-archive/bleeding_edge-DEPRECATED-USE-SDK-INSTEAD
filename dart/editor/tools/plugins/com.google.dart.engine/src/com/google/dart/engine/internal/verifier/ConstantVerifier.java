@@ -14,6 +14,9 @@
 package com.google.dart.engine.internal.verifier;
 
 import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.ConstructorFieldInitializer;
+import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FormalParameter;
@@ -25,9 +28,15 @@ import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NamedExpression;
+import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.RedirectingConstructorInvocation;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticWarningCode;
@@ -37,6 +46,9 @@ import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.internal.constant.ValidResult;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -55,12 +67,44 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
   private ErrorReporter errorReporter;
 
   /**
+   * The type representing the type 'bool'.
+   */
+  private InterfaceType boolType;
+
+  /**
+   * The type representing the type 'int'.
+   */
+  private InterfaceType intType;
+
+  /**
+   * The type representing the type 'num'.
+   */
+  private InterfaceType numType;
+
+  /**
+   * The type representing the type 'string'.
+   */
+  private InterfaceType stringType;
+
+  /**
    * Initialize a newly created constant verifier.
    * 
    * @param errorReporter the error reporter by which errors will be reported
    */
-  public ConstantVerifier(ErrorReporter errorReporter) {
+  public ConstantVerifier(ErrorReporter errorReporter, TypeProvider typeProvider) {
     this.errorReporter = errorReporter;
+    this.boolType = typeProvider.getBoolType();
+    this.intType = typeProvider.getIntType();
+    this.numType = typeProvider.getNumType();
+    this.stringType = typeProvider.getStringType();
+  }
+
+  @Override
+  public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.getConstKeyword() != null) {
+      validateInitializers(node);
+    }
+    return super.visitConstructorDeclaration(node);
   }
 
   @Override
@@ -190,7 +234,16 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
   private void reportErrors(EvaluationResultImpl result, ErrorCode errorCode) {
     if (result instanceof ErrorResult) {
       for (ErrorResult.ErrorData data : ((ErrorResult) result).getErrorData()) {
-        errorReporter.reportError(errorCode, data.getNode());
+        ErrorCode dataErrorCode = data.getErrorCode();
+        if (dataErrorCode == CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION
+            || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING
+            || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL
+            || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_INT
+            || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) {
+          errorReporter.reportError(dataErrorCode, data.getNode());
+        } else {
+          errorReporter.reportError(errorCode, data.getNode());
+        }
       }
     }
   }
@@ -254,6 +307,90 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
             element.setEvaluationResult(result);
           }
         }
+      }
+    }
+  }
+
+  /**
+   * Validates that the given expression is a compile time constant.
+   * 
+   * @param parameterElements the elements of parameters of constant constructor, they are
+   *          considered as a valid potentially constant expressions
+   * @param expression the expression to validate
+   */
+  private void validateInitializerExpression(final ParameterElement[] parameterElements,
+      Expression expression) {
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor() {
+      @Override
+      public EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
+        Element element = node.getElement();
+        for (ParameterElement parameterElement : parameterElements) {
+          if (parameterElement == element && parameterElement != null) {
+            Type type = parameterElement.getType();
+            if (type != null) {
+              if (type.isDynamic()) {
+                return ValidResult.RESULT_DYNAMIC;
+              }
+              if (type.isSubtypeOf(boolType)) {
+                return ValidResult.RESULT_BOOL;
+              }
+              if (type.isSubtypeOf(intType)) {
+                return ValidResult.RESULT_INT;
+              }
+              if (type.isSubtypeOf(numType)) {
+                return ValidResult.RESULT_NUM;
+              }
+              if (type.isSubtypeOf(stringType)) {
+                return ValidResult.RESULT_STRING;
+              }
+            }
+            return ValidResult.RESULT_OBJECT;
+          }
+        }
+        return super.visitSimpleIdentifier(node);
+      }
+    });
+    reportErrors(result, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+  }
+
+  /**
+   * Validates that all of the arguments of a constructor initializer are compile time constants.
+   * 
+   * @param parameterElements the elements of parameters of constant constructor, they are
+   *          considered as a valid potentially constant expressions
+   * @param argumentList the argument list to validate
+   */
+  private void validateInitializerInvocationArguments(ParameterElement[] parameterElements,
+      ArgumentList argumentList) {
+    if (argumentList == null) {
+      return;
+    }
+    for (Expression argument : argumentList.getArguments()) {
+      validateInitializerExpression(parameterElements, argument);
+    }
+  }
+
+  /**
+   * Validates that the expressions of the given initializers (of a constant constructor) are all
+   * compile time constants.
+   * 
+   * @param constructor the constant constructor declaration to validate
+   */
+  private void validateInitializers(ConstructorDeclaration constructor) {
+    ParameterElement[] parameterElements = constructor.getParameters().getElements();
+    NodeList<ConstructorInitializer> initializers = constructor.getInitializers();
+    for (ConstructorInitializer initializer : initializers) {
+      if (initializer instanceof ConstructorFieldInitializer) {
+        ConstructorFieldInitializer fieldInitializer = (ConstructorFieldInitializer) initializer;
+        validateInitializerExpression(parameterElements, fieldInitializer.getExpression());
+      }
+      if (initializer instanceof RedirectingConstructorInvocation) {
+        RedirectingConstructorInvocation invocation = (RedirectingConstructorInvocation) initializer;
+        validateInitializerInvocationArguments(parameterElements, invocation.getArgumentList());
+      }
+      if (initializer instanceof SuperConstructorInvocation) {
+        SuperConstructorInvocation invocation = (SuperConstructorInvocation) initializer;
+        validateInitializerInvocationArguments(parameterElements, invocation.getArgumentList());
       }
     }
   }

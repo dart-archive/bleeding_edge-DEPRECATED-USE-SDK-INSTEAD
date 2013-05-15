@@ -49,6 +49,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.scanner.TokenType;
 
 /**
  * Instances of the class {@code ConstantVisitor} evaluate constant expressions to produce their
@@ -108,7 +109,16 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
   public EvaluationResultImpl visitBinaryExpression(BinaryExpression node) {
     EvaluationResultImpl leftResult = node.getLeftOperand().accept(this);
     EvaluationResultImpl rightResult = node.getRightOperand().accept(this);
-    switch (node.getOperator().getType()) {
+    TokenType operatorType = node.getOperator().getType();
+    // 'null' is almost never good operand
+    if (operatorType != TokenType.BANG_EQ && operatorType != TokenType.EQ_EQ) {
+      if (leftResult instanceof ValidResult && ((ValidResult) leftResult).isNull()
+          || rightResult instanceof ValidResult && ((ValidResult) rightResult).isNull()) {
+        return error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+      }
+    }
+    // evaluate operator
+    switch (operatorType) {
       case AMPERSAND:
         return leftResult.bitAnd(node, rightResult);
       case AMPERSAND_AMPERSAND:
@@ -246,7 +256,7 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
 
   @Override
   public EvaluationResultImpl visitNullLiteral(NullLiteral node) {
-    return new ValidResult(null);
+    return ValidResult.RESULT_NULL;
   }
 
   @Override
@@ -262,6 +272,9 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
   @Override
   public EvaluationResultImpl visitPrefixExpression(PrefixExpression node) {
     EvaluationResultImpl operand = node.getOperand().accept(this);
+    if (operand instanceof ValidResult && ((ValidResult) operand).isNull()) {
+      return error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    }
     switch (node.getOperator().getType()) {
       case BANG:
         return operand.logicalNot(node);

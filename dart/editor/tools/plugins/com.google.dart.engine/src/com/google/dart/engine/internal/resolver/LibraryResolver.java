@@ -831,7 +831,7 @@ public class LibraryResolver {
           library.getInheritanceManager());
       unit.accept(errorVerifier);
 
-      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter);
+      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
       unit.accept(constantVerifier);
     }
   }
