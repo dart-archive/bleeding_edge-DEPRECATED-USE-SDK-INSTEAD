@@ -401,7 +401,8 @@ public enum StaticWarningCode implements ErrorCode {
    * 13.9 Switch: It is a static warning if the type of <i>e</i> may not be assigned to the type of
    * <i>e<sub>k</sub></i>.
    */
-  SWITCH_EXPRESSION_NOT_ASSIGNABLE(""),
+  SWITCH_EXPRESSION_NOT_ASSIGNABLE(
+      "Type '%s' of the switch expression is not assignable to the type '%s' of case expressions"),
 
   /**
    * 12.15.3 Static Invocation: A static method invocation <i>i</i> has the form

@@ -286,18 +286,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_switchExpressionNotAssignable() throws Exception {
-    Source source = addSource(createSource(//
-        "f(int p) {",
-        "  switch (p) {",
-        "    case 'a': break;",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE);
-    verify(source);
-  }
-
   public void fail_undefinedGetter() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -874,6 +862,18 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     "int f() { return; }"));
     resolve(source);
     assertErrors(StaticWarningCode.RETURN_WITHOUT_VALUE);
+    verify(source);
+  }
+
+  public void test_switchExpressionNotAssignable() throws Exception {
+    Source source = addSource(createSource(//
+        "f(int p) {",
+        "  switch (p) {",
+        "    case 'a': break;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE);
     verify(source);
   }
 

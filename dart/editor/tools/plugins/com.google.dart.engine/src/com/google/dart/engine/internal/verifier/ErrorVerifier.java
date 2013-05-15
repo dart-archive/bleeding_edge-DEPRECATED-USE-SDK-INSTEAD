@@ -534,6 +534,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitSwitchStatement(SwitchStatement node) {
     checkForCaseExpressionTypeImplementsEquals(node);
     checkForInconsistentCaseExpressionTypes(node);
+    checkForSwitchExpressionNotAssignable(node);
     return super.visitSwitchStatement(node);
   }
 
@@ -2202,6 +2203,46 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean checkForRethrowOutsideCatch(RethrowExpression node) {
     if (!isInCatchClause) {
       errorReporter.reportError(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, node);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * This checks that the type of the passed 'switch' expression is assignable to the type of the
+   * 'case' members.
+   * 
+   * @param node the 'switch' statement to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#SWITCH_EXPRESSION_NOT_ASSIGNABLE
+   */
+  private boolean checkForSwitchExpressionNotAssignable(SwitchStatement node) {
+    // prepare 'switch' expression type
+    Expression expression = node.getExpression();
+    Type expressionType = getStaticType(expression);
+    if (expressionType == null) {
+      return false;
+    }
+    // compare with type of the first 'case'
+    NodeList<SwitchMember> members = node.getMembers();
+    for (SwitchMember switchMember : members) {
+      if (!(switchMember instanceof SwitchCase)) {
+        continue;
+      }
+      SwitchCase switchCase = (SwitchCase) switchMember;
+      // prepare 'case' type
+      Expression caseExpression = switchCase.getExpression();
+      Type caseType = getStaticType(caseExpression);
+      // check types
+      if (expressionType.isAssignableTo(caseType)) {
+        return false;
+      }
+      // report problem
+      errorReporter.reportError(
+          StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
+          expression,
+          expressionType,
+          caseType);
       return true;
     }
     return false;
