@@ -20,6 +20,7 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
@@ -41,6 +42,10 @@ public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
     editor.setAction("OpenEditor", openAction);
     addActions(findReferencesAction, findDeclarationsAction, openAction);
     addActionDartSelectionListeners();
+  }
+
+  public DartSearchActionGroup(IViewPart part) {
+    this(part.getViewSite());
   }
 
   public DartSearchActionGroup(IWorkbenchSite site) {

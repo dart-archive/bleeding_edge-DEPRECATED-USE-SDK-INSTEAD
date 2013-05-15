@@ -13,26 +13,17 @@
  */
 package com.google.dart.tools.search.internal.ui;
 
-import com.google.dart.tools.core.model.CompilationUnitElement;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.search.SearchScope;
-import com.google.dart.tools.core.search.SearchScopeFactory;
-import com.google.dart.tools.ui.internal.search.SearchMessages;
-import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
-import com.google.dart.tools.ui.search.ElementQuerySpecification;
-import com.google.dart.tools.ui.search.QuerySpecification;
 
 import org.eclipse.ui.IWorkbenchSite;
-import org.eclipse.ui.PlatformUI;
 
 /**
  * Finds declarations of the selected method in the hierarchy. The action is applicable to
- * selections representing a Dart method only.
+ * selections representing a Dart method only. TODO(pquitslund): unused (implement or remove)
  */
-public class FindOverridesAction extends FindAction_OLD {
+public class FindOverridesAction extends AbstractDartSelectionAction /* FindAction_OLD */{
 
   /**
    * Note: This constructor is for internal use only. Clients should not call this constructor.
@@ -67,29 +58,34 @@ public class FindOverridesAction extends FindAction_OLD {
   }
 
   @Override
-  QuerySpecification createQuery(DartElement element) throws DartModelException,
-      InterruptedException {
-    SearchScope scope = SearchScopeFactory.createWorkspaceScope();
-    return new ElementQuerySpecification(element, getLimitTo(), scope, "workspace"); //$NON-NLS-1$
+  protected void init() {
+    // TODO Auto-generated method stub
   }
 
-  @Override
-  int getLimitTo() {
-    return QuerySpecification.LIMIT_OVERRIDES;
-  }
-
-  @Override
-  Class<?>[] getValidTypes() {
-    return new Class[] {CompilationUnitElement.class};
-  }
-
-  @Override
-  void init() {
-    setText(SearchMessages.Search_FindOverridesAction_label);
-    setToolTipText(SearchMessages.Search_FindOverridesAction_tooltip);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(
-        this,
-        DartHelpContextIds.FIND_DECLARATIONS_IN_HIERARCHY_ACTION);
-  }
+//  @Override
+//  QuerySpecification createQuery(DartElement element) throws DartModelException,
+//      InterruptedException {
+//    SearchScope scope = SearchScopeFactory.createWorkspaceScope();
+//    return new ElementQuerySpecification(element, getLimitTo(), scope, "workspace"); //$NON-NLS-1$
+//  }
+//
+//  @Override
+//  int getLimitTo() {
+//    return QuerySpecification.LIMIT_OVERRIDES;
+//  }
+//
+//  @Override
+//  Class<?>[] getValidTypes() {
+//    return new Class[] {CompilationUnitElement.class};
+//  }
+//
+//  @Override
+//  void init() {
+//    setText(SearchMessages.Search_FindOverridesAction_label);
+//    setToolTipText(SearchMessages.Search_FindOverridesAction_tooltip);
+//    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+//        this,
+//        DartHelpContextIds.FIND_DECLARATIONS_IN_HIERARCHY_ACTION);
+//  }
 
 }
