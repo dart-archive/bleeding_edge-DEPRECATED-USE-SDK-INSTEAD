@@ -4252,11 +4252,20 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         if (markOccurrenceTargetRegion.getOffset() <= offset
             && offset <= markOccurrenceTargetRegion.getOffset()
                 + markOccurrenceTargetRegion.getLength()) {
+          if (selection.getLength() > 0
+              && selection.getLength() != fMarkOccurrenceTargetRegion.getLength()) {
+            removeOccurrenceAnnotations();
+          }
           return;
         }
       }
       fMarkOccurrenceTargetRegion = DartWordFinder.findWord(document, offset);
       fMarkOccurrenceModificationStamp = currentModificationStamp;
+      if (selection.getLength() > 0
+          && selection.getLength() != fMarkOccurrenceTargetRegion.getLength()) {
+        removeOccurrenceAnnotations();
+        return;
+      }
     }
 
     DartX.todo("marking");
