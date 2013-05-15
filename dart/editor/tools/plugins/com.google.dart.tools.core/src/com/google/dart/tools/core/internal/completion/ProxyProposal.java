@@ -106,6 +106,15 @@ public class ProxyProposal extends CompletionProposal {
   }
 
   @Override
+  public int getRelevance() {
+    if (proposal.getCompletion().startsWith("$dom_")) {
+      return 0;
+    } else {
+      return 1;
+    }
+  }
+
+  @Override
   public int getReplaceEnd() {
     return proposal.getLocation() + proposal.getReplacementLength();
   }
