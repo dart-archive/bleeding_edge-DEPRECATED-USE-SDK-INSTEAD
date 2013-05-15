@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.text.functions.DartPresentationReconciler;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 import com.google.dart.tools.ui.text.IColorManager;
@@ -254,7 +253,7 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
   /** Semantic highlighting presenter */
   private SemanticHighlightingPresenter fPresenter;
   /** Semantic highlighting reconciler */
-  private SemanticHighlightingReconciler_I fReconciler;
+  private SemanticHighlightingReconciler fReconciler;
 
   /** Semantic highlightings */
   private SemanticHighlighting[] fSemanticHighlightings;
@@ -282,7 +281,7 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
    * 
    * @return the semantic highlighter reconciler or <code>null</code> if none
    */
-  public SemanticHighlightingReconciler_I getReconciler() {
+  public SemanticHighlightingReconciler getReconciler() {
     return fReconciler;
   }
 
@@ -496,11 +495,7 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
     fPresenter.install(fSourceViewer, fPresentationReconciler);
 
     if (fEditor != null) {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        fReconciler = new SemanticHighlightingReconciler();
-      } else {
-        fReconciler = new SemanticHighlightingReconciler_OLD();
-      }
+      fReconciler = new SemanticHighlightingReconciler();
       fReconciler.install(
           fEditor,
           fSourceViewer,
@@ -617,11 +612,7 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
    * Initialize semantic highlightings.
    */
   private void initializeHighlightings() {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      fSemanticHighlightings = SemanticHighlightings.getSemanticHighlightings();
-    } else {
-      fSemanticHighlightings = SemanticHighlightings_OLD.getSemanticHighlightings();
-    }
+    fSemanticHighlightings = SemanticHighlightings.getSemanticHighlightings();
     fHighlightings = new Highlighting[fSemanticHighlightings.length];
 
     for (int i = 0, n = fSemanticHighlightings.length; i < n; i++) {

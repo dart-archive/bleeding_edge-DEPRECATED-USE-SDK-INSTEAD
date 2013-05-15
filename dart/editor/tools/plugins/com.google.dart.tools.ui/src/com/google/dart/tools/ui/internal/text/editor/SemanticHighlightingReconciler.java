@@ -48,8 +48,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Semantic highlighting reconciler - Background thread implementation.
  */
-public class SemanticHighlightingReconciler implements IDartReconcilingListener,
-    ITextInputListener, SemanticHighlightingReconciler_I {
+public class SemanticHighlightingReconciler implements IDartReconcilingListener, ITextInputListener {
 
   /**
    * Collects positions from the AST.
@@ -252,7 +251,6 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
    * @param semanticHighlightings the semantic highlightings
    * @param highlightings the highlightings
    */
-  @Override
   public void install(DartEditor editor, DartSourceViewer sourceViewer,
       SemanticHighlightingPresenter presenter, SemanticHighlighting[] semanticHighlightings,
       Highlighting[] highlightings) {
@@ -327,7 +325,6 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   /**
    * Refreshes the highlighting.
    */
-  @Override
   public void refresh() {
     scheduleJob();
   }
@@ -335,7 +332,6 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   /**
    * Uninstall this reconciler from the editor
    */
-  @Override
   public void uninstall() {
     if (fPresenter != null) {
       fPresenter.setCanceled(true);
