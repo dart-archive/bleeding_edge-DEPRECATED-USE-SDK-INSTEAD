@@ -676,9 +676,14 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     if (count > 0) {
       Type propagatedType = getBestType(elements.get(0));
       for (int i = 1; i < count; i++) {
-        propagatedType = propagatedType.getLeastUpperBound(getBestType(elements.get(i)));
-        if (propagatedType == null) {
+        Type elementType = getBestType(elements.get(i));
+        if (!propagatedType.equals(elementType)) {
           propagatedType = dynamicType;
+        } else {
+          propagatedType = propagatedType.getLeastUpperBound(elementType);
+          if (propagatedType == null) {
+            propagatedType = dynamicType;
+          }
         }
       }
       if (propagatedType.isMoreSpecificThan(staticType)) {
@@ -704,8 +709,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitMapLiteral(MapLiteral node) {
-    // TODO(brianwilkerson) Map literals can now have non-String keys.
-    Type staticKeyType = typeProvider.getStringType();
+    Type staticKeyType = dynamicType;
     Type staticValueType = dynamicType;
     TypeArgumentList typeArguments = node.getTypeArguments();
     if (typeArguments != null) {
@@ -735,13 +739,23 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       Type propagatedValueType = getBestType(entry.getValue());
       for (int i = 1; i < count; i++) {
         entry = entries.get(i);
-        propagatedKeyType = propagatedKeyType.getLeastUpperBound(getBestType(entry.getKey()));
-        if (propagatedKeyType == null) {
+        Type elementKeyType = getBestType(entry.getKey());
+        if (!propagatedKeyType.equals(elementKeyType)) {
           propagatedKeyType = dynamicType;
+        } else {
+          propagatedKeyType = propagatedKeyType.getLeastUpperBound(elementKeyType);
+          if (propagatedKeyType == null) {
+            propagatedKeyType = dynamicType;
+          }
         }
-        propagatedValueType = propagatedValueType.getLeastUpperBound(getBestType(entry.getValue()));
-        if (propagatedValueType == null) {
+        Type elementValueType = getBestType(entry.getValue());
+        if (!propagatedValueType.equals(elementValueType)) {
           propagatedValueType = dynamicType;
+        } else {
+          propagatedValueType = propagatedValueType.getLeastUpperBound(elementValueType);
+          if (propagatedValueType == null) {
+            propagatedValueType = dynamicType;
+          }
         }
       }
       boolean betterKey = propagatedKeyType != null

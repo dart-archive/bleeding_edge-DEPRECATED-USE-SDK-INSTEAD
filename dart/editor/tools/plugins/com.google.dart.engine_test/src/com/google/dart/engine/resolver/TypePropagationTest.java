@@ -23,6 +23,7 @@ import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.IfStatement;
+import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
@@ -33,6 +34,7 @@ import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 
 public class TypePropagationTest extends ResolverTestCase {
   public void test_as() throws Exception {
@@ -470,6 +472,84 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
     assertSame(typeA, variableName.getPropagatedType());
+  }
+
+  public void test_listLiteral_different() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  var v = [0, '1', 2];",
+        "  return v[2];",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
+    BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
+    ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
+    IndexExpression indexExpression = (IndexExpression) statement.getExpression();
+    assertNull(indexExpression.getPropagatedType());
+  }
+
+  public void test_listLiteral_same() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  var v = [0, 1, 2];",
+        "  return v[2];",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
+    BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
+    ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
+    IndexExpression indexExpression = (IndexExpression) statement.getExpression();
+    assertSame(getTypeProvider().getIntType(), indexExpression.getPropagatedType());
+  }
+
+  public void test_mapLiteral_different() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  var v = {'0' : 0, 1 : '1', '2' : 2};",
+        "  return v;",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
+    BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
+    ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
+    SimpleIdentifier identifier = (SimpleIdentifier) statement.getExpression();
+    InterfaceType propagatedType = (InterfaceType) identifier.getPropagatedType();
+    assertSame(getTypeProvider().getMapType().getElement(), propagatedType.getElement());
+    Type[] typeArguments = propagatedType.getTypeArguments();
+    assertLength(2, typeArguments);
+    assertSame(getTypeProvider().getDynamicType(), typeArguments[0]);
+    assertSame(getTypeProvider().getDynamicType(), typeArguments[1]);
+  }
+
+  public void test_mapLiteral_same() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  var v = {'a' : 0, 'b' : 1, 'c' : 2};",
+        "  return v;",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
+    BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
+    ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
+    SimpleIdentifier identifier = (SimpleIdentifier) statement.getExpression();
+    InterfaceType propagatedType = (InterfaceType) identifier.getPropagatedType();
+    assertSame(getTypeProvider().getMapType().getElement(), propagatedType.getElement());
+    Type[] typeArguments = propagatedType.getTypeArguments();
+    assertLength(2, typeArguments);
+    assertSame(getTypeProvider().getStringType(), typeArguments[0]);
+    assertSame(getTypeProvider().getIntType(), typeArguments[1]);
   }
 
   public void test_query() throws Exception {

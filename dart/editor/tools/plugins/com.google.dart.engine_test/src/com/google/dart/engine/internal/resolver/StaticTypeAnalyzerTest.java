@@ -649,7 +649,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     Type resultType = analyze(node);
     assertType(
         typeProvider.getMapType().substitute(
-            new Type[] {typeProvider.getStringType(), typeProvider.getDynamicType()}),
+            new Type[] {typeProvider.getDynamicType(), typeProvider.getDynamicType()}),
         resultType);
     listener.assertNoErrors();
   }
@@ -660,7 +660,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     Type resultType = analyze(node);
     assertType(
         typeProvider.getMapType().substitute(
-            new Type[] {typeProvider.getStringType(), typeProvider.getDynamicType()}),
+            new Type[] {typeProvider.getDynamicType(), typeProvider.getDynamicType()}),
         resultType);
     listener.assertNoErrors();
   }
