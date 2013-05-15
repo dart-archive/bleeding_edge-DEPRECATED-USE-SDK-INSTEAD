@@ -63,6 +63,7 @@ import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.TryStatement;
@@ -83,15 +84,12 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
-import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
@@ -113,6 +111,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.ast.ScopedNameFinder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -164,6 +163,12 @@ public class CompletionEngine {
 
   class NameCollector {
     private Map<String, List<Element>> uniqueNames = new HashMap<String, List<Element>>();
+
+    public void addAll(Collection<SimpleIdentifier> values) {
+      for (SimpleIdentifier id : values) {
+        mergeName(id.getElement());
+      }
+    }
 
     public void addLocalNames(SimpleIdentifier identifier) {
       ASTNode node = identifier;
@@ -240,20 +245,24 @@ public class CompletionEngine {
       }
     }
 
+    private void mergeName(Element element) {
+      String name = element.getDisplayName();
+      if (!filter.isPrivateDisallowed && Identifier.isPrivateName(name)) {
+        if (!isInCurrentLibrary(element)) {
+          return;
+        }
+      }
+      List<Element> dups = uniqueNames.get(name);
+      if (dups == null) {
+        dups = new ArrayList<Element>();
+        uniqueNames.put(name, dups);
+      }
+      dups.add(element);
+    }
+
     private void mergeNames(Element[] elements) {
       for (Element element : elements) {
-        String name = element.getDisplayName();
-        if (!filter.isPrivateDisallowed && Identifier.isPrivateName(name)) {
-          if (!isInCurrentLibrary(element)) {
-            return;
-          }
-        }
-        List<Element> dups = uniqueNames.get(name);
-        if (dups == null) {
-          dups = new ArrayList<Element>();
-          uniqueNames.put(name, dups);
-        }
-        dups.add(element);
+        mergeName(element);
       }
     }
   }
@@ -432,6 +441,14 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+      if (completionNode == node.getExpression()) {
+        analyzeLocalName(completionNode);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitExpressionStatement(ExpressionStatement node) {
       SimpleIdentifier ident;
       if (completionNode instanceof SimpleIdentifier) {
@@ -564,6 +581,14 @@ public class CompletionEngine {
           Ident ident = new Ident(node);
           analyzeTypeName(node.getIdentifier(), ident);
         }
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitSwitchCase(SwitchCase node) {
+      if (completionNode == node.getExpression()) {
+        analyzeLocalName(completionNode);
       }
       return null;
     }
@@ -1739,67 +1764,16 @@ public class CompletionEngine {
 
   private Collection<List<Element>> collectIdentifiersVisibleAt(ASTNode ident) {
     NameCollector names = new NameCollector();
-    Declaration decl = ident.getAncestor(Declaration.class);
-    if (decl != null) {
-      Element element = decl.getElement();
-      if (element == null) {
-        decl = decl.getParent().getAncestor(Declaration.class);
-        if (decl != null) {
-          element = decl.getElement();
-        }
-      }
-      Element localDef = null;
-      if (element instanceof LocalVariableElement) {
-        decl = decl.getParent().getAncestor(Declaration.class);
-        localDef = element;
-        element = decl.getElement();
-      }
-      Element topLevelDef = null;
-      if (element instanceof TopLevelVariableElement) {
-        topLevelDef = element;
-      }
-      ExecutableElement localFunc = null;
-      while (decl != null && element instanceof ExecutableElement) {
-        ExecutableElement execElement = (ExecutableElement) element;
-        names.addNamesDefinedByExecutable(execElement);
-        if (localFunc != null) {
-          for (FunctionElement funcElement : execElement.getFunctions()) {
-            names.remove(funcElement);
-          }
-        }
-        VariableElement[] vars = execElement.getLocalVariables();
-        for (VariableElement var : vars) {
-          // Remove local vars defined after ident.
-          if (var.getNameOffset() >= ident.getOffset()) {
-            names.remove(var);
-          }
-          // If ident is part of the initializer for a local var, remove that local var.
-          if (localDef != null) {
-            names.remove(localDef);
-          }
-        }
-        decl = decl.getParent().getAncestor(Declaration.class);
-        if (decl != null) {
-          element = decl.getElement();
-        }
-        if (execElement instanceof FunctionElement) {
-          localFunc = execElement;
-        }
-      }
-      if (element instanceof ClassElement) {
-        ClassElement classElement = (ClassElement) element;
-        names.addNamesDefinedByTypes(allSuperTypes(classElement));
-        names.addNamesDefinedByTypes(allSubtypes(classElement));
-        decl = decl.getAncestor(Declaration.class);
-        if (decl != null) {
-          element = decl.getElement();
-        }
-      }
-      names.addTopLevelNames();
-      if (topLevelDef != null) {
-        names.remove(topLevelDef);
-      }
+    ScopedNameFinder finder = new ScopedNameFinder(completionLocation());
+    ident.accept(finder);
+    names.addAll(finder.getLocals().values());
+    Declaration decl = finder.getDeclaration();
+    if (decl != null && decl.getParent() instanceof ClassDeclaration) {
+      ClassElement classElement = ((ClassDeclaration) decl.getParent()).getElement();
+      names.addNamesDefinedByTypes(allSuperTypes(classElement));
+      names.addNamesDefinedByTypes(allSubtypes(classElement)); // to complete subtypes of HTML elements
     }
+    names.addTopLevelNames();
     return names.getNames();
   }
 

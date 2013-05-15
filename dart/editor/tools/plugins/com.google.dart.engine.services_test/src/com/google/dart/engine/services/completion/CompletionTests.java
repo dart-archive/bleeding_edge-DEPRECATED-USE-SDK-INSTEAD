@@ -222,7 +222,7 @@ public class CompletionTests extends CompletionTestCase {
             "    while (!1x !9); ",
             "    do{} while(!2x !8);",
             "    for(z in !3zs) {}",
-            "    switch(!4k) {case 1:{}}",
+            "    switch(!4k) {case 1:{!0}}",
             "    try {",
             "    } on !5Object catch(a){}",
             "    if (!7x !6) {} else {};",
@@ -241,7 +241,8 @@ public class CompletionTests extends CompletionTestCase {
         "6+==",
         "7+x",
         "8+==",
-        "9+==");
+        "9+==",
+        "0+k");
   }
 
   public void test014() throws Exception {
@@ -432,6 +433,50 @@ public class CompletionTests extends CompletionTestCase {
 
   public void test028() throws Exception {
     test("m(){var isX=3;if(is!1)", "1+isX");
+  }
+
+  public void test029() throws Exception {
+    test("m(){[1].forEach((x)=>!1x);}", "1+x");
+  }
+
+  public void test030() throws Exception {
+    test("n(){[1].forEach((x){!1});}", "1+x");
+  }
+
+  public void test031() throws Exception {
+    test(
+        "class Caster {} m() {try {} on Cas!1ter catch (CastBlock) {!2}}",
+        "1+Caster",
+        "1-CastBlock",
+        "2+Caster",
+        "2+CastBlock");
+  }
+
+  public void test032() throws Exception {
+    test(
+        src(
+            "const ONE = 1;",
+            "const ICHI = 10;",
+            "const UKSI = 100;",
+            "const EIN = 1000;",
+            "m() {",
+            "  int x;",
+            "  switch (x) {",
+            "    case !3ICHI:",
+            "    case UKSI:",
+            "    case EIN!2:",
+            "    case ONE!1: return;",
+            "    default: return;",
+            "  }",
+            "}"),
+        "1+ONE",
+        "1-UKSI",
+        "2+EIN",
+        "2-ICHI",
+        "3+ICHI",
+        "3+UKSI",
+        "3+EIN",
+        "3+ONE");
   }
 
   public void testCommentSnippets001() throws Exception {
@@ -858,13 +903,13 @@ public class CompletionTests extends CompletionTestCase {
 
   public void testCommentSnippets058() throws Exception {
     String source = src(
-        "typedef void callback(int k);",
+        "typedef vo!2id callback(int k);",
         "void x(callback q){}",
         "void r() {",
         "  callback v;",
         "  x(!1);",
         "}");
-    test(source, "1+v");
+    test(source, "1+v", "2+void");
   }
 
   public void testCommentSnippets059() throws Exception {
