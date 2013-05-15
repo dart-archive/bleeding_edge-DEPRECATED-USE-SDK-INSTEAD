@@ -41,6 +41,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.TreeItem;
 
 import java.util.List;
 
@@ -301,6 +302,22 @@ public class LightNodeElements {
   }
 
   /**
+   * Expands {@link #viewer} us much as possible while still in the given time budget.
+   */
+  public static void expandTreeItemsTimeBoxed(TreeViewer viewer, long nanoBudget) {
+    int numIterations = 10;
+    int childrenLimit = 10;
+    TreeItem[] rootTreeItems = viewer.getTree().getItems();
+    for (int i = 0; i < numIterations; i++) {
+      if (nanoBudget < 0) {
+        break;
+      }
+      nanoBudget = expandTreeItemsTimeBoxed(viewer, rootTreeItems, childrenLimit, nanoBudget);
+      childrenLimit *= 2;
+    }
+  }
+
+  /**
    * @return the root {@link LightNodeElement}s created by {@link #newTreeContentProvider()}.
    */
   public static List<LightNodeElement> getRootElements(TreeViewer viewer) {
@@ -391,5 +408,40 @@ public class LightNodeElements {
     }
     // unknown
     return null;
+  }
+
+  /**
+   * Expands given {@link TreeItem}s if they have not too much children and we have time budget.
+   */
+  private static long expandTreeItemsTimeBoxed(TreeViewer viewer, TreeItem[] items,
+      int childrenLimit, long nanoBudget) {
+    if (nanoBudget < 0) {
+      return -1;
+    }
+    for (TreeItem item : items) {
+      Object itemData = item.getData();
+      // prepare LightNodeElement
+      if (!(itemData instanceof LightNodeElement)) {
+        continue;
+      }
+      LightNodeElement element = (LightNodeElement) itemData;
+      // has children, not too many?
+      int numChildren = element.children.size();
+      if (numChildren == 0 || numChildren > childrenLimit) {
+        continue;
+      }
+      // expand single item
+      {
+        long startNano = System.nanoTime();
+        viewer.setExpandedState(itemData, true);
+        nanoBudget -= System.nanoTime() - startNano;
+      }
+      // expand children
+      nanoBudget = expandTreeItemsTimeBoxed(viewer, item.getItems(), childrenLimit, nanoBudget);
+      if (nanoBudget < 0) {
+        break;
+      }
+    }
+    return nanoBudget;
   }
 }

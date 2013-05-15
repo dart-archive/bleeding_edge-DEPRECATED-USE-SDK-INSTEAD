@@ -355,56 +355,6 @@ public class DartOutlineInformationControl extends PopupDialog implements IInfor
   }
 
   /**
-   * Expands {@link #viewer} us much as possible while still in the given time budget.
-   */
-  private void expandTreeItemsTimeBoxed(long nanoBudget) {
-    int numIterations = 10;
-    int childrenLimit = 10;
-    TreeItem[] rootTreeItems = viewer.getTree().getItems();
-    for (int i = 0; i < numIterations; i++) {
-      if (nanoBudget < 0) {
-        break;
-      }
-      nanoBudget = expandTreeItemsTimeBoxed(rootTreeItems, childrenLimit, nanoBudget);
-      childrenLimit *= 2;
-    }
-  }
-
-  /**
-   * Expands given {@link TreeItem}s if they have not too much children and we have time budget.
-   */
-  private long expandTreeItemsTimeBoxed(TreeItem[] items, int childrenLimit, long nanoBudget) {
-    if (nanoBudget < 0) {
-      return -1;
-    }
-    for (TreeItem item : items) {
-      Object itemData = item.getData();
-      // prepare LightNodeElement
-      if (!(itemData instanceof LightNodeElement)) {
-        continue;
-      }
-      LightNodeElement element = (LightNodeElement) itemData;
-      // has children, not too many?
-      int numChildren = element.children.size();
-      if (numChildren == 0 || numChildren > childrenLimit) {
-        continue;
-      }
-      // expand single item
-      {
-        long startNano = System.nanoTime();
-        viewer.setExpandedState(item, true);
-        nanoBudget -= System.nanoTime() - startNano;
-      }
-      // expand children
-      nanoBudget = expandTreeItemsTimeBoxed(item.getItems(), childrenLimit, nanoBudget);
-      if (nanoBudget < 0) {
-        break;
-      }
-    }
-    return nanoBudget;
-  }
-
-  /**
    * @return the first {@link TreeItem} matching {@link #stringMatcher}.
    */
   private TreeItem findFirstMatchingItem(TreeItem[] items) {
@@ -448,7 +398,7 @@ public class DartOutlineInformationControl extends PopupDialog implements IInfor
    */
   private void selectElementEnclosingEditorSelection() {
     // may be small unit, expand as possible
-    expandTreeItemsTimeBoxed(50L * 1000000L);
+    LightNodeElements.expandTreeItemsTimeBoxed(viewer, 50L * 1000000L);
     // prepare "element" to select
     final LightNodeElement element;
     {
@@ -516,7 +466,7 @@ public class DartOutlineInformationControl extends PopupDialog implements IInfor
     try {
       viewer.collapseAll();
       viewer.refresh(false);
-      expandTreeItemsTimeBoxed(75L * 1000000L);
+      LightNodeElements.expandTreeItemsTimeBoxed(viewer, 75L * 1000000L);
       selectFirstMatch();
     } finally {
       viewer.getControl().setRedraw(true);

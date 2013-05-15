@@ -268,6 +268,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
       public IStatus runInUIThread(IProgressMonitor monitor) {
         if (viewer != null) {
           viewer.setInput(input);
+          LightNodeElements.expandTreeItemsTimeBoxed(viewer, 75L * 1000000L);
         }
         return Status.OK_STATUS;
       }
