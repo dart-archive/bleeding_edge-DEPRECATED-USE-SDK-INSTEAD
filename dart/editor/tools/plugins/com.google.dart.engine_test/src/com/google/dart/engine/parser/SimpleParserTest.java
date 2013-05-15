@@ -119,6 +119,10 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals("two\\nlines", computeStringValue("r'two\\nlines'"));
   }
 
+  public void test_constFactory() throws Exception {
+    parse("parseClassMember", new Object[] {"C"}, "const factory C() = A;");
+  }
+
   public void test_createSyntheticIdentifier() throws Exception {
     SimpleIdentifier identifier = createSyntheticIdentifier();
     assertTrue(identifier.isSynthetic());

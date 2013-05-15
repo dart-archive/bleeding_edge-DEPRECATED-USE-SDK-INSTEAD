@@ -241,6 +241,14 @@ public class ErrorParserTest extends ParserTestCase {
     parseCompilationUnit("const class C {}", ParserErrorCode.CONST_CLASS);
   }
 
+  public void test_constFactory() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "const factory C() {}",
+        ParserErrorCode.CONST_FACTORY);
+  }
+
   public void test_constMethod() throws Exception {
     parse("parseClassMember", new Object[] {"C"}, "const int m() {}", ParserErrorCode.CONST_METHOD);
   }

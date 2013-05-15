@@ -2198,6 +2198,9 @@ public class Parser {
       if (!bodyAllowed && !(body instanceof EmptyFunctionBody)) {
         reportError(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY);
       }
+      if (constKeyword != null && factoryKeyword != null) {
+        reportError(ParserErrorCode.CONST_FACTORY);
+      }
     }
     return new ConstructorDeclaration(
         commentAndMetadata.getComment(),

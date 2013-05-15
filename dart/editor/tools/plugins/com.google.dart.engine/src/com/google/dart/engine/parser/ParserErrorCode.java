@@ -35,6 +35,7 @@ public enum ParserErrorCode implements ErrorCode {
   CONST_AND_FINAL("Members cannot be declared to be both 'const' and 'final'"),
   CONST_AND_VAR("Members cannot be declared to be both 'const' and 'var'"),
   CONST_CLASS("Classes cannot be declared to be 'const'"),
+  CONST_FACTORY("Only redirecting factory constructors can be declared to be 'const'"),
   CONST_METHOD("Getters, setters and methods cannot be declared to be 'const'"),
   CONST_TYPEDEF("Type aliases cannot be declared to be 'const'"),
   CONSTRUCTOR_WITH_RETURN_TYPE("Constructors cannot have a return type"),
