@@ -102,7 +102,7 @@ public class XmlNode {
   }
 
   public XmlNode getNodeFor(int offset) {
-    if (getStartOffset() <= offset && offset <= getEndOffset()) {
+    if (getStartOffset() <= offset && offset < getEndOffset()) {
       return this;
     }
 

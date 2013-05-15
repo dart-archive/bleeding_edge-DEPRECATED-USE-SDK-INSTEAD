@@ -77,6 +77,10 @@ class HtmlContentAssistProcessor implements IContentAssistProcessor {
   public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
     IDocument document = viewer.getDocument();
 
+    if (getLastChar(document, offset) == '>') {
+      return new ICompletionProposal[0];
+    }
+
     String strPrefix = getStrPrefix(document, offset, new WordDetector());
     String bracketStart = getBracketStart(document, offset);
 
@@ -242,6 +246,14 @@ class HtmlContentAssistProcessor implements IContentAssistProcessor {
       return document.get(offset, length);
     } catch (BadLocationException e) {
       return "";
+    }
+  }
+
+  private char getLastChar(IDocument document, int offset) {
+    try {
+      return document.getChar(offset - 1);
+    } catch (BadLocationException ex) {
+      return 0;
     }
   }
 
