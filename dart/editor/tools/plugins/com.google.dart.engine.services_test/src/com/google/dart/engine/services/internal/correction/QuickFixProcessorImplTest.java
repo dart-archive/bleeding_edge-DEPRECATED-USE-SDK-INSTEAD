@@ -662,14 +662,14 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  static f = myUndefinedMethod();",
+        "  static var f = myUndefinedMethod();",
         "}");
     assert_runProcessor(
         CorrectionKind.QF_CREATE_METHOD,
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
-            "  static f = myUndefinedMethod();",
+            "  static var f = myUndefinedMethod();",
             "  ",
             "  static myUndefinedMethod() {",
             "  }",

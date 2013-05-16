@@ -350,7 +350,7 @@ public class ErrorParserTest extends ParserTestCase {
     parse(
         "parseClassMember",
         new Object[] {"C"},
-        "static static m;",
+        "static static var m;",
         ParserErrorCode.DUPLICATED_MODIFIER);
   }
 
@@ -733,7 +733,11 @@ public class ErrorParserTest extends ParserTestCase {
     parseCompilationUnit("class A class B {}", ParserErrorCode.MISSING_CLASS_BODY);
   }
 
-  public void test_missingConstFinalVarOrType() throws Exception {
+  public void test_missingConstFinalVarOrType_static() throws Exception {
+    parseCompilationUnit("class A { static f; }", ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
+  }
+
+  public void test_missingConstFinalVarOrType_topLevel() throws Exception {
     parse(
         "parseFinalConstVarOrType",
         new Object[] {false},

@@ -1559,6 +1559,10 @@ public class Parser {
           methodName,
           parameters);
     } else if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+      if (modifiers.getConstKeyword() == null && modifiers.getFinalKeyword() == null
+          && modifiers.getVarKeyword() == null) {
+        reportError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
+      }
       return parseInitializedIdentifierList(
           commentAndMetadata,
           modifiers.getStaticKeyword(),
@@ -2075,6 +2079,10 @@ public class Parser {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
     } else if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+      if (modifiers.getConstKeyword() == null && modifiers.getFinalKeyword() == null
+          && modifiers.getVarKeyword() == null) {
+        reportError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
+      }
       return new TopLevelVariableDeclaration(
           commentAndMetadata.getComment(),
           commentAndMetadata.getMetadata(),
