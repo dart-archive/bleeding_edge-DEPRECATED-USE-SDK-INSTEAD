@@ -100,7 +100,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
    * of a function argument. Using shift operators in a context that expects balanced angle brackets
    * is not legal syntax and will confuse the linked mode editor.
    */
-  protected static class ExitPolicy implements IExitPolicy {
+  protected class ExitPolicy implements IExitPolicy {
 
     private int parenCount = 0;
     private int braceCount = 0;
@@ -130,6 +130,13 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
       switch (event.character) {
         case ';':
           return new ExitFlags(ILinkedModeListener.NONE, true);
+        case '\b':
+          if (fInvocationContext != null) {
+            if (fInvocationContext.getViewer().getSelectedRange().y > 0) {
+              return new ExitFlags(ILinkedModeListener.EXTERNAL_MODIFICATION, true);
+            }
+          }
+          return null;
         case SWT.CR:
           // when entering a function as a parameter, we don't want
           // to jump after the parenthesis when return is pressed

@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text.completion;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.link.ILinkedModeListener;
 import org.eclipse.jface.text.link.LinkedModeModel;
 import org.eclipse.jface.text.link.LinkedModeUI;
 import org.eclipse.text.edits.DeleteEdit;
@@ -64,6 +65,10 @@ class OptionalArgumentModel extends LinkedModeModel {
         return;
       }
       isStopped = true;
+      if ((flags & ILinkedModeListener.EXTERNAL_MODIFICATION) != 0) {
+        return;
+      }
+
       // Clean up unnecessary optional arguments.
       MultiTextEdit textEdit = updateUneditedPositions();
       if (textEdit.getChildrenSize() == 0) {
