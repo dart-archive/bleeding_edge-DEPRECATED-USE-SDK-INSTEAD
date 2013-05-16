@@ -39,6 +39,18 @@ import java.util.List;
  * sequences to ensure that the correct recovery steps are taken in the parser.
  */
 public class RecoveryParserTest extends ParserTestCase {
+  public void fail_incompleteReturnType() throws Exception {
+    parseCompilationUnit(createSource(
+        "Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {",
+        "  if (map == null) return null;",
+        "  Map<Symbol, dynamic> result = new Map<Symbol, dynamic>();",
+        "  map.forEach((name, value) {",
+        "    result[new Symbol(name)] = value;",
+        "  });",
+        "  return result;",
+        "}"));
+  }
+
   public void test_additiveExpression_missing_LHS() throws Exception {
     BinaryExpression expression = parseExpression("+ y", ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
     assertInstanceOf(SimpleIdentifier.class, expression.getLeftOperand());
