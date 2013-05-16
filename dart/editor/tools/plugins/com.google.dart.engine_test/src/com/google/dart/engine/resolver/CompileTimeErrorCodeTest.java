@@ -180,32 +180,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_overrideMissingNamedParameters() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m(a, {b}) {}",
-        "}",
-        "class B extends A {",
-        "  m(a) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.OVERRIDE_MISSING_NAMED_PARAMETERS);
-    verify(source);
-  }
-
-  public void fail_overrideMissingRequiredParameters() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m(a) {}",
-        "}",
-        "class B extends A {",
-        "  m(a, b) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.OVERRIDE_MISSING_REQUIRED_PARAMETERS);
-    verify(source);
-  }
-
   public void fail_recursiveCompileTimeConstant() throws Exception {
     Source source = addSource(createSource(//
         "const x = y + 1;",

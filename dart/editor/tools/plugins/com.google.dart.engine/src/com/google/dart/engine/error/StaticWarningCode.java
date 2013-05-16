@@ -202,56 +202,87 @@ public enum StaticWarningCode implements ErrorCode {
   INVALID_FACTORY_NAME(""),
 
   /**
-   * 7.2 Getters: It is a static warning if a getter <i>m1</i> overrides a getter <i>m2</i> and the
-   * type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
-   */
-  INVALID_OVERRIDE_GETTER_TYPE(""),
-
-  /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
+   * <p>
+   * 8 Interfaces: It is a static warning if an interface member <i>m1</i> overrides an interface
+   * member <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
    * @param methodName the name of the method being overridden
    * @param className the name of the class where the overridden member is declared
    */
-  INVALID_MEMBER_OVERRIDE_RETURN_TYPE(
+  INVALID_METHOD_OVERRIDE_RETURN_TYPE(
       "The return type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
+   * <p>
+   * 8 Interfaces: It is a static warning if an interface member <i>m1</i> overrides an interface
+   * member <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
    * @param methodName the name of the method being overridden
    * @param className the name of the class where the overridden member is declared
    */
-  INVALID_MEMBER_OVERRIDE_OPTIONAL_PARAM_TYPE(
+  INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE(
       "The parameter type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
+   * <p>
+   * 8 Interfaces: It is a static warning if an interface member <i>m1</i> overrides an interface
+   * member <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
    * @param methodName the name of the method being overridden
    * @param className the name of the class where the overridden member is declared
    */
-  INVALID_MEMBER_OVERRIDE_NAMED_PARAM_TYPE(
+  INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE(
       "The parameter type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
+   * <p>
+   * 8 Interfaces: It is a static warning if an interface member <i>m1</i> overrides an interface
+   * member <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
    * @param methodName the name of the method being overridden
    * @param className the name of the class where the overridden member is declared
    */
-  INVALID_MEMBER_OVERRIDE_NORMAL_PARAM_TYPE(
+  INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE(
       "The parameter type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'"),
+
+  /**
+   * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
+   * instance member <i>m2</i>, the signature of <i>m2</i> explicitly specifies a default value for
+   * a formal parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value
+   * for <i>p</i>.
+   * <p>
+   * 8 Interfaces: It is a static warning if an interface method <i>m1</i> overrides an interface
+   * method <i>m2</i>, the signature of <i>m2</i> explicitly specifies a default value for a formal
+   * parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value for
+   * <i>p</i>.
+   */
+  INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES(""),
+
+  /**
+   * 7.2 Getters: It is a static warning if a getter <i>m1</i> overrides a getter <i>m2</i> and the
+   * type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
+   * 
+   * @see #INVALID_MEMBER_OVERRIDE_RETURN_TYPE
+   */
+  INVALID_GETTER_OVERRIDE_RETURN_TYPE(
+      "The return type '%s' is not assignable to '%s' as required from getter it is overriding from '%s'"),
 
   /**
    * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a setter <i>m2</i> and the
    * type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
+   * 
+   * @see #INVALID_MEMBER_OVERRIDE_NORMAL_PARAM_TYPE
    */
-  INVALID_OVERRIDE_SETTER_RETURN_TYPE(""),
+  INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE(
+      "The parameter type '%s' is not assignable to '%s' as required by the setter it is overriding from '%s'"),
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -343,20 +374,6 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.3 Setters: It is a static warning if a setter declares a return type other than void.
    */
   NON_VOID_RETURN_FOR_SETTER("The return type of the setter must be 'void'"),
-
-  /**
-   * 8 Interfaces: It is a static warning if an interface member <i>m1</i> overrides an interface
-   * member <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
-   */
-  OVERRIDE_NOT_SUBTYPE(""),
-
-  /**
-   * 8 Interfaces: It is a static warning if an interface method <i>m1</i> overrides an interface
-   * method <i>m2</i>, the signature of <i>m2</i> explicitly specifies a default value for a formal
-   * parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value for
-   * <i>p</i>.
-   */
-  OVERRIDE_WITH_DIFFERENT_DEFAULT(""),
 
   /**
    * 14.3 Parts: It is a static warning if the referenced part declaration <i>p</i> names a library

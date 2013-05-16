@@ -728,7 +728,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#INVALID_OVERRIDE_REQUIRED
    * @see CompileTimeErrorCode#OVERRIDE_MISSING_NAMED_PARAMETERS
    * @see CompileTimeErrorCode#OVERRIDE_MISSING_REQUIRED_PARAMETERS
-   * @see StaticWarningCode#INVALID_MEMBER_OVERRIDE_RETURN_TYPE
+   * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_RETURN_TYPE
    */
   private boolean checkForAllInvalidOverrideErrorCodes(MethodDeclaration node) {
     if (enclosingClass == null || node.isStatic() || node.getBody() instanceof NativeFunctionBody) {
@@ -834,6 +834,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             }
           }
           if (!overridingMethodHasNamedParameter) {
+            // TODO (jwren) need to cover the order of the named parameters case
             errorReporter.reportError(
                 CompileTimeErrorCode.INVALID_OVERRIDE_NAMED,
                 methodName,
@@ -845,7 +846,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
 
-    // SWC.INVALID_MEMBER_OVERRIDE_*
+    // SWC.INVALID_METHOD_OVERRIDE_*
     FunctionType overriddenFT = overriddenExecutable.getType();
     FunctionType overridingFT = executableElement.getType();
     InterfaceType enclosingType = enclosingClass.getType();
@@ -862,11 +863,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     // is equivalent to the following checks, we break it is split up for the purposes of
     // providing better error messages.
 
-    // SWC.INVALID_MEMBER_OVERRIDE_RETURN_TYPE
+    // SWC.INVALID_METHOD_OVERRIDE_RETURN_TYPE
     if (!overriddenFT.getReturnType().equals(VoidTypeImpl.getInstance())
         && !overridingFT.getReturnType().isAssignableTo(overriddenFT.getReturnType())) {
       errorReporter.reportError(
-          StaticWarningCode.INVALID_MEMBER_OVERRIDE_RETURN_TYPE,
+          !node.isGetter() ? StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE
+              : StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
           methodName,
           overridingFT.getReturnType().getName(),
           overriddenFT.getReturnType().getName(),
@@ -874,7 +876,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
 
-    // SWC.INVALID_MEMBER_OVERRIDE_NORMAL_PARAM_TYPE
+    // SWC.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
     FormalParameterList formalParameterList = node.getParameters();
     if (formalParameterList == null) {
       return false;
@@ -886,7 +888,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     for (int i = 0; i < overridingNormalPT.length; i++) {
       if (!overridingNormalPT[i].isAssignableTo(overriddenNormalPT[i])) {
         errorReporter.reportError(
-            StaticWarningCode.INVALID_MEMBER_OVERRIDE_NORMAL_PARAM_TYPE,
+            !node.isSetter() ? StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
+                : StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE,
             parameterNodeList.get(parameterIndex),
             overridingNormalPT[i].getName(),
             overriddenNormalPT[i].getName(),
@@ -896,13 +899,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       parameterIndex++;
     }
 
-    // SWC.INVALID_MEMBER_OVERRIDE_OPTIONAL_PARAM_TYPE
+    // SWC.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE
     Type[] overridingOptionalPT = overridingFT.getOptionalParameterTypes();
     Type[] overriddenOptionalPT = overriddenFT.getOptionalParameterTypes();
     for (int i = 0; i < overriddenOptionalPT.length; i++) {
       if (!overridingOptionalPT[i].isAssignableTo(overriddenOptionalPT[i])) {
         errorReporter.reportError(
-            StaticWarningCode.INVALID_MEMBER_OVERRIDE_OPTIONAL_PARAM_TYPE,
+            StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE,
             parameterNodeList.get(parameterIndex),
             overridingOptionalPT[i].getName(),
             overriddenOptionalPT[i].getName(),
@@ -912,7 +915,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       parameterIndex++;
     }
 
-    // SWC.INVALID_MEMBER_OVERRIDE_NAMED_PARAM_TYPE
+    // SWC.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE
     Map<String, Type> overridingNamedPT = overridingFT.getNamedParameterTypes();
     Map<String, Type> overriddenNamedPT = overriddenFT.getNamedParameterTypes();
     Iterator<Entry<String, Type>> overriddenNamedPTIterator = overriddenNamedPT.entrySet().iterator();
@@ -941,7 +944,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         }
         if (parameterToSelect != null) {
           errorReporter.reportError(
-              StaticWarningCode.INVALID_MEMBER_OVERRIDE_NAMED_PARAM_TYPE,
+              StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE,
               parameterToSelect,
               overridingType.getName(),
               overriddenNamedPTEntry.getValue().getName(),

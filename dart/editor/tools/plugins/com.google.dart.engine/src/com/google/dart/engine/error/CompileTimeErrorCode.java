@@ -513,8 +513,13 @@ public enum CompileTimeErrorCode implements ErrorCode {
   INVALID_OVERRIDE_DEFAULT_VALUE(""),
 
   /**
-   * 7.1: It is a compile-time error if an instance method <i>m1</i> overrides an instance member
-   * <i>m2</i> and <i>m1</i> does not declare all the named parameters declared by <i>m2</i>.
+   * 7.1 Instance Methods: It is a compile-time error if an instance method <i>m1</i> overrides an
+   * instance member <i>m2</i> and <i>m1</i> does not declare all the named parameters declared by
+   * <i>m2</i>.
+   * <p>
+   * 8 Interfaces: It is a compile-time error if an interface member <i>m1</i> overrides an
+   * interface member <i>m2</i> and <i>m1</i> does not declare all the named parameters declared by
+   * <i>m2</i> in the same order.
    * 
    * @param paramCount the number of named parameters in the overridden member
    * @param className the name of the class from the overridden method
@@ -536,6 +541,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 7.1 Instance Methods: It is a compile-time error if an instance method <i>m1</i> overrides an
    * instance member <i>m2</i> and <i>m1</i> has a different number of required parameters than
+   * <i>m2</i>.
+   * <p>
+   * 8 Interfaces: It is a compile-time error if an interface member <i>m1</i> overrides an
+   * interface member <i>m2</i> and <i>m1</i> has a different number of required parameters than
    * <i>m2</i>.
    * 
    * @param paramCount the number of required parameters in the overridden member
@@ -738,20 +747,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.1.1 Operators: It is a compile-time error to declare an optional parameter in an operator.
    */
   OPTIONAL_PARAMETER_IN_OPERATOR("Optional parameters are not allowed when defining an operator"),
-
-  /**
-   * 8 Interfaces: It is a compile-time error if an interface member <i>m1</i> overrides an
-   * interface member <i>m2</i> and <i>m1</i> does not declare all the named parameters declared by
-   * <i>m2</i> in the same order.
-   */
-  OVERRIDE_MISSING_NAMED_PARAMETERS(""),
-
-  /**
-   * 8 Interfaces: It is a compile-time error if an interface member <i>m1</i> overrides an
-   * interface member <i>m2</i> and <i>m1</i> has a different number of required parameters than
-   * <i>m2</i>.
-   */
-  OVERRIDE_MISSING_REQUIRED_PARAMETERS(""),
 
   /**
    * 14.3 Parts: It is a compile time error if the contents of the URI are not a valid part
