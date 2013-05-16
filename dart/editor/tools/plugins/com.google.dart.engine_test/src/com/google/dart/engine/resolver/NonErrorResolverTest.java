@@ -1274,6 +1274,45 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_referenceToDeclaredVariableInInitializer_constructorName() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.x() {}",
+        "}",
+        "f() {",
+        "  var x = new A.x();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_referenceToDeclaredVariableInInitializer_methodName() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  x() {}",
+        "}",
+        "f(A a) {",
+        "  var x = a.x();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_referenceToDeclaredVariableInInitializer_propertyName() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var x;",
+        "}",
+        "f(A a) {",
+        "  var x = a.x;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_rethrowOutsideCatch() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

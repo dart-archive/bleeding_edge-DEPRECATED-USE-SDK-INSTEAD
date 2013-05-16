@@ -802,7 +802,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 13.3 Local Variable Declaration: It is a compile-time error if <i>e</i> refers to the name
    * <i>v</i> or the name <i>v=</i>.
    */
-  REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER(""),
+  REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER(
+      "The name '%s' cannot be referenced in the initializer of a variable with the same name"),
 
   /**
    * 16.1.1 Reserved Words: A reserved word may not be used as an identifier; it is a compile-time

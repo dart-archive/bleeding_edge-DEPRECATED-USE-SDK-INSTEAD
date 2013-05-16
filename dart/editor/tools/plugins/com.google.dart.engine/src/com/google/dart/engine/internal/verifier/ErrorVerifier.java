@@ -50,9 +50,12 @@ import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NativeFunctionBody;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NormalFormalParameter;
+import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RethrowExpression;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
@@ -220,6 +223,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * A table mapping names to the export elements exported them.
    */
   private HashMap<String, ExportElement> exportedNames = new HashMap<String, ExportElement>();
+
+  /**
+   * A set of the names of the variable initializers we are visiting now.
+   */
+  private HashSet<String> namesForReferenceToDeclaredVariableInInitializer = new HashSet<String>();
 
   /**
    * A list of types used by the {@link CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS} and
@@ -527,6 +535,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitSimpleIdentifier(SimpleIdentifier node) {
+    checkForReferenceToDeclaredVariableInInitializer(node);
+    return super.visitSimpleIdentifier(node);
+  }
+
+  @Override
   public Void visitSwitchCase(SwitchCase node) {
     checkForCaseBlockNotTerminated(node);
     return super.visitSwitchCase(node);
@@ -568,8 +582,24 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitVariableDeclaration(VariableDeclaration node) {
-    checkForInvalidAssignment(node.getName(), node.getInitializer());
-    return super.visitVariableDeclaration(node);
+    SimpleIdentifier nameNode = node.getName();
+    Expression initializerNode = node.getInitializer();
+    // do checks
+    checkForInvalidAssignment(nameNode, initializerNode);
+    // visit name
+    nameNode.accept(this);
+    // visit initializer
+    String name = nameNode.getName();
+    namesForReferenceToDeclaredVariableInInitializer.add(name);
+    try {
+      if (initializerNode != null) {
+        initializerNode.accept(this);
+      }
+    } finally {
+      namesForReferenceToDeclaredVariableInInitializer.remove(name);
+    }
+    // done
+    return null;
   }
 
   @Override
@@ -2221,6 +2251,56 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     errorReporter.reportError(
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         redirectedConstructorNode);
+    return true;
+  }
+
+  /**
+   * This checks if the passed identifier is banned because it is part of the variable declaration
+   * with the same name.
+   * 
+   * @param node the identifier to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER
+   */
+  private boolean checkForReferenceToDeclaredVariableInInitializer(SimpleIdentifier node) {
+    ASTNode parent = node.getParent();
+    // ignore if property
+    if (parent instanceof PrefixedIdentifier) {
+      PrefixedIdentifier prefixedIdentifier = (PrefixedIdentifier) parent;
+      if (prefixedIdentifier.getIdentifier() == node) {
+        return false;
+      }
+    }
+    if (parent instanceof PropertyAccess) {
+      PropertyAccess propertyAccess = (PropertyAccess) parent;
+      if (propertyAccess.getPropertyName() == node) {
+        return false;
+      }
+    }
+    // ignore if name of the method with target
+    if (parent instanceof MethodInvocation) {
+      MethodInvocation methodInvocation = (MethodInvocation) parent;
+      if (methodInvocation.getTarget() != null && methodInvocation.getMethodName() == node) {
+        return false;
+      }
+    }
+    // ignore if name of the constructor
+    if (parent instanceof ConstructorName) {
+      ConstructorName constructorName = (ConstructorName) parent;
+      if (constructorName.getName() == node) {
+        return false;
+      }
+    }
+    // check if name is banned
+    String name = node.getName();
+    if (!namesForReferenceToDeclaredVariableInInitializer.contains(name)) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(
+        CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER,
+        node,
+        name);
     return true;
   }
 
