@@ -397,4 +397,17 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify(source);
   }
+
+  public void test_staticSetter() throws Exception {
+    Source source = addSource(createSource(//
+        "set s(x) {",
+        "}",
+        "",
+        "main() {",
+        "  s = 123;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
 }

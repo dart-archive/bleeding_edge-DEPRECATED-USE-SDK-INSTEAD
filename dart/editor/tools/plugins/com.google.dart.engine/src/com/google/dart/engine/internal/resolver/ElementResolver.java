@@ -1957,6 +1957,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           element = setter;
         }
       }
+    } else if (element == null && node.inSetterContext()) {
+      element = resolver.getNameScope().lookup(
+          new SyntheticIdentifier(node.getName() + "="),
+          resolver.getDefiningLibrary());
     }
     ClassElement enclosingClass = resolver.getEnclosingClass();
     if (element == null && enclosingClass != null) {

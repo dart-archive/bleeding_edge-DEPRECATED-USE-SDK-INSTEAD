@@ -17,7 +17,6 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
-import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -210,11 +209,6 @@ public abstract class Scope {
       MethodElement method = (MethodElement) element;
       if (method.getName().equals("-") && method.getParameters().length == 0) {
         return UNARY_MINUS;
-      }
-    } else if (element instanceof PropertyAccessorElement) {
-      PropertyAccessorElement accessor = (PropertyAccessorElement) element;
-      if (accessor.isSetter()) {
-        return accessor.getName() + SETTER_SUFFIX;
       }
     }
     return element.getName();
