@@ -21,6 +21,7 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
@@ -83,6 +84,11 @@ public final class DartDocUtilities {
 
     @Override
     public String visitFieldElement(FieldElement element) {
+      return getTypeName(element) + " " + element.getDisplayName();
+    }
+
+    @Override
+    public String visitFieldFormalParameterElement(FieldFormalParameterElement element) {
       return getTypeName(element) + " " + element.getDisplayName();
     }
 

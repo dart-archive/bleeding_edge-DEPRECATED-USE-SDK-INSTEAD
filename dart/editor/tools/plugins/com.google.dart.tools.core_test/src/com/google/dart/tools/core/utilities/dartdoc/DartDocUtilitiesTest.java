@@ -92,6 +92,16 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
     assertEquals("A(String x)", DartDocUtilities.getTextSummary(element));
   }
 
+  public void test_formal_params_text_summary() throws Exception {
+    ASTNode id = findNodeIn("index", createSource(//
+        "class A { ",
+        "  A(this.index);",
+        "  int index;",
+        "}"));
+    Element element = ElementLocator.locate(id);
+    assertEquals("int index", DartDocUtilities.getTextSummary(element));
+  }
+
   public void test_method_doc() throws Exception {
     ASTNode id = findNodeIn("x", createSource(//
         "/// My method",
