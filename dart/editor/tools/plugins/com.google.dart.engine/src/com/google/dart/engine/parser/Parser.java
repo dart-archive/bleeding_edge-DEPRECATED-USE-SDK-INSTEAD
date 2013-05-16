@@ -1610,12 +1610,29 @@ public class Parser {
       reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
       return null;
     } else if (matches(peek(), TokenType.OPEN_PAREN)) {
+      SimpleIdentifier methodName = parseSimpleIdentifier();
+      FormalParameterList parameters = parseFormalParameterList();
+      if (methodName.getName().equals(className)) {
+        reportError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, type);
+        return parseConstructor(
+            commentAndMetadata,
+            modifiers.getExternalKeyword(),
+            validateModifiersForConstructor(modifiers),
+            modifiers.getFactoryKeyword(),
+            methodName,
+            null,
+            null,
+            parameters);
+      }
       validateModifiersForGetterOrSetterOrMethod(modifiers);
+      validateFormalParameterList(parameters);
       return parseMethodDeclaration(
           commentAndMetadata,
           modifiers.getExternalKeyword(),
           modifiers.getStaticKeyword(),
-          type);
+          type,
+          methodName,
+          parameters);
     }
     return parseInitializedIdentifierList(
         commentAndMetadata,

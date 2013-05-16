@@ -253,6 +253,22 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseClassMember", new Object[] {"C"}, "const int m() {}", ParserErrorCode.CONST_METHOD);
   }
 
+  public void test_constructorWithReturnType() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "C C() {}",
+        ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE);
+  }
+
+  public void test_constructorWithReturnType_var() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "var C() {}",
+        ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE);
+  }
+
   public void test_constTypedef() throws Exception {
     parseCompilationUnit("const typedef F();", ParserErrorCode.CONST_TYPEDEF);
   }
@@ -1096,14 +1112,6 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_varClass() throws Exception {
     parseCompilationUnit("var class C {}", ParserErrorCode.VAR_CLASS);
-  }
-
-  public void test_varConstructor() throws Exception {
-    parse(
-        "parseClassMember",
-        new Object[] {"C"},
-        "var C() {}",
-        ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE);
   }
 
   public void test_varReturnType() throws Exception {
