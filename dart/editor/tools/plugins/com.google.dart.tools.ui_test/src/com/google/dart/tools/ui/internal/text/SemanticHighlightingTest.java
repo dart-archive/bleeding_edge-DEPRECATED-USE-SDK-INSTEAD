@@ -669,8 +669,6 @@ public class SemanticHighlightingTest extends
   }
 
   public void test_setterDeclaration_function() throws Exception {
-    // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=10167
-    verifyNoTestUnitErrors = false;
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
         "set mySetter (x) {}",
