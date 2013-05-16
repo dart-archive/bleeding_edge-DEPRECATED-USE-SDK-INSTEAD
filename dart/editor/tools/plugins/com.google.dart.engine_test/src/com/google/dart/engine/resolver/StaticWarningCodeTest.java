@@ -101,7 +101,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void fail_conflictingStaticGetterAndInstanceSetter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  static get x -> 0;",
+        "  static get x => 0;",
         "  set x(int p) {}",
         "}"));
     resolve(source);
@@ -112,7 +112,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void fail_conflictingStaticSetterAndInstanceGetter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  get x -> 0;",
+        "  get x => 0;",
         "  static set x(int p) {}",
         "}"));
     resolve(source);
@@ -122,7 +122,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
 
   public void fail_incorrectNumberOfArguments_tooFew() throws Exception {
     Source source = addSource(createSource(//
-        "f(a, b) -> 0;",
+        "f(a, b) => 0;",
         "g() {",
         "  f(2);",
         "}"));
@@ -133,7 +133,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
 
   public void fail_incorrectNumberOfArguments_tooMany() throws Exception {
     Source source = addSource(createSource(//
-        "f(a, b) -> 0;",
+        "f(a, b) => 0;",
         "g() {",
         "  f(2, 3, 4);",
         "}"));
@@ -258,7 +258,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
 
   public void fail_undefinedIdentifier_function() throws Exception {
     Source source = addSource(createSource(//
-    "int a() -> b;"));
+    "int a() => b;"));
     resolve(source);
     assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
     verify(source);
