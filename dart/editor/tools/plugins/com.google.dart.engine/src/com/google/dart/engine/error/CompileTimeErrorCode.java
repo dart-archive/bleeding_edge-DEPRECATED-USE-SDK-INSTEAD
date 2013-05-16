@@ -346,13 +346,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "Fields cannot be initialized in both the parameter list and the initializers"),
 
   /**
-   * 7.6.1 Generative Constructors: It is a compile-time error if an initializing formal is used by
-   * a function other than a non-redirecting generative constructor.
-   */
-  FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR(
-      "Initializing formal fields can only be used in constructors"),
-
-  /**
    * 5 Variables: It is a compile-time error if a final instance variable that has been initialized
    * at its point of declaration is also initialized in a constructor.
    * 
@@ -371,6 +364,27 @@ public enum CompileTimeErrorCode implements ErrorCode {
    */
   // TODO (jwren) only a subset of these are being caught
   FINAL_INITIALIZED_MULTIPLE_TIMES("'%s' is a final field and so can only be set once"),
+
+  /**
+   * 7.6.1 Generative Constructors: It is a compile-time error if an initializing formal is used by
+   * a function other than a non-redirecting generative constructor.
+   */
+  FIELD_INITIALIZER_FACTORY_CONSTRUCTOR(
+      "Initializing formal fields cannot be used in factory constructors"),
+
+  /**
+   * 7.6.1 Generative Constructors: It is a compile-time error if an initializing formal is used by
+   * a function other than a non-redirecting generative constructor.
+   */
+  FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR(
+      "Initializing formal fields can only be used in constructors"),
+
+  /**
+   * 7.6.1 Generative Constructors: It is a compile-time error if an initializing formal is used by
+   * a function other than a non-redirecting generative constructor.
+   */
+  FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR(
+      "Initializing formal fields cannot be used in redirecting constructors"),
 
   /**
    * 5 Variables: It is a compile-time error if a library, static or local variable <i>v</i> is

@@ -1102,6 +1102,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_fieldInitializerFactoryConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int x;",
+        "  factory A(this.x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR);
+    verify(source);
+  }
+
   public void test_fieldInitializerOutsideConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1121,6 +1132,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_fieldInitializerRedirectingConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int x;",
+        "  A.named() {}",
+        "  A(this.x) : this.named();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR);
     verify(source);
   }
 

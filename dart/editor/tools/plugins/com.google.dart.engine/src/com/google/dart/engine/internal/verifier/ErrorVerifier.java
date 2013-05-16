@@ -56,6 +56,7 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NormalFormalParameter;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
+import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.RethrowExpression;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
@@ -1641,18 +1642,26 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
    */
   private boolean checkForFieldInitializerOutsideConstructor(FieldFormalParameter node) {
-    ASTNode parent = node.getParent();
-    if (parent != null) {
-      ASTNode grandparent = parent.getParent();
-      // If this is not an error case, then parent is a FormalParameterList and the grandparent is a
-      // ConstructorDeclaration, or the parent is a DefaultFormalParameter and grandparent is a
-      // FormalParameter [with ConstructorDeclaration being its parent],
-      if (grandparent != null && !(grandparent instanceof ConstructorDeclaration)
-          && !(grandparent.getParent() instanceof ConstructorDeclaration)) {
-        errorReporter.reportError(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, node);
+    ConstructorDeclaration constructor = node.getAncestor(ConstructorDeclaration.class);
+    if (constructor == null) {
+      errorReporter.reportError(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, node);
+      return true;
+    }
+    // constructor cannot be a factory
+    if (constructor.getFactoryKeyword() != null) {
+      errorReporter.reportError(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR, node);
+      return true;
+    }
+    // constructor cannot have a redirection
+    for (ConstructorInitializer initializer : constructor.getInitializers()) {
+      if (initializer instanceof RedirectingConstructorInvocation) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+            node);
         return true;
       }
     }
+    // OK
     return false;
   }
 

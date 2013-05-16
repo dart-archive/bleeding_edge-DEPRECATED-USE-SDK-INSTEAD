@@ -475,6 +475,20 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_fieldInitializerRedirectingConstructor_super() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {}",
+        "}",
+        "class B extends A {",
+        "  int x;",
+        "  A(this.x) : super();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_finalInitializedInDeclarationAndConstructor_initializer() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
