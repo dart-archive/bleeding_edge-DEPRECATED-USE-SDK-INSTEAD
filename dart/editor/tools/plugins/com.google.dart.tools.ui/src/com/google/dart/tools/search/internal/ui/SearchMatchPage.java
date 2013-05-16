@@ -624,6 +624,11 @@ public abstract class SearchMatchPage extends SearchPage {
    * Adds markers for the given {@link ResultItem} and its children.
    */
   private void addMarkers(ResultItem item) throws CoreException {
+
+    if (context == null) {
+      return;
+    }
+
     // add marker if leaf
     if (!item.positions.isEmpty()) {
       Source source = item.element.getSource();
