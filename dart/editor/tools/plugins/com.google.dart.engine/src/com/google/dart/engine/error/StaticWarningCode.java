@@ -387,8 +387,22 @@ public enum StaticWarningCode implements ErrorCode {
   /**
    * 7.6.2 Factories: It is a static warning if the function type of <i>k'</i> is not a subtype of
    * the type of <i>k</i>.
+   * 
+   * @param redirectedName the name of the redirected constructor
+   * @param redirectingName the name of the redirecting constructor
    */
-  REDIRECT_TO_INVALID_RETURN_TYPE(""),
+  REDIRECT_TO_INVALID_FUNCTION_TYPE(
+      "The redirected constructor '%s' has incompatible parameters with '%s'"),
+
+  /**
+   * 7.6.2 Factories: It is a static warning if the function type of <i>k'</i> is not a subtype of
+   * the type of <i>k</i>.
+   * 
+   * @param redirectedName the name of the redirected constructor return type
+   * @param redirectingName the name of the redirecting constructor return type
+   */
+  REDIRECT_TO_INVALID_RETURN_TYPE(
+      "The return type '%s' of the redirected constructor is not a subclass of '%s'"),
 
   /**
    * 7.6.2 Factories: It is a static warning if type does not denote a class accessible in the

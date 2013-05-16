@@ -336,6 +336,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForAllFinalInitializedErrorCodes(node);
       checkForMultipleSuperInitializers(node);
       checkForRecursiveFactoryRedirect(node);
+      checkForRedirectToInvalidFunction(node);
       return super.visitConstructorDeclaration(node);
     } finally {
       isEnclosingConstructorConst = false;
@@ -2252,6 +2253,52 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         redirectedConstructorNode);
     return true;
+  }
+
+  /**
+   * This checks if the passed constructor declaration has redirected constructor with compatible
+   * function type.
+   * 
+   * @param node the constructor declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#REDIRECT_TO_INVALID_RETURN_TYPE
+   * @see StaticWarningCode#REDIRECT_TO_INVALID_FUNCTION_TYPE
+   */
+  private boolean checkForRedirectToInvalidFunction(ConstructorDeclaration node) {
+    // prepare redirected constructor node
+    ConstructorName redirectedNode = node.getRedirectedConstructor();
+    if (redirectedNode == null) {
+      return false;
+    }
+    // prepare redirected constructor type
+    ConstructorElement redirectedElement = redirectedNode.getElement();
+    if (redirectedElement == null) {
+      return false;
+    }
+    FunctionType redirectedType = redirectedElement.getType();
+    Type redirectedReturnType = redirectedType.getReturnType();
+    // report specific problem when return type is incompatible
+    FunctionType constructorType = node.getElement().getType();
+    Type constructorReturnType = constructorType.getReturnType();
+    if (!redirectedReturnType.isSubtypeOf(constructorReturnType)) {
+      errorReporter.reportError(
+          StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE,
+          redirectedNode,
+          redirectedReturnType,
+          constructorReturnType);
+      return true;
+    }
+    // check parameters
+    if (!redirectedType.isSubtypeOf(constructorType)) {
+      errorReporter.reportError(
+          StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE,
+          redirectedNode,
+          redirectedType,
+          constructorType);
+      return true;
+    }
+    // OK
+    return false;
   }
 
   /**

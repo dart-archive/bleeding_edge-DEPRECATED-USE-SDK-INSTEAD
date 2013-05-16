@@ -1263,11 +1263,24 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class A {",
         "  factory A() = B;",
         "}",
-        "class B {",
+        "class B implements A {",
         "  factory B() = C;",
         "}",
-        "class C {",
+        "class C implements B {",
         "  factory C() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_redirectToInvalidFunctionType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A implements B {",
+        "  A(int p) {}",
+        "}",
+        "class B {",
+        "  B(int p) = A;",
         "}"));
     resolve(source);
     assertNoErrors();

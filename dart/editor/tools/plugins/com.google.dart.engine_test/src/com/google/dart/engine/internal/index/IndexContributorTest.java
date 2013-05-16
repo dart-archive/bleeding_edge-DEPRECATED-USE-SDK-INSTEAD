@@ -1091,7 +1091,7 @@ public class IndexContributorTest extends AbstractDartTest {
   public void test_isReferencedByQualified_ConstructorElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
+        "class A implements B {",
         "  A() {}",
         "  A.foo() {}",
         "}",

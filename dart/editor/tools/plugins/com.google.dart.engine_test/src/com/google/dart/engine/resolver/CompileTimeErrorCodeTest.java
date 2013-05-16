@@ -2115,13 +2115,13 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_recursiveFactoryRedirect() throws Exception {
     Source source = addSource(createSource(//
-        "class A {",
+        "class A implements B {",
         "  factory A() = C;",
         "}",
-        "class B {",
+        "class B implements C {",
         "  factory B() = A;",
         "}",
-        "class C {",
+        "class C implements A {",
         "  factory C() = B;",
         "}"));
     resolve(source);
@@ -2144,13 +2144,13 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_recursiveFactoryRedirect_named() throws Exception {
     Source source = addSource(createSource(//
-        "class A {",
+        "class A implements B {",
         "  factory A.nameA() = C.nameC;",
         "}",
-        "class B {",
+        "class B implements C {",
         "  factory B.nameB() = A.nameA;",
         "}",
-        "class C {",
+        "class C implements A {",
         "  factory C.nameC() = B.nameB;",
         "}"));
     resolve(source);
@@ -2170,10 +2170,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class A {",
         "  factory A() = C;",
         "}",
-        "class B {",
+        "class B implements C {",
         "  factory B() = C;",
         "}",
-        "class C {",
+        "class C implements A, B {",
         "  factory C() = B;",
         "}"));
     resolve(source);

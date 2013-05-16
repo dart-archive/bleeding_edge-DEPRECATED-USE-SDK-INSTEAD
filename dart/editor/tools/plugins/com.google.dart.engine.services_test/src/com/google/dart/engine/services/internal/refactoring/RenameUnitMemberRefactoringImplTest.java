@@ -228,7 +228,7 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
   public void test_createChange_ClassElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
+        "class Test implements Other {",
         "  Test() {}",
         "  Test.named() {}",
         "}",
@@ -241,13 +241,13 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "  Test t2 = new Test.named();",
         "}");
     // configure refactoring
-    createRenameRefactoring("Test {");
+    createRenameRefactoring("Test implements");
     assertEquals("Rename Class", refactoring.getRefactoringName());
     refactoring.setNewName("NewName");
     // validate change
     assertSuccessfulRename(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class NewName {",
+        "class NewName implements Other {",
         "  NewName() {}",
         "  NewName.named() {}",
         "}",
@@ -265,7 +265,7 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
     testCode = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library libA;",
-        "class Test {",
+        "class Test implements Other {",
         "  Test() {}",
         "  Test.named() {}",
         "}",
@@ -289,7 +289,7 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
     indexTestUnit(libA);
     indexUnit(sourceB);
     // configure refactoring
-    createRenameRefactoring("Test {");
+    createRenameRefactoring("Test implements");
     assertEquals("Rename Class", refactoring.getRefactoringName());
     refactoring.setNewName("NewName");
     // validate change
@@ -301,7 +301,7 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library libA;",
-            "class NewName {",
+            "class NewName implements Other {",
             "  NewName() {}",
             "  NewName.named() {}",
             "}",

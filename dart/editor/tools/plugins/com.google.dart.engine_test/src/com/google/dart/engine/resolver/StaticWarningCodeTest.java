@@ -220,15 +220,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_redirectToInvalidReturnType() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE);
-    verify(source);
-  }
-
   public void fail_redirectToMissingConstructor() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -841,6 +832,32 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "part of lub;"));
     resolve(source);
     assertErrors(StaticWarningCode.PART_OF_DIFFERENT_LIBRARY);
+    verify(source);
+  }
+
+  public void test_redirectToInvalidFunctionType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A implements B {",
+        "  A(int p) {}",
+        "}",
+        "class B {",
+        "  B() = A;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE);
+    verify(source);
+  }
+
+  public void test_redirectToInvalidReturnType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {}",
+        "}",
+        "class B {",
+        "  B() = A;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE);
     verify(source);
   }
 

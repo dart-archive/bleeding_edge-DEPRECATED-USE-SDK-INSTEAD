@@ -79,7 +79,37 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "Choose another name.");
   }
 
-  public void test_createChange_changeName() throws Exception {
+  public void test_createChange_changeName_redirect() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A implements B {",
+        "  A.test() {} // marker",
+        "}",
+        "class B {",
+        "  factory B.named() = A.test;",
+        "}",
+        "main() {",
+        "  new A.test();",
+        "}");
+    // configure refactoring
+    createRenameRefactoring("test() {} // marker");
+    assertEquals("Rename Constructor", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A implements B {",
+        "  A.newName() {} // marker",
+        "}",
+        "class B {",
+        "  factory B.named() = A.newName;",
+        "}",
+        "main() {",
+        "  new A.newName();",
+        "}");
+  }
+
+  public void test_createChange_changeName_super() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -87,7 +117,6 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "}",
         "class B extends A {",
         "  B() : super.test() {}",
-        "  factory B.named() = A.test;",
         "}",
         "main() {",
         "  new A.test();",
@@ -104,7 +133,6 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "}",
         "class B extends A {",
         "  B() : super.newName() {}",
-        "  factory B.named() = A.newName;",
         "}",
         "main() {",
         "  new A.newName();",
@@ -120,7 +148,6 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "}",
         "class B extends A {",
         "  B() : super.test() {}",
-        "  factory B.named() = A.test;",
         "}",
         "main() {",
         "  new A.test();",
@@ -155,7 +182,6 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
             "}",
             "class B extends A {",
             "  B() : super.newName() {}",
-            "  factory B.named() = A.newName;",
             "}",
             "main() {",
             "  new A.newName();",
@@ -179,7 +205,6 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "}",
         "class B extends A {",
         "  B() : super.test() {}",
-        "  factory B.named() = A.test;",
         "}",
         "main() {",
         "  new A.test();",
@@ -196,7 +221,6 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "}",
         "class B extends A {",
         "  B() : super() {}",
-        "  factory B.named() = A;",
         "}",
         "main() {",
         "  new A();",
@@ -211,7 +235,6 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "}",
         "class B extends A {",
         "  B() : super() {}",
-        "  factory B.named() = A;",
         "}",
         "main() {",
         "  new A();",
@@ -231,7 +254,6 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "}",
         "class B extends A {",
         "  B() : super.newName() {}",
-        "  factory B.named() = A.newName;",
         "}",
         "main() {",
         "  new A.newName();",
