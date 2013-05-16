@@ -14,8 +14,8 @@ vars.update({
   "dart_branch": "/branches/bleeding_edge",
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
-  "dartium_webkit_revision": "1238",
-  "dartium_tools_revision": "1239",
+  "dartium_webkit_revision": "1242",
+  "dartium_tools_revision": "1240",
 })
 
 def massage_deps(deps):
