@@ -204,9 +204,6 @@ public enum StaticWarningCode implements ErrorCode {
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
-   * <p>
-   * 8 Interfaces: It is a static warning if an interface member <i>m1</i> overrides an interface
-   * member <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
    * @param methodName the name of the method being overridden
    * @param className the name of the class where the overridden member is declared
@@ -217,9 +214,6 @@ public enum StaticWarningCode implements ErrorCode {
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
-   * <p>
-   * 8 Interfaces: It is a static warning if an interface member <i>m1</i> overrides an interface
-   * member <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
    * @param methodName the name of the method being overridden
    * @param className the name of the class where the overridden member is declared
@@ -230,9 +224,6 @@ public enum StaticWarningCode implements ErrorCode {
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
-   * <p>
-   * 8 Interfaces: It is a static warning if an interface member <i>m1</i> overrides an interface
-   * member <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
    * @param methodName the name of the method being overridden
    * @param className the name of the class where the overridden member is declared
@@ -243,9 +234,6 @@ public enum StaticWarningCode implements ErrorCode {
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
-   * <p>
-   * 8 Interfaces: It is a static warning if an interface member <i>m1</i> overrides an interface
-   * member <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
    * @param methodName the name of the method being overridden
    * @param className the name of the class where the overridden member is declared
@@ -258,11 +246,6 @@ public enum StaticWarningCode implements ErrorCode {
    * instance member <i>m2</i>, the signature of <i>m2</i> explicitly specifies a default value for
    * a formal parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value
    * for <i>p</i>.
-   * <p>
-   * 8 Interfaces: It is a static warning if an interface method <i>m1</i> overrides an interface
-   * method <i>m2</i>, the signature of <i>m2</i> explicitly specifies a default value for a formal
-   * parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value for
-   * <i>p</i>.
    */
   INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES(""),
 

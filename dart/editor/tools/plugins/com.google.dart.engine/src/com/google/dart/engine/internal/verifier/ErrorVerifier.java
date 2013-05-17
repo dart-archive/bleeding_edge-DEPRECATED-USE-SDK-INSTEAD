@@ -763,14 +763,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param node the {@link MethodDeclaration} to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
-   * @see CompileTimeErrorCode#INVALID_OVERRIDE_NAMED
-   * @see CompileTimeErrorCode#INVALID_OVERRIDE_POSITIONAL
    * @see CompileTimeErrorCode#INVALID_OVERRIDE_REQUIRED
-   * @see CompileTimeErrorCode#OVERRIDE_MISSING_NAMED_PARAMETERS
-   * @see CompileTimeErrorCode#OVERRIDE_MISSING_REQUIRED_PARAMETERS
+   * @see CompileTimeErrorCode#INVALID_OVERRIDE_POSITIONAL
+   * @see CompileTimeErrorCode#INVALID_OVERRIDE_NAMED
    * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_RETURN_TYPE
    */
   private boolean checkForAllInvalidOverrideErrorCodes(MethodDeclaration node) {
+    // TODO (jwren) Missing check for INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES, we need the
+    // constant values cached to do this verification.
     if (enclosingClass == null || node.isStatic() || node.getBody() instanceof NativeFunctionBody) {
       return false;
     }
@@ -835,83 +835,79 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
       return false;
     }
-    if (overriddenExecutable.isSynthetic()) {
-      return false;
-    }
-    // CTEC.INVALID_OVERRIDE_REQUIRED, CTEC.INVALID_OVERRIDE_POSITIONAL and CTEC.INVALID_OVERRIDE_NAMED
-    ParameterElement[] overridingMethodParameterElements = executableElement.getParameters();
-    ParameterElement[] overriddenMethodParameterElements = overriddenExecutable.getParameters();
-    int[] parameterKindCounts_overridingMethod = countParameterKinds(overridingMethodParameterElements);
-    int[] parameterKindCounts_overriddenMethod = countParameterKinds(overriddenMethodParameterElements);
-    if (parameterKindCounts_overridingMethod[0] != parameterKindCounts_overriddenMethod[0]) {
-      errorReporter.reportError(
-          CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED,
-          methodName,
-          parameterKindCounts_overriddenMethod[0],
-          overriddenExecutable.getEnclosingElement().getDisplayName());
-      return true;
-    }
-    if (parameterKindCounts_overridingMethod[1] < parameterKindCounts_overriddenMethod[1]) {
-      errorReporter.reportError(
-          CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL,
-          methodName,
-          parameterKindCounts_overriddenMethod[1],
-          overriddenExecutable.getEnclosingElement().getDisplayName());
-      return true;
-    }
-    // For each named parameter in the overridden method, verify that there is the same name in
-    // the overriding method.
-    for (ParameterElement overriddenPE : overriddenMethodParameterElements) {
-      if (overriddenPE.getParameterKind() == ParameterKind.NAMED) {
-        String parameterName = overriddenPE.getName();
-        if (parameterName != null && !overriddenPE.isSynthetic()) {
-          boolean overridingMethodHasNamedParameter = false;
-          for (ParameterElement overridingPE : overridingMethodParameterElements) {
-            if (overridingPE.getParameterKind() == ParameterKind.NAMED
-                && overridingPE.getName().equals(parameterName)) {
-              overridingMethodHasNamedParameter = true;
-              break;
-            }
-          }
-          if (!overridingMethodHasNamedParameter) {
-            // TODO (jwren) need to cover the order of the named parameters case
-            errorReporter.reportError(
-                CompileTimeErrorCode.INVALID_OVERRIDE_NAMED,
-                methodName,
-                parameterName,
-                overriddenExecutable.getEnclosingElement().getDisplayName());
-            return true;
-          }
-        }
-      }
-    }
 
-    // SWC.INVALID_METHOD_OVERRIDE_*
-    FunctionType overriddenFT = overriddenExecutable.getType();
     FunctionType overridingFT = executableElement.getType();
+    FunctionType overriddenFT = overriddenExecutable.getType();
     InterfaceType enclosingType = enclosingClass.getType();
     overriddenFT = inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
         overriddenFT,
         methodNameStr,
         enclosingType);
 
-    if (overriddenFT == null || overridingFT == null) {
+    if (overridingFT == null || overriddenFT == null) {
       return false;
     }
+
+    Type overridingFTReturnType = overridingFT.getReturnType();
+    Type overriddenFTReturnType = overriddenFT.getReturnType();
+    Type[] overridingNormalPT = overridingFT.getNormalParameterTypes();
+    Type[] overriddenNormalPT = overriddenFT.getNormalParameterTypes();
+    Type[] overridingPositionalPT = overridingFT.getOptionalParameterTypes();
+    Type[] overriddenPositionalPT = overriddenFT.getOptionalParameterTypes();
+    Map<String, Type> overridingNamedPT = overridingFT.getNamedParameterTypes();
+    Map<String, Type> overriddenNamedPT = overriddenFT.getNamedParameterTypes();
+
+    // CTEC.INVALID_OVERRIDE_REQUIRED, CTEC.INVALID_OVERRIDE_POSITIONAL and CTEC.INVALID_OVERRIDE_NAMED
+    if (overridingNormalPT.length != overriddenNormalPT.length) {
+      errorReporter.reportError(
+          CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED,
+          methodName,
+          overriddenNormalPT.length,
+          overriddenExecutable.getEnclosingElement().getDisplayName());
+      return true;
+    }
+    if (overridingPositionalPT.length < overriddenPositionalPT.length) {
+      errorReporter.reportError(
+          CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL,
+          methodName,
+          overridingPositionalPT.length,
+          overriddenExecutable.getEnclosingElement().getDisplayName());
+      return true;
+    }
+    // For each named parameter in the overridden method, verify that there is the same name in
+    // the overriding method, and in the same order.
+    Set<String> overridingParameterNameSet = overridingNamedPT.keySet();
+    Iterator<String> overriddenParameterNameIterator = overriddenNamedPT.keySet().iterator();
+    while (overriddenParameterNameIterator.hasNext()) {
+      String overriddenParamName = overriddenParameterNameIterator.next();
+      if (!overridingParameterNameSet.contains(overriddenParamName)) {
+        // The overridden method expected the overriding method to have overridingParamName,
+        // but it does not.
+        errorReporter.reportError(
+            CompileTimeErrorCode.INVALID_OVERRIDE_NAMED,
+            methodName,
+            overriddenParamName,
+            overriddenExecutable.getEnclosingElement().getDisplayName());
+        return true;
+      }
+    }
+
+    // SWC.INVALID_METHOD_OVERRIDE_*
+
     // The following (comparing the function types with isSubtypeOf):
     // !overridingFT.isSubtypeOf(overriddenFT)
     // is equivalent to the following checks, we break it is split up for the purposes of
     // providing better error messages.
 
     // SWC.INVALID_METHOD_OVERRIDE_RETURN_TYPE
-    if (!overriddenFT.getReturnType().equals(VoidTypeImpl.getInstance())
-        && !overridingFT.getReturnType().isAssignableTo(overriddenFT.getReturnType())) {
+    if (!overriddenFTReturnType.equals(VoidTypeImpl.getInstance())
+        && !overridingFTReturnType.isAssignableTo(overriddenFTReturnType)) {
       errorReporter.reportError(
           !node.isGetter() ? StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE
               : StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
           methodName,
-          overridingFT.getReturnType().getName(),
-          overriddenFT.getReturnType().getName(),
+          overridingFTReturnType.getName(),
+          overriddenFTReturnType.getName(),
           overriddenExecutable.getEnclosingElement().getDisplayName());
       return true;
     }
@@ -923,8 +919,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     NodeList<FormalParameter> parameterNodeList = formalParameterList.getParameters();
     int parameterIndex = 0;
-    Type[] overridingNormalPT = overridingFT.getNormalParameterTypes();
-    Type[] overriddenNormalPT = overriddenFT.getNormalParameterTypes();
     for (int i = 0; i < overridingNormalPT.length; i++) {
       if (!overridingNormalPT[i].isAssignableTo(overriddenNormalPT[i])) {
         errorReporter.reportError(
@@ -940,15 +934,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
 
     // SWC.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE
-    Type[] overridingOptionalPT = overridingFT.getOptionalParameterTypes();
-    Type[] overriddenOptionalPT = overriddenFT.getOptionalParameterTypes();
-    for (int i = 0; i < overriddenOptionalPT.length; i++) {
-      if (!overridingOptionalPT[i].isAssignableTo(overriddenOptionalPT[i])) {
+    for (int i = 0; i < overriddenPositionalPT.length; i++) {
+      if (!overridingPositionalPT[i].isAssignableTo(overriddenPositionalPT[i])) {
         errorReporter.reportError(
             StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE,
             parameterNodeList.get(parameterIndex),
-            overridingOptionalPT[i].getName(),
-            overriddenOptionalPT[i].getName(),
+            overridingPositionalPT[i].getName(),
+            overriddenPositionalPT[i].getName(),
             overriddenExecutable.getEnclosingElement().getDisplayName());
         return true;
       }
@@ -956,8 +948,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
 
     // SWC.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE
-    Map<String, Type> overridingNamedPT = overridingFT.getNamedParameterTypes();
-    Map<String, Type> overriddenNamedPT = overriddenFT.getNamedParameterTypes();
     Iterator<Entry<String, Type>> overriddenNamedPTIterator = overriddenNamedPT.entrySet().iterator();
     while (overriddenNamedPTIterator.hasNext()) {
       Entry<String, Type> overriddenNamedPTEntry = overriddenNamedPTIterator.next();
@@ -2284,32 +2274,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This checks if the passed constructor declaration has redirected constructor and references
-   * itself directly or indirectly.
-   * 
-   * @param node the constructor declaration to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#RECURSIVE_FACTORY_REDIRECT
-   */
-  private boolean checkForRecursiveFactoryRedirect(ConstructorDeclaration node) {
-    // prepare redirected constructor
-    ConstructorName redirectedConstructorNode = node.getRedirectedConstructor();
-    if (redirectedConstructorNode == null) {
-      return false;
-    }
-    // OK if no cycle
-    ConstructorElement element = node.getElement();
-    if (!hasRedirectingFactoryConstructorCycle(element)) {
-      return false;
-    }
-    // report error
-    errorReporter.reportError(
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        redirectedConstructorNode);
-    return true;
-  }
-
-  /**
    * This checks if the passed constructor declaration is the redirecting generative constructor and
    * references itself directly or indirectly.
    * 
@@ -2337,6 +2301,32 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     // OK, no redirecting constructor invocation
     return false;
+  }
+
+  /**
+   * This checks if the passed constructor declaration has redirected constructor and references
+   * itself directly or indirectly.
+   * 
+   * @param node the constructor declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#RECURSIVE_FACTORY_REDIRECT
+   */
+  private boolean checkForRecursiveFactoryRedirect(ConstructorDeclaration node) {
+    // prepare redirected constructor
+    ConstructorName redirectedConstructorNode = node.getRedirectedConstructor();
+    if (redirectedConstructorNode == null) {
+      return false;
+    }
+    // OK if no cycle
+    ConstructorElement element = node.getElement();
+    if (!hasRedirectingFactoryConstructorCycle(element)) {
+      return false;
+    }
+    // report error
+    errorReporter.reportError(
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        redirectedConstructorNode);
+    return true;
   }
 
   /**
@@ -2661,31 +2651,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
-  }
-
-  /**
-   * This method returns an array of three {@code int}s, where the first is a count of the number of
-   * required parameters, the second is a count of the number of positional parameters, and the
-   * third is a count of the number of named parameters.
-   * 
-   * @param parameters an array of parameters to count to types of
-   * @return an array containing three {@code int}s, the count of required, positional and named
-   *         parameters
-   * @see #checkForAllInvalidOverrideErrorCodes(MethodDeclaration)
-   */
-  private int[] countParameterKinds(ParameterElement[] parameters) {
-    int[] parameterTypeCounts = new int[] {0, 0, 0};
-    for (ParameterElement parameterElement : parameters) {
-      ParameterKind kind = parameterElement.getParameterKind();
-      if (kind == ParameterKind.REQUIRED) {
-        parameterTypeCounts[0]++;
-      } else if (kind == ParameterKind.POSITIONAL) {
-        parameterTypeCounts[1]++;
-      } else {
-        parameterTypeCounts[2]++;
-      }
-    }
-    return parameterTypeCounts;
   }
 
   /**

@@ -530,10 +530,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.1 Instance Methods: It is a compile-time error if an instance method <i>m1</i> overrides an
    * instance member <i>m2</i> and <i>m1</i> does not declare all the named parameters declared by
    * <i>m2</i>.
-   * <p>
-   * 8 Interfaces: It is a compile-time error if an interface member <i>m1</i> overrides an
-   * interface member <i>m2</i> and <i>m1</i> does not declare all the named parameters declared by
-   * <i>m2</i> in the same order.
    * 
    * @param paramCount the number of named parameters in the overridden member
    * @param className the name of the class from the overridden method
@@ -555,10 +551,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 7.1 Instance Methods: It is a compile-time error if an instance method <i>m1</i> overrides an
    * instance member <i>m2</i> and <i>m1</i> has a different number of required parameters than
-   * <i>m2</i>.
-   * <p>
-   * 8 Interfaces: It is a compile-time error if an interface member <i>m1</i> overrides an
-   * interface member <i>m2</i> and <i>m1</i> has a different number of required parameters than
    * <i>m2</i>.
    * 
    * @param paramCount the number of required parameters in the overridden member

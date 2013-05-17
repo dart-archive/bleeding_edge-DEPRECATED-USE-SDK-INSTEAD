@@ -654,6 +654,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidOverrideNamed_unorderedNamedParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m({a, b}) {}",
+        "}",
+        "class B extends A {",
+        "  m({b, a}) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invalidOverrideReturnType_returnType_interface() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "abstract class A {",
