@@ -169,7 +169,9 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
       buffer.append(SPACE);
     }
 
-    buffer.append(RPAREN);
+    if (getProposal().includeClosingParenForArgList()) {
+      buffer.append(RPAREN);
+    }
 
     return buffer.toString();
   }

@@ -29,6 +29,8 @@ public interface CompletionProposal {
 
   int getPositionalParameterCount();
 
+  int getRelevance();
+
   int getReplacementLength();
 
   String getReturnType();
@@ -37,9 +39,13 @@ public interface CompletionProposal {
 
   boolean hasPositional();
 
+  boolean includeClosingParenForArgList();
+
   CompletionProposal setCompletion(String x);
 
   CompletionProposal setDeclaringType(String name);
+
+  CompletionProposal setIncludeClosingParenForArgList(boolean value);
 
   CompletionProposal setKind(ProposalKind x);
 
@@ -50,6 +56,8 @@ public interface CompletionProposal {
   CompletionProposal setParameterStyle(int count, boolean named, boolean positional);
 
   CompletionProposal setParameterTypes(String[] paramTypes);
+
+  CompletionProposal setRelevance(int n);
 
   CompletionProposal setReplacementLength(int x);
 

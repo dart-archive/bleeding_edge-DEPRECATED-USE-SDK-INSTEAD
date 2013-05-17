@@ -1134,6 +1134,10 @@ public class CompletionProposal {
     return false;
   }
 
+  public boolean includeClosingParenForArgList() {
+    return true;
+  }
+
   /**
    * Return <code>true</code> if this proposal is a constructor.
    * <p>

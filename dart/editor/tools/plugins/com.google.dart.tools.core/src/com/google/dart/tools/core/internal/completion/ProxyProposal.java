@@ -108,9 +108,9 @@ public class ProxyProposal extends CompletionProposal {
   @Override
   public int getRelevance() {
     if (proposal.getCompletion().startsWith("$dom_")) {
-      return 0;
+      return -1;
     } else {
-      return 1;
+      return proposal.getRelevance();
     }
   }
 
@@ -142,6 +142,11 @@ public class ProxyProposal extends CompletionProposal {
   @Override
   public boolean hasOptionalParameters() {
     return proposal.hasPositional() || proposal.hasNamed();
+  }
+
+  @Override
+  public boolean includeClosingParenForArgList() {
+    return proposal.includeClosingParenForArgList();
   }
 
   @Override

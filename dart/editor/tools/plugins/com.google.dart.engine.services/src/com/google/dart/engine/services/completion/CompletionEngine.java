@@ -677,13 +677,29 @@ public class CompletionEngine {
           SimpleIdentifier methodName = invokeNode.getMethodName();
           requestor = new ProposalCollector(requestor);
           dispatchPrefixAnalysis(invokeNode);
-          int len = context.getSelectionOffset() - methodName.getOffset();
+          int offset = methodName.getOffset();
+          int len = node.getRightParenthesis().getEnd() - offset;
           for (CompletionProposal proposal : ((ProposalCollector) requestor).getProposals()) {
-            proposal.setReplacementLength(len - proposal.getCompletion().length());
+            proposal.setReplacementLength(len);
+            proposal.setLocation(offset);
+            proposal.setIncludeClosingParenForArgList(false);
+            proposal.setRelevance(proposal.getRelevance() + 1);
           }
-        } else {
-          analyzeLocalName(new Ident(node));
+        } else if (node.getParent() instanceof InstanceCreationExpression) {
+          InstanceCreationExpression invokeNode = (InstanceCreationExpression) node.getParent();
+          ConstructorName methodName = invokeNode.getConstructorName();
+          requestor = new ProposalCollector(requestor);
+          dispatchPrefixAnalysis(invokeNode);
+          int offset = methodName.getOffset();
+          int len = node.getRightParenthesis().getEnd() - offset;
+          for (CompletionProposal proposal : ((ProposalCollector) requestor).getProposals()) {
+            proposal.setReplacementLength(len);
+            proposal.setLocation(offset);
+            proposal.setIncludeClosingParenForArgList(false);
+            proposal.setRelevance(proposal.getRelevance() + 1);
+          }
         }
+        analyzeLocalName(new Ident(node));
       }
       return null;
     }
@@ -1552,6 +1568,17 @@ public class CompletionEngine {
     names.addNamesDefinedByTypes(allSubtypes(classElement));
     names.addTopLevelNames();
     proposeNames(names, identifier);
+  }
+
+  void dispatchPrefixAnalysis(InstanceCreationExpression node) {
+    ClassElement classElement = (ClassElement) typeOf(node).getElement();
+    SimpleIdentifier identifier = node.getConstructorName().getName();
+    identifier = (SimpleIdentifier) node.getConstructorName().getType().getName();
+    if (identifier == null) {
+      identifier = new Ident(node);
+    }
+    analyzeConstructorTypeName(identifier);
+    constructorReference(classElement, identifier);
   }
 
   void dispatchPrefixAnalysis(MethodInvocation node) {
