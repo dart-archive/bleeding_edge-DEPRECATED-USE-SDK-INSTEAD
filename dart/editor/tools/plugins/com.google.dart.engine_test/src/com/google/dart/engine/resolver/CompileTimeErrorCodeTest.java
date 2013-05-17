@@ -2136,6 +2136,29 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_recursiveConstructorRedirect() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.a() : this.b();",
+        "  A.b() : this.a();",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT);
+    verify(source);
+  }
+
+  public void test_recursiveConstructorRedirect_directSelfReference() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() : this();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT);
+    verify(source);
+  }
+
   public void test_recursiveFactoryRedirect() throws Exception {
     Source source = addSource(createSource(//
         "class A implements B {",

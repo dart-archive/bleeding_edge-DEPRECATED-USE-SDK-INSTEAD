@@ -790,6 +790,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
   RECURSIVE_COMPILE_TIME_CONSTANT(""),
 
   /**
+   * 7.6.1 Generative Constructors: A generative constructor may be redirecting, in which case its
+   * only action is to invoke another generative constructor.
+   */
+  RECURSIVE_CONSTRUCTOR_REDIRECT("Cycle in redirecting generative constructors"),
+
+  /**
    * 7.6.2 Factories: It is a compile-time error if a redirecting factory constructor redirects to
    * itself, either directly or indirectly via a sequence of redirections.
    */

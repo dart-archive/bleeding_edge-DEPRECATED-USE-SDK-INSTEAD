@@ -342,6 +342,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForConflictingConstructorNameAndMember(node);
       checkForAllFinalInitializedErrorCodes(node);
       checkForMultipleSuperInitializers(node);
+      checkForRecursiveConstructorRedirect(node);
       checkForRecursiveFactoryRedirect(node);
       checkForRedirectToInvalidFunction(node);
       return super.visitConstructorDeclaration(node);
@@ -2305,6 +2306,36 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         redirectedConstructorNode);
     return true;
+  }
+
+  /**
+   * This checks if the passed constructor declaration is the redirecting generative constructor and
+   * references itself directly or indirectly.
+   * 
+   * @param node the constructor declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#RECURSIVE_CONSTRUCTOR_REDIRECT
+   */
+  private boolean checkForRecursiveConstructorRedirect(ConstructorDeclaration node) {
+    // we check generative constructor here
+    if (node.getFactoryKeyword() != null) {
+      return false;
+    }
+    // try to find redirecting constructor invocation and analyzer it for recursion
+    for (ConstructorInitializer initializer : node.getInitializers()) {
+      if (initializer instanceof RedirectingConstructorInvocation) {
+        // OK if no cycle
+        ConstructorElement element = node.getElement();
+        if (!hasRedirectingFactoryConstructorCycle(element)) {
+          return false;
+        }
+        // report error
+        errorReporter.reportError(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, initializer);
+        return true;
+      }
+    }
+    // OK, no redirecting constructor invocation
+    return false;
   }
 
   /**

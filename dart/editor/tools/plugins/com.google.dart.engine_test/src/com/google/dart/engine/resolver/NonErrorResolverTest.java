@@ -1289,6 +1289,18 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_recursiveConstructorRedirect() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.a() : this.b();",
+        "  A.b() : this.c();",
+        "  A.c() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_recursiveFactoryRedirect() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

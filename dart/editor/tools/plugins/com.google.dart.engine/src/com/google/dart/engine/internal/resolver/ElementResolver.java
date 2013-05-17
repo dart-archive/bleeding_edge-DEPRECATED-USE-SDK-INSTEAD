@@ -25,6 +25,7 @@ import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
+import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.ExportDirective;
@@ -464,11 +465,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
-    // set redirected constructor
+    // set redirected factory constructor
     {
       ConstructorName redirectedNode = node.getRedirectedConstructor();
       if (redirectedNode != null) {
         ConstructorElement redirectedElement = redirectedNode.getElement();
+        ConstructorElement element = node.getElement();
+        if (element instanceof ConstructorElementImpl) {
+          ((ConstructorElementImpl) element).setRedirectedConstructor(redirectedElement);
+        }
+      }
+    }
+    // set redirected generate constructor
+    for (ConstructorInitializer initializer : node.getInitializers()) {
+      if (initializer instanceof RedirectingConstructorInvocation) {
+        ConstructorElement redirectedElement = ((RedirectingConstructorInvocation) initializer).getElement();
         ConstructorElement element = node.getElement();
         if (element instanceof ConstructorElementImpl) {
           ((ConstructorElementImpl) element).setRedirectedConstructor(redirectedElement);
