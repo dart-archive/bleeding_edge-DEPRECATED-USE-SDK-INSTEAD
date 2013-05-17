@@ -402,12 +402,14 @@
            natureId="com.google.dart.tools.core.dartNature">
      </image>
   </extension>
+  
+  <!-- Don't automatically download the SDK
   <extension
         point="org.eclipse.ui.startup">
      <startup
            class="com.google.dart.eclipse.DartEarlyStartup">
      </startup>
-  </extension>
+  </extension> -->
 
    <extension
          point="org.eclipse.ui.intro.configExtension">

@@ -107,11 +107,6 @@ public class DirectoryBasedDartSdk implements DartSdk {
   private static final String DEFAULT_DIRECTORY_PROPERTY_NAME = "com.google.dart.sdk"; //$NON-NLS-1$
 
   /**
-   * The version number that is returned when the real version number could not be determined.
-   */
-  private static final String DEFAULT_VERSION = "0"; //$NON-NLS-1$
-
-  /**
    * The name of the directory within the SDK directory that contains documentation for the
    * libraries.
    */

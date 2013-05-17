@@ -14,7 +14,16 @@
 
 package com.google.dart.tools.core.model;
 
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.engine.sdk.SdkLibrary;
+import com.google.dart.engine.source.ContentCache;
+import com.google.dart.engine.source.DartUriResolver;
+import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.source.UriKind;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -47,6 +56,63 @@ import java.util.zip.ZipInputStream;
  * The clearing house for getting the current SDK and listening for SDK changes.
  */
 public class DartSdkManager {
+
+  /**
+   * A special instance of {@link com.google.dart.engine.sdk.DartSdk} representing missing SDK.
+   */
+  public static final com.google.dart.engine.sdk.DartSdk NO_SDK = new com.google.dart.engine.sdk.DartSdk() {
+    private final SdkLibrary[] libraries = new SdkLibrary[] {};
+    private final String[] uris = new String[] {DART_CORE};
+    private AnalysisContext sdkContext;
+    private FileBasedSource coreSource;
+
+    @Override
+    public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+      return new FileBasedSource(contentCache, new File(uri), kind);
+    }
+
+    @Override
+    public AnalysisContext getContext() {
+      if (sdkContext == null) {
+        sdkContext = new AnalysisContextImpl();
+        sdkContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
+      }
+      return sdkContext;
+    }
+
+    @Override
+    public SdkLibrary[] getSdkLibraries() {
+      return libraries;
+    }
+
+    @Override
+    public String getSdkVersion() {
+      return DEFAULT_VERSION;
+    }
+
+    @Override
+    public String[] getUris() {
+      return uris;
+    }
+
+    @Override
+    public Source mapDartUri(ContentCache contentCache, String dartUri) {
+      if (DART_CORE.equals(dartUri)) {
+        if (coreSource == null) {
+          coreSource = new FileBasedSource(contentCache, new File("core.dart"), UriKind.DART_URI) {
+            @Override
+            public void getContents(com.google.dart.engine.source.Source.ContentReceiver receiver)
+                throws Exception {
+              receiver.accept("library dart.core;", 0L);
+            };
+          };
+        }
+        return coreSource;
+      }
+      return null;
+    }
+  };
+
   private static final String SDK_DIR_NAME = "dart-sdk";
 
   /**
@@ -136,11 +202,14 @@ public class DartSdkManager {
    * This will eventually replace {@link #getSdk()}.
    */
   public com.google.dart.engine.sdk.DartSdk getNewSdk() {
-
     if (newSdk == null) {
-      newSdk = new DirectoryBasedDartSdk(getSdk().getDirectory());
+      File sdkDir = getSdk().getDirectory();
+      if (sdkDir == null) {
+        newSdk = NO_SDK;
+      } else {
+        newSdk = new DirectoryBasedDartSdk(sdkDir);
+      }
     }
-
     return newSdk;
   }
 

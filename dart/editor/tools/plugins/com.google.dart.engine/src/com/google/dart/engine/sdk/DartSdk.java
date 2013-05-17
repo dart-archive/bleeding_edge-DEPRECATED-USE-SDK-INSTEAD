@@ -37,6 +37,11 @@ public interface DartSdk {
   public static final String DART_HTML = "dart:html";
 
   /**
+   * The version number that is returned when the real version number could not be determined.
+   */
+  public static final String DEFAULT_VERSION = "0";
+
+  /**
    * Return the source representing the file with the given URI.
    * 
    * @param contentCache the content cache used to access the contents of the mapped source

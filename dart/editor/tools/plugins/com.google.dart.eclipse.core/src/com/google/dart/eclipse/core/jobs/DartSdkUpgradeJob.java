@@ -27,6 +27,7 @@ import org.eclipse.core.runtime.jobs.Job;
  */
 public class DartSdkUpgradeJob extends Job {
 
+  // TODO (danrubel): Remove this if not referenced from the plugin.xml
   public DartSdkUpgradeJob() {
     super("Downloading Dart SDK");
 

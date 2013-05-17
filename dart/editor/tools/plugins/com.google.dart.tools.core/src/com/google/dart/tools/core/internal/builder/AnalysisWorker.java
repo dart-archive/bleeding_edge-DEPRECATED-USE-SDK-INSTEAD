@@ -18,12 +18,14 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.index.Index;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ContextManager;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
@@ -188,6 +190,18 @@ public class AnalysisWorker {
    * both the index and the error markers based upon the analysis results.
    */
   public void performAnalysis() {
+
+    // Check for a valid context and SDK
+    synchronized (lock) {
+      if (context == null) {
+        return;
+      }
+      DartSdk sdk = context.getSourceFactory().getDartSdk();
+      if (sdk == DartSdkManager.NO_SDK) {
+        return;
+      }
+    }
+
     boolean analysisComplete = false;
     while (true) {
 
