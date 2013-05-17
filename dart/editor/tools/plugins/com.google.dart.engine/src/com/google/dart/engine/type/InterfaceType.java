@@ -189,6 +189,28 @@ public interface InterfaceType extends Type {
   public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library);
 
   /**
+   * Return the element representing the getter that results from looking up the given getter in the
+   * superclass of this class with respect to the given library, or {@code null} if the look up
+   * fails. The behavior of this method is defined by the Dart Language Specification in section
+   * 12.15.1: <blockquote>The result of looking up getter (respectively setter) <i>m</i> in class
+   * <i>C</i> with respect to library <i>L</i> is:
+   * <ul>
+   * <li>If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
+   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
+   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
+   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
+   * Otherwise, we say that the lookup has failed.</li>
+   * </ul>
+   * </blockquote>
+   * 
+   * @param getterName the name of the getter being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given getter in this class with respect to the given
+   *         library
+   */
+  public PropertyAccessorElement lookUpGetterInSuperclass(String getterName, LibraryElement library);
+
+  /**
    * Return the element representing the method that results from looking up the given method in
    * this class with respect to the given library, or {@code null} if the look up fails. The
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
@@ -208,6 +230,27 @@ public interface InterfaceType extends Type {
    *         library
    */
   public MethodElement lookUpMethod(String methodName, LibraryElement library);
+
+  /**
+   * Return the element representing the method that results from looking up the given method in the
+   * superclass of this class with respect to the given library, or {@code null} if the look up
+   * fails. The behavior of this method is defined by the Dart Language Specification in section
+   * 12.15.1: <blockquote> The result of looking up method <i>m</i> in class <i>C</i> with respect
+   * to library <i>L</i> is:
+   * <ul>
+   * <li>If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
+   * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
+   * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
+   * to <i>L</i>. Otherwise, we say that the lookup has failed.</li>
+   * </ul>
+   * </blockquote>
+   * 
+   * @param methodName the name of the method being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given method in this class with respect to the given
+   *         library
+   */
+  public MethodElement lookUpMethodInSuperclass(String methodName, LibraryElement library);
 
   /**
    * Return the element representing the setter that results from looking up the given setter in
@@ -230,6 +273,28 @@ public interface InterfaceType extends Type {
    *         library
    */
   public PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library);
+
+  /**
+   * Return the element representing the setter that results from looking up the given setter in the
+   * superclass of this class with respect to the given library, or {@code null} if the look up
+   * fails. The behavior of this method is defined by the Dart Language Specification in section
+   * 12.16: <blockquote> The result of looking up getter (respectively setter) <i>m</i> in class
+   * <i>C</i> with respect to library <i>L</i> is:
+   * <ul>
+   * <li>If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
+   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
+   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
+   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
+   * Otherwise, we say that the lookup has failed.</li>
+   * </ul>
+   * </blockquote>
+   * 
+   * @param setterName the name of the setter being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given setter in this class with respect to the given
+   *         library
+   */
+  public PropertyAccessorElement lookUpSetterInSuperclass(String setterName, LibraryElement library);
 
   /**
    * Return the type resulting from substituting the given arguments for this type's parameters.

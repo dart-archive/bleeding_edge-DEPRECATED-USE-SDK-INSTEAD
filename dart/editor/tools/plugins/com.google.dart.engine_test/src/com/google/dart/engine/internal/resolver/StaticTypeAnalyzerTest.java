@@ -823,7 +823,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     InterfaceType superType = classElement("A").getType();
     InterfaceType thisType = classElement("B", superType).getType();
     Expression node = superExpression();
-    assertSame(superType, analyze(node, thisType));
+    assertSame(thisType, analyze(node, thisType));
     listener.assertNoErrors();
   }
 

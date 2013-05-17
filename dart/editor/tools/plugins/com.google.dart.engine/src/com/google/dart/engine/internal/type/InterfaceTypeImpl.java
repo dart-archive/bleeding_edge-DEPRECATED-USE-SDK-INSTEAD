@@ -477,15 +477,20 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (element != null && element.isAccessibleIn(library)) {
       return element;
     }
+    return lookUpGetterInSuperclass(getterName, library);
+  }
+
+  @Override
+  public PropertyAccessorElement lookUpGetterInSuperclass(String getterName, LibraryElement library) {
     for (InterfaceType mixin : getMixins()) {
-      element = mixin.getGetter(getterName);
+      PropertyAccessorElement element = mixin.getGetter(getterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
     }
     InterfaceType supertype = getSuperclass();
     while (supertype != null) {
-      element = supertype.getGetter(getterName);
+      PropertyAccessorElement element = supertype.getGetter(getterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
@@ -506,15 +511,20 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (element != null && element.isAccessibleIn(library)) {
       return element;
     }
+    return lookUpMethodInSuperclass(methodName, library);
+  }
+
+  @Override
+  public MethodElement lookUpMethodInSuperclass(String methodName, LibraryElement library) {
     for (InterfaceType mixin : getMixins()) {
-      element = mixin.getMethod(methodName);
+      MethodElement element = mixin.getMethod(methodName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
     }
     InterfaceType supertype = getSuperclass();
     while (supertype != null) {
-      element = supertype.getMethod(methodName);
+      MethodElement element = supertype.getMethod(methodName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
@@ -535,15 +545,20 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (element != null && element.isAccessibleIn(library)) {
       return element;
     }
+    return lookUpSetterInSuperclass(setterName, library);
+  }
+
+  @Override
+  public PropertyAccessorElement lookUpSetterInSuperclass(String setterName, LibraryElement library) {
     for (InterfaceType mixin : getMixins()) {
-      element = mixin.getSetter(setterName);
+      PropertyAccessorElement element = mixin.getSetter(setterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
     }
     InterfaceType supertype = getSuperclass();
     while (supertype != null) {
-      element = supertype.getSetter(setterName);
+      PropertyAccessorElement element = supertype.getSetter(setterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }

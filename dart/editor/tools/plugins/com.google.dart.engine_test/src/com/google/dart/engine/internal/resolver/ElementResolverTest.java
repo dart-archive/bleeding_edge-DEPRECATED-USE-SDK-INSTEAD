@@ -480,12 +480,20 @@ public class ElementResolverTest extends EngineTestCase {
   }
 
   public void test_visitPropertyAccess_getter_super() throws Exception {
+    //
+    // class A {
+    //  int get b;
+    // }
+    // class B {
+    //   ... super.m ...
+    // }
+    //
     ClassElementImpl classA = classElement("A");
     String getterName = "b";
     PropertyAccessorElement getter = getterElement(getterName, false, typeProvider.getIntType());
     classA.setAccessors(new PropertyAccessorElement[] {getter});
     SuperExpression target = superExpression();
-    target.setStaticType(classA.getType());
+    target.setStaticType(classElement("B", classA.getType()).getType());
     PropertyAccess access = propertyAccess(target, getterName);
     methodDeclaration(
         null,

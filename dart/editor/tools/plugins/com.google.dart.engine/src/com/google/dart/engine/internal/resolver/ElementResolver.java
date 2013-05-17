@@ -301,11 +301,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         String methodName = operatorType.getLexeme();
 
         Type staticType = getStaticType(leftHandSide);
-        MethodElement staticMethod = lookUpMethod(staticType, methodName);
+        MethodElement staticMethod = lookUpMethod(leftHandSide, staticType, methodName);
         staticElementMap.put(node, staticMethod);
 
         Type propagatedType = getPropagatedType(leftHandSide);
-        MethodElement propagatedMethod = lookUpMethod(propagatedType, methodName);
+        MethodElement propagatedMethod = lookUpMethod(leftHandSide, propagatedType, methodName);
         node.setElement(select(staticMethod, propagatedMethod));
 
         if (shouldReportMissingMember(staticType, staticMethod)
@@ -332,11 +332,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         String methodName = operator.getLexeme();
 
         Type staticType = getStaticType(leftOperand);
-        MethodElement staticMethod = lookUpMethod(staticType, methodName);
+        MethodElement staticMethod = lookUpMethod(leftOperand, staticType, methodName);
         staticElementMap.put(node, staticMethod);
 
         Type propagatedType = getPropagatedType(leftOperand);
-        MethodElement propagatedMethod = lookUpMethod(propagatedType, methodName);
+        MethodElement propagatedMethod = lookUpMethod(leftOperand, propagatedType, methodName);
         node.setElement(select(staticMethod, propagatedMethod));
 
         if (shouldReportMissingMember(staticType, staticMethod)
@@ -434,7 +434,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             if (memberElement == null) {
               memberElement = ((ClassElement) element).getNamedConstructor(name.getName());
               if (memberElement == null) {
-                memberElement = lookUpSetter(((ClassElement) element).getType(), name.getName());
+                memberElement = lookUpSetter(
+                    prefix,
+                    ((ClassElement) element).getType(),
+                    name.getName());
               }
             }
             if (memberElement == null) {
@@ -662,11 +665,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     String methodName = getIndexOperator(node);
 
     Type staticType = getStaticType(target);
-    MethodElement staticMethod = lookUpMethod(staticType, methodName);
+    MethodElement staticMethod = lookUpMethod(target, staticType, methodName);
     staticElementMap.put(node, staticMethod);
 
     Type propagatedType = getPropagatedType(target);
-    MethodElement propagatedMethod = lookUpMethod(propagatedType, methodName);
+    MethodElement propagatedMethod = lookUpMethod(target, propagatedType, methodName);
     node.setElement(select(staticMethod, propagatedMethod));
 
     if (shouldReportMissingMember(staticType, staticMethod)
@@ -816,11 +819,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     String methodName = getPostfixOperator(node);
 
     Type staticType = getStaticType(operand);
-    MethodElement staticMethod = lookUpMethod(staticType, methodName);
+    MethodElement staticMethod = lookUpMethod(operand, staticType, methodName);
     staticElementMap.put(node, staticMethod);
 
     Type propagatedType = getPropagatedType(operand);
-    MethodElement propagatedMethod = lookUpMethod(propagatedType, methodName);
+    MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
     node.setElement(select(staticMethod, propagatedMethod));
 
     if (shouldReportMissingMember(staticType, staticMethod)
@@ -880,11 +883,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       String methodName = getPrefixOperator(node);
 
       Type staticType = getStaticType(operand);
-      MethodElement staticMethod = lookUpMethod(staticType, methodName);
+      MethodElement staticMethod = lookUpMethod(operand, staticType, methodName);
       staticElementMap.put(node, staticMethod);
 
       Type propagatedType = getPropagatedType(operand);
-      MethodElement propagatedMethod = lookUpMethod(propagatedType, methodName);
+      MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
       node.setElement(select(staticMethod, propagatedMethod));
 
       if (shouldReportMissingMember(staticType, staticMethod)
@@ -1339,21 +1342,25 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * Look up the getter with the given name in the given type. Return the element representing the
    * getter that was found, or {@code null} if there is no getter with the given name.
    * 
+   * @param target the target of the invocation, or {@code null} if there is no target
    * @param type the type in which the getter is defined
    * @param getterName the name of the getter being looked up
    * @return the element representing the getter that was found
    */
-  private PropertyAccessorElement lookUpGetter(Type type, String getterName) {
+  private PropertyAccessorElement lookUpGetter(Expression target, Type type, String getterName) {
     type = resolveTypeVariable(type);
     if (type instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) type;
-      PropertyAccessorElement accessor = interfaceType.lookUpGetter(
-          getterName,
-          resolver.getDefiningLibrary());
+      PropertyAccessorElement accessor;
+      if (target instanceof SuperExpression) {
+        accessor = interfaceType.lookUpGetterInSuperclass(getterName, resolver.getDefiningLibrary());
+      } else {
+        accessor = interfaceType.lookUpGetter(getterName, resolver.getDefiningLibrary());
+      }
       if (accessor != null) {
         return accessor;
       }
-      return lookUpGetterInInterfaces(interfaceType, getterName, new HashSet<ClassElement>());
+      return lookUpGetterInInterfaces(interfaceType, false, getterName, new HashSet<ClassElement>());
     }
     return null;
   }
@@ -1364,13 +1371,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * {@code null} if there is no getter with the given name.
    * 
    * @param targetType the type in which the getter might be defined
+   * @param includeTargetType {@code true} if the search should include the target type
    * @param getterName the name of the getter being looked up
    * @param visitedInterfaces a set containing all of the interfaces that have been examined, used
    *          to prevent infinite recursion and to optimize the search
    * @return the element representing the getter that was found
    */
   private PropertyAccessorElement lookUpGetterInInterfaces(InterfaceType targetType,
-      String getterName, HashSet<ClassElement> visitedInterfaces) {
+      boolean includeTargetType, String getterName, HashSet<ClassElement> visitedInterfaces) {
     // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the specification (titled
     // "Inheritance and Overriding" under "Interfaces") describes a much more complex scheme for
     // finding the inherited member. We need to follow that scheme. The code below should cover the
@@ -1380,12 +1388,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     }
     visitedInterfaces.add(targetClass);
-    PropertyAccessorElement getter = targetType.getGetter(getterName);
-    if (getter != null) {
-      return getter;
+    if (includeTargetType) {
+      PropertyAccessorElement getter = targetType.getGetter(getterName);
+      if (getter != null) {
+        return getter;
+      }
     }
     for (InterfaceType interfaceType : targetType.getInterfaces()) {
-      getter = lookUpGetterInInterfaces(interfaceType, getterName, visitedInterfaces);
+      PropertyAccessorElement getter = lookUpGetterInInterfaces(
+          interfaceType,
+          true,
+          getterName,
+          visitedInterfaces);
       if (getter != null) {
         return getter;
       }
@@ -1394,7 +1408,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (superclass == null) {
       return null;
     }
-    return lookUpGetterInInterfaces(superclass, getterName, visitedInterfaces);
+    return lookUpGetterInInterfaces(superclass, true, getterName, visitedInterfaces);
   }
 
   /**
@@ -1422,6 +1436,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
       return lookUpGetterOrMethodInInterfaces(
           interfaceType,
+          false,
           memberName,
           new HashSet<ClassElement>());
     }
@@ -1434,13 +1449,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * was found, or {@code null} if there is no method or getter with the given name.
    * 
    * @param targetType the type in which the method or getter might be defined
+   * @param includeTargetType {@code true} if the search should include the target type
    * @param memberName the name of the method or getter being looked up
    * @param visitedInterfaces a set containing all of the interfaces that have been examined, used
    *          to prevent infinite recursion and to optimize the search
    * @return the element representing the method or getter that was found
    */
   private ExecutableElement lookUpGetterOrMethodInInterfaces(InterfaceType targetType,
-      String memberName, HashSet<ClassElement> visitedInterfaces) {
+      boolean includeTargetType, String memberName, HashSet<ClassElement> visitedInterfaces) {
     // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the specification (titled
     // "Inheritance and Overriding" under "Interfaces") describes a much more complex scheme for
     // finding the inherited member. We need to follow that scheme. The code below should cover the
@@ -1450,16 +1466,22 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     }
     visitedInterfaces.add(targetClass);
-    ExecutableElement member = targetType.getMethod(memberName);
-    if (member != null) {
-      return member;
-    }
-    member = targetType.getGetter(memberName);
-    if (member != null) {
-      return member;
+    if (includeTargetType) {
+      ExecutableElement member = targetType.getMethod(memberName);
+      if (member != null) {
+        return member;
+      }
+      member = targetType.getGetter(memberName);
+      if (member != null) {
+        return member;
+      }
     }
     for (InterfaceType interfaceType : targetType.getInterfaces()) {
-      member = lookUpGetterOrMethodInInterfaces(interfaceType, memberName, visitedInterfaces);
+      ExecutableElement member = lookUpGetterOrMethodInInterfaces(
+          interfaceType,
+          true,
+          memberName,
+          visitedInterfaces);
       if (member != null) {
         return member;
       }
@@ -1468,7 +1490,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (superclass == null) {
       return null;
     }
-    return lookUpGetterInInterfaces(superclass, memberName, visitedInterfaces);
+    return lookUpGetterOrMethodInInterfaces(superclass, true, memberName, visitedInterfaces);
   }
 
   /**
@@ -1526,19 +1548,25 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * Look up the method with the given name in the given type. Return the element representing the
    * method that was found, or {@code null} if there is no method with the given name.
    * 
+   * @param target the target of the invocation, or {@code null} if there is no target
    * @param type the type in which the method is defined
    * @param methodName the name of the method being looked up
    * @return the element representing the method that was found
    */
-  private MethodElement lookUpMethod(Type type, String methodName) {
+  private MethodElement lookUpMethod(Expression target, Type type, String methodName) {
     type = resolveTypeVariable(type);
     if (type instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) type;
-      MethodElement method = interfaceType.lookUpMethod(methodName, resolver.getDefiningLibrary());
+      MethodElement method;
+      if (target instanceof SuperExpression) {
+        method = interfaceType.lookUpMethodInSuperclass(methodName, resolver.getDefiningLibrary());
+      } else {
+        method = interfaceType.lookUpMethod(methodName, resolver.getDefiningLibrary());
+      }
       if (method != null) {
         return method;
       }
-      return lookUpMethodInInterfaces(interfaceType, methodName, new HashSet<ClassElement>());
+      return lookUpMethodInInterfaces(interfaceType, false, methodName, new HashSet<ClassElement>());
     }
     return null;
   }
@@ -1549,13 +1577,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * {@code null} if there is no method with the given name.
    * 
    * @param targetType the type in which the member might be defined
+   * @param includeTargetType {@code true} if the search should include the target type
    * @param methodName the name of the method being looked up
    * @param visitedInterfaces a set containing all of the interfaces that have been examined, used
    *          to prevent infinite recursion and to optimize the search
    * @return the element representing the method that was found
    */
-  private MethodElement lookUpMethodInInterfaces(InterfaceType targetType, String methodName,
-      HashSet<ClassElement> visitedInterfaces) {
+  private MethodElement lookUpMethodInInterfaces(InterfaceType targetType,
+      boolean includeTargetType, String methodName, HashSet<ClassElement> visitedInterfaces) {
     // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the specification (titled
     // "Inheritance and Overriding" under "Interfaces") describes a much more complex scheme for
     // finding the inherited member. We need to follow that scheme. The code below should cover the
@@ -1565,12 +1594,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     }
     visitedInterfaces.add(targetClass);
-    MethodElement method = targetType.getMethod(methodName);
-    if (method != null) {
-      return method;
+    if (includeTargetType) {
+      MethodElement method = targetType.getMethod(methodName);
+      if (method != null) {
+        return method;
+      }
     }
     for (InterfaceType interfaceType : targetType.getInterfaces()) {
-      method = lookUpMethodInInterfaces(interfaceType, methodName, visitedInterfaces);
+      MethodElement method = lookUpMethodInInterfaces(
+          interfaceType,
+          true,
+          methodName,
+          visitedInterfaces);
       if (method != null) {
         return method;
       }
@@ -1579,28 +1614,32 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (superclass == null) {
       return null;
     }
-    return lookUpMethodInInterfaces(superclass, methodName, visitedInterfaces);
+    return lookUpMethodInInterfaces(superclass, true, methodName, visitedInterfaces);
   }
 
   /**
    * Look up the setter with the given name in the given type. Return the element representing the
    * setter that was found, or {@code null} if there is no setter with the given name.
    * 
+   * @param target the target of the invocation, or {@code null} if there is no target
    * @param type the type in which the setter is defined
    * @param setterName the name of the setter being looked up
    * @return the element representing the setter that was found
    */
-  private PropertyAccessorElement lookUpSetter(Type type, String setterName) {
+  private PropertyAccessorElement lookUpSetter(Expression target, Type type, String setterName) {
     type = resolveTypeVariable(type);
     if (type instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) type;
-      PropertyAccessorElement accessor = interfaceType.lookUpSetter(
-          setterName,
-          resolver.getDefiningLibrary());
+      PropertyAccessorElement accessor;
+      if (target instanceof SuperExpression) {
+        accessor = interfaceType.lookUpSetterInSuperclass(setterName, resolver.getDefiningLibrary());
+      } else {
+        accessor = interfaceType.lookUpSetter(setterName, resolver.getDefiningLibrary());
+      }
       if (accessor != null) {
         return accessor;
       }
-      return lookUpSetterInInterfaces(interfaceType, setterName, new HashSet<ClassElement>());
+      return lookUpSetterInInterfaces(interfaceType, false, setterName, new HashSet<ClassElement>());
     }
     return null;
   }
@@ -1611,13 +1650,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * {@code null} if there is no setter with the given name.
    * 
    * @param targetType the type in which the setter might be defined
+   * @param includeTargetType {@code true} if the search should include the target type
    * @param setterName the name of the setter being looked up
    * @param visitedInterfaces a set containing all of the interfaces that have been examined, used
    *          to prevent infinite recursion and to optimize the search
    * @return the element representing the setter that was found
    */
   private PropertyAccessorElement lookUpSetterInInterfaces(InterfaceType targetType,
-      String setterName, HashSet<ClassElement> visitedInterfaces) {
+      boolean includeTargetType, String setterName, HashSet<ClassElement> visitedInterfaces) {
     // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the specification (titled
     // "Inheritance and Overriding" under "Interfaces") describes a much more complex scheme for
     // finding the inherited member. We need to follow that scheme. The code below should cover the
@@ -1627,12 +1667,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     }
     visitedInterfaces.add(targetClass);
-    PropertyAccessorElement setter = targetType.getSetter(setterName);
-    if (setter != null) {
-      return setter;
+    if (includeTargetType) {
+      PropertyAccessorElement setter = targetType.getSetter(setterName);
+      if (setter != null) {
+        return setter;
+      }
     }
     for (InterfaceType interfaceType : targetType.getInterfaces()) {
-      setter = lookUpSetterInInterfaces(interfaceType, setterName, visitedInterfaces);
+      PropertyAccessorElement setter = lookUpSetterInInterfaces(
+          interfaceType,
+          true,
+          setterName,
+          visitedInterfaces);
       if (setter != null) {
         return setter;
       }
@@ -1641,7 +1687,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (superclass == null) {
       return null;
     }
-    return lookUpSetterInInterfaces(superclass, setterName, visitedInterfaces);
+    return lookUpSetterInInterfaces(superclass, true, setterName, visitedInterfaces);
   }
 
   /**
@@ -1716,36 +1762,36 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     return element;
   }
 
-  /**
-   * Report the {@link StaticTypeWarningCode}s <code>UNDEFINED_SETTER</code> and
-   * <code>UNDEFINED_GETTER</code>.
-   * 
-   * @param node the prefixed identifier that gives the context to determine if the error on the
-   *          undefined identifier is a getter or a setter
-   * @param identifier the identifier in the passed prefix identifier
-   * @param typeName the name of the type of the left hand side of the passed prefixed identifier
-   */
-  private void reportGetterOrSetterNotFound(PrefixedIdentifier node, SimpleIdentifier identifier,
-      String typeName) {
-    // This method is only invoked when the prefixed identifier is effectively a property access.
-    Type staticTargetType = getStaticType(node.getPrefix());
-    Type propagatedTargetType = getPropagatedType(node.getPrefix());
-    if ((staticTargetType == null || staticTargetType.isDynamic())
-        && (propagatedTargetType == null || propagatedTargetType.isDynamic())) {
-      return;
-    }
-    boolean staticNoSuchMethod = staticTargetType != null
-        && classDeclaresNoSuchMethod(staticTargetType.getElement());
-    boolean propagatedNoSuchMethod = propagatedTargetType != null
-        && classDeclaresNoSuchMethod(propagatedTargetType.getElement());
-    if (!staticNoSuchMethod && !propagatedNoSuchMethod) {
-      // TODO(jwren) This needs to be modified to also generate the error code StaticTypeWarningCode.INACCESSIBLE_SETTER
-      boolean isSetterContext = node.getIdentifier().inSetterContext();
-      ErrorCode errorCode = isSetterContext ? StaticTypeWarningCode.UNDEFINED_SETTER
-          : StaticTypeWarningCode.UNDEFINED_GETTER;
-      resolver.reportError(errorCode, identifier, identifier.getName(), typeName);
-    }
-  }
+//  /**
+//   * Report the {@link StaticTypeWarningCode}s <code>UNDEFINED_SETTER</code> and
+//   * <code>UNDEFINED_GETTER</code>.
+//   * 
+//   * @param node the prefixed identifier that gives the context to determine if the error on the
+//   *          undefined identifier is a getter or a setter
+//   * @param identifier the identifier in the passed prefix identifier
+//   * @param typeName the name of the type of the left hand side of the passed prefixed identifier
+//   */
+//  private void reportGetterOrSetterNotFound(PrefixedIdentifier node, SimpleIdentifier identifier,
+//      String typeName) {
+//    // This method is only invoked when the prefixed identifier is effectively a property access.
+//    Type staticTargetType = getStaticType(node.getPrefix());
+//    Type propagatedTargetType = getPropagatedType(node.getPrefix());
+//    if ((staticTargetType == null || staticTargetType.isDynamic())
+//        && (propagatedTargetType == null || propagatedTargetType.isDynamic())) {
+//      return;
+//    }
+//    boolean staticNoSuchMethod = staticTargetType != null
+//        && classDeclaresNoSuchMethod(staticTargetType.getElement());
+//    boolean propagatedNoSuchMethod = propagatedTargetType != null
+//        && classDeclaresNoSuchMethod(propagatedTargetType.getElement());
+//    if (!staticNoSuchMethod && !propagatedNoSuchMethod) {
+//      // TODO(jwren) This needs to be modified to also generate the error code StaticTypeWarningCode.INACCESSIBLE_SETTER
+//      boolean isSetterContext = node.getIdentifier().inSetterContext();
+//      ErrorCode errorCode = isSetterContext ? StaticTypeWarningCode.UNDEFINED_SETTER
+//          : StaticTypeWarningCode.UNDEFINED_GETTER;
+//      resolver.reportError(errorCode, identifier, identifier.getName(), typeName);
+//    }
+//  }
 
   /**
    * Resolve the names in the given combinators in the scope of the given library.
@@ -1793,7 +1839,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       SimpleIdentifier methodName) {
     if (targetType instanceof InterfaceType) {
       InterfaceType classType = (InterfaceType) targetType;
-      Element element = lookUpMethod(classType, methodName.getName());
+      Element element = lookUpMethod(target, classType, methodName.getName());
       if (element == null) {
         //
         // If there's no method, then it's possible that 'm' is a getter that returns a function.
@@ -1846,12 +1892,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       ClassElement enclosingClass = resolver.getEnclosingClass();
       if (enclosingClass != null) {
         InterfaceType enclosingType = enclosingClass.getType();
-        element = lookUpMethod(enclosingType, methodName.getName());
+        element = lookUpMethod(null, enclosingType, methodName.getName());
         if (element == null) {
           //
           // If there's no method, then it's possible that 'm' is a getter that returns a function.
           //
-          element = lookUpGetter(enclosingType, methodName.getName());
+          element = lookUpGetter(null, enclosingType, methodName.getName());
         }
       }
     }
@@ -1886,31 +1932,33 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * Given that we are accessing a property of the given type with the given name, return the
    * element that represents the property.
    * 
+   * @param target the target of the invocation ('e')
    * @param targetType the type in which the search for the property should begin
    * @param propertyName the name of the property being accessed
    * @return the element that represents the property
    */
-  private ExecutableElement resolveProperty(Type targetType, SimpleIdentifier propertyName) {
+  private ExecutableElement resolveProperty(Expression target, Type targetType,
+      SimpleIdentifier propertyName) {
     ExecutableElement memberElement = null;
     if (propertyName.inSetterContext()) {
-      memberElement = lookUpSetter(targetType, propertyName.getName());
+      memberElement = lookUpSetter(target, targetType, propertyName.getName());
     }
     if (memberElement == null) {
-      memberElement = lookUpGetter(targetType, propertyName.getName());
+      memberElement = lookUpGetter(target, targetType, propertyName.getName());
     }
     if (memberElement == null) {
-      memberElement = lookUpMethod(targetType, propertyName.getName());
+      memberElement = lookUpMethod(target, targetType, propertyName.getName());
     }
     return memberElement;
   }
 
   private void resolvePropertyAccess(Expression target, SimpleIdentifier propertyName) {
     Type staticType = getStaticType(target);
-    ExecutableElement staticElement = resolveProperty(staticType, propertyName);
+    ExecutableElement staticElement = resolveProperty(target, staticType, propertyName);
     staticElementMap.put(propertyName, staticElement);
 
     Type propagatedType = getPropagatedType(target);
-    ExecutableElement propagatedElement = resolveProperty(propagatedType, propertyName);
+    ExecutableElement propagatedElement = resolveProperty(target, propagatedType, propertyName);
     Element selectedElement = select(staticElement, propagatedElement);
     propertyName.setElement(selectedElement);
 
@@ -1985,7 +2033,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           //
           ClassElement enclosingClass = resolver.getEnclosingClass();
           if (enclosingClass != null) {
-            setter = lookUpSetter(enclosingClass.getType(), node.getName());
+            setter = lookUpSetter(null, enclosingClass.getType(), node.getName());
           }
         }
         if (setter != null) {
@@ -2001,13 +2049,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (element == null && enclosingClass != null) {
       InterfaceType enclosingType = enclosingClass.getType();
       if (element == null && node.inSetterContext()) {
-        element = lookUpSetter(enclosingType, node.getName());
+        element = lookUpSetter(null, enclosingType, node.getName());
       }
       if (element == null && node.inGetterContext()) {
-        element = lookUpGetter(enclosingType, node.getName());
+        element = lookUpGetter(null, enclosingType, node.getName());
       }
       if (element == null) {
-        element = lookUpMethod(enclosingType, node.getName());
+        element = lookUpMethod(null, enclosingType, node.getName());
       }
     }
     return element;

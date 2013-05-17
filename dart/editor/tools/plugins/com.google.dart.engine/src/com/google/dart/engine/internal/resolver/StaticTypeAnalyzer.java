@@ -1227,7 +1227,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       // TODO(brianwilkerson) Report this error if it hasn't already been reported
       recordStaticType(node, dynamicType);
     } else {
-      recordStaticType(node, thisType.getSuperclass());
+      recordStaticType(node, thisType);
     }
     return null;
   }

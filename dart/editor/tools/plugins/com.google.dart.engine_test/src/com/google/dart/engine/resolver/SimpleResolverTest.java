@@ -336,6 +336,24 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_method_fromMixin() throws Exception {
+    Source source = addSource(createSource(//
+        "class B {",
+        "  bar() => 1;",
+        "}",
+        "class A {",
+        "  foo() => 2;",
+        "}",
+        "",
+        "class C extends B with A {",
+        "  bar() => super.bar();",
+        "  foo() => super.foo();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_method_fromSuperclassMixin() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
