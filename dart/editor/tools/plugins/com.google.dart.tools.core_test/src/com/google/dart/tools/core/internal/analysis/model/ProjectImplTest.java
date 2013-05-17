@@ -207,6 +207,21 @@ public class ProjectImplTest extends ContextManagerImplTest {
     assertNotNull(sources);
   }
 
+  public void test_getMultiplePackageRoots_project() throws Exception {
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {});
+    final IEclipsePreferences prefs = mock(IEclipsePreferences.class);
+    when(prefs.get(DartCore.PROJECT_PREF_PACKAGE_ROOT, "")).thenReturn(
+        "bar" + File.pathSeparator + "foo");
+    final DartCore core = mock(DartCore.class);
+    when(core.getProjectPreferences(projectContainer)).thenReturn(prefs);
+
+    File[] roots = ProjectImpl.getPackageRoots(core, options, projectContainer);
+    assertNotNull(roots);
+    assertEquals(2, roots.length);
+    assertEquals("bar", roots[0].getName());
+    assertEquals("foo", roots[1].getName());
+  }
+
   public void test_getPackageRoots() throws Exception {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {});
     DartCore core = DartCore.getPlugin();

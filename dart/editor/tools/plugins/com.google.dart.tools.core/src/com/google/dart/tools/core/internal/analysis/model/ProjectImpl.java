@@ -90,7 +90,12 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       IEclipsePreferences prefs = core.getProjectPreferences((IProject) container);
       String setting = prefs.get(DartCore.PROJECT_PREF_PACKAGE_ROOT, "");
       if (setting != null && setting.length() > 0) {
-        return new File[] {new File(setting)};
+        ArrayList<File> files = new ArrayList<File>();
+        String[] paths = setting.split(File.pathSeparator);
+        for (String path : paths) {
+          files.add(new File(path));
+        }
+        return files.toArray(new File[files.size()]);
       }
 
       File packOverrideDir = options.getPackageOverrideDirectory();

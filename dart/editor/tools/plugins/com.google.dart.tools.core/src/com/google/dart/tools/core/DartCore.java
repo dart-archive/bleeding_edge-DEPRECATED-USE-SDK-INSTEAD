@@ -1435,7 +1435,8 @@ public class DartCore extends Plugin implements DartSdkListener {
       String setting = getProjectPreferences(project).get(PROJECT_PREF_PACKAGE_ROOT, "");
 
       if (setting != null && setting.length() > 0) {
-        return new File(setting);
+        String[] paths = setting.split(File.pathSeparator);
+        return new File(paths[0]);
       }
     }
 
