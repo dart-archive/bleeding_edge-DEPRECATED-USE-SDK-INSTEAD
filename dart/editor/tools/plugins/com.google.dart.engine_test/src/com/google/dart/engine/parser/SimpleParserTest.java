@@ -3601,7 +3601,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parsePrimaryExpression_parenthesized() throws Exception {
-    ParenthesizedExpression expression = parse("parsePrimaryExpression", "()");
+    ParenthesizedExpression expression = parse("parsePrimaryExpression", "(x)");
     assertNotNull(expression);
   }
 

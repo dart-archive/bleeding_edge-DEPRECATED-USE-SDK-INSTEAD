@@ -146,7 +146,6 @@ public enum ParserErrorCode implements ErrorCode {
   TOP_LEVEL_OPERATOR("Operators must be declared within a class"),
   UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP("There is no '%s' to open a parameter group"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
-  USE_OF_UNARY_PLUS_OPERATOR("There is no unary plus operator in Dart"),
   WITH_BEFORE_EXTENDS("The extends clause must be before the with clause"),
   WITH_WITHOUT_EXTENDS("The with clause cannot be used without an extends clause"),
   WRONG_SEPARATOR_FOR_NAMED_PARAMETER(

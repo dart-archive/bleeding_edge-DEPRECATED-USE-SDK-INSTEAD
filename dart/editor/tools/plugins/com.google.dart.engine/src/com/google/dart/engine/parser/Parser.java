@@ -4351,6 +4351,7 @@ public class Parser {
       advance();
       return parsePrimaryExpression();
     } else {
+      reportError(ParserErrorCode.MISSING_IDENTIFIER);
       return createSyntheticIdentifier();
     }
   }
@@ -5114,7 +5115,8 @@ public class Parser {
       }
       return new PrefixExpression(operator, parseAssignableExpression(false));
     } else if (matches(TokenType.PLUS)) {
-      reportError(ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
+      reportError(ParserErrorCode.MISSING_IDENTIFIER);
+      return createSyntheticIdentifier();
     }
     return parsePostfixExpression();
   }

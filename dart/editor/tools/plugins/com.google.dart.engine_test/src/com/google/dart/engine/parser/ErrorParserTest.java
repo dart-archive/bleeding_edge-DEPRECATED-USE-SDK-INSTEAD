@@ -801,6 +801,10 @@ public class ErrorParserTest extends ParserTestCase {
     parseCompilationUnit("void f => x;", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
   }
 
+  public void test_missingIdentifier_afterOperator() throws Exception {
+    parse("parseMultiplicativeExpression", "1 *", ParserErrorCode.MISSING_IDENTIFIER);
+  }
+
   public void test_missingIdentifier_functionDeclaration_returnTypeWithoutName() throws Exception {
     parse("parseFunctionDeclarationStatement", "A<T> () {}", ParserErrorCode.MISSING_IDENTIFIER);
   }
@@ -1103,7 +1107,12 @@ public class ErrorParserTest extends ParserTestCase {
   }
 
   public void test_useOfUnaryPlusOperator() throws Exception {
-    parse("parseUnaryExpression", "+x", ParserErrorCode.USE_OF_UNARY_PLUS_OPERATOR);
+    SimpleIdentifier expression = parse(
+        "parseUnaryExpression",
+        "+x",
+        ParserErrorCode.MISSING_IDENTIFIER);
+    assertInstanceOf(SimpleIdentifier.class, expression);
+    assertTrue(expression.isSynthetic());
   }
 
   public void test_varAsTypeName_as() throws Exception {
