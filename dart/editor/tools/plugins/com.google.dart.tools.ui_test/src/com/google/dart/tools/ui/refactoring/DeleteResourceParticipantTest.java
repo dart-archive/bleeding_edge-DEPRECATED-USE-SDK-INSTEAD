@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.refactoring;
 import com.google.common.base.Joiner;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.internal.corext.refactoring.rename.DeleteResourceParticipant;
-import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant_OLD;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 

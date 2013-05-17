@@ -13,18 +13,20 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IStorageEditorInput;
 
 /**
- * This IAdapterFactory adapts IEditorInputs into DartElements.
+ * Adapts {@link IEditorInput}s to Dart {@link Element}s.
  */
 @SuppressWarnings("rawtypes")
 public class EditorInputAdapterFactory implements IAdapterFactory {
@@ -32,16 +34,15 @@ public class EditorInputAdapterFactory implements IAdapterFactory {
   @Override
   public Object getAdapter(Object element, Class key) {
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return null;
-    }
+    if (Element.class.equals(key) && element instanceof IFileEditorInput) {
 
-    if (DartElement.class.equals(key) && element instanceof IEditorInput) {
-      DartElement dartElement = DartUI.getWorkingCopyManager().getWorkingCopy(
-          (IEditorInput) element);
+      IFile file = ((IFileEditorInput) element).getFile();
 
-      if (dartElement != null) {
-        return dartElement;
+      //TODO (pquitslund): handle more cases (and better)
+
+      LibraryElement libraryElement = DartCore.getProjectManager().getLibraryElementOrNull(file);
+      if (libraryElement != null) {
+        return libraryElement.getDefiningCompilationUnit();
       }
 
       if (element instanceof IStorageEditorInput) {
@@ -58,7 +59,6 @@ public class EditorInputAdapterFactory implements IAdapterFactory {
 
   @Override
   public Class[] getAdapterList() {
-    return new Class[] {DartElement.class};
+    return new Class[] {Element.class};
   }
-
 }

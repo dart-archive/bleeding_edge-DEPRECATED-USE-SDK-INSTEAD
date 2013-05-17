@@ -36,7 +36,6 @@ public class TestAll {
     suite.addTestSuite(RenameImportProcessorTest.class);
     // participants
     suite.addTestSuite(DeleteResourceParticipantTest.class);
-    suite.addTestSuite(RenameResourceParticipant_OLD_Test.class);
     suite.addTestSuite(MoveResourceParticipantTest.class);
     // extract
     suite.addTestSuite(ExtractUtilsTest.class);

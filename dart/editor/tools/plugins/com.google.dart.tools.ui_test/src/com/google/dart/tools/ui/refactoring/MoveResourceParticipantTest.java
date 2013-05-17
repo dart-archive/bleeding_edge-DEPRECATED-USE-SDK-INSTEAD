@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.refactoring;
 import com.google.dart.engine.internal.index.AbstractDartTest;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.MoveResourceParticipant;
-import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant_OLD;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.refactoring.MoveSupport;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
