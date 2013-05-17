@@ -299,15 +299,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_undefinedConstructorInInitializer() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER);
-    verify(source);
-  }
-
   public void fail_uninitializedFinalField() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2057,6 +2048,32 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonGenerativeConstructor_explicit() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A.named() {}",
+        "}",
+        "class B extends A {",
+        "  B() : super.named();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_nonGenerativeConstructor_implicit() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A() {}",
+        "}",
+        "class B extends A {",
+        "  B();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR);
+    verify(source);
+  }
+
   public void test_optionalParameterInOperator_named() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2391,6 +2408,43 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.UNDEFINED_CLASS);
+    verify(source);
+  }
+
+  public void test_undefinedConstructorInInitializer_explicit_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  B() : super.named();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER);
+    // no verify(), "super.named()" is not resolved
+  }
+
+  public void test_undefinedConstructorInInitializer_explicit_unnamed() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.named() {}",
+        "}",
+        "class B extends A {",
+        "  B() : super();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT);
+    verify(source);
+  }
+
+  public void test_undefinedConstructorInInitializer_implicit() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.named() {}",
+        "}",
+        "class B extends A {",
+        "  B();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT);
     verify(source);
   }
 

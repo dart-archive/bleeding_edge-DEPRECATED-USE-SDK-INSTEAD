@@ -162,12 +162,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       //
       // Create the default constructor.
       //
-      ConstructorElementImpl constructor = new ConstructorElementImpl(null);
-      constructor.setSynthetic(true);
-      FunctionTypeImpl type = new FunctionTypeImpl(constructor);
-      type.setReturnType(interfaceType);
-      constructor.setType(type);
-      constructors = new ConstructorElement[] {constructor};
+      constructors = createDefaultConstructors(interfaceType);
     }
     element.setAbstract(node.getAbstractKeyword() != null);
     element.setAccessors(holder.getAccessors());
@@ -197,6 +192,9 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
     interfaceType.setTypeArguments(createTypeVariableTypes(typeVariables));
     element.setType(interfaceType);
+
+    // set default constructor
+    element.setConstructors(createDefaultConstructors(interfaceType));
 
     currentHolder.addType(element);
     className.setElement(element);
@@ -699,6 +697,21 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * Creates the {@link ConstructorElement}s array with the single default constructor element.
+   * 
+   * @param interfaceType the interface type for which to create a default constructor
+   * @return the {@link ConstructorElement}s array with the single default constructor element
+   */
+  private ConstructorElement[] createDefaultConstructors(InterfaceTypeImpl interfaceType) {
+    ConstructorElementImpl constructor = new ConstructorElementImpl(null);
+    constructor.setSynthetic(true);
+    FunctionTypeImpl type = new FunctionTypeImpl(constructor);
+    type.setReturnType(interfaceType);
+    constructor.setType(type);
+    return new ConstructorElement[] {constructor};
   }
 
   private Type[] createTypeVariableTypes(TypeVariableElement[] typeVariables) {

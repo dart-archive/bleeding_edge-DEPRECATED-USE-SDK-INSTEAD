@@ -987,8 +987,23 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       element = superclass.getNamedConstructor(name.getName());
     }
     if (element == null) {
-      // TODO(brianwilkerson) Report this error and decide what element to associate with the node.
+      if (name != null) {
+        resolver.reportError(
+            CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
+            node,
+            superclass.getName(),
+            name);
+      } else {
+        resolver.reportError(
+            CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+            node,
+            superclass.getName());
+      }
       return null;
+    } else {
+      if (element.isFactory()) {
+        resolver.reportError(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node, element);
+      }
     }
     if (name != null) {
       recordResolution(name, element);

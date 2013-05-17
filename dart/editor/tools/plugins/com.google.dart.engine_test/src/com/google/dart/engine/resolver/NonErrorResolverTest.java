@@ -1161,6 +1161,20 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonGenerativeConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.named() {}",
+        "  factory A() {}",
+        "}",
+        "class B extends A {",
+        "  B() : super.named();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_nonTypeInCatchClause_isClass() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -1483,6 +1497,57 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class B extends A {}",
         "class G<E extends A> {}",
         "f() { return new G<B>(); }"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_undefinedConstructorInInitializer_explicit_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.named() {}",
+        "}",
+        "class B extends A {",
+        "  B() : super.named();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_undefinedConstructorInInitializer_explicit_unnamed() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {}",
+        "}",
+        "class B extends A {",
+        "  B() : super();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_undefinedConstructorInInitializer_implicit() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {}",
+        "}",
+        "class B extends A {",
+        "  B();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_undefinedConstructorInInitializer_implicit_typedef() throws Exception {
+    Source source = addSource(createSource(//
+        "class M {}",
+        "typedef A = Object with M;",
+        "class B extends A {",
+        "  B();",
+        "}"));
     resolve(source);
     assertNoErrors();
     verify(source);

@@ -345,6 +345,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForRecursiveConstructorRedirect(node);
       checkForRecursiveFactoryRedirect(node);
       checkForRedirectToInvalidFunction(node);
+      checkForUndefinedConstructorInInitializerImplicit(node);
       return super.visitConstructorDeclaration(node);
     } finally {
       isEnclosingConstructorConst = false;
@@ -2526,6 +2527,55 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * This checks that if the passed generative constructor has no explicit super constructor
+   * invocation, then super class has the default generative constructor.
+   * 
+   * @param node the constructor declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
+   * @see CompileTimeErrorCode#NON_GENERATIVE_CONSTRUCTOR
+   */
+  private boolean checkForUndefinedConstructorInInitializerImplicit(ConstructorDeclaration node) {
+    // ignore if not generative
+    if (node.getFactoryKeyword() != null) {
+      return false;
+    }
+    // prepare "super"
+    if (enclosingClass == null) {
+      return false;
+    }
+    InterfaceType superType = enclosingClass.getSupertype();
+    if (superType == null) {
+      return false;
+    }
+    ClassElement superElement = superType.getElement();
+    // has implicit super constructor invocation
+    for (ConstructorInitializer constructorInitializer : node.getInitializers()) {
+      if (constructorInitializer instanceof SuperConstructorInvocation) {
+        return false;
+      }
+    }
+    // OK, super class has unnamed constructor
+    ConstructorElement superDefaultConstructor = superElement.getUnnamedConstructor();
+    if (superDefaultConstructor != null) {
+      if (superDefaultConstructor.isFactory()) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
+            node.getReturnType(),
+            superDefaultConstructor);
+        return true;
+      }
+      return false;
+    }
+    // report error
+    errorReporter.reportError(
+        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+        node.getReturnType(),
+        superElement.getName());
+    return true;
   }
 
   /**

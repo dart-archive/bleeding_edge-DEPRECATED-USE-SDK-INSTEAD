@@ -752,6 +752,14 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "Initializer expressions in constant constructors must be constants"),
 
   /**
+   * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the superinitializer appears
+   * and let <i>S</i> be the superclass of <i>C</i>. Let <i>k</i> be a generative constructor. It is
+   * a compile-time error if class <i>S</i> does not declare a generative constructor named <i>S</i>
+   * (respectively <i>S.id</i>)
+   */
+  NON_GENERATIVE_CONSTRUCTOR("The constructor '%s' is not generative"),
+
+  /**
    * 7.9 Superclasses: It is a compile-time error to specify an extends clause for class Object.
    */
   // Low priority- Object is provided by the SDK
@@ -896,7 +904,16 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * a compile-time error if class <i>S</i> does not declare a generative constructor named <i>S</i>
    * (respectively <i>S.id</i>)
    */
-  UNDEFINED_CONSTRUCTOR_IN_INITIALIZER(""),
+  UNDEFINED_CONSTRUCTOR_IN_INITIALIZER("The class '%s' does not have a generative constructor '%s'"),
+
+  /**
+   * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the superinitializer appears
+   * and let <i>S</i> be the superclass of <i>C</i>. Let <i>k</i> be a generative constructor. It is
+   * a compile-time error if class <i>S</i> does not declare a generative constructor named <i>S</i>
+   * (respectively <i>S.id</i>)
+   */
+  UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT(
+      "The class '%s' does not have a default generative constructor"),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. Each final instance
