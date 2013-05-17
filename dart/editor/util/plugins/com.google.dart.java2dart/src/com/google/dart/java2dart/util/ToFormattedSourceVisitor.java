@@ -213,8 +213,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
         if (firstLine) {
           firstLine = false;
           // TODO (danrubel): clean this up if isDocumentation() is modified to include ///
-          if (node.isDocumentation() || node.isEndOfLine()
-              || node.getBeginToken().getLexeme().startsWith("///")) {
+          if (node.isDocumentation()) {
             nl2();
           }
         } else {

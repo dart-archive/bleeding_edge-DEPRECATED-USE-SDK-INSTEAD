@@ -577,7 +577,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
               public Void visitMethodInvocation(MethodInvocation node) {
                 if (node.getTarget() == null) {
                   IMethodBinding methodBinding = (IMethodBinding) context.getNodeBinding(node);
-                  if (methodBinding.getDeclaringClass() == enclosingTypeBinding) {
+                  if (methodBinding != null
+                      && methodBinding.getDeclaringClass() == enclosingTypeBinding) {
                     addEnclosingTypeRef.set(true);
                     node.setTarget(enclosingTypeRef);
                   }

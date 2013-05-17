@@ -452,6 +452,13 @@ public final class ASTFactory {
     return new EmptyStatement(token(TokenType.SEMICOLON));
   }
 
+  public static Comment eolDocComment(String commentText) {
+    return Comment.createDocumentationComment(new Token[] {new StringToken(
+        TokenType.SINGLE_LINE_COMMENT,
+        commentText,
+        0)});
+  }
+
   public static ExportDirective exportDirective(List<Annotation> metadata, String uri,
       Combinator... combinators) {
     return new ExportDirective(
@@ -1358,12 +1365,5 @@ public final class ASTFactory {
    * Prevent the creation of instances of this class.
    */
   private ASTFactory() {
-  }
-
-  public static Comment eolDocComment(String commentText) {
-    return Comment.createEndOfLineComment(new Token[] {new StringToken(
-        TokenType.SINGLE_LINE_COMMENT,
-        commentText,
-        0)});
   }
 }
