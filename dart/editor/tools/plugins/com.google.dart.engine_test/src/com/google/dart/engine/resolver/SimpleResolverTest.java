@@ -398,7 +398,22 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_staticSetter() throws Exception {
+  public void test_setter_inherited() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get x => 0",
+        "  set x(int p) {}",
+        "}",
+        "class B extends A {",
+        "  int get x => super.x == null ? 0 : super.x;",
+        "  void f() => x = 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_setter_static() throws Exception {
     Source source = addSource(createSource(//
         "set s(x) {",
         "}",

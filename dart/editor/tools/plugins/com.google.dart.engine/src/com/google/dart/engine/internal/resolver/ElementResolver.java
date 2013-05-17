@@ -1979,6 +1979,15 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       PropertyInducingElement variable = ((PropertyAccessorElement) element).getVariable();
       if (variable != null) {
         PropertyAccessorElement setter = variable.getSetter();
+        if (setter == null) {
+          //
+          // Check to see whether there might be a locally defined getter and an inherited setter.
+          //
+          ClassElement enclosingClass = resolver.getEnclosingClass();
+          if (enclosingClass != null) {
+            setter = lookUpSetter(enclosingClass.getType(), node.getName());
+          }
+        }
         if (setter != null) {
           element = setter;
         }
