@@ -18,7 +18,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -153,7 +153,7 @@ public class CleanUpAction extends InstrumentedSelectionDispatchAction {
 
   protected void performRefactoring(CompilationUnit[] units, ICleanUp[] cleanUps)
       throws InvocationTargetException {
-    RefactoringExecutionStarter_OLD.startCleanupRefactoring(
+    RefactoringExecutionStarter.startCleanupRefactoring(
         units,
         cleanUps,
         false,

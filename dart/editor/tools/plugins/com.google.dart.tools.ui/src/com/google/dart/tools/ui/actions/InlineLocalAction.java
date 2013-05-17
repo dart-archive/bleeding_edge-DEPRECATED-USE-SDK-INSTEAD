@@ -18,7 +18,6 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.InlineLocalRefactoring;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
-import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring_I;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.refactoring.InlineLocalWizard;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -60,7 +59,7 @@ public class InlineLocalAction extends AbstractDartSelectionAction {
   boolean tryInline(AssistContext context, Shell shell) {
     try {
       InlineLocalRefactoring refactoring = RefactoringFactory.createInlineLocalRefactoring(context);
-      InlineLocalRefactoring_I ltkRefactoring = new ServiceInlineLocalRefactoring(refactoring);
+      ServiceInlineLocalRefactoring ltkRefactoring = new ServiceInlineLocalRefactoring(refactoring);
       new RefactoringStarter().activate(
           new InlineLocalWizard(ltkRefactoring),
           shell,

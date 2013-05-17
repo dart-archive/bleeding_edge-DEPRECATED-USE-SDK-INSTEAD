@@ -18,30 +18,21 @@ import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.internal.corext.refactoring.code.ConvertGetterToMethodRefactoring;
-import com.google.dart.tools.internal.corext.refactoring.code.ConvertMethodToGetterRefactoring;
-import com.google.dart.tools.internal.corext.refactoring.code.ConvertOptionalParametersToNamedRefactoring;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoring;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoringWizard;
-import com.google.dart.tools.ui.internal.refactoring.ConvertGetterToMethodWizard;
-import com.google.dart.tools.ui.internal.refactoring.ConvertMethodToGetterWizard;
-import com.google.dart.tools.ui.internal.refactoring.ConvertOptionalParametersToNamedWizard;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringExecutionHelper;
-import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableContext;
-import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
+import org.eclipse.ltk.ui.refactoring.resource.RenameResourceWizard;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
@@ -245,60 +236,60 @@ public final class RefactoringExecutionStarter {
 //  	return false;
 //  }
 
-  public static boolean startConvertGetterToMethodRefactoring(DartFunction function, Shell shell) {
-    Refactoring refactoring = new ConvertGetterToMethodRefactoring(function);
-    new RefactoringStarter().activate(
-        new ConvertGetterToMethodWizard(refactoring),
-        shell,
-        RefactoringMessages.ConvertGetterToMethodAction_dialog_title,
-        RefactoringSaveHelper.SAVE_ALL);
-    return true;
-  }
-
-  public static boolean startConvertMethodToGetterRefactoring(DartFunction function, Shell shell) {
-    try {
-      if (function.getParameterNames().length != 0) {
-        MessageDialog.openInformation(
-            shell,
-            RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
-            RefactoringMessages.ConvertMethodToGetterAction_only_without_arguments);
-        return true;
-      }
-      Refactoring refactoring = new ConvertMethodToGetterRefactoring(function);
-      new RefactoringStarter().activate(
-          new ConvertMethodToGetterWizard(refactoring),
-          shell,
-          RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
-          RefactoringSaveHelper.SAVE_ALL);
-      return true;
-    } catch (DartModelException e) {
-    }
-    return false;
-  }
-
-  public static boolean startConvertOptionalParametersToNamedRefactoring(DartFunction function,
-      Shell shell) {
-    try {
-      if (function != null) {
-        if (!RefactoringAvailabilityTester.isConvertOptionalParametersToNamedAvailable(function)) {
-          MessageDialog.openInformation(
-              shell,
-              RefactoringMessages.ConvertOptionalParametersToNamedAction_dialog_title,
-              RefactoringMessages.ConvertOptionalParametersToNamedAction_noOptionalPositional);
-          return true;
-        }
-        Refactoring refactoring = new ConvertOptionalParametersToNamedRefactoring(function);
-        new RefactoringStarter().activate(
-            new ConvertOptionalParametersToNamedWizard(refactoring),
-            shell,
-            RefactoringMessages.ConvertOptionalParametersToNamedAction_dialog_title,
-            RefactoringSaveHelper.SAVE_ALL);
-        return true;
-      }
-    } catch (DartModelException e) {
-    }
-    return false;
-  }
+//  public static boolean startConvertGetterToMethodRefactoring(DartFunction function, Shell shell) {
+//    Refactoring refactoring = new ConvertGetterToMethodRefactoring(function);
+//    new RefactoringStarter().activate(
+//        new ConvertGetterToMethodWizard(refactoring),
+//        shell,
+//        RefactoringMessages.ConvertGetterToMethodAction_dialog_title,
+//        RefactoringSaveHelper.SAVE_ALL);
+//    return true;
+//  }
+//
+//  public static boolean startConvertMethodToGetterRefactoring(DartFunction function, Shell shell) {
+//    try {
+//      if (function.getParameterNames().length != 0) {
+//        MessageDialog.openInformation(
+//            shell,
+//            RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
+//            RefactoringMessages.ConvertMethodToGetterAction_only_without_arguments);
+//        return true;
+//      }
+//      Refactoring refactoring = new ConvertMethodToGetterRefactoring(function);
+//      new RefactoringStarter().activate(
+//          new ConvertMethodToGetterWizard(refactoring),
+//          shell,
+//          RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
+//          RefactoringSaveHelper.SAVE_ALL);
+//      return true;
+//    } catch (DartModelException e) {
+//    }
+//    return false;
+//  }
+//
+//  public static boolean startConvertOptionalParametersToNamedRefactoring(DartFunction function,
+//      Shell shell) {
+//    try {
+//      if (function != null) {
+//        if (!RefactoringAvailabilityTester.isConvertOptionalParametersToNamedAvailable(function)) {
+//          MessageDialog.openInformation(
+//              shell,
+//              RefactoringMessages.ConvertOptionalParametersToNamedAction_dialog_title,
+//              RefactoringMessages.ConvertOptionalParametersToNamedAction_noOptionalPositional);
+//          return true;
+//        }
+//        Refactoring refactoring = new ConvertOptionalParametersToNamedRefactoring(function);
+//        new RefactoringStarter().activate(
+//            new ConvertOptionalParametersToNamedWizard(refactoring),
+//            shell,
+//            RefactoringMessages.ConvertOptionalParametersToNamedAction_dialog_title,
+//            RefactoringSaveHelper.SAVE_ALL);
+//        return true;
+//      }
+//    } catch (DartModelException e) {
+//    }
+//    return false;
+//  }
 
 //  public static boolean startInlineMethodRefactoring(CompilationUnit unit, int offset, int length,
 //      Shell shell) {
@@ -424,14 +415,14 @@ public final class RefactoringExecutionStarter {
     }
   }
 
-//  public static void startRenameResourceRefactoring(final IResource resource, final Shell shell) {
-//    RenameResourceWizard wizard = new RenameResourceWizard(resource);
-//    new RefactoringStarter().activate(
-//        wizard,
-//        shell,
-//        wizard.getWindowTitle(),
-//        RefactoringSaveHelper.SAVE_ALL);
-//  }
+  public static void startRenameResourceRefactoring(final IResource resource, final Shell shell) {
+    RenameResourceWizard wizard = new RenameResourceWizard(resource);
+    new RefactoringStarter().activate(
+        wizard,
+        shell,
+        wizard.getWindowTitle(),
+        RefactoringSaveHelper.SAVE_ALL);
+  }
 
 //  public static void startReplaceInvocationsRefactoring(final ITypeRoot typeRoot, final int offset, final int length, final Shell shell) {
 //  	final ReplaceInvocationsRefactoring refactoring= new ReplaceInvocationsRefactoring(typeRoot, offset, length);

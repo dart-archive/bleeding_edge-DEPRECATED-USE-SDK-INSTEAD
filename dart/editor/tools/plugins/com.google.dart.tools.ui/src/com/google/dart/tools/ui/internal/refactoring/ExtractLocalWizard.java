@@ -1,6 +1,5 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.tools.internal.corext.refactoring.code.ExtractLocalRefactoring_I;
 import com.google.dart.tools.ui.internal.refactoring.contentassist.VariableNamesProcessor;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.ControlContentAssistHelper;
@@ -9,7 +8,6 @@ import com.google.dart.tools.ui.internal.util.RowLayouter;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 import org.eclipse.swt.SWT;
@@ -113,8 +111,8 @@ public class ExtractLocalWizard extends RefactoringWizard {
       });
     }
 
-    private ExtractLocalRefactoring_I getExtractLocalRefactoring() {
-      return (ExtractLocalRefactoring_I) getRefactoring();
+    private ServiceExtractLocalRefactoring getExtractLocalRefactoring() {
+      return (ServiceExtractLocalRefactoring) getRefactoring();
     }
 
     private void loadSettings() {
@@ -129,8 +127,8 @@ public class ExtractLocalWizard extends RefactoringWizard {
 
   static final String DIALOG_SETTING_SECTION = "ExtractLocalWizard"; //$NON-NLS-1$
 
-  public ExtractLocalWizard(ExtractLocalRefactoring_I ref) {
-    super((Refactoring) ref, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE);
+  public ExtractLocalWizard(ServiceExtractLocalRefactoring ref) {
+    super(ref, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE);
     setDefaultPageTitle(RefactoringMessages.ExtractLocalWizard_defaultPageTitle);
   }
 
@@ -139,7 +137,7 @@ public class ExtractLocalWizard extends RefactoringWizard {
     addPage(new ExtractLocalInputPage(getExtractLocalRefactoring().guessNames()));
   }
 
-  private ExtractLocalRefactoring_I getExtractLocalRefactoring() {
-    return (ExtractLocalRefactoring_I) getRefactoring();
+  private ServiceExtractLocalRefactoring getExtractLocalRefactoring() {
+    return (ServiceExtractLocalRefactoring) getRefactoring();
   }
 }

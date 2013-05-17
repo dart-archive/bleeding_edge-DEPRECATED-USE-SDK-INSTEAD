@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.refactoring.actions;
 
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
@@ -51,7 +51,7 @@ public class RenameResourceAction extends InstrumentedSelectionDispatchAction {
       instrumentation.metric("Problem", "Rename not available");
       return;
     }
-    RefactoringExecutionStarter_OLD.startRenameResourceRefactoring(resource, getShell());
+    RefactoringExecutionStarter.startRenameResourceRefactoring(resource, getShell());
   }
 
   @Override

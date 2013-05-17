@@ -65,7 +65,7 @@ public final class MoveResourceParticipantTest extends AbstractDartTest {
   protected TestProject testProject;
 
   /**
-   * Just for coverage of {@link RenameResourceParticipant_OLD} accessors.
+   * Just for coverage of {@link RenameResourceParticipant} accessors.
    */
   public void test_accessors() throws Exception {
     MoveResourceParticipant participant = new MoveResourceParticipant();

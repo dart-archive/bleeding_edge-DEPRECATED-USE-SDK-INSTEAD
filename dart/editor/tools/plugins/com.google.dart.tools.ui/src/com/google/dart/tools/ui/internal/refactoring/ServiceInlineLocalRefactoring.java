@@ -15,13 +15,11 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.engine.services.refactoring.InlineLocalRefactoring;
-import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring_I;
 
 /**
  * LTK wrapper around Engine Services {@link InlineLocalRefactoring}.
  */
-public class ServiceInlineLocalRefactoring extends ServiceRefactoring implements
-    InlineLocalRefactoring_I {
+public class ServiceInlineLocalRefactoring extends ServiceRefactoring {
   private final InlineLocalRefactoring refactoring;
 
   public ServiceInlineLocalRefactoring(InlineLocalRefactoring refactoring) {
@@ -29,14 +27,11 @@ public class ServiceInlineLocalRefactoring extends ServiceRefactoring implements
     this.refactoring = refactoring;
   }
 
-  @Override
   public int getReferenceCount() {
     return refactoring.getReferenceCount();
   }
 
-  @Override
   public String getVariableName() {
     return refactoring.getVariableName();
   }
-
 }

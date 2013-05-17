@@ -18,13 +18,11 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.services.refactoring.InlineMethodRefactoring;
 import com.google.dart.engine.services.refactoring.InlineMethodRefactoring.Mode;
-import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring_I;
 
 /**
  * LTK wrapper around Engine Services {@link InlineMethodRefactoring}.
  */
-public class ServiceInlineMethodRefactoring extends ServiceRefactoring implements
-    InlineMethodRefactoring_I {
+public class ServiceInlineMethodRefactoring extends ServiceRefactoring {
   private final InlineMethodRefactoring refactoring;
 
   public ServiceInlineMethodRefactoring(InlineMethodRefactoring refactoring) {
@@ -32,17 +30,14 @@ public class ServiceInlineMethodRefactoring extends ServiceRefactoring implement
     this.refactoring = refactoring;
   }
 
-  @Override
   public boolean canEnableDeleteSource() {
     return refactoring.canDeleteSource();
   }
 
-  @Override
   public Mode getInitialMode() {
     return refactoring.getInitialMode();
   }
 
-  @Override
   public String getMethodLabel() {
     ExecutableElement element = refactoring.getElement();
     if (element instanceof FunctionElement) {
@@ -51,12 +46,10 @@ public class ServiceInlineMethodRefactoring extends ServiceRefactoring implement
     return element.getEnclosingElement().getDisplayName() + "." + element.getDisplayName();
   }
 
-  @Override
   public void setCurrentMode(Mode mode) {
     refactoring.setCurrentMode(mode);
   }
 
-  @Override
   public void setDeleteSource(boolean delete) {
     refactoring.setDeleteSource(delete);
   }

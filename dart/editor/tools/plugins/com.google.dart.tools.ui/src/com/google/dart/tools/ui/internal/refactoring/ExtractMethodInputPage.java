@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.engine.services.refactoring.ParameterInfo;
 import com.google.dart.tools.internal.corext.refactoring.StubTypeContext;
-import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring_I;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -51,7 +50,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 
   public static final String PAGE_NAME = "ExtractMethodInputPage";//$NON-NLS-1$
 
-  private ExtractMethodRefactoring_I fRefactoring;
+  private ServiceExtractMethodRefactoring fRefactoring;
   private Text fTextField;
   private boolean fFirstTime;
   private DartSourceViewer fSignaturePreview;
@@ -72,7 +71,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 
   @Override
   public void createControl(Composite parent) {
-    fRefactoring = (ExtractMethodRefactoring_I) getRefactoring();
+    fRefactoring = (ServiceExtractMethodRefactoring) getRefactoring();
     loadSettings();
 
     Composite result = new Composite(parent, SWT.NONE);

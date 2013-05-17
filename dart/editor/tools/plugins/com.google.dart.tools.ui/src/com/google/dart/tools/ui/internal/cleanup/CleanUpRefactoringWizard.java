@@ -23,7 +23,6 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_identical_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_functionLiteral_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeAbstract_CleanUp;
@@ -62,7 +61,6 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
 
     private static final String ID_MIGRATE_SYNTAX_1M1_IDENTICAL = "migrateSyntax-1M1-identical";
     private static final String ID_MIGRATE_SYNTAX_1M1_LIBRARY = "migrateSyntax-1M1-library";
-    private static final String ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED = "migrateSyntax-1M1-optionalNamed-whereSure";
     private static final String ID_MIGRATE_SYNTAX_1M2_METHODS = "migrateSyntax-1M2-methods";
     private static final String ID_MIGRATE_SYNTAX_1M2_RENAME_TYPES = "migrateSyntax-1M2-renameExceptions";
     private static final String ID_MIGRATE_SYNTAX_1M2_REMOVE_ABSTRACT = "migrateSyntax-1M2-removeAbstract";
@@ -80,7 +78,6 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     static {
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_IDENTICAL, new Migrate_1M1_identical_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_LIBRARY, new Migrate_1M1_library_CleanUp());
-      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED, new Migrate_1M1_optionalNamed_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M2_METHODS, new Migrate_1M2_methods_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M2_RENAME_TYPES, new Migrate_1M2_renameTypes_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M2_REMOVE_ABSTRACT, new Migrate_1M2_removeAbstract_CleanUp());
@@ -95,7 +92,6 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       CLEAN_UPS.put(ID_MIGRATE_1M4_LIBRARY, new Migrate_1M4_CleanUp());
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_IDENTICAL, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_LIBRARY, true);
-      settings.setDefault(ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED, false);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_METHODS, false);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_RENAME_TYPES, false);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_REMOVE_ABSTRACT, true);
@@ -161,10 +157,6 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M1_LIBRARY,
                 "Migrate library/import/source");
-            createCheckButton(
-                syntaxComposite,
-                ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED,
-                "Migrate [param = value] to {param: value} when only named arguments are used");
             createCheckButton(
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M2_METHODS,

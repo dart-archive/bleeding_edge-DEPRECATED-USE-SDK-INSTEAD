@@ -29,7 +29,6 @@ import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
@@ -40,8 +39,6 @@ import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.search.SearchPattern;
 import com.google.dart.tools.core.search.SearchPatternFactory;
 import com.google.dart.tools.core.search.SearchScope;
-import com.google.dart.tools.internal.corext.refactoring.rename.MemberDeclarationsReferences;
-import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 import com.google.dart.tools.search.internal.ui.text.BasicElementLabels;
 import com.google.dart.tools.search.internal.ui.text.SearchResultUpdater;
 import com.google.dart.tools.search.ui.ISearchQuery;
@@ -462,12 +459,13 @@ public class DartSearchQuery implements ISearchQuery {
         break;
       }
       case DartElement.METHOD: {
-        MemberDeclarationsReferences memberInfo;
-        memberInfo = RenameAnalyzeUtil.findDeclarationsReferences((Method) element, monitor);
-        for (TypeMember member : memberInfo.declarations) {
-          SearchMatch match = new SearchMatch(MatchQuality.EXACT, member, member.getSourceRange());
-          listener.matchFound(match);
-        }
+        // TODO(scheglov)  remove everything later
+//        MemberDeclarationsReferences memberInfo;
+//        memberInfo = RenameAnalyzeUtil.findDeclarationsReferences((Method) element, monitor);
+//        for (TypeMember member : memberInfo.declarations) {
+//          SearchMatch match = new SearchMatch(MatchQuality.EXACT, member, member.getSourceRange());
+//          listener.matchFound(match);
+//        }
         break;
       }
       default:

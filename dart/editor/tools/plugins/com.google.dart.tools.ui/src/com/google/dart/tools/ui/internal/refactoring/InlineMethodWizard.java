@@ -13,18 +13,16 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring_I;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
-import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 
 public class InlineMethodWizard extends RefactoringWizard {
 
   static final String DIALOG_SETTING_SECTION = "InlineMethodWizard"; //$NON-NLS-1$
 
-  public InlineMethodWizard(InlineMethodRefactoring_I ref) {
-    super((Refactoring) ref, DIALOG_BASED_USER_INTERFACE);
+  public InlineMethodWizard(ServiceInlineMethodRefactoring ref) {
+    super(ref, DIALOG_BASED_USER_INTERFACE);
     setDefaultPageTitle(RefactoringMessages.InlineMethodWizard_page_title);
     setDialogSettings(DartToolsPlugin.getDefault().getDialogSettings());
   }

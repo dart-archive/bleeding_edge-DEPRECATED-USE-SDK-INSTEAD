@@ -13,21 +13,19 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring_I;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.ltk.core.refactoring.Change;
-import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 
 public class ExtractMethodWizard extends RefactoringWizard {
 
   static final String DIALOG_SETTING_SECTION = "ExtractMethodWizard"; //$NON-NLS-1$
 
-  public ExtractMethodWizard(ExtractMethodRefactoring_I ref) {
-    super((Refactoring) ref, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE);
+  public ExtractMethodWizard(ServiceExtractMethodRefactoring ref) {
+    super(ref, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE);
     setDefaultPageTitle(RefactoringMessages.ExtractMethodWizard_extract_method);
     setDialogSettings(DartToolsPlugin.getDefault().getDialogSettings());
   }
