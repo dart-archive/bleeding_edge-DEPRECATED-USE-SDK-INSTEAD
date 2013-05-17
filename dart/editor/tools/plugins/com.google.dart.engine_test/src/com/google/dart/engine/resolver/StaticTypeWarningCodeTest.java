@@ -63,6 +63,23 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAssignment_compoundAssignment() throws Exception {
+    Source source = addSource(createSource(//
+        "class byte {",
+        "  int _value;",
+        "  byte(this._value);",
+        "  int operator +(int val) {}",
+        "}",
+        "",
+        "void main() {",
+        "  byte b = new byte(52);",
+        "  b += 3;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
   public void test_invalidAssignment_instanceVariable() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

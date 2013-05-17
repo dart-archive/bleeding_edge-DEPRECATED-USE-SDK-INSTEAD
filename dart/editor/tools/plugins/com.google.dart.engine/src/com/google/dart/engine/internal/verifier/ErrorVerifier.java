@@ -265,7 +265,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
-    checkForInvalidAssignment(node.getLeftHandSide(), node.getRightHandSide());
+    Token operator = node.getOperator();
+    TokenType operatorType = operator.getType();
+    if (operatorType == TokenType.EQ) {
+      checkForInvalidAssignment(node.getLeftHandSide(), node.getRightHandSide());
+    } else {
+      checkForInvalidAssignment(node);
+    }
     checkForAssignmentToFinal(node);
     return super.visitAssignmentExpression(node);
   }
@@ -1795,9 +1801,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         SwitchCase switchCase = (SwitchCase) switchMember;
         Expression expression = switchCase.getExpression();
         if (firstType == null) {
-          firstType = getStaticType(expression);
+          // TODO(brianwilkerson) This is failing with const variables whose declared type is
+          // dynamic. The problem is that we don't have any way to propagate type information for
+          // the variable.
+          firstType = getBestType(expression);
         } else {
-          Type nType = getStaticType(expression);
+          Type nType = getBestType(expression);
           if (!firstType.equals(nType)) {
             errorReporter.reportError(
                 CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
@@ -1810,6 +1819,40 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return foundError;
+  }
+
+  /**
+   * Given an assignment using a compound assignment operator, this verifies that the given
+   * assignment is valid.
+   * 
+   * @param node the assignment expression being tested
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
+   */
+  private boolean checkForInvalidAssignment(AssignmentExpression node) {
+    Expression lhs = node.getLeftHandSide();
+    if (lhs == null) {
+      return false;
+    }
+    VariableElement leftElement = getVariableElement(lhs);
+    Type leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.getType();
+    MethodElement invokedMethod = node.getElement();
+    if (invokedMethod == null) {
+      return false;
+    }
+    Type rightType = invokedMethod.getType().getReturnType();
+    if (leftType == null || rightType == null) {
+      return false;
+    }
+    if (!rightType.isAssignableTo(leftType)) {
+      errorReporter.reportError(
+          StaticTypeWarningCode.INVALID_ASSIGNMENT,
+          node.getRightHandSide(),
+          rightType.getName(),
+          leftType.getName());
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -2562,6 +2605,21 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return parameterTypeCounts;
+  }
+
+  /**
+   * Return the propagated type of the given expression, or the static type if there is no
+   * propagated type information.
+   * 
+   * @param expression the expression whose type is to be returned
+   * @return the propagated or static type of the given expression, whichever is best
+   */
+  private Type getBestType(Expression expression) {
+    Type type = getPropagatedType(expression);
+    if (type == null) {
+      type = getStaticType(expression);
+    }
+    return type;
   }
 
   /**

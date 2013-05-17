@@ -616,6 +616,23 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAssignment_compoundAssignment() throws Exception {
+    Source source = addSource(createSource(//
+        "class byte {",
+        "  int _value;",
+        "  byte(this._value);",
+        "  byte operator +(int val) {}",
+        "}",
+        "",
+        "void main() {",
+        "  byte b = new byte(52);",
+        "  b += 3;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invalidAssignment_toDynamic() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
