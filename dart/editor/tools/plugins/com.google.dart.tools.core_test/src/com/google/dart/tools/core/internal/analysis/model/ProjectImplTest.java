@@ -232,13 +232,15 @@ public class ProjectImplTest extends ContextManagerImplTest {
   }
 
   public void test_getPackageRoots_global() throws Exception {
-    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--package-root", "foo"});
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {
+        "--package-root", "foo", "bar"});
     DartCore core = DartCore.getPlugin();
 
     File[] roots = ProjectImpl.getPackageRoots(core, options, projectContainer);
     assertNotNull(roots);
-    assertEquals(1, roots.length);
+    assertEquals(2, roots.length);
     assertEquals("foo", roots[0].getName());
+    assertEquals("bar", roots[1].getName());
   }
 
   public void test_getPackageRoots_project() throws Exception {

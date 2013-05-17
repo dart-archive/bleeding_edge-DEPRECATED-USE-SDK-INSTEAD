@@ -100,7 +100,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
       File packOverrideDir = options.getPackageOverrideDirectory();
       if (packOverrideDir != null) {
-        File root = new File(packOverrideDir, container.getLocation().toString());
+        File root = new File(packOverrideDir, container.getLocation().toOSString());
         return new File[] {new File(root, DartCore.PACKAGES_DIRECTORY_NAME)};
       }
 
