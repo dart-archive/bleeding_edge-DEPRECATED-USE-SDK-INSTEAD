@@ -800,6 +800,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting, in which case its
    * only action is to invoke another generative constructor.
+   * <p>
+   * TODO(scheglov) review this later, there are no explicit "it is a compile-time error" in
+   * specification. But it was added to the co19 and there is same error for factories.
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=954
    */
   RECURSIVE_CONSTRUCTOR_REDIRECT("Cycle in redirecting generative constructors"),
 
