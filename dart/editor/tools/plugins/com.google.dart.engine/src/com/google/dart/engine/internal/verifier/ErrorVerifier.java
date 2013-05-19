@@ -183,6 +183,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean isInCatchClause;
 
   /**
+   * This is set to {@code true} iff the visitor is currently visiting a
+   * {@link ConstructorInitializer}.
+   */
+  private boolean isInConstructorInitializer;
+
+  /**
    * This is set to {@code true} iff the visitor is currently visiting code in the SDK.
    */
   private boolean isInSystemLibrary;
@@ -350,6 +356,16 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     } finally {
       isEnclosingConstructorConst = false;
       enclosingFunction = outerFunction;
+    }
+  }
+
+  @Override
+  public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    isInConstructorInitializer = true;
+    try {
+      return super.visitConstructorFieldInitializer(node);
+    } finally {
+      isInConstructorInitializer = false;
     }
   }
 
@@ -527,6 +543,16 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    isInConstructorInitializer = true;
+    try {
+      return super.visitRedirectingConstructorInvocation(node);
+    } finally {
+      isInConstructorInitializer = false;
+    }
+  }
+
+  @Override
   public Void visitRethrowExpression(RethrowExpression node) {
     checkForRethrowOutsideCatch(node);
     return super.visitRethrowExpression(node);
@@ -547,7 +573,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     checkForReferenceToDeclaredVariableInInitializer(node);
+    checkForImplicitThisReferenceInInitializer(node);
     return super.visitSimpleIdentifier(node);
+  }
+
+  @Override
+  public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    isInConstructorInitializer = true;
+    try {
+      return super.visitSuperConstructorInvocation(node);
+    } finally {
+      isInConstructorInitializer = false;
+    }
   }
 
   @Override
@@ -1729,6 +1766,61 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     }
     return foundError;
+  }
+
+  /**
+   * This verifies that if the passed identifier is part of constructor initializer, then it does
+   * not reference implicitly 'this' expression.
+   * 
+   * @param node the simple identifier to test
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+   */
+  private boolean checkForImplicitThisReferenceInInitializer(SimpleIdentifier node) {
+    if (!isInConstructorInitializer) {
+      return false;
+    }
+    // prepare element
+    Element element = node.getElement();
+    if (!(element instanceof MethodElement || element instanceof PropertyAccessorElement)) {
+      return false;
+    }
+    // static element
+    ExecutableElement executableElement = (ExecutableElement) element;
+    if (executableElement.isStatic()) {
+      return false;
+    }
+    // not a class member
+    Element enclosingElement = element.getEnclosingElement();
+    if (!(enclosingElement instanceof ClassElement)) {
+      return false;
+    }
+    // qualified method invocation
+    ASTNode parent = node.getParent();
+    if (parent instanceof MethodInvocation) {
+      MethodInvocation invocation = (MethodInvocation) parent;
+      if (invocation.getMethodName() == node && invocation.getRealTarget() != null) {
+        return false;
+      }
+    }
+    // qualified property access
+    {
+      if (parent instanceof PropertyAccess) {
+        PropertyAccess access = (PropertyAccess) parent;
+        if (access.getPropertyName() == node && access.getRealTarget() != null) {
+          return false;
+        }
+      }
+      if (parent instanceof PrefixedIdentifier) {
+        PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
+        if (prefixed.getIdentifier() == node) {
+          return false;
+        }
+      }
+    }
+    // report problem
+    errorReporter.reportError(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, node);
+    return true;
   }
 
   /**

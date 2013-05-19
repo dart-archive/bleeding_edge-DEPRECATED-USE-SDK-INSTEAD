@@ -558,6 +558,159 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_implicitThisReferenceInInitializer_constructorName() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.named() {}",
+        "}",
+        "class B {",
+        "  var v;",
+        "  B() : v = new A.named();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_prefixedIdentifier() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var f;",
+        "}",
+        "class B {",
+        "  var v;",
+        "  B(A a) : v = a.f;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_qualifiedMethodInvocation() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  f() {}",
+        "}",
+        "class B {",
+        "  var v;",
+        "  B() : v = new A().f();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_qualifiedPropertyAccess() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var f;",
+        "}",
+        "class B {",
+        "  var v;",
+        "  B() : v = new A().f;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_staticField_superClass() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static var f;",
+        "}",
+        "class B extends A {",
+        "  var v;",
+        "  B() : v = f;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_staticField_thisClass() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var v;",
+        "  A() : v = f;",
+        "  static var f;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_staticGetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var v;",
+        "  A() : v = f;",
+        "  static get f => 42;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_staticMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var v;",
+        "  A() : v = f();",
+        "  static f() => 42;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_topLevelField() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var v;",
+        "  A() : v = f;",
+        "}",
+        "var f = 42;"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_topLevelFunction() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var v;",
+        "  A() : v = f();",
+        "}",
+        "f() => 42;"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_topLevelGetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var v;",
+        "  A() : v = f;",
+        "}",
+        "get f = >42;"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_typeVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  var v;",
+        "  A(p) : v = (p is T);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_importDuplicatedLibraryName() throws Exception {
     Source source = addSource(createSource(//
         "library test;",

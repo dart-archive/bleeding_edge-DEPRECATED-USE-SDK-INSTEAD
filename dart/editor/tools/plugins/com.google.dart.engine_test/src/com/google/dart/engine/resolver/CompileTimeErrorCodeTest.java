@@ -1382,6 +1382,57 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_implicitThisReferenceInInitializer_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var v;",
+        "  A() : v = f;",
+        "  var f;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_invocation() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var v;",
+        "  A() : v = f();",
+        "  f() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_redirectingConstructorInvocation()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A(p) {}",
+        "  A() : super(f);",
+        "  var f;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
+    verify(source);
+  }
+
+  public void test_implicitThisReferenceInInitializer_superConstructorInvocation() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A(p) {}",
+        "}",
+        "class B extends A {",
+        "  B() : super(f);",
+        "  var f;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
+    verify(source);
+  }
+
   public void test_importOfNonLibrary() throws Exception {
     Source source = addSource(createSource(//
         "library lib;",

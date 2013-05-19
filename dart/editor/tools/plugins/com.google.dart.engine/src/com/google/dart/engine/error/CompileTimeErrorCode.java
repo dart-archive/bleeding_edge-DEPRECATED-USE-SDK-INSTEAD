@@ -439,6 +439,19 @@ public enum CompileTimeErrorCode implements ErrorCode {
   IMPLEMENTS_SELF("'%s' cannot implement itself"),
 
   /**
+   * 7.6.1 Generative Constructors: Note that this is not in scope on the right hand side of an
+   * initializer.
+   * <p>
+   * 12.10 This: It is a compile-time error if this appears in a top-level function or variable
+   * initializer, in a factory constructor, or in a static method or variable initializer, or in the
+   * initializer of an instance variable.
+   * 
+   * @param name the name of the type in question
+   */
+  IMPLICIT_THIS_REFERENCE_IN_INITIALIZER(
+      "The 'this' expression cannot be implicitly used in initializers"),
+
+  /**
    * 14.1 Imports: It is a compile-time error if the compilation unit found at the specified URI is
    * not a library declaration.
    * 
