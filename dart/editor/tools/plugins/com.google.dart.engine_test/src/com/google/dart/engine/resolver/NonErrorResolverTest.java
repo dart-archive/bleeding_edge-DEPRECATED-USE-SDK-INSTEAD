@@ -237,6 +237,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constConstructorWithNonFinalField_mixin() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  a() {}",
+        "}",
+        "class B extends Object with A {",
+        "  const B() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_constConstructorWithNonFinalField_static() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

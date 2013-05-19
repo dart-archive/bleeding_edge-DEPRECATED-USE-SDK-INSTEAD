@@ -114,6 +114,13 @@ public interface ClassElement extends Element {
   public ConstructorElement getUnnamedConstructor();
 
   /**
+   * Return {@code true} if this class or its superclass declares a non-final instance field.
+   * 
+   * @return {@code true} if this class or its superclass declares a non-final instance field
+   */
+  public boolean hasNonFinalField();
+
+  /**
    * Return {@code true} if this class has reference to super (so, for example, cannot be used as a
    * mixin).
    * 

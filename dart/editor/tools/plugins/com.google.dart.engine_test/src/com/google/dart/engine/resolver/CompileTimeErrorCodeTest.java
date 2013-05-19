@@ -650,7 +650,33 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_constConstructorWithNonFinalField() throws Exception {
+  public void test_constConstructorWithNonFinalField_mixin() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var a;",
+        "}",
+        "class B extends Object with A {",
+        "  const B() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
+    verify(source);
+  }
+
+  public void test_constConstructorWithNonFinalField_super() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var a;",
+        "}",
+        "class B extends A {",
+        "  const B() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
+    verify(source);
+  }
+
+  public void test_constConstructorWithNonFinalField_this() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  int x;",

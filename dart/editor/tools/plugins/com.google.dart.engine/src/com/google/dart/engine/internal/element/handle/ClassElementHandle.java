@@ -108,6 +108,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public boolean hasNonFinalField() {
+    return getActualElement().hasNonFinalField();
+  }
+
+  @Override
   public boolean hasReferenceToSuper() {
     return getActualElement().hasReferenceToSuper();
   }

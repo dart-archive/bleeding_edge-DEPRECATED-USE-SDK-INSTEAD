@@ -1352,10 +1352,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This verifies that the passed constructor declaration is not 'const' if it has a non-final
+   * This verifies that the passed constructor declaration is 'const' then there are no non-final
    * instance variable.
    * 
-   * @param node the instance creation expression to evaluate
+   * @param node the constructor declaration to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
    */
@@ -1363,20 +1363,15 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (!isEnclosingConstructorConst) {
       return false;
     }
+    // check if there is non-final field
     ConstructorElement constructorElement = node.getElement();
-    if (constructorElement != null) {
-      ClassElement classElement = constructorElement.getEnclosingElement();
-      FieldElement[] elements = classElement.getFields();
-      for (FieldElement field : elements) {
-        if (!field.isFinal() && !field.isConst() && !field.isStatic() && !field.isSynthetic()) {
-          errorReporter.reportError(
-              CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
-              node);
-          return true;
-        }
-      }
+    ClassElement classElement = constructorElement.getEnclosingElement();
+    if (!classElement.hasNonFinalField()) {
+      return false;
     }
-    return false;
+    // report problem
+    errorReporter.reportError(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, node);
+    return true;
   }
 
   /**

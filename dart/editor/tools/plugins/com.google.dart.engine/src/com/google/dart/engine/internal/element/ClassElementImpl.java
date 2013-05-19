@@ -282,6 +282,32 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public boolean hasNonFinalField() {
+    // check fields
+    for (FieldElement field : fields) {
+      if (!field.isFinal() && !field.isConst() && !field.isStatic() && !field.isSynthetic()) {
+        return true;
+      }
+    }
+    // check mixins
+    for (InterfaceType mixinType : mixins) {
+      ClassElement mixinElement = mixinType.getElement();
+      if (mixinElement.hasNonFinalField()) {
+        return true;
+      }
+    }
+    // check super
+    if (supertype != null) {
+      ClassElement superElement = supertype.getElement();
+      if (superElement.hasNonFinalField()) {
+        return true;
+      }
+    }
+    // not found
+    return false;
+  }
+
+  @Override
   public boolean hasReferenceToSuper() {
     return hasModifier(Modifier.REFERENCES_SUPER);
   }
