@@ -13,36 +13,44 @@
  */
 package com.google.dart.tools.core.generator;
 
+import com.google.dart.tools.core.test.util.PlainTestProject;
+
 import junit.framework.TestCase;
+
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.Path;
 
 public class ChromePackagedAppSampleTest extends TestCase {
 
   public void testGenerateSample() throws Exception {
-//    PlainTestProject testProject = new PlainTestProject("sample");
-//    IProject project = testProject.getProject();
-//
-//    try {
-//      ChromePackagedAppSample generator = new ChromePackagedAppSample();
-//
-//      IFile mainFile = generator.generateInto(project, "foo");
-//
-//      assertEquals("app/manifest.json", mainFile.getProjectRelativePath().toPortableString());
-//      assertTrue(mainFile.exists());
-//
-//      IContainer parent = mainFile.getParent();
-//
-//      // assert that there are no analysis errors
-//
-//      IFile buildFile = parent.getParent().getFile(new Path("build.dart"));
-//      assertTrue(buildFile.exists());
-//      GeneratorUtils.assertNoAnalysisErrors(buildFile);
-//
-//      IFile fooDartFile = parent.getFile(new Path("foo.dart"));
-//      assertTrue(fooDartFile.exists());
-//      GeneratorUtils.assertNoAnalysisErrors(fooDartFile);
-//    } finally {
-//      testProject.dispose();
-//    }
+    PlainTestProject testProject = new PlainTestProject("sample");
+    IProject project = testProject.getProject();
+
+    try {
+      ChromePackagedAppSample generator = new ChromePackagedAppSample();
+
+      IFile mainFile = generator.generateInto(project, "foo");
+
+      assertEquals("app/manifest.json", mainFile.getProjectRelativePath().toPortableString());
+      assertTrue(mainFile.exists());
+
+      IContainer parent = mainFile.getParent();
+
+      // assert that there are no analysis errors
+
+      IFile buildFile = parent.getParent().getFile(new Path("build.dart"));
+      assertTrue(buildFile.exists());
+      GeneratorUtils.assertNoAnalysisErrors(buildFile);
+
+      IFile fooDartFile = parent.getFile(new Path("foo.dart"));
+      assertTrue(fooDartFile.exists());
+      // TODO(devoncarew): we can't call this - web_ui doesn't exist in our repo
+      //GeneratorUtils.assertNoAnalysisErrors(fooDartFile);
+    } finally {
+      testProject.dispose();
+    }
   }
 
 }
