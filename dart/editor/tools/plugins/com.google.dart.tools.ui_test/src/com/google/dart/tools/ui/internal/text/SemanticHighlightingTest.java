@@ -324,10 +324,10 @@ public class SemanticHighlightingTest extends
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  static f = 0;",
+        "  static var f = 0;",
         "}",
         "");
-    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "static f =");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "static var f =");
   }
 
   public void test_builtIn_static_method() throws Exception {
@@ -375,53 +375,59 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.CLASS, "A .ZERO");
   }
 
-  // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=10161
-//  public void test_deprecated() throws Exception {
-//    setFileContent(
-//        "meta.dart",
-//        makeSource(
-//            "// filler filler filler filler filler filler filler filler filler filler",
-//            "library meta;",
-//            "const deprecated = 42;",
-//            ""));
-//    preparePositions(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "@deprecated",
-//        "class A {}",
-//        "main() {",
-//        "  A a;",
-//        "}",
-//        "");
-//    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "A {}");
-//    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "A a;");
-//  }
+  public void test_deprecated() throws Exception {
+    setFileContent(
+        "meta.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library meta;",
+            "const deprecated = 42;",
+            ""));
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import '/meta.dart';",
+        "@deprecated",
+        "class A {}",
+        "main() {",
+        "  A a;",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "A {}");
+    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "A a;");
+  }
 
-  // TODO(scheglov)
-//  public void test_deprecated_libraryImport() throws Exception {
-//    setUnitContent(
-//        "ModernLib.dart",
-//        formatLines(
-//            "// filler filler filler filler filler filler filler filler filler filler",
-//            "library modernLib;",
-//            ""));
-//    setUnitContent(
-//        "DeprecatedLib.dart",
-//        formatLines(
-//            "// filler filler filler filler filler filler filler filler filler filler",
-//            "@deprecated",
-//            "library deprecatedLib;",
-//            "const deprecated = 0;",
-//            ""));
-//    preparePositions(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "library App;",
-//        "import 'ModernLib.dart';",
-//        "import 'DeprecatedLib.dart';",
-//        "");
-//    TestUtilities.processAllDeltaChanges();
-//    String search = "'DeprecatedLib.dart'";
-//    assertHasPosition(SemanticHighlightings.DEPRECATED_ELEMENT, findOffset(search), search.length());
-//  }
+  public void test_deprecated_libraryImport() throws Exception {
+    setFileContent(
+        "meta.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library meta;",
+            "const deprecated = 42;",
+            ""));
+    setFileContent(
+        "ModernLib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library modernLib;",
+            ""));
+    setFileContent(
+        "DeprecatedLib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import '/meta.dart';",
+            "@deprecated",
+            "library deprecatedLib;",
+            "const deprecated = 0;",
+            ""));
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library App;",
+        "import 'ModernLib.dart';",
+        "import 'DeprecatedLib.dart';",
+        "");
+    String search = "'DeprecatedLib.dart'";
+    assertHasPosition(SemanticHighlightings.DEPRECATED_ELEMENT, findOffset(search), search.length());
+  }
 
   public void test_directive_export() throws Exception {
     setFileContent(
@@ -632,10 +638,10 @@ public class SemanticHighlightingTest extends
   public void test_number() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "int vi1 = 12345 ;",
-        "int vi2 = -23456 ;",
-        "int vd1 = 123.45 ;",
-        "int vd2 = -234.56 ;",
+        "var vi1 = 12345 ;",
+        "var vi2 = -23456 ;",
+        "var vd1 = 123.45 ;",
+        "var vd2 = -234.56 ;",
         "");
     assertHasWordPosition(SemanticHighlightings.NUMBER, "12345 ;");
     assertHasWordPosition(SemanticHighlightings.NUMBER, "23456 ;");

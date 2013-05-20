@@ -34,6 +34,7 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeAlias;
 import com.google.dart.engine.ast.TypeName;
@@ -43,6 +44,8 @@ import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
@@ -360,66 +363,69 @@ public class SemanticHighlightings {
     }
   }
 
-//  /**
-//   * Semantic highlighting deprecated elements.
-//   * <p>
-//   * TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=10161
-//   */
-//  private static final class DeprecatedElementHighlighting extends DefaultSemanticHighlighting {
-//    @Override
-//    public boolean consumes(SemanticToken token) {
-//      ASTNode node = token.getNode();
-//      if (node instanceof StringLiteral && node.getParent() instanceof ImportDirective) {
-//        Element element = node.getElement();
-//        return element != null && element.getMetadata() != null
-//            && element.getMetadata().isDeprecated();
-//      }
-//      return false;
-//    }
-//
-//    @Override
-//    public boolean consumesIdentifier(SemanticToken token) {
-//      SimpleIdentifier node = token.getNodeIdentifier();
-//      Element element = node.getElement();
-//      if (element != null) {
-//        com.google.dart.engine.element.Annotation[] annotations = element.getMetadata();
-//        for (com.google.dart.engine.element.Annotation annotation : annotations) {
-//          Element annotationElement = annotation.getElement();
-//          if (annotationElement != null) {
-//            if (annotationElement.getName().equals("deprecated")) {
-//              return true;
-//            }
-//          }
-//        }
-//      }
-//      return false;
-//    }
-//
-//    @Override
-//    public RGB getDefaultDefaultTextColor() {
-//      return new RGB(0, 0, 0);
-//    }
-//
-//    @Override
-//    public String getDisplayName() {
-//      return DartEditorMessages.SemanticHighlighting_deprecatedElement;
-//    }
-//
-//    @Override
-//    public String getPreferenceKey() {
-//      return DEPRECATED_ELEMENT;
-//    }
-//
-//    @Override
-//    public boolean isEnabledByDefault() {
-//      return true;
-//    }
-//
-//    @Override
-//    public boolean isStrikethroughByDefault() {
-//      return true;
-//    }
-//  }
+  /**
+   * Semantic highlighting deprecated elements.
+   */
+  private static final class DeprecatedElementHighlighting extends DefaultSemanticHighlighting {
+    private static boolean isDeprecatedElement(Element element) {
+      if (element != null) {
+        com.google.dart.engine.element.Annotation[] annotations = element.getMetadata();
+        for (com.google.dart.engine.element.Annotation annotation : annotations) {
+          Element annotationElement = annotation.getElement();
+          if (annotationElement != null) {
+            if (annotationElement.getName().equals("deprecated")) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    @Override
+    public boolean consumes(SemanticToken token) {
+      ASTNode node = token.getNode();
+      if (node instanceof StringLiteral && node.getParent() instanceof ImportDirective) {
+        ImportDirective importDirective = (ImportDirective) node.getParent();
+        ImportElement importElement = (ImportElement) importDirective.getElement();
+        LibraryElement importedLibrary = importElement.getImportedLibrary();
+        return isDeprecatedElement(importedLibrary);
+      }
+      return false;
+    }
+
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      SimpleIdentifier node = token.getNodeIdentifier();
+      Element element = node.getElement();
+      return isDeprecatedElement(element);
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(0, 0, 0);
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_deprecatedElement;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return DEPRECATED_ELEMENT;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+
+    @Override
+    public boolean isStrikethroughByDefault() {
+      return true;
+    }
+  }
 
   /**
    * Highlights directives - "library", "import", "part of", etc.
@@ -1187,17 +1193,15 @@ public class SemanticHighlightings {
   public static SemanticHighlighting[] getSemanticHighlightings() {
     if (SEMANTIC_HIGHTLIGHTINGS == null) {
       SEMANTIC_HIGHTLIGHTINGS = new SemanticHighlighting[] {
-          new DirectiveHighlighting(),
-          new BuiltInHighlighting(),
-          // TODO(scheglov)
-//          new DeprecatedElementHighlighting(), 
-          new GetterDeclarationHighlighting(), new SetterDeclarationHighlighting(),
-          new AnnotationHighlighting(), new StaticFieldHighlighting(), new FieldHighlighting(),
-          new DynamicTypeHighlighting(), new ClassHighlighting(), new TypeVariableHighlighting(),
-          new NumberHighlighting(), new LocalVariableDeclarationHighlighting(),
-          new LocalVariableHighlighting(), new ParameterHighlighting(),
-          new StaticMethodDeclarationHighlighting(), new StaticMethodHighlighting(),
-          new MethodDeclarationHighlighting(), new MethodHighlighting()};
+          new DirectiveHighlighting(), new BuiltInHighlighting(),
+          new DeprecatedElementHighlighting(), new GetterDeclarationHighlighting(),
+          new SetterDeclarationHighlighting(), new AnnotationHighlighting(),
+          new StaticFieldHighlighting(), new FieldHighlighting(), new DynamicTypeHighlighting(),
+          new ClassHighlighting(), new TypeVariableHighlighting(), new NumberHighlighting(),
+          new LocalVariableDeclarationHighlighting(), new LocalVariableHighlighting(),
+          new ParameterHighlighting(), new StaticMethodDeclarationHighlighting(),
+          new StaticMethodHighlighting(), new MethodDeclarationHighlighting(),
+          new MethodHighlighting()};
     }
     return SEMANTIC_HIGHTLIGHTINGS;
   }
