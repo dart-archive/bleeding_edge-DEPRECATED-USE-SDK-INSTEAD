@@ -16,10 +16,14 @@ package com.google.dart.engine.internal.resolver;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ASTVisitor;
+import com.google.dart.engine.ast.AnnotatedNode;
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -28,10 +32,14 @@ import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
+import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
@@ -54,8 +62,11 @@ import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SuperExpression;
+import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
+import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -79,8 +90,10 @@ import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
+import com.google.dart.engine.internal.element.AnnotationImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
@@ -98,6 +111,7 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeVariableType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -365,6 +379,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   @Override
+  public Void visitClassDeclaration(ClassDeclaration node) {
+    setMetadata(node.getElement(), node);
+    return null;
+  }
+
+  @Override
+  public Void visitClassTypeAlias(ClassTypeAlias node) {
+    setMetadata(node.getElement(), node);
+    return null;
+  }
+
+  @Override
   public Void visitCommentReference(CommentReference node) {
     Identifier identifier = node.getIdentifier();
     if (identifier instanceof SimpleIdentifier) {
@@ -468,28 +494,24 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
-    // set redirected factory constructor
-    {
+    ConstructorElement element = node.getElement();
+    if (element instanceof ConstructorElementImpl) {
+      ConstructorElementImpl constructorElement = (ConstructorElementImpl) element;
+      // set redirected factory constructor
       ConstructorName redirectedNode = node.getRedirectedConstructor();
       if (redirectedNode != null) {
         ConstructorElement redirectedElement = redirectedNode.getElement();
-        ConstructorElement element = node.getElement();
-        if (element instanceof ConstructorElementImpl) {
-          ((ConstructorElementImpl) element).setRedirectedConstructor(redirectedElement);
+        constructorElement.setRedirectedConstructor(redirectedElement);
+      }
+      // set redirected generate constructor
+      for (ConstructorInitializer initializer : node.getInitializers()) {
+        if (initializer instanceof RedirectingConstructorInvocation) {
+          ConstructorElement redirectedElement = ((RedirectingConstructorInvocation) initializer).getElement();
+          constructorElement.setRedirectedConstructor(redirectedElement);
         }
       }
+      setMetadata(constructorElement, node);
     }
-    // set redirected generate constructor
-    for (ConstructorInitializer initializer : node.getInitializers()) {
-      if (initializer instanceof RedirectingConstructorInvocation) {
-        ConstructorElement redirectedElement = ((RedirectingConstructorInvocation) initializer).getElement();
-        ConstructorElement element = node.getElement();
-        if (element instanceof ConstructorElementImpl) {
-          ((ConstructorElementImpl) element).setRedirectedConstructor(redirectedElement);
-        }
-      }
-    }
-    // done
     return null;
   }
 
@@ -552,6 +574,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   @Override
+  public Void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    setMetadata(node.getElement(), node);
+    return null;
+  }
+
+  @Override
   public Void visitExportDirective(ExportDirective node) {
     Element element = node.getElement();
     if (element instanceof ExportElement) {
@@ -559,6 +587,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // TODO(brianwilkerson) Figure out whether the element can ever be something other than an
       // ExportElement
       resolveCombinators(((ExportElement) element).getExportedLibrary(), node.getCombinators());
+      setMetadata(element, node);
     }
     return null;
   }
@@ -627,9 +656,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   @Override
+  public Void visitFunctionDeclaration(FunctionDeclaration node) {
+    setMetadata(node.getElement(), node);
+    return null;
+  }
+
+  @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     // TODO(brianwilkerson) Can we ever resolve the function being invoked?
-    //resolveNamedArguments(node.getArgumentList(), invokedFunction);
+    //resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
+    return null;
+  }
+
+  @Override
+  public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    setMetadata(node.getElement(), node);
     return null;
   }
 
@@ -655,6 +696,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       if (library != null) {
         resolveCombinators(library, node.getCombinators());
       }
+      setMetadata(element, node);
     }
     return null;
   }
@@ -696,7 +738,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ConstructorElement invokedConstructor = node.getConstructorName().getElement();
     staticElementMap.put(node, invokedConstructor);
     node.setElement(invokedConstructor);
-    resolveNamedArguments(node.getArgumentList(), invokedConstructor);
+    resolveArgumentsToParameters(node.getArgumentList(), invokedConstructor);
+    return null;
+  }
+
+  @Override
+  public Void visitLibraryDirective(LibraryDirective node) {
+    setMetadata(node.getElement(), node);
+    return null;
+  }
+
+  @Override
+  public Void visitMethodDeclaration(MethodDeclaration node) {
+    setMetadata(node.getElement(), node);
     return null;
   }
 
@@ -740,17 +794,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
               CALL_METHOD_NAME,
               resolver.getDefiningLibrary());
           if (callMethod != null) {
-            resolveNamedArguments(node.getArgumentList(), callMethod);
+            resolveArgumentsToParameters(node.getArgumentList(), callMethod);
           }
         } else if (getterReturnType instanceof FunctionType) {
           Element functionElement = ((FunctionType) getterReturnType).getElement();
           if (functionElement instanceof ExecutableElement) {
-            resolveNamedArguments(node.getArgumentList(), (ExecutableElement) functionElement);
+            resolveArgumentsToParameters(
+                node.getArgumentList(),
+                (ExecutableElement) functionElement);
           }
         }
       }
     } else if (recordedElement instanceof ExecutableElement) {
-      resolveNamedArguments(node.getArgumentList(), (ExecutableElement) recordedElement);
+      resolveArgumentsToParameters(node.getArgumentList(), (ExecutableElement) recordedElement);
     }
     //
     // Then check for error conditions.
@@ -810,6 +866,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           methodName.getName(),
           targetTypeName);
     }
+    return null;
+  }
+
+  @Override
+  public Void visitPartDirective(PartDirective node) {
+    setMetadata(node.getElement(), node);
+    return null;
+  }
+
+  @Override
+  public Void visitPartOfDirective(PartOfDirective node) {
+    setMetadata(node.getElement(), node);
     return null;
   }
 
@@ -936,7 +1004,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     staticElementMap.put(node, element);
     node.setElement(element);
-    resolveNamedArguments(node.getArgumentList(), element);
+    resolveArgumentsToParameters(node.getArgumentList(), element);
     return null;
   }
 
@@ -1013,7 +1081,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     staticElementMap.put(node, element);
     node.setElement(element);
-    resolveNamedArguments(node.getArgumentList(), element);
+    resolveArgumentsToParameters(node.getArgumentList(), element);
     return null;
   }
 
@@ -1034,7 +1102,31 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         variable.setBound(bound.getType());
       }
     }
+    setMetadata(node.getElement(), node);
     return null;
+  }
+
+  @Override
+  public Void visitVariableDeclaration(VariableDeclaration node) {
+    setMetadata(node.getElement(), node);
+    return null;
+  }
+
+  /**
+   * Generate annotation elements for each of the annotations in the given node list and add them to
+   * the given list of elements.
+   * 
+   * @param annotationList the list of elements to which new elements are to be added
+   * @param annotations the AST nodes used to generate new elements
+   */
+  private void addAnnotations(ArrayList<AnnotationImpl> annotationList,
+      NodeList<Annotation> annotations) {
+    for (Annotation annotationNode : annotations) {
+      Element resolvedElement = annotationNode.getElement();
+      if (resolvedElement != null) {
+        annotationList.add(new AnnotationImpl(resolvedElement));
+      }
+    }
   }
 
   /**
@@ -1189,26 +1281,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     return element;
-  }
-
-  /**
-   * Search through the array of parameters for a parameter whose name matches the given name.
-   * Return the parameter with the given name, or {@code null} if there is no such parameter.
-   * 
-   * @param parameters the parameters being searched
-   * @param name the name being searched for
-   * @return the parameter with the given name
-   */
-  private ParameterElement findNamedParameter(ParameterElement[] parameters, String name) {
-    for (ParameterElement parameter : parameters) {
-      if (parameter.getParameterKind() == ParameterKind.NAMED) {
-        String parameterName = parameter.getName();
-        if (parameterName != null && parameterName.equals(name)) {
-          return parameter;
-        }
-      }
-    }
-    return null;
   }
 
   /**
@@ -1762,6 +1834,67 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     return element;
   }
 
+  /**
+   * Given a list of arguments and the element that will be invoked using those argument, compute
+   * the list of parameters that correspond to the list of arguments.
+   * 
+   * @param argumentList the list of arguments being passed to the element
+   * @param executableElement the element that will be invoked with the arguments
+   */
+  private void resolveArgumentsToParameters(ArgumentList argumentList,
+      ExecutableElement executableElement) {
+    if (executableElement == null) {
+      return;
+    }
+    ParameterElement[] parameters = executableElement.getParameters();
+    ArrayList<ParameterElement> requiredParameters = new ArrayList<ParameterElement>();
+    ArrayList<ParameterElement> positionalParameters = new ArrayList<ParameterElement>();
+    HashMap<String, ParameterElement> namedParameters = new HashMap<String, ParameterElement>();
+    for (ParameterElement parameter : parameters) {
+      ParameterKind kind = parameter.getParameterKind();
+      if (kind == ParameterKind.REQUIRED) {
+        requiredParameters.add(parameter);
+      } else if (kind == ParameterKind.POSITIONAL) {
+        positionalParameters.add(parameter);
+      } else {
+        namedParameters.put(parameter.getName(), parameter);
+      }
+    }
+    ArrayList<ParameterElement> unnamedParameters = new ArrayList<ParameterElement>(
+        requiredParameters);
+    unnamedParameters.addAll(positionalParameters);
+    int unnamedParameterCount = unnamedParameters.size();
+    int unnamedIndex = 0;
+
+    NodeList<Expression> arguments = argumentList.getArguments();
+    int argumentCount = arguments.size();
+    if (argumentCount < requiredParameters.size()) {
+      // TODO(brianwilkerson) Report this error (not enough arguments)
+    }
+    ParameterElement[] resolvedParameters = new ParameterElement[argumentCount];
+    for (int i = 0; i < argumentCount; i++) {
+      Expression argument = arguments.get(i);
+      if (argument instanceof NamedExpression) {
+        SimpleIdentifier nameNode = ((NamedExpression) argument).getName().getLabel();
+        String name = nameNode.getName();
+        ParameterElement element = namedParameters.get(name);
+        if (element == null) {
+          // TODO(brianwilkerson) Report this error (no corresponding parameter for named argument)
+        } else {
+          resolvedParameters[i] = element;
+          recordResolution(nameNode, element);
+        }
+      } else {
+        if (unnamedIndex < unnamedParameterCount) {
+          resolvedParameters[i] = unnamedParameters.get(unnamedIndex++);
+        } else {
+          // TODO(brianwilkerson) Report this error (too many positional arguments) exactly once
+        }
+      }
+    }
+    argumentList.setCorrespondingParameters(resolvedParameters);
+  }
+
 //  /**
 //   * Report the {@link StaticTypeWarningCode}s <code>UNDEFINED_SETTER</code> and
 //   * <code>UNDEFINED_GETTER</code>.
@@ -1865,8 +1998,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           return element;
         }
       }
-      //return targetElement;
     }
+    // TODO(brianwilkerson) Report this error.
     return null;
   }
 
@@ -1901,31 +2034,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         }
       }
     }
+    // TODO(brianwilkerson) Report this error.
     return element;
-  }
-
-  /**
-   * Resolve the names associated with any named arguments to the parameter elements named by the
-   * argument.
-   * 
-   * @param argumentList the arguments to be resolved
-   * @param invokedMethod the method or function defining the parameters to which the named
-   *          arguments are to be resolved
-   */
-  private void resolveNamedArguments(ArgumentList argumentList, ExecutableElement invokedMethod) {
-    if (invokedMethod == null) {
-      return;
-    }
-    ParameterElement[] parameters = invokedMethod.getParameters();
-    for (Expression argument : argumentList.getArguments()) {
-      if (argument instanceof NamedExpression) {
-        SimpleIdentifier name = ((NamedExpression) argument).getName().getLabel();
-        ParameterElement parameter = findNamedParameter(parameters, name.getName());
-        if (parameter != null) {
-          recordResolution(name, parameter);
-        }
-      }
-    }
   }
 
   /**
@@ -2120,6 +2230,36 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    */
   private MethodElement select(MethodElement staticMethod, MethodElement propagatedMethod) {
     return propagatedMethod != null ? propagatedMethod : staticMethod;
+  }
+
+  /**
+   * Given a node that can have annotations associated with it and the element to which that node
+   * has been resolved, create the annotations in the element model representing the annotations on
+   * the node.
+   * 
+   * @param element the element to which the node has been resolved
+   * @param node the node that can have annotations associated with it
+   */
+  private void setMetadata(Element element, AnnotatedNode node) {
+    if (!(element instanceof ElementImpl)) {
+      return;
+    }
+    ArrayList<AnnotationImpl> annotationList = new ArrayList<AnnotationImpl>();
+    addAnnotations(annotationList, node.getMetadata());
+    if (node instanceof VariableDeclaration && node.getParent() instanceof VariableDeclarationList) {
+      VariableDeclarationList list = (VariableDeclarationList) node.getParent();
+      addAnnotations(annotationList, list.getMetadata());
+      if (list.getParent() instanceof FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = (FieldDeclaration) list.getParent();
+        addAnnotations(annotationList, fieldDeclaration.getMetadata());
+      } else if (list.getParent() instanceof TopLevelVariableDeclaration) {
+        TopLevelVariableDeclaration variableDeclaration = (TopLevelVariableDeclaration) list.getParent();
+        addAnnotations(annotationList, variableDeclaration.getMetadata());
+      }
+    }
+    if (!annotationList.isEmpty()) {
+      ((ElementImpl) element).setMetadata(annotationList.toArray(new AnnotationImpl[annotationList.size()]));
+    }
   }
 
   /**

@@ -13,9 +13,22 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.BlockFunctionBody;
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionStatement;
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.source.Source;
 
@@ -33,6 +46,105 @@ public class SimpleResolverTest extends ResolverTestCase {
     resolve(source);
     assertNoErrors();
     verify(source);
+  }
+
+  public void test_argumentResolution_required_matching() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void f() {",
+        "    g(1, 2, 3);",
+        "  }",
+        "  void g(a, b, c) {}",
+        "}"));
+    validateArgumentResolution(source, 0, 1, 2);
+  }
+
+  public void test_argumentResolution_required_tooFew() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void f() {",
+        "    g(1, 2);",
+        "  }",
+        "  void g(a, b, c) {}",
+        "}"));
+    validateArgumentResolution(source, 0, 1);
+  }
+
+  public void test_argumentResolution_required_tooMany() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void f() {",
+        "    g(1, 2, 3);",
+        "  }",
+        "  void g(a, b) {}",
+        "}"));
+    validateArgumentResolution(source, 0, 1, -1);
+  }
+
+  public void test_argumentResolution_requiredAndNamed_extra() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void f() {",
+        "    g(1, 2, c: 3, d: 4);",
+        "  }",
+        "  void g(a, b, {c}) {}",
+        "}"));
+    validateArgumentResolution(source, 0, 1, 2, -1);
+  }
+
+  public void test_argumentResolution_requiredAndNamed_matching() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void f() {",
+        "    g(1, 2, c: 3);",
+        "  }",
+        "  void g(a, b, {c}) {}",
+        "}"));
+    validateArgumentResolution(source, 0, 1, 2);
+  }
+
+  public void test_argumentResolution_requiredAndNamed_missing() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void f() {",
+        "    g(1, 2, d: 3);",
+        "  }",
+        "  void g(a, b, {c, d}) {}",
+        "}"));
+    validateArgumentResolution(source, 0, 1, 3);
+  }
+
+  public void test_argumentResolution_requiredAndPositional_fewer() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void f() {",
+        "    g(1, 2, 3);",
+        "  }",
+        "  void g(a, b, [c, d]) {}",
+        "}"));
+    validateArgumentResolution(source, 0, 1, 2);
+  }
+
+  public void test_argumentResolution_requiredAndPositional_matching() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void f() {",
+        "    g(1, 2, 3, 4);",
+        "  }",
+        "  void g(a, b, [c, d]) {}",
+        "}"));
+    validateArgumentResolution(source, 0, 1, 2, 3);
+  }
+
+  public void test_argumentResolution_requiredAndPositional_more() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  void f() {",
+        "    g(1, 2, 3, 4);",
+        "  }",
+        "  void g(a, b, [c]) {}",
+        "}"));
+    validateArgumentResolution(source, 0, 1, 2, -1);
   }
 
   public void test_class_definesCall() throws Exception {
@@ -336,6 +448,72 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_metadata_class() throws Exception {
+    Source source = addSource(createSource(//
+        "const A = null;",
+        "@A class C {}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    ClassElement[] classes = unit.getTypes();
+    assertLength(1, classes);
+    Annotation[] annotations = classes[0].getMetadata();
+    assertLength(1, annotations);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_metadata_field() throws Exception {
+    Source source = addSource(createSource(//
+        "const A = null;",
+        "class C {",
+        "  @A int f;",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    ClassElement[] classes = unit.getTypes();
+    assertLength(1, classes);
+    FieldElement field = classes[0].getFields()[0];
+    Annotation[] annotations = field.getMetadata();
+    assertLength(1, annotations);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_metadata_libraryDirective() throws Exception {
+    Source source = addSource(createSource(//
+        "@A library lib;",
+        "const A = null;"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    Annotation[] annotations = library.getMetadata();
+    assertLength(1, annotations);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_metadata_method() throws Exception {
+    Source source = addSource(createSource(//
+        "const A = null;",
+        "class C {",
+        "  @A void m() {}",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    ClassElement[] classes = unit.getTypes();
+    assertLength(1, classes);
+    MethodElement method = classes[0].getMethods()[0];
+    Annotation[] annotations = method.getMetadata();
+    assertLength(1, annotations);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_method_fromMixin() throws Exception {
     Source source = addSource(createSource(//
         "class B {",
@@ -442,5 +620,55 @@ public class SimpleResolverTest extends ResolverTestCase {
     resolve(source);
     assertNoErrors();
     verify(source);
+  }
+
+  /**
+   * Resolve the given source and verify that the arguments in a specific method invocation were
+   * correctly resolved.
+   * <p>
+   * The source is expected to be source for a compilation unit, the first declaration is expected
+   * to be a class, the first member of which is expected to be a method with a block body, and the
+   * first statement in the body is expected to be an expression statement whose expression is a
+   * method invocation. It is the arguments to that method invocation that are tested. The method
+   * invocation can contain errors.
+   * <p>
+   * The arguments were resolved correctly if the number of expressions in the list matches the
+   * length of the array of indices and if, for each index in the array of indices, the parameter to
+   * which the argument expression was resolved is the parameter in the invoked method's list of
+   * parameters at that index. Arguments that should not be resolved to a parameter because of an
+   * error can be denoted by including a negative index in the array of indices.
+   * 
+   * @param source the source to be resolved
+   * @param indices the array of indices used to associate arguments with parameters
+   * @throws Exception if the source could not be resolved or if the structure of the source is not
+   *           valid
+   */
+  private void validateArgumentResolution(Source source, int... indices) throws Exception {
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    ClassElement classElement = library.getDefiningCompilationUnit().getTypes()[0];
+    ParameterElement[] parameters = classElement.getMethods()[1].getParameters();
+
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    assertNotNull(unit);
+    ClassDeclaration classDeclaration = (ClassDeclaration) unit.getDeclarations().get(0);
+    MethodDeclaration methodDeclaration = ((MethodDeclaration) classDeclaration.getMembers().get(0));
+    Block block = ((BlockFunctionBody) methodDeclaration.getBody()).getBlock();
+    ExpressionStatement statement = (ExpressionStatement) block.getStatements().get(0);
+    MethodInvocation invocation = (MethodInvocation) statement.getExpression();
+    NodeList<Expression> arguments = invocation.getArgumentList().getArguments();
+
+    int argumentCount = arguments.size();
+    assertEquals(indices.length, argumentCount);
+    for (int i = 0; i < argumentCount; i++) {
+      Expression argument = arguments.get(i);
+      ParameterElement element = argument.getParameterElement();
+      int index = indices[i];
+      if (index < 0) {
+        assertNull(element);
+      } else {
+        assertSame(parameters[index], element);
+      }
+    }
   }
 }

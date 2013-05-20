@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -118,6 +119,21 @@ public class Annotation extends ASTNode {
    */
   public SimpleIdentifier getConstructorName() {
     return constructorName;
+  }
+
+  /**
+   * Return the element associated with this annotation, or {@code null} if the AST structure has
+   * not been resolved or if this annotation could not be resolved.
+   * 
+   * @return the element associated with this annotation
+   */
+  public Element getElement() {
+    if (constructorName != null) {
+      return constructorName.getElement();
+    } else if (name != null) {
+      return name.getElement();
+    }
+    return null;
   }
 
   @Override
