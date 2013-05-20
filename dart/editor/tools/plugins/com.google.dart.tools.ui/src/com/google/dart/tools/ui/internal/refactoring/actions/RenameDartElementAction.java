@@ -18,7 +18,6 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.services.assist.AssistContext;
@@ -127,28 +126,22 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
       if (element == null) {
         return;
       }
-//      ASTNode node = context.getCoveredNode();
-//      // 'library x;' or 'part of x;'
-//      if (node != null) {
-//        Directive directive = node.getAncestor(Directive.class);
-//        if (directive != null && directive.getElement() instanceof LibraryElement) {
-//          renameUsingDialog(element);
-//          return;
-//        }
+      // Always rename using dialog. Eclipse implementation of the linked mode is very slow
+      // in case of the many occurrences in the single file. It is also done using asynchronous
+      // execution, in these 1-2-3 seconds user can type anything and damage source.
+      renameUsingDialog(element);
+//      // Unnamed constructor are special case - we don't have name to start linked mode.
+//      // Named constructors may become unnamed, this looks ugly because of analysis as you type.
+//      if (element instanceof ConstructorElement) {
+//        renameUsingDialog(element);
+//        return;
 //      }
-      // Unnamed constructor are special case - we don't have name to start linked mode.
-      // Named constructors may become unnamed, this looks ugly because of analysis as you type.
-      if (element instanceof ConstructorElement) {
-        renameUsingDialog(element);
-        return;
-      }
-      // XXX
-      if (element instanceof LibraryElement) {
-        renameUsingDialog(element);
-        return;
-      }
-      // start linked mode rename
-      new RenameLinkedMode(editor, context).start();
+//      if (element instanceof LibraryElement) {
+//        renameUsingDialog(element);
+//        return;
+//      }
+//      // start linked mode rename
+//      new RenameLinkedMode(editor, context).start();
     }
   }
 
