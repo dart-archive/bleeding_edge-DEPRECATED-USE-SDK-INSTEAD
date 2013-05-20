@@ -31,6 +31,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.editor.IFormPage;
 import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.texteditor.IElementStateListener;
 
 import java.io.File;
@@ -199,15 +200,23 @@ public class PubspecEditor extends FormEditor {
   protected void setInput(IEditorInput input) {
     super.setInput(input);
 
+    String contents = null;
     if (input instanceof IFileEditorInput) {
-      String contents = getContents((IFileEditorInput) input);
-      // TODO(keerti): more error checking/recovery if contents cannot be parsed
+      contents = getContents((IFileEditorInput) input);
+
+    } else if (input instanceof FileStoreEditorInput) {
+      File file = new File(((FileStoreEditorInput) input).getURI());
+      if (file.exists()) {
+        contents = getContents(file);
+      }
+    }
+    if (contents != null) {
+      // TODO(keerti): more error checking/recovery if contents cannot be parsed   
       model = new PubspecModel(contents);
     }
   }
 
-  private String getContents(IFileEditorInput input) {
-    File file = input.getFile().getLocation().toFile();
+  private String getContents(File file) {
     String contents = null;
     try {
       contents = FileUtilities.getContents(file, "UTF-8");
@@ -215,6 +224,11 @@ public class PubspecEditor extends FormEditor {
       DartWebPlugin.logError(e);
     }
     return contents;
+  }
+
+  private String getContents(IFileEditorInput input) {
+    File file = input.getFile().getLocation().toFile();
+    return getContents(file);
   }
 
   private String getPropertyEditorPageKey(IFileEditorInput input) {

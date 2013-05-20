@@ -17,12 +17,14 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
@@ -39,14 +41,29 @@ public class SimpleTextEditor extends TextEditor {
   }
 
   @Override
+  public boolean isEditable() {
+    if (getEditorInput() instanceof FileStoreEditorInput) {
+      return false;
+    }
+    return super.isEditable();
+  }
+
+  @Override
   protected void doSetInput(IEditorInput input) throws CoreException {
 
+    IEditorDescriptor descriptor = null;
     final IFile file = (IFile) input.getAdapter(IFile.class);
 
-    IEditorDescriptor descriptor = IDE.getEditorDescriptor(file);
-
+    if (file == null) {
+      if (input instanceof FileStoreEditorInput) {
+        Path path = new Path(((FileStoreEditorInput) input).getURI().getPath());
+        descriptor = IDE.getEditorDescriptor(path.lastSegment());
+      }
+    } else {
+      descriptor = IDE.getEditorDescriptor(file);
+    }
     //Re-open input with a more appropriate editor if there's a better fit
-    if (!descriptor.getId().equals(ID)) {
+    if (descriptor != null && !descriptor.getId().equals(ID)) {
 
       close(true);
 
