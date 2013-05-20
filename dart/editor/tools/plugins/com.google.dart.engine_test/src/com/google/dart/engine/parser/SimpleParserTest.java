@@ -2636,20 +2636,24 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseFunctionBody_block() throws Exception {
-    BlockFunctionBody functionBody = parse("parseFunctionBody", new Object[] {false, false}, "{}");
+    BlockFunctionBody functionBody = parse(
+        "parseFunctionBody",
+        new Object[] {false, null, false},
+        "{}");
     assertNotNull(functionBody.getBlock());
   }
 
   public void test_parseFunctionBody_empty() throws Exception {
-    EmptyFunctionBody functionBody = parse("parseFunctionBody", new Object[] {true, false}, ";");
+    EmptyFunctionBody functionBody = parse(
+        "parseFunctionBody",
+        new Object[] {true, null, false},
+        ";");
     assertNotNull(functionBody.getSemicolon());
   }
 
   public void test_parseFunctionBody_expression() throws Exception {
-    ExpressionFunctionBody functionBody = parse(
-        "parseFunctionBody",
-        new Object[] {false, false},
-        "=> y;");
+    ExpressionFunctionBody functionBody = parse("parseFunctionBody", new Object[] {
+        false, null, false}, "=> y;");
     assertNotNull(functionBody.getFunctionDefinition());
     assertNotNull(functionBody.getExpression());
     assertNotNull(functionBody.getSemicolon());
@@ -2658,7 +2662,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseFunctionBody_nativeFunctionBody() throws Exception {
     NativeFunctionBody functionBody = parse(
         "parseFunctionBody",
-        new Object[] {false, false},
+        new Object[] {false, null, false},
         "native 'str';");
     assertNotNull(functionBody.getNativeToken());
     assertNotNull(functionBody.getStringLiteral());
@@ -2751,7 +2755,7 @@ public class SimpleParserTest extends ParserTestCase {
     Token staticKeyword = token(Keyword.STATIC);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = parse("parseGetter", new Object[] {
-        commentAndMetadata(comment), null, staticKeyword, returnType}, "get a;");
+        commentAndMetadata(comment), null, staticKeyword, returnType}, "get a => 42;");
     assertNotNull(method.getBody());
     assertEquals(comment, method.getDocumentationComment());
     assertNull(method.getExternalKeyword());

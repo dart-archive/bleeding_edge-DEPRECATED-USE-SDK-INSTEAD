@@ -241,6 +241,14 @@ public class ErrorParserTest extends ParserTestCase {
     parseCompilationUnit("const class C {}", ParserErrorCode.CONST_CLASS);
   }
 
+  public void test_constConstructorWithBody() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "const C() {}",
+        ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY);
+  }
+
   public void test_constFactory() throws Exception {
     parse(
         "parseClassMember",
@@ -579,6 +587,14 @@ public class ErrorParserTest extends ParserTestCase {
     parseCompilationUnit("factory typedef F();", ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION);
   }
 
+  public void test_factoryWithoutBody() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "factory C();",
+        ParserErrorCode.FACTORY_WITHOUT_BODY);
+  }
+
   public void test_fieldInitializerOutsideConstructor() throws Exception {
     parse(
         "parseClassMember",
@@ -764,7 +780,7 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_missingFunctionBody_emptyNotAllowed() throws Exception {
     parse(
         "parseFunctionBody",
-        new Object[] {false, false},
+        new Object[] {false, ParserErrorCode.MISSING_FUNCTION_BODY, false},
         ";",
         ParserErrorCode.MISSING_FUNCTION_BODY);
   }
@@ -772,7 +788,7 @@ public class ErrorParserTest extends ParserTestCase {
   public void test_missingFunctionBody_invalid() throws Exception {
     parse(
         "parseFunctionBody",
-        new Object[] {false, false},
+        new Object[] {false, ParserErrorCode.MISSING_FUNCTION_BODY, false},
         "return 0;",
         ParserErrorCode.MISSING_FUNCTION_BODY);
   }
@@ -998,6 +1014,14 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.STATIC_CONSTRUCTOR);
   }
 
+  public void test_staticGetterWithoutBody() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "static get m;",
+        ParserErrorCode.STATIC_GETTER_WITHOUT_BODY);
+  }
+
   public void test_staticOperator_noReturnType() throws Exception {
     parse(
         "parseClassMember",
@@ -1012,6 +1036,14 @@ public class ErrorParserTest extends ParserTestCase {
         new Object[] {"C"},
         "static int operator +(int x) => x + 1;",
         ParserErrorCode.STATIC_OPERATOR);
+  }
+
+  public void test_staticSetterWithoutBody() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "static set m(x);",
+        ParserErrorCode.STATIC_SETTER_WITHOUT_BODY);
   }
 
   public void test_staticTopLevelDeclaration_class() throws Exception {

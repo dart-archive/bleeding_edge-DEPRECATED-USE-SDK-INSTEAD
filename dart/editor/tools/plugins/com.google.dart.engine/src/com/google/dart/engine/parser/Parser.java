@@ -2219,12 +2219,19 @@ public class Parser {
       redirectedConstructor = parseConstructorName();
       body = new EmptyFunctionBody(expect(TokenType.SEMICOLON));
     } else {
-      body = parseFunctionBody(true, false);
-      if (!bodyAllowed && !(body instanceof EmptyFunctionBody)) {
-        reportError(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY);
-      }
+      body = parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
       if (constKeyword != null && factoryKeyword != null) {
-        reportError(ParserErrorCode.CONST_FACTORY);
+        reportError(ParserErrorCode.CONST_FACTORY, factoryKeyword);
+      } else if (body instanceof EmptyFunctionBody) {
+        if (factoryKeyword != null && externalKeyword == null) {
+          reportError(ParserErrorCode.FACTORY_WITHOUT_BODY, factoryKeyword);
+        }
+      } else {
+        if (constKeyword != null) {
+          reportError(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, body);
+        } else if (!bodyAllowed) {
+          reportError(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, body);
+        }
       }
     }
     return new ConstructorDeclaration(
@@ -2987,11 +2994,13 @@ public class Parser {
    * </pre>
    * 
    * @param mayBeEmpty {@code true} if the function body is allowed to be empty
+   * @param emptyErrorCode the error code to report if function body expecte, but not found
    * @param inExpression {@code true} if the function body is being parsed as part of an expression
    *          and therefore does not have a terminating semicolon
    * @return the function body that was parsed
    */
-  private FunctionBody parseFunctionBody(boolean mayBeEmpty, boolean inExpression) {
+  private FunctionBody parseFunctionBody(boolean mayBeEmpty, ParserErrorCode emptyErrorCode,
+      boolean inExpression) {
     boolean wasInLoop = inLoop;
     boolean wasInSwitch = inSwitch;
     inLoop = false;
@@ -2999,7 +3008,7 @@ public class Parser {
     try {
       if (matches(TokenType.SEMICOLON)) {
         if (!mayBeEmpty) {
-          reportError(ParserErrorCode.MISSING_FUNCTION_BODY);
+          reportError(emptyErrorCode);
         }
         return new EmptyFunctionBody(getAndAdvance());
       } else if (matches(TokenType.FUNCTION)) {
@@ -3021,7 +3030,7 @@ public class Parser {
         return new NativeFunctionBody(nativeToken, stringLiteral, expect(TokenType.SEMICOLON));
       } else {
         // Invalid function body
-        reportError(ParserErrorCode.MISSING_FUNCTION_BODY);
+        reportError(emptyErrorCode);
         return new EmptyFunctionBody(createSyntheticToken(TokenType.SEMICOLON));
       }
     } finally {
@@ -3071,7 +3080,7 @@ public class Parser {
     }
     FunctionBody body;
     if (externalKeyword == null) {
-      body = parseFunctionBody(false, false);
+      body = parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, false);
     } else {
       body = new EmptyFunctionBody(expect(TokenType.SEMICOLON));
     }
@@ -3138,7 +3147,7 @@ public class Parser {
   private FunctionExpression parseFunctionExpression() {
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
-    FunctionBody body = parseFunctionBody(false, true);
+    FunctionBody body = parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, true);
     return new FunctionExpression(parameters, body);
   }
 
@@ -3248,7 +3257,10 @@ public class Parser {
       advance();
       advance();
     }
-    FunctionBody body = parseFunctionBody(true, false);
+    FunctionBody body = parseFunctionBody(
+        externalKeyword != null || staticKeyword == null,
+        ParserErrorCode.STATIC_GETTER_WITHOUT_BODY,
+        false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
       reportError(ParserErrorCode.EXTERNAL_GETTER_WITH_BODY);
     }
@@ -3708,7 +3720,10 @@ public class Parser {
   private MethodDeclaration parseMethodDeclaration(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, Token staticKeyword, TypeName returnType, SimpleIdentifier name,
       FormalParameterList parameters) {
-    FunctionBody body = parseFunctionBody(externalKeyword != null || staticKeyword == null, false);
+    FunctionBody body = parseFunctionBody(
+        externalKeyword != null || staticKeyword == null,
+        ParserErrorCode.MISSING_FUNCTION_BODY,
+        false);
     if (externalKeyword != null) {
       if (!(body instanceof EmptyFunctionBody)) {
         reportError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, body);
@@ -4098,7 +4113,7 @@ public class Parser {
     }
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
-    FunctionBody body = parseFunctionBody(true, false);
+    FunctionBody body = parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
       reportError(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY);
     }
@@ -4492,7 +4507,10 @@ public class Parser {
     SimpleIdentifier name = parseSimpleIdentifier();
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
-    FunctionBody body = parseFunctionBody(true, false);
+    FunctionBody body = parseFunctionBody(
+        externalKeyword != null || staticKeyword == null,
+        ParserErrorCode.STATIC_SETTER_WITHOUT_BODY,
+        false);
     if (externalKeyword != null && !(body instanceof EmptyFunctionBody)) {
       reportError(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY);
     }
