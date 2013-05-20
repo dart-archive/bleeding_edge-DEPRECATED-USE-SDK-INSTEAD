@@ -57,7 +57,7 @@ public class DartResourcePropertyTester extends PropertyTester {
 
   private boolean isIgnoredDartResource(Object elem) {
 
-    if (!testIsAnalyzable(elem)) {
+    if (!testIsInDartProject(elem)) {
       return false;
     }
 
@@ -111,5 +111,16 @@ public class DartResourcePropertyTester extends PropertyTester {
     }
 
     return true;
+  }
+
+  private boolean testIsInDartProject(Object receiver) {
+
+    IResource resource = AdapterUtilities.getAdapter(receiver, IResource.class);
+
+    if (resource == null) {
+      return false;
+    }
+
+    return DartProjectNature.hasDartNature(resource);
   }
 }
