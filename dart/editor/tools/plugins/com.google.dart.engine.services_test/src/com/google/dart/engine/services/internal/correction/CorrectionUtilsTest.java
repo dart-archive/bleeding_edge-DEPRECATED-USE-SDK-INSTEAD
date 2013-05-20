@@ -1251,14 +1251,37 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "foo({a, b, c}) {}",
         "main() {",
-        "  foo(111, c: 333, b: 222);",
+        "  foo(a: 111, c: 333, b: 222);",
         "}");
-    // TODO(scheglov) hopefully resolver will provide this information
-//    assert_getVariableNameSuggestions(
-//        null,
-//        findTestNode("111", Expression.class),
-//        ImmutableSet.of(""),
-//        formatLines("a"));
+    assert_getVariableNameSuggestions(
+        null,
+        findNode("111", Expression.class),
+        ImmutableSet.of(""),
+        formatLines("a"));
+    assert_getVariableNameSuggestions(
+        null,
+        findNode("222", Expression.class),
+        ImmutableSet.of(""),
+        formatLines("b"));
+    assert_getVariableNameSuggestions(
+        null,
+        findNode("333", Expression.class),
+        ImmutableSet.of(""),
+        formatLines("c"));
+  }
+
+  public void test_getVariableNameSuggestions_invocationArgument_optional() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(a, [b = 2, c = 3]) {}",
+        "main() {",
+        "  foo(111, 222, 333);",
+        "}");
+    assert_getVariableNameSuggestions(
+        null,
+        findNode("111", Expression.class),
+        ImmutableSet.of(""),
+        formatLines("a"));
     assert_getVariableNameSuggestions(
         null,
         findNode("222", Expression.class),
@@ -1278,17 +1301,16 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "main() {",
         "  foo(111, 222);",
         "}");
-    // TODO(scheglov) hopefully resolver will provide this information
-//    assert_getVariableNameSuggestions(
-//        null,
-//        findTestNode("111", Expression.class),
-//        ImmutableSet.of(""),
-//        formatLines("a"));
-//    assert_getVariableNameSuggestions(
-//        null,
-//        findTestNode("222", Expression.class),
-//        ImmutableSet.of(""),
-//        formatLines("b"));
+    assert_getVariableNameSuggestions(
+        null,
+        findNode("111", Expression.class),
+        ImmutableSet.of(""),
+        formatLines("a"));
+    assert_getVariableNameSuggestions(
+        null,
+        findNode("222", Expression.class),
+        ImmutableSet.of(""),
+        formatLines("b"));
   }
 
   public void test_getVariableNameSuggestions_Node_cast() throws Exception {

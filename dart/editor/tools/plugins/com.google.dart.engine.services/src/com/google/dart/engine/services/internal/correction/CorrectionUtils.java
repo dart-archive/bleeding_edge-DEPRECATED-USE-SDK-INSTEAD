@@ -649,7 +649,6 @@ public class CorrectionUtils {
     }
     // positional argument
     {
-      // TODO(scheglov) not implemented yet in Resolver 
       ParameterElement parameter = expression.getParameterElement();
       if (parameter != null) {
         return parameter.getDisplayName();
