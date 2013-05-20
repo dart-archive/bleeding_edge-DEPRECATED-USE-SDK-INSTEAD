@@ -491,10 +491,9 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
   @Override
   public IInformationControlCreator getInformationControlCreator(ISourceViewer sourceViewer) {
     return new IInformationControlCreator() {
-      @SuppressWarnings("deprecation")
       @Override
       public IInformationControl createInformationControl(Shell parent) {
-        return new DefaultInformationControl(parent, SWT.NONE, new HTMLTextPresenter(true));
+        return new DefaultInformationControl(parent, new HTMLTextPresenter(true));
       }
     };
   }
