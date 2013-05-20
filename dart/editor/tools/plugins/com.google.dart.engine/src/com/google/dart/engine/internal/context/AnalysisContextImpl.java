@@ -383,6 +383,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             sourceMap.put(source, dartCopy);
           }
         } catch (AnalysisException exception) {
+          DartEntryImpl dartCopy = getDartEntry(source).getWritableCopy();
+          dartCopy.setState(DartEntry.ELEMENT, CacheState.ERROR);
+          sourceMap.put(source, dartCopy);
           AnalysisEngine.getInstance().getLogger().logError(
               "Could not resolve the library " + source.getFullName(),
               exception);
@@ -1415,31 +1418,38 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private CompilationUnit internalParseCompilationUnit(DartEntryImpl dartCopy, Source source)
       throws AnalysisException {
     accessed(source);
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    ScanResult scanResult = internalScan(source, errorListener);
-    Parser parser = new Parser(source, errorListener);
-    CompilationUnit unit = parser.parseCompilationUnit(scanResult.token);
-    LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
-    AnalysisError[] errors = errorListener.getErrors(source);
-    unit.setParsingErrors(errors);
-    unit.setLineInfo(lineInfo);
-    if (dartCopy.getState(DartEntry.SOURCE_KIND) == CacheState.INVALID) {
-      if (hasPartOfDirective(unit)) {
-        dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
-      } else {
-        dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+    try {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      ScanResult scanResult = internalScan(source, errorListener);
+      Parser parser = new Parser(source, errorListener);
+      CompilationUnit unit = parser.parseCompilationUnit(scanResult.token);
+      LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
+      AnalysisError[] errors = errorListener.getErrors(source);
+      unit.setParsingErrors(errors);
+      unit.setLineInfo(lineInfo);
+      if (dartCopy.getState(DartEntry.SOURCE_KIND) == CacheState.INVALID) {
+        if (hasPartOfDirective(unit)) {
+          dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
+        } else {
+          dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
+        }
       }
+      dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
+      dartCopy.setValue(DartEntry.PARSED_UNIT, unit);
+      dartCopy.setValue(DartEntry.PARSE_ERRORS, errors);
+      // TODO(brianwilkerson) Find out whether clients want notification when part of the errors are
+      // available.
+//      ChangeNoticeImpl notice = getNotice(source);
+//      if (notice.getErrors() == null) {
+//        notice.setErrors(errors, lineInfo);
+//      }
+      return unit;
+    } catch (AnalysisException exception) {
+      dartCopy.setState(SourceEntry.LINE_INFO, CacheState.ERROR);
+      dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.ERROR);
+      dartCopy.setState(DartEntry.PARSE_ERRORS, CacheState.ERROR);
+      throw exception;
     }
-    dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
-    dartCopy.setValue(DartEntry.PARSED_UNIT, unit);
-    dartCopy.setValue(DartEntry.PARSE_ERRORS, errors);
-    // TODO(brianwilkerson) Find out whether clients want notification when part of the errors are
-    // available.
-//    ChangeNoticeImpl notice = getNotice(source);
-//    if (notice.getErrors() == null) {
-//      notice.setErrors(errors, lineInfo);
-//    }
-    return unit;
   }
 
   private ScanResult internalScan(final Source source, final AnalysisErrorListener errorListener)
