@@ -33,7 +33,7 @@ public class ChromePackagedAppSampleTest extends TestCase {
 
       IFile mainFile = generator.generateInto(project, "foo");
 
-      assertEquals("web/manifest.json", mainFile.getProjectRelativePath().toPortableString());
+      assertEquals("app/manifest.json", mainFile.getProjectRelativePath().toPortableString());
       assertTrue(mainFile.exists());
 
       IContainer parent = mainFile.getParent();

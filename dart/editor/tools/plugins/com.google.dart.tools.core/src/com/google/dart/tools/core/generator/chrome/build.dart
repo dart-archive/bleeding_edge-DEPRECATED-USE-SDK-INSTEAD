@@ -1,43 +1,49 @@
 import "dart:io";
 
-final List<Path> WATCHED_FILES = [
-  new Path.raw("web/background.dart"),
-  new Path.raw("web/{name.lower}.dart")
-];
-
-bool get isWindows => Platform.operatingSystem == 'windows';
-Path get sdkBinPath => new Path(new Options().executable).directoryPath;
-Path get dart2jsPath => sdkBinPath.append(isWindows ? 'dart2js.bat' : 'dart2js');
-
-/// This quick and dirty build script watches for changes to any .dart files
-/// and re-compiles {name.lower}.dart using dart2js. The --disallow-unsafe-eval
-/// flag causes dart2js to output CSP (and Chrome app) friendly code.
+/**
+ * This build script watches for changes to any .dart files and copies the root
+ * packages directory to the app/packages directory. This works around an issue
+ * with Chrome apps and symlinks and allows you to use pub with Chrome apps.
+ */
 void main() {
-  var args = new Options().arguments;
+  List<String> args = new Options().arguments;
 
   bool fullBuild = args.contains("--full");
-  bool dartFilesChanged = args.any(
-      (arg) => arg.startsWith("--changed=") && arg.endsWith(".dart"));
+  bool dartFilesChanged = args.any((arg) {
+    return !arg.startsWith("--changed=app/packages") && arg.endsWith(".dart");
+  });
 
-  if (fullBuild || dartFilesChanged) {
-    for (Path path in WATCHED_FILES) {
-      callDart2js(path.toNativePath());
+  if (fullBuild || dartFilesChanged || args.isEmpty) {
+    copyDirectory(directory('packages'), directory('app/packages'));
+  }
+}
+
+Path directory(String path) => new Path(path);
+
+void copyDirectory(Path srcDirPath, Path destDirPath) {
+  Directory srcDir = new Directory.fromPath(srcDirPath);
+  
+  for (FileSystemEntity entity in srcDir.listSync()) {
+    String name = new Path(entity.path).filename;
+    
+    if (entity is File) {
+      copyFile(srcDirPath.join(new Path(name)), destDirPath);
+    } else {
+      copyDirectory(
+          srcDirPath.join(new Path(name)),
+          destDirPath.join(new Path(name)));
     }
   }
 }
 
-void callDart2js(String path) {
-  print("dart2js --disallow-unsafe-eval ${path}");
-
-  Process.run(dart2jsPath.toNativePath(),
-    ['--disallow-unsafe-eval', '-o${path}.js', path]
-  ).then((result) {
-    if (result.stdout.length > 0) {
-      print("${result.stdout.replaceAll('\r\n', '\n')}");
-    }
-
-    if (result.exitCode != 0) {
-      exit(result.exitCode);
-    }
-  });
+void copyFile(Path srcFilePath, Path destDirPath) {
+  File srcFile = new File.fromPath(srcFilePath);
+  File destFile = new File.fromPath(
+      destDirPath.join(new Path(srcFilePath.filename)));
+  
+  if (!destFile.existsSync() || srcFile.lastModifiedSync() != destFile.lastModifiedSync()) {
+    new Directory.fromPath(destDirPath).createSync(recursive: true);
+    
+    destFile.writeAsBytesSync(srcFile.readAsBytesSync());
+  }
 }

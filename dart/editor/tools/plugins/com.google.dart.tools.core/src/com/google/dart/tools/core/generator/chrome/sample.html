@@ -15,11 +15,12 @@
       <p id="sample_text_id"></p>
     </div>
     
-    <script src="{name.lower}.dart.js"></script>
+    <!-- Currently, when deploying your Chrome app, you'll need to compile -->
+    <!-- the Dart code to Javascript, remove the 'type' attribute below, and -->
+    <!-- change the 'src' reference to the .dart.js file. -->
+    <script src="{name.lower}.dart" type="application/dart"></script>
     
-    <!-- Uncomment these lines (and update your pubspec.yaml) -->
-    <!-- if you want to use JS interop. -->
-    <!-- script src="packages/browser/dart.js"></script -->
-    <!-- script src="packages/js/dart_interop.js"></script -->
+    <script src="packages/browser/dart.js"></script>
+    <script src="packages/js/dart_interop.js"></script>
   </body>
 </html>
