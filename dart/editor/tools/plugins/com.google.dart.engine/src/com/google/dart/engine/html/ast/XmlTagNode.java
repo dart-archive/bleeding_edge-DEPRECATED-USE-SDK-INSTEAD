@@ -135,6 +135,21 @@ public class XmlTagNode extends XmlNode {
   }
 
   /**
+   * Answer the attribute with the specified name.
+   * 
+   * @param name the attribute name
+   * @return the attribute or {@code null} if no matching attribute is found
+   */
+  public XmlAttributeNode getAttribute(String name) {
+    for (XmlAttributeNode attribute : attributes) {
+      if (attribute.getName().getLexeme().equals(name)) {
+        return attribute;
+      }
+    }
+    return null;
+  }
+
+  /**
    * The {@link TokenType#GT} or {@link TokenType#SLASH_GT} token after the attributes (not
    * {@code null}). The token may be the same token as {@link #nodeEnd} if there are no child
    * {@link #tagNodes}.
@@ -153,6 +168,19 @@ public class XmlTagNode extends XmlNode {
    */
   public List<XmlAttributeNode> getAttributes() {
     return attributes;
+  }
+
+  /**
+   * Find the attribute with the given name (see {@link #getAttribute(String)} and answer the lexeme
+   * for the attribute's value token without the leading and trailing quotes (see
+   * {@link XmlAttributeNode#getText()}).
+   * 
+   * @param name the attribute name
+   * @return the attribute text or {@code null} if no matching attribute is found
+   */
+  public String getAttributeText(String name) {
+    XmlAttributeNode attribute = getAttribute(name);
+    return attribute != null ? attribute.getText() : null;
   }
 
   @Override

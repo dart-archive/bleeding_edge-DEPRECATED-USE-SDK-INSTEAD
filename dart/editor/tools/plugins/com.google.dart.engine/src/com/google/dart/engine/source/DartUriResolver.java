@@ -40,7 +40,7 @@ public class DartUriResolver extends UriResolver {
    * @return {@code true} if the given URI is a {@code dart:} URI
    */
   public static boolean isDartUri(URI uri) {
-    return uri.getScheme().equals(DART_SCHEME);
+    return DART_SCHEME.equals(uri.getScheme());
   }
 
   /**

@@ -54,6 +54,12 @@ public class DartUriResolverTest extends TestCase {
     assertNull(result);
   }
 
+  public void test_isDartUri_null_scheme() throws Exception {
+    URI uri = new URI("foo.dart");
+    assertNull(uri.getScheme());
+    assertFalse(DartUriResolver.isDartUri(uri));
+  }
+
   public void test_resolve_dart() throws Exception {
     ContentCache contentCache = new ContentCache();
     File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();

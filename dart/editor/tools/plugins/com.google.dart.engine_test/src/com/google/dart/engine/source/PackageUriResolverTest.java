@@ -57,6 +57,12 @@ public class PackageUriResolverTest extends TestCase {
     assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
   }
 
+  public void test_isPackageUri_null_scheme() throws Exception {
+    URI uri = new URI("foo.dart");
+    assertNull(uri.getScheme());
+    assertFalse(PackageUriResolver.isPackageUri(uri));
+  }
+
   public void test_resolve_canonical() throws Exception {
     if (!FileUtilities2.isSymLinkSupported()) {
       System.out.println("Skipping " + getClass().getSimpleName() + " test_resolve_canonical");

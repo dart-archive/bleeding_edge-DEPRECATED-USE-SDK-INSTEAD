@@ -53,7 +53,7 @@ public class PackageUriResolver extends UriResolver {
    * @return {@code true} if the given URI is a {@code package} URI
    */
   public static boolean isPackageUri(URI uri) {
-    return uri.getScheme().equals(PACKAGE_SCHEME);
+    return PACKAGE_SCHEME.equals(uri.getScheme());
   }
 
   /**
@@ -108,13 +108,13 @@ public class PackageUriResolver extends UriResolver {
     for (File packagesDirectory : packagesDirectories) {
       File resolvedFile = new File(packagesDirectory, path);
       if (resolvedFile.exists()) {
-        return new FileBasedSource(
+        return new FileBasedSource( //
             contentCache,
             getCanonicalFile(packagesDirectory, pkgName, relPath),
             UriKind.PACKAGE_URI);
       }
     }
-    return new FileBasedSource(
+    return new FileBasedSource( //
         contentCache,
         getCanonicalFile(packagesDirectories[0], pkgName, relPath),
         UriKind.PACKAGE_URI);

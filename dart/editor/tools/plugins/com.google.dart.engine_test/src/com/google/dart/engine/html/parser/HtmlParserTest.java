@@ -109,6 +109,26 @@ public class HtmlParserTest extends EngineTestCase {
     validate(htmlUnit, t("html", t("p", "")));
   }
 
+  public void test_parse_getAttribute() throws Exception {
+    HtmlUnit htmlUnit = parse(//
+        "<html><body foo=\"sdfsdf\"></body></html>").getHtmlUnit();
+    XmlTagNode htmlNode = htmlUnit.getTagNodes().get(0);
+    XmlTagNode bodyNode = htmlNode.getTagNodes().get(0);
+    assertEquals("sdfsdf", bodyNode.getAttribute("foo").getText());
+    assertEquals(null, bodyNode.getAttribute("bar"));
+    assertEquals(null, bodyNode.getAttribute(null));
+  }
+
+  public void test_parse_getAttributeText() throws Exception {
+    HtmlUnit htmlUnit = parse(//
+        "<html><body foo=\"sdfsdf\"></body></html>").getHtmlUnit();
+    XmlTagNode htmlNode = htmlUnit.getTagNodes().get(0);
+    XmlTagNode bodyNode = htmlNode.getTagNodes().get(0);
+    assertEquals("sdfsdf", bodyNode.getAttributeText("foo"));
+    assertEquals(null, bodyNode.getAttributeText("bar"));
+    assertEquals(null, bodyNode.getAttributeText(null));
+  }
+
   public void test_parse_script() throws Exception {
     HtmlUnit htmlUnit = parse(//
         "<html><script >here is <p> some</script></html>").getHtmlUnit();
