@@ -1152,7 +1152,31 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_fieldInitializerRedirectingConstructor() throws Exception {
+  public void test_fieldInitializerRedirectingConstructor_afterRedirection() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int x;",
+        "  A.named() {}",
+        "  A() : this.named(), x = 42;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_fieldInitializerRedirectingConstructor_beforeRedirection() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int x;",
+        "  A.named() {}",
+        "  A() : x = 42, this.named();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_fieldInitializingFormalRedirectingConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  int x;",
@@ -1948,6 +1972,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_multipleRedirectingConstructorInvocations() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() : this.a(), this.b();",
+        "  A.a() {}",
+        "  A.b() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS);
+    verify(source);
+  }
+
   public void test_multipleSuperInitializers() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
@@ -2476,6 +2512,30 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
     // no verify(), 'super.y' is not resolved
+  }
+
+  public void test_superInRedirectingConstructor_redirectionSuper() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {",
+        "  B() : this.name(), super();",
+        "  B.name() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_superInRedirectingConstructor_superRedirection() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {",
+        "  B() : super(), this.name();",
+        "  B.name() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR);
+    verify(source);
   }
 
   public void test_undefinedClass_const() throws Exception {

@@ -347,6 +347,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForConstConstructorWithNonFinalField(node);
       checkForConflictingConstructorNameAndMember(node);
       checkForAllFinalInitializedErrorCodes(node);
+      checkForRedirectingConstructorErrorCodes(node);
       checkForMultipleSuperInitializers(node);
       checkForRecursiveConstructorRedirect(node);
       checkForRecursiveFactoryRedirect(node);
@@ -396,7 +397,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     checkForConstFormalParameter(node);
-    checkForFieldInitializerOutsideConstructor(node);
+    checkForFieldInitializingFormalRedirectingConstructor(node);
     return super.visitFieldFormalParameter(node);
   }
 
@@ -1671,7 +1672,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
    */
-  private boolean checkForFieldInitializerOutsideConstructor(FieldFormalParameter node) {
+  private boolean checkForFieldInitializingFormalRedirectingConstructor(FieldFormalParameter node) {
     ConstructorDeclaration constructor = node.getAncestor(ConstructorDeclaration.class);
     if (constructor == null) {
       errorReporter.reportError(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, node);
@@ -2414,6 +2415,52 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         redirectedConstructorNode);
     return true;
+  }
+
+  /**
+   * This checks the passed constructor declaration has a valid combination of redirected
+   * constructor invocation(s), super constructor invocations and field initializers.
+   * 
+   * @param node the constructor declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS
+   * @see CompileTimeErrorCode#SUPER_IN_REDIRECTING_CONSTRUCTOR
+   * @see CompileTimeErrorCode#FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
+   */
+  private boolean checkForRedirectingConstructorErrorCodes(ConstructorDeclaration node) {
+    int numProblems = 0;
+    // check if there are redirected invocations
+    int numRedirections = 0;
+    for (ConstructorInitializer initializer : node.getInitializers()) {
+      if (initializer instanceof RedirectingConstructorInvocation) {
+        if (numRedirections > 0) {
+          errorReporter.reportError(
+              CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
+              initializer);
+          numProblems++;
+        }
+        numRedirections++;
+      }
+    }
+    // check for other initializers
+    if (numRedirections > 0) {
+      for (ConstructorInitializer initializer : node.getInitializers()) {
+        if (initializer instanceof SuperConstructorInvocation) {
+          errorReporter.reportError(
+              CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+              initializer);
+          numProblems++;
+        }
+        if (initializer instanceof ConstructorFieldInitializer) {
+          errorReporter.reportError(
+              CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+              initializer);
+          numProblems++;
+        }
+      }
+    }
+    // done
+    return numProblems != 0;
   }
 
   /**

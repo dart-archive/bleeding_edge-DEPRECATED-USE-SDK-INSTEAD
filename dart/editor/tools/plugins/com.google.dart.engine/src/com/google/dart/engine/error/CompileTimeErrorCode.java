@@ -382,11 +382,14 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "Initializing formal fields can only be used in constructors"),
 
   /**
+   * 7.6.1 Generative Constructors: A generative constructor may be redirecting, in which case its
+   * only action is to invoke another generative constructor.
+   * <p>
    * 7.6.1 Generative Constructors: It is a compile-time error if an initializing formal is used by
    * a function other than a non-redirecting generative constructor.
    */
   FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR(
-      "Initializing formal fields cannot be used in redirecting constructors"),
+      "The redirecting constructor cannot have a field initializer"),
 
   /**
    * 5 Variables: It is a compile-time error if a library, static or local variable <i>v</i> is
@@ -693,6 +696,13 @@ public enum CompileTimeErrorCode implements ErrorCode {
   MIXIN_WITH_NON_CLASS_SUPERCLASS("Mixin can only be applied to class"),
 
   /**
+   * 7.6.1 Generative Constructors: A generative constructor may be redirecting, in which case its
+   * only action is to invoke another generative constructor.
+   */
+  MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS(
+      "Constructor may have at most one 'this' redirection"),
+
+  /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. Then <i>k</i> may
    * include at most one superinitializer in its initializer list or a compile time error occurs.
    */
@@ -886,6 +896,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * initializer.
    */
   SUPER_IN_INVALID_CONTEXT("Invalid context for 'super' invocation"),
+
+  /**
+   * 7.6.1 Generative Constructors: A generative constructor may be redirecting, in which case its
+   * only action is to invoke another generative constructor.
+   */
+  SUPER_IN_REDIRECTING_CONSTRUCTOR("The redirecting constructor cannot have a 'super' initializer"),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
