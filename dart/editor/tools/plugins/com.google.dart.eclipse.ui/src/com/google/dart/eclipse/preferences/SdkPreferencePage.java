@@ -147,9 +147,11 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
   }
 
   protected void updateSDKInfo() {
+
+    //TODO (pquitslund): update to use "new" SDK object
     DartSdk sdk = DartSdkManager.getManager().getSdk();
 
-    if (sdk == null) {
+    if (sdk == null || sdk.getDirectory() == null) {
       sdkInstallLocationLabel.setText("");
       sdkVersionlabel.setText("No SDK installed");
       upgradeSdkButton.setText("Download SDK");
