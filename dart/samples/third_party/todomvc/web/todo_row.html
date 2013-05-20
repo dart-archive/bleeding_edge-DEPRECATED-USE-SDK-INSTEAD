@@ -136,7 +136,7 @@ ShadowRoot because it crosses the shadow boundary.
   class TodoRow extends WebComponent {
     Todo todo;
 
-    bool get editing => _root.query('#label').xtag.editing;
+    bool get editing => getShadowRoot("todo-row").query('#label').xtag.editing;
     String get _completedClass => todo.done ? _css['.completed'] : '';
     String get _editingClass => editing ? _css['.editing'] : '';
   }

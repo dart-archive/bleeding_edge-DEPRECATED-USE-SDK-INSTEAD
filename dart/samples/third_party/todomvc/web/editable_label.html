@@ -39,7 +39,7 @@ BSD-style license that can be found in the LICENSE file.
     bool editing;
     String value;
 
-    InputElement get _editBox => _root.query('#edit');
+    InputElement get _editBox => getShadowRoot("editable-label").query('#edit');
 
     void created() {
       super.created();

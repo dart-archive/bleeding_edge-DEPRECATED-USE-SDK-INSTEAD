@@ -73,9 +73,6 @@ class TodoApp extends WebComponent {
     app.todos.add(new Todo(input.value));
     input.value = '';
   }
-
-  // For testing purposes, we expose the Shadow DOM.
-  get shadowRoot => _root;
 }
 </script>
 </element>
