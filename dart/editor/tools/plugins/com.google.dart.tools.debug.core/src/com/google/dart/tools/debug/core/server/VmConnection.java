@@ -98,6 +98,9 @@ public class VmConnection {
 
   private Map<Integer, VmIsolate> isolateMap = new HashMap<Integer, VmIsolate>();
 
+  private VmLocation currentLocation;
+  private boolean isStepping;
+
   public VmConnection(String host, int port) {
     this.host = host;
     this.port = port;
@@ -773,6 +776,8 @@ public class VmConnection {
   }
 
   public void stepOver(VmIsolate isolate) throws IOException {
+    isStepping = true;
+
     sendSimpleCommand("stepOver", isolate.getId(), resumeOnSuccess(isolate));
   }
 
@@ -801,6 +806,8 @@ public class VmConnection {
           } else {
             processNotification(result);
           }
+        } catch (IOException exception) {
+
         } catch (Throwable exception) {
           DartDebugCorePlugin.logError(exception);
         }
@@ -1100,7 +1107,7 @@ public class VmConnection {
     }
   }
 
-  private void processNotification(JSONObject result) throws JSONException {
+  private void processNotification(JSONObject result) throws JSONException, IOException {
     if (result.has("event")) {
       String eventName = result.getString("event");
       JSONObject params = result.optJSONObject("params");
@@ -1234,10 +1241,7 @@ public class VmConnection {
                 str = str.replace("\n", "\\n");
               }
 
-              if (DartDebugCorePlugin.LOGGING) {
-                // Print the event / response from the VM.
-                System.out.println("<== " + str);
-              }
+              DartDebugCorePlugin.log("<== " + str);
 
               return new JSONObject(str);
             } catch (JSONException e) {
@@ -1264,11 +1268,26 @@ public class VmConnection {
     };
   }
 
-  private void send(String str) throws IOException {
-    if (DartDebugCorePlugin.LOGGING) {
-      // Print the command to the VM.
-      System.out.println("==> " + str);
+  /**
+   * Return whether the given vm locations represent the same source line.
+   */
+  private boolean sameSourceLine(VmLocation location1, VmLocation location2) {
+    if (location1 == null || location2 == null) {
+      return false;
     }
+
+    int line1 = getLineNumberFromLocation(location1.getIsolate(), location1);
+    int line2 = getLineNumberFromLocation(location2.getIsolate(), location2);
+
+    if (line1 <= 0 || line2 <= 0) {
+      return false;
+    }
+
+    return line1 == line2;
+  }
+
+  private void send(String str) throws IOException {
+    DartDebugCorePlugin.log("==> " + str);
 
     byte[] bytes = str.getBytes(UTF8);
 
@@ -1277,24 +1296,33 @@ public class VmConnection {
   }
 
   private void sendDelayedDebuggerPaused(final PausedReason reason, final VmIsolate isolate,
-      final VmLocation location, final VmValue exception) throws JSONException {
-    try {
-      getStackTrace(isolate, new VmCallback<List<VmCallFrame>>() {
-        @Override
-        public void handleResult(VmResult<List<VmCallFrame>> result) {
-          if (result.isError()) {
-            DartDebugCorePlugin.logError(result.getError());
-          } else {
-            List<VmCallFrame> frames = result.getResult();;
+      final VmLocation location, final VmValue exception) throws JSONException, IOException {
+    // If we're stepping, check here to see if we should continue stepping.
+    if (sameSourceLine(currentLocation, location) && reason == PausedReason.breakpoint
+        && isStepping) {
+      sendSimpleCommand("stepOver", isolate.getId());
+    } else {
+      try {
+        getStackTrace(isolate, new VmCallback<List<VmCallFrame>>() {
+          @Override
+          public void handleResult(VmResult<List<VmCallFrame>> result) {
+            currentLocation = location;
+            isStepping = false;
 
-            for (VmListener listener : listeners) {
-              listener.debuggerPaused(reason, isolate, frames, exception);
+            if (result.isError()) {
+              DartDebugCorePlugin.logError(result.getError());
+            } else {
+              List<VmCallFrame> frames = result.getResult();;
+
+              for (VmListener listener : listeners) {
+                listener.debuggerPaused(reason, isolate, frames, exception);
+              }
             }
           }
-        }
-      });
-    } catch (IOException e) {
-      throw new JSONException(e);
+        });
+      } catch (IOException e) {
+        throw new JSONException(e);
+      }
     }
   }
 

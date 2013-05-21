@@ -28,6 +28,9 @@ void main() {
 
   cat.performAction();
 
+  var fooBarBaz = 1 + 2 + 3 
+      + 4 + 5;
+  
   pets.checkTypes();
 
   pets.createARealBigArray();

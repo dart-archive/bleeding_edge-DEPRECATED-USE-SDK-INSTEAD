@@ -50,6 +50,10 @@ public class VmLocation {
     this.isolate = isolate;
   }
 
+  public VmIsolate getIsolate() {
+    return isolate;
+  }
+
   public int getLibraryId() {
     return libraryId;
   }

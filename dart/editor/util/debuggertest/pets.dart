@@ -144,6 +144,12 @@ class Ferret extends Animal {
     clawCount = 4;
   }
   
+  bool livesWith(Animal other) => false;
+  
+  void performAction() {
+    
+  }
+
   String toString() {
     return null;
   }
@@ -198,6 +204,8 @@ void spawnAnimalsIsolate() {
 void _spawnAnimals() {
   int count = new Random().nextInt(10);
 
+  print("isolate started");
+      
   new Timer(new Duration(seconds: count), () {
     print("isolate finished after ${count} seconds");
   });

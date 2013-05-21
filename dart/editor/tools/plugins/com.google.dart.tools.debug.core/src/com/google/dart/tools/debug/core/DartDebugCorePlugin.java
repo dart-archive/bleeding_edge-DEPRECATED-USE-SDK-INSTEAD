@@ -99,6 +99,8 @@ public class DartDebugCorePlugin extends Plugin {
 
   public static final String PREFS_SHOW_RUN_RESUME_DIALOG = "showRunResumeDialog";
 
+  private static long loggingStart = System.currentTimeMillis();
+
   /**
    * Create a Status object with the given message and this plugin's ID.
    * 
@@ -114,6 +116,19 @@ public class DartDebugCorePlugin extends Plugin {
    */
   public static DartDebugCorePlugin getPlugin() {
     return plugin;
+  }
+
+  /**
+   * A light-weight logging mechanism for debugging the debugger.
+   * 
+   * @param str
+   */
+  public static void log(String str) {
+    if (LOGGING) {
+      long time = System.currentTimeMillis() - loggingStart;
+
+      System.out.printf("[%.3f %s]\n", (time / 1000.0), str);
+    }
   }
 
   /**
