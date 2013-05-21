@@ -13,12 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
-import com.google.dart.tools.core.model.DartModelException;
-
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.ui.IElementFactory;
@@ -83,38 +77,8 @@ public class ExternalCompilationUnitEditorInputFactory implements IElementFactor
 
     try {
       URI fileUri = new URI(fileUriString);
-      URI unitUri = new URI(unitUriString);
+      return new FileStoreEditorInput(EFS.getStore(fileUri));
 
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        return new FileStoreEditorInput(EFS.getStore(fileUri));
-      } else {
-        try {
-          ExternalCompilationUnitImpl unit = DartModelManager.getInstance().getDartModel().getBundledCompilationUnit(
-              unitUri);
-
-          // if we can't find a bundled compilation unit, attempt to reconstitute the external CU from its handle
-          if (unit == null) {
-            String id = memento.getString(KEY_UNIT_ID);
-
-            if (id != null) {
-              Object element = DartCore.create(id);
-
-              if (element instanceof ExternalCompilationUnitImpl) {
-                ExternalCompilationUnitImpl cu = (ExternalCompilationUnitImpl) element;
-
-                return new ExternalCompilationUnitEditorInput(EFS.getStore(fileUri), cu, unitUri);
-              }
-            }
-
-            //if we have no handle, fall back on a filestore
-            return new FileStoreEditorInput(EFS.getStore(fileUri));
-          } else {
-            return new ExternalCompilationUnitEditorInput(EFS.getStore(fileUri), unit, unitUri);
-          }
-        } catch (DartModelException exception) {
-          return new FileStoreEditorInput(EFS.getStore(fileUri));
-        }
-      }
     } catch (Exception exception) {
       return null;
     }

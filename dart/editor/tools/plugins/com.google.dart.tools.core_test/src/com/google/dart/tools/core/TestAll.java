@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core;
 
-import com.google.dart.tools.core.artifact.TestGenerateArtifacts;
-
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -22,18 +20,8 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
 
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      // Build the SDK index first
-      suite.addTestSuite(TestGenerateArtifacts.class);
-    }
-
     suite.addTestSuite(CmdLineOptionsTest.class);
-
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      suite.addTestSuite(DartCoreTest.class);
-    } else {
-      suite.addTestSuite(DartCoreTest_New.class);
-    }
+    suite.addTestSuite(DartCoreTest_New.class);
 
     suite.addTestSuite(PluginXMLTest.class);
 
