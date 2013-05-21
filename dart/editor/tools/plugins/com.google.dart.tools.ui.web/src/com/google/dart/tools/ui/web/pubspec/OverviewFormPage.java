@@ -31,6 +31,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
@@ -344,8 +345,9 @@ public class OverviewFormPage extends FormPage implements IModelListener {
 
     Label authorLabel = toolkit.createLabel(client, "Author:");
     authorLabel.setToolTipText("Name(s) of the author(s) of this package. Email address can also be included.");
-    authorText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER);
-    authorText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+    authorText = toolkit.createText(client, "", SWT.MULTI | SWT.WRAP | SWT.BORDER | SWT.SCROLL_LINE);
+    GridDataFactory.fillDefaults().align(SWT.FILL, SWT.TOP).grab(true, false).hint(200, SWT.DEFAULT).applyTo(
+        authorText);
     authorText.addModifyListener(new ModifyListener() {
       @Override
       public void modifyText(ModifyEvent e) {

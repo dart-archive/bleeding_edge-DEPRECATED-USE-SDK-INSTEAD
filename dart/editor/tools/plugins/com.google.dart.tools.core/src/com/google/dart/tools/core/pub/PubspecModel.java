@@ -345,7 +345,7 @@ public class PubspecModel {
         List<String> authors = (List<String>) pubspecMap.get(PubspecConstants.AUTHORS);
         author = authors.get(0);
         for (int i = 1; i < authors.size(); i++) {
-          author += "," + authors.get(i);
+          author += ", " + authors.get(i);
         }
       }
       if (pubspecMap.get(PubspecConstants.ENVIRONMENT) != null) {
