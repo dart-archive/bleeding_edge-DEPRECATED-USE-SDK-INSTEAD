@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.feedback;
 
 import com.google.dart.engine.utilities.io.PrintStringWriter;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.feedback.FeedbackUtils.Stats;
 
@@ -99,11 +98,7 @@ public class FeedbackReport {
           + "\n");
     }
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      msg.append("analysis engine: new\n");
-    } else {
-      msg.append("analysis engine: dartc\n");
-    }
+    msg.append("analysis engine: new\n");
 
     return msg.toString().trim();
   }

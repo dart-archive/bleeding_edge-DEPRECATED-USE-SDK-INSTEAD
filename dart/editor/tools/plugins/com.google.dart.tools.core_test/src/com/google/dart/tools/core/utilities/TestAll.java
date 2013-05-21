@@ -26,9 +26,6 @@ public class TestAll {
       suite.addTest(com.google.dart.tools.core.utilities.bindings.TestAll.suite());
     }
     suite.addTest(com.google.dart.tools.core.utilities.collections.TestAll.suite());
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      suite.addTest(com.google.dart.tools.core.utilities.compiler.TestAll.suite());
-    }
     suite.addTest(com.google.dart.tools.core.utilities.general.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.utilities.io.TestAll.suite());
     if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {

@@ -15,10 +15,6 @@ package com.google.dart.tools.ui.feedback;
 
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
@@ -52,11 +48,7 @@ public class FeedbackUtils {
     public final boolean autoRunPubEnabled = DartCore.getPlugin().isAutoRunPubEnabled();
 
     public Stats() {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        indexStats = "index: " + DartCore.getProjectManager().getIndex().getStatistics();
-      } else {
-        indexStats = InMemoryIndex.getInstance().getIndexStatus("index");
-      }
+      indexStats = "index: " + DartCore.getProjectManager().getIndex().getStatistics();
     }
 
     @Override
@@ -82,12 +74,6 @@ public class FeedbackUtils {
       writer.println(" MB");
 
       writer.println("thread count: " + countString(numThreads));
-
-      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-        String analysisStats = server.getAnalysisStatus("analysis");
-        writer.println(analysisStats);
-      }
 
       writer.println(indexStats);
 

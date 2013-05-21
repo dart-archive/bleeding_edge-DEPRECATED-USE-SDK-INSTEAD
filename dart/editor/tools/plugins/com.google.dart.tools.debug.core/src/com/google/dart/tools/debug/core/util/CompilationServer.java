@@ -16,12 +16,10 @@ package com.google.dart.tools.debug.core.util;
 
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler.CompilationResult;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
@@ -70,25 +68,11 @@ public class CompilationServer {
       if (resources.length > 0) {
         IFile dartResource = resources[0];
 
-        if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-          LibraryElement library = DartCore.getProjectManager().getLibraryElement(dartResource);
+        LibraryElement library = DartCore.getProjectManager().getLibraryElement(dartResource);
 
-          if (library != null && !library.isUpToDate(jsFile.lastModified())) {
-            // Recompile it.
-            compile(dartResource, jsFile);
-          }
-        } else {
-          DartElement element = DartCore.create(dartResource);
-
-          if (element instanceof CompilationUnit) {
-            CompilationUnit compilationUnit = (CompilationUnit) element;
-
-            // Is the .dart.js file older then any of the .dart files?
-            if (needsRecompilation(compilationUnit, jsFile)) {
-              // If so, recompile it.
-              compile(dartResource, jsFile);
-            }
-          }
+        if (library != null && !library.isUpToDate(jsFile.lastModified())) {
+          // Recompile it.
+          compile(dartResource, jsFile);
         }
       }
     }

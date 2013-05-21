@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.swtbot;
 
 import com.google.dart.tools.ui.swtbot.action.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.conditions.AnalysisCompleteCondition;
-import com.google.dart.tools.ui.swtbot.conditions.CompilerWarmedUp;
 import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
@@ -57,7 +56,6 @@ public abstract class AbstractDartEditorTest {
   public static void setUp() throws Exception {
     // TODO (danrubel) hook launching LogTimer for launching performance measurements
     bot = new SWTWorkbenchBot();
-    CompilerWarmedUp.waitUntilWarmedUp(bot);
     AnalysisCompleteCondition.startListening();
     AnalysisCompleteCondition.waitUntilWarmedUp(bot);
     // Copy samples from DART_TRUNK/samples into ~/Downloads/dart/samples/
