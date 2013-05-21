@@ -25,7 +25,7 @@ vars = {
   "commons-lang_rev" : "@19997",
   "eclipse_rev" : "@19997",
   "fest_rev" : "@19997",
-  "firefox_jsshell_rev" : "@22168",
+  "firefox_jsshell_rev" : "@22936",
   "gsutil_rev" : "@19997",
   "guava_rev" : "@19997",
   "hamcrest_rev" : "@19997",
