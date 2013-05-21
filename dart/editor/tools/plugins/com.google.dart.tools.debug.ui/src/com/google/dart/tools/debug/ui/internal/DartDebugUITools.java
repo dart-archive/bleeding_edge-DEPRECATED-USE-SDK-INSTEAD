@@ -97,7 +97,7 @@ public class DartDebugUITools {
         isAppRunning = true;
       } else {
         for (ILaunch launch : launches) {
-          if (!launch.isTerminated()) {
+          if (!launch.isTerminated() && launch.getLaunchConfiguration() != null) {
             DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
                 launch.getLaunchConfiguration());
             IResource resource = wrapper.getApplicationResource();
