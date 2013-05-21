@@ -179,6 +179,7 @@ public class OpenExternalDartdocAction extends AbstractDartSelectionAction {
       UIInstrumentationBuilder instrumentation) {
     String url = "http://api.dartlang.org/";
     if (libraryName != null) {
+      libraryName = transformLibraryName(libraryName);
       libraryName = libraryName.replace(':', '_');
       libraryName = libraryName.replace('.', '_');
       url += libraryName;
@@ -210,6 +211,7 @@ public class OpenExternalDartdocAction extends AbstractDartSelectionAction {
       UIInstrumentationBuilder instrumentation) {
     String url = "http://api.dartlang.org/";
     if (libraryName != null) {
+      libraryName = transformLibraryName(libraryName);
       url += libraryName.replace(':', '_');
       if (className != null) {
         url += '/' + className;
@@ -222,5 +224,15 @@ public class OpenExternalDartdocAction extends AbstractDartSelectionAction {
     instrumentation.data("Url", url);
 
     ExternalBrowserUtil.openInExternalBrowser(url);
+  }
+
+  private String transformLibraryName(String name) {
+    if (name.contains("dart.dom.")) {
+      name = name.replace(".dom.", ".");
+    }
+    if (name.equals("chrome")) {
+      name = "dart.chrome";
+    }
+    return name;
   }
 }
