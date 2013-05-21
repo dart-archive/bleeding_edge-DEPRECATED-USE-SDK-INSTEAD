@@ -113,6 +113,7 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeVariableType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1362,9 +1363,26 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean checkForConflictingConstructorNameAndMember(ConstructorDeclaration node) {
     ConstructorElement constructorElement = node.getElement();
     SimpleIdentifier constructorName = node.getName();
+    String name = constructorElement.getName();
+    ClassElement classElement = constructorElement.getEnclosingElement();
+    // constructors
+    ConstructorElement[] constructors = classElement.getConstructors();
+    for (ConstructorElement otherConstructor : constructors) {
+      if (otherConstructor == constructorElement) {
+        continue;
+      }
+      if (ObjectUtilities.equals(name, otherConstructor.getName())) {
+        if (name == null || name.length() == 0) {
+          errorReporter.reportError(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, node);
+        } else {
+          errorReporter.reportError(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, node, name);
+        }
+        return true;
+      }
+    }
+    // conflict with class member
     if (constructorName != null && constructorElement != null && !constructorName.isSynthetic()) {
-      String name = constructorName.getName();
-      ClassElement classElement = constructorElement.getEnclosingElement();
+      // fields
       FieldElement[] fields = classElement.getFields();
       for (FieldElement field : fields) {
         if (field.getName().equals(name)) {
@@ -1375,6 +1393,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           return true;
         }
       }
+      // methods
       MethodElement[] methods = classElement.getMethods();
       for (MethodElement method : methods) {
         if (method.getName().equals(name)) {

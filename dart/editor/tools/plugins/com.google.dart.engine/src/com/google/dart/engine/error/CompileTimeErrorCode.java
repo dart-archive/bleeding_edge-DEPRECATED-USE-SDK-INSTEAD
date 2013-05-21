@@ -104,7 +104,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * class.
    */
   CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD(
-      "'%s' cannot be used to name a constructor and a method in this class"),
+      "'%s' cannot be used to name a constructor and a field in this class"),
 
   /**
    * 7.6 Constructors: A constructor name always begins with the name of its immediately enclosing
@@ -242,6 +242,20 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * of a function type alias.
    */
   DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS("Default values aren't allowed in typedefs"),
+
+  /**
+   * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name
+   * declared in the same scope.
+   */
+  DUPLICATE_CONSTRUCTOR_DEFAULT("The default constructor is already defined"),
+
+  /**
+   * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name
+   * declared in the same scope.
+   * 
+   * @param duplicateName the name of the duplicate entity
+   */
+  DUPLICATE_CONSTRUCTOR_NAME("The constructor with name '%s' is already defined"),
 
   /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name

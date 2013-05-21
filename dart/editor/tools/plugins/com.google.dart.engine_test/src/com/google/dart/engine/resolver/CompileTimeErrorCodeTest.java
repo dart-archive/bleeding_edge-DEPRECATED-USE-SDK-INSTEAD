@@ -381,6 +381,20 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test__parameterWithFunctionName_local() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  f(f) {}",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.DUPLICATE_DEFINITION,
+        CompileTimeErrorCode.DUPLICATE_DEFINITION,
+        CompileTimeErrorCode.DUPLICATE_DEFINITION,
+        CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    verify(source);
+  }
+
   public void test_ambiguousExport() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
@@ -916,6 +930,44 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_duplicateConstructorName_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.a() {}",
+        "  A.a() {}",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
+        CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME);
+    verify(source);
+  }
+
+  public void test_duplicateConstructorName_unnamed() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {}",
+        "  A() {}",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
+        CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT);
+    verify(source);
+  }
+
+  public void test_duplicateDefinition_parameterWithFunctionName_topLevel() throws Exception {
+    Source source = addSource(createSource(//
+    "f(f) {}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.DUPLICATE_DEFINITION,
+        CompileTimeErrorCode.DUPLICATE_DEFINITION,
+        CompileTimeErrorCode.DUPLICATE_DEFINITION,
+        CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    verify(source);
+  }
+
   public void test_duplicateMemberError() throws Exception {
     Source librarySource = addSource("/lib.dart", createSource(//
         "library lib;",
@@ -1435,7 +1487,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {",
         "  A(p) {}",
-        "  A() : super(f);",
+        "  A.named() : this(f);",
         "  var f;",
         "}"));
     resolve(source);
