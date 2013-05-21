@@ -203,6 +203,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
         stopWorkers(defaultContext);
         index.removeContext(defaultContext);
         defaultContext = null;
+        defaultResourceMap = null;
       }
     }
   }
