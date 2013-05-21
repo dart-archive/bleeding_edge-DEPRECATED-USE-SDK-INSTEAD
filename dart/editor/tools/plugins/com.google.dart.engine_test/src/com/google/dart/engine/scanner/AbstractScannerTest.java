@@ -641,6 +641,18 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.STRING, "'a\\$b'");
   }
 
+  public void test_string_simple_interpolation_adjacentIdentifiers() throws Exception {
+    assertTokens( //
+        "'$a$b'",
+        new StringToken(TokenType.STRING, "'", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 1),
+        new StringToken(TokenType.IDENTIFIER, "a", 2),
+        new StringToken(TokenType.STRING, "", 3),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 3),
+        new StringToken(TokenType.IDENTIFIER, "b", 4),
+        new StringToken(TokenType.STRING, "'", 5));
+  }
+
   public void test_string_simple_interpolation_block() throws Exception {
     assertTokens(
         "'Hello ${name}!'",
@@ -687,6 +699,25 @@ public abstract class AbstractScannerTest extends TestCase {
         new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 7),
         new StringToken(TokenType.IDENTIFIER, "name", 8),
         new StringToken(TokenType.STRING, "!'", 12));
+  }
+
+  public void test_string_simple_interpolation_missingIdentifier() throws Exception {
+    assertTokens( //
+        "'$x$'",
+        new StringToken(TokenType.STRING, "'", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 1),
+        new StringToken(TokenType.IDENTIFIER, "x", 2),
+        new StringToken(TokenType.STRING, "", 3),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 3),
+        new StringToken(TokenType.STRING, "'", 4));
+  }
+
+  public void test_string_simple_interpolation_nonIdentifier() throws Exception {
+    assertTokens( //
+        "'$1'",
+        new StringToken(TokenType.STRING, "'", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 1),
+        new StringToken(TokenType.STRING, "1'", 2));
   }
 
   public void test_string_simple_single() throws Exception {

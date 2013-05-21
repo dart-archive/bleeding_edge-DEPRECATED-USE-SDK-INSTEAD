@@ -788,8 +788,10 @@ public abstract class AbstractScanner {
 
   private int tokenizeInterpolatedIdentifier(int next, int start) {
     appendStringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 0);
-    beginToken();
-    next = tokenizeKeywordOrIdentifier(next, false);
+    if ((('A' <= next && next <= 'Z') || ('a' <= next && next <= 'z') || next == '_')) {
+      beginToken();
+      next = tokenizeKeywordOrIdentifier(next, false);
+    }
     beginToken();
     return next;
   }

@@ -437,6 +437,10 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.EXPECTED_EXECUTABLE);
   }
 
+  public void test_expectedInterpolationIdentifier() throws Exception {
+    parse("parseStringLiteral", "'$x$'", ParserErrorCode.MISSING_IDENTIFIER);
+  }
+
   public void test_expectedStringLiteral() throws Exception {
     StringLiteral expression = parse(
         "parseStringLiteral",
@@ -676,6 +680,10 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_invalidHexEscape_tooFewDigits() throws Exception {
     parse("parseStringLiteral", "'\\x0'", ParserErrorCode.INVALID_HEX_ESCAPE);
+  }
+
+  public void test_invalidInterpolationIdentifier_startWithDigit() throws Exception {
+    parse("parseStringLiteral", "'$1'", ParserErrorCode.MISSING_IDENTIFIER);
   }
 
   public void test_invalidOperator() throws Exception {
