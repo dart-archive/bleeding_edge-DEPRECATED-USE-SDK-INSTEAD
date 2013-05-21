@@ -18,6 +18,7 @@ package com.google.dart.engine.services.correction;
  * Identifier of {@link CorrectionProposal}.
  */
 public enum CorrectionKind {
+  QA_ADD_PART_DIRECTIVE(30, "Add 'part' directive"),
   QA_ADD_TYPE_ANNOTATION(30, "Add type annotation"),
   QA_CONVERT_INTO_BLOCK_BODY(30, "Convert into block body"),
   QA_CONVERT_INTO_EXPRESSION_BODY(30, "Convert into expression body"),

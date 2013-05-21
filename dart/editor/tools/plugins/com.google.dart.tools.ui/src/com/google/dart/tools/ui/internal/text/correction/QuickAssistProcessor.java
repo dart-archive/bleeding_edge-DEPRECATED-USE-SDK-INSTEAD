@@ -14,11 +14,14 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.CreateFileCorrectionProposal;
 import com.google.dart.engine.services.correction.SourceCorrectionProposal;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.actions.ConvertGetterToMethodAction;
@@ -70,20 +73,32 @@ public class QuickAssistProcessor {
     this.editor = contextUI.getEditor();
     this.selection = (DartSelection) editor.getSelectionProvider().getSelection();
     proposals = Lists.newArrayList();
-    ExecutionUtils.runLog(new RunnableEx() {
-      @Override
-      public void run() throws Exception {
-        // add refactoring proposals
-        addProposal_convertGetterToMethodRefactoring();
-        addProposal_convertMethodToGetterRefactoring();
-        addProposal_renameRefactoring();
-        // ask services
-        com.google.dart.engine.services.correction.QuickAssistProcessor serviceProcessor;
-        serviceProcessor = CorrectionProcessors.getQuickAssistProcessor();
-        CorrectionProposal[] serviceProposals = serviceProcessor.getProposals(context);
-        addServiceProposals(proposals, serviceProposals);
-      }
-    });
+    // not resolved yet
+    if (context == null) {
+      ExecutionUtils.runLog(new RunnableEx() {
+        @Override
+        public void run() throws Exception {
+          addUnresolvedProposals();
+        }
+      });
+    }
+    // use AssistContext
+    if (context != null) {
+      ExecutionUtils.runLog(new RunnableEx() {
+        @Override
+        public void run() throws Exception {
+          // add refactoring proposals
+          addProposal_convertGetterToMethodRefactoring();
+          addProposal_convertMethodToGetterRefactoring();
+          addProposal_renameRefactoring();
+          // ask services
+          com.google.dart.engine.services.correction.QuickAssistProcessor serviceProcessor;
+          serviceProcessor = CorrectionProcessors.getQuickAssistProcessor();
+          CorrectionProposal[] serviceProposals = serviceProcessor.getProposals(context);
+          addServiceProposals(proposals, serviceProposals);
+        }
+      });
+    }
     this.context = null;
     this.editor = null;
     this.selection = null;
@@ -92,10 +107,6 @@ public class QuickAssistProcessor {
     } finally {
       proposals = null;
     }
-  }
-
-  public boolean hasAssists(AssistContextUI contextUI) throws CoreException {
-    return contextUI.getContext() != null;
   }
 
   private void addProposal_convertGetterToMethodRefactoring() throws CoreException {
@@ -120,5 +131,33 @@ public class QuickAssistProcessor {
     if (action.isEnabled()) {
       proposals.add(new RenameRefactoringProposal(action, selection));
     }
+  }
+
+  /**
+   * Adds proposals which can be produced for unresolved {@link CompilationUnit}.
+   */
+  private void addUnresolvedProposals() throws Exception {
+    // prepare parsed CompilationUnit
+    CompilationUnit unit = editor.getParsedUnit();
+    if (unit == null) {
+      return;
+    }
+    // prepare Source
+    Source inputSource = editor.getInputSource();
+    if (inputSource == null) {
+      return;
+    }
+    // prepare AnalysisContext
+    AnalysisContext analysisContext = editor.getInputAnalysisContext();
+    if (analysisContext == null) {
+      return;
+    }
+    // ask for corrections
+    CorrectionProposal[] serviceProposals = CorrectionProcessors.getQuickAssistProcessor().getProposals(
+        analysisContext,
+        inputSource,
+        unit,
+        selection.getOffset());
+    addServiceProposals(proposals, serviceProposals);
   }
 }

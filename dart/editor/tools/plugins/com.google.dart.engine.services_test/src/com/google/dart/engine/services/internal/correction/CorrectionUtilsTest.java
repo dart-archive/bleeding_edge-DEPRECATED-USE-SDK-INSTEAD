@@ -60,7 +60,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.scanner.TokenType;
-import com.google.dart.engine.services.internal.correction.CorrectionUtils.TopInsertDesc;
+import com.google.dart.engine.services.internal.correction.CorrectionUtils.InsertDesc;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -469,6 +469,102 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals(
         "    {\n      B\n    }\n",
         utils.getIndentSource("  {\n    B\n  }\n", "  ", "    "));
+  }
+
+  public void test_getInsertDescImport_emptyUnit() throws Exception {
+    parseTestUnit();
+    CorrectionUtils utils = getTestCorrectionUtils();
+    InsertDesc desc = utils.getInsertDescImport();
+    assertEquals(0, desc.offset);
+    assertEquals("", desc.prefix);
+    assertEquals("", desc.suffix);
+  }
+
+  public void test_getInsertDescImport_hasExport() throws Exception {
+    parseTestUnit("export 'dart:math';");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    InsertDesc desc = utils.getInsertDescImport();
+    assertEquals(findEnd("export 'dart:math';"), desc.offset);
+    assertEquals("\n", desc.prefix);
+    assertEquals("", desc.suffix);
+  }
+
+  public void test_getInsertDescImport_hasImport() throws Exception {
+    parseTestUnit("import 'dart:math';");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    InsertDesc desc = utils.getInsertDescImport();
+    assertEquals(findEnd("import 'dart:math';"), desc.offset);
+    assertEquals("\n", desc.prefix);
+    assertEquals("", desc.suffix);
+  }
+
+  public void test_getInsertDescImport_hasLibrary() throws Exception {
+    parseTestUnit("library app;");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    InsertDesc desc = utils.getInsertDescImport();
+    assertEquals(findEnd("library app;"), desc.offset);
+    assertEquals("\n\n", desc.prefix);
+    assertEquals("", desc.suffix);
+  }
+
+  public void test_getInsertDescPart_emptyUnit() throws Exception {
+    parseTestUnit();
+    CorrectionUtils utils = getTestCorrectionUtils();
+    InsertDesc desc = utils.getInsertDescPart();
+    assertEquals(0, desc.offset);
+    assertEquals("", desc.prefix);
+    assertEquals("", desc.suffix);
+  }
+
+  public void test_getInsertDescPart_hasLibrary() throws Exception {
+    parseTestUnit("library app;");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    InsertDesc desc = utils.getInsertDescPart();
+    assertEquals(findEnd("library app;"), desc.offset);
+    assertEquals("\n\n", desc.prefix);
+    assertEquals("", desc.suffix);
+  }
+
+  public void test_getInsertDescTop_emptyUnit() throws Exception {
+    parseTestUnit();
+    CorrectionUtils utils = getTestCorrectionUtils();
+    InsertDesc desc = utils.getInsertDescTop();
+    assertEquals(0, desc.offset);
+    assertEquals("", desc.prefix);
+    assertEquals("", desc.suffix);
+  }
+
+  public void test_getInsertDescTop_hashBang() throws Exception {
+    parseTestUnit(
+        "#!/bin/dart",
+        "",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {}");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    InsertDesc desc = utils.getInsertDescTop();
+    assertEquals(findOffset("main()"), desc.offset);
+    assertEquals("\n", desc.prefix);
+    assertEquals("\n", desc.suffix);
+  }
+
+  public void test_getInsertDescTop_hasUnitMembers() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {}");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    InsertDesc desc = utils.getInsertDescTop();
+    assertEquals(findOffset("main()"), desc.offset);
+    assertEquals("\n", desc.prefix);
+    assertEquals("\n", desc.suffix);
+  }
+
+  public void test_getInsertDescTop_leadingComments_noUnitMembers() throws Exception {
+    parseTestUnit("// filler filler filler filler filler filler filler filler filler filler");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    InsertDesc desc = utils.getInsertDescTop();
+    assertEquals(testCode.length(), desc.offset);
+    assertEquals("\n", desc.prefix);
+    assertEquals("", desc.suffix);
   }
 
   public void test_getLineContentEnd() throws Exception {
@@ -1056,48 +1152,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     parseTestUnit("// 0123456789");
     CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals("0123", utils.getText(rangeStartLength(3, 4)));
-  }
-
-  public void test_getTopInsertDesc_emptyUnit() throws Exception {
-    parseTestUnit();
-    CorrectionUtils utils = getTestCorrectionUtils();
-    TopInsertDesc desc = utils.getTopInsertDesc();
-    assertEquals(0, desc.offset);
-    assertFalse(desc.insertEmptyLineBefore);
-    assertFalse(desc.insertEmptyLineAfter);
-  }
-
-  public void test_getTopInsertDesc_hashBang() throws Exception {
-    parseTestUnit(
-        "#!/bin/dart",
-        "",
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {}");
-    CorrectionUtils utils = getTestCorrectionUtils();
-    TopInsertDesc desc = utils.getTopInsertDesc();
-    assertEquals(findOffset("main()"), desc.offset);
-    assertTrue(desc.insertEmptyLineBefore);
-    assertTrue(desc.insertEmptyLineAfter);
-  }
-
-  public void test_getTopInsertDesc_hasUnitMembers() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {}");
-    CorrectionUtils utils = getTestCorrectionUtils();
-    TopInsertDesc desc = utils.getTopInsertDesc();
-    assertEquals(findOffset("main()"), desc.offset);
-    assertTrue(desc.insertEmptyLineBefore);
-    assertTrue(desc.insertEmptyLineAfter);
-  }
-
-  public void test_getTopInsertDesc_leadingComments_noUnitMembers() throws Exception {
-    parseTestUnit("// filler filler filler filler filler filler filler filler filler filler");
-    CorrectionUtils utils = getTestCorrectionUtils();
-    TopInsertDesc desc = utils.getTopInsertDesc();
-    assertEquals(testCode.length(), desc.offset);
-    assertTrue(desc.insertEmptyLineBefore);
-    assertFalse(desc.insertEmptyLineAfter);
   }
 
   public void test_getTypeSource_Expression() throws Exception {

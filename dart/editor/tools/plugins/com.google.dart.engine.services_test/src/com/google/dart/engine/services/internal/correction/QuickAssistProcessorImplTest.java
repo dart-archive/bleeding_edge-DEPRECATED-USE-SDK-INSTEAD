@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.correction;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.SourceChange;
@@ -22,6 +23,7 @@ import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
 import com.google.dart.engine.services.correction.SourceCorrectionProposal;
+import com.google.dart.engine.source.Source;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -30,8 +32,49 @@ import java.util.List;
 public class QuickAssistProcessorImplTest extends AbstractDartTest {
   private static final QuickAssistProcessor PROCESSOR = CorrectionProcessors.getQuickAssistProcessor();
 
+  /**
+   * @return the result of applying {@link SourceCorrectionProposal} to the {@link #testCode}.
+   */
+  private static String applyProposal(String code, SourceCorrectionProposal proposal) {
+    SourceChange change = proposal.getChange();
+    List<Edit> edits = change.getEdits();
+    return CorrectionUtils.applyReplaceEdits(code, edits);
+  }
+
   private int selectionOffset = 0;
+
   private int selectionLength = 0;
+
+  public void test_addPartDirective() throws Exception {
+    String libCode = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library app;");
+    String testCode = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "part of app;");
+    // add sources
+    addSource("/my_app.dart", libCode);
+    Source testSource = addSource("/test.dart", testCode);
+    // build LibrarySource(s)
+    while (analysisContext.performAnalysisTask() != null) {
+    }
+    // use parsed, but not resolved test.dart
+    CompilationUnit testUnit = analysisContext.parseCompilationUnit(testSource);
+    CorrectionProposal[] proposals = CorrectionProcessors.getQuickAssistProcessor().getProposals(
+        analysisContext,
+        testSource,
+        testUnit,
+        testCode.indexOf("part of"));
+    assert_runProcessor(
+        libCode,
+        proposals,
+        CorrectionKind.QA_ADD_PART_DIRECTIVE,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library app;",
+            "",
+            "part 'test.dart';"));
+  }
 
   public void test_addTypeAnnotation_classField_OK_final() throws Exception {
     assert_addTypeAnnotation_classField("final v = 1;", " = 1", "final int v = 1;");
@@ -1375,15 +1418,6 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_surroundsWith(initial, CorrectionKind.QA_SURROUND_WITH_WHILE, expected);
   }
 
-  /**
-   * @return the result of applying {@link SourceCorrectionProposal} to the {@link #testCode}.
-   */
-  private String applyProposal(SourceCorrectionProposal proposal) {
-    SourceChange change = proposal.getChange();
-    List<Edit> edits = change.getEdits();
-    return CorrectionUtils.applyReplaceEdits(testCode, edits);
-  }
-
   private void assert_addTypeAnnotation(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
@@ -1561,7 +1595,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   }
 
   /**
-   * Asserts that running proposal with given name produces expected source.
+   * Asserts that running proposal of the given kind produces expected source.
    */
   private void assert_runProcessor(CorrectionKind kind, String expectedSource) throws Exception {
     // XXX used to see coverage of only one quick assist
@@ -1569,16 +1603,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
 //      return;
 //    }
     CorrectionProposal[] proposals = getProposals();
-    // find and apply required proposal
-    String result = testCode;
-    for (CorrectionProposal proposal : proposals) {
-      if (proposal.getKind() == kind) {
-        assertThat(proposal).isInstanceOf(SourceCorrectionProposal.class);
-        result = applyProposal((SourceCorrectionProposal) proposal);
-      }
-    }
-    // assert result
-    assertEquals(expectedSource, result);
+    assert_runProcessor(testCode, proposals, kind, expectedSource);
   }
 
   /**
@@ -1589,6 +1614,23 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     parseTestUnit(initialSource);
     selectionOffset = findOffset(offsetPattern);
     assert_runProcessor(kind, expectedSource);
+  }
+
+  /**
+   * Asserts that running proposal of the given kind produces expected source.
+   */
+  private void assert_runProcessor(String initialSource, CorrectionProposal[] proposals,
+      CorrectionKind kind, String expectedSource) {
+    // find and apply required proposal
+    String resultSource = initialSource;
+    for (CorrectionProposal proposal : proposals) {
+      if (proposal.getKind() == kind) {
+        assertThat(proposal).isInstanceOf(SourceCorrectionProposal.class);
+        resultSource = applyProposal(initialSource, (SourceCorrectionProposal) proposal);
+      }
+    }
+    // assert result
+    assertEquals(expectedSource, resultSource);
   }
 
   private void assert_splitAndCondition(String initialSource, String offsetPattern,

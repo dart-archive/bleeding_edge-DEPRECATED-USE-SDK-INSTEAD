@@ -14,12 +14,21 @@
 
 package com.google.dart.engine.services.correction;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.source.Source;
 
 /**
  * Provides {@link CorrectionProposal}s to perform useful and small source code manipulations.
  */
 public interface QuickAssistProcessor {
+  /**
+   * @return the {@link CorrectionProposal}s applicable for parsed, but not resolved unit.
+   */
+  CorrectionProposal[] getProposals(AnalysisContext analysisContext, Source unitSource,
+      CompilationUnit parsedUnit, int offset) throws Exception;
+
   /**
    * @return the {@link CorrectionProposal}s applicable at given context.
    */

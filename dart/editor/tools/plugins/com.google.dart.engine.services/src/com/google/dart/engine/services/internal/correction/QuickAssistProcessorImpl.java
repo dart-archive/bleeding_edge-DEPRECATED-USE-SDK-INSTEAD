@@ -32,8 +32,10 @@ import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.IsExpression;
+import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.ParenthesizedExpression;
+import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -44,7 +46,9 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
@@ -59,6 +63,7 @@ import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.LinkedPositionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
 import com.google.dart.engine.services.correction.SourceCorrectionProposal;
+import com.google.dart.engine.services.internal.correction.CorrectionUtils.InsertDesc;
 import com.google.dart.engine.services.internal.util.ExecutionUtils;
 import com.google.dart.engine.services.internal.util.RunnableEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
@@ -99,7 +104,9 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeWi
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
@@ -161,19 +168,35 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
 
   private final List<CorrectionProposal> proposals = Lists.newArrayList();
   private final List<Edit> textEdits = Lists.newArrayList();
+  private AnalysisContext analysisContext;
   private Source source;
   private CompilationUnit unit;
   private ASTNode node;
-  private int selectionOffset;
 
+  private int selectionOffset;
   private int selectionLength;
   private CorrectionUtils utils;
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
   private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
-
   private final Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
-
   private SourceRange proposalEndRange = null;
+
+  @Override
+  public CorrectionProposal[] getProposals(AnalysisContext analysisContext, Source unitSource,
+      CompilationUnit parsedUnit, int offset) throws Exception {
+    this.analysisContext = analysisContext;
+    this.source = unitSource;
+    proposals.clear();
+    // prepare node
+    node = new NodeLocator(offset).searchWithin(parsedUnit);
+    if (node == null) {
+      return NO_PROPOSALS;
+    }
+    // call proposal methods
+    addUnresolvedProposal_addPart();
+    // done
+    return proposals.toArray(new CorrectionProposal[proposals.size()]);
+  }
 
   @Override
   public CorrectionProposal[] getProposals(AssistContext context) throws Exception {
@@ -1153,15 +1176,6 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     addLinkedPositions(builder, edit);
   }
 
-  private void addLinkedPosition(String group, SourceRange range) {
-    List<SourceRange> positions = linkedPositions.get(group);
-    if (positions == null) {
-      positions = Lists.newArrayList();
-      linkedPositions.put(group, positions);
-    }
-    positions.add(range);
-  }
-
 //  private void addLinkedPositionProposal(String group, CorrectionImage icon, String text) {
 //    List<TrackedNodeProposal> nodeProposals = linkedPositionProposals.get(group);
 //    if (nodeProposals == null) {
@@ -1170,6 +1184,15 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
 //    }
 //    nodeProposals.add(new TrackedNodeProposal(icon, text));
 //  }
+
+  private void addLinkedPosition(String group, SourceRange range) {
+    List<SourceRange> positions = linkedPositions.get(group);
+    if (positions == null) {
+      positions = Lists.newArrayList();
+      linkedPositions.put(group, positions);
+    }
+    positions.add(range);
+  }
 
   /**
    * Adds positions from the given {@link SourceBuilder} to the {@link #linkedPositions}.
@@ -1235,6 +1258,61 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     }
     // reset
     resetProposalElements();
+  }
+
+  private void addUnresolvedProposal_addPart() throws Exception {
+    // should be PartOfDirective selected
+    PartOfDirective partOfDirective = node.getAncestor(PartOfDirective.class);
+    if (partOfDirective == null) {
+      return;
+    }
+    LibraryIdentifier partOfNameIdentifier = partOfDirective.getLibraryName();
+    if (partOfNameIdentifier == null) {
+      return;
+    }
+    String requiredLibraryName = partOfNameIdentifier.toString();
+    // prepare unit File
+    File unitFile = QuickFixProcessorImpl.getSourceFile(source);
+    if (unitFile == null) {
+      return;
+    }
+    // check all libraries
+    Source[] librarySources = analysisContext.getLibrarySources();
+    for (Source librarySource : librarySources) {
+      LibraryElement libraryElement = analysisContext.getLibraryElement(librarySource);
+      if (StringUtils.equals(libraryElement.getName(), requiredLibraryName)) {
+        // prepare library File
+        File libraryFile = QuickFixProcessorImpl.getSourceFile(librarySource);
+        if (libraryFile == null) {
+          continue;
+        }
+        // prepare library CompilationUnit
+        CompilationUnit libraryUnit = analysisContext.getResolvedCompilationUnit(
+            librarySource,
+            librarySource);
+        if (libraryUnit == null) {
+          continue;
+        }
+        // prepare relative URI
+        URI libraryFolderUri = libraryFile.getParentFile().toURI();
+        URI unitUri = unitFile.toURI();
+        String relative = libraryFolderUri.relativize(unitUri).getPath();
+        // prepare location for "part" directive
+        utils = new CorrectionUtils(libraryUnit);
+        InsertDesc insertDesc = utils.getInsertDescPart();
+        // build source to insert
+        StringBuilder sb = new StringBuilder();
+        sb.append(insertDesc.prefix);
+        sb.append("part '");
+        sb.append(relative);
+        sb.append("';");
+        sb.append(insertDesc.suffix);
+        // add proposal
+        SourceChange change = new SourceChange(librarySource.getShortName(), librarySource);
+        change.addEdit(new Edit(insertDesc.offset, 0, sb.toString()));
+        proposals.add(new SourceCorrectionProposal(change, CorrectionKind.QA_ADD_PART_DIRECTIVE));
+      }
+    }
   }
 
   private Edit createInsertEdit(int offset, String text) {

@@ -65,9 +65,6 @@ public class DartCorrectionProcessor implements
     {
       DartEditor editor = assistant.getEditor();
       AssistContext context = editor.getAssistContext();
-      if (context == null) {
-        return new ICompletionProposal[0];
-      }
       contextUI = new AssistContextUI(context, editor);
     }
     // prepare proposals

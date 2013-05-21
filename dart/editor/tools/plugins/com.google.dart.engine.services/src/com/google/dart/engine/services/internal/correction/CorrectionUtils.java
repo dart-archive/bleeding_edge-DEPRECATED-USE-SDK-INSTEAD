@@ -24,12 +24,17 @@ import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
+import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -87,12 +92,12 @@ import java.util.Set;
  */
 public class CorrectionUtils {
   /**
-   * Describes where to insert new directive or top-level declaration at the top of file.
+   * Describes where to insert new directive or top-level declaration.
    */
-  public class TopInsertDesc {
+  public class InsertDesc {
     public int offset;
-    public boolean insertEmptyLineBefore;
-    public boolean insertEmptyLineAfter;
+    public String prefix = "";
+    public String suffix = "";
   }
 
   private static final String[] KNOWN_METHOD_NAME_PREFIXES = {"get", "is", "to"};
@@ -882,6 +887,120 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return {@link InsertDesc}, description where to insert new library-related directive.
+   */
+  public InsertDesc getInsertDescImport() {
+    // analyze directives
+    Directive prevDirective = null;
+    for (Directive directive : unit.getDirectives()) {
+      if (directive instanceof LibraryDirective || directive instanceof ImportDirective
+          || directive instanceof ExportDirective) {
+        prevDirective = directive;
+      }
+    }
+    // insert after last library-related directive
+    if (prevDirective != null) {
+      InsertDesc result = new InsertDesc();
+      result.offset = prevDirective.getEnd();
+      String eol = getEndOfLine();
+      if (prevDirective instanceof LibraryDirective) {
+        result.prefix = eol + eol;
+      } else {
+        result.prefix = eol;
+      }
+      return result;
+    }
+    // no directives, use "top" location
+    return getInsertDescTop();
+  }
+
+  /**
+   * @return {@link InsertDesc}, description where to insert new 'part 'directive.
+   */
+  public InsertDesc getInsertDescPart() {
+    // analyze directives
+    Directive prevDirective = null;
+    for (Directive directive : unit.getDirectives()) {
+      prevDirective = directive;
+    }
+    // insert after last directive
+    if (prevDirective != null) {
+      InsertDesc result = new InsertDesc();
+      result.offset = prevDirective.getEnd();
+      String eol = getEndOfLine();
+      if (prevDirective instanceof PartDirective) {
+        result.prefix = eol;
+      } else {
+        result.prefix = eol + eol;
+      }
+      return result;
+    }
+    // no directives, use "top" location
+    return getInsertDescTop();
+  }
+
+  /**
+   * @return {@link InsertDesc}, description where to insert new directive or top-level declaration
+   *         at the top of file.
+   */
+  public InsertDesc getInsertDescTop() {
+    // skip leading line comments
+    int offset = 0;
+    boolean insertEmptyLineBefore = false;
+    boolean insertEmptyLineAfter = false;
+    String source = getText();
+    // skip hash-bang
+    if (offset < source.length() - 2) {
+      String linePrefix = getText(offset, 2);
+      if (linePrefix.equals("#!")) {
+        insertEmptyLineBefore = true;
+        offset = getLineNext(offset);
+        // skip empty lines to first line comment
+        int emptyOffset = offset;
+        while (emptyOffset < source.length() - 2) {
+          int nextLineOffset = getLineNext(emptyOffset);
+          String line = source.substring(emptyOffset, nextLineOffset);
+          if (line.trim().isEmpty()) {
+            emptyOffset = nextLineOffset;
+            continue;
+          } else if (line.startsWith("//")) {
+            offset = emptyOffset;
+            break;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    // skip line comments
+    while (offset < source.length() - 2) {
+      String linePrefix = getText(offset, 2);
+      if (linePrefix.equals("//")) {
+        insertEmptyLineBefore = true;
+        offset = getLineNext(offset);
+      } else {
+        break;
+      }
+    }
+    // determine if empty line is required after
+    int nextLineOffset = getLineNext(offset);
+    String insertLine = source.substring(offset, nextLineOffset);
+    if (!insertLine.trim().isEmpty()) {
+      insertEmptyLineAfter = true;
+    }
+    // fill InsertDesc
+    InsertDesc desc = new InsertDesc();
+    desc.offset = offset;
+    if (insertEmptyLineBefore) {
+      desc.prefix = getEndOfLine();
+    }
+    if (insertEmptyLineAfter) {
+      desc.suffix = getEndOfLine();
+    }
+    return desc;
+  }
+
+  /**
    * Skips whitespace characters and single EOL on the right from the given position. If from
    * statement or method end, then this is in the most cases start of the next line.
    */
@@ -1077,63 +1196,6 @@ public class CorrectionUtils {
    */
   public String getText(SourceRange range) {
     return getText(range.getOffset(), range.getLength());
-  }
-
-  /**
-   * @return {@link TopInsertDesc}, description where to insert new directive or top-level
-   *         declaration at the top of file.
-   */
-  public TopInsertDesc getTopInsertDesc() {
-    // skip leading line comments
-    int offset = 0;
-    boolean insertEmptyLineBefore = false;
-    boolean insertEmptyLineAfter = false;
-    String source = getText();
-    // skip hash-bang
-    if (offset < source.length() - 2) {
-      String linePrefix = getText(offset, 2);
-      if (linePrefix.equals("#!")) {
-        insertEmptyLineBefore = true;
-        offset = getLineNext(offset);
-        // skip empty lines to first line comment
-        int emptyOffset = offset;
-        while (emptyOffset < source.length() - 2) {
-          int nextLineOffset = getLineNext(emptyOffset);
-          String line = source.substring(emptyOffset, nextLineOffset);
-          if (line.trim().isEmpty()) {
-            emptyOffset = nextLineOffset;
-            continue;
-          } else if (line.startsWith("//")) {
-            offset = emptyOffset;
-            break;
-          } else {
-            break;
-          }
-        }
-      }
-    }
-    // skip line comments
-    while (offset < source.length() - 2) {
-      String linePrefix = getText(offset, 2);
-      if (linePrefix.equals("//")) {
-        insertEmptyLineBefore = true;
-        offset = getLineNext(offset);
-      } else {
-        break;
-      }
-    }
-    // determine if empty line is required after
-    int nextLineOffset = getLineNext(offset);
-    String insertLine = source.substring(offset, nextLineOffset);
-    if (!insertLine.trim().isEmpty()) {
-      insertEmptyLineAfter = true;
-    }
-    // fill TopInsertDesc
-    TopInsertDesc desc = new TopInsertDesc();
-    desc.offset = offset;
-    desc.insertEmptyLineBefore = insertEmptyLineBefore;
-    desc.insertEmptyLineAfter = insertEmptyLineAfter;
-    return desc;
   }
 
   /**

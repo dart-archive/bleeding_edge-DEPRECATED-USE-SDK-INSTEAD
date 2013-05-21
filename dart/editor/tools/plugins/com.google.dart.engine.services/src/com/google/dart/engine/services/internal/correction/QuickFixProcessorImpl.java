@@ -68,7 +68,7 @@ import com.google.dart.engine.services.correction.CreateFileCorrectionProposal;
 import com.google.dart.engine.services.correction.LinkedPositionProposal;
 import com.google.dart.engine.services.correction.QuickFixProcessor;
 import com.google.dart.engine.services.correction.SourceCorrectionProposal;
-import com.google.dart.engine.services.internal.correction.CorrectionUtils.TopInsertDesc;
+import com.google.dart.engine.services.internal.correction.CorrectionUtils.InsertDesc;
 import com.google.dart.engine.services.util.HierarchyUtils;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -518,10 +518,10 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
       // if still beginning of file, skip shebang and line comments
       if (offset == 0) {
-        TopInsertDesc desc = libraryUtils.getTopInsertDesc();
+        InsertDesc desc = libraryUtils.getInsertDescTop();
         offset = desc.offset;
-        prefix = desc.insertEmptyLineBefore ? eol : "";
-        suffix = eol + (desc.insertEmptyLineAfter ? eol : "");
+        prefix = desc.prefix;
+        suffix = desc.suffix + eol;
       }
     }
     // insert new import
