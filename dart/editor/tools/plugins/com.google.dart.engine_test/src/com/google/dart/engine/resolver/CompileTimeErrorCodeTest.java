@@ -381,20 +381,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test__parameterWithFunctionName_local() throws Exception {
-    Source source = addSource(createSource(//
-        "main() {",
-        "  f(f) {}",
-        "}"));
-    resolve(source);
-    assertErrors(
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION);
-    verify(source);
-  }
-
   public void test_ambiguousExport() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
@@ -956,7 +942,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_duplicateDefinition_parameterWithFunctionName_topLevel() throws Exception {
+  public void test_duplicateDefinition_parameterWithFunctionName_local() throws Exception {
     Source source = addSource(createSource(//
         "main() {",
         "  f(f) {}",
@@ -964,7 +950,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION,
+        CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    verify(source);
+  }
+
+  public void test_duplicateDefinition_parameterWithFunctionName_topLevel() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  f(f) {}",
+        "}"));
+    resolve(source);
+    assertErrors(
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
         CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(source);

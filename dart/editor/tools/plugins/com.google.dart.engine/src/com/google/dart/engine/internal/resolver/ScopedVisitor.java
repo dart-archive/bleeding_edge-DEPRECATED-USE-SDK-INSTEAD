@@ -287,17 +287,22 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitFunctionExpression(FunctionExpression node) {
-    Scope outerScope = nameScope;
-    try {
-      ExecutableElement functionElement = node.getElement();
-      if (functionElement == null) {
-        // TODO(brianwilkerson) Report this internal error
-      } else {
-        nameScope = new FunctionScope(nameScope, functionElement);
-      }
+    if (node.getParent() instanceof FunctionDeclaration) {
+      // We have already created a function scope and don't need to do so again.
       super.visitFunctionExpression(node);
-    } finally {
-      nameScope = outerScope;
+    } else {
+      Scope outerScope = nameScope;
+      try {
+        ExecutableElement functionElement = node.getElement();
+        if (functionElement == null) {
+          // TODO(brianwilkerson) Report this internal error
+        } else {
+          nameScope = new FunctionScope(nameScope, functionElement);
+        }
+        super.visitFunctionExpression(node);
+      } finally {
+        nameScope = outerScope;
+      }
     }
     return null;
   }
