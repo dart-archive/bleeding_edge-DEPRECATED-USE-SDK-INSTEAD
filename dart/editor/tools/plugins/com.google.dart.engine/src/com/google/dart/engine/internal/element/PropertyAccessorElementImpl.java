@@ -90,6 +90,11 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   }
 
   @Override
+  public boolean isAbstract() {
+    return hasModifier(Modifier.ABSTRACT);
+  }
+
+  @Override
   public boolean isGetter() {
     return hasModifier(Modifier.GETTER);
   }
@@ -102,6 +107,15 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   @Override
   public boolean isStatic() {
     return getVariable().isStatic();
+  }
+
+  /**
+   * Set whether this accessor is abstract to correspond to the given value.
+   * 
+   * @param isAbstract {@code true} if the accessor is abstract
+   */
+  public void setAbstract(boolean isAbstract) {
+    setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
   /**

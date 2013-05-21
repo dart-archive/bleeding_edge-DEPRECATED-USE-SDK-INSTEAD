@@ -49,6 +49,11 @@ public class PropertyAccessorElementHandle extends ExecutableElementHandle imple
   }
 
   @Override
+  public boolean isAbstract() {
+    return getActualElement().isAbstract();
+  }
+
+  @Override
   public boolean isGetter() {
     return getActualElement().isGetter();
   }

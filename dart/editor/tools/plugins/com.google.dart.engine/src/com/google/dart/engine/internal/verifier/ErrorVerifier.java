@@ -304,6 +304,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       checkForMemberWithClassName();
       checkForAllMixinErrorCodes(node.getWithClause());
+      if (!checkForImplementsDisallowedClass(node.getImplementsClause())
+          && !checkForExtendsDisallowedClass(node.getExtendsClause())) {
+        checkForAllInvalidOverrideErrorCodes(node);
+      }
       // initialize initialFieldElementsMap
       ClassElement classElement = node.getElement();
       if (classElement != null) {
@@ -390,12 +394,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitExtendsClause(ExtendsClause node) {
-    checkForExtendsDisallowedClass(node);
-    return super.visitExtendsClause(node);
-  }
-
-  @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     checkForConstFormalParameter(node);
     checkForFieldInitializingFormalRedirectingConstructor(node);
@@ -446,12 +444,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitIfStatement(IfStatement node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitIfStatement(node);
-  }
-
-  @Override
-  public Void visitImplementsClause(ImplementsClause node) {
-    checkForImplementsDisallowedClass(node);
-    return super.visitImplementsClause(node);
   }
 
   @Override
@@ -794,6 +786,134 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 //      }
 //    }
     return foundError;
+  }
+
+  /**
+   * This checks that passed class declaration overrides all members required by its superclasses
+   * and interfaces.
+   * 
+   * @param node the {@link ClassDeclaration} to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE
+   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE
+   */
+  private boolean checkForAllInvalidOverrideErrorCodes(ClassDeclaration node) {
+    if (enclosingClass.isAbstract()) {
+      return false;
+    }
+    HashSet<ExecutableElement> missingOverrides = new HashSet<ExecutableElement>();
+
+    // Store in local sets the set of all method and accessor names:
+    HashSet<String> methodsInEnclosingClass = new HashSet<String>();
+    HashSet<String> accessorsInEnclosingClass = new HashSet<String>();
+    MethodElement[] methods = enclosingClass.getMethods();
+    for (MethodElement method : methods) {
+      methodsInEnclosingClass.add(method.getName());
+    }
+    PropertyAccessorElement[] accessors = enclosingClass.getAccessors();
+    for (PropertyAccessorElement accessor : accessors) {
+      accessorsInEnclosingClass.add(accessor.getName());
+    }
+
+    // Loop through the set of all executable elements inherited from the superclass chain.
+    HashMap<String, ExecutableElement> membersInheritedFromSuperclasses = inheritanceManager.getMapOfMembersInheritedFromClasses(enclosingClass);
+    for (Entry<String, ExecutableElement> entry : membersInheritedFromSuperclasses.entrySet()) {
+      ExecutableElement executableElt = entry.getValue();
+      if (executableElt instanceof MethodElement) {
+        MethodElement methodElt = (MethodElement) executableElt;
+        // If the method is abstract, then verify that this class has a method which overrides the
+        // abstract method from the superclass.
+        if (methodElt.isAbstract()) {
+          String methodName = entry.getKey();
+          boolean foundOverridingMethod = false;
+          if (methodsInEnclosingClass.contains(methodName)) {
+            foundOverridingMethod = true;
+          }
+          // If an abstract method was found in a superclass, but it is not in the subclass, then
+          // add the executable element to the missingOverides set.
+          if (!foundOverridingMethod) {
+            missingOverrides.add(executableElt);
+          }
+        }
+      } else if (executableElt instanceof PropertyAccessorElement) {
+        PropertyAccessorElement propertyAccessorElt = (PropertyAccessorElement) executableElt;
+        // If the accessor is abstract, then verify that this class has an accessor which overrides
+        // the abstract accessor from the superclass.
+        if (propertyAccessorElt.isAbstract()) {
+          String accessorName = entry.getKey();
+          boolean foundOverridingMember = false;
+          if (accessorsInEnclosingClass.contains(accessorName)) {
+            foundOverridingMember = true;
+          }
+          // If an abstract method was found in a superclass, but it is not in the subclass, then
+          // add the executable element to the missingOverides set.
+          if (!foundOverridingMember) {
+            missingOverrides.add(executableElt);
+          }
+        }
+      }
+    }
+
+    // Loop through the set of all executable elements inherited from the interfaces.
+    HashMap<String, ExecutableElement> membersInheritedFromInterfaces = inheritanceManager.getMapOfMembersInheritedFromInterfaces(enclosingClass);
+    for (Entry<String, ExecutableElement> entry : membersInheritedFromInterfaces.entrySet()) {
+      ExecutableElement executableElt = entry.getValue();
+      // First check to see if this element was declared in the superclass chain.
+      ExecutableElement elt = membersInheritedFromSuperclasses.get(executableElt.getName());
+      if (elt != null) {
+        if (elt instanceof MethodElement && !((MethodElement) elt).isAbstract()) {
+          continue;
+        } else if (elt instanceof PropertyAccessorElement
+            && !((PropertyAccessorElement) elt).isAbstract()) {
+          continue;
+        }
+      }
+      if (executableElt instanceof MethodElement) {
+        // Verify that this class has a method which overrides the method from the interface.
+        String methodName = entry.getKey();
+        boolean foundOverridingMethod = false;
+        if (methodsInEnclosingClass.contains(methodName)) {
+          foundOverridingMethod = true;
+        }
+        // If a method was found in an interface, but it is not in the enclosing class, then add the
+        // executable element to the missingOverides set.
+        if (!foundOverridingMethod) {
+          missingOverrides.add(executableElt);
+        }
+      } else if (executableElt instanceof PropertyAccessorElement) {
+        // Verify that this class has a member which overrides the method from the interface.
+        String accessorName = entry.getKey();
+        boolean foundOverridingMember = false;
+        if (accessorsInEnclosingClass.contains(accessorName)) {
+          foundOverridingMember = true;
+        }
+        // If a method was found in an interface, but it is not in the enclosing class, then add the
+        // executable element to the missingOverides set.
+        if (!foundOverridingMember) {
+          missingOverrides.add(executableElt);
+        }
+      }
+    }
+    int missingOverridesSize = missingOverrides.size();
+    if (missingOverridesSize == 0) {
+      return false;
+    }
+    // TODO (jwren/scheglov) Add a quick fix which needs the following array.
+    //ExecutableElement[] missingOverridesArray = missingOverrides.toArray(new ExecutableElement[missingOverridesSize]);
+    if (missingOverridesSize == 1) {
+      ExecutableElement executableElt = missingOverrides.iterator().next();
+      errorReporter.reportError(
+          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE,
+          node.getName(),
+          executableElt.getDisplayName(),
+          executableElt.getEnclosingElement().getDisplayName());
+      return true;
+    } else {
+      errorReporter.reportError(
+          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE,
+          node.getName());
+      return true;
+    }
   }
 
   /**
@@ -1636,6 +1756,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
    */
   private boolean checkForExtendsDisallowedClass(ExtendsClause extendsClause) {
+    if (extendsClause == null) {
+      return false;
+    }
     return checkForExtendsOrImplementsDisallowedClass(
         extendsClause.getSuperclass(),
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
@@ -1778,6 +1901,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS
    */
   private boolean checkForImplementsDisallowedClass(ImplementsClause implementsClause) {
+    if (implementsClause == null) {
+      return false;
+    }
     boolean foundError = false;
     for (TypeName type : implementsClause.getInterfaces()) {
       foundError = foundError

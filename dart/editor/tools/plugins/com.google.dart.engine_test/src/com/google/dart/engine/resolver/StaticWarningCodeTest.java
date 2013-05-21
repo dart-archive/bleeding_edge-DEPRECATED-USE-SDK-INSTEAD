@@ -184,30 +184,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonAbstractClassInheritsAbstractMember() throws Exception {
-    Source source = addSource(createSource(//
-        "class I {",
-        "  m(p) {}",
-        "}",
-        "class C implements I {",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER);
-    verify(source);
-  }
-
-  public void fail_nonAbstractClassInheritsAbstractMethod() throws Exception {
-    Source source = addSource(createSource(//
-        "abstract class A {",
-        "  m(p);",
-        "}",
-        "class C extends A {",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_METHOD);
-    verify(source);
-  }
-
   public void fail_nonType() throws Exception {
     Source source = addSource(createSource(//
         "var A = 0;",
@@ -764,6 +740,110 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberMuliple_fromSuperclass() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  m(p);",
+        "  n(p);",
+        "}",
+        "class C extends A {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberMultiple_fromInterface() throws Exception {
+    Source source = addSource(createSource(//
+        "class I {",
+        "  m(p) {}",
+        "  n(p) {}",
+        "}",
+        "class C implements I {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberSingle_getter_fromInterface()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class I {",
+        "  int get g {return 1;}",
+        "}",
+        "class C implements I {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberSingle_getter_fromSuperclass()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  int get g;",
+        "}",
+        "class C extends A {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberSingle_method_fromInterface()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class I {",
+        "  m(p) {}",
+        "}",
+        "class C implements I {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberSingle_method_fromSuperclass()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  m(p);",
+        "}",
+        "class C extends A {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberSingle_setter_fromInterface()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class I {",
+        "  set s(int i) {}",
+        "}",
+        "class C implements I {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberSingle_setter_fromSuperclass()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  set s(int i);",
+        "}",
+        "class C extends A {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE);
     verify(source);
   }
 

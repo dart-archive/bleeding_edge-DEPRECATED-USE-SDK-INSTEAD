@@ -319,17 +319,24 @@ public enum StaticWarningCode implements ErrorCode {
   NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT("The class '%s' does not have a default constructor"),
 
   /**
+   * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
+   * abstract method.
+   * <p>
    * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
    */
-  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER(""),
+  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE("Missing inherited member '%s' from '%s'"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
    * abstract method.
+   * <p>
+   * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
+   * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
+   * corresponding instance member <i>m</i>.
    */
-  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_METHOD(""),
+  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE("Missing inherited members"),
 
   /**
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type available in the

@@ -65,6 +65,16 @@ public class InheritanceManager {
     interfaceLookup = new HashMap<ClassElement, HashMap<String, ExecutableElement>>();
   }
 
+  public HashMap<String, ExecutableElement> getMapOfMembersInheritedFromClasses(
+      ClassElement classElt) {
+    return computeClassChainLookupMap(classElt, new HashSet<ClassElement>());
+  }
+
+  public HashMap<String, ExecutableElement> getMapOfMembersInheritedFromInterfaces(
+      ClassElement classElt) {
+    return computeInterfaceLookupMap(classElt, new HashSet<ClassElement>());
+  }
+
   /**
    * Given some {@link ClassElement class element} and some member name, this returns the
    * {@link ExecutableElement executable element} that the class inherits from the mixins,

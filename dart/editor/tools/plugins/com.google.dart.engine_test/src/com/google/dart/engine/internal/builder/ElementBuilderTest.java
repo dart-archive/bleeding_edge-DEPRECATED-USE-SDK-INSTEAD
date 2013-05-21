@@ -545,6 +545,74 @@ public class ElementBuilderTest extends EngineTestCase {
     assertNull(field.getSetter());
     PropertyAccessorElement getter = field.getGetter();
     assertNotNull(getter);
+    assertFalse(getter.isAbstract());
+    assertTrue(getter.isGetter());
+    assertFalse(getter.isSynthetic());
+    assertEquals(methodName, getter.getName());
+    assertEquals(field, getter.getVariable());
+    assertLength(0, getter.getFunctions());
+    assertLength(0, getter.getLabels());
+    assertLength(0, getter.getLocalVariables());
+    assertLength(0, getter.getParameters());
+  }
+
+  public void test_visitMethodDeclaration_getter_abstract() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = methodDeclaration(
+        null,
+        null,
+        Keyword.GET,
+        null,
+        identifier(methodName),
+        formalParameterList(),
+        emptyFunctionBody());
+    methodDeclaration.accept(builder);
+    FieldElement[] fields = holder.getFields();
+    assertLength(1, fields);
+
+    FieldElement field = fields[0];
+    assertNotNull(field);
+    assertEquals(methodName, field.getName());
+    assertTrue(field.isSynthetic());
+    assertNull(field.getSetter());
+    PropertyAccessorElement getter = field.getGetter();
+    assertNotNull(getter);
+    assertTrue(getter.isAbstract());
+    assertTrue(getter.isGetter());
+    assertFalse(getter.isSynthetic());
+    assertEquals(methodName, getter.getName());
+    assertEquals(field, getter.getVariable());
+    assertLength(0, getter.getFunctions());
+    assertLength(0, getter.getLabels());
+    assertLength(0, getter.getLocalVariables());
+    assertLength(0, getter.getParameters());
+  }
+
+  public void test_visitMethodDeclaration_getter_external() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = methodDeclaration(
+        null,
+        null,
+        Keyword.GET,
+        null,
+        identifier(methodName),
+        formalParameterList());
+    methodDeclaration.accept(builder);
+    FieldElement[] fields = holder.getFields();
+    assertLength(1, fields);
+
+    FieldElement field = fields[0];
+    assertNotNull(field);
+    assertEquals(methodName, field.getName());
+    assertTrue(field.isSynthetic());
+    assertNull(field.getSetter());
+    PropertyAccessorElement getter = field.getGetter();
+    assertNotNull(getter);
+    assertFalse(getter.isAbstract());
     assertTrue(getter.isGetter());
     assertFalse(getter.isSynthetic());
     assertEquals(methodName, getter.getName());
@@ -634,6 +702,76 @@ public class ElementBuilderTest extends EngineTestCase {
     assertNull(field.getGetter());
     PropertyAccessorElement setter = field.getSetter();
     assertNotNull(setter);
+    assertFalse(setter.isAbstract());
+    assertTrue(setter.isSetter());
+    assertFalse(setter.isSynthetic());
+    assertEquals(methodName + '=', setter.getName());
+    assertEquals(methodName, setter.getDisplayName());
+    assertEquals(field, setter.getVariable());
+    assertLength(0, setter.getFunctions());
+    assertLength(0, setter.getLabels());
+    assertLength(0, setter.getLocalVariables());
+    assertLength(0, setter.getParameters());
+  }
+
+  public void test_visitMethodDeclaration_setter_abstract() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = methodDeclaration(
+        null,
+        null,
+        Keyword.SET,
+        null,
+        identifier(methodName),
+        formalParameterList(),
+        emptyFunctionBody());
+    methodDeclaration.accept(builder);
+    FieldElement[] fields = holder.getFields();
+    assertLength(1, fields);
+
+    FieldElement field = fields[0];
+    assertNotNull(field);
+    assertEquals(methodName, field.getName());
+    assertTrue(field.isSynthetic());
+    assertNull(field.getGetter());
+    PropertyAccessorElement setter = field.getSetter();
+    assertNotNull(setter);
+    assertTrue(setter.isAbstract());
+    assertTrue(setter.isSetter());
+    assertFalse(setter.isSynthetic());
+    assertEquals(methodName + '=', setter.getName());
+    assertEquals(methodName, setter.getDisplayName());
+    assertEquals(field, setter.getVariable());
+    assertLength(0, setter.getFunctions());
+    assertLength(0, setter.getLabels());
+    assertLength(0, setter.getLocalVariables());
+    assertLength(0, setter.getParameters());
+  }
+
+  public void test_visitMethodDeclaration_setter_external() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = methodDeclaration(
+        null,
+        null,
+        Keyword.SET,
+        null,
+        identifier(methodName),
+        formalParameterList());
+    methodDeclaration.accept(builder);
+    FieldElement[] fields = holder.getFields();
+    assertLength(1, fields);
+
+    FieldElement field = fields[0];
+    assertNotNull(field);
+    assertEquals(methodName, field.getName());
+    assertTrue(field.isSynthetic());
+    assertNull(field.getGetter());
+    PropertyAccessorElement setter = field.getSetter();
+    assertNotNull(setter);
+    assertFalse(setter.isAbstract());
     assertTrue(setter.isSetter());
     assertFalse(setter.isSynthetic());
     assertEquals(methodName + '=', setter.getName());

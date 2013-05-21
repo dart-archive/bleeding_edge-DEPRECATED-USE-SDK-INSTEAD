@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.DefaultFormalParameter;
+import com.google.dart.engine.ast.EmptyFunctionBody;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.ForEachStatement;
@@ -524,6 +525,8 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         getter.setLocalVariables(holder.getLocalVariables());
 
         getter.setVariable(field);
+        getter.setAbstract(node.getBody() instanceof EmptyFunctionBody
+            && node.getExternalKeyword() == null);
         getter.setGetter(true);
         field.setGetter(getter);
 
@@ -537,6 +540,8 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         setter.setParameters(holder.getParameters());
 
         setter.setVariable(field);
+        setter.setAbstract(node.getBody() instanceof EmptyFunctionBody
+            && !matches(node.getExternalKeyword(), Keyword.EXTERNAL));
         setter.setSetter(true);
         field.setSetter(setter);
         field.setFinal(false);

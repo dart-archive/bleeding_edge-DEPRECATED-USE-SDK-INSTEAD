@@ -40,6 +40,14 @@ public interface PropertyAccessorElement extends ExecutableElement {
   public PropertyInducingElement getVariable();
 
   /**
+   * Return {@code true} if this accessor is abstract. Accessors are abstract if they are not
+   * external and have no body.
+   * 
+   * @return {@code true} if this accessor is abstract
+   */
+  public boolean isAbstract();
+
+  /**
    * Return {@code true} if this accessor represents a getter.
    * 
    * @return {@code true} if this accessor represents a getter

@@ -92,6 +92,11 @@ public class PropertyAccessorMember extends ExecutableMember implements Property
   }
 
   @Override
+  public boolean isAbstract() {
+    return getBaseElement().isAbstract();
+  }
+
+  @Override
   public boolean isGetter() {
     return getBaseElement().isGetter();
   }
