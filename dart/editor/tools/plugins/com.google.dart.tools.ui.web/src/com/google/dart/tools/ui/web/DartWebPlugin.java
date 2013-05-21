@@ -16,6 +16,8 @@ package com.google.dart.tools.ui.web;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.DecorationOverlayIcon;
+import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
@@ -166,13 +168,21 @@ public class DartWebPlugin extends AbstractUIPlugin {
   private Image getPluginImage(String imagePath) {
     if (imageMap.get(imagePath) == null) {
       ImageDescriptor imageDescriptor = imageDescriptorFromPlugin(PLUGIN_ID, "icons/" + imagePath);
-
       if (imageDescriptor != null) {
+        if (imagePath.endsWith("package_obj.gif")) {
+          ImageDescriptor overlay = imageDescriptorFromPlugin(
+              PLUGIN_ID,
+              "icons/overlay_incoming.gif");
+          imageDescriptor = new DecorationOverlayIcon(
+              imageDescriptor.createImage(),
+              overlay,
+              IDecoration.BOTTOM_RIGHT);
+
+        }
         imageMap.put(imagePath, imageDescriptor.createImage());
       }
     }
 
     return imageMap.get(imagePath);
   }
-
 }

@@ -14,11 +14,13 @@
 
 package com.google.dart.tools.ui.web.pubspec;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.pub.IModelListener;
 import com.google.dart.tools.core.pub.PubspecModel;
 import com.google.dart.tools.core.pub.RunPubJob;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
+import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.actions.RunPublishAction;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.web.DartWebPlugin;
@@ -237,15 +239,23 @@ public class OverviewFormPage extends FormPage implements IModelListener {
       public void linkActivated(HyperlinkEvent e) {
         if (getEditor().isDirty()) {
           getEditor().doSave(new NullProgressMonitor());
-        } else {
-          IEditorInput input = getEditorInput();
-          if (input instanceof IFileEditorInput) {
-            IFile file = ((IFileEditorInput) input).getFile();
-            if (file != null) {
-              new RunPubJob(file.getParent(), RunPubJob.INSTALL_COMMAND).schedule();
-            }
+          if (!DartCore.getPlugin().isAutoRunPubEnabled()) {
+            runPub();
           }
+        } else {
+          runPub();
         }
+      }
+    });
+
+    ImageHyperlink deployActionText = toolkit.createImageHyperlink(links, SWT.NONE);
+    deployActionText.setText("Run pub deploy");
+    deployActionText.setImage(DartWebPlugin.getImage("package_obj.gif"));
+    deployActionText.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        RunPubAction pubAction = RunPublishAction.createPubDeployAction(getSite().getWorkbenchWindow());
+        pubAction.run();
       }
     });
 
@@ -420,6 +430,16 @@ public class OverviewFormPage extends FormPage implements IModelListener {
           null,
           "Pubspec Editor",
           "Looks like the pubspec.yaml is corrupted. Switch to the Source tab to fix.");
+    }
+  }
+
+  private void runPub() {
+    IEditorInput input = getEditorInput();
+    if (input instanceof IFileEditorInput) {
+      IFile file = ((IFileEditorInput) input).getFile();
+      if (file != null) {
+        new RunPubJob(file.getParent(), RunPubJob.INSTALL_COMMAND).schedule();
+      }
     }
   }
 

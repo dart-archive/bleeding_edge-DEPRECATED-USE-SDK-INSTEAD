@@ -190,6 +190,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private RunPubAction pubUpdateAction;
 
+  private RunPubAction pubDeployAction;
+
 //  private OrganizeImportsAction organizeImportsAction;
 
   private IWorkbenchAction importResourcesAction;
@@ -506,6 +508,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     pubUpdateAction = RunPubAction.createPubUpdateAction(window);
 
     pubPublishAction = RunPublishAction.createPubPublishAction(window);
+
+    pubDeployAction = RunPubAction.createPubDeployAction(window);
 
 //    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
 //      // TODO(scheglov)
@@ -1084,6 +1088,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     menu.add(pubInstallAction);
     menu.add(pubUpdateAction);
+    menu.add(pubDeployAction);
     menu.add(pubPublishAction);
 
     menu.add(new Separator());

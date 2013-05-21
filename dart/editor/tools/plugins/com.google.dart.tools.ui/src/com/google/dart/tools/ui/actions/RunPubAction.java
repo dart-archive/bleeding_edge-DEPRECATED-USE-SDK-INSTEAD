@@ -46,6 +46,15 @@ import java.util.List;
  */
 public class RunPubAction extends InstrumentedSelectionDispatchAction {
 
+  public static RunPubAction createPubDeployAction(IWorkbenchWindow window) {
+    RunPubAction action = new RunPubAction(window, RunPubJob.DEPLOY_COMMAND);
+    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Deploy"));
+    action.setDescription(NLS.bind(
+        ActionMessages.RunPubAction_commandDesc,
+        RunPubJob.DEPLOY_COMMAND));
+    return action;
+  }
+
   public static RunPubAction createPubInstallAction(IWorkbenchWindow window) {
     RunPubAction action = new RunPubAction(window, RunPubJob.INSTALL_COMMAND);
     action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Install"));
