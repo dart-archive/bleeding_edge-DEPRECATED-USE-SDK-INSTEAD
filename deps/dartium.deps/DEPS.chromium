@@ -8,42 +8,42 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://src.chromium.org/blink/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "149482",
+  "webkit_revision": "149738",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "11269",
+  "nacl_revision": "11298",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "11040",  # native_client/DEPS: tools_rev
   "gtm_revision": "608",
 
-  "libjingle_revision": "309",
+  "libjingle_revision": "312",
   "libphonenumber_revision": "456",
-  "libvpx_revision": "196669",
+  "libvpx_revision": "197977",
   "lss_revision": "20",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "195920",
-  "ffmpeg_hash": "cc796f43aa0528f3d10bc853cc52af30acab618c",
+  "ffmpeg_revision": "198257",
+  "ffmpeg_hash": "04db474e52bae0eef2cd22341aca1caf427411de",
 
   "sfntly_revision": "134",
-  "skia_revision": "8932",
+  "skia_revision": "9003",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "14500",
+  "v8_revision": "14510",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "3923",
+  "webrtc_revision": "3965",
   "jsoncpp_revision": "248",
   "nss_revision": "197511",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarm_client
   # and whatever else without interference from each other.
-  "swarm_revision": "197097",
+  "swarm_revision": "197757",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling openssl
   # and whatever else without interference from each other.
@@ -58,7 +58,7 @@ vars = {
 
 deps = {
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1155",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@1169",
 
   "src/googleurl":
     (Var("googlecode_url") % "google-url") + "/trunk@183",
@@ -76,7 +76,7 @@ deps = {
     (Var("googlecode_url") % "angleproject") + "/trunk@2184",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@255",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@299",
 
   "src/third_party/WebKit":
     Var("webkit_trunk") + "@" + Var("webkit_revision"),
@@ -88,7 +88,7 @@ deps = {
     "/trunk/deps/third_party/libexif/sources@146817",
 
   "src/third_party/hunspell":
-   "/trunk/deps/third_party/hunspell@196565",
+   "/trunk/deps/third_party/hunspell@197309",
 
   "src/third_party/hunspell_dictionaries":
     "/trunk/deps/third_party/hunspell_dictionaries@193701",
@@ -251,7 +251,7 @@ deps = {
     "/trunk/deps/third_party/libsrtp@189528",
 
   "src/third_party/speex":
-    "/trunk/deps/third_party/speex@177782",
+    "/trunk/deps/third_party/speex@198168",
 
   "src/third_party/yasm/source/patched-yasm":
     "/trunk/deps/third_party/yasm/patched-yasm@167605",
@@ -260,7 +260,7 @@ deps = {
     "/trunk/deps/third_party/libjpeg_turbo@177737",
 
   "src/third_party/flac":
-    "/trunk/deps/third_party/flac@177788",
+    "/trunk/deps/third_party/flac@198139",
 
   "src/third_party/pyftpdlib/src":
     (Var("googlecode_url") % "pyftpdlib") + "/trunk@977",
@@ -284,7 +284,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@680",
+    (Var("googlecode_url") % "libyuv") + "/trunk@682",
 
   "src/third_party/smhasher/src":
     (Var("googlecode_url") % "smhasher") + "/trunk@148",
@@ -534,7 +534,7 @@ deps_os = {
     # Build tools for targeting ChromeOS.
     "src/third_party/chromite":
       Var("chromiumos_git") + "/chromite.git" +
-      "@848d591953f69426080f8a5f29130897bd6fc73d",
+      "@dfd2710856705831dd4e8cd6267899fd4721e11a",
 
     # Dependency of chromite.git.
     "src/third_party/pyelftools":
