@@ -1915,7 +1915,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
   }
 
   private void setSelectionFromStartEndComments() throws Exception {
-    selectionStart = findEnd("// start") + lineSeparator.length();
+    selectionStart = findEnd("// start") + EOL.length();
     selectionEnd = findOffset("// end");
   }
 

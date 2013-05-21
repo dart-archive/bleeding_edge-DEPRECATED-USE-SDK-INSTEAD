@@ -49,7 +49,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class AbstractDartTest extends TestCase {
-  protected final static String lineSeparator = System.getProperty("line.separator", "\n");
+  protected final static String EOL = System.getProperty("line.separator", "\n");
+  protected final static String EOL2 = EOL + EOL;
 
   protected static final DartSdk defaultSdk = DirectoryBasedDartSdk.getDefaultSdk();
   protected static final SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
@@ -127,14 +128,14 @@ public class AbstractDartTest extends TestCase {
   }
 
   protected static String makeSource(String... lines) {
-    return Joiner.on(lineSeparator).join(lines);
+    return Joiner.on(EOL).join(lines);
   }
 
   /**
    * Prints given multi-line source in the way ready to paste back into Java test source.
    */
   protected static void printSourceLines(String source) {
-    String[] lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, lineSeparator);
+    String[] lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, EOL);
     for (int i = 0; i < lines.length; i++) {
       String line = lines[i];
       line = StringUtils.replace(line, "\"", "\\\"");
@@ -152,7 +153,7 @@ public class AbstractDartTest extends TestCase {
    * @return {@link String} with system line separator converted to Unix <code>\n</code>.
    */
   protected static String toUnixEol(String s) {
-    return s.replace(lineSeparator, "\n");
+    return s.replace(EOL, "\n");
   }
 
   private final Set<Source> sourceWithSetContent = Sets.newHashSet();

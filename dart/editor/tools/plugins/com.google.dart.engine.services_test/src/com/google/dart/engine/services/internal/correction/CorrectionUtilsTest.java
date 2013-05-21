@@ -476,8 +476,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     CorrectionUtils utils = getTestCorrectionUtils();
     InsertDesc desc = utils.getInsertDescImport();
     assertEquals(0, desc.offset);
-    assertEquals("", desc.prefix);
-    assertEquals("", desc.suffix);
+    assertEquals("", toUnixEol(desc.prefix));
+    assertEquals("", toUnixEol(desc.suffix));
   }
 
   public void test_getInsertDescImport_hasExport() throws Exception {
@@ -485,8 +485,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     CorrectionUtils utils = getTestCorrectionUtils();
     InsertDesc desc = utils.getInsertDescImport();
     assertEquals(findEnd("export 'dart:math';"), desc.offset);
-    assertEquals("\n", desc.prefix);
-    assertEquals("", desc.suffix);
+    assertEquals("\n", toUnixEol(desc.prefix));
+    assertEquals("", toUnixEol(desc.suffix));
   }
 
   public void test_getInsertDescImport_hasImport() throws Exception {
@@ -494,8 +494,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     CorrectionUtils utils = getTestCorrectionUtils();
     InsertDesc desc = utils.getInsertDescImport();
     assertEquals(findEnd("import 'dart:math';"), desc.offset);
-    assertEquals("\n", desc.prefix);
-    assertEquals("", desc.suffix);
+    assertEquals("\n", toUnixEol(desc.prefix));
+    assertEquals("", toUnixEol(desc.suffix));
   }
 
   public void test_getInsertDescImport_hasLibrary() throws Exception {
@@ -503,8 +503,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     CorrectionUtils utils = getTestCorrectionUtils();
     InsertDesc desc = utils.getInsertDescImport();
     assertEquals(findEnd("library app;"), desc.offset);
-    assertEquals("\n\n", desc.prefix);
-    assertEquals("", desc.suffix);
+    assertEquals("\n\n", toUnixEol(desc.prefix));
+    assertEquals("", toUnixEol(desc.suffix));
   }
 
   public void test_getInsertDescPart_emptyUnit() throws Exception {
@@ -512,8 +512,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     CorrectionUtils utils = getTestCorrectionUtils();
     InsertDesc desc = utils.getInsertDescPart();
     assertEquals(0, desc.offset);
-    assertEquals("", desc.prefix);
-    assertEquals("", desc.suffix);
+    assertEquals("", toUnixEol(desc.prefix));
+    assertEquals("", toUnixEol(desc.suffix));
   }
 
   public void test_getInsertDescPart_hasLibrary() throws Exception {
@@ -521,8 +521,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     CorrectionUtils utils = getTestCorrectionUtils();
     InsertDesc desc = utils.getInsertDescPart();
     assertEquals(findEnd("library app;"), desc.offset);
-    assertEquals("\n\n", desc.prefix);
-    assertEquals("", desc.suffix);
+    assertEquals("\n\n", toUnixEol(desc.prefix));
+    assertEquals("", toUnixEol(desc.suffix));
   }
 
   public void test_getInsertDescTop_emptyUnit() throws Exception {
@@ -530,8 +530,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     CorrectionUtils utils = getTestCorrectionUtils();
     InsertDesc desc = utils.getInsertDescTop();
     assertEquals(0, desc.offset);
-    assertEquals("", desc.prefix);
-    assertEquals("", desc.suffix);
+    assertEquals("", toUnixEol(desc.prefix));
+    assertEquals("", toUnixEol(desc.suffix));
   }
 
   public void test_getInsertDescTop_hashBang() throws Exception {
@@ -543,8 +543,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     CorrectionUtils utils = getTestCorrectionUtils();
     InsertDesc desc = utils.getInsertDescTop();
     assertEquals(findOffset("main()"), desc.offset);
-    assertEquals("\n", desc.prefix);
-    assertEquals("\n", desc.suffix);
+    assertEquals("\n", toUnixEol(desc.prefix));
+    assertEquals("\n", toUnixEol(desc.suffix));
   }
 
   public void test_getInsertDescTop_hasUnitMembers() throws Exception {
@@ -554,8 +554,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     CorrectionUtils utils = getTestCorrectionUtils();
     InsertDesc desc = utils.getInsertDescTop();
     assertEquals(findOffset("main()"), desc.offset);
-    assertEquals("\n", desc.prefix);
-    assertEquals("\n", desc.suffix);
+    assertEquals("\n", toUnixEol(desc.prefix));
+    assertEquals("\n", toUnixEol(desc.suffix));
   }
 
   public void test_getInsertDescTop_leadingComments_noUnitMembers() throws Exception {
@@ -563,8 +563,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     CorrectionUtils utils = getTestCorrectionUtils();
     InsertDesc desc = utils.getInsertDescTop();
     assertEquals(testCode.length(), desc.offset);
-    assertEquals("\n", desc.prefix);
-    assertEquals("", desc.suffix);
+    assertEquals("\n", toUnixEol(desc.prefix));
+    assertEquals("", toUnixEol(desc.suffix));
   }
 
   public void test_getLineContentEnd() throws Exception {

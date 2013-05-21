@@ -55,7 +55,7 @@ public class AbstractDartTest extends com.google.dart.engine.internal.index.Abst
   }
 
   protected static String makeSource(String... lines) {
-    return Joiner.on(lineSeparator).join(lines);
+    return Joiner.on(EOL).join(lines);
   }
 
   /**
