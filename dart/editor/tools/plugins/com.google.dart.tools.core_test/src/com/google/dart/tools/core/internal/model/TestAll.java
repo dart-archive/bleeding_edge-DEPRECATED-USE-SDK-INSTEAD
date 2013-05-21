@@ -39,7 +39,6 @@ public class TestAll {
 //      suite.addTestSuite(DartLibraryImplTest.class);
       suite.addTestSuite(DartMethodImplTest.class);
       suite.addTestSuite(DartModelImplTest.class);
-      suite.addTestSuite(DartModelManagerTest.class);
       suite.addTestSuite(DartProjectImplTest.class);
       suite.addTestSuite(DartProjectNatureTest.class);
       suite.addTestSuite(DartTypeImplTest.class);

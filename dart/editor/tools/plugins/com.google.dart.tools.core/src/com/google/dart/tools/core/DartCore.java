@@ -20,16 +20,13 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.AnalysisServerMock;
-import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
 import com.google.dart.tools.core.internal.OptionManager;
 import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
-import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
-import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.operation.BatchOperation;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
@@ -366,7 +363,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return the Dart project corresponding to the given project
    */
   public static DartProject create(IProject project) {
-    return DartModelManager.getInstance().create(project);
+    return null;
   }
 
   /**
@@ -377,7 +374,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return the Dart element corresponding to the given resource
    */
   public static DartElement create(IResource resource) {
-    return DartModelManager.getInstance().create(resource);
+    return null;
   }
 
   /**
@@ -387,10 +384,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return the Dart model corresponding to the given workspace root
    */
   public static DartModel create(IWorkspaceRoot workspaceRoot) {
-    if (workspaceRoot == null) {
-      return null;
-    }
-    return DartModelManager.getInstance().getDartModel();
+    return null;
   }
 
   /**
@@ -498,7 +492,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return a table of all known configurable options with their default values
    */
   public static Hashtable<String, String> getDefaultOptions() {
-    return DartModelManager.getInstance().getDefaultOptions();
+    return null;
   }
 
   public static File getEclipseInstallationDirectory() {
@@ -1053,7 +1047,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static DartLibrary openLibrary(File libraryFile, IProgressMonitor monitor)
       throws DartModelException {
-    return DartModelManager.getInstance().openLibrary(libraryFile, monitor);
+    return null;
   }
 
   /**
@@ -1178,7 +1172,7 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   public static void setOptions(HashMap<String, String> newOptions) {
-    DartModelManager.getInstance().setOptions(new Hashtable<String, String>(newOptions));
+
   }
 
   /**
@@ -1197,7 +1191,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    *          values
    */
   public static void setOptions(Hashtable<String, String> newOptions) {
-    DartModelManager.getInstance().setOptions(newOptions);
+
   }
 
   /**
@@ -1469,9 +1463,6 @@ public class DartCore extends Plugin implements DartSdkListener {
 
     try {
       getProjectManager().stop();
-      AnalysisIndexManager.stopServerAndIndexing();
-      DartModelManager.shutdown();
-      RootArtifactProvider.shutdown();
 
       if (DartCoreDebug.METRICS) {
         StringWriter writer = new StringWriter();
