@@ -14,11 +14,7 @@
 package com.google.dart.tools.ui.internal.util;
 
 import com.google.dart.engine.element.Element;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartUIMessages;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
@@ -30,66 +26,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 
 public class OpenTypeHierarchyUtil {
-
-  /**
-   * Converts the input to a possible input candidates
-   */
-  public static DartElement[] getCandidates(Object input) {
-    if (!(input instanceof DartElement)) {
-      return null;
-    }
-    try {
-      DartElement elem = (DartElement) input;
-      switch (elem.getElementType()) {
-        case DartElement.METHOD:
-        case DartElement.FIELD:
-        case DartElement.TYPE:
-//        case DartElement.PACKAGE_FRAGMENT_ROOT:
-        case DartElement.DART_PROJECT:
-          return new DartElement[] {elem};
-//        case DartElement.PACKAGE_FRAGMENT:
-//          if (((IPackageFragment) elem).containsJavaResources())
-//            return new DartElement[]{elem};
-//          break;
-//        case DartElement.IMPORT_DECLARATION:
-//          IImportDeclaration decl = (IImportDeclaration) elem;
-//          if (decl.isOnDemand()) {
-//            elem = DartModelUtil.findTypeContainer(elem.getJavaScriptProject(),
-//                Signature.getQualifier(elem.getElementName()));
-//          } else {
-//            elem = elem.getJavaScriptProject().findType(elem.getElementName());
-//          }
-//          if (elem == null)
-//            return null;
-//          return new DartElement[]{elem};
-
-//        case DartElement.CLASS_FILE:
-//          return new DartElement[]{((IClassFile) input).getType()};
-        case DartElement.COMPILATION_UNIT: {
-          CompilationUnit cu = elem.getAncestor(CompilationUnit.class);
-          if (cu != null) {
-            Type[] types = cu.getTypes();
-            if (types.length > 0) {
-              return types;
-            }
-          }
-          break;
-        }
-        default:
-      }
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e);
-    }
-    return null;
-  }
-
-  public static TypeHierarchyViewPart open(DartElement element, IWorkbenchWindow window) {
-    DartElement[] candidates = getCandidates(element);
-    if (candidates != null) {
-      return open(candidates, window);
-    }
-    return null;
-  }
 
   public static TypeHierarchyViewPart open(DartElement[] candidates, IWorkbenchWindow window) {
     Assert.isTrue(candidates != null && candidates.length != 0);

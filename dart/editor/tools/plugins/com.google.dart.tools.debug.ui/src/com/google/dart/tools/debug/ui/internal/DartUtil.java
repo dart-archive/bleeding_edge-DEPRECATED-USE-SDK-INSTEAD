@@ -13,10 +13,6 @@
  */
 package com.google.dart.tools.debug.ui.internal;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
@@ -26,33 +22,6 @@ import org.eclipse.core.runtime.Status;
  * Utility methods for the Dart Debug UI
  */
 public class DartUtil {
-
-  /**
-   * Return <code>true</code> if the given element is a Dart application file.
-   * 
-   * @param element the element being tested
-   * @return <code>true</code> if the element is a Dart application file
-   */
-  public static boolean isDartLibrary(DartElement element) {
-    if (element == null) {
-      return false;
-    }
-    return element.getElementType() == DartElement.COMPILATION_UNIT
-        && ((CompilationUnit) element).definesLibrary();
-  }
-
-  /**
-   * Determine if the resource is a dart application file
-   * 
-   * @param resource the resource (not <code>null</code>)
-   * @return <code>true</code> if the resource is a Dart application
-   */
-  public static boolean isDartLibrary(IResource resource) {
-    if (resource == null || !resource.exists()) {
-      return false;
-    }
-    return isDartLibrary(DartCore.create(resource));
-  }
 
   /**
    * Determine if the resource is a web page

@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.core.utilities.dartdoc;
 
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -35,16 +34,13 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartDocumentable;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -352,8 +348,7 @@ public final class DartDocUtilities {
       return cleanDartDoc(dartDoc);
     }
 
-    // Check if there is sidecar documentation for the element.
-    return ExternalDartDocManager.getManager().getExtDartDoc(documentable);
+    return null;
   }
 
   /**
@@ -377,13 +372,6 @@ public final class DartDocUtilities {
       return convertToHtml(cleanDartDoc(dartDoc));
     }
 
-    // Check if there is sidecar documentation for the element.
-    String dartDoc = ExternalDartDocManager.getManager().getExtDartDoc(documentable);
-
-    if (dartDoc != null) {
-      return convertToHtml(dartDoc);
-    }
-
     return null;
   }
 
@@ -399,43 +387,6 @@ public final class DartDocUtilities {
       }
     } catch (AnalysisException e) {
       DartCore.logError(e);
-    }
-
-    return null;
-  }
-
-  /**
-   * Return the DartDocumentable element in the given location, or <code>null</code> if there is no
-   * element at that location.
-   * 
-   * @param compilationUnit the compilation unit containing the location
-   * @param unit the AST corresponding to the given compilation unit
-   * @param start the index of the start of the range identifying the location
-   * @param end the index of the end of the range identifying the location
-   * @return the DartDocumentable element in the given location
-   * @throws DartModelException if the source containing the DartDoc cannot be accessed
-   */
-  public static DartDocumentable getDartDocumentable(CompilationUnit compilationUnit,
-      DartUnit unit, int start, int end) throws DartModelException {
-    if (compilationUnit == null || unit == null) {
-      return null;
-    }
-
-    DartElementLocator locator = new DartElementLocator(compilationUnit, start, end);
-
-    try {
-      DartElement element = locator.searchWithin(unit);
-
-      if (element instanceof DartDocumentable) {
-        DartDocumentable documentable = (DartDocumentable) element;
-
-        return documentable;
-      }
-    } catch (Exception exception) {
-      DartCore.logInformation(
-          "Could not get DartDoc for element in " + compilationUnit.getElementName() + ", start = "
-              + start + ", end = " + end,
-          exception);
     }
 
     return null;

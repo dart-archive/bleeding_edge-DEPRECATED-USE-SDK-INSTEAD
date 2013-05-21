@@ -14,8 +14,6 @@
 package com.google.dart.tools.core.internal.util;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.DartElementImpl;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModelStatusConstants;
 import com.google.dart.tools.core.model.DartProject;
@@ -378,24 +376,6 @@ public class Util {
     if (objects.length > 1) {
       quickSort(objects, 0, objects.length - 1, comparer);
     }
-  }
-
-  /**
-   * Sorts an array of Dart elements based on their toStringWithAncestors(), returning a new array
-   * with the sorted items. The original array is left untouched.
-   */
-  public static DartElement[] sortCopy(DartElement[] elements) {
-    int len = elements.length;
-    DartElement[] copy = new DartElement[len];
-    System.arraycopy(elements, 0, copy, 0, len);
-    sort(copy, new Comparator<DartElement>() {
-      @Override
-      public int compare(DartElement a, DartElement b) {
-        return ((DartElementImpl) a).toStringWithAncestors().compareTo(
-            ((DartElementImpl) b).toStringWithAncestors());
-      }
-    });
-    return copy;
   }
 
   /**

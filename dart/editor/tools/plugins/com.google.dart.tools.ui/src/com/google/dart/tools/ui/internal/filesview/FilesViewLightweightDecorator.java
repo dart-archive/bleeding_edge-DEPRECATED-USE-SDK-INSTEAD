@@ -14,9 +14,6 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.filesystem.EFS;
@@ -25,7 +22,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -63,21 +59,19 @@ public class FilesViewLightweightDecorator implements ILightweightLabelDecorator
         decoration.addOverlay(DESC_READ_ONLY, IDecoration.BOTTOM_RIGHT);
       }
     } else if (element instanceof IFile) {
-      IFile file = (IFile) element;
+      //TODO (pquitslund): add file decorations
+//        IFile file = (IFile) element;
 
-      try {
-        if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-          DartElement dartElement = DartCore.create(file);
+//        if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+//          DartElement dartElement = DartCore.create(file);
+//
+//          if (dartElement != null) {
+//            if (file.equals(dartElement.getDartProject().getCorrespondingResource())) {
+//              decoration.addOverlay(DESC_READ_ONLY, IDecoration.BOTTOM_RIGHT);
+//            }
+//          }
+//        }
 
-          if (dartElement != null) {
-            if (file.equals(dartElement.getDartProject().getCorrespondingResource())) {
-              decoration.addOverlay(DESC_READ_ONLY, IDecoration.BOTTOM_RIGHT);
-            }
-          }
-        }
-      } catch (CoreException exception) {
-        //ignore
-      }
     }
   }
 

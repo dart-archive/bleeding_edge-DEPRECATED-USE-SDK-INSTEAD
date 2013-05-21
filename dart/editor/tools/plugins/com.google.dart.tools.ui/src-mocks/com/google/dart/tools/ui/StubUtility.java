@@ -15,10 +15,7 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.OpenableElement;
 import com.google.dart.tools.ui.internal.text.dart.ImportRewrite;
 
 import org.eclipse.core.resources.IProject;
@@ -37,8 +34,8 @@ public class StubUtility {
     return new ImportRewrite(compilationUnit, b);
   }
 
-  public static ImportRewrite createImportRewrite(
-      CompilationUnit compilationUnit, DartUnit ast, boolean b) throws CoreException {
+  public static ImportRewrite createImportRewrite(CompilationUnit compilationUnit, DartUnit ast,
+      boolean b) throws CoreException {
     return new ImportRewrite(compilationUnit, ast, b);
   }
 
@@ -64,25 +61,6 @@ public class StubUtility {
         Platform.PREF_LINE_SEPARATOR,
         platformDefault,
         scopeContext);
-  }
-
-  /**
-   * Examines a string and returns the first line delimiter found.
-   * 
-   * @param elem the element
-   * @return the line delimiter used for the element
-   */
-  public static String getLineDelimiterUsed(DartElement elem) {
-    OpenableElement openable = elem.getOpenable();
-    if (openable instanceof CompilationUnit) {
-      try {
-        return openable.findRecommendedLineSeparator();
-      } catch (DartModelException exception) {
-        // Use project setting
-      }
-    }
-    DartProject project = elem.getDartProject();
-    return getProjectLineDelimiter(project.exists() ? project : null);
   }
 
   public static String getMethodBodyContent(boolean isConstructor, DartProject dartProject,
