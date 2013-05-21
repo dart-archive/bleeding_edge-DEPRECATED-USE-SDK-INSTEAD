@@ -21,6 +21,22 @@ import com.google.dart.engine.utilities.source.LineInfo;
 import junit.framework.TestCase;
 
 public abstract class AbstractScannerTest extends TestCase {
+  /**
+   * Instances of the class {@code ExpectedLocation} encode information about the expected location
+   * of a given offset in source code.
+   */
+  private static class ExpectedLocation {
+    private int offset;
+    private int lineNumber;
+    private int columnNumber;
+
+    public ExpectedLocation(int offset, int lineNumber, int columnNumber) {
+      this.offset = offset;
+      this.lineNumber = lineNumber;
+      this.columnNumber = columnNumber;
+    }
+  }
+
   public void test_ampersand() throws Exception {
     assertToken(TokenType.AMPERSAND, "&");
   }
@@ -421,15 +437,22 @@ public abstract class AbstractScannerTest extends TestCase {
     assertKeywordToken("with");
   }
 
-  public void test_lineInfo() throws Exception {
+  public void test_lineInfo_multilineComment() throws Exception {
     String source = "/*\r *\r */";
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Token token = scan(source, listener);
-    assertSame(TokenType.MULTI_LINE_COMMENT, token.getPrecedingComments().getType());
-    listener.assertNoErrors();
-    LineInfo info = listener.getLineInfo(new TestSource());
-    assertNotNull(info);
-    assertEquals(3, info.getLocation(source.length() - 1).getLineNumber());
+    assertLineInfo(
+        source,
+        new ExpectedLocation(0, 1, 1),
+        new ExpectedLocation(4, 2, 2),
+        new ExpectedLocation(source.length() - 1, 3, 3));
+  }
+
+  public void test_lineInfo_simpleClass() throws Exception {
+    String source = "class Test {\r\n    String s = '...';\r\n    int get x => s.MISSING_GETTER;\r\n}";
+    assertLineInfo(
+        source,
+        new ExpectedLocation(0, 1, 1),
+        new ExpectedLocation(source.indexOf("MISSING_GETTER"), 3, 20),
+        new ExpectedLocation(source.length() - 1, 4, 1));
   }
 
   public void test_lt() throws Exception {
@@ -810,6 +833,19 @@ public abstract class AbstractScannerTest extends TestCase {
     assertEquals(source, ((Keyword) value).getSyntax());
 
     assertEquals(TokenType.EOF, token.getNext().getType());
+  }
+
+  private void assertLineInfo(String source, ExpectedLocation... expectedLocations) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    scan(source, listener);
+    listener.assertNoErrors();
+    LineInfo info = listener.getLineInfo(new TestSource());
+    assertNotNull(info);
+    for (ExpectedLocation expectedLocation : expectedLocations) {
+      LineInfo.Location location = info.getLocation(expectedLocation.offset);
+      assertEquals(expectedLocation.lineNumber, location.getLineNumber());
+      assertEquals(expectedLocation.columnNumber, location.getColumnNumber());
+    }
   }
 
   /**
