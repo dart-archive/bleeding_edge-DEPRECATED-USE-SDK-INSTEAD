@@ -958,7 +958,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_duplicateDefinition_parameterWithFunctionName_topLevel() throws Exception {
     Source source = addSource(createSource(//
-    "f(f) {}"));
+        "main() {",
+        "  f(f) {}",
+        "}"));
     resolve(source);
     assertErrors(
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
