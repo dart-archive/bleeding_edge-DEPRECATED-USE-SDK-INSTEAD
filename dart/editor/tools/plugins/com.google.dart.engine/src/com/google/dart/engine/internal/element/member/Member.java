@@ -101,8 +101,10 @@ public abstract class Member implements Element {
     //
     // Elements within this element should have type parameters substituted, just like this element.
     //
-    throw new UnsupportedOperationException();
-//    return baseElement.getMetadata();
+    // TODO(brianwilkerson) Figure out whether this is actually useful for annotations and implement
+    // this method correctly if it is.
+    //
+    return baseElement.getMetadata();
   }
 
   @Override
