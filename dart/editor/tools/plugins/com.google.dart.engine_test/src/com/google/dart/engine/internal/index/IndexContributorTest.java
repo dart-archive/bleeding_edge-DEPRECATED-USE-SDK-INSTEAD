@@ -640,7 +640,7 @@ public class IndexContributorTest extends AbstractDartTest {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  var field;",
+        "  static var field;",
         "}",
         "topLevelFunction(A p) {",
         "  A v;",

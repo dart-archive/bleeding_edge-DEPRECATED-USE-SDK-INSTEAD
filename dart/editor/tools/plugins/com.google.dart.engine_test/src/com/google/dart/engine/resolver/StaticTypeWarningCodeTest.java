@@ -161,7 +161,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   public void test_invocationOfNonFunction_ordinaryInvocation() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  int x;",
+        "  static int x;",
         "}",
         "class B {",
         "  m() {",

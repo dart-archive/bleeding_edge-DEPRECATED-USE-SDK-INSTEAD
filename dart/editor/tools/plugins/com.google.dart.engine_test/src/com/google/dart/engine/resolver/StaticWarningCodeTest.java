@@ -949,6 +949,71 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_staticAccessToInstanceMember_method_invocation() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "}",
+        "main() {",
+        "  A.m();",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER);
+    verify(source);
+  }
+
+  public void test_staticAccessToInstanceMember_method_reference() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "}",
+        "main() {",
+        "  A.m;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER);
+    verify(source);
+  }
+
+  public void test_staticAccessToInstanceMember_propertyAccess_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var f;",
+        "}",
+        "main() {",
+        "  A.f;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER);
+    verify(source);
+  }
+
+  public void test_staticAccessToInstanceMember_propertyAccess_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  get f => 42;",
+        "}",
+        "main() {",
+        "  A.f;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER);
+    verify(source);
+  }
+
+  public void test_staticAccessToInstanceMember_propertyAccess_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set f(x) {}",
+        "}",
+        "main() {",
+        "  A.f = 42;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER);
+    verify(source);
+  }
+
   public void test_switchExpressionNotAssignable() throws Exception {
     Source source = addSource(createSource(//
         "f(int p) {",

@@ -1639,6 +1639,49 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_staticAccessToInstanceMember_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static m() {}",
+        "}",
+        "main() {",
+        "  A.m;",
+        "  A.m();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_staticAccessToInstanceMember_propertyAccess_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static var f;",
+        "}",
+        "main() {",
+        "  A.f;",
+        "  A.f = 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_staticAccessToInstanceMember_propertyAccess_propertyAccessor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static get f => 42;",
+        "  static set f(x) {}",
+        "}",
+        "main() {",
+        "  A.f;",
+        "  A.f = 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_superInInvalidContext() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

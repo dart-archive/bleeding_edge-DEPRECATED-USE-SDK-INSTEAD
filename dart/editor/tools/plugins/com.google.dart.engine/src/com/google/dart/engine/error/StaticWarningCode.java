@@ -419,6 +419,14 @@ public enum StaticWarningCode implements ErrorCode {
   RETURN_WITHOUT_VALUE("Missing return value after 'return'"),
 
   /**
+   * 12.15.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
+   * or getter <i>m</i>.
+   * 
+   * @param memberName the name of the instance member
+   */
+  STATIC_ACCESS_TO_INSTANCE_MEMBER("Instance member '%s' cannot be accessed using static access"),
+
+  /**
    * 13.9 Switch: It is a static warning if the type of <i>e</i> may not be assigned to the type of
    * <i>e<sub>k</sub></i>.
    */

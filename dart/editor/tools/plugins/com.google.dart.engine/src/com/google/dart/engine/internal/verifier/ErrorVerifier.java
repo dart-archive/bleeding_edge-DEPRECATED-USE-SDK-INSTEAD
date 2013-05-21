@@ -143,6 +143,20 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * Checks if the given expression is the reference to the type.
+   * 
+   * @param expr the expression to evaluate
+   * @return {@code true} if the given expression is the reference to the type
+   */
+  private static boolean isTypeReference(Expression expr) {
+    if (expr instanceof Identifier) {
+      Identifier identifier = (Identifier) expr;
+      return identifier.getElement() instanceof ClassElement;
+    }
+    return false;
+  }
+
+  /**
    * The error reporter by which errors will be reported.
    */
   private ErrorReporter errorReporter;
@@ -531,9 +545,27 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitMethodInvocation(MethodInvocation node) {
+    checkForStaticAccessToInstanceMember(node.getTarget(), node.getMethodName());
+    return super.visitMethodInvocation(node);
+  }
+
+  @Override
   public Void visitNativeFunctionBody(NativeFunctionBody node) {
     checkForNativeFunctionBodyInNonSDKCode(node);
     return super.visitNativeFunctionBody(node);
+  }
+
+  @Override
+  public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    checkForStaticAccessToInstanceMember(node.getPrefix(), node.getIdentifier());
+    return super.visitPrefixedIdentifier(node);
+  }
+
+  @Override
+  public Void visitPropertyAccess(PropertyAccess node) {
+    checkForStaticAccessToInstanceMember(node.getTarget(), node.getPropertyName());
+    return super.visitPropertyAccess(node);
   }
 
   @Override
@@ -2717,6 +2749,38 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * This checks that if the given "target" is the type reference then the "name" is not the
+   * reference to a instance member.
+   * 
+   * @param target the target of the name access to evaluate
+   * @param name the accessed name to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#STATIC_ACCESS_TO_INSTANCE_MEMBER
+   */
+  private boolean checkForStaticAccessToInstanceMember(Expression target, SimpleIdentifier name) {
+    // prepare member Element
+    Element element = name.getElement();
+    if (!(element instanceof ExecutableElement)) {
+      return false;
+    }
+    ExecutableElement memberElement = (ExecutableElement) element;
+    // OK, static
+    if (memberElement.isStatic()) {
+      return false;
+    }
+    // OK, target is not a type
+    if (!isTypeReference(target)) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(
+        StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+        name,
+        name.getName());
+    return true;
   }
 
   /**

@@ -1834,6 +1834,37 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     return element;
   }
 
+//  /**
+//   * Report the {@link StaticTypeWarningCode}s <code>UNDEFINED_SETTER</code> and
+//   * <code>UNDEFINED_GETTER</code>.
+//   * 
+//   * @param node the prefixed identifier that gives the context to determine if the error on the
+//   *          undefined identifier is a getter or a setter
+//   * @param identifier the identifier in the passed prefix identifier
+//   * @param typeName the name of the type of the left hand side of the passed prefixed identifier
+//   */
+//  private void reportGetterOrSetterNotFound(PrefixedIdentifier node, SimpleIdentifier identifier,
+//      String typeName) {
+//    // This method is only invoked when the prefixed identifier is effectively a property access.
+//    Type staticTargetType = getStaticType(node.getPrefix());
+//    Type propagatedTargetType = getPropagatedType(node.getPrefix());
+//    if ((staticTargetType == null || staticTargetType.isDynamic())
+//        && (propagatedTargetType == null || propagatedTargetType.isDynamic())) {
+//      return;
+//    }
+//    boolean staticNoSuchMethod = staticTargetType != null
+//        && classDeclaresNoSuchMethod(staticTargetType.getElement());
+//    boolean propagatedNoSuchMethod = propagatedTargetType != null
+//        && classDeclaresNoSuchMethod(propagatedTargetType.getElement());
+//    if (!staticNoSuchMethod && !propagatedNoSuchMethod) {
+//      // TODO(jwren) This needs to be modified to also generate the error code StaticTypeWarningCode.INACCESSIBLE_SETTER
+//      boolean isSetterContext = node.getIdentifier().inSetterContext();
+//      ErrorCode errorCode = isSetterContext ? StaticTypeWarningCode.UNDEFINED_SETTER
+//          : StaticTypeWarningCode.UNDEFINED_GETTER;
+//      resolver.reportError(errorCode, identifier, identifier.getName(), typeName);
+//    }
+//  }
+
   /**
    * Given a list of arguments and the element that will be invoked using those argument, compute
    * the list of parameters that correspond to the list of arguments.
@@ -1894,37 +1925,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     argumentList.setCorrespondingParameters(resolvedParameters);
   }
-
-//  /**
-//   * Report the {@link StaticTypeWarningCode}s <code>UNDEFINED_SETTER</code> and
-//   * <code>UNDEFINED_GETTER</code>.
-//   * 
-//   * @param node the prefixed identifier that gives the context to determine if the error on the
-//   *          undefined identifier is a getter or a setter
-//   * @param identifier the identifier in the passed prefix identifier
-//   * @param typeName the name of the type of the left hand side of the passed prefixed identifier
-//   */
-//  private void reportGetterOrSetterNotFound(PrefixedIdentifier node, SimpleIdentifier identifier,
-//      String typeName) {
-//    // This method is only invoked when the prefixed identifier is effectively a property access.
-//    Type staticTargetType = getStaticType(node.getPrefix());
-//    Type propagatedTargetType = getPropagatedType(node.getPrefix());
-//    if ((staticTargetType == null || staticTargetType.isDynamic())
-//        && (propagatedTargetType == null || propagatedTargetType.isDynamic())) {
-//      return;
-//    }
-//    boolean staticNoSuchMethod = staticTargetType != null
-//        && classDeclaresNoSuchMethod(staticTargetType.getElement());
-//    boolean propagatedNoSuchMethod = propagatedTargetType != null
-//        && classDeclaresNoSuchMethod(propagatedTargetType.getElement());
-//    if (!staticNoSuchMethod && !propagatedNoSuchMethod) {
-//      // TODO(jwren) This needs to be modified to also generate the error code StaticTypeWarningCode.INACCESSIBLE_SETTER
-//      boolean isSetterContext = node.getIdentifier().inSetterContext();
-//      ErrorCode errorCode = isSetterContext ? StaticTypeWarningCode.UNDEFINED_SETTER
-//          : StaticTypeWarningCode.UNDEFINED_GETTER;
-//      resolver.reportError(errorCode, identifier, identifier.getName(), typeName);
-//    }
-//  }
 
   /**
    * Resolve the names in the given combinators in the scope of the given library.
@@ -2115,11 +2115,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
               propertyName.getName());
         }
       }
-//    } else if (selectedElement != null && !selectedElement.isStatic() && isTypeReference(target)) {
-//    reportError(
-//        ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
-//        identifier,
-//        identifier.getName());
     }
   }
 
