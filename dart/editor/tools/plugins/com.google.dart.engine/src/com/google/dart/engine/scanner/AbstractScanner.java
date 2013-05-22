@@ -321,8 +321,9 @@ public abstract class AbstractScanner {
       recordStartOfLine();
       return next;
     } else if (next == '\n') {
+      next = advance();
       recordStartOfLine();
-      return advance();
+      return next;
     } else if (next == '\t' || next == ' ') {
       return advance();
     }

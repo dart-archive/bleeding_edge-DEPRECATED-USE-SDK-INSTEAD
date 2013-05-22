@@ -455,6 +455,14 @@ public abstract class AbstractScannerTest extends TestCase {
         new ExpectedLocation(source.length() - 1, 4, 1));
   }
 
+  public void test_lineInfo_slashN() throws Exception {
+    String source = "class Test {\n}";
+    assertLineInfo(source, new ExpectedLocation(0, 1, 1), new ExpectedLocation(
+        source.indexOf("}"),
+        2,
+        1));
+  }
+
   public void test_lt() throws Exception {
     assertToken(TokenType.LT, "<");
   }
