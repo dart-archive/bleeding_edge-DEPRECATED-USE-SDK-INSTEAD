@@ -14,6 +14,7 @@
 package com.google.dart.engine.type;
 
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -165,6 +166,21 @@ public interface InterfaceType extends Type {
    */
   @Override
   public boolean isSubtypeOf(Type type);
+
+  /**
+   * Return the element representing the constructor that results from looking up the given
+   * constructor in this class with respect to the given library, or {@code null} if the look up
+   * fails. The behavior of this method is defined by the Dart Language Specification in section
+   * 12.11.1: <blockquote>If <i>e</i> is of the form <b>new</b> <i>T.id()</i> then let <i>q<i> be
+   * the constructor <i>T.id</i>, otherwise let <i>q<i> be the constructor <i>T<i>. Otherwise, if
+   * <i>q</i> is not defined or not accessible, a NoSuchMethodException is thrown. </blockquote>
+   * 
+   * @param constructorName the name of the constructor being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given constructor in this class with respect to the given
+   *         library
+   */
+  public ConstructorElement lookUpConstructor(String constructorName, LibraryElement library);
 
   /**
    * Return the element representing the getter that results from looking up the given getter in

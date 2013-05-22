@@ -2368,6 +2368,25 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_recursiveFactoryRedirect_generic() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> implements B<T> {",
+        "  factory A() = C;",
+        "}",
+        "class B<T> implements C<T> {",
+        "  factory B() = A;",
+        "}",
+        "class C<T> implements A<T> {",
+        "  factory C() = B;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
+    verify(source);
+  }
+
   public void test_recursiveFactoryRedirect_named() throws Exception {
     Source source = addSource(createSource(//
         "class A implements B {",

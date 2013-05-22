@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element.member;
 
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.MethodElement;
@@ -75,7 +76,9 @@ public class ParameterMember extends VariableMember implements ParameterElement 
   @SuppressWarnings("unchecked")
   public <E extends Element> E getAncestor(Class<E> elementClass) {
     E element = getBaseElement().getAncestor(elementClass);
-    if (element instanceof MethodElement) {
+    if (element instanceof ConstructorElement) {
+      return (E) ConstructorMember.from((ConstructorElement) element, getDefiningType());
+    } else if (element instanceof MethodElement) {
       return (E) MethodMember.from((MethodElement) element, getDefiningType());
     } else if (element instanceof PropertyAccessorElement) {
       return (E) PropertyAccessorMember.from((PropertyAccessorElement) element, getDefiningType());

@@ -86,8 +86,17 @@ public final class ElementFactory {
     return classElement(typeName, getObject().getType(), parameterNames);
   }
 
-  public static ConstructorElementImpl constructorElement(String name) {
-    return new ConstructorElementImpl(name == null ? null : identifier(name));
+  public static ConstructorElementImpl constructorElement(ClassElement clazz, String name) {
+    Type type = clazz.getType();
+    ConstructorElementImpl constructor = new ConstructorElementImpl(name == null ? null
+        : identifier(name));
+
+    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
+    constructorType.setNormalParameterTypes(new Type[] {type});
+    constructorType.setReturnType(type);
+    constructor.setType(constructorType);
+
+    return constructor;
   }
 
   public static ExportElementImpl exportFor(LibraryElement exportedLibrary,

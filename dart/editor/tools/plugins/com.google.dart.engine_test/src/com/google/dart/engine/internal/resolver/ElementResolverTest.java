@@ -234,7 +234,7 @@ public class ElementResolverTest extends EngineTestCase {
   public void test_visitConstructorName_named() {
     ClassElementImpl classA = classElement("A");
     String constructorName = "a";
-    ConstructorElement constructor = constructorElement(constructorName);
+    ConstructorElement constructor = constructorElement(classA, constructorName);
     classA.setConstructors(new ConstructorElement[] {constructor});
     ConstructorName name = constructorName(typeName(classA), constructorName);
     resolveNode(name);
@@ -245,7 +245,7 @@ public class ElementResolverTest extends EngineTestCase {
   public void test_visitConstructorName_unnamed() {
     ClassElementImpl classA = classElement("A");
     String constructorName = null;
-    ConstructorElement constructor = constructorElement(constructorName);
+    ConstructorElement constructor = constructorElement(classA, constructorName);
     classA.setConstructors(new ConstructorElement[] {constructor});
     ConstructorName name = constructorName(typeName(classA), constructorName);
     resolveNode(name);
@@ -334,7 +334,7 @@ public class ElementResolverTest extends EngineTestCase {
   public void test_visitInstanceCreationExpression_named() {
     ClassElementImpl classA = classElement("A");
     String constructorName = "a";
-    ConstructorElement constructor = constructorElement(constructorName);
+    ConstructorElement constructor = constructorElement(classA, constructorName);
     classA.setConstructors(new ConstructorElement[] {constructor});
     ConstructorName name = constructorName(typeName(classA), constructorName);
     name.setElement(constructor);
@@ -347,7 +347,7 @@ public class ElementResolverTest extends EngineTestCase {
   public void test_visitInstanceCreationExpression_unnamed() {
     ClassElementImpl classA = classElement("A");
     String constructorName = null;
-    ConstructorElement constructor = constructorElement(constructorName);
+    ConstructorElement constructor = constructorElement(classA, constructorName);
     classA.setConstructors(new ConstructorElement[] {constructor});
 
     ConstructorName name = constructorName(typeName(classA), constructorName);
@@ -361,7 +361,7 @@ public class ElementResolverTest extends EngineTestCase {
   public void test_visitInstanceCreationExpression_unnamed_namedParameter() {
     ClassElementImpl classA = classElement("A");
     String constructorName = null;
-    ConstructorElementImpl constructor = constructorElement(constructorName);
+    ConstructorElementImpl constructor = constructorElement(classA, constructorName);
     String parameterName = "a";
     ParameterElement parameter = namedParameter(parameterName);
     constructor.setParameters(new ParameterElement[] {parameter});
@@ -556,11 +556,11 @@ public class ElementResolverTest extends EngineTestCase {
 
   public void test_visitSuperConstructorInvocation() throws Exception {
     ClassElementImpl superclass = classElement("A");
-    ConstructorElementImpl superConstructor = constructorElement(null);
+    ConstructorElementImpl superConstructor = constructorElement(superclass, null);
     superclass.setConstructors(new ConstructorElement[] {superConstructor});
 
     ClassElementImpl subclass = classElement("B", superclass.getType());
-    ConstructorElementImpl subConstructor = constructorElement(null);
+    ConstructorElementImpl subConstructor = constructorElement(subclass, null);
     subclass.setConstructors(new ConstructorElement[] {subConstructor});
 
     SuperConstructorInvocation invocation = superConstructorInvocation();
@@ -571,14 +571,14 @@ public class ElementResolverTest extends EngineTestCase {
 
   public void test_visitSuperConstructorInvocation_namedParameter() throws Exception {
     ClassElementImpl superclass = classElement("A");
-    ConstructorElementImpl superConstructor = constructorElement(null);
+    ConstructorElementImpl superConstructor = constructorElement(superclass, null);
     String parameterName = "p";
     ParameterElement parameter = namedParameter(parameterName);
     superConstructor.setParameters(new ParameterElement[] {parameter});
     superclass.setConstructors(new ConstructorElement[] {superConstructor});
 
     ClassElementImpl subclass = classElement("B", superclass.getType());
-    ConstructorElementImpl subConstructor = constructorElement(null);
+    ConstructorElementImpl subConstructor = constructorElement(subclass, null);
     subclass.setConstructors(new ConstructorElement[] {subConstructor});
 
     SuperConstructorInvocation invocation = superConstructorInvocation(namedExpression(

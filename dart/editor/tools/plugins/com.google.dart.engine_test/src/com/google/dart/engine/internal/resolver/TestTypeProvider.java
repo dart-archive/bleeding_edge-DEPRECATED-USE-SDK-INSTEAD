@@ -194,7 +194,7 @@ public class TestTypeProvider implements TypeProvider {
   public InterfaceType getListType() {
     if (listType == null) {
       ClassElementImpl listElement = classElement("List", "E");
-      listElement.setConstructors(new ConstructorElement[] {constructorElement(null)});
+      listElement.setConstructors(new ConstructorElement[] {constructorElement(listElement, null)});
       listType = listElement.getType();
       Type eType = listElement.getTypeVariables()[0].getType();
       InterfaceType supertype = getIterableType().substitute(new Type[] {eType});
@@ -228,7 +228,9 @@ public class TestTypeProvider implements TypeProvider {
       ClassElementImpl objectElement = getObject();
       objectType = objectElement.getType();
       if (objectElement.getMethods().length == 0) {
-        objectElement.setConstructors(new ConstructorElement[] {constructorElement(null)});
+        objectElement.setConstructors(new ConstructorElement[] {constructorElement(
+            objectElement,
+            null)});
         objectElement.setMethods(new MethodElement[] {
             methodElement("toString", getStringType()), methodElement("==", boolType, objectType),
             methodElement("noSuchMethod", getDynamicType(), getDynamicType())});

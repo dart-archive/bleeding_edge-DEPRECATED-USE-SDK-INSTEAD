@@ -15,12 +15,14 @@ package com.google.dart.engine.internal.type;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.member.ConstructorMember;
 import com.google.dart.engine.internal.element.member.MethodMember;
 import com.google.dart.engine.internal.element.member.PropertyAccessorMember;
 import com.google.dart.engine.type.InterfaceType;
@@ -469,6 +471,23 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     return isSubtypeOf((InterfaceType) type, new HashSet<ClassElement>());
+  }
+
+  @Override
+  public ConstructorElement lookUpConstructor(String constructorName, LibraryElement library) {
+    // prepare base ConstructorElement
+    ConstructorElement constructorElement;
+    if (constructorName == null) {
+      constructorElement = getElement().getUnnamedConstructor();
+    } else {
+      constructorElement = getElement().getNamedConstructor(constructorName);
+    }
+    // not found or not accessible
+    if (constructorElement == null || !constructorElement.isAccessibleIn(library)) {
+      return null;
+    }
+    // return member
+    return ConstructorMember.from(constructorElement, this);
   }
 
   @Override

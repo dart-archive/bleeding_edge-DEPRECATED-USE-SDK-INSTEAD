@@ -548,13 +548,15 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
       return null;
     }
-    ClassElement classElement = ((InterfaceType) type).getElement();
+    // look up ConstructorElement
     ConstructorElement constructor;
     SimpleIdentifier name = node.getName();
+    InterfaceType interfaceType = (InterfaceType) type;
+    LibraryElement definingLibrary = resolver.getDefiningLibrary();
     if (name == null) {
-      constructor = classElement.getUnnamedConstructor();
+      constructor = interfaceType.lookUpConstructor(null, definingLibrary);
     } else {
-      constructor = classElement.getNamedConstructor(name.getName());
+      constructor = interfaceType.lookUpConstructor(name.getName(), definingLibrary);
       staticElementMap.put(name, constructor);
       name.setElement(constructor);
     }

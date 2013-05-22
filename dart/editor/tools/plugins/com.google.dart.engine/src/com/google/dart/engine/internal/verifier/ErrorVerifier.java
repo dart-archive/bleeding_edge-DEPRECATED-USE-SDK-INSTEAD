@@ -97,6 +97,7 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
+import com.google.dart.engine.internal.element.member.ConstructorMember;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.TypeProvider;
@@ -3120,6 +3121,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
       constructors.add(current);
       current = current.getRedirectedConstructor();
+      if (current instanceof ConstructorMember) {
+        current = ((ConstructorMember) current).getBaseElement();
+      }
     }
     return false;
   }

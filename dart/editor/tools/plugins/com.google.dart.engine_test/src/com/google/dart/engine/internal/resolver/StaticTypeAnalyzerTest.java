@@ -554,7 +554,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // new C.m()
     ClassElementImpl classElement = classElement("C");
     String constructorName = "m";
-    ConstructorElementImpl constructor = constructorElement(constructorName);
+    ConstructorElementImpl constructor = constructorElement(classElement, constructorName);
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructorType.setReturnType(classElement.getType());
     constructor.setType(constructorType);
@@ -572,7 +572,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // new C<I>()
     ClassElementImpl elementC = classElement("C", "E");
     ClassElementImpl elementI = classElement("I");
-    ConstructorElementImpl constructor = constructorElement(null);
+    ConstructorElementImpl constructor = constructorElement(elementC, null);
     elementC.setConstructors(new ConstructorElement[] {constructor});
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructorType.setReturnType(elementC.getType());
@@ -591,7 +591,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
   public void test_visitInstanceCreationExpression_unnamed() throws Exception {
     // new C()
     ClassElementImpl classElement = classElement("C");
-    ConstructorElementImpl constructor = constructorElement(null);
+    ConstructorElementImpl constructor = constructorElement(classElement, null);
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructorType.setReturnType(classElement.getType());
     constructor.setType(constructorType);

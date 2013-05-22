@@ -17,20 +17,6 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticWarningCodeTest extends ResolverTestCase {
-  // TODO(scheglov) fails, to we need ConstructorMember?
-  public void fail_argumentTypeNotAssignable_new_generic() throws Exception {
-    Source source = addSource(createSource(//
-        "class A<T> {",
-        "  A(T p) {}",
-        "}",
-        "main() {",
-        "  new A<String>(42);",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
-    verify(source);
-  }
-
   public void fail_castToNonType() throws Exception {
     Source source = addSource(createSource(//
         "var A = 0;",
@@ -363,6 +349,19 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "f(String p) {}",
         "main() {",
         "  f(42);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_new_generic() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  A(T p) {}",
+        "}",
+        "main() {",
+        "  new A<String>(42);",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
