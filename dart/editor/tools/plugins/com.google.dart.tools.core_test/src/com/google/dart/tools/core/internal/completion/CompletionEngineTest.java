@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.completion;
 
 import com.google.common.base.Joiner;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartModelException;
 
 import junit.framework.TestCase;
@@ -32,8 +31,6 @@ import java.util.Collection;
  * what we have to deal with today.
  */
 public class CompletionEngineTest extends TestCase {
-
-  private static boolean analysisCleared = false;
 
   public void issuetestCommentSnippets008() throws Exception {
     test("final num M = Dat!1", "1+DateTime");
@@ -883,10 +880,6 @@ public class CompletionEngineTest extends TestCase {
         "Expected exclamation point ('!') within the source"
             + " denoting the position at which code completion should occur",
         !completionTests.isEmpty());
-    if (!analysisCleared) {
-      analysisCleared = true;
-      PackageLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
-    }
     InMemoryIndex.getInstance().initializeIndex();
     IProgressMonitor monitor = new NullProgressMonitor();
     MockLibrarySource library = new MockLibrarySource("FooLib");

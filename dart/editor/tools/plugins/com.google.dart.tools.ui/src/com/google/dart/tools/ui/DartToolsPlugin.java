@@ -16,7 +16,6 @@ package com.google.dart.tools.ui;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.ui.dialogs.ScanProgressUI;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRegistry;
 import com.google.dart.tools.ui.internal.cleanup.preference.PreferencesAccess;
 import com.google.dart.tools.ui.internal.preferences.MembersOrderPreferenceCache;
@@ -835,7 +834,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   @Override
   public void start(BundleContext context) throws Exception {
     super.start(context);
-    ScanProgressUI.start();
 
     //ensurePreferenceStoreBackwardsCompatibility();
 
@@ -862,7 +860,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   @SuppressWarnings("deprecation")
   @Override
   public void stop(BundleContext context) throws Exception {
-    ScanProgressUI.stop();
     try {
       DartUIStartup.cancelStartup();
 

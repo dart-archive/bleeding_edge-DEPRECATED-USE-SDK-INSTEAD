@@ -13,19 +13,13 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.common.base.Objects;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisEvent;
-import com.google.dart.tools.core.analysis.AnalysisListener;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.SavedContext;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -58,7 +52,6 @@ import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -99,9 +92,6 @@ import org.eclipse.jface.text.link.LinkedModeUI.ExitFlags;
 import org.eclipse.jface.text.link.LinkedModeUI.IExitPolicy;
 import org.eclipse.jface.text.link.LinkedPosition;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
-import org.eclipse.jface.text.reconciler.IReconciler;
-import org.eclipse.jface.text.reconciler.IReconcilingStrategy;
-import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
@@ -130,7 +120,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.dialogs.PreferencesUtil;
-import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IAbstractTextEditorHelpContextIds;
@@ -142,7 +131,6 @@ import org.eclipse.ui.texteditor.ResourceAction;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -1119,8 +1107,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
    */
   private final Object fReconcilerLock = new Object();
 
-  private AnalysisListener savedContextListener;
-
   /**
    * Creates a new compilation unit editor.
    */
@@ -1212,11 +1198,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
   @Override
   public void dispose() {
-
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      SavedContext context = PackageLibraryManagerProvider.getDefaultAnalysisServer().getSavedContext();
-      context.removeAnalysisListener(savedContextListener);
-    }
 
     ISourceViewer sourceViewer = getSourceViewer();
     if (sourceViewer instanceof ITextViewerExtension) {
@@ -2014,52 +1995,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
    * such as reanalyze all.
    */
   private void scheduleReconcileAfterBuild() {
-
     //TODO (pquitslund): investigate whether we need hooks for reconcile on build
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return;
-    }
-
-    final SavedContext context = PackageLibraryManagerProvider.getDefaultAnalysisServer().getSavedContext();
-    savedContextListener = new AnalysisListener() {
-      @Override
-      public void discarded(AnalysisEvent event) {
-        reconcileIfOurFile(event);
-      }
-
-      @Override
-      public void parsed(AnalysisEvent event) {
-        reconcileIfOurFile(event);
-      }
-
-      @Override
-      public void resolved(AnalysisEvent event) {
-        reconcileIfOurFile(event);
-      }
-
-      private void reconcileIfOurFile(AnalysisEvent event) {
-        IEditorInput input = getEditorInput();
-        if (input instanceof IFileEditorInput) {
-          IFile inputFile = ((IFileEditorInput) input).getFile();
-          for (File file : event.getFiles()) {
-            IResource resource = ResourceUtil.getResource(file);
-            if (Objects.equal(resource, inputFile)) {
-              TextSourceViewerConfiguration configuration = (TextSourceViewerConfiguration) getSourceViewerConfiguration();
-              // may be editor is disposed
-              if (configuration == null) {
-                context.removeAnalysisListener(this);
-                return;
-              }
-              // kick reconciler
-              ISourceViewer sourceViewer = getSourceViewer();
-              IReconciler reconciler = configuration.getReconciler(sourceViewer);
-              IReconcilingStrategy reconcilingStrategy = ((MonoReconciler) reconciler).getReconcilingStrategy(IDocument.DEFAULT_CONTENT_TYPE);
-              reconcilingStrategy.reconcile(null);
-            }
-          }
-        }
-      }
-    };
-    context.addAnalysisListener(savedContextListener);
   }
 }

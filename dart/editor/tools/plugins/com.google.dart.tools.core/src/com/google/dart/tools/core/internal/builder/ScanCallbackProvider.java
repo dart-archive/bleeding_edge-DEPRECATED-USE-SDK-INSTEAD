@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.tools.core.analysis.ScanCallback;
 
 /**
  * Indirect way for the UI to hook a {@link ScanCallback} into the build process to allow users to
@@ -41,6 +40,4 @@ public abstract class ScanCallbackProvider {
   public static void setProvider(ScanCallbackProvider provider) {
     ScanCallbackProvider.provider = provider;
   }
-
-  public abstract ScanCallback newCallback();
 }

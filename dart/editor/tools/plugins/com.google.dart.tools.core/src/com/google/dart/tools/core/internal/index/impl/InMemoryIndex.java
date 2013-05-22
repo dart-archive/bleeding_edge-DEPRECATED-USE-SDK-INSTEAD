@@ -20,7 +20,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.SavedContext;
 import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.AttributeCallback;
 import com.google.dart.tools.core.index.Element;
@@ -558,12 +557,12 @@ public class InMemoryIndex implements Index {
     }
     AnalysisServer analysisServer = PackageLibraryManagerProvider.getDefaultAnalysisServer();
     analysisServer.reanalyze();
-    SavedContext savedContext = analysisServer.getSavedContext();
+//    SavedContext savedContext = analysisServer.getSavedContext();
     for (String urlSpec : librarySpecs) {
       try {
         URI libraryUri = new URI(urlSpec);
         File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
-        savedContext.resolve(libraryFile, null);
+//        savedContext.resolve(libraryFile, null);
       } catch (URISyntaxException exception) {
         librariesIndexed = false;
         DartCore.logError("Invalid URI returned from the system library manager: \"" + urlSpec
@@ -588,7 +587,7 @@ public class InMemoryIndex implements Index {
     boolean librariesIndexed = true;
     try {
       AnalysisServer analysisServer = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-      SavedContext savedContext = analysisServer.getSavedContext();
+//      SavedContext savedContext = analysisServer.getSavedContext();
       DartModel model = DartCore.create(ResourcesPlugin.getWorkspace().getRoot());
       for (DartProject project : model.getDartProjects()) {
         for (DartLibrary library : project.getDartLibraries()) {
@@ -605,7 +604,7 @@ public class InMemoryIndex implements Index {
             continue;
           }
           File libraryFile = libraryLocation.toFile();
-          savedContext.resolve(libraryFile, null);
+//          savedContext.resolve(libraryFile, null);
         }
       }
     } catch (Exception exception) {

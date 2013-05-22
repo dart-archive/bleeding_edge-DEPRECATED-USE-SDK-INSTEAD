@@ -950,7 +950,7 @@ public class DartCompilerUtilities {
         URI libraryFileUri = manager.resolveDartUri(librarySourceUri);
         File libraryFile = new File(libraryFileUri.getPath());
 
-        LibraryUnit ret = server.getSavedContext().resolve(libraryFile, 30000);
+        LibraryUnit ret = null; // server.getSavedContext().resolve(libraryFile, 30000);
 
         instrumentation.metric("librarySource.LastModified", librarySource.getLastModified());
         instrumentation.data("librarySource.Name", librarySource.getName());
@@ -960,7 +960,7 @@ public class DartCompilerUtilities {
       }
 
       // Resolve the specified library against all currently cached libraries
-      final Map<URI, LibraryUnit> resolvedLibs = server.getSavedContext().getResolvedLibraries(50);
+      final Map<URI, LibraryUnit> resolvedLibs = null; // server.getSavedContext().getResolvedLibraries(50);
       resolvedLibs.remove(librarySourceUri);
 
       // Construct the selective cache
