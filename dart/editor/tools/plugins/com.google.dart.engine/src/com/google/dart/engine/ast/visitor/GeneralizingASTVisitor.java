@@ -271,7 +271,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitFunctionDeclaration(FunctionDeclaration node) {
-    return visitNode(node);
+    return visitCompilationUnitMember(node);
   }
 
   @Override
