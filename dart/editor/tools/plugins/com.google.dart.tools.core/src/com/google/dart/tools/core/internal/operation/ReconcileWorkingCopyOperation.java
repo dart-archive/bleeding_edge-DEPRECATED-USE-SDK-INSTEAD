@@ -16,7 +16,6 @@ package com.google.dart.tools.core.internal.operation;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.resolver.TypeErrorCode;
-import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -34,6 +33,8 @@ import com.google.dart.tools.core.model.DartModelStatusConstants;
 import com.google.dart.tools.core.problem.ProblemRequestor;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

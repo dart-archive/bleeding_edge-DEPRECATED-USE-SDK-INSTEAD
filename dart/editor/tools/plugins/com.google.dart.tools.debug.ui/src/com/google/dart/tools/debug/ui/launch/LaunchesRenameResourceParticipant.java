@@ -14,9 +14,9 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;

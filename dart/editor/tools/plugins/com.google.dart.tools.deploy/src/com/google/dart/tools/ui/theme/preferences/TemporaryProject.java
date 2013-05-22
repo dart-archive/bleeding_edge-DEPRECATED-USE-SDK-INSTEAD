@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.theme.preferences;
 
 import com.google.common.io.CharStreams;
-import com.google.dart.compiler.util.apache.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.deploy.Activator;
 

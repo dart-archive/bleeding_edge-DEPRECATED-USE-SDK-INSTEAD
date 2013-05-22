@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.core;
 
-import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Platform;
 
 /**

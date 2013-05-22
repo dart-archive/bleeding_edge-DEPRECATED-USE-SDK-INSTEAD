@@ -15,7 +15,6 @@
 package com.google.dart.tools.core.test.util;
 
 import com.google.common.io.CharStreams;
-import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.index.NotifyCallback;
@@ -24,6 +23,7 @@ import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;

@@ -39,7 +39,7 @@ import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
-import com.google.dart.compiler.util.apache.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;

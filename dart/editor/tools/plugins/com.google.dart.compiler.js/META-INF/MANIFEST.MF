@@ -15,7 +15,7 @@ Export-Package: com.google.dart.compiler,
  com.google.dart.compiler.testing,
  com.google.dart.compiler.type,
  com.google.dart.compiler.util,
- com.google.dart.compiler.util.apache
+ com.google.dart.compiler.util.apache;x-friends:="com.google.dart.compiler.js_test"
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Require-Bundle: com.google.dart.thirdparty

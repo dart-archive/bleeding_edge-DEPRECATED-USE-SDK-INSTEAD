@@ -17,7 +17,7 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.util.apache.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 

@@ -13,13 +13,13 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;

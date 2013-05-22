@@ -20,7 +20,7 @@ import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.util.apache.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;

@@ -15,11 +15,11 @@
 package com.google.dart.tools.core.test.util;
 
 import com.google.common.io.CharStreams;
-import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;

@@ -19,7 +19,7 @@ import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
-import com.google.dart.compiler.util.apache.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
