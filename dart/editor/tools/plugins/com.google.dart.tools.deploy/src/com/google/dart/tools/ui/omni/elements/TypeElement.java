@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
-import com.google.dart.compiler.resolver.ClassAliasElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -45,9 +44,6 @@ public class TypeElement extends OmniElement {
 
   @Override
   public ImageDescriptor getImageDescriptor() {
-    if (element instanceof ClassAliasElement) {
-      return DartPluginImages.DESC_DART_CLASS_TYPE_ALIAS;
-    }
     if (element instanceof FunctionTypeAliasElement) {
       return DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
     }
