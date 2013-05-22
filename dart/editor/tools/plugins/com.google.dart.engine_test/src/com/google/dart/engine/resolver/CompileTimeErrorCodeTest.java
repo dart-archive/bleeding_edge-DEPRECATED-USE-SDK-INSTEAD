@@ -86,14 +86,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_duplicateNamedArgument() throws Exception {
-    Source source = addSource(createSource(//
-    "f({a, a}) {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT);
-    verify(source);
-  }
-
   public void fail_extendsOrImplementsDisallowedClass_extends_null() throws Exception {
     Source source = addSource(createSource(//
     "class A extends Null {}"));
@@ -996,6 +988,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
         CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(librarySource);
+  }
+
+  public void test_duplicateNamedArgument() throws Exception {
+    Source source = addSource(createSource(//
+        "f({a, b}) {}",
+        "main() {",
+        "  f(a: 1, a: 2);",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT);
+    verify(source);
   }
 
   public void test_exportOfNonLibrary() throws Exception {
@@ -2202,7 +2205,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class A {",
         "  const A(p);",
         "}",
-        "class B {",
+        "class B extends A {",
         "  static C;",
         "  const B() : super(C);",
         "}"));

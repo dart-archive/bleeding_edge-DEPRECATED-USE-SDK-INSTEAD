@@ -164,6 +164,14 @@ public enum StaticWarningCode implements ErrorCode {
   EQUAL_KEYS_IN_MAP("Keys in a map cannot be equal"),
 
   /**
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
+   * 
+   * @param requiredCount the maximum number of positional arguments
+   * @param argumentCount the actual number of positional arguments given
+   */
+  EXTRA_POSITIONAL_ARGUMENTS("%d positional arguments expected, but %d found"),
+
+  /**
    * 7.6.1 Generative Constructors: An initializing formal has the form <i>this.id</i>. It is a
    * static warning if the static type of <i>id</i> is not assignable to <i>T<sub>id</sub></i>.
    * 
@@ -341,6 +349,14 @@ public enum StaticWarningCode implements ErrorCode {
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE("Missing inherited members"),
 
   /**
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
+   * 
+   * @param requiredCount the expected number of required arguments
+   * @param argumentCount the actual number of positional arguments given
+   */
+  NOT_ENOUGH_REQUIRED_ARGUMENTS("%d required argument(s) expected, but only %d found"),
+
+  /**
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type available in the
    * current lexical scope.
    */
@@ -479,6 +495,15 @@ public enum StaticWarningCode implements ErrorCode {
    */
   // TODO(jwren) tests needed for this error code
   UNDEFINED_OPERATOR("There is no such operator '%s' in '%s'"),
+
+  /**
+   * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
+   * must have a corresponding named parameter in the set {<i>p<sub>n+1</sub></i> ...
+   * <i>p<sub>n+k</sub></i>} or a static warning occurs.
+   * 
+   * @param name the name of the requested named parameter
+   */
+  UNDEFINED_NAMED_PARAMETER("The named parameter '%s' is not defined"),
 
   /**
    * 12.18 Assignment: It is as static warning if an assignment of the form <i>v = e</i> occurs

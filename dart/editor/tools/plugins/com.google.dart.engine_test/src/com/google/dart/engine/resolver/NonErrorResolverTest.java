@@ -1329,7 +1329,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class A {",
         "  const A(p);",
         "}",
-        "class B {",
+        "class B extends A {",
         "  static C;",
         "  const B() : super(42);",
         "}"));

@@ -281,7 +281,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * q<sub>j</sub></i> for any <i>i != j</i> [where <i>q<sub>i</sub></i> is the label for a named
    * argument].
    */
-  DUPLICATE_NAMED_ARGUMENT(""),
+  DUPLICATE_NAMED_ARGUMENT("The argument for the named parameter '%s' was already specified"),
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is

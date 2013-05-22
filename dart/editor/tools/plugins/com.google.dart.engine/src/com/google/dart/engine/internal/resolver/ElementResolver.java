@@ -1901,10 +1901,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
     NodeList<Expression> arguments = argumentList.getArguments();
     int argumentCount = arguments.size();
-    if (argumentCount < requiredParameters.size()) {
-      // TODO(brianwilkerson) Report this error (not enough arguments)
-    }
     ParameterElement[] resolvedParameters = new ParameterElement[argumentCount];
+    int positionalArgumentCount = 0;
+    HashSet<String> usedNames = new HashSet<String>();
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments.get(i);
       if (argument instanceof NamedExpression) {
@@ -1912,18 +1911,33 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         String name = nameNode.getName();
         ParameterElement element = namedParameters.get(name);
         if (element == null) {
-          // TODO(brianwilkerson) Report this error (no corresponding parameter for named argument)
+          resolver.reportError(StaticWarningCode.UNDEFINED_NAMED_PARAMETER, nameNode, name);
         } else {
           resolvedParameters[i] = element;
           recordResolution(nameNode, element);
         }
+        if (!usedNames.add(name)) {
+          resolver.reportError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, name);
+        }
       } else {
+        positionalArgumentCount++;
         if (unnamedIndex < unnamedParameterCount) {
           resolvedParameters[i] = unnamedParameters.get(unnamedIndex++);
-        } else {
-          // TODO(brianwilkerson) Report this error (too many positional arguments) exactly once
         }
       }
+    }
+    if (positionalArgumentCount < requiredParameters.size()) {
+      resolver.reportError(
+          StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
+          argumentList,
+          requiredParameters.size(),
+          positionalArgumentCount);
+    } else if (positionalArgumentCount > unnamedParameterCount) {
+      resolver.reportError(
+          StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS,
+          argumentList,
+          unnamedParameterCount,
+          positionalArgumentCount);
     }
     argumentList.setCorrespondingParameters(resolvedParameters);
   }

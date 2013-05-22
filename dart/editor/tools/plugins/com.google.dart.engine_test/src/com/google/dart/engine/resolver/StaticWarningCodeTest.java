@@ -515,6 +515,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_extraPositionalArguments() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {}",
+        "main() {",
+        "  f(0, 1, '2');",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
+    verify(source);
+  }
+
   public void test_fieldInitializerWithInvalidType() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1017,6 +1028,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_notEnoughRequiredArguments() throws Exception {
+    Source source = addSource(createSource(//
+        "f(int a, String b) {}",
+        "main() {",
+        "  f();",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
+    verify(source);
+  }
+
   public void test_partOfDifferentLibrary() throws Exception {
     Source source = addSource(createSource(//
         "library lib;",
@@ -1179,5 +1201,16 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     "f() { C.m(); }"));
     resolve(source);
     assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
+  }
+
+  public void test_undefinedNamedParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "f({a, b}) {}",
+        "main() {",
+        "  f(c: 1);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.UNDEFINED_NAMED_PARAMETER);
+    // no verify(), 'c' is not resolved
   }
 }

@@ -164,23 +164,39 @@ public final class ElementFactory {
       functionType.setReturnType(returnElement.getType());
     }
     // normal parameters
-    int count = normalParameters == null ? 0 : normalParameters.length;
-    if (count > 0) {
-      InterfaceType[] normalParameterTypes = new InterfaceType[count];
-      for (int i = 0; i < count; i++) {
+    int normalCount = normalParameters == null ? 0 : normalParameters.length;
+    if (normalCount > 0) {
+      InterfaceType[] normalParameterTypes = new InterfaceType[normalCount];
+      for (int i = 0; i < normalCount; i++) {
         normalParameterTypes[i] = normalParameters[i].getType();
       }
       functionType.setNormalParameterTypes(normalParameterTypes);
     }
     // optional parameters
-    count = optionalParameters == null ? 0 : optionalParameters.length;
-    if (count > 0) {
-      InterfaceType[] optionalParameterTypes = new InterfaceType[count];
-      for (int i = 0; i < count; i++) {
+    int optionalCount = optionalParameters == null ? 0 : optionalParameters.length;
+    if (optionalCount > 0) {
+      InterfaceType[] optionalParameterTypes = new InterfaceType[optionalCount];
+      for (int i = 0; i < optionalCount; i++) {
         optionalParameterTypes[i] = optionalParameters[i].getType();
       }
       functionType.setOptionalParameterTypes(optionalParameterTypes);
     }
+    // parameters
+    int totalCount = normalCount + optionalCount;
+    ParameterElement[] parameters = new ParameterElement[totalCount];
+    for (int i = 0; i < totalCount; i++) {
+      ParameterElementImpl parameter = new ParameterElementImpl(identifier("a" + i));
+      if (i < normalCount) {
+        parameter.setType(normalParameters[i].getType());
+        parameter.setParameterKind(ParameterKind.REQUIRED);
+      } else {
+        parameter.setType(optionalParameters[i - normalCount].getType());
+        parameter.setParameterKind(ParameterKind.POSITIONAL);
+      }
+      parameters[i] = parameter;
+    }
+    functionElement.setParameters(parameters);
+    // done
     return functionElement;
   }
 
