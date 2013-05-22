@@ -147,6 +147,70 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @Override
+  public String getDisplayName() {
+    String name = getName();
+    if (name == null) {
+      StringBuilder builder = new StringBuilder();
+      builder.append("(");
+      boolean needsComma = false;
+      if (normalParameterTypes.length > 0) {
+        for (Type type : normalParameterTypes) {
+          if (needsComma) {
+            builder.append(", ");
+          } else {
+            needsComma = true;
+          }
+          builder.append(type.getDisplayName());
+        }
+      }
+      if (optionalParameterTypes.length > 0) {
+        if (needsComma) {
+          builder.append(", ");
+          needsComma = false;
+        }
+        builder.append("[");
+        for (Type type : optionalParameterTypes) {
+          if (needsComma) {
+            builder.append(", ");
+          } else {
+            needsComma = true;
+          }
+          builder.append(type.getDisplayName());
+        }
+        builder.append("]");
+        needsComma = true;
+      }
+      if (namedParameterTypes.size() > 0) {
+        if (needsComma) {
+          builder.append(", ");
+          needsComma = false;
+        }
+        builder.append("{");
+        for (Map.Entry<String, Type> entry : namedParameterTypes.entrySet()) {
+          if (needsComma) {
+            builder.append(", ");
+          } else {
+            needsComma = true;
+          }
+          builder.append(entry.getKey());
+          builder.append(": ");
+          builder.append(entry.getValue().getDisplayName());
+        }
+        builder.append("}");
+        needsComma = true;
+      }
+      builder.append(") -> ");
+      if (returnType == null) {
+        builder.append("null");
+      } else {
+        builder.append(returnType.getDisplayName());
+      }
+      name = builder.toString();
+    }
+    return name;
+  }
+
+  @Override
   public Map<String, Type> getNamedParameterTypes() {
     return namedParameterTypes;
   }

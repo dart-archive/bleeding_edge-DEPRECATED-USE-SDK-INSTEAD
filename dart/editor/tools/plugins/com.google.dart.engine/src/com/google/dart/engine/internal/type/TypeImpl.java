@@ -72,6 +72,11 @@ public abstract class TypeImpl implements Type {
   }
 
   @Override
+  public String getDisplayName() {
+    return getName();
+  }
+
+  @Override
   public Element getElement() {
     return element;
   }

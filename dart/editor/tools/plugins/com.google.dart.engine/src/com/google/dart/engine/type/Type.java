@@ -23,6 +23,14 @@ import com.google.dart.engine.element.Element;
  */
 public interface Type {
   /**
+   * Return the name of this type as it should appear when presented to users in contexts such as
+   * error messages.
+   * 
+   * @return the name of this type
+   */
+  public String getDisplayName();
+
+  /**
    * Return the element representing the declaration of this type, or {@code null} if the type has
    * not, or cannot, be associated with an element. The former case will occur if the element model
    * is not yet complete; the latter case will occur if this object represents an undefined type.
