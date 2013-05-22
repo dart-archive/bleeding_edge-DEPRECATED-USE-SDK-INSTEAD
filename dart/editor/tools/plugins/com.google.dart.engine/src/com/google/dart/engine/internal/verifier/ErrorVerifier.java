@@ -104,6 +104,7 @@ import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
+import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.parser.ParserErrorCode;
@@ -1274,53 +1275,68 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Type expectedReturnType = functionType == null ? DynamicTypeImpl.getInstance()
         : functionType.getReturnType();
     Expression returnExpression = node.getExpression();
+    // RETURN_IN_GENERATIVE_CONSTRUCTOR
     boolean isGenerativeConstructor = enclosingFunction instanceof ConstructorElement
         && !((ConstructorElement) enclosingFunction).isFactory();
-    if (returnExpression != null) {
-      // RETURN_IN_GENERATIVE_CONSTRUCTOR
-      if (isGenerativeConstructor) {
-        errorReporter.reportError(
-            CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
-            returnExpression);
-        return true;
+    if (isGenerativeConstructor) {
+      if (returnExpression == null) {
+        return false;
       }
-      // RETURN_OF_INVALID_TYPE
-      if (!expectedReturnType.isVoid()) {
-        Type staticReturnType = getStaticType(returnExpression);
-        boolean isStaticAssignable = staticReturnType.isAssignableTo(expectedReturnType);
-        Type propagatedReturnType = getPropagatedType(returnExpression);
-        if (propagatedReturnType == null) {
-          if (!isStaticAssignable) {
-            errorReporter.reportError(
-                StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-                returnExpression,
-                staticReturnType.getName(),
-                expectedReturnType.getName(),
-                enclosingFunction.getDisplayName());
-            return true;
-          }
-        } else {
-          boolean isPropagatedAssignable = propagatedReturnType.isAssignableTo(expectedReturnType);
-          if (!isStaticAssignable && !isPropagatedAssignable) {
-            errorReporter.reportError(
-                StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-                returnExpression,
-                staticReturnType.getName(),
-                expectedReturnType.getName(),
-                enclosingFunction.getDisplayName());
-            return true;
-          }
-        }
-      }
-    } else {
-      // RETURN_WITHOUT_VALUE
-      if (!isGenerativeConstructor
-          && !VoidTypeImpl.getInstance().isAssignableTo(expectedReturnType)) {
-        errorReporter.reportError(StaticWarningCode.RETURN_WITHOUT_VALUE, node);
-      }
+      errorReporter.reportError(
+          CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
+          returnExpression);
+      return true;
     }
-
-    return false;
+    // RETURN_WITHOUT_VALUE
+    if (returnExpression == null) {
+      if (VoidTypeImpl.getInstance().isAssignableTo(expectedReturnType)) {
+        return false;
+      }
+      errorReporter.reportError(StaticWarningCode.RETURN_WITHOUT_VALUE, node);
+      return true;
+    }
+    // void
+    Type staticReturnType = getStaticType(returnExpression);
+    if (expectedReturnType.isVoid()) {
+      if (staticReturnType.isVoid() || staticReturnType.isDynamic()
+          || staticReturnType == BottomTypeImpl.getInstance()) {
+        return false;
+      }
+      errorReporter.reportError(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+          returnExpression,
+          staticReturnType.getName(),
+          expectedReturnType.getName(),
+          enclosingFunction.getDisplayName());
+      return true;
+    }
+    // RETURN_OF_INVALID_TYPE
+    boolean isStaticAssignable = staticReturnType.isAssignableTo(expectedReturnType);
+    Type propagatedReturnType = getPropagatedType(returnExpression);
+    if (propagatedReturnType == null) {
+      if (isStaticAssignable) {
+        return false;
+      }
+      errorReporter.reportError(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+          returnExpression,
+          staticReturnType.getName(),
+          expectedReturnType.getName(),
+          enclosingFunction.getDisplayName());
+      return true;
+    } else {
+      boolean isPropagatedAssignable = propagatedReturnType.isAssignableTo(expectedReturnType);
+      if (isStaticAssignable || isPropagatedAssignable) {
+        return false;
+      }
+      errorReporter.reportError(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+          returnExpression,
+          staticReturnType.getName(),
+          expectedReturnType.getName(),
+          enclosingFunction.getDisplayName());
+      return true;
+    }
   }
 
   /**

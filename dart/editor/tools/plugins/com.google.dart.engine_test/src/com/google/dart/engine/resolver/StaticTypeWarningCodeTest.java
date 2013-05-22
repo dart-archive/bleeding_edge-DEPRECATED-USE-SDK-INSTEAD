@@ -264,6 +264,14 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_returnOfInvalidType_void() throws Exception {
+    Source source = addSource(createSource(//
+    "void f() { return 42; }"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
   public void test_typeArgumentNotMatchingBounds_const() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",

@@ -1638,6 +1638,21 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_returnOfInvalidType_void() throws Exception {
+    Source source = addSource(createSource(//
+        "void f1() {}",
+        "void f2() { return; }",
+        "void f3() { return null; }",
+        "void f4() { return g1(); }",
+        "void f5() { return g2(); }",
+        "g1() {}",
+        "void g2() {}",
+        ""));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_returnWithoutValue_noReturnType() throws Exception {
     Source source = addSource(createSource(//
     "f() { return; }"));
