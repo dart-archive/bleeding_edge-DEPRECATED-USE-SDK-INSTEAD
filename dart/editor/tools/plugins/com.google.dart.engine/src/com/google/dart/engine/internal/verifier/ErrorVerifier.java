@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.verifier;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BreakStatement;
@@ -276,6 +277,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     checkForArgumentDefinitionTestNonParameter(node);
     return super.visitArgumentDefinitionTest(node);
+  }
+
+  @Override
+  public Void visitArgumentList(ArgumentList node) {
+    checkForArgumentTypeNotAssignable(node);
+    return super.visitArgumentList(node);
   }
 
   @Override
@@ -1332,6 +1339,54 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * This verifies that the passed arguments can be assigned to their corresponding parameters.
+   * 
+   * @param node the arguments to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  private boolean checkForArgumentTypeNotAssignable(ArgumentList argumentList) {
+    if (argumentList == null) {
+      return false;
+    }
+    boolean problemReported = false;
+    for (Expression argument : argumentList.getArguments()) {
+      // prepare corresponding parameter
+      ParameterElement parameterElement = argument.getParameterElement();
+      if (parameterElement == null) {
+        continue;
+      }
+      // prepare parameter type
+      Type parameterType = parameterElement.getType();
+      if (parameterType == null) {
+        continue;
+      }
+      // prepare argument type
+      Type argumentType = getBestType(argument);
+      if (argumentType == null) {
+        continue;
+      }
+      // OK, argument is assignable
+      if (argumentType.isAssignableTo(parameterType)) {
+        continue;
+      }
+      // TODO(scheglov) bug in type algebra?
+      if (parameterType.isObject() && argumentType instanceof FunctionType) {
+        continue;
+      }
+      // report problem
+      errorReporter.reportError(
+          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+          argument,
+          argumentType,
+          parameterType);
+      problemReported = true;
+    }
+    // done
+    return problemReported;
   }
 
   /**

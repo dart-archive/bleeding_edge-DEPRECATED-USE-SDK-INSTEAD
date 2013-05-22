@@ -94,6 +94,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_argumentTypeNotAssignable_Object_Function() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  process(() {});",
+        "}",
+        "process(Object x) {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_assignmentToFinals_importWithPrefix() throws Exception {
     Source source = addSource(createSource(//
         "library lib;",

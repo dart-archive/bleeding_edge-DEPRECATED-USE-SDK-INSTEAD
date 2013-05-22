@@ -17,10 +17,15 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticWarningCodeTest extends ResolverTestCase {
-  public void fail_argumentTypeNotAssignable() throws Exception {
+  // TODO(scheglov) fails, to we need ConstructorMember?
+  public void fail_argumentTypeNotAssignable_new_generic() throws Exception {
     Source source = addSource(createSource(//
-    // TODO
-    ));
+        "class A<T> {",
+        "  A(T p) {}",
+        "}",
+        "main() {",
+        "  new A<String>(42);",
+        "}"));
     resolve(source);
     assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
@@ -316,6 +321,78 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "class N {}"));
     resolve(source);
     assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT);
+  }
+
+  public void test_argumentTypeNotAssignable_invocation_generic() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<T> {",
+        "  m(T t) {}",
+        "}",
+        "f(A<String> a) {",
+        "  a.m(1);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_invocation_named() throws Exception {
+    Source source = addSource(createSource(//
+        "f({String p}) {}",
+        "main() {",
+        "  f(p: 42);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_invocation_optional() throws Exception {
+    Source source = addSource(createSource(//
+        "f([String p]) {}",
+        "main() {",
+        "  f(42);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_invocation_required() throws Exception {
+    Source source = addSource(createSource(//
+        "f(String p) {}",
+        "main() {",
+        "  f(42);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_new_optional() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A([String p]) {}",
+        "}",
+        "main() {",
+        "  new A(42);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_new_required() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A(String p) {}",
+        "}",
+        "main() {",
+        "  new A(42);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
   }
 
   public void test_assignmentToFinal_instanceVariable() throws Exception {

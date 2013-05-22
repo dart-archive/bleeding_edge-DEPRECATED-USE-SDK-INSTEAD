@@ -59,7 +59,8 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>T<sub>m+j</sub></i> may not be assigned to <i>S<sub>r</sub></i>, where <i>r = q<sub>j</sub>,
    * 1 &lt;= j &lt;= l</i>.
    */
-  ARGUMENT_TYPE_NOT_ASSIGNABLE(""),
+  ARGUMENT_TYPE_NOT_ASSIGNABLE(
+      "The argument type '%s' cannot be assigned to the parameter type '%s'"),
 
   /**
    * 5 Variables: Attempting to assign to a final variable elsewhere will cause a NoSuchMethodError
