@@ -159,6 +159,17 @@ public class AnalysisError {
   }
 
   /**
+   * Return the value of the given property, or {@code null} if the given property is not defined
+   * for this error.
+   * 
+   * @param property the property whose value is to be returned
+   * @return the value of the given property
+   */
+  public Object getProperty(ErrorProperty property) {
+    return null;
+  }
+
+  /**
    * Return the source in which the error occurred, or {@code null} if unknown.
    * 
    * @return the source in which the error occurred
