@@ -241,6 +241,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private HashMap<FieldElement, INIT_STATE> initialFieldElementsMap;
 
   /**
+   * A table mapping name of the library to the export directive which export this library.
+   */
+  private HashMap<String, LibraryElement> nameToExportElement = new HashMap<String, LibraryElement>();
+
+  /**
    * A table mapping name of the library to the import directive which import this library.
    */
   private HashMap<String, LibraryElement> nameToImportElement = new HashMap<String, LibraryElement>();
@@ -441,6 +446,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitExportDirective(ExportDirective node) {
     checkForAmbiguousExport(node);
+    checkForExportDuplicateLibraryName(node);
     return super.visitExportDirective(node);
   }
 
@@ -1871,6 +1877,45 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This verifies the passed import has unique name among other exported libraries.
+   * 
+   * @param node the export directive to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#EXPORT_DUPLICATED_LIBRARY_NAME
+   */
+  private boolean checkForExportDuplicateLibraryName(ExportDirective node) {
+    // prepare import element
+    Element nodeElement = node.getElement();
+    if (!(nodeElement instanceof ExportElement)) {
+      return false;
+    }
+    ExportElement nodeExportElement = (ExportElement) nodeElement;
+    // prepare exported library
+    LibraryElement nodeLibrary = nodeExportElement.getExportedLibrary();
+    if (nodeLibrary == null) {
+      return false;
+    }
+    String name = nodeLibrary.getName();
+    // check if there is other exported library with the same name
+    LibraryElement prevLibrary = nameToExportElement.get(name);
+    if (prevLibrary != null) {
+      if (!prevLibrary.equals(nodeLibrary)) {
+        errorReporter.reportError(
+            StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAME,
+            node,
+            prevLibrary.getDefiningCompilationUnit().getDisplayName(),
+            nodeLibrary.getDefiningCompilationUnit().getDisplayName(),
+            name);
+        return true;
+      }
+    } else {
+      nameToExportElement.put(name, nodeLibrary);
+    }
+    // OK
+    return false;
+  }
+
+  /**
    * This verifies that the passed extends clause does not extend classes such as num or String.
    * 
    * @param node the extends clause to test
@@ -2095,7 +2140,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This verifies the passed import has unique name among other imported libraries.
    * 
    * @param node the import directive to evaluate
-   * @param library the imported library
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#IMPORT_DUPLICATED_LIBRARY_NAME
    */

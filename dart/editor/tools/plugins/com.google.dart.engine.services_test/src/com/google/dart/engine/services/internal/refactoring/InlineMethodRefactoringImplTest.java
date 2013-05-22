@@ -132,7 +132,7 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "  return 2;",
         "}",
         "main() {",
-        "  var res = test(1, 2);",
+        "  var res = test();",
         "}");
     selection = findOffset("test() {");
     createRefactoring();

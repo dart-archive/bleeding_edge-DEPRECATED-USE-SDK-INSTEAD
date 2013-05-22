@@ -21,8 +21,12 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library L;",
         "export 'lib1.dart';",
         "export 'lib2.dart';"));
-    addSource("/lib1.dart", "class M {}");
-    addSource("/lib2.dart", "class N {}");
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class M {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class N {}"));
     resolve(source);
     assertNoErrors();
     verify(source);

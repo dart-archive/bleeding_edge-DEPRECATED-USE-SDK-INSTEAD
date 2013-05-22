@@ -515,6 +515,18 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_exportDuplicatedLibraryName() throws Exception {
+    Source source = addSource(createSource(//
+        "library test;",
+        "export 'lib1.dart';",
+        "export 'lib2.dart';"));
+    addSource("/lib1.dart", "library lib;");
+    addSource("/lib2.dart", "library lib;");
+    resolve(source);
+    assertErrors(StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAME);
+    verify(source);
+  }
+
   public void test_extraPositionalArguments() throws Exception {
     Source source = addSource(createSource(//
         "f() {}",

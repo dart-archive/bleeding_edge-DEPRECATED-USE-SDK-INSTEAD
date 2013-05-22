@@ -164,6 +164,16 @@ public enum StaticWarningCode implements ErrorCode {
   EQUAL_KEYS_IN_MAP("Keys in a map cannot be equal"),
 
   /**
+   * 14.2 Exports: It is a static warning to export two different libraries with the same name.
+   * 
+   * @param uri1 the uri pointing to a first library
+   * @param uri2 the uri pointing to a second library
+   * @param name the shared name of the exported libraries
+   */
+  EXPORT_DUPLICATED_LIBRARY_NAME(
+      "The exported libraries '%s' and '%s' should not have the same name '%s'"),
+
+  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
    * 
    * @param requiredCount the maximum number of positional arguments
@@ -189,7 +199,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param name the shared name of the imported libraries
    */
   IMPORT_DUPLICATED_LIBRARY_NAME(
-      "The different imported libraries '%s' and '%s' should not have the same name '%s'"),
+      "The imported libraries '%s' and '%s' should not have the same name '%s'"),
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;

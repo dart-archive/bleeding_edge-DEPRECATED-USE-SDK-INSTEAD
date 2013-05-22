@@ -196,14 +196,14 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
-        "  print()",
+        "  print(0)",
         "}");
     assert_runProcessor(
         CorrectionKind.QF_INSERT_SEMICOLON,
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "main() {",
-            "  print();",
+            "  print(0);",
             "}"));
   }
 
