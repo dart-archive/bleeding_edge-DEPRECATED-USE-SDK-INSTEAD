@@ -2373,8 +2373,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Check to make sure that all similarly typed accessors are of the same type (including inherited
-   * accessors).
+   * Check to make sure that all similarly typed accessors are of the same type TODO (ericarnold):
+   * (including inherited accessors).
    * 
    * @param node The accessor currently being visited.
    */
@@ -2398,15 +2398,16 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
         // Get the type of the existing counterpart, and then the current element.
         if (counterpartAccessor.isGetter()) {
-          getterType = counterpartAccessor.getReturnType().getType();
+          getterType = getGetterType(counterpartAccessor);
           setterType = getSetterType(accessorDeclaration);
         } else {
+          getterType = getGetterType(accessorDeclaration);
           setterType = getSetterType(counterpartAccessor);
-          getterType = accessorDeclaration.getReturnType().getType();
         }
 
-        // If the types are not assignable to each other, report an error.
-        if (!getterType.isAssignableTo(setterType)) {
+        // If either types are not assignable to each other, report an error (if the getter is null,
+        // it is dynamic which is assignable to everything).
+        if (getterType != null && !getterType.isAssignableTo(setterType)) {
           errorReporter.reportError(
               StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
               accessorDeclaration,
@@ -3195,6 +3196,21 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       type = getStaticType(expression);
     }
     return type;
+  }
+
+  /**
+   * Returns the Type (return type) for a given getter.
+   * 
+   * @param getterDeclaration
+   * @return The type of the given getter.
+   */
+  private Type getGetterType(FunctionDeclaration getterDeclaration) {
+    TypeName getterTypeName = getterDeclaration.getReturnType();
+    if (getterTypeName != null) {
+      return getterTypeName.getType();
+    } else {
+      return null;
+    }
   }
 
   /**
