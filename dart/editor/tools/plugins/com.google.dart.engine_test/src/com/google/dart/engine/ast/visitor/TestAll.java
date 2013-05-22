@@ -25,6 +25,7 @@ public class TestAll {
     suite.addTestSuite(ElementLocatorTest.class);
     suite.addTestSuite(NodeLocatorTest.class);
     suite.addTestSuite(ToSourceVisitorTest.class);
+    suite.addTestSuite(BreadthFirstVisitorTest.class);
     return suite;
   }
 }
