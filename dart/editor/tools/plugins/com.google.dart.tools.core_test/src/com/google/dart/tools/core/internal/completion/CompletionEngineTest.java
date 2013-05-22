@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.internal.completion;
 
 import com.google.common.base.Joiner;
-import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartModelException;
@@ -889,7 +888,6 @@ public class CompletionEngineTest extends TestCase {
       PackageLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
     }
     InMemoryIndex.getInstance().initializeIndex();
-    AnalysisTestUtilities.waitForIdle(60000);
     IProgressMonitor monitor = new NullProgressMonitor();
     MockLibrarySource library = new MockLibrarySource("FooLib");
     MockDartSource sourceFile = new MockDartSource(library, "Foo.dart", "");

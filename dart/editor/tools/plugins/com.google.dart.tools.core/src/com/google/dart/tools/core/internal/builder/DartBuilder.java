@@ -14,8 +14,6 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisDebug;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.CleanEvent;
@@ -62,10 +60,6 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
   public IProject[] build(IProject project, int kind, Map<String, String> args,
       final IProgressMonitor monitor) {
-
-    if (DartCoreDebug.DEBUG_ANALYSIS) {
-      AnalysisDebug.getInstance().message("Building " + project);
-    }
 
     final SubMonitor subMonitor = SubMonitor.convert(
         monitor,

@@ -16,7 +16,6 @@ package com.google.dart.tools.core.test.util;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartProject;
 
@@ -399,7 +398,6 @@ public class TestUtilities {
         }
       }, null);
     }
-    AnalysisTestUtilities.waitForAnalysis();
     DartProject dartProject = DartCore.create(project);
     // waitForJobs();
     return dartProject;
@@ -447,7 +445,6 @@ public class TestUtilities {
     }
     DartProject project = loadDartProject(targetPath);
     refreshWorkspace();
-    AnalysisTestUtilities.waitForAnalysis();
 
     return project;
   }

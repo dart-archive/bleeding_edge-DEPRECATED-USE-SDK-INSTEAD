@@ -25,9 +25,6 @@ public class TestAll {
 
     suite.addTestSuite(PluginXMLTest.class);
 
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      suite.addTest(com.google.dart.tools.core.analysis.TestAll.suite());
-    }
     suite.addTest(com.google.dart.tools.core.builder.TestAll.suite());
 
     suite.addTest(com.google.dart.tools.core.dart2js.TestAll.suite());

@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 
 /**
  * Executes analysis {@link Task}s that have been placed on a {@link TaskQueue}
@@ -183,9 +182,6 @@ public class TaskProcessor {
                   break;
                 }
                 try {
-                  if (DartCoreDebug.DEBUG_ANALYSIS) {
-                    AnalysisDebug.getInstance().message(task.toString());
-                  }
                   task.perform();
                 } catch (Throwable e) {
                   DartCore.logError("Analysis Task Exception", e);

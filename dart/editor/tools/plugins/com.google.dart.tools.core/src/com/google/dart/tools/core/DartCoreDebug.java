@@ -25,7 +25,6 @@ public class DartCoreDebug {
 
   // Debugging / Tracing options  
 
-  public static final boolean DEBUG_ANALYSIS = isOptionTrue("debug/analysis/server");
   public static final boolean DEBUG_INDEX_CONTRIBUTOR = isOptionTrue("debug/index/contributor");
   public static final boolean METRICS = isOptionTrue("debug/metrics");
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
@@ -73,7 +72,6 @@ public class DartCoreDebug {
    * Report each of these parameters to the provided instrumentation builder
    */
   public static void record(InstrumentationBuilder instrumentation) {
-    instrumentation.metric("DEBUG_ANALYSIS", DEBUG_ANALYSIS);
     instrumentation.metric("DEBUG_INDEX_CONTRIBUTOR", DEBUG_INDEX_CONTRIBUTOR);
     instrumentation.metric("METRICS", METRICS);
     instrumentation.metric("WARMUP", WARMUP);

@@ -18,7 +18,6 @@ import com.google.common.io.CharStreams;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -67,7 +66,6 @@ public class TestProject {
       } catch (Throwable e) {
       }
     }
-    AnalysisTestUtilities.waitForAnalysis();
     try {
       final CountDownLatch latch = new CountDownLatch(1);
       InMemoryIndex.getInstance().notify(new NotifyCallback() {

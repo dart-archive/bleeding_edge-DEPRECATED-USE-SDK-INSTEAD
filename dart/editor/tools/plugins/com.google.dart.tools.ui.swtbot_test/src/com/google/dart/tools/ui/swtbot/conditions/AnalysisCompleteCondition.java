@@ -14,8 +14,6 @@
 package com.google.dart.tools.ui.swtbot.conditions;
 
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.TaskListener;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
@@ -33,19 +31,19 @@ public class AnalysisCompleteCondition implements ICondition {
    * Start gathering performance information from {@link AnalysisServer}
    */
   public static void startListening() {
-    AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-    server.addIdleListener(new TaskListener() {
-
-      @Override
-      public void idle(boolean idle) {
-        isIdle = idle;
-      }
-
-      @Override
-      public void processing(int toBeProcessed) {
-        // ignored
-      }
-    });
+//    AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
+//    server.addIdleListener(new TaskListener() {
+//
+//      @Override
+//      public void idle(boolean idle) {
+//        isIdle = idle;
+//      }
+//
+//      @Override
+//      public void processing(int toBeProcessed) {
+//        // ignored
+//      }
+//    });
   }
 
   public static void waitUntilWarmedUp(SWTWorkbenchBot bot) throws Exception {
