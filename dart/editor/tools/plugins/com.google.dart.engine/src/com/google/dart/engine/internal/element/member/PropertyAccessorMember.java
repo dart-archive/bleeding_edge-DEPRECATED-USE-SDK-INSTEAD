@@ -78,6 +78,16 @@ public class PropertyAccessorMember extends ExecutableMember implements Property
   }
 
   @Override
+  public PropertyAccessorElement getCorrespondingGetter() {
+    return from(getBaseElement().getCorrespondingGetter(), getDefiningType());
+  }
+
+  @Override
+  public PropertyAccessorElement getCorrespondingSetter() {
+    return from(getBaseElement().getCorrespondingSetter(), getDefiningType());
+  }
+
+  @Override
   public Element getEnclosingElement() {
     return getBaseElement().getEnclosingElement();
   }

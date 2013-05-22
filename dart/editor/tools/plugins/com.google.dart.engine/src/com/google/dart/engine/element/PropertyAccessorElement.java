@@ -32,6 +32,24 @@ package com.google.dart.engine.element;
  */
 public interface PropertyAccessorElement extends ExecutableElement {
   /**
+   * Return the accessor representing the getter that corresponds to (has the same name as) this
+   * setter, or {@code null} if this accessor is not a setter or if there is no corresponding
+   * getter.
+   * 
+   * @return the getter that corresponds to this setter
+   */
+  public PropertyAccessorElement getCorrespondingGetter();
+
+  /**
+   * Return the accessor representing the setter that corresponds to (has the same name as) this
+   * getter, or {@code null} if this accessor is not a getter or if there is no corresponding
+   * setter.
+   * 
+   * @return the setter that corresponds to this getter
+   */
+  public PropertyAccessorElement getCorrespondingSetter();
+
+  /**
    * Return the field or top-level variable associated with this accessor. If this accessor was
    * explicitly defined (is not synthetic) then the variable associated with it will be synthetic.
    * 

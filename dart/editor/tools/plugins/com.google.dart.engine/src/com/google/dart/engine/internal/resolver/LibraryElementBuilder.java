@@ -22,7 +22,9 @@ import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -31,10 +33,13 @@ import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
+import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Instances of the class {@code LibraryElementBuilder} build an element model for a single library.
@@ -154,12 +159,39 @@ public class LibraryElementBuilder {
     if (entryPoint != null) {
       libraryElement.setEntryPoint(entryPoint);
     }
-    libraryElement.setParts(sourcedCompilationUnits.toArray(new CompilationUnitElementImpl[sourcedCompilationUnits.size()]));
+    int sourcedUnitCount = sourcedCompilationUnits.size();
+    libraryElement.setParts(sourcedCompilationUnits.toArray(new CompilationUnitElementImpl[sourcedUnitCount]));
     for (Directive directive : directivesToResolve) {
       directive.setElement(libraryElement);
     }
     library.setLibraryElement(libraryElement);
+    if (sourcedUnitCount > 0) {
+      patchTopLevelAccessors(libraryElement);
+    }
     return libraryElement;
+  }
+
+  /**
+   * Add all of the non-synthetic getters and setters defined in the given compilation unit that
+   * have no corresponding accessor to one of the given collections.
+   * 
+   * @param getters the map to which getters are to be added
+   * @param setters the list to which setters are to be added
+   * @param unit the compilation unit defining the accessors that are potentially being added
+   */
+  private void collectAccessors(HashMap<String, PropertyAccessorElement> getters,
+      ArrayList<PropertyAccessorElement> setters, CompilationUnitElement unit) {
+    for (PropertyAccessorElement accessor : unit.getAccessors()) {
+      if (accessor.isGetter()) {
+        if (!accessor.isSynthetic() && accessor.getCorrespondingSetter() == null) {
+          getters.put(accessor.getDisplayName(), accessor);
+        }
+      } else {
+        if (!accessor.isSynthetic() && accessor.getCorrespondingGetter() == null) {
+          setters.add(accessor);
+        }
+      }
+    }
   }
 
   /**
@@ -205,5 +237,29 @@ public class LibraryElementBuilder {
       // Fall through to return null.
     }
     return null;
+  }
+
+  /**
+   * Look through all of the compilation units defined for the given library, looking for getters
+   * and setters that are defined in different compilation units but that have the same names. If
+   * any are found, make sure that they have the same variable element.
+   * 
+   * @param libraryElement the library defining the compilation units to be processed
+   */
+  private void patchTopLevelAccessors(LibraryElementImpl libraryElement) {
+    HashMap<String, PropertyAccessorElement> getters = new HashMap<String, PropertyAccessorElement>();
+    ArrayList<PropertyAccessorElement> setters = new ArrayList<PropertyAccessorElement>();
+    collectAccessors(getters, setters, libraryElement.getDefiningCompilationUnit());
+    for (CompilationUnitElement unit : libraryElement.getParts()) {
+      collectAccessors(getters, setters, unit);
+    }
+    for (PropertyAccessorElement setter : setters) {
+      PropertyAccessorElement getter = getters.get(setter.getDisplayName());
+      if (getter != null) {
+        PropertyInducingElementImpl variable = (PropertyInducingElementImpl) getter.getVariable();
+        variable.setSetter(setter);
+        ((PropertyAccessorElementImpl) setter).setVariable(variable);
+      }
+    }
   }
 }

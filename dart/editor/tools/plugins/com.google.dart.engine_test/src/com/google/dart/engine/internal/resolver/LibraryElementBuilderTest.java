@@ -17,6 +17,7 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
@@ -42,6 +43,30 @@ public class LibraryElementBuilderTest extends EngineTestCase {
   @Override
   public void setUp() {
     sourceFactory = new SourceFactory(new FileUriResolver());
+  }
+
+  public void test_accessorsAcrossFiles() throws Exception {
+    Source librarySource = addSource("/lib.dart", createSource(//
+        "library lib;",
+        "part 'first.dart';",
+        "part 'second.dart';"));
+    addSource("/first.dart", createSource(//
+        "part of lib;",
+        "int get V => 0;"));
+    addSource("/second.dart", createSource(//
+        "part of lib;",
+        "void set V(int v) {}"));
+
+    LibraryElement element = buildLibrary(librarySource);
+    assertNotNull(element);
+    CompilationUnitElement[] sourcedUnits = element.getParts();
+    assertLength(2, sourcedUnits);
+
+    PropertyAccessorElement[] firstAccessors = sourcedUnits[0].getAccessors();
+    assertLength(1, firstAccessors);
+    PropertyAccessorElement[] secondAccessors = sourcedUnits[1].getAccessors();
+    assertLength(1, secondAccessors);
+    assertSame(firstAccessors[0].getVariable(), secondAccessors[0].getVariable());
   }
 
   public void test_empty() throws Exception {

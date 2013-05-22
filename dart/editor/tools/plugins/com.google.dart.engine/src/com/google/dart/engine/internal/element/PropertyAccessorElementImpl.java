@@ -69,6 +69,22 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   }
 
   @Override
+  public PropertyAccessorElement getCorrespondingGetter() {
+    if (isGetter() || variable == null) {
+      return null;
+    }
+    return variable.getGetter();
+  }
+
+  @Override
+  public PropertyAccessorElement getCorrespondingSetter() {
+    if (isSetter() || variable == null) {
+      return null;
+    }
+    return variable.getSetter();
+  }
+
+  @Override
   public ElementKind getKind() {
     if (isGetter()) {
       return ElementKind.GETTER;

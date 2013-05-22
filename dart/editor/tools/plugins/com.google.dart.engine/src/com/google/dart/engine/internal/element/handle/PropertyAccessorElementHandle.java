@@ -35,6 +35,16 @@ public class PropertyAccessorElementHandle extends ExecutableElementHandle imple
   }
 
   @Override
+  public PropertyAccessorElement getCorrespondingGetter() {
+    return getActualElement().getCorrespondingGetter();
+  }
+
+  @Override
+  public PropertyAccessorElement getCorrespondingSetter() {
+    return getActualElement().getCorrespondingSetter();
+  }
+
+  @Override
   public ElementKind getKind() {
     if (isGetter()) {
       return ElementKind.GETTER;
