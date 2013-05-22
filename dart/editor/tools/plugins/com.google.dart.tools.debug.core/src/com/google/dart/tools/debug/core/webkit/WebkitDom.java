@@ -600,7 +600,7 @@ public class WebkitDom extends WebkitDomain {
   protected void handleInspectorNotification(String method, JSONObject params) {
     if (method.equals(INSPECTOR_DETACHED)) {
       // {"method":"Inspector.detached","params":{"reason":"target_closed"}}
-      String reason = params.optString("reason", null);
+      String reason = params == null ? "" : params.optString("reason", null);
 
       for (InspectorListener listener : inspectorListeners) {
         listener.detached(reason);

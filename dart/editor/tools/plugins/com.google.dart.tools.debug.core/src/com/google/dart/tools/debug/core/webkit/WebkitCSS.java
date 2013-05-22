@@ -50,14 +50,31 @@ public class WebkitCSS extends WebkitDomain {
     public void mediaQueryResultChanged();
 
     /**
+     * Called when a style sheet is added.
+     * 
+     * @param styleSheetId
+     */
+    public void styleSheetAdded(String styleSheetId);
+
+    /**
      * Called when the given style sheet changes.
      * 
      * @param styleSheetId
      */
     public void styleSheetChanged(String styleSheetId);
+
+    /**
+     * Called when the given style sheet is removed.
+     * 
+     * @param styleSheetId
+     */
+    public void styleSheetRemoved(String styleSheetId);
   }
 
+  private static final String STYLE_SHEET_ADDED = "CSS.styleSheetAdded";
   private static final String STYLE_SHEET_CHANGED = "CSS.styleSheetChanged";
+  private static final String STYLE_SHEET_REMOVED = "CSS.styleSheetRemoved";
+
   private static final String MEDIA_QUERY_RESULT_CHANGED = "CSS.mediaQueryResultChanged";
 
   private List<CSSListener> listeners = new ArrayList<WebkitCSS.CSSListener>();
@@ -200,11 +217,26 @@ public class WebkitCSS extends WebkitDomain {
   }
 
   protected void handleCssNotification(String method, JSONObject params) throws JSONException {
-    if (method.equals(STYLE_SHEET_CHANGED)) {
+    if (method.equals(STYLE_SHEET_ADDED)) {
+      // {"method":"CSS.styleSheetAdded","params":{"header":{"title":"","frameId":"69818.1",
+      // "sourceURL":"http://127.0.0.1:3030/Users/devoncarew/dart/todomvc-47/web/out/index.html",
+      // "origin":"regular","styleSheetId":"7","disabled":false}}}
+      String styleSheetId = params.getJSONObject("header").getString("styleSheetId");
+
+      for (CSSListener listener : listeners) {
+        listener.styleSheetAdded(styleSheetId);
+      }
+    } else if (method.equals(STYLE_SHEET_CHANGED)) {
       String styleSheetId = params.getString("styleSheetId");
 
       for (CSSListener listener : listeners) {
         listener.styleSheetChanged(styleSheetId);
+      }
+    } else if (method.equals(STYLE_SHEET_REMOVED)) {
+      String styleSheetId = params.getString("styleSheetId");
+
+      for (CSSListener listener : listeners) {
+        listener.styleSheetRemoved(styleSheetId);
       }
     } else if (method.equals(MEDIA_QUERY_RESULT_CHANGED)) {
       for (CSSListener listener : listeners) {

@@ -300,10 +300,7 @@ public class WebkitConnection {
     try {
       JSONObject object = new JSONObject(message.getText());
 
-      if (DartDebugCorePlugin.LOGGING) {
-        // Print the event / response from the VM.
-        System.out.println("<== " + object);
-      }
+      DartDebugCorePlugin.log("<== " + object);
 
       if (object.has("id")) {
         processResponse(object);
@@ -342,10 +339,7 @@ public class WebkitConnection {
         }
       }
 
-      if (DartDebugCorePlugin.LOGGING) {
-        // Print the command to the VM.
-        System.out.println("==> " + request);
-      }
+      DartDebugCorePlugin.log("==> " + request);
 
       websocket.send(request.toString());
     } catch (WebSocketException exception) {
