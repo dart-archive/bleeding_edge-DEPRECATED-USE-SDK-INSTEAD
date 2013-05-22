@@ -2633,11 +2633,6 @@
             sequence="M1+Z"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
       <key
-            commandId="org.eclipse.ui.edit.redo"
-            contextId="org.eclipse.ui.contexts.dialogAndWindow"
-            sequence="M1+Y"
-            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
-      <key
             platform="carbon"
             contextId="org.eclipse.ui.contexts.dialogAndWindow"
             sequence="M1+Y"
@@ -2646,8 +2641,7 @@
             commandId="org.eclipse.ui.edit.redo"
             contextId="org.eclipse.ui.contexts.dialogAndWindow"
             sequence="M1+M2+Z"
-            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" 
-            platform="carbon"/>
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
       <key
             commandId="org.eclipse.ui.edit.cut"
             contextId="org.eclipse.ui.contexts.dialogAndWindow"
