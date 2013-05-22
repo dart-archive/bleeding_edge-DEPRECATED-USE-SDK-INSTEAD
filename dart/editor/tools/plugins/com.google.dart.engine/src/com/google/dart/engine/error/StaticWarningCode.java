@@ -281,7 +281,8 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>T</i> and a getter named <i>v</i> with return type <i>S</i>, and <i>T</i> may not be
    * assigned to <i>S</i>.
    */
-  MISMATCHED_GETTER_AND_SETTER_TYPES(""),
+  MISMATCHED_GETTER_AND_SETTER_TYPES(
+      "The parameter type for setter '%s' is %s which is not assignable to its getter (of type %s)"),
 
   /**
    * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an abstract class and

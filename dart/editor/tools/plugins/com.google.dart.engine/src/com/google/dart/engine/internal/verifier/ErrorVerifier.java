@@ -30,6 +30,7 @@ import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
+import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.ExportDirective;
@@ -123,6 +124,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Stack;
 
 /**
  * Instances of the class {@code ErrorVerifier} traverse an AST structure looking for additional
@@ -259,6 +261,21 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private final InterfaceType[] DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
 
+  /**
+   * A hash of all of the compilation unit accessors for use in discovering their counterparts.
+   */
+  private HashMap<String, FunctionDeclaration> compilationUnitAccessors;
+
+  /**
+   * Analysis information for classes (withs support for nested classes).
+   */
+  Stack<ClassAccessorInformation> classesAnalysisInformation = new Stack<ClassAccessorInformation>();
+
+  /**
+   * Analysis information for the class currently being visited.
+   */
+  private ClassAccessorInformation currentClassInformation;
+
   public ErrorVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
       TypeProvider typeProvider, InheritanceManager inheritanceManager) {
     this.errorReporter = errorReporter;
@@ -319,6 +336,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
     ClassElement outerClass = enclosingClass;
+
+    // Make a reference to the class currently being visited, and push to the class stack.
+    currentClassInformation = new ClassAccessorInformation();
+    classesAnalysisInformation.push(currentClassInformation);
     try {
       enclosingClass = node.getElement();
       checkForBuiltInIdentifierAsName(
@@ -347,6 +368,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     } finally {
       initialFieldElementsMap = null;
       enclosingClass = outerClass;
+      classesAnalysisInformation.pop();
     }
   }
 
@@ -357,6 +379,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     checkForAllMixinErrorCodes(node.getWithClause());
     return super.visitClassTypeAlias(node);
+  }
+
+  @Override
+  public Void visitCompilationUnit(CompilationUnit node) {
+    // Initialize a new HashMap of getters and setters for the new compilation unit.
+    compilationUnitAccessors = new HashMap<String, FunctionDeclaration>();
+    return super.visitCompilationUnit(node);
   }
 
   @Override
@@ -427,15 +456,20 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ExecutableElement outerFunction = enclosingFunction;
     try {
       enclosingFunction = node.getElement();
-      if (node.isSetter()) {
-        FunctionExpression functionExpression = node.getFunctionExpression();
-        if (functionExpression != null) {
-          checkForWrongNumberOfParametersForSetter(
-              node.getName(),
-              functionExpression.getParameters());
+      if (node.isSetter() || node.isGetter()) {
+        checkForMismatchedAccessorTypes(node);
+        if (node.isSetter()) {
+          FunctionExpression functionExpression = node.getFunctionExpression();
+          if (functionExpression != null) {
+            checkForWrongNumberOfParametersForSetter(
+                node.getName(),
+                functionExpression.getParameters());
+          }
+          TypeName returnType = node.getReturnType();
+          checkForNonVoidReturnTypeForSetter(returnType);
         }
-        checkForNonVoidReturnTypeForSetter(node.getReturnType());
       }
+
       return super.visitFunctionDeclaration(node);
     } finally {
       enclosingFunction = outerFunction;
@@ -2295,6 +2329,58 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * Check to make sure that all similarly typed accessors are of the same type (including inherited
+   * accessors).
+   * 
+   * @param node The accessor currently being visited.
+   */
+  private void checkForMismatchedAccessorTypes(Declaration node) {
+    SimpleIdentifier accessorName = null;
+
+    // Check to make sure the node is of the correct type for top-level accessors.
+    if (node instanceof FunctionDeclaration) {
+      FunctionDeclaration accessorDeclaration = (FunctionDeclaration) node;
+      accessorName = accessorDeclaration.getName();
+      String accessorTextName = accessorName.getName();
+
+      // Check if there is an existing counterpart getter / setter.
+      FunctionDeclaration counterpartAccessor = compilationUnitAccessors.get(accessorTextName);
+      if (counterpartAccessor == null) {
+        // If not, just make a reference to the accessor and move on.
+        compilationUnitAccessors.put(accessorTextName, accessorDeclaration);
+      } else {
+        Type getterType;
+        Type setterType;
+
+        // Get the type of the existing counterpart, and then the current element.
+        if (counterpartAccessor.isGetter()) {
+          getterType = counterpartAccessor.getReturnType().getType();
+          setterType = getSetterType(accessorDeclaration);
+        } else {
+          setterType = getSetterType(counterpartAccessor);
+          getterType = accessorDeclaration.getReturnType().getType();
+        }
+
+        // If the types are not assignable to each other, report an error.
+        if (!getterType.isAssignableTo(setterType)) {
+          errorReporter.reportError(
+              StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+              accessorDeclaration,
+              accessorTextName,
+              setterType.toString(),
+              getterType.toString());
+        }
+      }
+    } else if (node instanceof MethodDeclaration) {
+      // TODO(ericarnold): This is a method.  Check our superiors
+      // TODO(ericarnold): Check for mismatched getters / setters in this class / level.
+      MethodDeclaration methodDeclaration = (MethodDeclaration) node;
+      accessorName = methodDeclaration.getName();
+      ASTNode parent = methodDeclaration.getParent();
+    }
+  }
+
+  /**
    * This verifies that the passed mixin does not have an explicitly declared constructor.
    * 
    * @param mixinName the node to report problem on
@@ -3078,6 +3164,19 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * Returns the Type (first and only parameter) for a given setter.
+   * 
+   * @param setterDeclaration
+   * @return The type of the given setter.
+   */
+  private Type getSetterType(FunctionDeclaration setterDeclaration) {
+    FormalParameterList parameters = setterDeclaration.getFunctionExpression().getParameters();
+    FormalParameter firstParameter = parameters.getParameters().get(0);
+    Type setterType = firstParameter.getElement().getType();
+    return setterType;
+  }
+
+  /**
    * Return the static type of the given expression that is to be used for type analysis.
    * 
    * @param expression the expression whose type is to be returned
@@ -3151,4 +3250,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     return false;
   }
+}
+
+/**
+ * Information about accessors in classes.
+ */
+final class ClassAccessorInformation {
+  public HashMap<String, MethodDeclaration> classGettersAndSetters = null;
 }

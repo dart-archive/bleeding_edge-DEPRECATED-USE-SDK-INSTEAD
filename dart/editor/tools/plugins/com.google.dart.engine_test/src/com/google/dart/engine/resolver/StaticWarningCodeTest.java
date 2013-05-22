@@ -164,11 +164,39 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_mismatchedGetterAndSetterTypes() throws Exception {
+  public void fail_mismatchedAccessorTypes_class() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  int get g { return 0; }",
         "  set g(String v) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES);
+    verify(source);
+  }
+
+  public void fail_mismatchedAccessorTypes_getterAndSuperSetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get g { return 0; }",
+        "  set g(int v) {}",
+        "}",
+        "class B extends A {",
+        "  set g(String v) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES);
+    verify(source);
+  }
+
+  public void fail_mismatchedAccessorTypes_superGetterAndSetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get g { return 0; }",
+        "  set g(int v) {}",
+        "}",
+        "class B extends A {",
+        "  String get g { return ''; }",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES);
@@ -768,6 +796,15 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE);
+    verify(source);
+  }
+
+  public void test_mismatchedAccessorTypes_topLevel() throws Exception {
+    Source source = addSource(createSource(//
+        "int get g { return 0; }",
+        "set g(String v) {}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES);
     verify(source);
   }
 
