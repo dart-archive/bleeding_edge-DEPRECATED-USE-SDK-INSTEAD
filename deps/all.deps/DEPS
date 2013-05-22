@@ -35,7 +35,7 @@ vars = {
   "snakeyaml_rev" : "@19997",
   "stripjar_rev" : "@20110",
   "d8_rev" : "@22234",
-  "WebCore_rev" : "@22811",
+  "WebCore_rev" : "@22989",
   "weberknecht_rev" : "@19997",
 }
 
