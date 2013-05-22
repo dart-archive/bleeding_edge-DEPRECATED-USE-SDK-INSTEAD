@@ -38,8 +38,6 @@ import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
-import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
@@ -408,7 +406,6 @@ public class DartCompilerUtilities {
   private static final class ResolverRunnable extends CompilerRunner {
     private LibrarySource librarySource;
     private URI unitUri;
-    private boolean forceFullAST;
     private LibraryUnit libraryResult;
     private DartUnit unitResult;
     private Map<URI, DartUnit> parsedUnits;
@@ -434,7 +431,6 @@ public class DartCompilerUtilities {
       }
       this.unitUri = unitUri;
       this.parsedUnits = suppliedUnits;
-      this.forceFullAST = forceFullAST;
     }
 
     @Override
@@ -453,18 +449,7 @@ public class DartCompilerUtilities {
           return true;
         }
       };
-      DartArtifactProvider provider = new LocalArtifactProvider(RootArtifactProvider.getInstance()) {
-        @Override
-        protected boolean isOutOfDateInParent(Source source, Source base, String extension) {
-          if (forceFullAST || equalUris(libraryManager, unitUri, source.getUri())) {
-            return true;
-          }
-          if (parsedUnits != null && parsedUnits.containsKey(source.getUri())) {
-            return true;
-          }
-          return super.isOutOfDateInParent(source, base, extension);
-        }
-      };
+      DartArtifactProvider provider = null; // RootArtifactProvider.getInstance();
       libraryResult = secureAnalyzeLibrary(librarySource, parsedUnits, config, provider, this);
       if (libraryResult != null && unitUri != null) {
         for (DartUnit unit : libraryResult.getUnits()) {

@@ -16,8 +16,6 @@ package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
 import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
@@ -332,21 +330,11 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   }
 
   private URI resolvePackageUri(IResource resource, URI uri) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      if (resource != null) {
-        IFile file = DartCore.getProjectManager().resolvePackageUri(resource, uri.toString());
+    if (resource != null) {
+      IFile file = DartCore.getProjectManager().resolvePackageUri(resource, uri.toString());
 
-        if (file != null) {
-          return file.getLocation().toFile().toURI();
-        }
-      }
-    } else {
-      if (resource != null) {
-        return PackageLibraryManagerProvider.getPackageLibraryManager(
-            resource.getLocation().toFile()).resolvePackageUri(uri.toString());
-      } else {
-        return PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(
-            uri.toString());
+      if (file != null) {
+        return file.getLocation().toFile().toURI();
       }
     }
 

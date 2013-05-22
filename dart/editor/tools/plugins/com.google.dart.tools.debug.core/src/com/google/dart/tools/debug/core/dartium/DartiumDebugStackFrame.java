@@ -14,7 +14,6 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue.ValueCallback;
@@ -475,13 +474,11 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   private String resolvePackageUrl(String url) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      if (getProject() != null) {
-        IFile file = DartCore.getProjectManager().resolvePackageUri(getProject(), url);
+    if (getProject() != null) {
+      IFile file = DartCore.getProjectManager().resolvePackageUri(getProject(), url);
 
-        if (file != null) {
-          return file.getLocation().toFile().toString();
-        }
+      if (file != null) {
+        return file.getLocation().toFile().toString();
       }
     }
 
