@@ -9,12 +9,12 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: com.google.dart.compiler,
  com.google.dart.compiler.ast,
  com.google.dart.compiler.common,
- com.google.dart.compiler.metrics,
+ com.google.dart.compiler.metrics;x-friends:="com.google.dart.compiler.js_test",
  com.google.dart.compiler.parser,
  com.google.dart.compiler.resolver,
- com.google.dart.compiler.testing,
+ com.google.dart.compiler.testing;x-friends:="com.google.dart.compiler.js_test",
  com.google.dart.compiler.type,
- com.google.dart.compiler.util,
+ com.google.dart.compiler.util;x-friends:="com.google.dart.compiler.js_test",
  com.google.dart.compiler.util.apache;x-friends:="com.google.dart.compiler.js_test"
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
