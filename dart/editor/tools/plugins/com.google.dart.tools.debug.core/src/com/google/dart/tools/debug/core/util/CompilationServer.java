@@ -19,12 +19,9 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler.CompilationResult;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -32,10 +29,6 @@ import org.eclipse.core.runtime.Path;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * A compilation server for Dart code.
@@ -103,57 +96,6 @@ public class CompilationServer {
       console.println("Error while compiling: " + ex.toString());
 
       DartDebugCorePlugin.logError(ex);
-    }
-  }
-
-  @Deprecated
-  private List<File> getFilesFor(List<CompilationUnit> compilationUnits) {
-    Set<File> files = new HashSet<File>();
-
-    for (CompilationUnit unit : compilationUnits) {
-      IResource resource = unit.getResource();
-
-      if (resource != null) {
-        if (resource.getLocation() != null) {
-          File file = resource.getLocation().toFile();
-
-          if (file != null && file.exists()) {
-            files.add(file);
-          }
-        }
-      } else {
-        // Check for non-workspace (external) CompilationUnits.
-        IPath path = unit.getPath();
-
-        File file = path.toFile();
-
-        if (file != null && file.exists()) {
-          files.add(file);
-        }
-      }
-    }
-
-    return new ArrayList<File>(files);
-  }
-
-  @Deprecated
-  private boolean needsRecompilation(CompilationUnit compilationUnit, File outputFile) {
-    if (outputFile == null || !outputFile.exists()) {
-      return true;
-    }
-
-    try {
-      List<CompilationUnit> compilationUnits = compilationUnit.getLibrary().getCompilationUnitsTransitively();
-
-      for (File sourceFile : getFilesFor(compilationUnits)) {
-        if (sourceFile.lastModified() > outputFile.lastModified()) {
-          return true;
-        }
-      }
-
-      return false;
-    } catch (DartModelException e) {
-      return false;
     }
   }
 
