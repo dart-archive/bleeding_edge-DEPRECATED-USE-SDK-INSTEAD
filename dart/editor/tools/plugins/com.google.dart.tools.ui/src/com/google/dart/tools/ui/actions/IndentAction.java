@@ -365,10 +365,8 @@ public class IndentAction extends TextEditorAction {
    * @since 3.1
    */
   private static String getCoreFormatterOption(String key, DartProject project) {
-    if (project == null) {
-      return DartCore.getOption(key);
-    }
-    return project.getOption(key, true);
+
+    return DartCore.getOption(key);
   }
 
   /**

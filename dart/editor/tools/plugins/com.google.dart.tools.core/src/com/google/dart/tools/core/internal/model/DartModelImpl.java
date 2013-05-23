@@ -136,9 +136,7 @@ public class DartModelImpl extends OpenableElementImpl implements DartModel {
 
   @Override
   public DartProject getDartProject(String projectName) {
-    if (ExternalDartProject.EXTERNAL_PROJECT_NAME.equals(projectName)) {
-      return getExternalProject();
-    }
+
     return new DartProjectImpl(this, ResourcesPlugin.getWorkspace().getRoot().getProject(
         projectName));
   }
@@ -164,10 +162,7 @@ public class DartModelImpl extends OpenableElementImpl implements DartModel {
    * workspace.
    */
   public DartProjectImpl getExternalProject() {
-    if (externalProject == null) {
-      externalProject = new ExternalDartProject();
-    }
-    return externalProject;
+    return null;
   }
 
   @Override

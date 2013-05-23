@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -94,13 +93,7 @@ public class WorkbenchRunnableAdapter_OLD implements IRunnableWithProgress, IThr
    */
   @Override
   public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-    try {
-      DartCore.run(fWorkspaceRunnable, fRule, monitor);
-    } catch (OperationCanceledException e) {
-      throw new InterruptedException(e.getMessage());
-    } catch (CoreException e) {
-      throw new InvocationTargetException(e);
-    }
+
   }
 
   public void runAsUserJob(String name, final Object jobFamiliy) {

@@ -13,11 +13,9 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.changes;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
-import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -90,13 +88,7 @@ public class DynamicValidationStateChange extends CompositeChange implements
   @Override
   public Change perform(IProgressMonitor pm) throws CoreException {
     final Change[] result = new Change[1];
-    IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
-      @Override
-      public void run(IProgressMonitor monitor) throws CoreException {
-        result[0] = DynamicValidationStateChange.super.perform(monitor);
-      }
-    };
-    DartCore.run(runnable, schedulingRule, pm);
+
     return result[0];
   }
 

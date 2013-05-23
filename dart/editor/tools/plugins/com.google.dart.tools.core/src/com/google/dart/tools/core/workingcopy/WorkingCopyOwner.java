@@ -13,15 +13,9 @@
  */
 package com.google.dart.tools.core.workingcopy;
 
-import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.internal.buffer.BufferManager;
-import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.internal.model.ExternalDartProject;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.model.StandAloneCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElementDelta;
@@ -129,7 +123,7 @@ public abstract class WorkingCopyOwner {
    */
   public final CompilationUnit newWorkingCopy(IPath path, IProgressMonitor monitor)
       throws DartModelException {
-   
+
     IFile libraryFile = null;
     if (path.segmentCount() > 1) {
       libraryFile = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
@@ -139,16 +133,8 @@ public abstract class WorkingCopyOwner {
         return cu;
       }
     }
-    
-    ExternalDartProject project = new ExternalDartProject();
-    libraryFile = project.getProject().getFile(path.lastSegment());
-    LibrarySource sourceFile = new UrlLibrarySource(
-        path.toFile().toURI(),
-        PackageLibraryManagerProvider.getPackageLibraryManager());
-    DartLibraryImpl parent = new DartLibraryImpl(project, libraryFile, sourceFile);
-    CompilationUnitImpl result = new CompilationUnitImpl(parent, libraryFile, this);
-    result.becomeWorkingCopy(getProblemRequestor(result), monitor);
-    return result;
+
+    return null;
   }
 
 }

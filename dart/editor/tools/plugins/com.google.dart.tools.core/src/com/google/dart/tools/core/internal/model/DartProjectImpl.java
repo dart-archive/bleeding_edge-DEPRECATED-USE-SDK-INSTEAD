@@ -290,11 +290,6 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     if (!DartProjectNature.hasDartNature(project)) {
       return null;
     }
-    // Get cached preferences if exist
-    PerProjectInfo perProjectInfo = DartModelManager.getInstance().getPerProjectInfo(project, true);
-    if (perProjectInfo.getPreferences() != null) {
-      return perProjectInfo.getPreferences();
-    }
 
     // Init project preferences
     ProjectScope scope = new ProjectScope(project);
@@ -302,7 +297,6 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
 
     //IScopeContext context = new ProjectScope(getProject());
     //final IEclipsePreferences eclipsePreferences = context.getNode(DartCore.PLUGIN_ID);
-    perProjectInfo.setPreferences(eclipsePreferences);
 
     // Listen to new preferences node
     final IEclipsePreferences eclipseParentPreferences = (IEclipsePreferences) eclipsePreferences.parent();
@@ -318,9 +312,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
 
         @Override
         public void removed(IEclipsePreferences.NodeChangeEvent event) {
-          if (event.getChild() == eclipsePreferences) {
-            DartModelManager.getInstance().resetProjectPreferences(DartProjectImpl.this);
-          }
+
         }
       };
       eclipseParentPreferences.addNodeChangeListener(preferencesNodeListener);
@@ -334,7 +326,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
       @Override
       public void preferenceChange(IEclipsePreferences.PreferenceChangeEvent event) {
         String propertyName = event.getKey();
-        DartModelManager manager = DartModelManager.getInstance();
+
         if (propertyName.startsWith(DartCore.PLUGIN_ID)) {
           // if
           // (propertyName.equals(DartCore.CORE_JAVA_BUILD_CLEAN_OUTPUT_FOLDER)
@@ -353,7 +345,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
           // || propertyName.equals(DartCore.CORE_INCOMPATIBLE_JDK_LEVEL)) {
           // manager.deltaState.addClasspathValidation(DartProjectImpl.this);
           // }
-          manager.resetProjectOptions(DartProjectImpl.this);
+
           DartProjectImpl.this.resetCaches();
           // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=233568
         }
@@ -432,15 +424,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
 
   @Override
   public String getOption(String optionName, boolean inheritDartCoreOptions) {
-    if (DartModelManager.getInstance().getOptionNames().contains(optionName)) {
-      IEclipsePreferences projectPreferences = getEclipsePreferences();
-      String coreDefault = inheritDartCoreOptions ? DartCore.getOption(optionName) : null;
-      if (projectPreferences == null) {
-        return coreDefault;
-      }
-      String value = projectPreferences.get(optionName, coreDefault);
-      return value == null ? null : value.trim();
-    }
+
     return null;
   }
 
@@ -482,17 +466,8 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   }
 
   public PerProjectInfo getPerProjectInfo() throws DartModelException {
-    PerProjectInfo projectInfo = DartModelManager.getInstance().getPerProjectInfoCheckExistence(
-        project);
 
-    if (projectInfo.getPreferences() == null) {
-      // TODO (danrubel): investigate better approach
-      // getEclipsePreferences() will initialize the Eclipse preferences for this project.
-      // It's a getter with side effects - not ideal.
-      getEclipsePreferences();
-    }
-
-    return projectInfo;
+    return null;
   }
 
   @Override

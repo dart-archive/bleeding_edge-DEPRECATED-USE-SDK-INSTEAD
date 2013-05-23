@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * The unique instance of the class <code>DartModelManager</code> is used to manage the ignored
+ * The unique instance of the class <code>DartIgnoreManager</code> is used to manage the ignored
  * elements in the Dart element model.
  */
 public class DartIgnoreManager {

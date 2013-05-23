@@ -27,12 +27,10 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.ExternalDartProject;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.Messages;
@@ -43,10 +41,7 @@ import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -407,28 +402,7 @@ public class ActionUtil {
   }
 
   public static boolean isOnBuildPath(DartElement element) {
-    // fix for bug http://dev.eclipse.org/bugs/show_bug.cgi?id=20051
-    if (element.getElementType() == DartElement.DART_PROJECT) {
-      return true;
-    }
-    DartProject project = element.getDartProject();
-    if (project instanceof ExternalDartProject) {
-      return true;
-    }
-    try {
-      // if (!project.isOnClasspath(element))
-      // return false;
-      IProject resourceProject = project.getProject();
-      if (resourceProject == null) {
-        return false;
-      }
-      IProjectNature nature = resourceProject.getNature(DartCore.DART_PROJECT_NATURE);
-      // We have a Dart project
-      if (nature != null) {
-        return true;
-      }
-    } catch (CoreException e) {
-    }
+
     return false;
   }
 
