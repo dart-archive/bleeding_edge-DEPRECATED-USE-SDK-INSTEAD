@@ -133,7 +133,7 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
     commandsList.add("--no-default-browser-check");
     commandsList.add("--enable-extension-activity-logging");
     commandsList.add("--enable-extension-activity-ui");
-    //commandsList.add("--load-extension=" + extensionPath);
+    commandsList.add("--no-startup-window");
     commandsList.add("--load-and-launch-app=" + extensionPath);
     //commandsList.add("--remote-debugging-port=1234");
 

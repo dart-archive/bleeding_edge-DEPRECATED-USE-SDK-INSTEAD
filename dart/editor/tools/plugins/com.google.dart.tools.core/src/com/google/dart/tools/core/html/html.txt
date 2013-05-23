@@ -108,6 +108,7 @@ u
 ul
 var
 video=src,crossorigin,poster,preload,autoplay,mediagroup,loop,muted,controls,width,height
+webview=src,partition,autosize
 wbr
 
 #web components
