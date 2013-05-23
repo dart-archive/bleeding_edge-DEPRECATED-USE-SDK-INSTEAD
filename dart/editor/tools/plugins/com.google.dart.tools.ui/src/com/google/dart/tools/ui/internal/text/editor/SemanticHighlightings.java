@@ -388,8 +388,10 @@ public class SemanticHighlightings {
       if (node instanceof StringLiteral && node.getParent() instanceof ImportDirective) {
         ImportDirective importDirective = (ImportDirective) node.getParent();
         ImportElement importElement = (ImportElement) importDirective.getElement();
-        LibraryElement importedLibrary = importElement.getImportedLibrary();
-        return isDeprecatedElement(importedLibrary);
+        if (importElement != null) {
+          LibraryElement importedLibrary = importElement.getImportedLibrary();
+          return isDeprecatedElement(importedLibrary);
+        }
       }
       return false;
     }
