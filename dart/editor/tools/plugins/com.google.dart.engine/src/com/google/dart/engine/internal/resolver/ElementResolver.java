@@ -330,7 +330,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
               StaticTypeWarningCode.UNDEFINED_METHOD,
               operator,
               methodName,
-              staticType.getName());
+              staticType.getDisplayName());
         }
       }
     }
@@ -361,7 +361,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
               StaticTypeWarningCode.UNDEFINED_OPERATOR,
               operator,
               methodName,
-              staticType.getName());
+              staticType.getDisplayName());
         }
       }
     }
@@ -632,8 +632,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             resolver.reportError(
                 StaticWarningCode.FIELD_INITIALIZER_WITH_INVALID_TYPE,
                 node,
-                declaredType.getName(),
-                fieldType.getName());
+                declaredType.getDisplayName(),
+                fieldType.getDisplayName());
           }
         } else {
           if (fieldElement.isSynthetic()) {
@@ -839,7 +839,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         if (targetType == null) {
           targetType = getStaticType(target);
         }
-        targetTypeName = targetType == null ? null : targetType.getName();
+        targetTypeName = targetType == null ? null : targetType.getDisplayName();
       }
       resolver.reportError(
           StaticTypeWarningCode.UNDEFINED_METHOD,
@@ -892,7 +892,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           StaticTypeWarningCode.UNDEFINED_OPERATOR,
           node.getOperator(),
           methodName,
-          staticType.getName());
+          staticType.getDisplayName());
     }
     return null;
   }
@@ -956,7 +956,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             StaticTypeWarningCode.UNDEFINED_OPERATOR,
             operator,
             methodName,
-            staticType.getName());
+            staticType.getDisplayName());
       }
     }
     return null;
@@ -1420,7 +1420,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             StaticTypeWarningCode.UNDEFINED_OPERATOR,
             node,
             methodName,
-            staticType.getName());
+            staticType.getDisplayName());
         return true;
       } else {
         int offset = leftBracket.getOffset();
@@ -1430,7 +1430,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             offset,
             length,
             methodName,
-            staticType.getName());
+            staticType.getDisplayName());
         return true;
       }
     }
@@ -2127,13 +2127,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
                 StaticWarningCode.UNDEFINED_SETTER,
                 propertyName,
                 propertyName.getName(),
-                staticType.getName());
+                staticType.getDisplayName());
           } else {
             resolver.reportError(
                 StaticTypeWarningCode.UNDEFINED_SETTER,
                 propertyName,
                 propertyName.getName(),
-                staticType.getName());
+                staticType.getDisplayName());
           }
         } else if (propertyName.inGetterContext()) {
           if (isStaticProperty) {
@@ -2141,13 +2141,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
                 StaticWarningCode.UNDEFINED_GETTER,
                 propertyName,
                 propertyName.getName(),
-                staticType.getName());
+                staticType.getDisplayName());
           } else {
             resolver.reportError(
                 StaticTypeWarningCode.UNDEFINED_GETTER,
                 propertyName,
                 propertyName.getName(),
-                staticType.getName());
+                staticType.getDisplayName());
           }
         } else {
           resolver.reportError(

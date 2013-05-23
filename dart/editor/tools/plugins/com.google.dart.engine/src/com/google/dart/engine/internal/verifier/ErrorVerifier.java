@@ -1034,8 +1034,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           !node.isGetter() ? StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE
               : StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
           methodName,
-          overridingFTReturnType.getName(),
-          overriddenFTReturnType.getName(),
+          overridingFTReturnType.getDisplayName(),
+          overriddenFTReturnType.getDisplayName(),
           overriddenExecutable.getEnclosingElement().getDisplayName());
       return true;
     }
@@ -1053,8 +1053,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             !node.isSetter() ? StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
                 : StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE,
             parameterNodeList.get(parameterIndex),
-            overridingNormalPT[i].getName(),
-            overriddenNormalPT[i].getName(),
+            overridingNormalPT[i].getDisplayName(),
+            overriddenNormalPT[i].getDisplayName(),
             overriddenExecutable.getEnclosingElement().getDisplayName());
         return true;
       }
@@ -1067,8 +1067,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         errorReporter.reportError(
             StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE,
             parameterNodeList.get(parameterIndex),
-            overridingPositionalPT[i].getName(),
-            overriddenPositionalPT[i].getName(),
+            overridingPositionalPT[i].getDisplayName(),
+            overriddenPositionalPT[i].getDisplayName(),
             overriddenExecutable.getEnclosingElement().getDisplayName());
         return true;
       }
@@ -1104,8 +1104,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           errorReporter.reportError(
               StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE,
               parameterToSelect,
-              overridingType.getName(),
-              overriddenNamedPTEntry.getValue().getName(),
+              overridingType.getDisplayName(),
+              overriddenNamedPTEntry.getValue().getDisplayName(),
               overriddenExecutable.getEnclosingElement().getDisplayName());
           return true;
         }
@@ -1193,8 +1193,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       errorReporter.reportError(
           StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
           returnExpression,
-          staticReturnType.getName(),
-          expectedReturnType.getName(),
+          staticReturnType.getDisplayName(),
+          expectedReturnType.getDisplayName(),
           enclosingFunction.getDisplayName());
       return true;
     }
@@ -1208,8 +1208,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       errorReporter.reportError(
           StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
           returnExpression,
-          staticReturnType.getName(),
-          expectedReturnType.getName(),
+          staticReturnType.getDisplayName(),
+          expectedReturnType.getDisplayName(),
           enclosingFunction.getDisplayName());
       return true;
     } else {
@@ -1220,8 +1220,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       errorReporter.reportError(
           StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
           returnExpression,
-          staticReturnType.getName(),
-          expectedReturnType.getName(),
+          staticReturnType.getDisplayName(),
+          expectedReturnType.getDisplayName(),
           enclosingFunction.getDisplayName());
       return true;
     }
@@ -1885,7 +1885,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           }
         }
         // otherwise, report the error
-        errorReporter.reportError(errorCode, typeName, disallowedType.getName());
+        errorReporter.reportError(errorCode, typeName, disallowedType.getDisplayName());
         return true;
       }
     }
@@ -2121,7 +2121,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
                 CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
                 expression,
                 expression.toSource(),
-                firstType.getName());
+                firstType.getDisplayName());
             foundError = true;
           }
         }
@@ -2178,8 +2178,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       errorReporter.reportError(
           StaticTypeWarningCode.INVALID_ASSIGNMENT,
           node.getRightHandSide(),
-          rightType.getName(),
-          leftType.getName());
+          rightType.getDisplayName(),
+          leftType.getDisplayName());
       return true;
     }
     return false;
@@ -2207,8 +2207,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         errorReporter.reportError(
             StaticTypeWarningCode.INVALID_ASSIGNMENT,
             rhs,
-            staticRightType.getName(),
-            leftType.getName());
+            staticRightType.getDisplayName(),
+            leftType.getDisplayName());
         return true;
       }
     } else {
@@ -2217,8 +2217,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         errorReporter.reportError(
             StaticTypeWarningCode.INVALID_ASSIGNMENT,
             rhs,
-            staticRightType.getName(),
-            leftType.getName());
+            staticRightType.getDisplayName(),
+            leftType.getDisplayName());
         return true;
       }
     }
@@ -2351,8 +2351,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
               accessorDeclaration,
               accessorTextName,
-              setterType.toString(),
-              getterType.toString());
+              setterType.getDisplayName(),
+              getterType.getDisplayName());
         }
       }
     } else if (node instanceof MethodDeclaration) {

@@ -363,7 +363,7 @@ public class EngineTestCase extends TestCase {
         return accessor;
       }
     }
-    fail("Could not find getter named " + getterName + " in " + type.getName());
+    fail("Could not find getter named " + getterName + " in " + type.getDisplayName());
     return null;
   }
 
@@ -380,7 +380,7 @@ public class EngineTestCase extends TestCase {
         return method;
       }
     }
-    fail("Could not find method named " + methodName + " in " + type.getName());
+    fail("Could not find method named " + methodName + " in " + type.getDisplayName());
     return null;
   }
 }

@@ -942,7 +942,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
   }
 
   private void assertType(InterfaceTypeImpl expectedType, InterfaceTypeImpl actualType) {
-    assertEquals(expectedType.getName(), actualType.getName());
+    assertEquals(expectedType.getDisplayName(), actualType.getDisplayName());
     assertEquals(expectedType.getElement(), actualType.getElement());
     Type[] expectedArguments = expectedType.getTypeArguments();
     int length = expectedArguments.length;

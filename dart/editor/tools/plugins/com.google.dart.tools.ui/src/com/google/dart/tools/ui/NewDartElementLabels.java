@@ -159,24 +159,24 @@ public class NewDartElementLabels {
     ElementKind kind = element.getKind();
 
     switch (kind) {
-      
+
       case CONSTRUCTOR:
       case METHOD:
         getMethodLabel((ExecutableElement) element, flags, buf);
         break;
-        
+
       case FIELD:
         getFieldLabel((FieldElement) element, flags, buf);
         break;
-        
+
       case FUNCTION:
         getFunctionLabel((FunctionElement) element, flags, buf);
         break;
-        
+
       case CLASS:
         getClassLabel((ClassElement) element, buf);
         break;
-        
+
       default:
         buf.append(element.getDisplayName());
     }
@@ -207,7 +207,7 @@ public class NewDartElementLabels {
 
     String clsName = cls.getDisplayName();
     if (clsName.length() == 0) { // anonymous
-      String supertypeName = cls.getSupertype().getName();
+      String supertypeName = cls.getSupertype().getDisplayName();
       clsName = Messages.format(DartUIMessages.JavaElementLabels_anonym_type, supertypeName);
     }
 
@@ -369,7 +369,7 @@ public class NewDartElementLabels {
   private static void getFunctionLabel(FunctionElement function, long flags, StringBuffer buf) {
     // Return type
     if (getFlag(flags, M_PRE_RETURNTYPE)) {
-      buf.append(function.getType().getReturnType().getName());
+      buf.append(function.getType().getReturnType().getDisplayName());
       buf.append(' ');
     }
 
@@ -387,7 +387,7 @@ public class NewDartElementLabels {
 
     // return type
     if (getFlag(flags, M_PRE_RETURNTYPE) && elem.getKind() != ElementKind.CONSTRUCTOR) {
-      buf.append(elem.getType().getReturnType().getName());
+      buf.append(elem.getType().getReturnType().getDisplayName());
       buf.append(' ');
     }
 
@@ -421,7 +421,7 @@ public class NewDartElementLabels {
 
     if (getFlag(flags, M_APP_RETURNTYPE) && elem.getKind() != ElementKind.CONSTRUCTOR) {
 
-      String returnTypeName = elem.getType().getReturnType().getName();
+      String returnTypeName = elem.getType().getReturnType().getDisplayName();
 
       if (returnTypeName != null) {
         buf.append(DECL_STRING);
@@ -460,7 +460,7 @@ public class NewDartElementLabels {
     com.google.dart.engine.type.Type type;
     for (int i = 0; i < parameters.length; i++) {
       type = parameters[i].getType();
-      names[i] = type == null ? "var" : type.getName();
+      names[i] = type == null ? "var" : type.getDisplayName();
     }
 
     return names;
@@ -469,7 +469,7 @@ public class NewDartElementLabels {
   private static String getSuperTypeName(ClassElement type) {
     InterfaceType supertype = type.getSupertype();
     if (supertype != null) {
-      return supertype.getName();
+      return supertype.getDisplayName();
     }
     return null;
   }
@@ -495,7 +495,7 @@ public class NewDartElementLabels {
   private static String getTypeName(FieldElement field) {
     com.google.dart.engine.type.Type type = field.getType();
     if (type != null) {
-      return type.getName();
+      return type.getDisplayName();
     }
     return null;
   }

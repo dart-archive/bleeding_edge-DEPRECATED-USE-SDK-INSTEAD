@@ -70,7 +70,7 @@ public final class DartDocUtilities {
     @Override
     public String visitConstructorElement(ConstructorElement element) {
       StringBuilder params = describeParams(element.getParameters());
-      String typeName = element.getType().getReturnType().getName();
+      String typeName = element.getType().getReturnType().getDisplayName();
       String constructorName = element.getDisplayName();
       if (constructorName != null && constructorName.length() != 0) {
         typeName = typeName + "." + constructorName;
@@ -140,10 +140,10 @@ public final class DartDocUtilities {
       StringBuilder sb = new StringBuilder();
 
       sb.append("<");
-      sb.append(element.getType().getName());
+      sb.append(element.getType().getDisplayName());
       com.google.dart.engine.type.Type bound = element.getBound();
       if (bound != null) {
-        sb.append(" extends ").append(bound.getName());
+        sb.append(" extends ").append(bound.getDisplayName());
       }
       sb.append(">");
 
@@ -223,7 +223,7 @@ public final class DartDocUtilities {
 
     private String getName(com.google.dart.engine.type.Type type) {
       if (type != null) {
-        String name = type.getName();
+        String name = type.getDisplayName();
         if (name != null) {
 
           StringBuilder buf = new StringBuilder();
