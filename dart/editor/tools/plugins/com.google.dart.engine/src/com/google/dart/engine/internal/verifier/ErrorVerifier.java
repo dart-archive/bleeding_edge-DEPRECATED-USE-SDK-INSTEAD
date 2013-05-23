@@ -51,6 +51,7 @@ import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.InvokableDeclaration;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -593,6 +594,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ExecutableElement previousFunction = enclosingFunction;
     try {
       enclosingFunction = node.getElement();
+      if (node.isSetter() || node.isGetter()) {
+        checkForMismatchedAccessorTypes(node);
+      }
       if (node.isSetter()) {
         checkForWrongNumberOfParametersForSetter(node.getName(), node.getParameters());
         checkForNonVoidReturnTypeForSetter(node.getReturnType());
@@ -2312,56 +2316,59 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Check to make sure that all similarly typed accessors are of the same type TODO (ericarnold):
-   * (including inherited accessors).
+   * Check to make sure that all similarly typed accessors are of the same type (including inherited
+   * accessors).
    * 
    * @param node The accessor currently being visited.
    */
-  private void checkForMismatchedAccessorTypes(Declaration node) {
-    SimpleIdentifier accessorName = null;
+  private void checkForMismatchedAccessorTypes(InvokableDeclaration accessorDeclaration) {
+    SimpleIdentifier accessorName;
+    InvokableDeclaration counterpartAccessor;
 
-    // Check to make sure the node is of the correct type for top-level accessors.
-    if (node instanceof FunctionDeclaration) {
-      FunctionDeclaration accessorDeclaration = (FunctionDeclaration) node;
-      accessorName = accessorDeclaration.getName();
-      String accessorTextName = accessorName.getName();
+    accessorName = accessorDeclaration.getName();
+    String accessorTextName = accessorName.getName();
 
-      // Check if there is an existing counterpart getter / setter.
-      FunctionDeclaration counterpartAccessor = compilationUnitAccessors.get(accessorTextName);
-      if (counterpartAccessor == null) {
-        // If not, just make a reference to the accessor and move on.
-        compilationUnitAccessors.put(accessorTextName, accessorDeclaration);
-      } else {
-        Type getterType;
-        Type setterType;
-
-        // Get the type of the existing counterpart, and then the current element.
-        if (counterpartAccessor.isGetter()) {
-          getterType = getGetterType(counterpartAccessor);
-          setterType = getSetterType(accessorDeclaration);
-        } else {
-          getterType = getGetterType(accessorDeclaration);
-          setterType = getSetterType(counterpartAccessor);
-        }
-
-        // If either types are not assignable to each other, report an error (if the getter is null,
-        // it is dynamic which is assignable to everything).
-        if (getterType != null && !getterType.isAssignableTo(setterType)) {
-          errorReporter.reportError(
-              StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
-              accessorDeclaration,
-              accessorTextName,
-              setterType.getDisplayName(),
-              getterType.getDisplayName());
-        }
-      }
-    } else if (node instanceof MethodDeclaration) {
-      // TODO(ericarnold): This is a method.  Check our superiors
-      // TODO(ericarnold): Check for mismatched getters / setters in this class / level.
-      MethodDeclaration methodDeclaration = (MethodDeclaration) node;
-      accessorName = methodDeclaration.getName();
-      ASTNode parent = methodDeclaration.getParent();
+    // Get an existing counterpart accessor if any.
+    if (accessorDeclaration instanceof FunctionDeclaration) {
+      counterpartAccessor = compilationUnitAccessors.get(accessorTextName);
+    } else {
+      counterpartAccessor = currentClassInformation.classGettersAndSetters.get(accessorTextName);
     }
+
+    if (counterpartAccessor == null) {
+      // If no counterpart, just make a reference to the accessor and move on.
+      if (accessorDeclaration instanceof FunctionDeclaration) {
+        compilationUnitAccessors.put(accessorTextName, (FunctionDeclaration) accessorDeclaration);
+      } else {
+        currentClassInformation.classGettersAndSetters.put(
+            accessorTextName,
+            (MethodDeclaration) accessorDeclaration);
+      }
+    } else {
+      Type getterType;
+      Type setterType;
+
+      // Get the type of the existing counterpart, and then the current element.
+      if (counterpartAccessor.isGetter()) {
+        getterType = getGetterType(counterpartAccessor);
+        setterType = getSetterType(accessorDeclaration);
+      } else {
+        getterType = getGetterType(accessorDeclaration);
+        setterType = getSetterType(counterpartAccessor);
+      }
+
+      // If either types are not assignable to each other, report an error (if the getter is null,
+      // it is dynamic which is assignable to everything).
+      if (getterType != null && !getterType.isAssignableTo(setterType)) {
+        errorReporter.reportError(
+            StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+            (Declaration) accessorDeclaration,
+            accessorTextName,
+            setterType.getDisplayName(),
+            getterType.getDisplayName());
+      }
+    }
+    // TODO(ericarnold): If this is a method.  Check our superiors
   }
 
   /**
@@ -3280,7 +3287,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param getterDeclaration
    * @return The type of the given getter.
    */
-  private Type getGetterType(FunctionDeclaration getterDeclaration) {
+  private Type getGetterType(InvokableDeclaration getterDeclaration) {
     TypeName getterTypeName = getterDeclaration.getReturnType();
     if (getterTypeName != null) {
       return getterTypeName.getType();
@@ -3305,8 +3312,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param setterDeclaration
    * @return The type of the given setter.
    */
-  private Type getSetterType(FunctionDeclaration setterDeclaration) {
-    FormalParameterList parameters = setterDeclaration.getFunctionExpression().getParameters();
+  private Type getSetterType(InvokableDeclaration setterDeclaration) {
+    // Get the parameters for MethodDeclaration or FunctionDeclaration
+    FormalParameterList parameters;
+    if (setterDeclaration instanceof FunctionDeclaration) {
+      FunctionDeclaration functionDeclaration = (FunctionDeclaration) setterDeclaration;
+      parameters = functionDeclaration.getFunctionExpression().getParameters();
+    } else {
+      MethodDeclaration methodDeclaration = (MethodDeclaration) setterDeclaration;
+      parameters = methodDeclaration.getParameters();
+    }
+
+    // Get and return the setter Type
     FormalParameter firstParameter = parameters.getParameters().get(0);
     Type setterType = firstParameter.getElement().getType();
     return setterType;
@@ -3392,5 +3409,5 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
  * Information about accessors in classes.
  */
 final class ClassAccessorInformation {
-  public HashMap<String, MethodDeclaration> classGettersAndSetters = null;
+  public HashMap<String, MethodDeclaration> classGettersAndSetters = new HashMap<String, MethodDeclaration>();
 }

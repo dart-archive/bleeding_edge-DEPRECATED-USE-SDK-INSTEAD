@@ -165,17 +165,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_mismatchedAccessorTypes_class() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  int get g { return 0; }",
-        "  set g(String v) {}",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES);
-    verify(source);
-  }
-
   public void fail_mismatchedAccessorTypes_getterAndSuperSetter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -860,6 +849,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE);
+    verify(source);
+  }
+
+  public void test_mismatchedAccessorTypes_class() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get g { return 0; }",
+        "  set g(String v) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES);
     verify(source);
   }
 

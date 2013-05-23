@@ -40,7 +40,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public class MethodDeclaration extends ClassMember {
+public class MethodDeclaration extends ClassMember implements InvokableDeclaration {
   /**
    * The token for the 'external' keyword, or {@code null} if the constructor is not external.
    */
@@ -209,6 +209,7 @@ public class MethodDeclaration extends ClassMember {
    * 
    * @return the return type of the method
    */
+  @Override
   public TypeName getReturnType() {
     return returnType;
   }

@@ -35,7 +35,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public class FunctionDeclaration extends CompilationUnitMember {
+public class FunctionDeclaration extends CompilationUnitMember implements InvokableDeclaration {
   /**
    * The token representing the 'external' keyword, or {@code null} if this is not an external
    * function.

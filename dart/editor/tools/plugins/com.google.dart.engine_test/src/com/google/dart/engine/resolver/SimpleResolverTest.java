@@ -30,6 +30,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
@@ -287,7 +288,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  a.f = a.f.toString();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertErrors(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES);
     verify(source);
   }
 
