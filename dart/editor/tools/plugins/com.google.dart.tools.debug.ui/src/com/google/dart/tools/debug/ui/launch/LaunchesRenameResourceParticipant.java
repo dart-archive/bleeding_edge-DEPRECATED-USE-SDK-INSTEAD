@@ -16,72 +16,114 @@ package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.NullChange;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
 import org.eclipse.ltk.core.refactoring.participants.RenameParticipant;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A class to handle renaming Dart launches.
  */
 public class LaunchesRenameResourceParticipant extends RenameParticipant {
 
-  private static class UpdateConfigurationHtml extends NullChange {
-    private final ILaunchConfiguration configuration;
+  private static class UpdateLaunchConfigurations extends NullChange {
+    private final List<ILaunchConfiguration> configurations;
     private final String newName;
+    private final String oldName;
 
-    public UpdateConfigurationHtml(ILaunchConfiguration configuration, String newName) {
-      super("Update HTML file in launch configuration: " + configuration.getName());
-      this.configuration = configuration;
+    public UpdateLaunchConfigurations(List<ILaunchConfiguration> configurations, String newName) {
+      super("Update launch configuration");
+
+      this.configurations = configurations;
       this.newName = newName;
+      this.oldName = new DartLaunchConfigWrapper(configurations.get(0)).getApplicationName();
     }
 
     @Override
     public Change perform(IProgressMonitor pm) throws CoreException {
-      ILaunchConfigurationWorkingCopy wc = configuration.getWorkingCopy();
-      DartLaunchConfigWrapper wcWrapper = new DartLaunchConfigWrapper(wc);
-      String oldPath = wcWrapper.getApplicationName();
-      // set new path
-      String newPath = StringUtils.substringBeforeLast(oldPath, "/") + "/" + newName;
-      wcWrapper.setApplicationName(newPath);
-      wc.doSave();
+      for (ILaunchConfiguration config : configurations) {
+        ILaunchConfigurationWorkingCopy wc = config.getWorkingCopy();
+        DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(wc);
+
+        wrapper.setApplicationName(newName);
+        wc.doSave();
+      }
+
       // return undo
-      String oldName = StringUtils.substringAfterLast(oldPath, "/");
-      return new UpdateConfigurationHtml(configuration, oldName);
+      return new UpdateLaunchConfigurations(configurations, oldName);
     }
+  }
+
+  private static List<ILaunchConfiguration> getLaunchesForFile(IFile file) throws CoreException {
+    List<ILaunchConfiguration> configs = new ArrayList<ILaunchConfiguration>();
+
+    ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
+
+    for (ILaunchConfiguration config : manager.getLaunchConfigurations()) {
+      DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+
+      IResource launchedResource = wrapper.getApplicationResource();
+
+      if (launchedResource != null && launchedResource.equals(file)) {
+        configs.add(config);
+      }
+    }
+
+    return configs;
   }
 
   private IFile file;
 
+  private List<ILaunchConfiguration> launchConfigs;
+
   @Override
   public RefactoringStatus checkConditions(IProgressMonitor pm, CheckConditionsContext context)
       throws OperationCanceledException {
-    return null;
+    return new RefactoringStatus();
   }
 
   @Override
   public Change createChange(IProgressMonitor pm) throws CoreException, OperationCanceledException {
-    // TODO(scheglov) implement for new engine
-    return null;
+    String newName = getArguments().getNewName();
+    IFile newFile = file.getParent().getFile(new Path(newName));
+
+    return new UpdateLaunchConfigurations(launchConfigs, newFile.getFullPath().toPortableString());
   }
 
   @Override
   public String getName() {
-    return "Update HTML files in launch configurations";
+    return "Rename Dart launches";
   }
 
   @Override
   protected boolean initialize(Object element) {
-    // TODO(scheglov) implement for new engine
-    return false;
+    if (element instanceof IFile) {
+      file = (IFile) element;
+
+      try {
+        launchConfigs = getLaunchesForFile(file);
+      } catch (CoreException e) {
+        return false;
+      }
+
+      return launchConfigs.size() > 0;
+    } else {
+      return false;
+    }
   }
 
 }

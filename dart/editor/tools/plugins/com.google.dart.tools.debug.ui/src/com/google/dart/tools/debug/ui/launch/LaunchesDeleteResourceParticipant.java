@@ -22,7 +22,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.debug.core.DebugPlugin;
-import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -34,13 +33,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A class to handle removing Dart launches.
+ * A class to handle deleting Dart launches.
  */
 public class LaunchesDeleteResourceParticipant extends DeleteParticipant {
 
-  private class TerminateLaunchesChange extends Change {
+  private class DeleteLaunchesChange extends Change {
 
-    private TerminateLaunchesChange() {
+    private DeleteLaunchesChange() {
 
     }
 
@@ -51,7 +50,7 @@ public class LaunchesDeleteResourceParticipant extends DeleteParticipant {
 
     @Override
     public String getName() {
-      return "Terminate launches for '" + file.getFullPath() + "'";
+      return "Delete launch configs for '" + file.getFullPath() + "'";
     }
 
     @Override
@@ -62,50 +61,40 @@ public class LaunchesDeleteResourceParticipant extends DeleteParticipant {
     @Override
     public RefactoringStatus isValid(IProgressMonitor pm) throws CoreException,
         OperationCanceledException {
-      // Return an OK refactoring status.
       return new RefactoringStatus();
     }
 
     @Override
     public Change perform(IProgressMonitor pm) throws CoreException {
-      for (ILaunch launch : launches) {
-        if (launch.isTerminated()) {
-          continue;
-        }
-
-        launch.terminate();
+      for (ILaunchConfiguration config : launchConfigs) {
+        config.delete();
       }
 
       return null;
     }
   }
 
-  private static List<ILaunch> getLaunchesForFile(IFile file) {
-    List<ILaunch> launches = new ArrayList<ILaunch>();
+  private static List<ILaunchConfiguration> getLaunchesForFile(IFile file) throws CoreException {
+    List<ILaunchConfiguration> configs = new ArrayList<ILaunchConfiguration>();
 
     ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
 
-    for (ILaunch launch : manager.getLaunches()) {
-      if (launch.isTerminated()) {
-        continue;
-      }
-
-      ILaunchConfiguration config = launch.getLaunchConfiguration();
+    for (ILaunchConfiguration config : manager.getLaunchConfigurations()) {
       DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
 
       IResource launchedResource = wrapper.getApplicationResource();
 
       if (launchedResource != null && launchedResource.equals(file)) {
-        launches.add(launch);
+        configs.add(config);
       }
     }
 
-    return launches;
+    return configs;
   }
 
   private IFile file;
 
-  private List<ILaunch> launches;
+  private List<ILaunchConfiguration> launchConfigs;
 
   public LaunchesDeleteResourceParticipant() {
 
@@ -119,12 +108,12 @@ public class LaunchesDeleteResourceParticipant extends DeleteParticipant {
 
   @Override
   public Change createChange(IProgressMonitor pm) throws CoreException, OperationCanceledException {
-    return new TerminateLaunchesChange();
+    return new DeleteLaunchesChange();
   }
 
   @Override
   public String getName() {
-    return "Remove Dart launches";
+    return "Delete Dart launches";
   }
 
   @Override
@@ -132,9 +121,13 @@ public class LaunchesDeleteResourceParticipant extends DeleteParticipant {
     if (element instanceof IFile) {
       file = (IFile) element;
 
-      launches = getLaunchesForFile(file);
+      try {
+        launchConfigs = getLaunchesForFile(file);
+      } catch (CoreException e) {
+        return false;
+      }
 
-      return launches.size() > 0;
+      return launchConfigs.size() > 0;
     } else {
       return false;
     }
