@@ -4,7 +4,6 @@ import 'dart:html';
 import 'dart:json' as json;
 import '../common/common.dart';
 import 'dart:math' as Math;
-import 'dart:json' as json;
 part 'Common.dart';
 part 'RunnerSuite.dart';
 
