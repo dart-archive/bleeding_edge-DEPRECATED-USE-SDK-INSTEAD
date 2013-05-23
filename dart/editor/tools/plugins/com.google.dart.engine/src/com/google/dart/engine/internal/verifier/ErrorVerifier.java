@@ -2629,7 +2629,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * <ul>
    * <li>has {@code const modifier}</li>
    * <li>has explicit type arguments</li>
-   * <li>is not expression of the expression statement</li>
+   * <li>is not start of the statement</li>
    * <ul>
    * 
    * @param node the map literal to evaluate
@@ -2637,15 +2637,24 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#NON_CONST_MAP_AS_EXPRESSION_STATEMENT
    */
   private boolean checkForNonConstMapAsExpressionStatement(MapLiteral node) {
+    // "const"
     if (node.getModifier() != null) {
       return false;
     }
+    // has type arguments
     if (node.getTypeArguments() != null) {
       return false;
     }
-    if (!(node.getParent() instanceof ExpressionStatement)) {
+    // prepare statement
+    Statement statement = node.getAncestor(Statement.class);
+    if (statement == null) {
       return false;
     }
+    // OK, statement does not start with map
+    if (statement.getBeginToken() != node.getBeginToken()) {
+      return false;
+    }
+    // report problem
     errorReporter.reportError(CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, node);
     return true;
   }

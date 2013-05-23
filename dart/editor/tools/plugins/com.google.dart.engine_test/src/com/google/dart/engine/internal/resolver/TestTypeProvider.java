@@ -209,7 +209,9 @@ public class TestTypeProvider implements TypeProvider {
   @Override
   public InterfaceType getMapType() {
     if (mapType == null) {
-      mapType = classElement("Map", "K", "V").getType();
+      ClassElementImpl mapElement = classElement("Map", "K", "V");
+      mapType = mapElement.getType();
+      mapElement.setAccessors(new PropertyAccessorElement[] {getterElement("length", false, intType)});
     }
     return mapType;
   }

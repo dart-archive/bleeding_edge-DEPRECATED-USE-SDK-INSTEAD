@@ -2102,7 +2102,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_nonConstMapAsExpressionStatement() throws Exception {
+  public void test_nonConstMapAsExpressionStatement_begin() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  {'a' : 0, 'b' : 1}.length;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT);
+    verify(source);
+  }
+
+  public void test_nonConstMapAsExpressionStatement_only() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
         "  {'a' : 0, 'b' : 1};",
