@@ -105,6 +105,11 @@ public class SdkLibraryImpl implements SdkLibrary {
     return implementation;
   }
 
+  @Override
+  public boolean isInternal() {
+    return "Internal".equals(category);
+  }
+
   /**
    * Return {@code true} if library can be used for both client and server
    */

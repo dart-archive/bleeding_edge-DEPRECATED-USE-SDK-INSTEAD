@@ -116,6 +116,10 @@ import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.SdkLibrary;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -138,6 +142,13 @@ import java.util.Stack;
  * @coverage dart.engine.resolver
  */
 public class ErrorVerifier extends RecursiveASTVisitor<Void> {
+  /**
+   * Information about accessors in classes.
+   */
+  private static class ClassAccessorInformation {
+    public HashMap<String, MethodDeclaration> classGettersAndSetters = new HashMap<String, MethodDeclaration>();
+  }
+
   /**
    * This enum holds one of four states of a field initialization state through a constructor
    * signature, not initialized, initialized in the field declaration, initialized in the field
@@ -523,6 +534,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitImportDirective(ImportDirective node) {
     checkForImportDuplicateLibraryName(node);
+    checkForImportInternalLibrary(node);
     return super.visitImportDirective(node);
   }
 
@@ -2098,6 +2110,53 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * Check that if the visiting library is not system, then any passed library should not be SDK
+   * internal library.
+   * 
+   * @param node the import directive to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#IMPORT_INTERNAL_LIBRARY
+   */
+  private boolean checkForImportInternalLibrary(ImportDirective node) {
+    if (isInSystemLibrary) {
+      return false;
+    }
+    // prepare import element
+    Element element = node.getElement();
+    if (!(element instanceof ImportElement)) {
+      return false;
+    }
+    ImportElement importElement = (ImportElement) element;
+    // prepare imported library
+    LibraryElement importedLibrary = importElement.getImportedLibrary();
+    if (importedLibrary == null) {
+      return false;
+    }
+    // prepare imported library source
+    Source importSource = importedLibrary.getSource();
+    if (importSource == null) {
+      return false;
+    }
+    // should be dart: URI
+    if (importSource.getUriKind() != UriKind.DART_URI) {
+      return false;
+    }
+    // should be private
+    DartSdk sdk = currentLibrary.getContext().getSourceFactory().getDartSdk();
+    String uri = importElement.getUri();
+    SdkLibrary sdkLibrary = sdk.getSdkLibrary(uri);
+    if (sdkLibrary == null) {
+      return false;
+    }
+    if (!sdkLibrary.isInternal()) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, node, node.getUri());
+    return true;
+  }
+
+  /**
    * This verifies that the passed switch statement case expressions all have the same type.
    * 
    * @param node the switch statement to evaluate
@@ -3403,11 +3462,4 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     return false;
   }
-}
-
-/**
- * Information about accessors in classes.
- */
-final class ClassAccessorInformation {
-  public HashMap<String, MethodDeclaration> classGettersAndSetters = new HashMap<String, MethodDeclaration>();
 }

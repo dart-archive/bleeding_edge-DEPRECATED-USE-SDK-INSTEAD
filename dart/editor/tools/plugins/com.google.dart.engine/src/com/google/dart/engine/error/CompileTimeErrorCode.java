@@ -469,6 +469,13 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "The 'this' expression cannot be implicitly used in initializers"),
 
   /**
+   * SDK implementation libraries can be imported only by other SDK libraries.
+   * 
+   * @param uri the uri pointing to a library
+   */
+  IMPORT_INTERNAL_LIBRARY("The library %s is internal and cannot be imported"),
+
+  /**
    * 14.1 Imports: It is a compile-time error if the compilation unit found at the specified URI is
    * not a library declaration.
    * 

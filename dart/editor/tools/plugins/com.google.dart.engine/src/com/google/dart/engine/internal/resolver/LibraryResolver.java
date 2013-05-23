@@ -451,6 +451,7 @@ public class LibraryResolver {
           if (importedLibrary != null) {
             // The imported library will be null if the URI in the import directive was invalid.
             ImportElementImpl importElement = new ImportElementImpl();
+            importElement.setUri(library.getUri(importDirective));
             importElement.setCombinators(buildCombinators(importDirective));
             LibraryElement importedLibraryElement = importedLibrary.getLibraryElement();
             if (importedLibraryElement != null) {
@@ -571,7 +572,7 @@ public class LibraryResolver {
     for (Directive directive : unit.getDirectives()) {
       if (directive instanceof ImportDirective) {
         ImportDirective importDirective = (ImportDirective) directive;
-        Source importedSource = library.getSource(importDirective.getUri());
+        Source importedSource = library.getSource(importDirective);
         if (importedSource != null) {
           // The imported source will be null if the URI in the import directive was invalid.
           if (importedSource.equals(coreLibrarySource)) {
@@ -599,7 +600,7 @@ public class LibraryResolver {
         }
       } else if (directive instanceof ExportDirective) {
         ExportDirective exportDirective = (ExportDirective) directive;
-        Source exportedSource = library.getSource(exportDirective.getUri());
+        Source exportedSource = library.getSource(exportDirective);
         if (exportedSource != null) {
           // The exported source will be null if the URI in the export directive was invalid.
           Library exportedLibrary = libraryMap.get(exportedSource);

@@ -294,6 +294,11 @@ public class DirectoryBasedDartSdk implements DartSdk {
     return libraryMap.getSdkLibraries();
   }
 
+  @Override
+  public SdkLibrary getSdkLibrary(String dartUri) {
+    return libraryMap.getLibrary(dartUri);
+  }
+
   /**
    * Return the revision number of this SDK, or {@code "0"} if the revision number cannot be
    * discovered.
@@ -366,7 +371,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
 
   @Override
   public Source mapDartUri(ContentCache contentCache, String dartUri) {
-    SdkLibrary library = libraryMap.getLibrary(dartUri);
+    SdkLibrary library = getSdkLibrary(dartUri);
     if (library == null) {
       return null;
     }

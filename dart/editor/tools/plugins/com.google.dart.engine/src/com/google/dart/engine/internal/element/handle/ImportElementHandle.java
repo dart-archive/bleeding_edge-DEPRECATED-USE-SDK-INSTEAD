@@ -56,6 +56,11 @@ public class ImportElementHandle extends ElementHandle implements ImportElement 
   }
 
   @Override
+  public String getUri() {
+    return getActualElement().getUri();
+  }
+
+  @Override
   protected ImportElement getActualElement() {
     return (ImportElement) super.getActualElement();
   }

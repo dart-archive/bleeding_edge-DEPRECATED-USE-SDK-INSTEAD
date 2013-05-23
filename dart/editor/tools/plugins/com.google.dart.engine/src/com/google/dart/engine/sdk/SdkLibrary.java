@@ -62,6 +62,13 @@ public interface SdkLibrary {
   public boolean isImplementation();
 
   /**
+   * Return {@code true} if library is internal can be used only by other SDK libraries.
+   * 
+   * @return {@code true} if library is internal can be used only by other SDK libraries
+   */
+  public boolean isInternal();
+
+  /**
    * Return {@code true} if library can be used for both client and server.
    * 
    * @return {@code true} if this library can be used for both client and server.

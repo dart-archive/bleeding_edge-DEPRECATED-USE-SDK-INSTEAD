@@ -1513,6 +1513,22 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_importInternalLibrary() throws Exception {
+    Source source = addSource(createSource(//
+    "import 'dart:_interceptors';"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY);
+    verify(source);
+  }
+
+  public void test_importInternalLibrary_collection() throws Exception {
+    Source source = addSource(createSource(//
+    "import 'dart:_collection-dev';"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY);
+    verify(source);
+  }
+
   public void test_importOfNonLibrary() throws Exception {
     Source source = addSource(createSource(//
         "library lib;",

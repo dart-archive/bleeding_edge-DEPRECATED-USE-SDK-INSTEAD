@@ -67,6 +67,15 @@ public interface DartSdk {
   public SdkLibrary[] getSdkLibraries();
 
   /**
+   * Return the library representing the library with the given {@code dart:} URI, or {@code null}
+   * if the given URI does not denote a library in this SDK.
+   * 
+   * @param dartUri the URI of the library to be returned
+   * @return the SDK library object
+   */
+  public SdkLibrary getSdkLibrary(String dartUri);
+
+  /**
    * Return the revision number of this SDK, or {@code "0"} if the revision number cannot be
    * discovered.
    * 

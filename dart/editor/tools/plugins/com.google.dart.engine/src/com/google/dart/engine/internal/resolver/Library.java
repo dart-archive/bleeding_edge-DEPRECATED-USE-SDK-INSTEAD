@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -73,6 +74,11 @@ public class Library {
    * A list containing all of the libraries that are imported into this library.
    */
   private HashMap<ImportDirective, Library> importedLibraries = new HashMap<ImportDirective, Library>();
+
+  /**
+   * A table mapping URI-based directive to the actual URI value.
+   */
+  private HashMap<UriBasedDirective, String> directiveUris = new HashMap<UriBasedDirective, String>();
 
   /**
    * A flag indicating whether this library explicitly imports core.
@@ -282,13 +288,14 @@ public class Library {
   }
 
   /**
-   * Return the result of resolving the given URI against the URI of the library, or {@code null} if
-   * the URI is not valid. If the URI is not valid, report the error.
+   * Return the result of resolving the URI of the given URI-based directive against the URI of the
+   * library, or {@code null} if the URI is not valid. If the URI is not valid, report the error.
    * 
-   * @param uriLiteral the string literal specifying the URI to be resolved
-   * @return the result of resolving the given URI against the URI of the library
+   * @param directive the directive which URI should be resolved
+   * @return the result of resolving the URI against the URI of the library
    */
-  public Source getSource(StringLiteral uriLiteral) {
+  public Source getSource(UriBasedDirective directive) {
+    StringLiteral uriLiteral = directive.getUri();
     if (uriLiteral instanceof StringInterpolation) {
       errorListener.onError(new AnalysisError(
           librarySource,
@@ -298,6 +305,7 @@ public class Library {
       return null;
     }
     String uriContent = getStringValue(uriLiteral);
+    directiveUris.put(directive, uriContent);
     try {
       new URI(uriContent);
       Source source = getSource(uriContent);
@@ -319,6 +327,13 @@ public class Library {
           uriContent));
     }
     return null;
+  }
+
+  /**
+   * Returns the URI value of the given directive.
+   */
+  public String getUri(UriBasedDirective directive) {
+    return directiveUris.get(directive);
   }
 
   /**

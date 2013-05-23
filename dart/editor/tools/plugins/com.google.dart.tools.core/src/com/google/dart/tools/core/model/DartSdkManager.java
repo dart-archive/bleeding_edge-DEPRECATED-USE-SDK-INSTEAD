@@ -86,6 +86,11 @@ public class DartSdkManager {
     }
 
     @Override
+    public SdkLibrary getSdkLibrary(String dartUri) {
+      return null;
+    }
+
+    @Override
     public String getSdkVersion() {
       return DEFAULT_VERSION;
     }

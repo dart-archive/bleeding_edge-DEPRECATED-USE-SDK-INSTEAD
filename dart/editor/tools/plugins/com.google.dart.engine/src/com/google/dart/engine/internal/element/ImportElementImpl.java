@@ -27,6 +27,11 @@ import com.google.dart.engine.element.PrefixElement;
  */
 public class ImportElementImpl extends ElementImpl implements ImportElement {
   /**
+   * The URI that was is specified by this import directive.
+   */
+  private String uri;
+
+  /**
    * The library that is imported into this library by this import directive.
    */
   private LibraryElement importedLibrary;
@@ -75,6 +80,11 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
     return prefix;
   }
 
+  @Override
+  public String getUri() {
+    return uri;
+  }
+
   /**
    * Set the combinators that were specified as part of the import directive to the given array of
    * combinators.
@@ -102,6 +112,15 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
    */
   public void setPrefix(PrefixElement prefix) {
     this.prefix = prefix;
+  }
+
+  /**
+   * Set the URI that was is specified by this import directive.
+   * 
+   * @param uri the URI that was is specified by this import directive.
+   */
+  public void setUri(String uri) {
+    this.uri = uri;
   }
 
   @Override
