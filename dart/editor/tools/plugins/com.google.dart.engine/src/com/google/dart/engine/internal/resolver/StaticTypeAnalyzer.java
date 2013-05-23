@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
@@ -215,6 +216,17 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   }
 
   /**
+   * Return a table mapping nodes in the AST to the element produced based on static type
+   * information.
+   * 
+   * @return the static element map
+   */
+  @VisibleForTesting
+  public HashMap<ASTNode, ExecutableElement> getStaticElementMap() {
+    return staticElementMap;
+  }
+
+  /**
    * Set the type of the class being analyzed to the given type.
    * 
    * @param thisType the type representing the class containing the nodes being analyzed
@@ -374,25 +386,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitBinaryExpression(BinaryExpression node) {
     ExecutableElement staticMethodElement = staticElementMap.get(node);
     Type staticType = computeReturnType(staticMethodElement);
-    TokenType operator = node.getOperator().getType();
-    if (operator == TokenType.AMPERSAND_AMPERSAND || operator == TokenType.BAR_BAR
-        || operator == TokenType.EQ_EQ || operator == TokenType.BANG_EQ) {
-      staticType = typeProvider.getBoolType();
-    } else if (operator == TokenType.MINUS || operator == TokenType.PERCENT
-        || operator == TokenType.PLUS || operator == TokenType.STAR
-        || operator == TokenType.TILDE_SLASH) {
-      Type intType = typeProvider.getIntType();
-      if (getStaticType(node.getLeftOperand()) == intType
-          && getStaticType(node.getRightOperand()) == intType) {
-        staticType = intType;
-      }
-    } else if (operator == TokenType.SLASH) {
-      Type doubleType = typeProvider.getDoubleType();
-      if (getStaticType(node.getLeftOperand()) == doubleType
-          || getStaticType(node.getRightOperand()) == doubleType) {
-        staticType = doubleType;
-      }
-    }
+    staticType = refineBinaryExpressionType(node, staticType);
     recordStaticType(node, staticType);
 
     MethodElement propagatedMethodElement = node.getElement();
@@ -1624,6 +1618,42 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     } else {
       expression.setStaticType(type);
     }
+  }
+
+  /**
+   * Attempts to make a better guess for the static type of the given binary expression.
+   * 
+   * @param node the binary expression to analyze
+   * @param staticType the static type of the expression as resolved
+   * @return the better type guess, or the same static type as given
+   */
+  private Type refineBinaryExpressionType(BinaryExpression node, Type staticType) {
+    TokenType operator = node.getOperator().getType();
+    // bool
+    if (operator == TokenType.AMPERSAND_AMPERSAND || operator == TokenType.BAR_BAR
+        || operator == TokenType.EQ_EQ || operator == TokenType.BANG_EQ) {
+      return typeProvider.getBoolType();
+    }
+    // int op double
+    if (operator == TokenType.MINUS || operator == TokenType.PERCENT || operator == TokenType.PLUS
+        || operator == TokenType.STAR) {
+      Type doubleType = typeProvider.getDoubleType();
+      if (getStaticType(node.getLeftOperand()) == doubleType
+          || getStaticType(node.getRightOperand()) == doubleType) {
+        return doubleType;
+      }
+    }
+    // int op int
+    if (operator == TokenType.MINUS || operator == TokenType.PERCENT || operator == TokenType.PLUS
+        || operator == TokenType.STAR || operator == TokenType.TILDE_SLASH) {
+      Type intType = typeProvider.getIntType();
+      if (getStaticType(node.getLeftOperand()) == intType
+          && getStaticType(node.getRightOperand()) == intType) {
+        staticType = intType;
+      }
+    }
+    // default
+    return staticType;
   }
 
   /**

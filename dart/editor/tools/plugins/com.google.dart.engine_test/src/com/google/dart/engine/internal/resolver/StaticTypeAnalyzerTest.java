@@ -240,11 +240,44 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
-  public void test_visitBinaryExpression_plus() throws Exception {
-    // 2 + 2
-    BinaryExpression node = binaryExpression(resolvedInteger(2), TokenType.PLUS, resolvedInteger(2));
-    node.setElement(getMethod(typeProvider.getNumType(), "+"));
+  public void test_visitBinaryExpression_plusID() throws Exception {
+    // 1 + 2.0
+    BinaryExpression node = binaryExpression(
+        resolvedInteger(1),
+        TokenType.PLUS,
+        resolvedDouble(2.0));
+    setStaticElement(node, getMethod(typeProvider.getNumType(), "+"));
+    assertSame(typeProvider.getDoubleType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitBinaryExpression_plusII() throws Exception {
+    // 1 + 2
+    BinaryExpression node = binaryExpression(resolvedInteger(1), TokenType.PLUS, resolvedInteger(2));
+    setStaticElement(node, getMethod(typeProvider.getNumType(), "+"));
     assertSame(typeProvider.getIntType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitBinaryExpression_slash() throws Exception {
+    // 2 / 2
+    BinaryExpression node = binaryExpression(
+        resolvedInteger(2),
+        TokenType.SLASH,
+        resolvedInteger(2));
+    setStaticElement(node, getMethod(typeProvider.getNumType(), "/"));
+    assertSame(typeProvider.getDoubleType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitBinaryExpression_starID() throws Exception {
+    // 1 * 2.0
+    BinaryExpression node = binaryExpression(
+        resolvedInteger(1),
+        TokenType.PLUS,
+        resolvedDouble(2.0));
+    setStaticElement(node, getMethod(typeProvider.getNumType(), "*"));
+    assertSame(typeProvider.getDoubleType(), analyze(node));
     listener.assertNoErrors();
   }
 
@@ -1076,6 +1109,14 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     identifier.setElement(element);
     identifier.setStaticType(type);
     return identifier;
+  }
+
+  /**
+   * Sets the element for the node and remembers it as the static resolution.
+   */
+  private void setStaticElement(BinaryExpression node, MethodElement element) {
+    node.setElement(element);
+    analyzer.getStaticElementMap().put(node, element);
   }
 
   /**
