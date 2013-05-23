@@ -495,18 +495,6 @@ public enum StaticWarningCode implements ErrorCode {
   UNDEFINED_IDENTIFIER("Undefined name '%s'"),
 
   /**
-   * 12.30 Identifier Reference: It is as static warning if an identifier expression of the form
-   * <i>id</i> occurs inside a top level or static function (be it function, method, getter, or
-   * setter) or variable initializer and there is no declaration <i>d</i> with name <i>id</i> in the
-   * lexical scope enclosing the expression.
-   * 
-   * @param operator the name of the operator
-   * @param enclosingType the name of the enclosing type where the operator is being looked for
-   */
-  // TODO(jwren) tests needed for this error code
-  UNDEFINED_OPERATOR("There is no such operator '%s' in '%s'"),
-
-  /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
    * must have a corresponding named parameter in the set {<i>p<sub>n+1</sub></i> ...
    * <i>p<sub>n+k</sub></i>} or a static warning occurs.

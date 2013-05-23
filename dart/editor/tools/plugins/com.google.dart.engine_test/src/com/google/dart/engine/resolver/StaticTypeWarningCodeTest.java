@@ -334,6 +334,50 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(StaticTypeWarningCode.UNDEFINED_METHOD);
   }
 
+  public void test_undefinedOperator_indexBoth() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(A a) {",
+        "  a[0]++;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    // no verify(), a[0] is not resolved
+  }
+
+  public void test_undefinedOperator_indexGetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(A a) {",
+        "  a[0];",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    // no verify(), a[0] is not resolved
+  }
+
+  public void test_undefinedOperator_indexSetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(A a) {",
+        "  a[0] = 1;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    // no verify(), a[0] is not resolved
+  }
+
+  public void test_undefinedOperator_plus() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f(A a) {",
+        "  a + 1;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    // no verify(), 'a + 1' is not resolved
+  }
+
   public void test_undefinedSetter() throws Exception {
     Source source = addSource(createSource(//
         "class T {}",

@@ -705,7 +705,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        StaticWarningCode.UNDEFINED_OPERATOR);
+        StaticTypeWarningCode.UNDEFINED_OPERATOR);
     // no verify(), '~null' is not resolved
   }
 
@@ -714,7 +714,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-        StaticWarningCode.UNDEFINED_OPERATOR);
+        StaticTypeWarningCode.UNDEFINED_OPERATOR);
     // no verify(), '-null' is not resolved
   }
 
@@ -2789,7 +2789,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     } else {
       assertErrors(
           CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-          StaticWarningCode.UNDEFINED_OPERATOR);
+          StaticTypeWarningCode.UNDEFINED_OPERATOR);
       // no verify(), 'null x' is not resolved
     }
     reset();

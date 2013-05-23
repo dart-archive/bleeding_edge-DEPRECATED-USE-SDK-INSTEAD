@@ -184,6 +184,24 @@ public enum StaticTypeWarningCode implements ErrorCode {
   UNDEFINED_METHOD("The method '%s' is not defined for the class '%s'"),
 
   /**
+   * 12.18 Assignment: Evaluation of an assignment of the form
+   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] = <i>e<sub>3</sub></i> is equivalent to the
+   * evaluation of the expression (a, i, e){a.[]=(i, e); return e;} (<i>e<sub>1</sub></i>,
+   * <i>e<sub>2</sub></i>, <i>e<sub>2</sub></i>).
+   * <p>
+   * 12.29 Assignable Expressions: An assignable expression of the form
+   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] is evaluated as a method invocation of the operator
+   * method [] on <i>e<sub>1</sub></i> with argument <i>e<sub>2</sub></i>.
+   * <p>
+   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>. It is a static type
+   * warning if <i>T</i> does not have an accessible instance member named <i>m</i>.
+   * 
+   * @param operator the name of the operator
+   * @param enclosingType the name of the enclosing type where the operator is being looked for
+   */
+  UNDEFINED_OPERATOR("There is no such operator '%s' in '%s'"),
+
+  /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
    * warning if <i>T</i> does not have an accessible instance setter named <i>v=</i>.
    * 

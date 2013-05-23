@@ -1893,6 +1893,21 @@ public class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
   }
 
+  public void test_undefinedOperator_index() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  operator [](a) {}",
+        "  operator []=(a, b) {}",
+        "}",
+        "f(A a) {",
+        "  a[0];",
+        "  a[0] = 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_undefinedOperator_tilde() throws Exception {
     Source source = addSource(createSource(//
         "const A = 3;",
