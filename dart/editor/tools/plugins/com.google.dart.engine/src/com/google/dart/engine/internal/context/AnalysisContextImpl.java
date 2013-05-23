@@ -370,10 +370,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       LibraryElement element = dartEntry.getValue(DartEntry.ELEMENT);
       if (element == null) {
-        if (computeKindOf(source) != SourceKind.LIBRARY) {
-          throw new AnalysisException("Cannot compute library element for non-library: "
-              + source.getFullName());
-        }
         LibraryResolver resolver = new LibraryResolver(this);
         try {
           element = resolver.resolveLibrary(source, true);
