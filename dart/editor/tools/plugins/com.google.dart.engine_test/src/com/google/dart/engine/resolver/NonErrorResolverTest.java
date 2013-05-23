@@ -1181,6 +1181,22 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonConstCaseExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "f(Type t) {",
+        "  switch (t) {",
+        "    case bool:",
+        "    case int:",
+        "      return true;",
+        "    default:",
+        "      return false;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_nonConstMapAsExpressionStatement_const() throws Exception {
     Source source = addSource(createSource(//
         "f() {",

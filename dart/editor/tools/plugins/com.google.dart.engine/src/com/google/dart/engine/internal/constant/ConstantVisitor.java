@@ -39,6 +39,7 @@ import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -344,6 +345,8 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
       }
     } else if (element instanceof ExecutableElement) {
       return new ValidResult(element);
+    } else if (element instanceof ClassElement) {
+      return ValidResult.RESULT_OBJECT;
     }
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
