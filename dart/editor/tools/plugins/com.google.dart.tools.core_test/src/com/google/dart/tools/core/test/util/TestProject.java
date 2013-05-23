@@ -205,7 +205,6 @@ public class TestProject {
    */
   public CompilationUnit getUnit(String path) throws Exception {
     IFile file = getFile(path);
-    TestUtilities.processAllDeltaChanges();
     return (CompilationUnit) DartCore.create(file);
   }
 
@@ -220,11 +219,6 @@ public class TestProject {
       file.create(stream, true, null);
       file.setCharset("UTF-8", null);
     }
-
-    // wait for changes
-    TestUtilities.processAllDeltaChanges();
-
-    // done
     return file;
   }
 

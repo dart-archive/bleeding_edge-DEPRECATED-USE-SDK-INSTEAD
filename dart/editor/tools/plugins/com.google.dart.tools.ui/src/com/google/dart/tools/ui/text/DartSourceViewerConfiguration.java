@@ -13,11 +13,9 @@
  */
 package com.google.dart.tools.ui.text;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingStrategy;
@@ -47,8 +45,6 @@ import com.google.dart.tools.ui.internal.text.functions.DartOutlineInformationCo
 import com.google.dart.tools.ui.internal.text.functions.DartPresentationReconciler;
 import com.google.dart.tools.ui.internal.text.functions.DartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.HTMLAnnotationHover;
-import com.google.dart.tools.ui.internal.text.functions.LegacyDartCompositeReconcilingStrategy;
-import com.google.dart.tools.ui.internal.text.functions.LegacyDartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.text.functions.SingleTokenDartScanner;
 import com.google.dart.tools.ui.internal.typehierarchy.HierarchyInformationControl;
@@ -256,15 +252,9 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
           new SmartSemicolonAutoEditStrategy(partitioning),
           new DartStringAutoIndentStrategy(partitioning)};
     } else if (IDocument.DEFAULT_CONTENT_TYPE.equals(contentType)) {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        return new IAutoEditStrategy[] {
-            new SmartSemicolonAutoEditStrategy(partitioning),
-            new DartAutoIndentStrategy(partitioning, sourceViewer)};
-      } else {
-        return new IAutoEditStrategy[] {
-            new SmartSemicolonAutoEditStrategy(partitioning),
-            new DartAutoIndentStrategy_OLD(partitioning, getProject(), sourceViewer)};
-      }
+      return new IAutoEditStrategy[] {
+          new SmartSemicolonAutoEditStrategy(partitioning),
+          new DartAutoIndentStrategy(partitioning, sourceViewer)};
     } else {
       return new IAutoEditStrategy[] {new DartAutoIndentStrategy_OLD(
           partitioning,
@@ -434,14 +424,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
    */
   public IInformationPresenter getHierarchyPresenter(ISourceViewer sourceViewer,
       boolean doCodeResolve) {
-    // Do not create hierarchy presenter if there's no CU.
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      if (getEditor() != null && getEditor().getEditorInput() != null
-          && DartUI.getEditorInputDartElement(getEditor().getEditorInput()) == null) {
-        return null;
-      }
-    }
-
     IInformationControlCreator hierarchyPresenterControlCreator = getHierarchyPresenterControlCreator(sourceViewer);
     InformationPresenter presenter = new InformationPresenter(hierarchyPresenterControlCreator);
     presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
@@ -616,28 +598,16 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
 
       MonoReconciler reconciler = null;
 
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        DartCompositeReconcilingStrategy strategy = new DartCompositeReconcilingStrategy(
-            sourceViewer,
-            editor,
-            getConfiguredDocumentPartitioning(sourceViewer));
-        reconciler = new DartReconciler(editor, strategy);
-      } else {
-        LegacyDartCompositeReconcilingStrategy strategy = new LegacyDartCompositeReconcilingStrategy(
-            sourceViewer,
-            editor,
-            getConfiguredDocumentPartitioning(sourceViewer));
-        reconciler = new LegacyDartReconciler(editor, strategy, false);
-      }
+      DartCompositeReconcilingStrategy strategy = new DartCompositeReconcilingStrategy(
+          sourceViewer,
+          editor,
+          getConfiguredDocumentPartitioning(sourceViewer));
+      reconciler = new DartReconciler(editor, strategy);
 
       reconciler.setIsIncrementalReconciler(false);
       reconciler.setIsAllowedToModifyDocument(false);
       reconciler.setProgressMonitor(new NullProgressMonitor());
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        reconciler.setDelay(100);
-      } else {
-        reconciler.setDelay(500);
-      }
+      reconciler.setDelay(100);
 
       return reconciler;
     }

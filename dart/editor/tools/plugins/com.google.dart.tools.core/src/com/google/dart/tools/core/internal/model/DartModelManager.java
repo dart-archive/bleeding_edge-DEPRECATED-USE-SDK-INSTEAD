@@ -1052,17 +1052,6 @@ public class DartModelManager {
   }
 
   /**
-   * Block until the delta processor has processed all outstanding changes in the queue, or until
-   * timeoutMillis has been reached.
-   * 
-   * @param timeoutMillis the maximum number of milliseconds to wait
-   * @throws InterruptedException
-   */
-  public void processAllDeltaChanges(long timeoutMillis) throws InterruptedException {
-    deltaState.processAllChanges(timeoutMillis);
-  }
-
-  /**
    * Remove the given listener from the list of objects that are listening for changes to Dart
    * elements. Has no affect if an identical listener is not registered.
    * 

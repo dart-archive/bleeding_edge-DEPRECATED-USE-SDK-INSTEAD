@@ -48,7 +48,6 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.search.internal.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -2016,17 +2015,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   public ISelection createElementSelection() {
     ITextSelection textSelection = (ITextSelection) getSelectionProvider().getSelection();
     IDocument document = getSourceViewer().getDocument();
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return textSelection;
-    } else {
-      ISelection selection = new DartElementSelection(
-          this,
-          DartUI.getEditorInputDartElement(getEditorInput()),
-          document,
-          textSelection.getOffset(),
-          textSelection.getLength());
-      return selection;
-    }
+    return textSelection;
   }
 
   @Override
@@ -2123,16 +2112,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     setContextMenuContext(menu, context); // This context contains a DartElementSelection for menus.
 
     // Quick Type Hierarchy
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      if (selection instanceof DartSelection) {
-        DartSelection dartSelection = (DartSelection) selection;
-        if (ActionUtil.isOpenHierarchyAvailable(dartSelection)) {
-          IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
-          menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
-        }
-      }
-    } else {
-      if (elementSelection != null && ActionUtil.isOpenHierarchyAvailable_OLD(elementSelection)) {
+
+    if (selection instanceof DartSelection) {
+      DartSelection dartSelection = (DartSelection) selection;
+      if (ActionUtil.isOpenHierarchyAvailable(dartSelection)) {
         IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
         menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
       }
@@ -2165,22 +2148,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         addAction(menu, RefactorActionGroup.GROUP_REORG, ITextEditorActionConstants.QUICK_ASSIST);
       }
     }
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      if (selection instanceof DartSelection) {
-        DartSelection dartSelection = (DartSelection) selection;
-        if (ActionUtil.hasItemsInGroup(menu, IContextMenuConstants.GROUP_OPEN)) {
-          showSelectionLabel.update(dartSelection);
-          showSelectionLabel.setEnabled(false);
-          if (showSelectionLabel.getText() != null) {
-            menu.prependToGroup(IContextMenuConstants.GROUP_OPEN, showSelectionLabel);
-          }
-        }
-      }
-    } else {
-      if (elementSelection != null) {
-        if (ActionUtil.isSelectionShowing_OLD((DartElementSelection) selection)) {
-          showSelectionLabel.update(elementSelection);
-          showSelectionLabel.setEnabled(false);
+    if (selection instanceof DartSelection) {
+      DartSelection dartSelection = (DartSelection) selection;
+      if (ActionUtil.hasItemsInGroup(menu, IContextMenuConstants.GROUP_OPEN)) {
+        showSelectionLabel.update(dartSelection);
+        showSelectionLabel.setEnabled(false);
+        if (showSelectionLabel.getText() != null) {
           menu.prependToGroup(IContextMenuConstants.GROUP_OPEN, showSelectionLabel);
         }
       }
@@ -3203,66 +3176,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   protected void doSelectionChanged(ISelection selection) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      if (selection instanceof IStructuredSelection) {
-        IStructuredSelection structuredSelection = (IStructuredSelection) selection;
-        for (Object selectionObject : structuredSelection.toList()) {
-          if (selectionObject instanceof LightNodeElement) {
-            setSelection((LightNodeElement) selectionObject, !isActivePart());
-            break;
-          }
-        }
-      }
-    } else {
-      SourceReference reference = null;
-
-      Iterator<?> iter = ((IStructuredSelection) selection).iterator();
-      while (iter.hasNext()) {
-
-        Object o = iter.next();
-
-        if (o instanceof SourceReference) {
-          reference = (SourceReference) o;
+    if (selection instanceof IStructuredSelection) {
+      IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+      for (Object selectionObject : structuredSelection.toList()) {
+        if (selectionObject instanceof LightNodeElement) {
+          setSelection((LightNodeElement) selectionObject, !isActivePart());
           break;
         }
-
-        // Adapt new elements to old
-        //TODO (pquitslund): flip this around, adapting old to new
-        if (o instanceof com.google.dart.engine.element.Element) {
-          reference = new SourceReferenceAdapter((com.google.dart.engine.element.Element) o);
-          break;
-        }
-
-      }
-
-      if (!isActivePart() && DartToolsPlugin.getActivePage() != null) {
-        DartToolsPlugin.getActivePage().bringToTop(this);
-      }
-
-      setSelection(reference, !isActivePart());
-
-      ISelectionProvider selectionProvider = getSelectionProvider();
-      if (selectionProvider == null) {
-        return;
-      }
-
-      ISelection textSelection = selectionProvider.getSelection();
-      if (!(textSelection instanceof ITextSelection)) {
-        return;
-      }
-
-      DartElement inputElement = getInputDartElement();
-      if (inputElement == null) {
-        return;
-      }
-
-      DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(
-          inputElement,
-          ASTProvider.WAIT_NO,
-          getProgressMonitor());
-      if (ast != null) {
-        fForcedMarkOccurrencesSelection = textSelection;
-        updateOccurrenceAnnotations((ITextSelection) textSelection, ast);
       }
     }
   }
@@ -3559,21 +3479,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   protected IOperationApprover getUndoRedoOperationApprover(IUndoContext undoContext) {
-    // since IResource is a more general way to compare dart elements, we
-    // use this as the preferred class for comparing objects.
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return new NonLocalUndoUserApprover(
-          undoContext,
-          this,
-          new Object[] {inputResourceFile},
-          IResource.class);
-    } else {
-      return new NonLocalUndoUserApprover(
-          undoContext,
-          this,
-          new Object[] {getInputDartElement()},
-          IResource.class);
-    }
+    return new NonLocalUndoUserApprover(
+        undoContext,
+        this,
+        new Object[] {inputResourceFile},
+        IResource.class);
   }
 
   @Override

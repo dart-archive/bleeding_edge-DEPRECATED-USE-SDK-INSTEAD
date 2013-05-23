@@ -14,9 +14,7 @@
 package com.google.dart.tools.ui.internal.text.functions;
 
 import com.google.dart.engine.element.Element;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.ParentElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
@@ -106,21 +104,10 @@ public abstract class AbstractInformationControl extends PopupDialog implements
     }
 
     private boolean hasUnfilteredChild(final TreeViewer viewer, Object element) {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        Object[] children = ((ITreeContentProvider) viewer.getContentProvider()).getChildren(element);
-        for (int i = 0; i < children.length; i++) {
-          if (select(viewer, element, children[i])) {
-            return true;
-          }
-        }
-      } else {
-        if (element instanceof ParentElement) {
-          Object[] children = ((ITreeContentProvider) viewer.getContentProvider()).getChildren(element);
-          for (int i = 0; i < children.length; i++) {
-            if (select(viewer, element, children[i])) {
-              return true;
-            }
-          }
+      Object[] children = ((ITreeContentProvider) viewer.getContentProvider()).getChildren(element);
+      for (int i = 0; i < children.length; i++) {
+        if (select(viewer, element, children[i])) {
+          return true;
         }
       }
       return false;
@@ -713,12 +700,7 @@ public abstract class AbstractInformationControl extends PopupDialog implements
    */
   protected void selectFirstMatch() {
     Tree tree = fTreeViewer.getTree();
-    Object element;
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      element = findElement(tree.getItems());
-    } else {
-      element = findElement_OLD(tree.getItems());
-    }
+    Object element = findElement(tree.getItems());
     if (element != null) {
       fTreeViewer.setSelection(new StructuredSelection(element), true);
     } else {

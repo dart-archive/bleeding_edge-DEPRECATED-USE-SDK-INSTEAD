@@ -144,8 +144,6 @@ public class PlainTestProject {
       server.scan(javaFile, 5000);
       server.changed(javaFile);
     }
-    // wait for changes
-    TestUtilities.processAllDeltaChanges();
     // done
     return file;
   }

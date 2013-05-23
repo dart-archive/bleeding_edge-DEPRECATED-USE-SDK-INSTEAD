@@ -13,11 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
-import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
-import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.engine.ast.ASTNode;
@@ -36,7 +33,6 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.Messages;
@@ -380,28 +376,6 @@ public class ActionUtil {
     return true;
   }
 
-  public static boolean isFindDeclarationsAvailable_OLD(DartElementSelection selection) {
-    DartElement[] selectedElements = selection.toArray();
-    if (selectedElements.length > 0) {
-      if (selectedElements[0] instanceof Method || selectedElements[0] instanceof Field) {
-        return true;
-      }
-    }
-    DartNode node = getResolvedNodeFromSelection(selection);
-    if (node != null) {
-      if (node instanceof DartIdentifier) {
-        DartIdentifier id = (DartIdentifier) node;
-        if (id.getParent() instanceof DartPropertyAccess) {
-          return true;
-        }
-        if (id.getParent() instanceof DartMethodInvocation) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   public static boolean isFindOverridesAvailable(DartElementSelection selection) {
     try {
       DartNode node = null;
@@ -428,16 +402,6 @@ public class ActionUtil {
       }
     } catch (UnsupportedOperationException ex) {
       // ignore it
-    }
-    return false;
-  }
-
-  public static boolean isFindUsesAvailable_OLD(DartElementSelection selection) {
-    DartNode node = getResolvedNodeFromSelection(selection);
-    if (node != null) {
-      if (node instanceof DartIdentifier) {
-        return true;
-      }
     }
     return false;
   }
@@ -530,10 +494,6 @@ public class ActionUtil {
     return coveredElement instanceof ClassElement;
   }
 
-  public static boolean isOpenHierarchyAvailable_OLD(DartElementSelection selection) {
-    return !selection.isEmpty() && selection.getFirstElement() instanceof Type;
-  }
-
   public static boolean isProcessable(DartEditor editor) {
     if (editor == null) {
       return true;
@@ -578,11 +538,6 @@ public class ActionUtil {
         ActionMessages.ActionUtil_notOnBuildPath_title,
         ActionMessages.ActionUtil_notOnBuildPath_message);
     return false;
-  }
-
-  public static boolean isSelectionShowing_OLD(DartElementSelection selection) {
-    return isOpenDeclarationAvailable_OLD(selection) || isOpenHierarchyAvailable_OLD(selection)
-        || isFindDeclarationsAvailable_OLD(selection) || isFindUsesAvailable_OLD(selection);
   }
 
   public static boolean mustDisableDartModelAction(Shell shell, Object element) {

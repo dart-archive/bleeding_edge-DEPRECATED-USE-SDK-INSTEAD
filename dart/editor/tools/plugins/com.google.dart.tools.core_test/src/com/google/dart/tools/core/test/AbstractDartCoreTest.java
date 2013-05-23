@@ -20,7 +20,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.test.util.TestProject;
-import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
 
@@ -55,7 +54,6 @@ public abstract class AbstractDartCoreTest extends TestCase {
    * Asserts that {@link CompilationUnit} has expected content.
    */
   protected static void assertUnitContent(CompilationUnit unit, String... lines) throws Exception {
-    TestUtilities.processAllDeltaChanges();
     assertEquals(makeSource(lines), unit.getSource());
   }
 
