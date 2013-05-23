@@ -294,7 +294,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   public void test_hasReferenceToSuper() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
-        "class B {toString() => super.toString()}"));
+        "class B {toString() => super.toString();}"));
     LibraryElement library = resolve(source);
     assertNotNull(library);
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
@@ -537,12 +537,12 @@ public class SimpleResolverTest extends ResolverTestCase {
         "class A {",
         "  void m1() {}",
         "}",
-        "class B with A {",
+        "class B extends Object with A {",
         "}",
         "class C extends B {",
         "}",
         "f(C c) {",
-        "  c.m1()",
+        "  c.m1();",
         "}"));
     resolve(source);
     assertNoErrors();
@@ -597,7 +597,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   public void test_setter_inherited() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  int get x => 0",
+        "  int get x => 0;",
         "  set x(int p) {}",
         "}",
         "class B extends A {",

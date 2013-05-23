@@ -125,14 +125,14 @@ public class ElementLocatorTest extends ResolverTestCase {
   }
 
   public void test_libraryElement_export() throws Exception {
-    addSource("/foo.dart", "library 'foo';");
+    addSource("/foo.dart", "library foo;");
     ASTNode id = findNodeIn("'foo.dart'", "export 'foo.dart';");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(LibraryElement.class, element);
   }
 
   public void test_libraryElement_import() throws Exception {
-    addSource("/foo.dart", "library 'foo';");
+    addSource("/foo.dart", "library foo;");
     ASTNode id = findNodeIn("'foo.dart'", "import 'foo.dart';");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(LibraryElement.class, element);

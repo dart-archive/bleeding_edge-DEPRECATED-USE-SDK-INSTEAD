@@ -234,7 +234,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {",
         "  const int x = 0;",
-        "  const A() {}",
+        "  const A();",
         "}"));
     resolve(source);
     assertNoErrors();
@@ -245,7 +245,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {",
         "  final int x = 0;",
-        "  const A() {}",
+        "  const A();",
         "}"));
     resolve(source);
     assertNoErrors();
@@ -258,7 +258,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  a() {}",
         "}",
         "class B extends Object with A {",
-        "  const B() {}",
+        "  const B();",
         "}"));
     resolve(source);
     assertNoErrors();
@@ -269,7 +269,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {",
         "  static int x;",
-        "  const A() {}",
+        "  const A();",
         "}"));
     resolve(source);
     assertNoErrors();
@@ -351,7 +351,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_constWithNonConstantArgument_literals() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  const A(a, b, c, d) {};",
+        "  const A(a, b, c, d);",
         "}",
         "f() { return const A(true, 0, 1.0, '2'); }"));
     resolve(source);
@@ -411,7 +411,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "Map _globalMap = {",
         "  'a' : () {},",
         "  'b' : () {}",
-        "}"));
+        "};"));
     resolve(source);
     assertNoErrors();
     verify(source);
@@ -709,7 +709,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  var v;",
         "  A() : v = f;",
         "}",
-        "get f = >42;"));
+        "get f => 42;"));
     resolve(source);
     assertNoErrors();
     verify(source);
@@ -881,7 +881,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class A {",
         "  num m() { return 0; }",
         "}",
-        "class B with A {",
+        "class B extends Object with A {",
         "  int m() { return 1; }",
         "}"));
     resolve(source);
@@ -984,7 +984,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A<E> {",
         "  m() {",
-        "    return <E>[]",
+        "    return <E>[];",
         "  }",
         "}"));
     resolve(source);
@@ -996,7 +996,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A<E> {",
         "  m() {",
-        "    return <String, E>{}",
+        "    return <String, E>{};",
         "  }",
         "}"));
     resolve(source);
@@ -1079,7 +1079,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_mixinInheritsFromNotObject_classDeclaration_mixTypedef() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
-        "typedef B = Object with A {}",
+        "typedef B = Object with A;",
         "class C extends Object with B {}"));
     resolve(source);
     assertNoErrors();
@@ -1089,8 +1089,8 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_mixinInheritsFromNotObject_typedef_mixTypedef() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
-        "typedef B = Object with A {}",
-        "typedef C = Object with B {}"));
+        "typedef B = Object with A;",
+        "typedef C = Object with B;"));
     resolve(source);
     assertNoErrors();
     verify(source);
@@ -1319,7 +1319,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_nonConstValueInInitializer_redirecting() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  static C;",
         "  const A.named(p);",
         "  const A() : this.named(42);",
         "}"));
@@ -1334,7 +1333,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const A(p);",
         "}",
         "class B extends A {",
-        "  static C;",
         "  const B() : super(42);",
         "}"));
     resolve(source);
@@ -1373,7 +1371,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "f() {",
         "  try {",
-        "  } on String catch e {",
+        "  } on String catch (e) {",
         "  }",
         "}"));
     resolve(source);
@@ -1386,7 +1384,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "typedef F();",
         "f() {",
         "  try {",
-        "  } on F catch e {",
+        "  } on F catch (e) {",
         "  }",
         "}"));
     resolve(source);
@@ -1399,7 +1397,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class A<T> {",
         "  f() {",
         "    try {",
-        "    } on T catch e {",
+        "    } on T catch (e) {",
         "    }",
         "  }",
         "}"));
@@ -1412,7 +1410,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "f() {",
         "  try {",
-        "  } catch e {",
+        "  } catch (e) {",
         "  }",
         "}"));
     resolve(source);
@@ -1735,7 +1733,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class A {}",
         "class B extends A {}",
         "class G<E extends A> {",
-        "  const G() {}",
+        "  const G();",
         "}",
         "f() { return const G<B>(); }"));
     resolve(source);

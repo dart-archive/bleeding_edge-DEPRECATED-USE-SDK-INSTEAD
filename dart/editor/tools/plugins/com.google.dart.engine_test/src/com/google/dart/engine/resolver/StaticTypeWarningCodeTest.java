@@ -277,7 +277,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class A {}",
         "class B {}",
         "class G<E extends A> {",
-        "  const G() {}",
+        "  const G();",
         "}",
         "f() { return const G<B>(); }"));
     resolve(source);

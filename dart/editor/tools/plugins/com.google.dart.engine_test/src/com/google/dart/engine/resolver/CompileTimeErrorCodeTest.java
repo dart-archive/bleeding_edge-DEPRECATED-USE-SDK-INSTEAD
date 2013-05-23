@@ -29,6 +29,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_constEvalThrowsException() throws Exception { // Not compile-time constant
+    Source source = addSource(createSource(//
+        "class C {",
+        "  const C();",
+        "}",
+        "f() { return const C(); }"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION);
+    verify(source);
+  }
+
   public void fail_duplicateDefinition() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -393,7 +404,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "import 'lib1.dart';",
         "import 'lib2.dart';",
-        "f(p) {p as N}"));
+        "f(p) {p as N;}"));
     addSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
@@ -469,7 +480,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "import 'lib1.dart';",
         "import 'lib2.dart';",
-        "f(p) {p is N}"));
+        "f(p) {p is N;}"));
     addSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
@@ -500,7 +511,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib2.dart';",
         "class A<T> {}",
-        "f() {new A<N>()}"));
+        "f() {new A<N>();}"));
     addSource("/lib1.dart", createSource(//
         "library lib1;",
         "class N {}"));
@@ -634,7 +645,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_conflictingConstructorNameAndMember_method() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  const A.x() {}",
+        "  const A.x();",
         "  void x() {}",
         "}"));
     resolve(source);
@@ -648,7 +659,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  var a;",
         "}",
         "class B extends Object with A {",
-        "  const B() {}",
+        "  const B();",
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
@@ -661,7 +672,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  var a;",
         "}",
         "class B extends A {",
-        "  const B() {}",
+        "  const B();",
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
@@ -672,21 +683,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {",
         "  int x;",
-        "  const A() {}",
+        "  const A();",
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
-    verify(source);
-  }
-
-  public void test_constEvalThrowsException() throws Exception { // Not compile-time constant
-    Source source = addSource(createSource(//
-        "class C {",
-        "  const C() { throw null; }",
-        "}",
-        "f() { return const C(); }"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION);
     verify(source);
   }
 
@@ -811,7 +811,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_constWithInvalidTypeParameters() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  const A() {}",
+        "  const A();",
         "}",
         "f() { return const A<A>(); }"));
     resolve(source);
@@ -833,7 +833,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_constWithNonConstantArgument() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  const A(a) {};",
+        "  const A(a);",
         "}",
         "f(p) { return const A(p); }"));
     resolve(source);
@@ -972,7 +972,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "part of lib;",
         "",
         "class A {}"));
-    resolve(librarySource, sourceA, sourceB);
+    resolve(librarySource);
     assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(librarySource, sourceA, sourceB);
   }
@@ -1184,13 +1184,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_fieldInitializerOutsideConstructor() throws Exception {
+    // TODO(brianwilkerson) Fix the duplicate error messages.
     Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  m(this.x) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR);
+    assertErrors(
+        ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+        CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR);
     verify(source);
   }
 
@@ -1567,7 +1570,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_initializerForStaticField() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  static x;",
+        "  static int x;",
         "  A() : x = 0 {}",
         "}"));
     resolve(source);
@@ -1611,7 +1614,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_initializingFormalForNonExistantField_static() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  static x;",
+        "  static int x;",
         "  A([this.x]) {}",
         "}"));
     resolve(source);
@@ -1748,7 +1751,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_invalidReferenceToThis_staticVariableInitializer() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  static f = this;",
+        "  static A f = this;",
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
@@ -1773,7 +1776,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {",
         "  m() {",
-        "    return const <int, int>{}",
+        "    return const <int, int>{};",
         "  }",
         "}"));
     resolve(source);
@@ -1785,7 +1788,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A<E> {",
         "  m() {",
-        "    return const <E>[]",
+        "    return const <E>[];",
         "  }",
         "}"));
     resolve(source);
@@ -1797,7 +1800,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A<E> {",
         "  m() {",
-        "    return const <String, E>{}",
+        "    return const <String, E>{};",
         "  }",
         "}"));
     resolve(source);
@@ -1889,7 +1892,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_memberWithClassName_getter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  get A() => 0;",
+        "  get A => 0;",
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME);
@@ -1959,7 +1962,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {}",
         "class B extends A {}",
-        "typedef C = Object with B {}"));
+        "typedef C = Object with B;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
     verify(source);
@@ -1969,7 +1972,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {}",
         "class B extends Object with A {}",
-        "typedef C = Object with B {}"));
+        "typedef C = Object with B;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
     verify(source);
@@ -1978,7 +1981,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_mixinOfNonClass_class() throws Exception {
     Source source = addSource(createSource(//
         "int A;",
-        "class B with A {}"));
+        "class B extends Object with A {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
     verify(source);
@@ -2019,7 +2022,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "int A;",
         "class B {}",
-        "typedef C = A with B {}"));
+        "typedef C = A with B;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
     verify(source);
@@ -2193,7 +2196,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_nonConstValueInInitializer_field() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  static C;",
+        "  static int C;",
         "  final int a;",
         "  const A() : a = C;",
         "}"));
@@ -2205,7 +2208,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_nonConstValueInInitializer_redirecting() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  static C;",
+        "  static var C;",
         "  const A.named(p);",
         "  const A() : this.named(C);",
         "}"));
@@ -2220,7 +2223,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(p);",
         "}",
         "class B extends A {",
-        "  static C;",
+        "  static var C;",
         "  const B() : super(C);",
         "}"));
     resolve(source);
@@ -2572,10 +2575,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_superInInvalidContext_staticVariableInitializer() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  static a = 0;",
+        "  static int a = 0;",
         "}",
         "class B extends A {",
-        "  static b = super.a;",
+        "  static int b = super.a;",
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);

@@ -105,7 +105,7 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   public void test_method_doc() throws Exception {
     ASTNode id = findNodeIn("x", createSource(//
         "/// My method",
-        "int x => 42;"));
+        "int x() => 42;"));
     Element element = ElementLocator.locate(id);
     assertEquals("My method\n", DartDocUtilities.getDartDocAsHtml(element));
   }

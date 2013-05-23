@@ -523,7 +523,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_constWithAbstractClass() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
-        "  const A() {}",
+        "  const A();",
         "}",
         "void f() {",
         "  A a = const A();",
@@ -590,7 +590,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_instanceMethodNameCollidesWithSuperclassStatic_field() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  static n;",
+        "  static var n;",
         "}",
         "class B extends A {",
         "  void n() {}",
@@ -603,7 +603,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_instanceMethodNameCollidesWithSuperclassStatic_field2() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  static n;",
+        "  static var n;",
         "}",
         "class B extends A {",
         "}",
@@ -786,7 +786,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "class A {",
         "  int m() { return 0; }",
         "}",
-        "class B with A {",
+        "class B extends Object with A {",
         "  String m() { return 'a'; }",
         "}"));
     resolve(source);
@@ -1013,7 +1013,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "f() {",
         "  try {",
-        "  } on T catch e {",
+        "  } on T catch (e) {",
         "  }",
         "}"));
     resolve(source);
@@ -1026,7 +1026,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "var T = 0;",
         "f() {",
         "  try {",
-        "  } on T catch e {",
+        "  } on T catch (e) {",
         "  }",
         "}"));
     resolve(source);
