@@ -856,14 +856,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
         dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
         sourceMap.put(source, dartCopy);
-        getNotice(source).setErrors(dartEntry.getAllErrors(), lineInfo);
+        getNotice(source).setErrors(dartCopy.getAllErrors(), lineInfo);
       } else if (sourceEntry instanceof HtmlEntry) {
         HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
         HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
         htmlCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
         htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, errors);
         sourceMap.put(source, htmlCopy);
-        getNotice(source).setErrors(htmlEntry.getAllErrors(), lineInfo);
+        getNotice(source).setErrors(htmlCopy.getAllErrors(), lineInfo);
       }
     }
   }
