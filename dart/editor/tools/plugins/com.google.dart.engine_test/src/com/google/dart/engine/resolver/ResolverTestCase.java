@@ -18,16 +18,17 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
-import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.internal.resolver.ResolutionVerifier;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.resolver.TypeProviderImpl;
@@ -49,27 +50,9 @@ public class ResolverTestCase extends EngineTestCase {
   private SourceFactory sourceFactory;
 
   /**
-   * The error listener used during resolution.
-   */
-  private GatheringErrorListener errorListener;
-
-  /**
    * The analysis context used to parse the compilation units being resolved.
    */
   private AnalysisContextImpl analysisContext;
-
-  /**
-   * Assert that the number of errors that have been gathered matches the number of errors that are
-   * given and that they have the expected error codes. The order in which the errors were gathered
-   * is ignored.
-   * 
-   * @param expectedErrorCodes the error codes of the errors that should have been gathered
-   * @throws AssertionFailedError if a different number of errors have been gathered than were
-   *           expected
-   */
-  public void assertErrors(ErrorCode... expectedErrorCodes) {
-    errorListener.assertErrors(expectedErrorCodes);
-  }
 
   @Override
   public void setUp() {
@@ -103,14 +86,36 @@ public class ResolverTestCase extends EngineTestCase {
   }
 
   /**
+   * Assert that the number of errors that have been gathered matches the number of errors that are
+   * given and that they have the expected error codes. The order in which the errors were gathered
+   * is ignored.
+   * 
+   * @param expectedErrorCodes the error codes of the errors that should have been gathered
+   * @throws AssertionFailedError if a different number of errors have been gathered than were
+   *           expected
+   */
+  protected void assertErrors(ErrorCode... expectedErrorCodes) {
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    for (ChangeNotice notice : analysisContext.performAnalysisTask()) {
+      for (AnalysisError error : notice.getErrors()) {
+        errorListener.onError(error);
+      }
+    }
+    errorListener.assertErrors(expectedErrorCodes);
+  }
+
+  /**
    * Assert that no errors have been gathered.
    * 
    * @throws AssertionFailedError if any errors have been gathered
    */
   protected void assertNoErrors() {
-    // TODO(brianwilkerson) This method no longer does anything because the error listener is never
-    // used. We need to pass in a list of libraries and ask the context for the errors associated
-    // with the compilation units in those libraries.
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    for (ChangeNotice notice : analysisContext.performAnalysisTask()) {
+      for (AnalysisError error : notice.getErrors()) {
+        errorListener.onError(error);
+      }
+    }
     errorListener.assertNoErrors();
   }
 
@@ -158,10 +163,6 @@ public class ResolverTestCase extends EngineTestCase {
     return analysisContext;
   }
 
-  protected GatheringErrorListener getErrorListener() {
-    return errorListener;
-  }
-
   protected SourceFactory getSourceFactory() {
     return sourceFactory;
   }
@@ -182,7 +183,6 @@ public class ResolverTestCase extends EngineTestCase {
    * reset test instance to reuse it.
    */
   protected void reset() {
-    errorListener = new GatheringErrorListener();
     analysisContext = AnalysisContextFactory.contextWithCore();
     sourceFactory = analysisContext.getSourceFactory();
   }
@@ -193,14 +193,11 @@ public class ResolverTestCase extends EngineTestCase {
    * to the content provider using the method {@link #addSource(String, String)}.
    * 
    * @param librarySource the source for the compilation unit that defines the library
-   * @param unitSources the sources for the compilation units that are part of the library
    * @return the element representing the resolved library
    * @throws AnalysisException if the analysis could not be performed
    */
-  protected LibraryElement resolve(Source librarySource, Source... unitSources)
-      throws AnalysisException {
-    LibraryResolver resolver = new LibraryResolver(analysisContext, errorListener);
-    return resolver.resolveLibrary(librarySource, true);
+  protected LibraryElement resolve(Source librarySource) throws AnalysisException {
+    return analysisContext.computeLibraryElement(librarySource);
   }
 
   /**
