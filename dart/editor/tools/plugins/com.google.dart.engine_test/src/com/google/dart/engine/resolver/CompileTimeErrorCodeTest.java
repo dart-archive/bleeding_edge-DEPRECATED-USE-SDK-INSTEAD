@@ -2171,7 +2171,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(String p) : a = 5 & p;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    assertErrors(
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
   }
 
@@ -2182,7 +2184,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(String p) : a = 5 + p;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    assertErrors(
+        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
   }
 
@@ -2810,7 +2814,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(int p) : a = " + expr + ";",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+    assertErrors(
+        CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
     reset();
   }
@@ -2822,7 +2828,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(num p) : a = " + expr + ";",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    assertErrors(
+        CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
     reset();
   }

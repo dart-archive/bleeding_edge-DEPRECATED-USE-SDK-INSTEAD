@@ -55,8 +55,20 @@ public abstract class Expression extends ASTNode {
     if (parent instanceof ArgumentList) {
       return ((ArgumentList) parent).getParameterElementFor(this);
     }
-    // TODO(brianwilkerson) Consider implementing this method for children of BinaryExpression,
-    // IndexExpression, PrefixExpression, and PostfixExpression.
+    if (parent instanceof IndexExpression) {
+      IndexExpression indexExpression = (IndexExpression) parent;
+      if (indexExpression.getIndex() == this) {
+        return indexExpression.getParameterElementForIndex();
+      }
+    }
+    if (parent instanceof BinaryExpression) {
+      BinaryExpression binaryExpression = (BinaryExpression) parent;
+      if (binaryExpression.getRightOperand() == this) {
+        return binaryExpression.getParameterElementForRightOperand();
+      }
+    }
+    // TODO(brianwilkerson) Consider implementing this method for children of PrefixExpression
+    // and PostfixExpression.
     return null;
   }
 

@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
@@ -308,5 +309,25 @@ public class IndexExpression extends Expression {
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(target, visitor);
     safelyVisitChild(index, visitor);
+  }
+
+  /**
+   * Return the parameter element representing the parameter to which the value of the index
+   * expression will be bound. May be {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getParameterElement()}.
+   * 
+   * @return the parameter element representing the parameter to which the value of the index
+   *         expression will be bound
+   */
+  protected ParameterElement getParameterElementForIndex() {
+    if (element == null) {
+      return null;
+    }
+    ParameterElement[] parameters = element.getParameters();
+    if (parameters.length < 1) {
+      return null;
+    }
+    return parameters[0];
   }
 }

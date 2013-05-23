@@ -337,6 +337,32 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT);
   }
 
+  public void test_argumentTypeNotAssignable_binary() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  operator +(int p) {}",
+        "}",
+        "f(A a) {",
+        "  a + '0';",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_index() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  operator [](int index) {}",
+        "}",
+        "f(A a) {",
+        "  a['0'];",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_argumentTypeNotAssignable_invocation_generic() throws Exception {
     Source source = addSource(createSource(//
         "class A<T> {",

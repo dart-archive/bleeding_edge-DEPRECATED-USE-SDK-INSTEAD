@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -48,6 +49,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
@@ -329,6 +331,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitBinaryExpression(BinaryExpression node) {
+    checkForArgumentTypeNotAssignable(node.getRightOperand());
+    return super.visitBinaryExpression(node);
+  }
+
+  @Override
   public Void visitCatchClause(CatchClause node) {
     boolean previousIsInCatchClause = isInCatchClause;
     try {
@@ -513,6 +521,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitImportDirective(ImportDirective node) {
     checkForImportDuplicateLibraryName(node);
     return super.visitImportDirective(node);
+  }
+
+  @Override
+  public Void visitIndexExpression(IndexExpression node) {
+    checkForArgumentTypeNotAssignable(node.getIndex());
+    return super.visitIndexExpression(node);
   }
 
   @Override
@@ -1411,39 +1425,53 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     boolean problemReported = false;
     for (Expression argument : argumentList.getArguments()) {
-      // prepare corresponding parameter
-      ParameterElement parameterElement = argument.getParameterElement();
-      if (parameterElement == null) {
-        continue;
-      }
-      // prepare parameter type
-      Type parameterType = parameterElement.getType();
-      if (parameterType == null) {
-        continue;
-      }
-      // prepare argument type
-      Type argumentType = getBestType(argument);
-      if (argumentType == null) {
-        continue;
-      }
-      // OK, argument is assignable
-      if (argumentType.isAssignableTo(parameterType)) {
-        continue;
-      }
-      // TODO(scheglov) bug in type algebra?
-      if (parameterType.isObject() && argumentType instanceof FunctionType) {
-        continue;
-      }
-      // report problem
-      errorReporter.reportError(
-          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-          argument,
-          argumentType,
-          parameterType);
-      problemReported = true;
+      problemReported |= checkForArgumentTypeNotAssignable(argument);
     }
     // done
     return problemReported;
+  }
+
+  /**
+   * This verifies that the passed argument can be assigned to their corresponding parameters.
+   * 
+   * @param node the argument to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  private boolean checkForArgumentTypeNotAssignable(Expression argument) {
+    if (argument == null) {
+      return false;
+    }
+    // prepare corresponding parameter
+    ParameterElement parameterElement = argument.getParameterElement();
+    if (parameterElement == null) {
+      return false;
+    }
+    // prepare parameter type
+    Type parameterType = parameterElement.getType();
+    if (parameterType == null) {
+      return false;
+    }
+    // prepare argument type
+    Type argumentType = getBestType(argument);
+    if (argumentType == null) {
+      return false;
+    }
+    // OK, argument is assignable
+    if (argumentType.isAssignableTo(parameterType)) {
+      return false;
+    }
+    // TODO(scheglov) bug in type algebra?
+    if (parameterType.isObject() && argumentType instanceof FunctionType) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        argument,
+        argumentType,
+        parameterType);
+    return true;
   }
 
   /**
