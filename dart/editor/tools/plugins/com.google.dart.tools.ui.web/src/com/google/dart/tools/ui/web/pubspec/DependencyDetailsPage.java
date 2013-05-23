@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.AbstractFormPart;
 import org.eclipse.ui.forms.IDetailsPage;
 import org.eclipse.ui.forms.IFormPart;
+import org.eclipse.ui.forms.editor.FormPage;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.FormText;
@@ -66,6 +67,13 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
 
   private boolean ignoreModify = false;
   private Button devButton;
+
+  private FormPage page;
+
+  public DependencyDetailsPage(FormPage page) {
+    super();
+    this.page = page;
+  }
 
   @Override
   public void createContents(Composite parent) {
@@ -197,6 +205,7 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
 
     toolkit.paintBordersFor(section);
     section.setClient(client);
+    section.setEnabled(((PubspecEditor) page.getEditor()).isEditable());
   }
 
   @Override

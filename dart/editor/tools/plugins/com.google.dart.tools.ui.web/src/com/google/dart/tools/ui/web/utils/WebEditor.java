@@ -32,6 +32,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
@@ -102,6 +103,14 @@ public abstract class WebEditor extends TextEditor {
     }
 
     return super.getTitleToolTip();
+  }
+
+  @Override
+  public boolean isEditable() {
+    if (getEditorInput() instanceof FileStoreEditorInput) {
+      return false;
+    }
+    return super.isEditable();
   }
 
   @Override

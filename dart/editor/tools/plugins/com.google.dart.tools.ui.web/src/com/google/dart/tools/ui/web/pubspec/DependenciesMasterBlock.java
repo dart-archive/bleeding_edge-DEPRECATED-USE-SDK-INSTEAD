@@ -122,9 +122,12 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
 
   private SectionPart sectionPart;
 
-  public DependenciesMasterBlock(FormPage page) {
+  private boolean editable;
+
+  public DependenciesMasterBlock(FormPage page, boolean editable) {
     this.page = page;
     model = ((PubspecEditor) page.getEditor()).getModel();
+    this.editable = editable;
   }
 
   @Override
@@ -207,6 +210,7 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
 
     GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(b);
     section.setClient(client);
+    section.setEnabled(editable);
     sectionPart = new SectionPart(section);
     managedForm.addPart(sectionPart);
     viewer = new TableViewer(t);
@@ -229,7 +233,7 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
 
   @Override
   protected void registerPages(DetailsPart detailsPart) {
-    detailsPart.registerPage(DependencyObject.class, new DependencyDetailsPage());
+    detailsPart.registerPage(DependencyObject.class, new DependencyDetailsPage(page));
   }
 
   private void handleAddDependency() {

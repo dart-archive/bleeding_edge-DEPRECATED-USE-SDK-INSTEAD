@@ -90,11 +90,14 @@ public class OverviewFormPage extends FormPage implements IModelListener {
   private boolean ignoreModify = false;
   private Text sdkVersionText;
 
+  private boolean editable;
+
   private Text documentationText;
 
   public OverviewFormPage(FormEditor editor) {
     super(editor, "overview", "Overview");
-    block = new DependenciesMasterBlock(this);
+    editable = ((PubspecEditor) editor).isEditable();
+    block = new DependenciesMasterBlock(this, editable);
     model = ((PubspecEditor) this.getEditor()).getModel();
     lastFocusControl = null;
   }
@@ -192,7 +195,9 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     GridData griData = new GridData(SWT.FILL, SWT.TOP, false, false);
     griData.widthHint = 350;
     right.setLayoutData(griData);
-    createActionsSection(right);
+    if (editable) {
+      createActionsSection(right);
+    }
     createExploreSection(right);
     block.createContent(form);
     model.addModelListener(this);
@@ -433,6 +438,8 @@ public class OverviewFormPage extends FormPage implements IModelListener {
           "Pubspec Editor",
           "Looks like the pubspec.yaml is corrupted. Switch to the Source tab to fix.");
     }
+
+    infoSectionPart.getSection().setEnabled(editable);
   }
 
   private void runPub() {

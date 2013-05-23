@@ -85,6 +85,7 @@ public class PubspecEditor extends FormEditor {
   private PubspecModel model;
   private PubspecYamlEditor yamlEditor;
   private OverviewFormPage formPage;
+  private boolean editable = false;
 
   public PubspecEditor() {
 
@@ -128,6 +129,10 @@ public class PubspecEditor extends FormEditor {
   @Override
   public String getTitle() {
     return "pubspec.yaml";
+  }
+
+  public boolean isEditable() {
+    return editable;
   }
 
   @Override
@@ -203,7 +208,7 @@ public class PubspecEditor extends FormEditor {
     String contents = null;
     if (input instanceof IFileEditorInput) {
       contents = getContents((IFileEditorInput) input);
-
+      editable = true;
     } else if (input instanceof FileStoreEditorInput) {
       File file = new File(((FileStoreEditorInput) input).getURI());
       if (file.exists()) {
