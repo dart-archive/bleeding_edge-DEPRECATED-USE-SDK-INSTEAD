@@ -18,6 +18,10 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
@@ -55,6 +59,11 @@ public class InheritanceManager {
   private HashMap<ClassElement, HashMap<String, ExecutableElement>> interfaceLookup;
 
   /**
+   * 
+   */
+  private HashMap<ClassElement, HashSet<AnalysisError>> errorsInClassElement = new HashMap<ClassElement, HashSet<AnalysisError>>();
+
+  /**
    * Initialize a newly created inheritance manager.
    * 
    * @param library the library element context that the inheritance mappings are being generated
@@ -63,6 +72,16 @@ public class InheritanceManager {
     this.library = library;
     classLookup = new HashMap<ClassElement, HashMap<String, ExecutableElement>>();
     interfaceLookup = new HashMap<ClassElement, HashMap<String, ExecutableElement>>();
+  }
+
+  /**
+   * TODO(jwren) missing javadoc
+   * 
+   * @param classElt
+   * @return
+   */
+  public HashSet<AnalysisError> getErrors(ClassElement classElt) {
+    return errorsInClassElement.get(classElt);
   }
 
   public HashMap<String, ExecutableElement> getMapOfMembersInheritedFromClasses(
@@ -402,6 +421,7 @@ public class InheritanceManager {
           for (int i = 0; i < numOfEltsWithMatchingNames; i++) {
             executableElementTypes[i] = elements[i].getType();
           }
+          boolean foundSubtypeOfAllTypes = true;
           for (int i = 0; i < numOfEltsWithMatchingNames; i++) {
             FunctionType subtype = executableElementTypes[i];
             if (subtype == null) {
@@ -412,6 +432,7 @@ public class InheritanceManager {
               if (i != j) {
                 if (!subtype.isSubtypeOf(executableElementTypes[j])) {
                   subtypeOfAllTypes = false;
+                  foundSubtypeOfAllTypes = false;
                   break;
                 }
               }
@@ -421,9 +442,24 @@ public class InheritanceManager {
               break;
             }
           }
+          if (!foundSubtypeOfAllTypes) {
+            reportError(
+                classElt,
+                StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+                classElt.getNameOffset(),
+                classElt.getDisplayName().length(),
+                key);
+          }
         } else {
-          // TODO (jwren) Report error.
-          //resultMap.put(entry.getKey(), null);
+          if (!allMethods && !allGetters) {
+            reportError(
+                classElt,
+                StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+                classElt.getNameOffset(),
+                classElt.getDisplayName().length(),
+                key);
+          }
+          resultMap.remove(entry.getKey());
         }
       }
     }
@@ -478,5 +514,15 @@ public class InheritanceManager {
       }
     }
     return map;
+  }
+
+  private void reportError(ClassElement classElt, ErrorCode errorCode, int nameOffset, int length,
+      Object... arguments) {
+    HashSet<AnalysisError> errorSet = errorsInClassElement.get(classElt);
+    if (errorSet == null) {
+      errorSet = new HashSet<AnalysisError>();
+      errorsInClassElement.put(classElt, errorSet);
+    }
+    errorSet.add(new AnalysisError(classElt.getSource(), errorCode, arguments));
   }
 }

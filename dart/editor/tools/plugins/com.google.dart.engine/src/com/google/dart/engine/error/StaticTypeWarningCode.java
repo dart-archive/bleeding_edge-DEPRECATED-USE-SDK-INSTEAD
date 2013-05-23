@@ -34,7 +34,9 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * 8.1.1 Inheritance and Overriding: However, if there are multiple members <i>m<sub>1</sub>,
    * &hellip; m<sub>k</sub></i> with the same name <i>n</i> that would be inherited (because
    * identically named members existed in several superinterfaces) then at most one member is
-   * inherited. If the static types <i>T<sub>1</sub>, &hellip;, T<sub>k</sub></i> of the members
+   * inherited.
+   * <p>
+   * If the static types <i>T<sub>1</sub>, &hellip;, T<sub>k</sub></i> of the members
    * <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> are not identical, then there must be a member
    * <i>m<sub>x</sub></i> such that <i>T<sub>x</sub> &lt; T<sub>i</sub>, 1 &lt;= x &lt;= k</i> for
    * all <i>i, 1 &lt;= i &lt; k</i>, or a static type warning occurs. The member that is inherited
@@ -48,7 +50,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * <li>Otherwise none of the members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> is inherited.
    * </ol>
    */
-  INCONSISTENT_METHOD_INHERITANCE(""), // This probably wants to be multiple messages.
+  INCONSISTENT_METHOD_INHERITANCE("'%s' is inherited by at least two interfaces inconsistently"),
 
   /**
    * 12.18 Assignment: It is a static type warning if the static type of <i>e</i> may not be

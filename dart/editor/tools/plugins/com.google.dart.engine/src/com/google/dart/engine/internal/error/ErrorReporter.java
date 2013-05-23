@@ -60,6 +60,15 @@ public class ErrorReporter {
   }
 
   /**
+   * Report a passed error.
+   * 
+   * @param error the error to report
+   */
+  public void reportError(AnalysisError error) {
+    errorListener.onError(error);
+  }
+
+  /**
    * Report an error with the given error code and arguments.
    * 
    * @param errorCode the error code of the error to be reported

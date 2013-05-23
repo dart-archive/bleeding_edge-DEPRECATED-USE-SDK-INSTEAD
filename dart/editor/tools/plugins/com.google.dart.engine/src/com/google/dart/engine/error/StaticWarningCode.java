@@ -208,6 +208,19 @@ public enum StaticWarningCode implements ErrorCode {
   INCORRECT_NUMBER_OF_ARGUMENTS(""),
 
   /**
+   * 8.1.1 Inheritance and Overriding: However, if there are multiple members <i>m<sub>1</sub>,
+   * &hellip; m<sub>k</sub></i> with the same name <i>n</i> that would be inherited (because
+   * identically named members existed in several superinterfaces) then at most one member is
+   * inherited.
+   * <p>
+   * If some but not all of the <i>m<sub>i</sub>, 1 &lt;= i &lt;= k</i>, are getters, or if some but
+   * not all of the <i>m<sub>i</sub></i> are setters, none of the <i>m<sub>i</sub></i> are
+   * inherited, and a static warning is issued.
+   */
+  INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD(
+      "'%s' is inherited as a getter and also a method"),
+
+  /**
    * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares an instance method
    * named <i>n</i> and an accessible static member named <i>n</i> is declared in a superclass of
    * <i>C</i>.

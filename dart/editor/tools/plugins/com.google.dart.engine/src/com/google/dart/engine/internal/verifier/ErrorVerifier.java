@@ -95,6 +95,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
@@ -363,7 +364,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForAllMixinErrorCodes(node.getWithClause());
       if (!checkForImplementsDisallowedClass(node.getImplementsClause())
           && !checkForExtendsDisallowedClass(node.getExtendsClause())) {
-        checkForAllInvalidOverrideErrorCodes(node);
+        checkForNonAbstractClassInheritsAbstractMember(node);
+        checkForInconsistentMethodInheritance();
       }
       // initialize initialFieldElementsMap
       ClassElement classElement = node.getElement();
@@ -881,134 +883,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 //      }
 //    }
     return foundError;
-  }
-
-  /**
-   * This checks that passed class declaration overrides all members required by its superclasses
-   * and interfaces.
-   * 
-   * @param node the {@link ClassDeclaration} to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE
-   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE
-   */
-  private boolean checkForAllInvalidOverrideErrorCodes(ClassDeclaration node) {
-    if (enclosingClass.isAbstract()) {
-      return false;
-    }
-    HashSet<ExecutableElement> missingOverrides = new HashSet<ExecutableElement>();
-
-    // Store in local sets the set of all method and accessor names:
-    HashSet<String> methodsInEnclosingClass = new HashSet<String>();
-    HashSet<String> accessorsInEnclosingClass = new HashSet<String>();
-    MethodElement[] methods = enclosingClass.getMethods();
-    for (MethodElement method : methods) {
-      methodsInEnclosingClass.add(method.getName());
-    }
-    PropertyAccessorElement[] accessors = enclosingClass.getAccessors();
-    for (PropertyAccessorElement accessor : accessors) {
-      accessorsInEnclosingClass.add(accessor.getName());
-    }
-
-    // Loop through the set of all executable elements inherited from the superclass chain.
-    HashMap<String, ExecutableElement> membersInheritedFromSuperclasses = inheritanceManager.getMapOfMembersInheritedFromClasses(enclosingClass);
-    for (Entry<String, ExecutableElement> entry : membersInheritedFromSuperclasses.entrySet()) {
-      ExecutableElement executableElt = entry.getValue();
-      if (executableElt instanceof MethodElement) {
-        MethodElement methodElt = (MethodElement) executableElt;
-        // If the method is abstract, then verify that this class has a method which overrides the
-        // abstract method from the superclass.
-        if (methodElt.isAbstract()) {
-          String methodName = entry.getKey();
-          boolean foundOverridingMethod = false;
-          if (methodsInEnclosingClass.contains(methodName)) {
-            foundOverridingMethod = true;
-          }
-          // If an abstract method was found in a superclass, but it is not in the subclass, then
-          // add the executable element to the missingOverides set.
-          if (!foundOverridingMethod) {
-            missingOverrides.add(executableElt);
-          }
-        }
-      } else if (executableElt instanceof PropertyAccessorElement) {
-        PropertyAccessorElement propertyAccessorElt = (PropertyAccessorElement) executableElt;
-        // If the accessor is abstract, then verify that this class has an accessor which overrides
-        // the abstract accessor from the superclass.
-        if (propertyAccessorElt.isAbstract()) {
-          String accessorName = entry.getKey();
-          boolean foundOverridingMember = false;
-          if (accessorsInEnclosingClass.contains(accessorName)) {
-            foundOverridingMember = true;
-          }
-          // If an abstract method was found in a superclass, but it is not in the subclass, then
-          // add the executable element to the missingOverides set.
-          if (!foundOverridingMember) {
-            missingOverrides.add(executableElt);
-          }
-        }
-      }
-    }
-
-    // Loop through the set of all executable elements inherited from the interfaces.
-    HashMap<String, ExecutableElement> membersInheritedFromInterfaces = inheritanceManager.getMapOfMembersInheritedFromInterfaces(enclosingClass);
-    for (Entry<String, ExecutableElement> entry : membersInheritedFromInterfaces.entrySet()) {
-      ExecutableElement executableElt = entry.getValue();
-      // First check to see if this element was declared in the superclass chain.
-      ExecutableElement elt = membersInheritedFromSuperclasses.get(executableElt.getName());
-      if (elt != null) {
-        if (elt instanceof MethodElement && !((MethodElement) elt).isAbstract()) {
-          continue;
-        } else if (elt instanceof PropertyAccessorElement
-            && !((PropertyAccessorElement) elt).isAbstract()) {
-          continue;
-        }
-      }
-      if (executableElt instanceof MethodElement) {
-        // Verify that this class has a method which overrides the method from the interface.
-        String methodName = entry.getKey();
-        boolean foundOverridingMethod = false;
-        if (methodsInEnclosingClass.contains(methodName)) {
-          foundOverridingMethod = true;
-        }
-        // If a method was found in an interface, but it is not in the enclosing class, then add the
-        // executable element to the missingOverides set.
-        if (!foundOverridingMethod) {
-          missingOverrides.add(executableElt);
-        }
-      } else if (executableElt instanceof PropertyAccessorElement) {
-        // Verify that this class has a member which overrides the method from the interface.
-        String accessorName = entry.getKey();
-        boolean foundOverridingMember = false;
-        if (accessorsInEnclosingClass.contains(accessorName)) {
-          foundOverridingMember = true;
-        }
-        // If a method was found in an interface, but it is not in the enclosing class, then add the
-        // executable element to the missingOverides set.
-        if (!foundOverridingMember) {
-          missingOverrides.add(executableElt);
-        }
-      }
-    }
-    int missingOverridesSize = missingOverrides.size();
-    if (missingOverridesSize == 0) {
-      return false;
-    }
-    // TODO (jwren/scheglov) Add a quick fix which needs the following array.
-    //ExecutableElement[] missingOverridesArray = missingOverrides.toArray(new ExecutableElement[missingOverridesSize]);
-    if (missingOverridesSize == 1) {
-      ExecutableElement executableElt = missingOverrides.iterator().next();
-      errorReporter.reportError(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE,
-          node.getName(),
-          executableElt.getDisplayName(),
-          executableElt.getEnclosingElement().getDisplayName());
-      return true;
-    } else {
-      errorReporter.reportError(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE,
-          node.getName());
-      return true;
-    }
   }
 
   /**
@@ -2257,6 +2131,27 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * For each class declaration, this method is called which verifies that all inherited members are
+   * inherited consistently.
+   * 
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#INCONSISTENT_METHOD_INHERITANCE
+   */
+  private boolean checkForInconsistentMethodInheritance() {
+    // Ensure that the inheritance manager has a chance to generate all errors we may care about,
+    // note that we ensure that the interfaces data since there are no errors.
+    inheritanceManager.getMapOfMembersInheritedFromInterfaces(enclosingClass);
+    HashSet<AnalysisError> errors = inheritanceManager.getErrors(enclosingClass);
+    if (errors == null || errors.isEmpty()) {
+      return false;
+    }
+    for (AnalysisError error : errors) {
+      errorReporter.reportError(error);
+    }
+    return true;
+  }
+
+  /**
    * Given an assignment using a compound assignment operator, this verifies that the given
    * assignment is valid.
    * 
@@ -2607,6 +2502,134 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           className);
     }
     return true;
+  }
+
+  /**
+   * This checks that passed class declaration overrides all members required by its superclasses
+   * and interfaces.
+   * 
+   * @param node the {@link ClassDeclaration} to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE
+   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE
+   */
+  private boolean checkForNonAbstractClassInheritsAbstractMember(ClassDeclaration node) {
+    if (enclosingClass.isAbstract()) {
+      return false;
+    }
+    HashSet<ExecutableElement> missingOverrides = new HashSet<ExecutableElement>();
+
+    // Store in local sets the set of all method and accessor names:
+    HashSet<String> methodsInEnclosingClass = new HashSet<String>();
+    HashSet<String> accessorsInEnclosingClass = new HashSet<String>();
+    MethodElement[] methods = enclosingClass.getMethods();
+    for (MethodElement method : methods) {
+      methodsInEnclosingClass.add(method.getName());
+    }
+    PropertyAccessorElement[] accessors = enclosingClass.getAccessors();
+    for (PropertyAccessorElement accessor : accessors) {
+      accessorsInEnclosingClass.add(accessor.getName());
+    }
+
+    // Loop through the set of all executable elements inherited from the superclass chain.
+    HashMap<String, ExecutableElement> membersInheritedFromSuperclasses = inheritanceManager.getMapOfMembersInheritedFromClasses(enclosingClass);
+    for (Entry<String, ExecutableElement> entry : membersInheritedFromSuperclasses.entrySet()) {
+      ExecutableElement executableElt = entry.getValue();
+      if (executableElt instanceof MethodElement) {
+        MethodElement methodElt = (MethodElement) executableElt;
+        // If the method is abstract, then verify that this class has a method which overrides the
+        // abstract method from the superclass.
+        if (methodElt.isAbstract()) {
+          String methodName = entry.getKey();
+          boolean foundOverridingMethod = false;
+          if (methodsInEnclosingClass.contains(methodName)) {
+            foundOverridingMethod = true;
+          }
+          // If an abstract method was found in a superclass, but it is not in the subclass, then
+          // add the executable element to the missingOverides set.
+          if (!foundOverridingMethod) {
+            missingOverrides.add(executableElt);
+          }
+        }
+      } else if (executableElt instanceof PropertyAccessorElement) {
+        PropertyAccessorElement propertyAccessorElt = (PropertyAccessorElement) executableElt;
+        // If the accessor is abstract, then verify that this class has an accessor which overrides
+        // the abstract accessor from the superclass.
+        if (propertyAccessorElt.isAbstract()) {
+          String accessorName = entry.getKey();
+          boolean foundOverridingMember = false;
+          if (accessorsInEnclosingClass.contains(accessorName)) {
+            foundOverridingMember = true;
+          }
+          // If an abstract method was found in a superclass, but it is not in the subclass, then
+          // add the executable element to the missingOverides set.
+          if (!foundOverridingMember) {
+            missingOverrides.add(executableElt);
+          }
+        }
+      }
+    }
+
+    // Loop through the set of all executable elements inherited from the interfaces.
+    HashMap<String, ExecutableElement> membersInheritedFromInterfaces = inheritanceManager.getMapOfMembersInheritedFromInterfaces(enclosingClass);
+    for (Entry<String, ExecutableElement> entry : membersInheritedFromInterfaces.entrySet()) {
+      ExecutableElement executableElt = entry.getValue();
+      // First check to see if this element was declared in the superclass chain.
+      ExecutableElement elt = membersInheritedFromSuperclasses.get(executableElt.getName());
+      if (elt != null) {
+        if (elt instanceof MethodElement && !((MethodElement) elt).isAbstract()) {
+          continue;
+        } else if (elt instanceof PropertyAccessorElement
+            && !((PropertyAccessorElement) elt).isAbstract()) {
+          continue;
+        }
+      }
+      if (executableElt instanceof MethodElement) {
+        // Verify that this class has a method which overrides the method from the interface.
+        String methodName = entry.getKey();
+        boolean foundOverridingMethod = false;
+        if (methodsInEnclosingClass.contains(methodName)) {
+          foundOverridingMethod = true;
+        }
+        // If a method was found in an interface, but it is not in the enclosing class, then add the
+        // executable element to the missingOverides set.
+        if (!foundOverridingMethod) {
+          missingOverrides.add(executableElt);
+        }
+      } else if (executableElt instanceof PropertyAccessorElement) {
+        // Verify that this class has a member which overrides the method from the interface.
+        String accessorName = entry.getKey();
+        boolean foundOverridingMember = false;
+        if (accessorsInEnclosingClass.contains(accessorName)) {
+          foundOverridingMember = true;
+        }
+        // If a method was found in an interface, but it is not in the enclosing class, then add the
+        // executable element to the missingOverides set.
+        if (!foundOverridingMember) {
+          missingOverrides.add(executableElt);
+        }
+      }
+    }
+    int missingOverridesSize = missingOverrides.size();
+    if (missingOverridesSize == 0) {
+      return false;
+    }
+    // TODO (jwren/scheglov) Add a quick fix which needs the following array.
+    //ExecutableElement[] missingOverridesArray = missingOverrides.toArray(new ExecutableElement[missingOverridesSize]);
+    if (missingOverridesSize == 1) {
+      ExecutableElement executableElt = missingOverrides.iterator().next();
+      errorReporter.reportError(
+          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE,
+          node.getName(),
+          executableElt.getDisplayName(),
+          executableElt.getEnclosingElement().getDisplayName());
+      return true;
+    } else {
+      errorReporter.reportError(
+          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE,
+          node.getName());
+      return true;
+    }
   }
 
   /**

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
@@ -584,6 +585,20 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     addSource("/lib2.dart", "library lib;");
     resolve(source);
     assertErrors(StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME);
+    verify(source);
+  }
+
+  public void test_inconsistentMethodInheritance() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  x(int i);",
+        "}",
+        "abstract class B {",
+        "  x(String s);",
+        "}",
+        "abstract class C implements A, B {}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE);
     verify(source);
   }
 

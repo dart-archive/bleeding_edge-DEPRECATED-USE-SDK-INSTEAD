@@ -14,6 +14,7 @@
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticTypeWarningCodeTest extends ResolverTestCase {
@@ -23,15 +24,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     ));
     resolve(source);
     assertErrors(StaticTypeWarningCode.INACCESSIBLE_SETTER);
-    verify(source);
-  }
-
-  public void fail_inconsistentMethodInheritance() throws Exception { // This probably wants to be multiple messages.
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE);
     verify(source);
   }
 
@@ -60,6 +52,21 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     ));
     resolve(source);
     assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_VIOLATES_BOUNDS);
+    verify(source);
+  }
+
+  public void test_inconsistentMethodInheritanceGetterAndMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  int x();",
+        "}",
+        "abstract class B {",
+        "  int get x;",
+        "}",
+        "class C implements A, B {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD);
     verify(source);
   }
 
