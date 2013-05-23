@@ -20,8 +20,6 @@ import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartModelStatusImpl;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaImpl;
-import com.google.dart.tools.core.internal.model.delta.DeltaProcessor;
-import com.google.dart.tools.core.internal.model.delta.IDeltaProcessor;
 import com.google.dart.tools.core.internal.util.Messages;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -360,73 +358,7 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
   @Override
   public void run(IProgressMonitor monitor) throws CoreException {
     DartCore.notYetImplemented();
-    DartModelManager manager = DartModelManager.getInstance();
-    IDeltaProcessor deltaProcessor = manager.getDeltaProcessor();
-    int previousDeltaCount = deltaProcessor.getDartModelDeltas().size();
-    try {
-      progressMonitor = monitor;
-      pushOperation(this);
-      try {
-        if (canModifyRoots()) {
-          // // computes the root infos before executing the operation
-          // // noop if already initialized
-          // DartModelManager.getInstance().getDeltaState().initializeRoots(false);
-        }
 
-        executeOperation();
-      } finally {
-        if (isTopLevelOperation()) {
-          runPostActions();
-        }
-      }
-    } finally {
-      try {
-        // re-acquire delta processor as it can have been reset during
-        // executeOperation()
-        deltaProcessor = manager.getDeltaProcessor();
-
-        // update DartModel using deltas that were recorded during this
-        // operation
-        for (int i = previousDeltaCount, size = deltaProcessor.getDartModelDeltas().size(); i < size; i++) {
-          deltaProcessor.updateDartModel(deltaProcessor.getDartModelDeltas().get(i));
-        }
-
-        // // close the parents of the created elements and reset their
-        // // project's cache (in case we are in an IWorkspaceRunnable and the
-        // // clients wants to use the created element's parent)
-        // // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=83646
-        // for (int i = 0, length = resultElements.length; i < length; i++)
-        // {
-        // DartElement element = resultElements[i];
-        // Openable openable = (Openable) element.getOpenable();
-        // if (!(openable instanceof CompilationUnit) || !((CompilationUnit)
-        // openable).isWorkingCopy()) { // a working copy must remain a child of
-        // its parent even after a move
-        // ((DartElementImpl) openable.getParent()).close();
-        // }
-        // switch (element.getElementType()) {
-        // case DartElement.PACKAGE_FRAGMENT_ROOT:
-        // case DartElement.PACKAGE_FRAGMENT:
-        // deltaProcessor.projectCachesToReset.add(element.getDartProject());
-        // break;
-        // }
-        // }
-        deltaProcessor.resetProjectCaches();
-
-        // fire only iff:
-        // - the operation is a top level operation
-        // - the operation did produce some delta(s)
-        // - but the operation has not modified any resource
-        if (isTopLevelOperation()) {
-          if ((deltaProcessor.getDartModelDeltas().size() > previousDeltaCount || !deltaProcessor.getReconcileDeltas().isEmpty())
-              && !hasModifiedResource()) {
-            deltaProcessor.fire(null, DeltaProcessor.DEFAULT_CHANGE_EVENT);
-          } // else deltas are fired while processing the resource delta
-        }
-      } finally {
-        popOperation();
-      }
-    }
   }
 
   /**

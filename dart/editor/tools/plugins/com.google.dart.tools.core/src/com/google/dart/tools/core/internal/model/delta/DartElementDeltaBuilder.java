@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.model.delta;
 
 import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
-import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartFieldInfo;
 import com.google.dart.tools.core.internal.model.info.DartMethodInfo;
@@ -471,20 +470,7 @@ public class DartElementDeltaBuilder {
     if (depth >= maxDepth) {
       return;
     }
-    DartElementInfo info = DartModelManager.getInstance().getInfo(element);
-    if (info == null) {
-      return;
-    }
-    infos.put(element, info);
 
-    // if (element instanceof IParent) {
-    DartElement[] children = info.getChildren();
-    if (children != null) {
-      insertPositions(children, false);
-      for (int i = 0, length = children.length; i < length; i++) {
-        recordElementInfo(children[i], model, depth + 1);
-      }
-    }
     // }
     // IAnnotation[] annotations = null;
     // if (info instanceof AnnotatableInfo)

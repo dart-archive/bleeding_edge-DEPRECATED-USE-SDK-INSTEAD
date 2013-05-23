@@ -16,7 +16,6 @@ package com.google.dart.tools.core.internal.model;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IStatus;
 
 /**
@@ -30,13 +29,8 @@ public class ExternalDartProject extends DartProjectImpl {
    */
   public static final String EXTERNAL_PROJECT_NAME = " "; //$NON-NLS-1$
 
-  /**
-   * Initialize a newly created Dart project to represent the given project.
-   */
   public ExternalDartProject() {
-    super(
-        DartModelManager.getInstance().getDartModel(),
-        ResourcesPlugin.getWorkspace().getRoot().getProject(EXTERNAL_PROJECT_NAME));
+    super(null, null);
   }
 
   @Override

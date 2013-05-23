@@ -49,7 +49,6 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartPart;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdkManager;
-import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
@@ -207,10 +206,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
    * @param libraryFile the library specification file (*.lib file)
    */
   public DartLibraryImpl(File libraryFile) {
-    this(
-        DartModelManager.getInstance().getDartModel().getExternalProject(),
-        null,
-        newLibrarySourceFile(libraryFile));
+    this(null, null, newLibrarySourceFile(libraryFile));
   }
 
   /**
@@ -219,7 +215,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
    * @param libraryFile the library specification file (*.lib file)
    */
   public DartLibraryImpl(LibrarySource source) {
-    this(DartModelManager.getInstance().getDartModel().getExternalProject(), null, source);
+    this(null, null, source);
   }
 
   @Override
@@ -531,18 +527,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   @Override
   public List<DartLibrary> getReferencingLibraries() throws DartModelException {
     List<DartLibrary> libraries = new ArrayList<DartLibrary>();
-    for (DartProject project : DartModelManager.getInstance().getDartModel().getDartProjects()) {
-      for (DartLibrary candidate : project.getDartLibraries()) {
-        if (!equals(candidate)) {
-          for (DartLibrary importedLibrary : candidate.getImportedLibraries()) {
-            if (equals(importedLibrary)) {
-              libraries.add(candidate);
-              break;
-            }
-          }
-        }
-      }
-    }
+
     return libraries;
   }
 
@@ -702,9 +687,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
             topLevel ? "true" : null);
         DartElementDeltaImpl delta = new DartElementDeltaImpl(this);
         delta.changed(DartElementDelta.F_TOP_LEVEL);
-        DartModelManager.getInstance().getDeltaProcessor().fire(
-            delta,
-            ElementChangedEvent.POST_CHANGE);
+
       } catch (CoreException exception) {
         // Ignore
       }
@@ -748,7 +731,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       libraryInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
       return true;
     }
-    final DartModelManager modelManager = DartModelManager.getInstance();
+
     unit.accept(new SafeDartNodeTraverser<Void>() {
       @SuppressWarnings("deprecation")
       @Override
@@ -826,7 +809,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         IResource[] libraryFiles = ResourceUtil.getResources(librarySource);
         if (libraryFiles != null && libraryFiles.length == 1 && libraryFiles[0] instanceof IFile) {
           IFile libFile = (IFile) libraryFiles[0];
-          DartProjectImpl dartProject = modelManager.create(libFile.getProject());
+          DartProjectImpl dartProject = null;
           DartLibraryImpl library = new DartLibraryImpl(dartProject, libFile, librarySource);
           libraryInfo.addImport(new DartImportImpl(
               definingUnit,

@@ -18,7 +18,6 @@ import com.google.dart.tools.core.internal.formatter.DefaultCodeFormatterOptions
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
-import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -218,7 +217,7 @@ public class FormatterTests extends TestCase {
   }
 
   private DartModelImpl getDartModel() {
-    return DartModelManager.getInstance().getDartModel();
+    return null;
   }
 
   private DartProjectImpl getDartProject() throws CoreException {

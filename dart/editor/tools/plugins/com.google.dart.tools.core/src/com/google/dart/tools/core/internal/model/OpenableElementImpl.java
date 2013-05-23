@@ -61,12 +61,7 @@ public abstract class OpenableElementImpl extends DartElementImpl implements Ope
    */
   @Override
   public void bufferChanged(BufferChangedEvent event) {
-    if (event.getBuffer().isClosed()) {
-      DartModelManager.getInstance().getElementsOutOfSynchWithBuffers().remove(this);
-      getBufferManager().removeBuffer(event.getBuffer());
-    } else {
-      DartModelManager.getInstance().getElementsOutOfSynchWithBuffers().add(this);
-    }
+
   }
 
   /**
@@ -92,9 +87,7 @@ public abstract class OpenableElementImpl extends DartElementImpl implements Ope
 
   @Override
   public boolean exists() {
-    if (DartModelManager.getInstance().getInfo(this) != null) {
-      return true;
-    }
+
     DartCore.notYetImplemented();
     // switch (getElementType()) {
     // case PACKAGE_FRAGMENT:
@@ -257,7 +250,7 @@ public abstract class OpenableElementImpl extends DartElementImpl implements Ope
 
   @Override
   public boolean isOpen() {
-    return DartModelManager.getInstance().getInfo(this) != null;
+    return false;
   }
 
   @Override
@@ -487,9 +480,6 @@ public abstract class OpenableElementImpl extends DartElementImpl implements Ope
       newElements.remove(this);
       throw e;
     }
-
-    // remove out of sync buffer for this element
-    DartModelManager.getInstance().getElementsOutOfSynchWithBuffers().remove(this);
 
     // if (DartModelCache.VERBOSE) {
     //      System.out.println(DartModelManager.getInstance().cacheToString("-> ")); //$NON-NLS-1$

@@ -43,7 +43,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.internal.buffer.BufferManager;
-import com.google.dart.tools.core.internal.model.info.ASTHolderCUInfo;
 import com.google.dart.tools.core.internal.model.info.CompilationUnitInfo;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartFieldInfo;
@@ -55,10 +54,8 @@ import com.google.dart.tools.core.internal.model.info.DartTypeParameterInfo;
 import com.google.dart.tools.core.internal.model.info.DartVariableInfo;
 import com.google.dart.tools.core.internal.model.info.DeclarationElementInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
-import com.google.dart.tools.core.internal.operation.BecomeWorkingCopyOperation;
 import com.google.dart.tools.core.internal.operation.CommitWorkingCopyOperation;
 import com.google.dart.tools.core.internal.operation.DiscardWorkingCopyOperation;
-import com.google.dart.tools.core.internal.operation.ReconcileWorkingCopyOperation;
 import com.google.dart.tools.core.internal.problem.CategorizedProblem;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
@@ -87,7 +84,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.PerformanceStats;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -945,14 +941,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
   @Override
   public void becomeWorkingCopy(ProblemRequestor problemRequestor, IProgressMonitor monitor)
       throws DartModelException {
-    DartModelManager manager = DartModelManager.getInstance();
-    PerWorkingCopyInfo perWorkingCopyInfo = manager.getPerWorkingCopyInfo(this, false, true, null);
-    if (perWorkingCopyInfo == null) {
-      // close cu and its children
-      close();
-      BecomeWorkingCopyOperation operation = new BecomeWorkingCopyOperation(this, problemRequestor);
-      operation.runOperation(monitor);
-    }
+
   }
 
   @Override
@@ -1360,7 +1349,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
   @Override
   public PerWorkingCopyInfo getPerWorkingCopyInfo() {
-    return DartModelManager.getInstance().getPerWorkingCopyInfo(this, false, false, null);
+    return null;
   }
 
   @Override
@@ -1416,20 +1405,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
   @Override
   public boolean hasResourceChanged() {
-    if (!isWorkingCopy()) {
-      return false;
-    }
-    // if the resource was deleted, then #getModificationStamp() will return
-    // IResource.NULL_STAMP, which is always different from the cached timestamp
-    Object info = DartModelManager.getInstance().getInfo(this);
-    if (info == null) {
-      return false;
-    }
-    IResource resource = getResource();
-    if (resource == null) {
-      return false;
-    }
-    return ((CompilationUnitInfo) info).getTimestamp() != resource.getModificationStamp();
+
+    return false;
   }
 
   /**
@@ -1445,36 +1422,15 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
    */
   @Override
   public boolean isConsistent() {
-    return !DartModelManager.getInstance().getElementsOutOfSynchWithBuffers().contains(this);
+    return false;
   }
 
   public DartUnit makeConsistent(boolean resolveBindings, boolean forceProblemDetection,
       Map<String, CategorizedProblem[]> problems, IProgressMonitor monitor)
       throws DartModelException {
-    if (isConsistent()) {
-      return null;
-    }
-    DartModelManager manager = DartModelManager.getInstance();
-    try {
-      manager.abortOnMissingSource.set(Boolean.TRUE);
-      // create a new info and make it the current info
-      // (this will remove the info and its children just before storing the new infos)
-      if (problems != null) {
-        ASTHolderCUInfo info = new ASTHolderCUInfo();
-        info.resolveBindings = resolveBindings;
-        info.forceProblemDetection = forceProblemDetection;
-        info.problems = problems;
-        openWhenClosed(info, monitor);
-        DartUnit result = info.ast;
-        info.ast = null;
-        return result;
-      } else {
-        openWhenClosed(createElementInfo(), monitor);
-        return null;
-      }
-    } finally {
-      manager.abortOnMissingSource.set(null);
-    }
+
+    return null;
+
   }
 
   @Override
@@ -1505,27 +1461,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
   public DartUnit reconcile(boolean forceProblemDetection, WorkingCopyOwner workingCopyOwner,
       IProgressMonitor monitor) throws DartModelException {
-    if (!isWorkingCopy()) {
-      // Reconciling is not supported on non working copies
-      return null;
-    }
-    if (workingCopyOwner == null) {
-      workingCopyOwner = DefaultWorkingCopyOwner.getInstance();
-    }
-    PerformanceStats stats = null;
-    if (ReconcileWorkingCopyOperation.PERF) {
-      stats = PerformanceStats.getStats(DartModelManager.RECONCILE_PERF, this);
-      stats.startRun(new String(getFileName()));
-    }
-    ReconcileWorkingCopyOperation op = new ReconcileWorkingCopyOperation(
-        this,
-        forceProblemDetection,
-        workingCopyOwner);
-    op.runOperation(monitor);
-    if (ReconcileWorkingCopyOperation.PERF) {
-      stats.endRun();
-    }
-    return op.ast;
+
+    return null;
+
   }
 
   @Override
@@ -1701,26 +1639,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
   @Override
   protected CompilationUnit getWorkingCopy(WorkingCopyOwner workingCopyOwner,
       ProblemRequestor problemRequestor, IProgressMonitor monitor) throws DartModelException {
-    if (!isPrimary()) {
-      return this;
-    }
-    DartModelManager manager = DartModelManager.getInstance();
-    CompilationUnitImpl workingCopy = new CompilationUnitImpl(
-        (DartLibraryImpl) getParent(),
-        getFile(),
-        workingCopyOwner);
-    PerWorkingCopyInfo perWorkingCopyInfo = manager.getPerWorkingCopyInfo(
-        workingCopy,
-        false,
-        true,
-        null);
-    if (perWorkingCopyInfo != null) {
-      // return existing handle instead of the one created above
-      return perWorkingCopyInfo.getWorkingCopy();
-    }
-    BecomeWorkingCopyOperation op = new BecomeWorkingCopyOperation(workingCopy, problemRequestor);
-    op.runOperation(monitor);
-    return workingCopy;
+
+    return this;
+
   }
 
   @Override

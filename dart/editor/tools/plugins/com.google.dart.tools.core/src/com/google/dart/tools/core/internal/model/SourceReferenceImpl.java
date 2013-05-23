@@ -335,10 +335,7 @@ public abstract class SourceReferenceImpl extends DartElementImpl implements Sou
     if (openableParent == null) {
       return;
     }
-    DartElementInfo openableParentInfo = DartModelManager.getInstance().getInfo(openableParent);
-    if (openableParentInfo == null) {
-      openableParent.generateInfos(openableParent.createElementInfo(), newElements, pm);
-    }
+
   }
 
   @Override

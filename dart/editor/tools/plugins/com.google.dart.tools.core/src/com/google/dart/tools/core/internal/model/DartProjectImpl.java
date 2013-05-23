@@ -42,7 +42,6 @@ import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceProxy;
@@ -113,24 +112,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
    * either being mapped into the workspace or not.
    */
   public void clearLibraryInfo() {
-    DartModelManager manager = DartModelManager.getInstance();
-    manager.removeLibraryInfoAndChildren(project.getLocationURI());
-    IResource[] members;
-    try {
-      members = project.members();
-    } catch (CoreException exception) {
-      if (project.isOpen()) {
-        DartCore.logError("Failed to get project members: " + project, exception); //$NON-NLS-1$
-      }
-      return;
-    }
-    for (IResource child : members) {
-      if (child instanceof IFolder) {
-        if (((IFolder) child).isLinked()) {
-          manager.removeLibraryInfoAndChildren(child.getLocationURI());
-        }
-      }
-    }
+
   }
 
   /**
@@ -140,31 +122,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
    */
   @Override
   public void close() throws DartModelException {
-    if (DartProjectNature.hasDartNature(project)) {
-      // Get cached preferences if exist
-      PerProjectInfo perProjectInfo = DartModelManager.getInstance().getPerProjectInfo(
-          project,
-          false);
-      if (perProjectInfo != null && perProjectInfo.getPreferences() != null) {
-        try {
-          perProjectInfo.getPreferences().flush();
-        } catch (BackingStoreException exception) {
-          DartCore.logError(exception);
-        }
 
-        IEclipsePreferences eclipseParentPreferences = (IEclipsePreferences) perProjectInfo.getPreferences().parent();
-        if (preferencesNodeListener != null) {
-          eclipseParentPreferences.removeNodeChangeListener(preferencesNodeListener);
-          preferencesNodeListener = null;
-        }
-        if (preferencesChangeListener != null) {
-          perProjectInfo.getPreferences().removePreferenceChangeListener(preferencesChangeListener);
-          preferencesChangeListener = null;
-        }
-      }
-      clearLibraryInfo();
-    }
-    super.close();
   }
 
   /**
@@ -674,11 +632,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   }
 
   public void resetCaches() {
-    try {
-      DartModelManager.getInstance().removeInfoAndChildren(this);
-    } catch (DartModelException e) {
-      DartCore.logError("Failed to clear project cache for project " + getElementName());
-    }
+
   }
 
   @Override
@@ -910,15 +864,10 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     PackageLibraryManager libMgr = PackageLibraryManagerProvider.getPackageLibraryManager();
     LibrarySource librarySource = new UrlLibrarySource(uri, libMgr);
     DartLibraryImpl library;
-    if (file != null) {
-      // If found, then build a library reference with the Eclipse file
-      DartProjectImpl dartProject = !file.getProject().equals(project)
-          ? DartModelManager.getInstance().create(file.getProject()) : this;
-      library = new DartLibraryImpl(dartProject, file, librarySource);
-    } else {
-      // Otherwise build an external library reference
-      library = new DartLibraryImpl(librarySource);
-    }
+
+    // Otherwise build an external library reference
+    library = new DartLibraryImpl(librarySource);
+
     return library.getHandleFromMemento(tokenizer, owner);
   }
 

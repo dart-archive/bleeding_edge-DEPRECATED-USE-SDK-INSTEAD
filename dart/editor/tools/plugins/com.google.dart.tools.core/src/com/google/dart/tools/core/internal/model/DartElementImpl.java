@@ -209,7 +209,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
   }
 
   public void close() throws DartModelException {
-    DartModelManager.getInstance().removeInfoAndChildren(this);
+
   }
 
   /**
@@ -329,11 +329,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
    * @throws DartModelException if the element is not present or not accessible
    */
   public DartElementInfo getElementInfo(IProgressMonitor monitor) throws DartModelException {
-    DartElementInfo info = DartModelManager.getInstance().getInfo(this);
-    if (info != null) {
-      return info;
-    }
-    return openWhenClosed(createElementInfo(), monitor);
+    return null;
   }
 
   @Override
@@ -449,11 +445,8 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
     // If this element is not open, return true to avoid opening (case of a Dart
     // project, a compilation unit or a class file).
     // also see https://bugs.eclipse.org/bugs/show_bug.cgi?id=52474
-    DartElementInfo elementInfo = DartModelManager.getInstance().getInfo(this);
-    if (elementInfo == null) {
-      return true;
-    }
-    return elementInfo.getChildren().length > 0;
+
+    return false;
   }
 
   // This hashCode method is called _a lot_.
@@ -523,7 +516,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
 
   @Deprecated
   public boolean isOpen() {
-    return DartModelManager.getInstance().getInfo(this) != null;
+    return false;
   }
 
   @Override
@@ -561,34 +554,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
    */
   public DartElementInfo openWhenClosed(DartElementInfo info, IProgressMonitor monitor)
       throws DartModelException {
-    DartModelManager manager = DartModelManager.getInstance();
-    boolean hadTemporaryCache = manager.hasTemporaryCache();
-    try {
-      HashMap<DartElement, DartElementInfo> newElements = manager.getTemporaryCache();
-      generateInfos(info, newElements, monitor);
-      if (info == null) {
-        info = newElements.get(this);
-      }
-      if (info == null) {
-        // a source ref element could not be opened
-        // close the buffer that was opened for the openable parent
-        // close only the openable's buffer (see
-        // https://bugs.eclipse.org/bugs/show_bug.cgi?id=62854)
-        OpenableElementImpl openable = (OpenableElementImpl) getOpenable();
-        if (newElements.containsKey(openable)) {
-          openable.closeBuffer();
-        }
-        throw newNotPresentException();
-      }
-      if (!hadTemporaryCache) {
-        manager.putInfos(this, newElements);
-      }
-    } finally {
-      if (!hadTemporaryCache) {
-        manager.resetTemporaryCache();
-      }
-    }
-    return info;
+    return null;
   }
 
   public abstract IResource resource();
@@ -616,9 +582,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
    * Debugging purposes
    */
   public DartElementInfo toStringInfo(int tab, StringBuilder builder) {
-    DartElementInfo info = DartModelManager.getInstance().peekAtInfo(this);
-    toStringInfo(tab, builder, info, true);
-    return info;
+    return null;
   }
 
   /**

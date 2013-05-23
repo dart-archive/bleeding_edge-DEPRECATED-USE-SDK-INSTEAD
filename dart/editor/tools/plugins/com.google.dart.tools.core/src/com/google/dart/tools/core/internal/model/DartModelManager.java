@@ -23,14 +23,11 @@ import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.DartPreferenceConstants;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.generator.DartProjectGenerator;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaBuilder;
-import com.google.dart.tools.core.internal.model.delta.DeltaProcessingState;
 import com.google.dart.tools.core.internal.model.delta.IDeltaProcessor;
-import com.google.dart.tools.core.internal.model.delta.MockDeltaProcessor;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartProjectInfo;
 import com.google.dart.tools.core.internal.util.Extensions;
@@ -274,11 +271,6 @@ public class DartModelManager {
   private Map<WorkingCopyOwner, Map<CompilationUnit, PerWorkingCopyInfo>> perWorkingCopyInfos = new HashMap<WorkingCopyOwner, Map<CompilationUnit, PerWorkingCopyInfo>>(
       5);
 
-  /**
-   * Holds the state used for delta processing.
-   */
-  private DeltaProcessingState deltaState;
-
   private HashSet<String> optionNames = new HashSet<String>(20);
 
   private HashMap<String, String> optionsCache;
@@ -387,7 +379,7 @@ public class DartModelManager {
    * @param eventMask the bit-wise OR of all event types of interest to the listener
    */
   public void addElementChangedListener(ElementChangedListener listener, int eventMask) {
-    deltaState.addElementChangedListener(listener, eventMask);
+
   }
 
   /**
@@ -647,12 +639,7 @@ public class DartModelManager {
   }
 
   public IDeltaProcessor getDeltaProcessor() {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      // TODO(devoncarew): eventually we'll want to throw an exception here on access
-      return MockDeltaProcessor.getInstance();
-    } else {
-      return deltaState.getDeltaProcessor();
-    }
+    return null;
   }
 
   /**
@@ -1051,6 +1038,8 @@ public class DartModelManager {
     }
   }
 
+
+
   /**
    * Remove the given listener from the list of objects that are listening for changes to Dart
    * elements. Has no affect if an identical listener is not registered.
@@ -1058,7 +1047,7 @@ public class DartModelManager {
    * @param listener the listener to be removed
    */
   public void removeElementChangedListener(ElementChangedListener listener) {
-    deltaState.removeElementChangedListener(listener);
+
   }
 
   /**
@@ -1715,10 +1704,6 @@ public class DartModelManager {
       DartCore.logError("Could not save DartCore preferences", e); //$NON-NLS-1$
     }
 
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      deltaState.dispose();
-    }
-
     ResourcesPlugin.getWorkspace().removeSaveParticipant(DartCore.PLUGIN_ID);
 
     // // Stop listening to content-type changes
@@ -1796,9 +1781,6 @@ public class DartModelManager {
 
       // listen for resource changes
       // deltaState.initializeRootsWithPreviousSession();
-      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        deltaState = new DeltaProcessingState();
-      }
 
       ResourceUtil.startup();
       DartCore.notYetImplemented();
