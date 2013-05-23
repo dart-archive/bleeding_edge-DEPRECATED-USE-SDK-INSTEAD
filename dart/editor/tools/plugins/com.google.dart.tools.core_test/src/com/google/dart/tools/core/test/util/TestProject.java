@@ -19,7 +19,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
-import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 
@@ -237,10 +236,7 @@ public class TestProject {
   public CompilationUnit setUnitContent(String path, String content) throws Exception {
     IFile file = setFileContent(path, content);
     CompilationUnit unit = (CompilationUnit) DartCore.create(file);
-    if (unit == null) {
-      DartModelManager.getInstance().resetModel();
-      unit = (CompilationUnit) DartCore.create(file);
-    }
+
     return unit;
   }
 }

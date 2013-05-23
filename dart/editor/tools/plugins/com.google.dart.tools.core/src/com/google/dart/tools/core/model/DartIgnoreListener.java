@@ -13,13 +13,13 @@
  */
 package com.google.dart.tools.core.model;
 
-import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 /**
  * A dart ignore listener is notified of changes to dart ignores (e.g., files flagged to be ignored
- * during analysis) as managed by the {@link DartModelManager}.
+ * during analysis) as managed by the {@link DartIgnoreManager}.
  * 
- * @see DartModelManager#addIgnoreListener(DartIgnoreListener)
+ * @see DartIgnoreManager#addListener(DartIgnoreListener)
  */
 public interface DartIgnoreListener {
 

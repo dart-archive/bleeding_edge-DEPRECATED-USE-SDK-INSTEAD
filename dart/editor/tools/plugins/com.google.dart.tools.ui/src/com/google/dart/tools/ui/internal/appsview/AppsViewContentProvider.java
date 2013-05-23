@@ -14,14 +14,11 @@
 package com.google.dart.tools.ui.internal.appsview;
 
 import com.google.dart.compiler.util.Lists;
-import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IResource;
@@ -191,14 +188,9 @@ public class AppsViewContentProvider implements ITreeContentProvider, IResourceC
   }
 
   private List<DartLibrary> findAllLibraries(IWorkspaceRoot root) throws CoreException {
-    DartModel model = DartModelManager.getInstance().getDartModel();
+
     List<DartLibrary> children = new ArrayList<DartLibrary>();
-    for (IResource res : root.members()) {
-      DartProject proj = model.getDartProject(res);
-      for (DartLibrary lib : proj.getDartLibraries()) {
-        children.add(lib);
-      }
-    }
+
     return children;
   }
 

@@ -41,7 +41,6 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -1134,13 +1133,7 @@ public class BindingUtils {
    * @throws DartModelException if some portion of the workspace cannot be traversed
    */
   private static void addTypes(Set<Type> matchingTypes, String typeName) throws DartModelException {
-    for (DartProject project : DartModelManager.getInstance().getDartModel().getDartProjects()) {
-      for (DartElement child : project.getChildren()) {
-        if (child instanceof DartLibrary) {
-          addTypes(matchingTypes, (DartLibrary) child, typeName);
-        }
-      }
-    }
+
   }
 
   private static DartFunction findFunction(com.google.dart.compiler.ast.DartFunction node,
@@ -1249,17 +1242,7 @@ public class BindingUtils {
   private static List<DartLibrary> getAllImportedLibraries(DartLibrary library)
       throws DartModelException {
     List<DartLibrary> libraries = new ArrayList<DartLibrary>();
-    boolean coreImported = false;
-    for (DartLibrary importedLibrary : library.getImportedLibraries()) {
-      libraries.add(importedLibrary);
-      DartCore.notYetImplemented();
-//      if (importedLibrary.isCore()) {
-//        coreImported = true;
-//      }
-    }
-    if (!coreImported) {
-      libraries.add(DartModelManager.getInstance().getDartModel().getCoreLibrary());
-    }
+
     return libraries;
   }
 
@@ -1314,17 +1297,7 @@ public class BindingUtils {
     if (file != null) {
       return findLibrary(DartCore.create(file.getProject()), targetUri);
     }
-    try {
-      for (DartProject project : DartModelManager.getInstance().getDartModel().getDartProjects()) {
-        DartLibrary foundLibrary = findLibrary(project, targetUri);
-        if (foundLibrary != null) {
-          return foundLibrary;
-        }
-      }
-    } catch (DartModelException exception) {
-      DartCore.logError("Could not access Dart projects while trying to find library with URI "
-          + targetUri, exception);
-    }
+
     return null;
   }
 

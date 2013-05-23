@@ -17,7 +17,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.internal.buffer.DocumentAdapter;
 import com.google.dart.tools.core.internal.model.DartElementImpl;
-import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartModelStatusImpl;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaImpl;
 import com.google.dart.tools.core.internal.util.Messages;
@@ -52,7 +51,6 @@ import org.eclipse.text.edits.TextEdit;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * The class <code>DartModelOperation</code> defines the behavior common to all Dart Model
@@ -298,7 +296,7 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
    * @return the Dart Model this operation is operating in
    */
   public DartModel getDartModel() {
-    return DartModelManager.getInstance().getDartModel();
+    return null;
   }
 
   /**
@@ -447,33 +445,7 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
    * Register the given delta with the Dart Model Manager.
    */
   protected void addDelta(DartElementDelta delta) {
-    DartModelManager.getInstance().getDeltaProcessor().registerDartModelDelta(delta);
-  }
 
-  /**
-   * Register the given reconcile delta with the Dart Model Manager.
-   * 
-   * @param workingCopy the working copy with which the delta is to be associated
-   * @param delta the delta to be added
-   */
-  protected void addReconcileDelta(CompilationUnit workingCopy, DartElementDeltaImpl delta) {
-    Map<CompilationUnit, DartElementDelta> reconcileDeltas = DartModelManager.getInstance().getDeltaProcessor().getReconcileDeltas();
-    DartElementDeltaImpl previousDelta = (DartElementDeltaImpl) reconcileDeltas.get(workingCopy);
-    if (previousDelta != null) {
-      DartElementDelta[] children = delta.getAffectedChildren();
-      for (int i = 0, length = children.length; i < length; i++) {
-        DartElementDeltaImpl child = (DartElementDeltaImpl) children[i];
-        previousDelta.insertDeltaTree(child.getElement(), child);
-      }
-      // note that the last delta's AST always takes precedence over the
-      // existing delta's AST since it is the result of the last reconcile
-      // operation
-      if ((delta.getFlags() & DartElementDelta.F_AST_AFFECTED) != 0) {
-        previousDelta.changedAST(delta.getCompilationUnitAST());
-      }
-    } else {
-      reconcileDeltas.put(workingCopy, delta);
-    }
   }
 
   protected void applyTextEdit(CompilationUnit cu, TextEdit edits) throws DartModelException {

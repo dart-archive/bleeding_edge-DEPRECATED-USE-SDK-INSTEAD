@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.appsview;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartIgnoreEvent;
@@ -199,7 +198,6 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
       restoreState();
       int eventMask = ElementChangedEvent.POST_RECONCILE;
-      DartModelManager.getInstance().addElementChangedListener(modelListener, eventMask);
 
     } finally {
       instrumentation.log();
@@ -226,10 +224,6 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     if (propertyChangeListener != null) {
       getPreferences().removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
-    }
-
-    if (modelListener != null) {
-      DartModelManager.getInstance().removeElementChangedListener(modelListener);
     }
 
     super.dispose();

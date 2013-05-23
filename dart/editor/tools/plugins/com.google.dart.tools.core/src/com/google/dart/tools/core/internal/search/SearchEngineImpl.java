@@ -27,8 +27,6 @@ import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.search.listener.CountingSearchListener;
 import com.google.dart.tools.core.internal.search.listener.FilteredSearchListener;
 import com.google.dart.tools.core.internal.search.listener.GatheringSearchListener;
@@ -228,19 +226,7 @@ public class SearchEngineImpl implements SearchEngine {
       }
       String libraryUri = resourceComponents.get(0);
       String unitUri = resourceComponents.get(1);
-      if (unitUri.startsWith("dart:")) {
-        try {
-          ExternalCompilationUnitImpl unit = DartModelManager.getInstance().getDartModel().getBundledCompilationUnit(
-              new URI(libraryUri));
-          if (unit != null) {
-            int index = unitUri.lastIndexOf('/');
-            return unit.getLibrary().getCompilationUnit(unitUri.substring(index + 1));
-          }
-        } catch (Exception exception) {
-          DartCore.logError("Could not get bundled resource " + resourceId, exception);
-        }
-        return null;
-      }
+     
       IFile[] unitFiles = getFilesForUri(unitUri);
       if (unitFiles == null) {
         return null;

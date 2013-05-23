@@ -55,7 +55,6 @@ import com.google.dart.tools.core.internal.model.info.DartVariableInfo;
 import com.google.dart.tools.core.internal.model.info.DeclarationElementInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.internal.operation.CommitWorkingCopyOperation;
-import com.google.dart.tools.core.internal.operation.DiscardWorkingCopyOperation;
 import com.google.dart.tools.core.internal.problem.CategorizedProblem;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
@@ -1126,9 +1125,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
   @Override
   public void discardWorkingCopy() throws DartModelException {
-    // discard working copy and its children
-    DiscardWorkingCopyOperation op = new DiscardWorkingCopyOperation(this);
-    op.runOperation(null);
+
   }
 
   @Override
