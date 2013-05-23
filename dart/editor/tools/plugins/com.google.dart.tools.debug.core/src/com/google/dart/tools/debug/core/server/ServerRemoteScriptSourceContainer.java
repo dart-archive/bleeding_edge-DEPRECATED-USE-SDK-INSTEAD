@@ -104,7 +104,7 @@ public class ServerRemoteScriptSourceContainer extends AbstractSourceContainer {
         fileName = "dart:" + fileName;
       }
 
-      File file = File.createTempFile(fileName.replace(':', '~') + "$$", ".dart");
+      File file = File.createTempFile(sanitizeFileName(fileName) + "$$", ".dart");
       file.deleteOnExit();
 
       Writer out = new OutputStreamWriter(new FileOutputStream(file), Charset.forName("UTF8"));
@@ -119,6 +119,10 @@ public class ServerRemoteScriptSourceContainer extends AbstractSourceContainer {
     }
 
     return cachedSourceMap.get(url);
+  }
+
+  private String sanitizeFileName(String str) {
+    return str.replace(':', '~').replace('/', '_').replace('\\', '_');
   }
 
 }

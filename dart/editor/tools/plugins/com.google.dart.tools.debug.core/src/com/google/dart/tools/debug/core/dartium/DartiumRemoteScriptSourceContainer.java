@@ -102,9 +102,7 @@ public class DartiumRemoteScriptSourceContainer extends AbstractSourceContainer 
         url = url.substring(url.lastIndexOf('\\') + 1);
       }
 
-      url = url.replace(':', '~') + "$$";
-
-      File file = File.createTempFile(url, ".dart");
+      File file = File.createTempFile(sanitizeFileName(url) + "$$", ".dart");
       file.deleteOnExit();
 
       Writer out = new OutputStreamWriter(new FileOutputStream(file), Charset.forName("UTF8"));
@@ -119,5 +117,9 @@ public class DartiumRemoteScriptSourceContainer extends AbstractSourceContainer 
     }
 
     return (LocalFileStorage) script.getPrivateData();
+  }
+
+  private String sanitizeFileName(String str) {
+    return str.replace(':', '~').replace('/', '_').replace('\\', '_');
   }
 }
