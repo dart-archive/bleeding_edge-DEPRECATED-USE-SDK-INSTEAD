@@ -1014,7 +1014,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       errorReporter.reportError(
           CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL,
           methodName,
-          overridingPositionalPT.length,
+          overriddenPositionalPT.length,
           overriddenExecutable.getEnclosingElement().getDisplayName());
       return true;
     }
