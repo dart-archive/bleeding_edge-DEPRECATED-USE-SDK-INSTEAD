@@ -788,7 +788,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * a compile-time error if class <i>S</i> does not declare a generative constructor named <i>S</i>
    * (respectively <i>S.id</i>)
    */
-  NON_GENERATIVE_CONSTRUCTOR("The constructor '%s' is not generative"),
+  NON_GENERATIVE_CONSTRUCTOR("The generative constructor '%s' expected, but factory found"),
 
   /**
    * 7.9 Superclasses: It is a compile-time error to specify an extends clause for class Object.
