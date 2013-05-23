@@ -276,26 +276,29 @@ public class AnalysisWorker {
    */
   private void processChanges(ChangeNotice[] changes) {
     for (ChangeNotice change : changes) {
+      Source source = change.getSource();
+      IResource res = contextManager.getResource(source);
+
+      // Ignore if user requested to don't analyze resource.
+      if (res != null && !DartCore.isAnalyzed(res)) {
+        continue;
+      }
 
       // If errors are available, then queue the errors to be translated to markers
       AnalysisError[] errors = change.getErrors();
       if (errors != null) {
-        Source source = change.getSource();
-        IResource res = contextManager.getResource(source);
         if (res == null) {
           // TODO (danrubel): log unmatched sources once context 
           // only returns errors for added sources
           // DartCore.logError("Failed to determine resource for: " + source);
         } else {
-          if (DartCore.isAnalyzed(res)) {
-            IPath location = res.getLocation();
-            if (location != null && !DartCore.isContainedInPackages(location.toFile())) {
-              LineInfo lineInfo = change.getLineInfo();
-              if (lineInfo == null) {
-                DartCore.logError("Missing line information for: " + source);
-              } else {
-                markerManager.queueErrors(res, lineInfo, errors);
-              }
+          IPath location = res.getLocation();
+          if (location != null && !DartCore.isContainedInPackages(location.toFile())) {
+            LineInfo lineInfo = change.getLineInfo();
+            if (lineInfo == null) {
+              DartCore.logError("Missing line information for: " + source);
+            } else {
+              markerManager.queueErrors(res, lineInfo, errors);
             }
           }
         }

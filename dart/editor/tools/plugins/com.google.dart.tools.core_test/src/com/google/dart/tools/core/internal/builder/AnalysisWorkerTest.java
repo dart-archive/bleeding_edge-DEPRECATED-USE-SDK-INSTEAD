@@ -7,6 +7,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
@@ -24,6 +25,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -58,6 +60,24 @@ public class AnalysisWorkerTest extends TestCase {
     assertEquals(1, analyzedProjects.size());
     assertEquals(project, analyzedProjects.get(0));
     // TODO (danrubel): Assert no log entries once context only returns errors for added sources
+  }
+
+  public void test_performAnalysis_ignoredResource() throws Exception {
+    worker = new AnalysisWorker(project, context, manager, markerManager);
+
+    // Perform the analysis and wait for the results to flow through the marker manager
+    MockFile fileRes = addLibrary();
+    DartCore.addToIgnores(fileRes);
+    try {
+      worker.performAnalysis();
+      markerManager.waitForMarkers(10000);
+
+      fileRes.assertMarkersNotDeleted();
+      assertTrue(fileRes.getMarkers().size() == 0);
+      verify(index, never()).indexUnit(eq(context), any(CompilationUnit.class));
+    } finally {
+      DartCore.removeFromIgnores(fileRes);
+    }
   }
 
   public void test_performAnalysisInBackground() throws Exception {
