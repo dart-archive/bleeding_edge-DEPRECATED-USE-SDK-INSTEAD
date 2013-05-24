@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.ui.internal.server;
 
-import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -24,6 +23,7 @@ import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

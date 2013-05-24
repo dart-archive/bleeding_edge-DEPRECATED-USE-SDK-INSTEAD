@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.debug.core.server;
 
-import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
@@ -46,6 +45,7 @@ import java.util.List;
 public class ServerDebugStackFrame extends ServerDebugElement implements IStackFrame,
     IDartStackFrame, IExceptionStackFrame, IVariableResolver, IExpressionEvaluator {
   private IThread thread;
+
   private VmCallFrame vmFrame;
 
   private boolean isExceptionStackFrame;
@@ -187,7 +187,7 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     URI uri = URI.create(location.getUrl());
 
     // Resolve a package: reference.
-    if (PackageLibraryManager.isPackageUri(uri)) {
+    if (DartCore.isPackageSpec(location.getUrl())) {
       DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
           getDebugTarget().getLaunch().getLaunchConfiguration());
 

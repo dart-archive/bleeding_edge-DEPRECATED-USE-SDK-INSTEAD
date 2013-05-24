@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.core.configs;
 
-import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
@@ -27,6 +26,7 @@ import com.google.dart.tools.debug.core.server.ServerRemoteProcess;
 import com.google.dart.tools.debug.core.util.CoreLaunchUtils;
 import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;

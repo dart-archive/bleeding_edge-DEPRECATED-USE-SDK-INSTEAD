@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.ui.internal.util;
 
-import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
@@ -30,6 +29,7 @@ import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.dartium.DartiumLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
