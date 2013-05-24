@@ -20,8 +20,6 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(LibraryReferenceFinderTest.class);
-    suite.addTestSuite(NullInputStreamTest.class);
-    suite.addTestSuite(JSONErrorMessageParserTest.class);
     suite.addTestSuite(SourceRangeUtilsTest.class);
     return suite;
   }

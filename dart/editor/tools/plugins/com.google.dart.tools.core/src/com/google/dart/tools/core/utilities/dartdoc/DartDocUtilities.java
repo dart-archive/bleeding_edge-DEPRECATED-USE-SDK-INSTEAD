@@ -32,15 +32,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.SimpleElementVisitor;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
-import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartDocumentable;
-import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.model.Field;
-import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.Type;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -329,53 +321,6 @@ public final class DartDocUtilities {
   }
 
   /**
-   * Return the prettified DartDoc text for the given DartDocumentable element.
-   * 
-   * @param documentable
-   * @return
-   * @throws DartModelException
-   */
-  public static String getDartDoc(DartDocumentable documentable) throws DartModelException {
-    SourceRange sourceRange = documentable.getDartDocRange();
-
-    if (sourceRange != null) {
-      SourceRange range = sourceRange;
-
-      String dartDoc = documentable.getOpenable().getBuffer().getText(
-          range.getOffset(),
-          range.getLength());
-
-      return cleanDartDoc(dartDoc);
-    }
-
-    return null;
-  }
-
-  /**
-   * Return the prettified DartDoc text for the given DartDocumentable element.
-   * 
-   * @param documentable
-   * @return
-   * @throws DartModelException
-   */
-  public static String getDartDocAsHtml(DartDocumentable documentable) throws DartModelException {
-    // Check if the element is dartdoc'd.
-    SourceRange sourceRange = documentable.getDartDocRange();
-
-    if (sourceRange != null) {
-      SourceRange range = sourceRange;
-
-      String dartDoc = documentable.getOpenable().getBuffer().getText(
-          range.getOffset(),
-          range.getLength());
-
-      return convertToHtml(cleanDartDoc(dartDoc));
-    }
-
-    return null;
-  }
-
-  /**
    * Return the prettified DartDoc text for the given element.
    */
   public static String getDartDocAsHtml(Element element) {
@@ -390,93 +335,6 @@ public final class DartDocUtilities {
     }
 
     return null;
-  }
-
-  /**
-   * Return a one-line description of the given documentable DartElement.
-   * 
-   * @param documentable
-   * @return
-   */
-  public static String getTextSummary(DartDocumentable documentable) {
-    // TODO(devoncarew): this method should be re-written as a visitor to remove all the instanceof checks.
-
-    try {
-      if (documentable instanceof Field) {
-        Field field = (Field) documentable;
-
-        if (field.getTypeName() != null) {
-          return field.getTypeName() + " " + field.getElementName();
-        } else {
-          return field.getElementName();
-        }
-      } else if (documentable instanceof DartVariableDeclaration) {
-        DartVariableDeclaration decl = (DartVariableDeclaration) documentable;
-
-        return decl.getTypeName() + " " + decl.getElementName();
-      } else if (documentable instanceof Type) {
-        Type type = (Type) documentable;
-
-        if (type.getLibrary() != null) {
-          return type.getElementName() + " - " + type.getLibrary().getDisplayName();
-        } else {
-          return type.getElementName();
-        }
-      } else if (documentable instanceof DartFunction) {
-        DartFunction function = (DartFunction) documentable;
-
-        StringBuffer buf = new StringBuffer();
-
-        String[] typeNames = function.getFullParameterTypeNames();
-        String[] parameterNames = function.getParameterNames();
-
-        for (int i = 0; i < parameterNames.length; i++) {
-          if (i > 0) {
-            buf.append(", ");
-          }
-
-          String typeName = typeNames[i];
-          String paramName = parameterNames[i];
-
-          if (typeName.indexOf('(') != -1) {
-            // Instead of returning "void(var) callback", return "void callback(var)".
-            int index = typeName.indexOf('(');
-
-            buf.append(typeName.substring(0, index));
-            buf.append(" ");
-            buf.append(paramName);
-            buf.append(typeName.substring(index));
-          } else {
-            buf.append(typeName + " " + paramName);
-          }
-        }
-
-        String returnTypeName = function.getReturnTypeName();
-
-        //special handling for getters
-        if (function instanceof Method) {
-          Method method = (Method) function;
-          if (method.isGetter()) {
-            StringBuilder sb = new StringBuilder();
-            if (returnTypeName != null) {
-              sb.append(returnTypeName).append(' ');
-            }
-            sb.append("get ").append(function.getElementName());
-            return sb.toString();
-          }
-        }
-
-        if (returnTypeName != null) {
-          return returnTypeName + " " + function.getElementName() + "(" + buf + ")";
-        } else {
-          return function.getElementName() + "(" + buf + ")";
-        }
-      } else {
-        return documentable.getElementName();
-      }
-    } catch (DartModelException exception) {
-      return documentable.getElementName();
-    }
   }
 
   /**
@@ -496,13 +354,6 @@ public final class DartDocUtilities {
     }
 
     return null;
-  }
-
-  /**
-   * @return a one-line description of the given documentable DartElement
-   */
-  public static String getTextSummaryAsHtml(DartDocumentable documentable) {
-    return convertToHtml(getTextSummary(documentable));
   }
 
   /**

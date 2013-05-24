@@ -40,7 +40,6 @@ public class TestAll {
     suite.addTest(com.google.dart.tools.core.internal.TestAll.suite());
     // suite.addTest(com.google.dart.tools.core.model.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.pub.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.refresh.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.utilities.TestAll.suite());
     if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       suite.addTest(com.google.dart.tools.core.workingcopy.TestAll.suite());

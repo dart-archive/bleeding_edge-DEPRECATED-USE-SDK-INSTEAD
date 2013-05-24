@@ -21,17 +21,6 @@ import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_identical_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_functionLiteral_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeAbstract_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeInterface_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M3_Future_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M4_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.style.Style_trailingSpace_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.style.Style_useTypeAnnotations_CleanUp;
 import com.google.dart.tools.ui.internal.util.GridDataFactory;
 import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
@@ -74,19 +63,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     private static final String ID_STYLE_USE_TYPE_ANNOTATIONS_CONFIG = "style-useTypeAnnotations-config";
 
     static {
-      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_IDENTICAL, new Migrate_1M1_identical_CleanUp());
-      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M1_LIBRARY, new Migrate_1M1_library_CleanUp());
-      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M2_METHODS, new Migrate_1M2_methods_CleanUp());
-      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M2_RENAME_TYPES, new Migrate_1M2_renameTypes_CleanUp());
-      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M2_REMOVE_ABSTRACT, new Migrate_1M2_removeAbstract_CleanUp());
-      CLEAN_UPS.put(
-          ID_MIGRATE_SYNTAX_1M2_REMOVE_INTERFACE,
-          new Migrate_1M2_removeInterface_CleanUp());
-      CLEAN_UPS.put(
-          ID_MIGRATE_SYNTAX_1M2_FUNCTION_LITERAL,
-          new Migrate_1M2_functionLiteral_CleanUp());
-      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M3_FUTURE, new Migrate_1M3_Future_CleanUp());
-      CLEAN_UPS.put(ID_MIGRATE_1M4_LIBRARY, new Migrate_1M4_CleanUp());
+
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_IDENTICAL, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_LIBRARY, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_METHODS, false);
@@ -97,15 +74,9 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       settings.setDefault(ID_MIGRATE_SYNTAX_1M3_LIBRARY, false);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M3_FUTURE, false);
       settings.setDefault(ID_MIGRATE_1M4_LIBRARY, false);
-      // style
-      CLEAN_UPS.put(ID_STYLE_TRAILING_WHITESPACE, new Style_trailingSpace_CleanUp());
-      CLEAN_UPS.put(ID_STYLE_USE_TYPE_ANNOTATIONS, new Style_useTypeAnnotations_CleanUp());
       settings.setDefault(ID_STYLE_TRAILING_WHITESPACE, true);
       settings.setDefault(ID_STYLE_USE_BLOCKS, true);
       settings.setDefault(ID_STYLE_USE_TYPE_ANNOTATIONS, false);
-      settings.setDefault(
-          ID_STYLE_USE_TYPE_ANNOTATIONS_CONFIG,
-          Style_useTypeAnnotations_CleanUp.NEVER);
     }
 
     private final CleanUpRefactoring refactoring;
@@ -211,13 +182,14 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 final Composite typeAnnotationsComposite = new Composite(tabComposite, SWT.NONE);
                 GridDataFactory.create(typeAnnotationsComposite).indentHorizontalChars(5);
                 GridLayoutFactory.create(typeAnnotationsComposite);
-                createRadioButtons(
-                    typeAnnotationsComposite,
-                    ID_STYLE_USE_TYPE_ANNOTATIONS_CONFIG,
-                    new String[] {"Always", "Never"},
-                    new String[] {
-                        Style_useTypeAnnotations_CleanUp.ALWAYS,
-                        Style_useTypeAnnotations_CleanUp.NEVER});
+                // fix then enable
+//                createRadioButtons(
+//                    typeAnnotationsComposite,
+//                    ID_STYLE_USE_TYPE_ANNOTATIONS_CONFIG,
+//                    new String[] {"Always", "Never"},
+//                    new String[] {
+//                        Style_useTypeAnnotations_CleanUp.ALWAYS,
+//                        Style_useTypeAnnotations_CleanUp.NEVER});
                 // enable/disable radio buttons
                 SWTUtil.setEnabledHierarchy(
                     typeAnnotationsComposite,
@@ -288,9 +260,9 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
         String id = entry.getKey();
         if (settings.getBoolean(id)) {
           ICleanUp cleanUp = entry.getValue();
-          if (cleanUp instanceof Style_useTypeAnnotations_CleanUp) {
-            ((Style_useTypeAnnotations_CleanUp) cleanUp).setConfig(settings.get(ID_STYLE_USE_TYPE_ANNOTATIONS_CONFIG));
-          }
+//          if (cleanUp instanceof Style_useTypeAnnotations_CleanUp) {
+//            ((Style_useTypeAnnotations_CleanUp) cleanUp).setConfig(settings.get(ID_STYLE_USE_TYPE_ANNOTATIONS_CONFIG));
+//          }
           refactoring.addCleanUp(cleanUp);
         }
       }

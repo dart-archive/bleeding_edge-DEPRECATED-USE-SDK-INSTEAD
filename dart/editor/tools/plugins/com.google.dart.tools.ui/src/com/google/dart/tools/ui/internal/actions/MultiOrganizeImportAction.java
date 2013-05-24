@@ -18,7 +18,6 @@ import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.cleanup.CleanUpOptions;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpConstants;
-import com.google.dart.tools.ui.internal.cleanup.ImportsCleanUp;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
@@ -66,8 +65,10 @@ public class MultiOrganizeImportAction extends CleanUpAction {
   protected ICleanUp[] getCleanUps(CompilationUnit[] units) {
     Map<String, String> settings = new Hashtable<String, String>();
     settings.put(CleanUpConstants.ORGANIZE_IMPORTS, CleanUpOptions.TRUE);
-    ImportsCleanUp importsCleanUp = new ImportsCleanUp(settings);
-    return new ICleanUp[] {importsCleanUp};
+    //TODO fix or remove
+//    ImportsCleanUp importsCleanUp = new ImportsCleanUp(settings);
+//    return new ICleanUp[] {importsCleanUp};
+    return null;
   }
 
   @Override
