@@ -24,18 +24,14 @@ import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
-import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchScope;
-import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -43,6 +39,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import java.util.Collection;
 import java.util.Map;
 
+@Deprecated
 public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
 
   private final CallSearchResultCollector searchResults;
@@ -118,27 +115,30 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
    * Adds the specified method element to the search results.
    */
   private void addMethodCall(Element calledMethodBinding, DartNode node) {
-    if (calledMethodBinding == null) {
-      return;
-    }
-    if (calledMethodBinding instanceof MethodElement) {
-      progressMonitor.worked(1);
-      MethodElement calledElement = (MethodElement) calledMethodBinding;
-      Element classElement = calledElement.getEnclosingElement();
-      Method calledMethod = (Method) BindingUtils.getDartElement(calledElement);
-      TypeMember referencedMember = null;
-      if ((classElement instanceof ClassElement) && ((ClassElement) classElement).isInterface()) {
-        calledMethod = findImplementingMethods(calledMethod);
-      }
 
-      if (!isIgnoredBySearchScope(calledMethod)) {
-        referencedMember = calledMethod;
-      }
-      final int position = node.getSourceInfo().getOffset();
-      final int number = node.getSourceInfo().getLine();
-      searchResults.addMember(memberToAnalyze, referencedMember, position, position
-          + node.getSourceInfo().getLength(), number < 1 ? 1 : number);
-    }
+    //TODO (pquitslund): commented to remove ref to BindingUtils
+
+//    if (calledMethodBinding == null) {
+//      return;
+//    }
+//    if (calledMethodBinding instanceof MethodElement) {
+//      progressMonitor.worked(1);
+//      MethodElement calledElement = (MethodElement) calledMethodBinding;
+//      Element classElement = calledElement.getEnclosingElement();
+//      Method calledMethod = (Method) BindingUtils.getDartElement(calledElement);
+//      TypeMember referencedMember = null;
+//      if ((classElement instanceof ClassElement) && ((ClassElement) classElement).isInterface()) {
+//        calledMethod = findImplementingMethods(calledMethod);
+//      }
+//
+//      if (!isIgnoredBySearchScope(calledMethod)) {
+//        referencedMember = calledMethod;
+//      }
+//      final int position = node.getSourceInfo().getOffset();
+//      final int number = node.getSourceInfo().getLine();
+//      searchResults.addMember(memberToAnalyze, referencedMember, position, position
+//          + node.getSourceInfo().getLength(), number < 1 ? 1 : number);
+//    }
   }
 
   private Method findImplementingMethods(Method calledMethod) {

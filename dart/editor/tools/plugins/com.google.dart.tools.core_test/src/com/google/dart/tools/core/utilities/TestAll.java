@@ -21,10 +21,6 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      suite.addTest(com.google.dart.tools.core.utilities.ast.TestAll.suite());
-      suite.addTest(com.google.dart.tools.core.utilities.bindings.TestAll.suite());
-    }
     suite.addTest(com.google.dart.tools.core.utilities.collections.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.utilities.general.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.utilities.io.TestAll.suite());

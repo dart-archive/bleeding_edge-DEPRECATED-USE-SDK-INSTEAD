@@ -16,10 +16,8 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
-import com.google.dart.compiler.resolver.Element;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.NodeLocator;
@@ -42,8 +40,6 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.utilities.ast.DartElementLocator;
-import com.google.dart.tools.core.utilities.ast.NameOccurrencesFinder;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.search.internal.ui.DartSearchActionGroup;
@@ -4353,149 +4349,149 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return;
     }
 
-    if (fOccurrencesFinderJob != null) {
-      fOccurrencesFinderJob.cancel();
-    }
-
-    if (!fMarkOccurrenceAnnotations) {
-      return;
-    }
-
-    if (astRoot == null || selection == null) {
-      return;
-    }
-
-    IDocument document = getSourceViewer().getDocument();
-    if (document == null) {
-      return;
-    }
-
-    if (document instanceof IDocumentExtension4) {
-      int offset = selection.getOffset();
-      long currentModificationStamp = ((IDocumentExtension4) document).getModificationStamp();
-      IRegion markOccurrenceTargetRegion = fMarkOccurrenceTargetRegion;
-      if (markOccurrenceTargetRegion != null
-          && currentModificationStamp == fMarkOccurrenceModificationStamp) {
-        if (markOccurrenceTargetRegion.getOffset() <= offset
-            && offset <= markOccurrenceTargetRegion.getOffset()
-                + markOccurrenceTargetRegion.getLength()) {
-          return;
-        }
-      }
-      fMarkOccurrenceTargetRegion = DartWordFinder.findWord(document, offset);
-      fMarkOccurrenceModificationStamp = currentModificationStamp;
-    }
-
-    DartX.todo("marking");
-    List<DartNode> matches = null;
-
-    DartElement dartElement = getInputDartElement();
-    if (dartElement == null) {
-      return;
-    }
-
-    CompilationUnit input = dartElement.getAncestor(CompilationUnit.class);
-    DartElementLocator locator = new DartElementLocator(
-        input,
-        selection.getOffset(),
-        selection.getOffset() + selection.getLength(),
-        true);
-    try {
-      if (astRoot.getLibrary() == null) {
-        // if astRoot is from ExternalCompilationUnit then it needs to be resolved; it is apparently not cached
-        astRoot = DartCompilerUtilities.resolveUnit(input); // TODO clean up astRoot
-      }
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e);
-    }
-    /* DartElement selectedModelNode = */locator.searchWithin(astRoot);
-    Element selectedNode = locator.getResolvedElement();
-
-//    if (fMarkExceptions || fMarkTypeOccurrences) {
-//      ExceptionOccurrencesFinder exceptionFinder = new ExceptionOccurrencesFinder();
-//      String message = exceptionFinder.initialize(astRoot, selectedNode);
-//      if (message == null) {
-//        matches = exceptionFinder.perform();
-//        if (!fMarkExceptions && !matches.isEmpty())
-//          matches.clear();
-//      }
+//    if (fOccurrencesFinderJob != null) {
+//      fOccurrencesFinderJob.cancel();
 //    }
-
-//    if ((matches == null || matches.isEmpty())
-//        && (fMarkMethodExitPoints || fMarkTypeOccurrences)) {
-//      MethodExitsFinder finder = new MethodExitsFinder();
-//      String message = finder.initialize(astRoot, selectedNode);
-//      if (message == null) {
-//        matches = finder.perform();
-//        if (!fMarkMethodExitPoints && !matches.isEmpty())
-//          matches.clear();
-//      }
-//    }
-
-//    if ((matches == null || matches.isEmpty())
-//        && (fMarkBreakContinueTargets || fMarkTypeOccurrences)) {
-//      BreakContinueTargetFinder finder = new BreakContinueTargetFinder();
-//      String message = finder.initialize(astRoot, selectedNode);
-//      if (message == null) {
-//        matches = finder.perform();
-//        if (!fMarkBreakContinueTargets && !matches.isEmpty())
-//          matches.clear();
-//      }
-//    }
-
-//    if ((matches == null || matches.isEmpty())
-//        && (fMarkImplementors || fMarkTypeOccurrences)) {
-//      ImplementOccurrencesFinder finder = new ImplementOccurrencesFinder();
-//      String message = finder.initialize(astRoot, selectedNode);
-//      if (message == null) {
-//        matches = finder.perform();
-//        if (!fMarkImplementors && !matches.isEmpty())
-//          matches.clear();
-//      }
-//    }
-
-//    if (matches == null) {
-//      IBinding binding = null;
-//      if (selectedNode instanceof Name) {
-//        binding = ((Name) selectedNode).resolveBinding();
-//      }
 //
-//      if (binding != null && markOccurrencesOfType(binding)) {
-//        // Find the matches && extract positions so we can forget the AST
-//        NameOccurrencesFinder finder = new NameOccurrencesFinder(binding);
-//        String message = finder.initialize(astRoot, selectedNode);
-//        if (message == null) {
-//          matches = finder.perform();
+//    if (!fMarkOccurrenceAnnotations) {
+//      return;
+//    }
+//
+//    if (astRoot == null || selection == null) {
+//      return;
+//    }
+//
+//    IDocument document = getSourceViewer().getDocument();
+//    if (document == null) {
+//      return;
+//    }
+//
+//    if (document instanceof IDocumentExtension4) {
+//      int offset = selection.getOffset();
+//      long currentModificationStamp = ((IDocumentExtension4) document).getModificationStamp();
+//      IRegion markOccurrenceTargetRegion = fMarkOccurrenceTargetRegion;
+//      if (markOccurrenceTargetRegion != null
+//          && currentModificationStamp == fMarkOccurrenceModificationStamp) {
+//        if (markOccurrenceTargetRegion.getOffset() <= offset
+//            && offset <= markOccurrenceTargetRegion.getOffset()
+//                + markOccurrenceTargetRegion.getLength()) {
+//          return;
 //        }
 //      }
+//      fMarkOccurrenceTargetRegion = DartWordFinder.findWord(document, offset);
+//      fMarkOccurrenceModificationStamp = currentModificationStamp;
 //    }
-
-    if (matches == null && selectedNode != null) {
-      NameOccurrencesFinder finder = new NameOccurrencesFinder(selectedNode);
-      finder.searchWithin(astRoot);
-      matches = finder.getMatches();
-    }
-    if (matches == null || matches.size() == 0) {
-      if (!fStickyOccurrenceAnnotations) {
-        removeOccurrenceAnnotations();
-      }
-      return;
-    }
-
-    Position[] positions = new Position[matches.size()];
-    int i = 0;
-    for (Iterator<DartNode> each = matches.iterator(); each.hasNext();) {
-      DartNode currentNode = each.next();
-      positions[i++] = new Position(
-          currentNode.getSourceInfo().getOffset(),
-          currentNode.getSourceInfo().getLength());
-    }
-
-    fOccurrencesFinderJob = new OccurrencesFinderJob(document, positions, selection);
-//      fOccurrencesFinderJob.setPriority(Job.DECORATE);
-//      fOccurrencesFinderJob.setSystem(true);
-//      fOccurrencesFinderJob.schedule();
-    fOccurrencesFinderJob.run(new NullProgressMonitor());
+//
+//    DartX.todo("marking");
+//    List<DartNode> matches = null;
+//
+//    DartElement dartElement = getInputDartElement();
+//    if (dartElement == null) {
+//      return;
+//    }
+//
+//    CompilationUnit input = dartElement.getAncestor(CompilationUnit.class);
+//    DartElementLocator locator = new DartElementLocator(
+//        input,
+//        selection.getOffset(),
+//        selection.getOffset() + selection.getLength(),
+//        true);
+//    try {
+//      if (astRoot.getLibrary() == null) {
+//        // if astRoot is from ExternalCompilationUnit then it needs to be resolved; it is apparently not cached
+//        astRoot = DartCompilerUtilities.resolveUnit(input); // TODO clean up astRoot
+//      }
+//    } catch (DartModelException e) {
+//      DartToolsPlugin.log(e);
+//    }
+//    /* DartElement selectedModelNode = */locator.searchWithin(astRoot);
+//    Element selectedNode = locator.getResolvedElement();
+//
+////    if (fMarkExceptions || fMarkTypeOccurrences) {
+////      ExceptionOccurrencesFinder exceptionFinder = new ExceptionOccurrencesFinder();
+////      String message = exceptionFinder.initialize(astRoot, selectedNode);
+////      if (message == null) {
+////        matches = exceptionFinder.perform();
+////        if (!fMarkExceptions && !matches.isEmpty())
+////          matches.clear();
+////      }
+////    }
+//
+////    if ((matches == null || matches.isEmpty())
+////        && (fMarkMethodExitPoints || fMarkTypeOccurrences)) {
+////      MethodExitsFinder finder = new MethodExitsFinder();
+////      String message = finder.initialize(astRoot, selectedNode);
+////      if (message == null) {
+////        matches = finder.perform();
+////        if (!fMarkMethodExitPoints && !matches.isEmpty())
+////          matches.clear();
+////      }
+////    }
+//
+////    if ((matches == null || matches.isEmpty())
+////        && (fMarkBreakContinueTargets || fMarkTypeOccurrences)) {
+////      BreakContinueTargetFinder finder = new BreakContinueTargetFinder();
+////      String message = finder.initialize(astRoot, selectedNode);
+////      if (message == null) {
+////        matches = finder.perform();
+////        if (!fMarkBreakContinueTargets && !matches.isEmpty())
+////          matches.clear();
+////      }
+////    }
+//
+////    if ((matches == null || matches.isEmpty())
+////        && (fMarkImplementors || fMarkTypeOccurrences)) {
+////      ImplementOccurrencesFinder finder = new ImplementOccurrencesFinder();
+////      String message = finder.initialize(astRoot, selectedNode);
+////      if (message == null) {
+////        matches = finder.perform();
+////        if (!fMarkImplementors && !matches.isEmpty())
+////          matches.clear();
+////      }
+////    }
+//
+////    if (matches == null) {
+////      IBinding binding = null;
+////      if (selectedNode instanceof Name) {
+////        binding = ((Name) selectedNode).resolveBinding();
+////      }
+////
+////      if (binding != null && markOccurrencesOfType(binding)) {
+////        // Find the matches && extract positions so we can forget the AST
+////        NameOccurrencesFinder finder = new NameOccurrencesFinder(binding);
+////        String message = finder.initialize(astRoot, selectedNode);
+////        if (message == null) {
+////          matches = finder.perform();
+////        }
+////      }
+////    }
+//
+//    if (matches == null && selectedNode != null) {
+//      NameOccurrencesFinder finder = new NameOccurrencesFinder(selectedNode);
+//      finder.searchWithin(astRoot);
+//      matches = finder.getMatches();
+//    }
+//    if (matches == null || matches.size() == 0) {
+//      if (!fStickyOccurrenceAnnotations) {
+//        removeOccurrenceAnnotations();
+//      }
+//      return;
+//    }
+//
+//    Position[] positions = new Position[matches.size()];
+//    int i = 0;
+//    for (Iterator<DartNode> each = matches.iterator(); each.hasNext();) {
+//      DartNode currentNode = each.next();
+//      positions[i++] = new Position(
+//          currentNode.getSourceInfo().getOffset(),
+//          currentNode.getSourceInfo().getLength());
+//    }
+//
+//    fOccurrencesFinderJob = new OccurrencesFinderJob(document, positions, selection);
+////      fOccurrencesFinderJob.setPriority(Job.DECORATE);
+////      fOccurrencesFinderJob.setSystem(true);
+////      fOccurrencesFinderJob.schedule();
+//    fOccurrencesFinderJob.run(new NullProgressMonitor());
   }
 
   @Override

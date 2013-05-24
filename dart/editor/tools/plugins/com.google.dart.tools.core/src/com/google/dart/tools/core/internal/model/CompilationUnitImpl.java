@@ -71,10 +71,8 @@ import com.google.dart.tools.core.model.DartModelStatusConstants;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.problem.ProblemRequestor;
-import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
-import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.resources.IFile;
@@ -1020,27 +1018,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
   @Override
   public DartElement[] codeSelect(DartUnit ast, int offset, int length,
       WorkingCopyOwner workingCopyOwner) throws DartModelException {
-    DartCore.notYetImplemented();
-    // TODO(brianwilkerson) This is probably not the right semantics for this method for all clients
-    // because we will only ever return a single element, but it works for the Open Declaration
-    // action.
-    PerformanceManager.Timer timer = PerformanceManager.getInstance().start(CODE_SELECT_ID);
-    try {
-      DartUnit unit = ast;
-      if (unit == null) {
-        unit = DartCompilerUtilities.resolveUnit(this);
-      }
-      if (unit != null) {
-        DartElementLocator locator = new DartElementLocator(this, offset, offset + length, true);
-        DartElement element = locator.searchWithin(unit);
-        if (element != null) {
-          return new DartElement[] {element};
-        }
-      }
-      return new DartElement[0];
-    } finally {
-      timer.end();
-    }
+    //TODO (pquitslund): remove
+    return null;
   }
 
   @Override

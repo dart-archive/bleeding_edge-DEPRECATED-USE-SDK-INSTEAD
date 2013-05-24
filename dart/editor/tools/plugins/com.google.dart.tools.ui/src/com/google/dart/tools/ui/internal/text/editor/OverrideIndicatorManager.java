@@ -21,9 +21,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.MethodNodeElement;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.Messages;
@@ -48,6 +46,7 @@ import java.util.Map;
 /**
  * Manages the override and overwrite indicators for the given Dart element and annotation model.
  */
+//TODO (pquitslund): remove
 class OverrideIndicatorManager implements IDartReconcilingListener_OLD {
   /**
    * Overwrite and override indicator annotation.
@@ -62,9 +61,10 @@ class OverrideIndicatorManager implements IDartReconcilingListener_OLD {
       // TODO(scheglov) we (probably) can optimize this, don't compiler Element's, but also don't
       // create DartElement. We need to remember enough lightweight information to do this.
       {
-        CompilationUnit dartUnit = managerDartElement.getAncestor(CompilationUnit.class);
-        DartElementLocator locator = new DartElementLocator(dartUnit, astElement);
-        dartElement = locator.getFoundElement();
+//        CompilationUnit dartUnit = managerDartElement.getAncestor(CompilationUnit.class);
+//        DartElementLocator locator = new DartElementLocator(dartUnit, astElement);
+//        dartElement = locator.getFoundElement();
+        dartElement = null;
       }
     }
 
