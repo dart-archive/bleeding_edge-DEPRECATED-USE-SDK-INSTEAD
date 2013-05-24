@@ -164,6 +164,16 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     return null;
   }
 
+  @SuppressWarnings("rawtypes")
+  @Override
+  public Object getAdapter(Class adapterClass) {
+    if (adapterClass == IThread.class) {
+      return getThread();
+    } else {
+      return super.getAdapter(adapterClass);
+    }
+  }
+
   @Override
   public int getCharEnd() throws DebugException {
     return -1;

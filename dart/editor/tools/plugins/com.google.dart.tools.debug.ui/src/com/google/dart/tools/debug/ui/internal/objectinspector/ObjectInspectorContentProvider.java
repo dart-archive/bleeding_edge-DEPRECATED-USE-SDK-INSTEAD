@@ -53,26 +53,13 @@ class ObjectInspectorContentProvider implements ITreeContentProvider {
 
   @Override
   public Object[] getElements(Object inputElement) {
-    IValue value = (IValue) inputElement;
+    Object[] elements = (Object[]) inputElement;
 
-    if (value == null) {
-      return EMPTY;
-    } else {
-      try {
-        return value.getVariables();
-      } catch (DebugException e) {
-        // TODO(devoncarew): determine the best way to present errors in the object inspector view
-        e.printStackTrace();
-
-        return EMPTY;
-      }
-    }
+    return elements == null ? EMPTY : elements;
   }
 
   @Override
   public Object getParent(Object element) {
-    // TODO(devoncarew): implement - how to determine the parent of the value?
-
     return null;
   }
 

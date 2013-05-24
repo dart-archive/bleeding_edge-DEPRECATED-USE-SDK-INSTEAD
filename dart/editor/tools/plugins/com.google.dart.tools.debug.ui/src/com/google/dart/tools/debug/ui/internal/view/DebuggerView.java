@@ -243,8 +243,8 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     setAction("showBreakpointsAction", showBreakpointsAction);
 
     if (ENABLE_WEB_INSPECTOR) {
-      //showWebInspectorAction = new ShowWebInspectorAction();
-      //setAction("showWebInspectorAction", showWebInspectorAction);
+//      showWebInspectorAction = new ShowWebInspectorAction();
+//      setAction("showWebInspectorAction", showWebInspectorAction);
     }
   }
 

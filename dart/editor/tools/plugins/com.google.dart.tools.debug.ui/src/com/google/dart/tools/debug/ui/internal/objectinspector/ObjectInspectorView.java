@@ -15,14 +15,13 @@
 package com.google.dart.tools.debug.ui.internal.objectinspector;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.utilities.general.AdapterUtilities;
 import com.google.dart.tools.debug.core.util.IDartDebugValue;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.objectinspector.ExpressionEvaluateJob.ExpressionListener;
 import com.google.dart.tools.debug.ui.internal.presentation.DartDebugModelPresentation;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
-import com.google.dart.tools.ui.actions.InstrumentedAction;
-import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.editor.DartDocumentSetupParticipant;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SelectionUtil;
@@ -38,13 +37,20 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IDebugEventSetListener;
 import org.eclipse.debug.core.model.IDebugTarget;
+import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.core.model.IWatchExpressionResult;
+import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.IValueDetailListener;
+import org.eclipse.debug.ui.contexts.DebugContextEvent;
+import org.eclipse.debug.ui.contexts.IDebugContextListener;
+import org.eclipse.debug.ui.contexts.IDebugContextService;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
@@ -57,20 +63,25 @@ import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.IUndoManagerExtension;
 import org.eclipse.jface.text.TextViewerUndoManager;
+import org.eclipse.jface.text.source.AnnotationModel;
 import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
@@ -93,13 +104,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// TODO: multiple inspected objects
+// TODO: have a keystroke sequence for evaluation
+
+// TODO: ctrl-enter to eval and print the selection?
+
+// TODO: when there's selected text, a return == evaluate and print
 
 // TODO: code completion
 
-// TODO: forward, back, clear toolbar icons
+// TODO: forward and back toolbar icons
 
-// TODO: have a keystroke sequence for evaluation
+// TODO: closing the view should clear the history
 
 // TODO: insert the eval'd text w/ right justification
 
@@ -113,18 +128,35 @@ import java.util.Map;
 
 // TODO: right click, inspect it action on the value area
 
-// TODO: ctrl-enter to eval and print the selection?
-
 // TODO: refactor this class to reduce its complexity
 
 // TODO: the view needs to clear itself when the connection shuts down
 
 // TODO: we really need to populate the tree in a lazy manner
 
+// TODO: add the ability to navigate to the source code definition
+
+// TODO: add the ability to navigate to the Type object
+
+// TODO: should the view be a pagebookviewpart for multiple debug connections?
+// the tree viewer and the object history should be based on the current connection
+
+// TODO: the properties view and the object histories track the current isolate
+
+// TODO: the text view persists between sessions and isolates
+
+// TODO: the hyperlinks can only be active if the connection is still open and the appropriate
+// isolate is selected
+
+// TODO: use annotations to mark bits of text as object values. we can then hyperlink and style them
+
+// TODO: ITextViewer/TextViewer.changeTextPresentation()
+
 /**
  * The Dart object inspector view.
  */
-public class ObjectInspectorView extends ViewPart implements IDebugEventSetListener {
+public class ObjectInspectorView extends ViewPart implements IDebugEventSetListener,
+    IDebugContextListener {
   class TextViewerAction extends Action implements IUpdate {
     private int actionId;
 
@@ -152,7 +184,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     }
   }
 
-  private class DoItAction extends InstrumentedAction implements IUpdate {
+  private class DoItAction extends Action implements IUpdate {
     public DoItAction() {
       super("Do It");
 
@@ -160,19 +192,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     }
 
     @Override
-    public void update() {
-      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
-    }
-
-    @Override
-    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
-
-      try {
-        instrumentation.data("Value", getValue().getValueString());
-      } catch (Exception e) {
-      }
-      instrumentation.data("Expression", getExpressionText());
-
+    public void run() {
       Job job = new ExpressionEvaluateJob(
           getValue(),
           getExpressionText(),
@@ -186,11 +206,15 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
           });
 
       job.schedule();
+    }
 
+    @Override
+    public void update() {
+      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
     }
   }
 
-  private class InspectItAction extends InstrumentedAction implements IUpdate {
+  private class InspectItAction extends Action implements IUpdate {
     public InspectItAction() {
       super("Inspect It...", DartDebugUIPlugin.getImageDescriptor("obj16/watchlist_view.gif"));
 
@@ -198,19 +222,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     }
 
     @Override
-    public void update() {
-      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
-    }
-
-    @Override
-    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
-
-      try {
-        instrumentation.data("Value", getValue().getValueString());
-      } catch (Exception e) {
-      }
-      instrumentation.data("Expression", getExpressionText());
-
+    public void run() {
       Job job = new ExpressionEvaluateJob(
           getValue(),
           getExpressionText(),
@@ -226,11 +238,15 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
           });
 
       job.schedule();
+    }
 
+    @Override
+    public void update() {
+      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
     }
   }
 
-  private class PrintItAction extends InstrumentedAction implements IUpdate {
+  private class PrintItAction extends Action implements IUpdate {
     public PrintItAction() {
       super("Print It");
 
@@ -238,19 +254,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     }
 
     @Override
-    public void update() {
-      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
-    }
-
-    @Override
-    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
-
-      try {
-        instrumentation.data("Value", getValue().getValueString());
-      } catch (Exception e) {
-      }
-      instrumentation.data("Expression", getExpressionText());
-
+    public void run() {
       Job job = new ExpressionEvaluateJob(
           getValue(),
           getExpressionText(),
@@ -266,7 +270,11 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
           });
 
       job.schedule();
+    }
 
+    @Override
+    public void update() {
+      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
     }
   }
 
@@ -306,22 +314,28 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   private Map<String, IUpdate> textActions = new HashMap<String, IUpdate>();
 
   private DoItAction doItAction;
-
   private PrintItAction printItAction;
   private InspectItAction inspectItAction;
+
   static Object EXPRESSION_EVAL_JOB_FAMILY = new Object();
 
   public ObjectInspectorView() {
-    DebugPlugin.getDefault().addDebugEventListener(this);
+
   }
 
   @Override
   public void createPartControl(Composite parent) {
-    SashForm sash = new SashForm(parent, SWT.VERTICAL);
+    DebugPlugin.getDefault().addDebugEventListener(this);
+    getDebugContextService().addDebugContextListener(this);
+
+    final SashForm sash = new SashForm(parent, SWT.VERTICAL);
 
     treeViewer = new TreeViewer(sash, SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
+    treeViewer.setAutoExpandLevel(2);
     treeViewer.setLabelProvider(new NameLabelProvider());
     treeViewer.setContentProvider(new ObjectInspectorContentProvider());
+    treeViewer.getTree().setHeaderVisible(true);
+    treeViewer.getTree().setLinesVisible(true);
     treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
       @Override
       public void selectionChanged(SelectionChangedEvent event) {
@@ -346,6 +360,12 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
         }
       }
     });
+    treeViewer.addDoubleClickListener(new IDoubleClickListener() {
+      @Override
+      public void doubleClick(DoubleClickEvent event) {
+        toggleExpansion(event.getSelection());
+      }
+    });
 
     TreeViewerColumn nameColumn = new TreeViewerColumn(treeViewer, SWT.LEFT);
     nameColumn.setLabelProvider(new NameLabelProvider());
@@ -359,12 +379,9 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     valueColumn.getColumn().setWidth(140);
     valueColumn.getColumn().setResizable(true);
 
-    Tree tree = treeViewer.getTree();
-    tree.setHeaderVisible(true);
-
     sourceViewer = new SourceViewer(sash, null, SWT.V_SCROLL | SWT.WRAP);
     sourceViewer.configure(getSourceViewerConfiguration());
-    sourceViewer.setDocument(createDocument());
+    sourceViewer.setDocument(createDocument(), new AnnotationModel());
     sourceViewer.setUndoManager(new TextViewerUndoManager(100));
     sourceViewer.getTextWidget().setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
     sourceViewer.getTextWidget().setTabs(2);
@@ -396,12 +413,32 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 //    PresentationReconciler presentationReconciler = new PresentationReconciler();
 //    presentationReconciler.install(textViewer);
 
+    configureToolBar(getViewSite().getActionBars().getToolBarManager());
+
     sash.setWeights(new int[] {60, 40});
+    sash.addControlListener(new ControlListener() {
+      @Override
+      public void controlMoved(ControlEvent e) {
+
+      }
+
+      @Override
+      public void controlResized(ControlEvent e) {
+        updateSashOrientation(sash);
+      }
+    });
+    updateSashOrientation(sash);
+  }
+
+  @Override
+  public void debugContextChanged(DebugContextEvent event) {
+    syncDebugContext();
   }
 
   @Override
   public void dispose() {
     DebugPlugin.getDefault().removeDebugEventListener(this);
+    getDebugContextService().removeDebugContextListener(this);
 
     super.dispose();
   }
@@ -410,6 +447,9 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   public void handleDebugEvents(DebugEvent[] events) {
     for (DebugEvent event : events) {
       if (event.getKind() == DebugEvent.TERMINATE && event.getSource() instanceof IDebugTarget) {
+        syncDebugContext();
+
+        // TOOD: remove this
         handleDebugTargetTerminated((IDebugTarget) event.getSource());
       }
     }
@@ -469,11 +509,16 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
       display.asyncExec(new Runnable() {
         @Override
         public void run() {
-          setContentDescription(" ");
           treeViewer.setInput(null);
         }
       });
     }
+  }
+
+  protected void configureToolBar(IToolBarManager manager) {
+    manager.add(new EvaluateAction(this));
+
+    manager.update(true);
   }
 
   protected void fillContextMenu(IMenuManager manager) {
@@ -488,6 +533,10 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     return ((ITextSelection) sourceViewer.getSelection()).getText();
   }
 
+  protected IAction getPrintItAction() {
+    return printItAction;
+  }
+
   protected void initProgressService(IWorkbenchSiteProgressService progressService) {
     progressService.showBusyForFamily(EXPRESSION_EVAL_JOB_FAMILY);
   }
@@ -500,8 +549,9 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
           @Override
           public void run() {
             try {
-              setContentDescription("UNDER CONSTRUCTION! " + value.getReferenceTypeName() + ": "
-                  + result);
+              String typeName = value.getReferenceTypeName();
+
+              treeViewer.setInput(new Object[] {new InspectorVariable(typeName, value)});
             } catch (DebugException e) {
 
             }
@@ -509,16 +559,42 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
         });
       }
     });
+  }
 
-    treeViewer.setInput(value);
+  protected void performEvaulation() {
+    printItAction.run();
   }
 
   protected void setStatusLine(String message) {
     getViewSite().getActionBars().getStatusLineManager().setMessage(message);
   }
 
+  protected void toggleExpansion(ISelection selection) {
+    if (selection instanceof IStructuredSelection) {
+      Object sel = ((IStructuredSelection) selection).getFirstElement();
+
+      boolean expanded = treeViewer.getExpandedState(sel);
+
+      if (expanded) {
+        treeViewer.collapseToLevel(sel, 1);
+      } else {
+        treeViewer.expandToLevel(sel, 1);
+      }
+    }
+  }
+
+  void updateSashOrientation(SashForm sash) {
+    Rectangle r = sash.getBounds();
+
+    int orientation = r.height >= r.width ? SWT.VERTICAL : SWT.HORIZONTAL;
+
+    if (sash.getOrientation() != orientation) {
+      sash.setOrientation(orientation);
+    }
+  }
+
   private void appendToTextArea(final String result) {
-    // TODO: display the results in italic and right-aligned
+    // TODO(devoncarew): display the results in italic and right-aligned
 
     Display.getDefault().asyncExec(new Runnable() {
       @Override
@@ -526,6 +602,10 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
         IDocument document = sourceViewer.getDocument();
 
         String insert = result;
+
+        if (insert == null) {
+          insert = "null";
+        }
 
         try {
           String current = document.get();
@@ -538,7 +618,18 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
             insert += "\n";
           }
 
+//          int insertLocation = document.getLength();
+//          int insertLength = insert.length();
           document.replace(document.getLength(), 0, insert);
+
+//          sourceViewer.getVisualAnnotationModel().getAnnotationIterator();
+//          sourceViewer.getVisualAnnotationModel().getPosition(annotation);
+
+//          IAnnotationModel annotationModel = sourceViewer.getVisualAnnotationModel();
+//          annotationModel.addAnnotation(new Annotation(
+//              "org.eclipse.debug.ui.currentIPEx",
+//              false,
+//              null), new Position(insertLocation, insertLength));
         } catch (BadLocationException e) {
           DartDebugUIPlugin.logError(e);
         }
@@ -597,6 +688,8 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
   private void displayError(final IWatchExpressionResult result) {
     // TODO(devoncarew): what's the best way to display these errors?
+    // TODO(devoncarew) display them inline in the eval area, or print them to the console
+
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
@@ -606,6 +699,10 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     });
   }
 
+  private IDebugContextService getDebugContextService() {
+    return DebugUITools.getDebugContextManager().getContextService(getSite().getWorkbenchWindow());
+  }
+
   private SourceViewerConfiguration getSourceViewerConfiguration() {
     DartTextTools textTools = DartToolsPlugin.getDefault().getDartTextTools();
 
@@ -613,20 +710,31 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
         textTools.getColorManager(),
         createPreferenceStore(),
         null,
-        DartPartitions.DART_PARTITIONING);
+        DartPartitions.DART_PARTITIONING) {
+    };
   }
 
   private IDartDebugValue getValue() {
-    Object object = treeViewer.getInput();
+    Object input = treeViewer.getInput();
 
-    if (object instanceof IDartDebugValue) {
-      return (IDartDebugValue) object;
-    } else {
-      return null;
+    if (input instanceof Object[]) {
+      try {
+        IVariable variable = (IVariable) ((Object[]) input)[0];
+
+        return (IDartDebugValue) variable.getValue();
+      } catch (DebugException e) {
+        // TODO:
+
+        e.printStackTrace();
+      }
     }
+
+    return null;
   }
 
   private void handleDebugTargetTerminated(IDebugTarget target) {
+    // TODO:
+
     Object object = treeViewer.getInput();
 
     if (object instanceof IValue) {
@@ -639,19 +747,44 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   }
 
   private void hookContextMenu() {
-    MenuManager menuMgr = new MenuManager("#PopupMenu");
+    // treeViewer context menu
+    MenuManager treeMenuManager = new MenuManager("#PopupMenu");
 
-    menuMgr.setRemoveAllWhenShown(true);
-    menuMgr.addMenuListener(new IMenuListener() {
+    treeMenuManager.setRemoveAllWhenShown(true);
+
+    Menu menu = treeMenuManager.createContextMenu(treeViewer.getControl());
+    treeViewer.getControl().setMenu(menu);
+    getSite().registerContextMenu(treeMenuManager, treeViewer);
+
+    // treeViewer context menu
+    MenuManager textMenuManager = new MenuManager("#SourcePopupMenu", "#SourcePopupMenu");
+
+    textMenuManager.setRemoveAllWhenShown(true);
+    textMenuManager.addMenuListener(new IMenuListener() {
       @Override
       public void menuAboutToShow(IMenuManager manager) {
         ObjectInspectorView.this.fillContextMenu(manager);
       }
     });
 
-    Menu menu = menuMgr.createContextMenu(sourceViewer.getControl());
+    menu = textMenuManager.createContextMenu(sourceViewer.getControl());
     sourceViewer.getControl().setMenu(menu);
-    getSite().registerContextMenu(menuMgr, sourceViewer);
+    getSite().registerContextMenu(textMenuManager.getId(), textMenuManager, sourceViewer);
+  }
+
+  private void syncDebugContext() {
+    // TODO: implement
+
+    Object context = null;
+    ISelection sel = getDebugContextService().getActiveContext();
+
+    if (sel instanceof IStructuredSelection) {
+      context = ((IStructuredSelection) sel).getFirstElement();
+    }
+
+    IThread isolate = AdapterUtilities.getAdapter(context, IThread.class);
+
+    System.out.println("current isolate = " + isolate);
   }
 
   private void updateActions() {
