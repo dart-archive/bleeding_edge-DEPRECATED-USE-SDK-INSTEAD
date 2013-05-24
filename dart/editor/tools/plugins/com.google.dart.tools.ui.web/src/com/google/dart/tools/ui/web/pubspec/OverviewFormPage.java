@@ -300,7 +300,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
         links,
         "View Pubspec documentation",
         "http://pub.dartlang.org/doc/pubspec.html");
-    createExternalLink(links, "View Semantic versioning information", "http://semver.org/");
+    createExternalLink(links, "View Semantic versioning documentation", "http://semver.org/");
 
   }
 
