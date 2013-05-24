@@ -18,7 +18,6 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.HtmlScriptElement;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.HtmlWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnit;
@@ -28,10 +27,12 @@ import com.google.dart.engine.html.ast.visitor.XmlVisitor;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.html.scanner.TokenType;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.element.EmbeddedHtmlScriptElementImpl;
 import com.google.dart.engine.internal.element.ExternalHtmlScriptElementImpl;
 import com.google.dart.engine.internal.element.HtmlElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.internal.resolver.Library;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
@@ -42,6 +43,8 @@ import com.google.dart.engine.utilities.source.LineInfo.Location;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Instances of the class {@code HtmlUnitBuilder} build an element model for a single HTML unit.
@@ -61,7 +64,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
   /**
    * The error listener to which errors will be reported.
    */
-  private AnalysisErrorListener errorListener;
+  private RecordingErrorListener errorListener;
 
   /**
    * The line information associated with the source for which an element is being built, or
@@ -85,14 +88,18 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
   private ArrayList<HtmlScriptElement> scripts;
 
   /**
+   * A set of the libraries that were resolved while resolving the HTML unit.
+   */
+  private Set<Library> resolvedLibraries = new HashSet<Library>();
+
+  /**
    * Initialize a newly created HTML unit builder.
    * 
    * @param context the analysis context in which the element model will be built
-   * @param errorListener the error listener to which errors will be reported
    */
-  public HtmlUnitBuilder(InternalAnalysisContext context, AnalysisErrorListener errorListener) {
+  public HtmlUnitBuilder(InternalAnalysisContext context) {
     this.context = context;
-    this.errorListener = errorListener;
+    this.errorListener = new RecordingErrorListener();
   }
 
   /**
@@ -122,6 +129,24 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
     htmlElement = null;
     unit.setElement(result);
     return result;
+  }
+
+  /**
+   * Return the listener to which analysis errors will be reported.
+   * 
+   * @return the listener to which analysis errors will be reported
+   */
+  public RecordingErrorListener getErrorListener() {
+    return errorListener;
+  }
+
+  /**
+   * Return an array containing information about all of the libraries that were resolved.
+   * 
+   * @return an array containing the libraries that were resolved
+   */
+  public Set<Library> getResolvedLibraries() {
+    return resolvedLibraries;
   }
 
   @Override
@@ -204,9 +229,11 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
                 unit,
                 true);
             script.setScriptLibrary(library);
+            resolvedLibraries.addAll(resolver.getResolvedLibraries());
+            errorListener.addAll(resolver.getErrorListener());
           } catch (AnalysisException exception) {
             //TODO (danrubel): Handle or forward the exception
-            exception.printStackTrace();
+            AnalysisEngine.getInstance().getLogger().logError(exception);
           }
           scripts.add(script);
         } else {

@@ -487,18 +487,6 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public void recordResolutionErrors(Source source, Source librarySource, AnalysisError[] errors,
-      LineInfo lineInfo) {
-    basis.recordResolutionErrors(source, librarySource, errors, lineInfo);
-  }
-
-  @Override
-  public void recordResolvedCompilationUnit(Source source, Source librarySource,
-      CompilationUnit unit) {
-    basis.recordResolvedCompilationUnit(source, librarySource, unit);
-  }
-
-  @Override
   public CompilationUnit resolveCompilationUnit(Source unitSource, LibraryElement library)
       throws AnalysisException {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-resolveCompilationUnit");

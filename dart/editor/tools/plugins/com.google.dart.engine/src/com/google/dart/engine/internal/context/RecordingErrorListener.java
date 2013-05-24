@@ -41,6 +41,17 @@ public class RecordingErrorListener implements AnalysisErrorListener {
   private Map<Source, List<AnalysisError>> errors = new HashMap<Source, List<AnalysisError>>();
 
   /**
+   * Add all of the errors recorded by the given listener to this listener.
+   * 
+   * @param listener the listener that has recorded the errors to be added
+   */
+  public void addAll(RecordingErrorListener listener) {
+    for (AnalysisError error : listener.getErrors()) {
+      onError(error);
+    }
+  }
+
+  /**
    * Answer the errors collected by the listener.
    * 
    * @return an array of errors (not {@code null}, contains no {@code null}s)

@@ -20,7 +20,6 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.HtmlScriptElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.EmbeddedHtmlScriptElementImpl;
 import com.google.dart.engine.internal.element.ExternalHtmlScriptElementImpl;
@@ -197,8 +196,7 @@ public class HtmlUnitBuilderTest extends EngineTestCase {
     changeSet.added(source);
     context.applyChanges(changeSet);
 
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    HtmlUnitBuilder builder = new HtmlUnitBuilder(context, errorListener);
+    HtmlUnitBuilder builder = new HtmlUnitBuilder(context);
     return builder.buildHtmlElement(source);
   }
 

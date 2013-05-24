@@ -221,8 +221,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new DartUriResolver(
         DirectoryBasedDartSdk.getDefaultSdk()), new FileUriResolver()));
-    GatheringErrorListener listener = new GatheringErrorListener();
-    LibraryResolver resolver = new LibraryResolver(context, listener);
+    LibraryResolver resolver = new LibraryResolver(context);
     LibraryElementBuilder builder = new LibraryElementBuilder(resolver);
     Method method = resolver.getClass().getDeclaredMethod(
         "createLibrary",
@@ -230,6 +229,8 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     method.setAccessible(true);
     Library library = (Library) method.invoke(resolver, librarySource);
     LibraryElement element = builder.buildLibrary(library);
+    GatheringErrorListener listener = new GatheringErrorListener();
+    listener.addAll(resolver.getErrorListener());
     listener.assertErrors(expectedErrorCodes);
     return element;
   }

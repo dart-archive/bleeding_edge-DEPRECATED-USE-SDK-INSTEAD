@@ -53,6 +53,7 @@ import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.DeclarationResolver;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
+import com.google.dart.engine.internal.resolver.Library;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
 import com.google.dart.engine.internal.resolver.TypeProvider;
@@ -325,16 +326,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             unit = parseHtmlUnit(source);
           }
         }
-        RecordingErrorListener listener = new RecordingErrorListener();
-        HtmlUnitBuilder builder = new HtmlUnitBuilder(this, listener);
+        HtmlUnitBuilder builder = new HtmlUnitBuilder(this);
         element = builder.buildHtmlElement(source, unit);
-        AnalysisError[] resolutionErrors = listener.getErrors(source);
+        AnalysisError[] resolutionErrors = builder.getErrorListener().getErrors(source);
         HtmlEntryImpl htmlCopy = getHtmlEntry(source).getWritableCopy();
         htmlCopy.setValue(HtmlEntry.RESOLVED_UNIT, unit);
         htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, resolutionErrors);
         htmlCopy.setValue(HtmlEntry.ELEMENT, element);
         sourceMap.put(source, htmlCopy);
-        getNotice(source).setErrors(resolutionErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
+        getNotice(source).setErrors(
+            htmlCopy.getAllErrors(),
+            htmlCopy.getValue(SourceEntry.LINE_INFO));
       }
       return element;
     }
@@ -373,11 +375,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         LibraryResolver resolver = new LibraryResolver(this);
         try {
           element = resolver.resolveLibrary(source, true);
-          if (element != null) {
-            DartEntryImpl dartCopy = getDartEntry(source).getWritableCopy();
-            dartCopy.setValue(DartEntry.ELEMENT, element);
-            sourceMap.put(source, dartCopy);
-          }
+          recordResolutionResults(resolver);
         } catch (AnalysisException exception) {
           DartEntryImpl dartCopy = getDartEntry(source).getWritableCopy();
           dartCopy.setState(DartEntry.ELEMENT, CacheState.ERROR);
@@ -810,7 +808,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
-    Source htmlSource = sourceFactory.forUri("dart:html"); // was DartSdk.DART_HTML
+    Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
     synchronized (cacheLock) {
       for (Map.Entry<Source, LibraryElement> entry : elementMap.entrySet()) {
         Source librarySource = entry.getKey();
@@ -821,61 +819,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         DartEntry dartEntry = getDartEntry(librarySource);
         if (dartEntry != null) {
           DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-          dartCopy.setValue(DartEntry.ELEMENT, library);
-          dartCopy.setValue(DartEntry.IS_LAUNCHABLE, library.getEntryPoint() != null);
-          dartCopy.setValue(
-              DartEntry.IS_CLIENT,
-              isClient(library, htmlSource, new HashSet<LibraryElement>()));
-          ArrayList<Source> unitSources = new ArrayList<Source>();
-          unitSources.add(librarySource);
-          for (CompilationUnitElement part : library.getParts()) {
-            Source partSource = part.getSource();
-            unitSources.add(partSource);
-          }
-          dartCopy.setValue(
-              DartEntry.INCLUDED_PARTS,
-              unitSources.toArray(new Source[unitSources.size()]));
+          recordElementData(dartCopy, library, htmlSource);
           sourceMap.put(librarySource, dartCopy);
         }
       }
-    }
-  }
-
-  @Override
-  public void recordResolutionErrors(Source source, Source librarySource, AnalysisError[] errors,
-      LineInfo lineInfo) {
-    synchronized (cacheLock) {
-      SourceEntry sourceEntry = getSourceEntry(source);
-      if (sourceEntry instanceof DartEntry) {
-        DartEntry dartEntry = (DartEntry) sourceEntry;
-        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-        dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
-        dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
-        sourceMap.put(source, dartCopy);
-        getNotice(source).setErrors(dartCopy.getAllErrors(), lineInfo);
-      } else if (sourceEntry instanceof HtmlEntry) {
-        HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
-        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-        htmlCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
-        htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, errors);
-        sourceMap.put(source, htmlCopy);
-        getNotice(source).setErrors(htmlCopy.getAllErrors(), lineInfo);
-      }
-    }
-  }
-
-  @Override
-  public void recordResolvedCompilationUnit(Source source, Source librarySource,
-      CompilationUnit unit) {
-    synchronized (cacheLock) {
-      DartEntry dartEntry = getDartEntry(source);
-      if (dartEntry != null) {
-        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-        dartCopy.setValue(DartEntry.RESOLVED_UNIT, librarySource, unit);
-        dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
-        sourceMap.put(source, dartCopy);
-      }
-      getNotice(source).setCompilationUnit(unit);
     }
   }
 
@@ -1620,6 +1567,67 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return false;
+  }
+
+  /**
+   * Given a cache entry and a library element, record the library element and other information
+   * gleaned from the element in the cache entry.
+   * 
+   * @param dartCopy the cache entry in which data is to be recorded
+   * @param library the library element used to record information
+   * @param htmlSource the source for the HTML library
+   */
+  private void recordElementData(DartEntryImpl dartCopy, LibraryElement library, Source htmlSource) {
+    dartCopy.setValue(DartEntry.ELEMENT, library);
+    dartCopy.setValue(DartEntry.IS_LAUNCHABLE, library.getEntryPoint() != null);
+    dartCopy.setValue(
+        DartEntry.IS_CLIENT,
+        isClient(library, htmlSource, new HashSet<LibraryElement>()));
+    ArrayList<Source> unitSources = new ArrayList<Source>();
+    unitSources.add(library.getDefiningCompilationUnit().getSource());
+    for (CompilationUnitElement part : library.getParts()) {
+      Source partSource = part.getSource();
+      unitSources.add(partSource);
+    }
+    dartCopy.setValue(DartEntry.INCLUDED_PARTS, unitSources.toArray(new Source[unitSources.size()]));
+  }
+
+  /**
+   * Record the result of using the given resolver to resolve one or more libraries.
+   * 
+   * @param resolver the resolver that has the needed results
+   * @throws AnalysisException if the results cannot be retrieved for some reason
+   */
+  private void recordResolutionResults(LibraryResolver resolver) throws AnalysisException {
+    Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
+    RecordingErrorListener errorListener = resolver.getErrorListener();
+    for (Library library : resolver.getResolvedLibraries()) {
+      Source librarySource = library.getLibrarySource();
+      for (Source source : library.getCompilationUnitSources()) {
+        CompilationUnit unit = library.getAST(source);
+        AnalysisError[] errors = errorListener.getErrors(source);
+        unit.setResolutionErrors(errors);
+        LineInfo lineInfo = unit.getLineInfo();
+        synchronized (cacheLock) {
+          DartEntry dartEntry = getDartEntry(source);
+          if (dartEntry != null) {
+            DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+            dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
+            dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+            dartCopy.setValue(DartEntry.RESOLVED_UNIT, librarySource, unit);
+            dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
+            if (source == librarySource) {
+              recordElementData(dartCopy, library.getLibraryElement(), htmlSource);
+            }
+            sourceMap.put(source, dartCopy);
+
+            ChangeNoticeImpl notice = getNotice(source);
+            notice.setCompilationUnit(unit);
+            notice.setErrors(dartCopy.getAllErrors(), lineInfo);
+          }
+        }
+      }
+    }
   }
 
   private HtmlScanResult scanHtml(Source source) throws AnalysisException {

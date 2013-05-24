@@ -70,9 +70,11 @@ public class HtmlWarningCodeTest extends EngineTestCase {
     changeSet.added(source);
     context.applyChanges(changeSet);
 
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    HtmlUnitBuilder builder = new HtmlUnitBuilder(context, errorListener);
+    HtmlUnitBuilder builder = new HtmlUnitBuilder(context);
     HtmlElementImpl element = builder.buildHtmlElement(source);
+
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    errorListener.addAll(builder.getErrorListener());
     errorListener.assertErrors(expectedErrorCodes);
     return element;
   }

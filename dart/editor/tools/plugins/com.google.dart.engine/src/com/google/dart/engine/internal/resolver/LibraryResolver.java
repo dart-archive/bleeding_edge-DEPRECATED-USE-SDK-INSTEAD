@@ -73,15 +73,7 @@ public class LibraryResolver {
    * references {@link #recordingErrorListener}, or it unions the passed
    * {@link AnalysisErrorListener} with the {@link #recordingErrorListener}.
    */
-  private AnalysisErrorListener errorListener;
-
-  /**
-   * This error listener is used by the resolver to be able to call the listener and get back the
-   * set of errors for each {@link Source}.
-   * 
-   * @see #recordResults()
-   */
-  private RecordingErrorListener recordingErrorListener;
+  private RecordingErrorListener errorListener;
 
   /**
    * A source object representing the core library (dart:core).
@@ -114,30 +106,8 @@ public class LibraryResolver {
    * @param analysisContext the analysis context in which the library is being analyzed
    */
   public LibraryResolver(InternalAnalysisContext analysisContext) {
-    this(analysisContext, null);
-  }
-
-  /**
-   * Initialize a newly created library resolver to resolve libraries within the given context.
-   * 
-   * @param analysisContext the analysis context in which the library is being analyzed
-   * @param errorListener the listener to which analysis errors will be reported
-   */
-  public LibraryResolver(InternalAnalysisContext analysisContext,
-      final AnalysisErrorListener additionalAnalysisErrorListener) {
     this.analysisContext = analysisContext;
-    this.recordingErrorListener = new RecordingErrorListener();
-    if (additionalAnalysisErrorListener == null) {
-      this.errorListener = recordingErrorListener;
-    } else {
-      this.errorListener = new AnalysisErrorListener() {
-        @Override
-        public void onError(AnalysisError error) {
-          additionalAnalysisErrorListener.onError(error);
-          recordingErrorListener.onError(error);
-        }
-      };
-    }
+    this.errorListener = new RecordingErrorListener();
     coreLibrarySource = analysisContext.getSourceFactory().forUri(DartSdk.DART_CORE);
   }
 
@@ -155,8 +125,17 @@ public class LibraryResolver {
    * 
    * @return the listener to which analysis errors will be reported
    */
-  public AnalysisErrorListener getErrorListener() {
+  public RecordingErrorListener getErrorListener() {
     return errorListener;
+  }
+
+  /**
+   * Return an array containing information about all of the libraries that were resolved.
+   * 
+   * @return an array containing the libraries that were resolved
+   */
+  public Set<Library> getResolvedLibraries() {
+    return librariesInCycles;
   }
 
   /**
@@ -241,8 +220,6 @@ public class LibraryResolver {
         runAdditionalAnalyses();
         instrumentation.metric("runAdditionalAnalyses", "complete");
       }
-      recordResults();
-      instrumentation.metric("recordResults", "complete");
       return targetLibrary.getLibraryElement();
     } finally {
       instrumentation.log();
@@ -332,8 +309,6 @@ public class LibraryResolver {
         runAdditionalAnalyses();
         instrumentation.metric("runAdditionalAnalyses", "complete");
       }
-      recordResults();
-      instrumentation.metric("recordResults", "complete");
       instrumentation.metric("librariesInCycles", librariesInCycles.size());
       for (Library lib : librariesInCycles) {
         instrumentation.metric(
@@ -746,34 +721,6 @@ public class LibraryResolver {
   }
 
   /**
-   * Record the results of resolution with the analysis context. This includes recording
-   * <ul>
-   * <li>the resolved AST associated with each compilation unit,</li>
-   * <li>the set of resolution errors produced for each compilation unit, and</li>
-   * <li>the element models produced for each library.</li>
-   * </ul>
-   */
-  private void recordResults() throws AnalysisException {
-    HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();
-    for (Library library : librariesInCycles) {
-      Source librarySource = library.getLibrarySource();
-      recordResults(librarySource, librarySource, library.getDefiningCompilationUnit());
-      for (Source source : library.getCompilationUnitSources()) {
-        recordResults(source, librarySource, library.getAST(source));
-      }
-      elementMap.put(library.getLibrarySource(), library.getLibraryElement());
-    }
-    analysisContext.recordLibraryElements(elementMap);
-  }
-
-  private void recordResults(Source source, Source librarySource, CompilationUnit unit) {
-    AnalysisError[] errors = recordingErrorListener.getErrors(source);
-    unit.setResolutionErrors(errors);
-    analysisContext.recordResolvedCompilationUnit(source, librarySource, unit);
-    analysisContext.recordResolutionErrors(source, librarySource, errors, unit.getLineInfo());
-  }
-
-  /**
    * Resolve the identifiers and perform type analysis in the libraries in the current cycle.
    * 
    * @throws AnalysisException if any of the identifiers could not be resolved or if any of the
@@ -836,5 +783,4 @@ public class LibraryResolver {
       unit.accept(constantVerifier);
     }
   }
-
 }

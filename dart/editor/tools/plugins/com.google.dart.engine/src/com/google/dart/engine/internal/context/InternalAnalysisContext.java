@@ -17,12 +17,10 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
-import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.Map;
 
@@ -89,28 +87,4 @@ public interface InternalAnalysisContext extends AnalysisContext {
    *          the elements representing the libraries
    */
   public void recordLibraryElements(Map<Source, LibraryElement> elementMap);
-
-  /**
-   * Give the resolution errors and line info associated with the given source, add the information
-   * to the cache.
-   * 
-   * @param source the source with which the information is associated
-   * @param librarySource the source of the defining compilation unit of the library in which the
-   *          source was resolved
-   * @param errors the resolution errors associated with the source
-   * @param lineInfo the line information associated with the source
-   */
-  public void recordResolutionErrors(Source source, Source librarySource, AnalysisError[] errors,
-      LineInfo lineInfo);
-
-  /**
-   * Give the resolved compilation unit associated with the given source, add the unit to the cache.
-   * 
-   * @param source the source with which the unit is associated
-   * @param librarySource the source of the defining compilation unit of the library in which the
-   *          source was resolved
-   * @param unit the compilation unit associated with the source
-   */
-  public void recordResolvedCompilationUnit(Source source, Source librarySource,
-      CompilationUnit unit);
 }

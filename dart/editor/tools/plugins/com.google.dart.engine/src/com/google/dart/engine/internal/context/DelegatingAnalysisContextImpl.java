@@ -289,26 +289,6 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   }
 
   @Override
-  public void recordResolutionErrors(Source source, Source librarySource, AnalysisError[] errors,
-      LineInfo lineInfo) {
-    if (source.isInSystemLibrary()) {
-      sdkAnalysisContext.recordResolutionErrors(source, librarySource, errors, lineInfo);
-    } else {
-      super.recordResolutionErrors(source, librarySource, errors, lineInfo);
-    }
-  }
-
-  @Override
-  public void recordResolvedCompilationUnit(Source source, Source librarySource,
-      CompilationUnit unit) {
-    if (source.isInSystemLibrary()) {
-      sdkAnalysisContext.recordResolvedCompilationUnit(source, librarySource, unit);
-    } else {
-      super.recordResolvedCompilationUnit(source, librarySource, unit);
-    }
-  }
-
-  @Override
   public CompilationUnit resolveCompilationUnit(Source source, LibraryElement library)
       throws AnalysisException {
     if (source.isInSystemLibrary()) {

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.error;
 
+import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.source.LineInfo;
@@ -70,6 +71,17 @@ public class GatheringErrorListener implements AnalysisErrorListener {
   public GatheringErrorListener(String rawSource) {
     this.rawSource = rawSource;
     this.markedSource = rawSource;
+  }
+
+  /**
+   * Add all of the errors recorded by the given listener to this listener.
+   * 
+   * @param listener the listener that has recorded the errors to be added
+   */
+  public void addAll(RecordingErrorListener listener) {
+    for (AnalysisError error : listener.getErrors()) {
+      onError(error);
+    }
   }
 
   /**
