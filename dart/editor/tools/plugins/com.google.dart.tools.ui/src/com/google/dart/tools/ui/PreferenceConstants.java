@@ -2856,6 +2856,9 @@ public class PreferenceConstants {
    */
   public static final String EDITOR_FOLDING_HEADERS = "editor_folding_default_headers"; //$NON-NLS-1$
 
+  public static final String EDITOR_FOLDING_CLASSES = "editor_folding_default_classes"; //$NON-NLS-1$
+  public static final String EDITOR_FOLDING_FUNCTIONS = "editor_folding_default_functions"; //$NON-NLS-1$
+
   /**
    * The symbolic font name for the JavaScript properties file editor text font (value
    * <code>&quot;com.google.dart.tools.ui.PropertiesFileEditor.textfont&quot;</code> ).
@@ -3596,8 +3599,10 @@ public class PreferenceConstants {
     store.setDefault(PreferenceConstants.EDITOR_FOLDING_JAVADOC, false);
     store.setDefault(PreferenceConstants.EDITOR_FOLDING_INNERTYPES, false);
     store.setDefault(PreferenceConstants.EDITOR_FOLDING_METHODS, false);
-    store.setDefault(PreferenceConstants.EDITOR_FOLDING_IMPORTS, true);
+    store.setDefault(PreferenceConstants.EDITOR_FOLDING_IMPORTS, false);
     store.setDefault(PreferenceConstants.EDITOR_FOLDING_HEADERS, true);
+    store.setDefault(PreferenceConstants.EDITOR_FOLDING_CLASSES, false);
+    store.setDefault(PreferenceConstants.EDITOR_FOLDING_FUNCTIONS, false);
 
     // properties file editor
     setDefaultAndFireEvent(

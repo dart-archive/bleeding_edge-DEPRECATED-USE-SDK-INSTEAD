@@ -67,5 +67,6 @@ Export-Package: com.google.dart.tools.internal.corext.codemanipulation;x-friends
  com.google.dart.tools.ui.internal.viewsupport,
  com.google.dart.tools.ui.text,
  com.google.dart.tools.ui.text.dart,
+ com.google.dart.tools.ui.text.folding,
  com.google.dart.tools.ui.themes
 Bundle-ActivationPolicy: lazy

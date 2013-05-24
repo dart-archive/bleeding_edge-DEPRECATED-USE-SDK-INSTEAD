@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,27 +13,26 @@
  */
 package com.google.dart.tools.ui.text.folding;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ClassMember;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.NamespaceDirective;
+import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.visitor.BreadthFirstVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartElementDelta;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartModelStatus;
-import com.google.dart.tools.core.model.ElementChangedEvent;
-import com.google.dart.tools.core.model.ParentElement;
-import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
+import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
+import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.text.functions.DocumentCharacterIterator;
 
 import org.eclipse.core.runtime.Assert;
@@ -53,33 +52,27 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * Updates the projection model of a class file or compilation unit.
- * <p>
- * Clients may instantiate or subclass. Subclasses must make sure to always call the superclass'
- * code when overriding methods that are marked with "subclasses may extend".
+ * Updates the projection model of a compilation unit.
  */
-public class DefaultDartFoldingStructureProvider implements IDartFoldingStructureProvider,
+public class DartFoldingStructureProvider implements IDartFoldingStructureProvider,
     IDartFoldingStructureProviderExtension {
 
   /**
    * A {@link ProjectionAnnotation} for Dart code.
    */
-  protected static final class DartProjectionAnnotation extends ProjectionAnnotation {
+  protected static class DartProjectionAnnotation extends ProjectionAnnotation {
 
-    private DartElement dartElement;
+    private ASTNode node;
     private boolean isComment;
 
     /**
@@ -87,34 +80,34 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
      * 
      * @param isCollapsed <code>true</code> to set the initial state to collapsed,
      *          <code>false</code> to set it to expanded
-     * @param element the Dart element this annotation refers to
+     * @param node the Dart AST node this annotation refers to
      * @param isComment <code>true</code> for a foldable comment, <code>false</code> for a foldable
      *          code element
      */
-    public DartProjectionAnnotation(boolean isCollapsed, DartElement element, boolean isComment) {
+    public DartProjectionAnnotation(boolean isCollapsed, ASTNode node, boolean isComment) {
       super(isCollapsed);
-      this.dartElement = element;
+      this.node = node;
       this.isComment = isComment;
     }
 
     @Override
     public String toString() {
       return "DartProjectionAnnotation:\n" + //$NON-NLS-1$
-          "\telement: \t" + dartElement.toString() + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
+          "\tnode: \t" + node.toString() + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
           "\tcollapsed: \t" + isCollapsed() + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
           "\tcomment: \t" + isComment() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$
     }
 
-    DartElement getElement() {
-      return dartElement;
+    ASTNode getElement() {
+      return node;
     }
 
     boolean isComment() {
       return isComment;
     }
 
-    void setElement(DartElement element) {
-      dartElement = element;
+    void setElement(ASTNode element) {
+      node = element;
     }
 
     void setIsComment(boolean isComment) {
@@ -125,18 +118,17 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   /**
    * A context that contains the information needed to compute the folding structure of a Dart
    * compilation unit. Computed folding regions are collected via
-   * {@linkplain #addProjectionRange(DefaultDartFoldingStructureProvider.DartProjectionAnnotation, Position)
+   * {@linkplain #addProjectionRange(DartFoldingStructureProvider.DartProjectionAnnotation, Position)
    * addProjectionRange}.
    */
-  protected final class FoldingStructureComputationContext {
-    private final ProjectionAnnotationModel model;
-    private final IDocument document;
+  protected class FoldingStructureComputationContext {
 
-    private final boolean allowCollapsing;
-
-    private SourceReference firstRef;
+    private ProjectionAnnotationModel model;
+    private IDocument document;
+    private boolean allowCollapsing;
+    private ASTNode firstRef;
     private boolean hasHeaderComment;
-    private LinkedHashMap<DartProjectionAnnotation, Position> map = new LinkedHashMap<DartProjectionAnnotation, Position>();
+    private Map<DartProjectionAnnotation, Position> map = new LinkedHashMap<DartProjectionAnnotation, Position>();
     private TokenStream tokenStream;
 
     private FoldingStructureComputationContext(IDocument document, ProjectionAnnotationModel model,
@@ -174,12 +166,30 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     }
 
     /**
-     * Returns <code>true</code> if javadoc comments should be collapsed.
+     * Returns <code>true</code> if classes should be collapsed.
      * 
-     * @return <code>true</code> if javadoc comments should be collapsed
+     * @return <code>true</code> if classes should be collapsed
+     */
+    public boolean collapseClasses() {
+      return allowCollapsing && collapseClasses;
+    }
+
+    /**
+     * Returns <code>true</code> if Dart doc comments should be collapsed.
+     * 
+     * @return <code>true</code> if Dart doc comments should be collapsed
      */
     public boolean collapseDartDoc() {
       return allowCollapsing && collapseDartDoc;
+    }
+
+    /**
+     * Returns <code>true</code> if top-level functions should be collapsed.
+     * 
+     * @return <code>true</code> if functions should be collapsed
+     */
+    public boolean collapseFunctions() {
+      return allowCollapsing && collapseFunctions;
     }
 
     /**
@@ -209,6 +219,10 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return allowCollapsing && collapseMembers;
     }
 
+    public boolean collapseStatements() {
+      return false; // TODO(messick) Implement statement folding.
+    }
+
     boolean hasFirstRef() {
       return firstRef != null;
     }
@@ -222,7 +236,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return document;
     }
 
-    private SourceReference getFirstRef() {
+    private ASTNode getFirstRef() {
       return firstRef;
     }
 
@@ -243,7 +257,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return hasHeaderComment;
     }
 
-    private void setFirstRef(SourceReference type) {
+    private void setFirstRef(ASTNode type) {
       if (hasFirstRef()) {
         throw new IllegalStateException();
       }
@@ -254,15 +268,58 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       hasHeaderComment = true;
     }
 
-    private void setScannerSource(String source) throws DartModelException {
+    private void setScannerSource(String source) throws InvalidSourceException {
       this.tokenStream = new TokenStream(source);
     }
+  }
+
+  private static class CollapsibleNodeClassifier extends
+      GeneralizingASTVisitor<CollapsibleNodeType> {
+
+    @Override
+    public CollapsibleNodeType visitClassMember(ClassMember node) {
+      return CollapsibleNodeType.CLASS_MEMEBER;
+    }
+
+    @Override
+    public CollapsibleNodeType visitCompilationUnitMember(CompilationUnitMember node) {
+      return CollapsibleNodeType.TOP_LEVEL_DECL;
+    }
+
+    @Override
+    public CollapsibleNodeType visitDirective(Directive node) {
+      return CollapsibleNodeType.DIRECTIVE;
+    }
+
+    @Override
+    public CollapsibleNodeType visitNamespaceDirective(NamespaceDirective node) {
+      return CollapsibleNodeType.NAMESPACE_DIRECTIVE;
+    }
+
+    @Override
+    public CollapsibleNodeType visitNode(ASTNode node) {
+      return CollapsibleNodeType.NONE;
+    }
+
+    @Override
+    public CollapsibleNodeType visitStatement(Statement node) {
+      return CollapsibleNodeType.STATEMENT;
+    }
+  }
+
+  private static enum CollapsibleNodeType {
+    CLASS_MEMEBER,
+    TOP_LEVEL_DECL,
+    STATEMENT,
+    DIRECTIVE,
+    NAMESPACE_DIRECTIVE,
+    NONE;
   }
 
   /**
    * Matches comments.
    */
-  private static final class CommentFilter implements Filter {
+  private static class CommentFilter implements Filter {
     @Override
     public boolean match(DartProjectionAnnotation annotation) {
       if (annotation.isComment() && !annotation.isMarkedDeleted()) {
@@ -277,22 +334,23 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * after the '/**' to the beginning of the content, the other from after the first content line
    * until after the comment.
    */
-  private static final class CommentPosition extends Position implements IProjectionPosition {
+  private static class CommentPosition extends Position implements IProjectionPosition {
+
     CommentPosition(int offset, int length) {
       super(offset, length);
     }
 
     @Override
     public int computeCaptionOffset(IDocument document) {
-      DocumentCharacterIterator sequence = new DocumentCharacterIterator(document, offset, offset
-          + length);
+      DocumentCharacterIterator sequence;
+      sequence = new DocumentCharacterIterator(document, offset, offset + length);
       return findFirstContent(sequence, 0);
     }
 
     @Override
     public IRegion[] computeProjectionRegions(IDocument document) throws BadLocationException {
-      DocumentCharacterIterator sequence = new DocumentCharacterIterator(document, offset, offset
-          + length);
+      DocumentCharacterIterator sequence;
+      sequence = new DocumentCharacterIterator(document, offset, offset + length);
       int prefixEnd = 0;
       int contentStart = findFirstContent(sequence, prefixEnd);
 
@@ -317,47 +375,16 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       if (captionLine < lastLine) {
         int postOffset = document.getLineOffset(captionLine + 1);
         IRegion postRegion = new Region(postOffset, offset + length - postOffset);
-
         if (preRegion == null) {
           return new IRegion[] {postRegion};
         }
-
         return new IRegion[] {preRegion, postRegion};
       }
-
       if (preRegion != null) {
         return new IRegion[] {preRegion};
       }
-
       return null;
     }
-
-//		/**
-//		 * Finds the offset of the first identifier part within <code>content</code>.
-//		 * Returns 0 if none is found.
-//		 *
-//		 * @param content the content to search
-//		 * @return the first index of a unicode identifier part, or zero if none can
-//		 *         be found
-//		 */
-//		private int findPrefixEnd(final CharSequence content) {
-//			// return the index after the leading '/*' or '/**'
-//			int len= content.length();
-//			int i= 0;
-//			while (i < len && isWhiteSpace(content.charAt(i)))
-//				i++;
-//			if (len >= i + 2 && content.charAt(i) == '/' && content.charAt(i + 1) == '*')
-//				if (len >= i + 3 && content.charAt(i + 2) == '*')
-//					return i + 3;
-//				else
-//					return i + 2;
-//			else
-//				return i;
-//		}
-//
-//		private boolean isWhiteSpace(char c) {
-//			return c == ' ' || c == '\t';
-//		}
 
     /**
      * Finds the offset of the first identifier part within <code>content</code> . Returns 0 if none
@@ -367,7 +394,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
      * @param prefixEnd the end of the prefix
      * @return the first index of a unicode identifier part, or zero if none can be found
      */
-    private int findFirstContent(final CharSequence content, int prefixEnd) {
+    private int findFirstContent(CharSequence content, int prefixEnd) {
       int lenght = content.length();
       for (int i = prefixEnd; i < lenght; i++) {
         if (Character.isUnicodeIdentifierPart(content.charAt(i))) {
@@ -380,14 +407,14 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 
   /**
    * Projection position that will return two foldable regions: one folding away the lines before
-   * the one containing the simple name of the JavaScript element, one folding away any lines after
-   * the caption.
+   * the one containing the simple name of the Dart element, one folding away any lines after the
+   * caption.
    */
-  private static final class DartElementPosition extends Position implements IProjectionPosition {
+  private static class DartElementPosition extends Position implements IProjectionPosition {
 
-    private TypeMember fMember;
+    private ASTNode fMember;
 
-    public DartElementPosition(int offset, int length, TypeMember member) {
+    public DartElementPosition(int offset, int length, ASTNode member) {
       super(offset, length);
       Assert.isNotNull(member);
       fMember = member;
@@ -396,52 +423,29 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     @Override
     public int computeCaptionOffset(IDocument document) throws BadLocationException {
       int nameStart = offset;
-      try {
-        // need a reconcile here?
-        SourceRange nameRange = fMember.getNameRange();
-        if (nameRange != null) {
-          nameStart = nameRange.getOffset();
-        }
-      } catch (DartModelException e) {
-        // ignore and use default
+      SourceRange nameRange = new SourceRange(fMember.getOffset(), fMember.getLength());
+      if (nameRange != null) {
+        nameStart = nameRange.getOffset();
       }
-
       return nameStart - offset;
     }
 
     @Override
     public IRegion[] computeProjectionRegions(IDocument document) throws BadLocationException {
       int nameStart = offset;
-      try {
-        /*
-         * The member's name range may not be correct. However, reconciling would trigger another
-         * element delta which would lead to reentrant situations. Therefore, we optimistically
-         * assume that the name range is correct, but double check the received lines below.
-         */
-        SourceRange nameRange = fMember.getNameRange();
-        if (nameRange != null) {
-          nameStart = nameRange.getOffset();
-        }
-
-      } catch (DartModelException e) {
-        // ignore and use default
+      SourceRange nameRange = new SourceRange(fMember.getOffset(), fMember.getLength());
+      if (nameRange != null) {
+        nameStart = nameRange.getOffset();
       }
-
       int firstLine = document.getLineOfOffset(offset);
       int captionLine = document.getLineOfOffset(nameStart);
       int lastLine = document.getLineOfOffset(offset + length);
-
-      /*
-       * see comment above - adjust the caption line to be inside the entire folded region, and rely
-       * on later element deltas to correct the name range.
-       */
       if (captionLine < firstLine) {
         captionLine = firstLine;
       }
       if (captionLine > lastLine) {
         captionLine = lastLine;
       }
-
       IRegion preRegion;
       if (firstLine < captionLine) {
         int preOffset = document.getLineOffset(firstLine);
@@ -451,7 +455,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       } else {
         preRegion = null;
       }
-
       if (captionLine < lastLine) {
         int postOffset = document.getLineOffset(captionLine + 1);
         IRegion postRegion = new Region(postOffset, offset + length - postOffset);
@@ -459,156 +462,19 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
         if (preRegion == null) {
           return new IRegion[] {postRegion};
         }
-
         return new IRegion[] {preRegion, postRegion};
       }
-
       if (preRegion != null) {
         return new IRegion[] {preRegion};
       }
-
       return null;
     }
 
-    public void setMember(TypeMember member) {
+    public void setMember(ASTNode member) {
       Assert.isNotNull(member);
       fMember = member;
     }
 
-  }
-
-  /**
-   * Matches Dart elements contained in a certain set.
-   */
-  private static final class DartElementSetFilter implements Filter {
-    private final Set<? extends DartElement> fSet;
-    private final boolean fMatchCollapsed;
-
-    private DartElementSetFilter(Set<? extends DartElement> set, boolean matchCollapsed) {
-      fSet = set;
-      fMatchCollapsed = matchCollapsed;
-    }
-
-    @Override
-    public boolean match(DartProjectionAnnotation annotation) {
-      boolean stateMatch = fMatchCollapsed == annotation.isCollapsed();
-      if (stateMatch && !annotation.isComment() && !annotation.isMarkedDeleted()) {
-        DartElement element = annotation.getElement();
-        if (fSet.contains(element)) {
-          return true;
-        }
-      }
-      return false;
-    }
-  }
-
-  private class ElementChangedListener implements
-      com.google.dart.tools.core.model.ElementChangedListener {
-
-    @Override
-    public void elementChanged(ElementChangedEvent e) {
-      DartElementDelta delta = findElement(fInput, e.getDelta());
-      if (delta != null
-          && (delta.getFlags() & (DartElementDelta.F_CONTENT | DartElementDelta.F_CHILDREN)) != 0) {
-
-        DartX.todo();
-//        if (shouldIgnoreDelta(e.getDelta().getCompilationUnitAST(), delta))
-//          return;
-
-//        fUpdatingCount++;
-        try {
-          update(createContext(false));
-        } finally {
-//          fUpdatingCount--;
-        }
-      }
-    }
-
-    private DartElementDelta findElement(DartElement target, DartElementDelta delta) {
-
-      if (delta == null || target == null) {
-        return null;
-      }
-
-      DartElement element = delta.getElement();
-
-      if (target.equals(element)) {
-        return delta;
-      }
-
-      DartElementDelta[] children = delta.getAffectedChildren();
-
-      for (int i = 0; i < children.length; i++) {
-        DartElementDelta d = findElement(target, children[i]);
-        if (d != null) {
-          return d;
-        }
-      }
-
-      return null;
-    }
-
-    /**
-     * Ignore the delta if there are errors on the caret line.
-     * <p>
-     * We don't ignore the delta if an import is added and the caret isn't inside the import
-     * container.
-     * </p>
-     * 
-     * @param ast the compilation unit AST
-     * @param delta the JavaScript element delta for the given AST element
-     * @return <code>true</code> if the delta should be ignored
-     */
-    @SuppressWarnings("unused")
-    private boolean shouldIgnoreDelta(CompilationUnit ast, DartElementDelta delta) {
-      if (ast == null) {
-        return false; // can't compute
-      }
-
-      IDocument document = getDocument();
-      if (document == null) {
-        return false; // can't compute
-      }
-
-      DartEditor editor = dartEditor;
-      if (editor == null || editor.getCachedSelectedRange() == null) {
-        return false; // can't compute
-      }
-
-//      try {
-//        if (delta.getAffectedChildren().length == 1
-//            && delta.getAffectedChildren()[0].getElement() instanceof DartImportContainer) {
-//          DartElement elem = SelectionConverter.getElementAtOffset(
-//              ast.getJavaElement(),
-//              new TextSelection(editor.getCachedSelectedRange().x,
-//                  editor.getCachedSelectedRange().y));
-//          if (!(elem instanceof IImportDeclaration))
-//            return false;
-//
-//        }
-//      } catch (DartModelException e) {
-//        return false; // can't compute
-//      }
-
-      int caretLine = 0;
-      try {
-        caretLine = document.getLineOfOffset(editor.getCachedSelectedRange().x) + 1;
-      } catch (BadLocationException x) {
-        return false; // can't compute
-      }
-
-      DartX.todo();
-//      if (caretLine > 0 && ast != null) {
-//        Problem[] problems = ast.getProblems();
-//        for (int i = 0; i < problems.length; i++) {
-//          if (problems[i].isError()
-//              && caretLine == problems[i].getSourceLineNumber())
-//            return true;
-//        }
-//      }
-
-      return false;
-    }
   }
 
   /**
@@ -618,29 +484,29 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     boolean match(DartProjectionAnnotation annotation);
   }
 
+  private static class InvalidSourceException extends Exception {
+  }
+
   /**
    * Matches members.
    */
-  private static final class MemberFilter implements Filter {
+  private static class MemberFilter extends CollapsibleNodeClassifier implements Filter {
+
     @Override
     public boolean match(DartProjectionAnnotation annotation) {
       if (!annotation.isComment() && !annotation.isMarkedDeleted()) {
-        DartElement element = annotation.getElement();
-        if (element instanceof TypeMember) {
-          if (element.getElementType() != DartElement.TYPE
-              || ((TypeMember) element).getDeclaringType() != null) {
-            return true;
-          }
-        }
+        ASTNode element = annotation.getElement();
+        return element.accept(this) != CollapsibleNodeType.NONE;
       }
       return false;
     }
+
   }
 
   /**
    * Internal projection listener.
    */
-  private final class ProjectionListener implements IProjectionListener {
+  private class ProjectionListener implements IProjectionListener {
     private ProjectionViewer fViewer;
 
     /**
@@ -666,18 +532,12 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 
     @Override
     public void projectionDisabled() {
-      //TODO (pquitslund): support projection for new model elements
-      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        handleProjectionDisabled();
-      }
+      handleProjectionDisabled();
     }
 
     @Override
     public void projectionEnabled() {
-      //TODO (pquitslund): support projection for new model elements
-      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        handleProjectionEnabled();
-      }
+      handleProjectionEnabled();
     }
   }
 
@@ -687,7 +547,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     Token currentToken;
     int begin;
 
-    TokenStream(String source) throws DartModelException {
+    TokenStream(String source) throws InvalidSourceException {
       final boolean[] errorFound = {false};
       AnalysisErrorListener listener = new AnalysisErrorListener() {
         @Override
@@ -697,7 +557,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       };
       scanner = new StringScanner(null, source, listener);
       if (errorFound[0]) {
-        throw new DartModelException((DartModelStatus) null);
+        throw new InvalidSourceException();
       } else {
         firstToken = scanner.tokenize();
         currentToken = firstToken;
@@ -726,7 +586,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     }
   }
 
-  private static final class Tuple {
+  private static class Tuple {
     DartProjectionAnnotation annotation;
     Position position;
 
@@ -736,30 +596,36 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     }
   }
 
-  static boolean isAvailable(SourceRange range) {
+  private static boolean isAvailable(SourceRange range) {
     return range != null && range.getOffset() != -1;
   }
 
   /* context and listeners */
-  private DartEditor dartEditor;
+  private CompilationUnitEditor dartEditor;
   private ProjectionListener projectionListener;
-  private DartElement fInput;
+  private ASTNode fInput;
 
-  private ElementChangedListener fElementListener;
   /* preferences */
   private boolean collapseDartDoc = false;
-  private boolean collapseImportContainer = true;
+  private boolean collapseImportContainer = false;
   private boolean collapseMembers = false;
-
   private boolean collapseHeaderComments = true;
+  private boolean collapseClasses = false;
+  private boolean collapseFunctions = false;
+
   /* filters */
-  /** Member filter, matches nested members (but not top-level types). */
-  private final Filter fMemberFilter = new MemberFilter();
-
+  /** Member filter, matches collapse-able AST nodes. */
+  private Filter memberFilter = new MemberFilter();
   /** Comment filter, matches comments. */
-  private final Filter fCommentFilter = new CommentFilter();
+  private Filter commentFilter = new CommentFilter();
 
-//  private volatile int fUpdatingCount = 0;
+  private CollapsibleNodeClassifier classifier = new CollapsibleNodeClassifier();
+  private IDartReconcilingListener reconcileListener = new IDartReconcilingListener() {
+    @Override
+    public void reconciled(CompilationUnit unit) {
+      refresh();
+    }
+  };
 
   /**
    * Creates a new folding provider. It must be {@link #install(ITextEditor, ProjectionViewer)
@@ -769,52 +635,38 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * The projection state may be reset by calling {@link #initialize()}.
    * </p>
    */
-  public DefaultDartFoldingStructureProvider() {
+  public DartFoldingStructureProvider() {
   }
 
   @Override
-  public final void collapseComments() {
-    modifyFiltered(fCommentFilter, false);
+  public void collapseComments() {
+    modifyFiltered(commentFilter, false);
   }
 
   @Override
-  public final void collapseElements(DartElement[] elements) {
-    Set<DartElement> set = new HashSet<DartElement>(Arrays.asList(elements));
-    modifyFiltered(new DartElementSetFilter(set, false), false);
+  public void collapseMembers() {
+    modifyFiltered(memberFilter, false);
   }
 
   @Override
-  public final void collapseMembers() {
-    modifyFiltered(fMemberFilter, false);
-  }
-
-  @Override
-  public final void expandElements(DartElement[] elements) {
-    Set<DartElement> set = new HashSet<DartElement>(Arrays.asList(elements));
-    modifyFiltered(new DartElementSetFilter(set, true), true);
-  }
-
-  @Override
-  public final void initialize() {
-//    fUpdatingCount++;
-    try {
-      update(createInitialContext());
-    } finally {
-//      fUpdatingCount--;
-    }
+  public void initialize() {
+    update(createInitialContext());
   }
 
   @Override
   public void install(ITextEditor editor, ProjectionViewer viewer) {
     Assert.isLegal(editor != null);
     Assert.isLegal(viewer != null);
-
     internalUninstall();
-
-    if (editor instanceof DartEditor) {
+    if (editor instanceof CompilationUnitEditor) {
       projectionListener = new ProjectionListener(viewer);
-      dartEditor = (DartEditor) editor;
+      dartEditor = (CompilationUnitEditor) editor;
+      dartEditor.addReconcileListener(reconcileListener);
     }
+  }
+
+  public void refresh() {
+    update(createContext(false));
   }
 
   @Override
@@ -833,37 +685,31 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * @return a region equal or greater than <code>region</code> that is aligned with line offsets,
    *         <code>null</code> if the region is too small to be foldable (e.g. covers only one line)
    */
-  protected final IRegion alignRegion(IRegion region, FoldingStructureComputationContext ctx) {
+  protected IRegion alignRegion(IRegion region, FoldingStructureComputationContext ctx) {
     if (region == null) {
       return null;
     }
-
     IDocument document = ctx.getDocument();
-
     try {
-
       int start = document.getLineOfOffset(region.getOffset());
       int end = document.getLineOfOffset(region.getOffset() + region.getLength());
       if (start >= end) {
         return null;
       }
-
       int offset = document.getLineOffset(start);
       int endOffset;
       if (document.getNumberOfLines() > end + 1) {
         endOffset = document.getLineOffset(end);
-        if (endOffset != region.getOffset() + region.getLength()) {
-          endOffset = document.getLineOffset(end + 1);
-        }
+//        if (endOffset != region.getOffset() + region.getLength()) {
+        endOffset = document.getLineOffset(end + 1);
+//        }
       } else {
         endOffset = document.getLineOffset(end);
         if (endOffset != end) {
           endOffset += document.getLineLength(end);
         }
       }
-
       return new Region(offset, endOffset - offset);
-
     } catch (BadLocationException x) {
       // concurrent modification
       return null;
@@ -871,44 +717,44 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   }
 
   /**
-   * Computes the folding structure for a given {@link DartElement Dart element}. Computed
-   * projection annotations are
-   * {@link DefaultDartFoldingStructureProvider.FoldingStructureComputationContext#addProjectionRange(DefaultDartFoldingStructureProvider.DartProjectionAnnotation, Position)
+   * Computes the folding structure for a given {@link ASTNode Dart node}. Computed projection
+   * annotations are
+   * {@link DartFoldingStructureProvider.FoldingStructureComputationContext#addProjectionRange(DartFoldingStructureProvider.DartProjectionAnnotation, Position)
    * added} to the computation context.
    * <p>
-   * Subclasses may extend or replace. This implementation creates projection annotations for the
-   * following elements:
+   * This implementation creates projection annotations for the following elements:
    * <ul>
-   * <li>top-level functions, fields, and typedefs
-   * <li>members of types (not for top-level types)</li>
+   * <li>top-level functions, variables, and typedefs</li>
+   * <li>classes</li>
+   * <li>fields and methods</li>
+   * <li>local functions</li>
    * </ul>
    * </p>
    * 
-   * @param element the Dart element to compute the folding structure for
+   * @param node the Dart AST node to compute the folding structure for
    * @param ctx the computation context
    */
-  protected void computeFoldingStructure(DartElement element, FoldingStructureComputationContext ctx) {
+  protected void computeFoldingStructure(ASTNode node, FoldingStructureComputationContext ctx) {
 
     boolean collapse = false;
     boolean collapseCode = true;
-    switch (element.getElementType()) {
-
-      case DartElement.IMPORT_CONTAINER:
+    switch (node.accept(classifier)) {
+      case DIRECTIVE:
         collapse = ctx.collapseImportContainer();
         break;
-      case DartElement.TYPE:
+      case TOP_LEVEL_DECL:
+        collapse = ctx.collapseClasses();
         break;
-      case DartElement.METHOD:
-      case DartElement.FIELD:
-      case DartElement.FUNCTION:
-      case DartElement.FUNCTION_TYPE_ALIAS:
+      case CLASS_MEMEBER:
         collapse = ctx.collapseMembers();
         break;
+      case STATEMENT:
+        collapse = ctx.collapseStatements();
       default:
         return;
     }
 
-    IRegion[] regions = computeProjectionRanges((SourceReference) element, ctx);
+    IRegion[] regions = computeProjectionRanges(node, ctx);
     if (regions.length > 0) {
       // comments
       for (int i = 0; i < regions.length - 1; i++) {
@@ -918,13 +764,13 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
           if (position != null) {
             boolean commentCollapse;
             if (i == 0 && (regions.length > 2 || ctx.hasHeaderComment())
-                && element == ctx.getFirstRef()) {
+                && node == ctx.getFirstRef()) {
               commentCollapse = ctx.collapseHeaderComments();
             } else {
               commentCollapse = ctx.collapseDartDoc();
             }
             ctx.addProjectionRange(
-                new DartProjectionAnnotation(commentCollapse, element, true),
+                new DartProjectionAnnotation(commentCollapse, node, true),
                 position);
           }
         }
@@ -933,11 +779,11 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       if (collapseCode) {
         IRegion normalized = alignRegion(regions[regions.length - 1], ctx);
         if (normalized != null) {
-          Position position = element instanceof TypeMember ? createMemberPosition(
+          Position position = node instanceof ExecutableElement ? createMemberPosition(
               normalized,
-              (TypeMember) element) : createCommentPosition(normalized);
+              node) : createCommentPosition(normalized);
           if (position != null) {
-            ctx.addProjectionRange(new DartProjectionAnnotation(collapse, element, false), position);
+            ctx.addProjectionRange(new DartProjectionAnnotation(collapse, node, false), position);
           }
         }
       }
@@ -945,10 +791,10 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   }
 
   /**
-   * Computes the projection ranges for a given <code>SourceReference</code>. More than one range or
-   * none at all may be returned. If there are no foldable regions, an empty array is returned.
+   * Computes the projection ranges for a given <code>ASTNode</code>. More than one range or none at
+   * all may be returned. If there are no fold-able regions, an empty array is returned.
    * <p>
-   * The last region in the returned array (if not empty) describes the region for the java element
+   * The last region in the returned array (if not empty) describes the region for the Dart node
    * that implements the source reference. Any preceding regions describe Dart doc comments of that
    * element.
    * </p>
@@ -957,80 +803,75 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * @param ctx the folding context
    * @return the regions to be folded
    */
-  protected final IRegion[] computeProjectionRanges(SourceReference reference,
+  protected IRegion[] computeProjectionRanges(ASTNode reference,
       FoldingStructureComputationContext ctx) {
-    try {
-      SourceRange range = reference.getSourceRange();
-      if (!isAvailable(range)) {
-        return new IRegion[0];
-      }
-
-      String contents = reference.getSource();
-      if (contents == null) {
-        return new IRegion[0];
-      }
-
-      List<IRegion> regions = new ArrayList<IRegion>();
-      if (!ctx.hasFirstRef()) {
-        ctx.setFirstRef(reference);
-        IRegion headerComment = computeHeaderComment(ctx);
-        if (headerComment != null) {
-          regions.add(headerComment);
-          ctx.setHasHeaderComment();
-        }
-      }
-
-      final int shift = range.getOffset();
-      TokenStream scanner = ctx.getScanner(shift);
-
-      int start = shift;
-      Token token = scanner.next();
-      start = token.getOffset();
-      Token comment = token.getPrecedingComments();
-      while (comment != null) {
-        int s = token.getOffset();
-        int l = token.getLength();
-        regions.add(new Region(s, l));
-        comment = comment.getNext();
-        if (comment == token) {
-          comment = null;
-        }
-      }
-
-      regions.add(new Region(start, shift + range.getLength() - start - 1));
-
-      IRegion[] result = new IRegion[regions.size()];
-      regions.toArray(result);
-      return result;
-    } catch (DartModelException e) {
+    SourceRange range = new SourceRange(reference.getOffset(), reference.getLength());
+    if (!isAvailable(range)) {
+      return new IRegion[0];
     }
-
-    return new IRegion[0];
+    List<IRegion> regions = new ArrayList<IRegion>();
+    if (!ctx.hasFirstRef()) {
+      ctx.setFirstRef(reference);
+      IRegion headerComment = computeHeaderComment(ctx);
+      if (headerComment != null) {
+        regions.add(headerComment);
+        ctx.setHasHeaderComment();
+      }
+    }
+    int shift = range.getOffset();
+    TokenStream scanner = ctx.getScanner(shift);
+    int start = shift;
+    Token token = scanner.next();
+    start = token.getOffset();
+    Token comment = token.getPrecedingComments();
+    while (comment != null) {
+      int s = comment.getOffset();
+      int l = comment.getLength();
+      if (comment.getLexeme().startsWith("//")) {
+        Token nextComment = comment.getNext();
+        while (nextComment != null && nextComment != token
+            && nextComment.getLexeme().startsWith("//")) {
+          l = nextComment.getEnd() - s;
+          nextComment = nextComment.getNext();
+        }
+        comment = nextComment;
+      } else {
+        comment = comment.getNext();
+      }
+      regions.add(new Region(s, l));
+      if (comment == token) {
+        comment = null;
+      }
+    }
+    regions.add(new Region(start, shift + range.getLength() - start - 1));
+    IRegion[] result = new IRegion[regions.size()];
+    regions.toArray(result);
+    return result;
   }
 
   /**
    * Creates a comment folding position from an
-   * {@link #alignRegion(IRegion, DefaultDartFoldingStructureProvider.FoldingStructureComputationContext)
+   * {@link #alignRegion(IRegion, DartFoldingStructureProvider.FoldingStructureComputationContext)
    * aligned} region.
    * 
    * @param aligned an aligned region
    * @return a folding position corresponding to <code>aligned</code>
    */
-  protected final Position createCommentPosition(IRegion aligned) {
+  protected Position createCommentPosition(IRegion aligned) {
     return new CommentPosition(aligned.getOffset(), aligned.getLength());
   }
 
   /**
    * Creates a folding position that remembers its member from an
-   * {@link #alignRegion(IRegion, DefaultDartFoldingStructureProvider.FoldingStructureComputationContext)
+   * {@link #alignRegion(IRegion, DartFoldingStructureProvider.FoldingStructureComputationContext)
    * aligned} region.
    * 
    * @param aligned an aligned region
-   * @param member the member to remember
+   * @param node the AST node to remember
    * @return a folding position corresponding to <code>aligned</code>
    */
-  protected final Position createMemberPosition(IRegion aligned, TypeMember member) {
-    return new DartElementPosition(aligned.getOffset(), aligned.getLength(), member);
+  protected Position createMemberPosition(IRegion aligned, ASTNode node) {
+    return new DartElementPosition(aligned.getOffset(), aligned.getLength(), node);
   }
 
   /**
@@ -1039,15 +880,9 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * projectionDisabled} message and before {@link #handleProjectionEnabled() enabling} the
    * provider. Implementations must be prepared to handle multiple calls to this method even if the
    * provider is already disabled.
-   * <p>
-   * Subclasses may extend.
-   * </p>
    */
   protected void handleProjectionDisabled() {
-    if (fElementListener != null) {
-      DartCore.removeElementChangedListener(fElementListener);
-      fElementListener = null;
-    }
+    dartEditor.removeReconcileListener(reconcileListener);
   }
 
   /**
@@ -1055,24 +890,15 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * {@link IProjectionListener#projectionEnabled() projectionEnabled} message. When the provider is
    * already enabled when this method is called, it is first {@link #handleProjectionDisabled()
    * disabled}.
-   * <p>
-   * Subclasses may extend.
-   * </p>
    */
   protected void handleProjectionEnabled() {
     // projectionEnabled messages are not always paired with projectionDisabled
     // i.e. multiple enabled messages may be sent out.
     // we have to make sure that we disable first when getting an enable message.
     handleProjectionDisabled();
-
     if (isInstalled()) {
       initialize();
-      fElementListener = new ElementChangedListener();
-      try {
-        DartCore.addElementChangedListener(fElementListener);
-      } catch (Exception ex) {
-        DartToolsPlugin.log(ex);
-      }
+      dartEditor.addReconcileListener(reconcileListener);
     }
   }
 
@@ -1081,31 +907,29 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * 
    * @return <code>true</code> if the provider is installed, <code>false</code> otherwise
    */
-  protected final boolean isInstalled() {
+  protected boolean isInstalled() {
     return dartEditor != null;
   }
 
-  private Map<DartElement, List<Tuple>> computeCurrentStructure(
-      FoldingStructureComputationContext ctx) {
-    Map<DartElement, List<Tuple>> map = new HashMap<DartElement, List<Tuple>>();
+  private Map<ASTNode, List<Tuple>> computeCurrentStructure(FoldingStructureComputationContext ctx) {
+    Map<ASTNode, List<Tuple>> map = new HashMap<ASTNode, List<Tuple>>();
     ProjectionAnnotationModel model = ctx.getModel();
     @SuppressWarnings("unchecked")
     Iterator<Object> e = model.getAnnotationIterator();
     while (e.hasNext()) {
       Object annotation = e.next();
       if (annotation instanceof DartProjectionAnnotation) {
-        DartProjectionAnnotation java = (DartProjectionAnnotation) annotation;
-        Position position = model.getPosition(java);
+        DartProjectionAnnotation projection = (DartProjectionAnnotation) annotation;
+        Position position = model.getPosition(projection);
         Assert.isNotNull(position);
-        List<Tuple> list = map.get(java.getElement());
+        List<Tuple> list = map.get(projection.getElement());
         if (list == null) {
           list = new ArrayList<Tuple>(2);
-          map.put(java.getElement(), list);
+          map.put(projection.getElement(), list);
         }
-        list.add(new Tuple(java, position));
+        list.add(new Tuple(projection, position));
       }
     }
-
     Comparator<Tuple> comparator = new Comparator<Tuple>() {
       @Override
       public int compare(Tuple o1, Tuple o2) {
@@ -1119,47 +943,34 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     return map;
   }
 
-  private void computeFoldingStructure(DartElement[] elements,
-      FoldingStructureComputationContext ctx) throws DartModelException {
-    for (int i = 0; i < elements.length; i++) {
-      DartElement element = elements[i];
-
-      computeFoldingStructure(element, ctx);
-
-      if (element instanceof ParentElement) {
-        ParentElement parent = (ParentElement) element;
-        computeFoldingStructure(parent.getChildren(), ctx);
-      }
-    }
-  }
-
-  private void computeFoldingStructure(FoldingStructureComputationContext ctx) {
-    ParentElement parent = (ParentElement) fInput;
+  private void computeFoldingStructure(final FoldingStructureComputationContext ctx) {
+    CompilationUnit parent = getInputElement();
     try {
-      if (!(fInput instanceof SourceReference)) {
+      if (parent == null) {
         return;
       }
-      String source = ((SourceReference) fInput).getSource();
+      String source = ctx.getDocument().get();
       if (source == null) {
         return;
       }
-
       ctx.setScannerSource(source);
-      computeFoldingStructure(parent.getChildren(), ctx);
-    } catch (DartModelException x) {
+      BreadthFirstVisitor<Void> v = new BreadthFirstVisitor<Void>() {
+        @Override
+        public Void visitNode(ASTNode node) {
+          computeFoldingStructure(node, ctx);
+          super.visitNode(node);
+          return null;
+        }
+      };
+      v.visitAllNodes(parent);
+    } catch (InvalidSourceException x) {
+      DartToolsPlugin.log(x);
     }
   }
 
-  private IRegion computeHeaderComment(FoldingStructureComputationContext ctx)
-      throws DartModelException {
+  private IRegion computeHeaderComment(FoldingStructureComputationContext ctx) {
     // search at most up to the first element
-    SourceRange range = ctx.getFirstRef().getSourceRange();
-    if (range == null) {
-      return null;
-    }
-
     TokenStream scanner = ctx.getScanner();
-
     int headerStart = -1;
     int headerEnd = -1;
     boolean foundComment = false;
@@ -1180,7 +991,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
         comment = nextComment;
       }
     }
-
     if (headerEnd != -1) {
       return new Region(headerStart, headerEnd - headerStart);
     }
@@ -1199,7 +1009,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     if (doc == null) {
       return null;
     }
-
     return new FoldingStructureComputationContext(doc, model, allowCollapse);
   }
 
@@ -1209,7 +1018,6 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     if (fInput == null) {
       return null;
     }
-
     return createContext(true);
   }
 
@@ -1227,7 +1035,7 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
    * </p>
    * 
    * @param tuple the tuple for which we want to find a match
-   * @param annotations collection of <code>JavaProjectionAnnotation</code>
+   * @param annotations collection of <code>DartProjectionAnnotation</code>
    * @param positionMap a <code>Map&lt;Annotation, Position&gt;</code> or <code>null</code>
    * @param ctx the context
    * @return a matching tuple or <code>null</code> for no match
@@ -1243,14 +1051,12 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
         if (position == null) {
           continue;
         }
-
         if (tuple.position.getOffset() == position.getOffset()) {
           it.remove();
           return new Tuple(annotation, position);
         }
       }
     }
-
     return null;
   }
 
@@ -1259,20 +1065,18 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     if (editor == null) {
       return null;
     }
-
     IDocumentProvider provider = editor.getDocumentProvider();
     if (provider == null) {
       return null;
     }
-
     return provider.getDocument(editor.getEditorInput());
   }
 
-  private DartElement getInputElement() {
+  private CompilationUnit getInputElement() {
     if (dartEditor == null) {
       return null;
     }
-    return EditorUtility.getEditorInputDartElement(dartEditor, false);
+    return dartEditor.getInputUnit();
   }
 
   private ProjectionAnnotationModel getModel() {
@@ -1280,11 +1084,13 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
   }
 
   private void initializePreferences() {
-    IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();
+    IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();//dartEditor.getPreferences()
     collapseImportContainer = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_IMPORTS);
     collapseDartDoc = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_JAVADOC);
     collapseMembers = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_METHODS);
     collapseHeaderComments = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_HEADERS);
+    collapseClasses = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_CLASSES);
+    collapseFunctions = store.getBoolean(PreferenceConstants.EDITOR_FOLDING_FUNCTIONS);
   }
 
   /**
@@ -1316,10 +1122,8 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     if (deletions.isEmpty() || (additions.isEmpty() && changes.isEmpty())) {
       return;
     }
-
     List<DartProjectionAnnotation> newDeletions = new ArrayList<DartProjectionAnnotation>();
     List<DartProjectionAnnotation> newChanges = new ArrayList<DartProjectionAnnotation>();
-
     Iterator<DartProjectionAnnotation> deletionIterator = deletions.iterator();
     while (deletionIterator.hasNext()) {
       DartProjectionAnnotation deleted = deletionIterator.next();
@@ -1327,34 +1131,28 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       if (deletedPosition == null) {
         continue;
       }
-
       Tuple deletedTuple = new Tuple(deleted, deletedPosition);
-
       Tuple match = findMatch(deletedTuple, changes, null, ctx);
       boolean addToDeletions = true;
       if (match == null) {
         match = findMatch(deletedTuple, additions.keySet(), additions, ctx);
         addToDeletions = false;
       }
-
       if (match != null) {
-        DartElement element = match.annotation.getElement();
+        ASTNode element = match.annotation.getElement();
         deleted.setElement(element);
         deletedPosition.setLength(match.position.getLength());
-        if (deletedPosition instanceof DartElementPosition && element instanceof TypeMember) {
+        if (deletedPosition instanceof DartElementPosition && element instanceof ASTNode) {
           DartElementPosition jep = (DartElementPosition) deletedPosition;
-          jep.setMember((TypeMember) element);
+          jep.setMember(element);
         }
-
         deletionIterator.remove();
         newChanges.add(deleted);
-
         if (addToDeletions) {
           newDeletions.add(match.annotation);
         }
       }
     }
-
     deletions.addAll(newDeletions);
     changes.addAll(newChanges);
   }
@@ -1370,32 +1168,27 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     if (!isInstalled()) {
       return;
     }
-
     ProjectionAnnotationModel model = getModel();
     if (model == null) {
       return;
     }
-
     List<DartProjectionAnnotation> modified = new ArrayList<DartProjectionAnnotation>();
     @SuppressWarnings("unchecked")
     Iterator<Object> iter = model.getAnnotationIterator();
     while (iter.hasNext()) {
       Object annotation = iter.next();
       if (annotation instanceof DartProjectionAnnotation) {
-        DartProjectionAnnotation java = (DartProjectionAnnotation) annotation;
-
-        if (expand == java.isCollapsed() && filter.match(java)) {
+        DartProjectionAnnotation projection = (DartProjectionAnnotation) annotation;
+        if (expand == projection.isCollapsed() && filter.match(projection)) {
           if (expand) {
-            java.markExpanded();
+            projection.markExpanded();
           } else {
-            java.markCollapsed();
+            projection.markCollapsed();
           }
-          modified.add(java);
+          modified.add(projection);
         }
-
       }
     }
-
     model.modifyAnnotations(null, null, modified.toArray(new Annotation[modified.size()]));
   }
 
@@ -1406,17 +1199,14 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
     Map<DartProjectionAnnotation, Position> additions = new HashMap<DartProjectionAnnotation, Position>();
     List<DartProjectionAnnotation> deletions = new ArrayList<DartProjectionAnnotation>();
     List<DartProjectionAnnotation> updates = new ArrayList<DartProjectionAnnotation>();
-
     computeFoldingStructure(ctx);
     Map<DartProjectionAnnotation, Position> newStructure = ctx.map;
-    Map<DartElement, List<Tuple>> oldStructure = computeCurrentStructure(ctx);
-
+    Map<ASTNode, List<Tuple>> oldStructure = computeCurrentStructure(ctx);
     Iterator<DartProjectionAnnotation> e = newStructure.keySet().iterator();
     while (e.hasNext()) {
       DartProjectionAnnotation newAnnotation = e.next();
       Position newPosition = newStructure.get(newAnnotation);
-
-      DartElement element = newAnnotation.getElement();
+      ASTNode element = newAnnotation.getElement();
       List<Tuple> annotations = oldStructure.get(element);
       if (annotations == null) {
         additions.put(newAnnotation, newPosition);
@@ -1451,13 +1241,11 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
         if (!matched) {
           additions.put(newAnnotation, newPosition);
         }
-
         if (annotations.isEmpty()) {
           oldStructure.remove(element);
         }
       }
     }
-
     Iterator<List<Tuple>> e2 = oldStructure.values().iterator();
     while (e2.hasNext()) {
       List<Tuple> list = e2.next();
@@ -1466,15 +1254,13 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
         deletions.add(list.get(i).annotation);
       }
     }
-
     match(deletions, additions, updates, ctx);
-
     Annotation[] deletedArray = deletions.toArray(new Annotation[deletions.size()]);
     Annotation[] changedArray = updates.toArray(new Annotation[updates.size()]);
     ctx.getModel().modifyAnnotations(deletedArray, additions, changedArray);
     try {
       ctx.setScannerSource(""); // clear token stream
-    } catch (DartModelException e1) {
+    } catch (InvalidSourceException e1) {
     }
   }
 }

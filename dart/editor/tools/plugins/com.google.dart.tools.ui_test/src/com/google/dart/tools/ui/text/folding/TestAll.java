@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,20 +13,14 @@
  */
 package com.google.dart.tools.ui.text.folding;
 
-/**
- * Extends {@link IDartFoldingStructureProvider} with the following functions:
- * <ul>
- * <li>collapsing of comments and members</li>
- * </ul>
- */
-public interface IDartFoldingStructureProviderExtension {
-  /**
-   * Collapses all comments.
-   */
-  void collapseComments();
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
-  /**
-   * Collapses all members except for top level types.
-   */
-  void collapseMembers();
+public class TestAll {
+
+  public static Test suite() {
+    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(DartFoldingStructureProviderTest.class);
+    return suite;
+  }
 }

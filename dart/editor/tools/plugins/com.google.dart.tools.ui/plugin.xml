@@ -2068,7 +2068,7 @@
       <provider
          id="com.google.dart.tools.ui.text.defaultFoldingProvider"
          name= "%defaultFoldingStructureProviderName"
-         class="com.google.dart.tools.ui.text.folding.DefaultDartFoldingStructureProvider"
+         class="com.google.dart.tools.ui.text.folding.DartFoldingStructureProvider"
          preferencesClass="com.google.dart.tools.ui.internal.text.folding.DefaultJavaFoldingPreferenceBlock">
       </provider>
    </extension>

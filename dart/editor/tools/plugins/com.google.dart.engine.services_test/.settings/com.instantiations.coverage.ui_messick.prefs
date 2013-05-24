@@ -1,0 +1,4 @@
+CATEGORIES_COUNT=1
+NEXT_CATEGORY_NAME0=Completion
+NEXT_CATEGORY_VALUE0=com.google.dart.engine.services.completion 
+eclipse.preferences.version=1

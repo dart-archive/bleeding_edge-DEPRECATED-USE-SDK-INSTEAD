@@ -1141,6 +1141,17 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     }
   }
 
+  /**
+   * Adds the given listener. Has no effect if an identical listener was not already registered.
+   * 
+   * @param listener The reconcile listener to be added
+   */
+  public void addReconcileListener(IDartReconcilingListener listener) {
+    synchronized (fReconcilingListeners) {
+      fReconcilingListeners.add(listener);
+    }
+  }
+
   @Override
   public void applyCompilationUnitElement(com.google.dart.engine.ast.CompilationUnit unit) {
     super.applyCompilationUnitElement(unit);
@@ -1352,6 +1363,17 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
           }
         });
       }
+    }
+  }
+
+  /**
+   * Removes the given listener. Has no effect if an identical listener was not already registered.
+   * 
+   * @param listener the reconcile listener to be removed
+   */
+  public void removeReconcileListener(IDartReconcilingListener listener) {
+    synchronized (fReconcilingListeners) {
+      fReconcilingListeners.remove(listener);
     }
   }
 
@@ -1938,31 +1960,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
    * 
    * @param listener The reconcile listener to be added
    */
-  final void addReconcileListener(IDartReconcilingListener listener) {
-    synchronized (fReconcilingListeners) {
-      fReconcilingListeners.add(listener);
-    }
-  }
-
-  /**
-   * Adds the given listener. Has no effect if an identical listener was not already registered.
-   * 
-   * @param listener The reconcile listener to be added
-   */
   final void addReconcileListener_OLD(IDartReconcilingListener_OLD listener) {
     synchronized (fReconcilingListeners_OLD) {
       fReconcilingListeners_OLD.add(listener);
-    }
-  }
-
-  /**
-   * Removes the given listener. Has no effect if an identical listener was not already registered.
-   * 
-   * @param listener the reconcile listener to be removed
-   */
-  final void removeReconcileListener(IDartReconcilingListener listener) {
-    synchronized (fReconcilingListeners) {
-      fReconcilingListeners.remove(listener);
     }
   }
 

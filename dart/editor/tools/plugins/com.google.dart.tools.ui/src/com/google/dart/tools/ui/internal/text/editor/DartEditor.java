@@ -3893,11 +3893,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
       updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, getParsedUnit());
       // TODO(scheglov)
-//      LightNodeElement element = computeHighlightRangeSourceElement();
+      LightNodeElement element = computeHighlightRangeSourceElement(
+          parsedUnit,
+          ((ITextSelection) fForcedMarkOccurrencesSelection).getOffset());
 //      if (getPreferenceStore().getBoolean(PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE)) {
 //        synchronizeOutlinePage(element);
 //      }
-//      setSelection(element, false);
+      setSelectionRange(element, false);
     } else {
       SourceReference element = computeHighlightRangeSourceReference();
       if (getPreferenceStore().getBoolean(PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE)) {
@@ -3957,6 +3959,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   protected void setSelection(SourceReference reference, boolean moveCursor) {
+    // NOTUSED
     if (getSelectionProvider() == null) {
       return;
     }
@@ -4042,6 +4045,61 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       } catch (IllegalArgumentException x) {
       }
 
+    } else if (moveCursor) {
+      resetHighlightRange();
+      markInNavigationHistory();
+    }
+  }
+
+  protected void setSelectionRange(LightNodeElement reference, boolean moveCursor) {
+    if (getSelectionProvider() == null) {
+      return;
+    }
+    ISelection selection = getSelectionProvider().getSelection();
+    if (selection instanceof ITextSelection) {
+      ITextSelection textSelection = (ITextSelection) selection;
+      // PR 39995: [navigation] Forward history cleared after going back in navigation history:
+      // mark only in navigation history if the cursor is being moved (which it isn't if
+      // this is called from a PostSelectionEvent that should only update the magnet)
+      if (moveCursor && (textSelection.getOffset() != 0 || textSelection.getLength() != 0)) {
+        markInNavigationHistory();
+      }
+    }
+    if (reference != null) {
+      StyledText textWidget = null;
+      ISourceViewer sourceViewer = getSourceViewer();
+      if (sourceViewer != null) {
+        textWidget = sourceViewer.getTextWidget();
+      }
+      if (textWidget == null) {
+        return;
+      }
+      try {
+        int offset = reference.getNode().getOffset();
+        int length = reference.getNode().getLength();
+        if (offset < 0 || length < 0) {
+          return;
+        }
+        setHighlightRange(offset, length, moveCursor);
+        if (!moveCursor) {
+          return;
+        }
+        offset = -1;
+        length = -1;
+        offset = reference.getNameOffset();
+        length = reference.getNameLength();
+        if (offset > -1 && length > 0) {
+          try {
+            textWidget.setRedraw(false);
+            sourceViewer.revealRange(offset, length);
+            sourceViewer.setSelectedRange(offset, length);
+          } finally {
+            textWidget.setRedraw(true);
+          }
+          markInNavigationHistory();
+        }
+      } catch (IllegalArgumentException x) {
+      }
     } else if (moveCursor) {
       resetHighlightRange();
       markInNavigationHistory();

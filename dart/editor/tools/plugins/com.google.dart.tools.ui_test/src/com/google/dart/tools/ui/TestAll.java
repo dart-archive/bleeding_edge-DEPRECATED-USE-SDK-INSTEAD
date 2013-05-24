@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -34,6 +34,7 @@ public class TestAll {
     suite.addTest(com.google.dart.tools.ui.feedback.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.instrumentation.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.refactoring.TestAll.suite());
+    suite.addTest(com.google.dart.tools.ui.text.folding.TestAll.suite());
     return suite;
   }
 }
