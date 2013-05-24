@@ -52,6 +52,7 @@ import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.InvokableDeclaration;
+import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -3049,6 +3050,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (parent instanceof ConstructorName) {
       ConstructorName constructorName = (ConstructorName) parent;
       if (constructorName.getName() == node) {
+        return false;
+      }
+    }
+    // ignore if name is a label
+    if (parent instanceof Label) {
+      Label label = (Label) parent;
+      if (label.getLabel() == node) {
         return false;
       }
     }
