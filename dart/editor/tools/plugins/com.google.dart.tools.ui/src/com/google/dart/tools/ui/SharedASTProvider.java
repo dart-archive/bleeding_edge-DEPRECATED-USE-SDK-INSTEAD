@@ -15,7 +15,6 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.tools.core.dom.AST;
-import com.google.dart.tools.core.dom.rewrite.ASTRewrite;
 import com.google.dart.tools.core.model.CompilationUnit;
 
 /**
