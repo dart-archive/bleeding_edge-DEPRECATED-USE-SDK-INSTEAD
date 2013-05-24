@@ -64,6 +64,15 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
     return action;
   }
 
+  public static RunPubAction createPubInstallOfflineAction(IWorkbenchWindow window) {
+    RunPubAction action = new RunPubAction(window, RunPubJob.INSTALL_OFFLINE_COMMAND);
+    action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Install Offline"));
+    action.setDescription(NLS.bind(
+        ActionMessages.RunPubAction_commandDesc,
+        RunPubJob.INSTALL_COMMAND));
+    return action;
+  }
+
   public static RunPubAction createPubUpdateAction(IWorkbenchWindow window) {
     RunPubAction action = new RunPubAction(window, RunPubJob.UPDATE_COMMAND);
     action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Update"));

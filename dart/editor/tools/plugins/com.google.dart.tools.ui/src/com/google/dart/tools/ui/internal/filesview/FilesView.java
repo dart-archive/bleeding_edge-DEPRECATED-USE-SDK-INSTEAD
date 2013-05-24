@@ -198,7 +198,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private UndoRedoActionGroup undoRedoActionGroup;
   private RunPubAction pubUpdateAction;
   private RunPubAction pubInstallAction;
-  private RunPubAction pubDeployAction;
+  private RunPubAction pubInstallOfflineAction;
 
   private IPreferenceStore preferences;
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
@@ -501,8 +501,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     if (selection.size() == 1 && selection.getFirstElement() instanceof IFile
         && isPubSpecFile(selection.getFirstElement())) {
       manager.add(pubInstallAction);
+      manager.add(pubInstallOfflineAction);
       manager.add(pubUpdateAction);
-      manager.add(pubDeployAction);
     }
 
     if (isPackagesDir) {
@@ -732,7 +732,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     pubUpdateAction = RunPubAction.createPubUpdateAction(getSite().getWorkbenchWindow());
     pubInstallAction = RunPubAction.createPubInstallAction(getSite().getWorkbenchWindow());
-    pubDeployAction = RunPubAction.createPubDeployAction(getSite().getWorkbenchWindow());
+    pubInstallOfflineAction = RunPubAction.createPubInstallOfflineAction(getSite().getWorkbenchWindow());
 
     browseDartDocAction = new OpenExternalDartdocAction(getSite()) {
       @Override

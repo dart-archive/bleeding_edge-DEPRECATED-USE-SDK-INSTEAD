@@ -30,6 +30,7 @@ public class RunPubJob extends Job {
 
   public static final String UPDATE_COMMAND = "update"; //$NON-NLS-1$
   public static final String INSTALL_COMMAND = "install"; //$NON-NLS-1$
+  public static final String INSTALL_OFFLINE_COMMAND = "install --offline"; //$NON-NLS-1$
   public static final String PUBLISH_COMMAND = "publish"; //$NON-NLS-1$
   public static final String DEPLOY_COMMAND = "deploy"; //$NON-NLS-1$
 
