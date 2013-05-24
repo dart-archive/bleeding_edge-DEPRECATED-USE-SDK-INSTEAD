@@ -23,6 +23,7 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
+import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -59,7 +60,8 @@ public class InheritanceManager {
   private HashMap<ClassElement, HashMap<String, ExecutableElement>> interfaceLookup;
 
   /**
-   * 
+   * A map between each visited {@link ClassElement} and the set of {@link AnalysisError}s found on
+   * the class element.
    */
   private HashMap<ClassElement, HashSet<AnalysisError>> errorsInClassElement = new HashMap<ClassElement, HashSet<AnalysisError>>();
 
@@ -75,20 +77,38 @@ public class InheritanceManager {
   }
 
   /**
-   * TODO(jwren) missing javadoc
+   * Return the set of {@link AnalysisError}s found on the passed {@link ClassElement}, or
+   * {@code null} if there are none.
    * 
-   * @param classElt
-   * @return
+   * @param classElt the class element to query
+   * @return the set of {@link AnalysisError}s found on the passed {@link ClassElement}, or
+   *         {@code null} if there are none
    */
   public HashSet<AnalysisError> getErrors(ClassElement classElt) {
     return errorsInClassElement.get(classElt);
   }
 
+  /**
+   * Get and return a mapping between the set of all string names of the members inherited from the
+   * passed {@link ClassElement} superclass hierarchy, and the associated {@link ExecutableElement}.
+   * 
+   * @param classElt the class element to query
+   * @return a mapping between the set of all members inherited from the passed {@link ClassElement}
+   *         superclass hierarchy, and the associated {@link ExecutableElement}
+   */
   public HashMap<String, ExecutableElement> getMapOfMembersInheritedFromClasses(
       ClassElement classElt) {
     return computeClassChainLookupMap(classElt, new HashSet<ClassElement>());
   }
 
+  /**
+   * Get and return a mapping between the set of all string names of the members inherited from the
+   * passed {@link ClassElement} interface hierarchy, and the associated {@link ExecutableElement}.
+   * 
+   * @param classElt the class element to query
+   * @return a mapping between the set of all string names of the members inherited from the passed
+   *         {@link ClassElement} interface hierarchy, and the associated {@link ExecutableElement}.
+   */
   public HashMap<String, ExecutableElement> getMapOfMembersInheritedFromInterfaces(
       ClassElement classElt) {
     return computeInterfaceLookupMap(classElt, new HashSet<ClassElement>());
@@ -183,10 +203,15 @@ public class InheritanceManager {
   }
 
   /**
-   * TODO (jwren) add missing javadoc
+   * Compute and return a mapping between the set of all string names of the members inherited from
+   * the passed {@link ClassElement} superclass hierarchy, and the associated
+   * {@link ExecutableElement}.
    * 
-   * @param classElt
-   * @return
+   * @param classElt the class element to query
+   * @param visitedClasses a set of visited classes passed back into this method when it calls
+   *          itself recursively
+   * @return a mapping between the set of all string names of the members inherited from the passed
+   *         {@link ClassElement} superclass hierarchy, and the associated {@link ExecutableElement}
    */
   private HashMap<String, ExecutableElement> computeClassChainLookupMap(ClassElement classElt,
       HashSet<ClassElement> visitedClasses) {
@@ -218,14 +243,14 @@ public class InheritanceManager {
         return resultMap;
       }
       // put the members from the superclass
-      populateMapWithClassMembers(resultMap, superclassElt);
+      recordMapWithClassMembers(resultMap, superclassElt);
     }
 
     InterfaceType[] mixins = classElt.getMixins();
     for (int i = mixins.length - 1; i >= 0; i--) {
       ClassElement mixinElement = mixins[i].getElement();
       if (mixinElement != null) {
-        populateMapWithClassMembers(resultMap, mixinElement);
+        recordMapWithClassMembers(resultMap, mixinElement);
       }
     }
 
@@ -302,10 +327,15 @@ public class InheritanceManager {
   }
 
   /**
-   * TODO (jwren) add missing javadoc
+   * Compute and return a mapping between the set of all string names of the members inherited from
+   * the passed {@link ClassElement} interface hierarchy, and the associated
+   * {@link ExecutableElement}.
    * 
-   * @param classElt
-   * @return
+   * @param classElt the class element to query
+   * @param visitedInterfaces a set of visited classes passed back into this method when it calls
+   *          itself recursively
+   * @return a mapping between the set of all string names of the members inherited from the passed
+   *         {@link ClassElement} interface hierarchy, and the associated {@link ExecutableElement}
    */
   private HashMap<String, ExecutableElement> computeInterfaceLookupMap(ClassElement classElt,
       HashSet<ClassElement> visitedInterfaces) {
@@ -445,18 +475,18 @@ public class InheritanceManager {
           if (!foundSubtypeOfAllTypes) {
             reportError(
                 classElt,
-                StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
                 classElt.getNameOffset(),
                 classElt.getDisplayName().length(),
+                StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
                 key);
           }
         } else {
           if (!allMethods && !allGetters) {
             reportError(
                 classElt,
-                StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
                 classElt.getNameOffset(),
                 classElt.getDisplayName().length(),
+                StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
                 key);
           }
           resultMap.remove(entry.getKey());
@@ -468,11 +498,13 @@ public class InheritanceManager {
   }
 
   /**
-   * TODO (jwren) add missing javadoc
+   * Given some {@link ClassElement}, this method finds and returns the {@link ExecutableElement} of
+   * the passed name in the class element. Static members, members in super types and members not
+   * accessible from the current library are not considered.
    * 
-   * @param classElt
-   * @param memberName
-   * @return
+   * @param classElt the class element to query
+   * @param memberName the name of the member to lookup in the class
+   * @return the found {@link ExecutableElement}, or {@code null} if no such member was found
    */
   private ExecutableElement lookupMemberInClass(ClassElement classElt, String memberName) {
     MethodElement[] methods = classElt.getMethods();
@@ -493,14 +525,14 @@ public class InheritanceManager {
   }
 
   /**
-   * TODO (jwren) add missing javadoc
+   * Record the passed map with the set of all members (methods, getters and setters) in the class
+   * into the passed map.
    * 
-   * @param map
-   * @param classElt
-   * @return
+   * @param map some non-{@code null}
+   * @param classElt the class element that will be recorded into the passed map
    */
-  private HashMap<String, ExecutableElement> populateMapWithClassMembers(
-      HashMap<String, ExecutableElement> map, ClassElement classElt) {
+  private void recordMapWithClassMembers(HashMap<String, ExecutableElement> map,
+      ClassElement classElt) {
     MethodElement[] methods = classElt.getMethods();
     for (MethodElement method : methods) {
       if (method.isAccessibleIn(library) && !method.isStatic()) {
@@ -513,16 +545,26 @@ public class InheritanceManager {
         map.put(accessor.getName(), accessor);
       }
     }
-    return map;
   }
 
-  private void reportError(ClassElement classElt, ErrorCode errorCode, int nameOffset, int length,
+  /**
+   * This method is used to report errors on when they are found computing inheritance information.
+   * See {@link ErrorVerifier#checkForInconsistentMethodInheritance()} to see where these generated
+   * error codes are reported back into the analysis engine.
+   * 
+   * @param classElt the location of the source for which the exception occurred
+   * @param offset the offset of the location of the error
+   * @param length the length of the location of the error
+   * @param errorCode the error code to be associated with this error
+   * @param arguments the arguments used to build the error message
+   */
+  private void reportError(ClassElement classElt, int offset, int length, ErrorCode errorCode,
       Object... arguments) {
     HashSet<AnalysisError> errorSet = errorsInClassElement.get(classElt);
     if (errorSet == null) {
       errorSet = new HashSet<AnalysisError>();
       errorsInClassElement.put(classElt, errorSet);
     }
-    errorSet.add(new AnalysisError(classElt.getSource(), errorCode, arguments));
+    errorSet.add(new AnalysisError(classElt.getSource(), offset, length, errorCode, arguments));
   }
 }
