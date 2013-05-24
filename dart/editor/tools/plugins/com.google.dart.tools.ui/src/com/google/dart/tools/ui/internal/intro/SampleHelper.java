@@ -13,14 +13,16 @@
  */
 package com.google.dart.tools.ui.internal.intro;
 
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.util.ResourceUtil2;
+import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 import com.google.dart.tools.ui.internal.projects.ProjectUtils;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -85,7 +87,11 @@ public class SampleHelper {
               window,
               window.getShell());
 
-          EditorUtility.openInTextEditor(ResourceUtil2.getFile(fileToOpen), true);
+          Project project = DartCore.getProjectManager().getProject(newProjectHandle);
+          IFile resource = (IFile) project.getResource(new FileBasedSource(
+              project.getDefaultContext().getSourceFactory().getContentCache(),
+              fileToOpen));
+          EditorUtility.openInTextEditor(resource, true);
 
         } catch (CoreException e) {
           DartToolsPlugin.log(e);
