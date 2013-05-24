@@ -304,6 +304,12 @@ public class RecoveryParserTest extends ParserTestCase {
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
+  public void test_classTypeAlias_withBody() throws Exception {
+    parseCompilationUnit(createSource(//
+        "class A {}",
+        "typedef B = Object with A {}"), ParserErrorCode.EXPECTED_TOKEN);
+  }
+
   public void test_conditionalExpression_missingElse() throws Exception {
     ConditionalExpression expression = parse(
         "parseConditionalExpression",

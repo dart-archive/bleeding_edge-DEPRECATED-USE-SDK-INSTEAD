@@ -1693,7 +1693,7 @@ public class Parser {
    * @return the class type alias that was parsed
    */
   private ClassTypeAlias parseClassTypeAlias(CommentAndMetadata commentAndMetadata, Token keyword) {
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier className = parseSimpleIdentifier();
     TypeParameterList typeParameters = null;
     if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
@@ -1712,12 +1712,28 @@ public class Parser {
     if (matches(Keyword.IMPLEMENTS)) {
       implementsClause = parseImplementsClause();
     }
-    Token semicolon = expect(TokenType.SEMICOLON);
+    Token semicolon;
+    if (matches(TokenType.SEMICOLON)) {
+      semicolon = getAndAdvance();
+    } else {
+      if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+        reportError(ParserErrorCode.EXPECTED_TOKEN, TokenType.SEMICOLON.getLexeme());
+        Token leftBracket = getAndAdvance();
+        parseClassMembers(className.getName(), getEndToken(leftBracket));
+        expect(TokenType.CLOSE_CURLY_BRACKET);
+      } else {
+        reportError(
+            ParserErrorCode.EXPECTED_TOKEN,
+            currentToken.getPrevious(),
+            TokenType.SEMICOLON.getLexeme());
+      }
+      semicolon = createSyntheticToken(TokenType.SEMICOLON);
+    }
     return new ClassTypeAlias(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
         keyword,
-        name,
+        className,
         typeParameters,
         equals,
         abstractKeyword,
