@@ -202,12 +202,6 @@ public enum StaticWarningCode implements ErrorCode {
       "The imported libraries '%s' and '%s' should not have the same name '%s'"),
 
   /**
-   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;
-   * n</i>.
-   */
-  INCORRECT_NUMBER_OF_ARGUMENTS(""),
-
-  /**
    * 8.1.1 Inheritance and Overriding: However, if there are multiple members <i>m<sub>1</sub>,
    * &hellip; m<sub>k</sub></i> with the same name <i>n</i> that would be inherited (because
    * identically named members existed in several superinterfaces) then at most one member is
@@ -219,6 +213,12 @@ public enum StaticWarningCode implements ErrorCode {
    */
   INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD(
       "'%s' is inherited as a getter and also a method"),
+
+  /**
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;
+   * n</i>.
+   */
+  INCORRECT_NUMBER_OF_ARGUMENTS(""),
 
   /**
    * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares an instance method
@@ -234,24 +234,13 @@ public enum StaticWarningCode implements ErrorCode {
   INVALID_FACTORY_NAME(""),
 
   /**
-   * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
-   * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
+   * 7.2 Getters: It is a static warning if a getter <i>m1</i> overrides a getter <i>m2</i> and the
+   * type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
-   * @param methodName the name of the method being overridden
-   * @param className the name of the class where the overridden member is declared
+   * @see #INVALID_MEMBER_OVERRIDE_RETURN_TYPE
    */
-  INVALID_METHOD_OVERRIDE_RETURN_TYPE(
-      "The return type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
-   * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
-   * 
-   * @param methodName the name of the method being overridden
-   * @param className the name of the class where the overridden member is declared
-   */
-  INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE(
-      "The parameter type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
+  INVALID_GETTER_OVERRIDE_RETURN_TYPE(
+      "The return type '%s' is not assignable to '%s' as required from getter it is overriding from '%s'"),
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -275,20 +264,31 @@ public enum StaticWarningCode implements ErrorCode {
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
+   * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
+   * 
+   * @param methodName the name of the method being overridden
+   * @param className the name of the class where the overridden member is declared
+   */
+  INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE(
+      "The parameter type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
+
+  /**
+   * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
+   * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
+   * 
+   * @param methodName the name of the method being overridden
+   * @param className the name of the class where the overridden member is declared
+   */
+  INVALID_METHOD_OVERRIDE_RETURN_TYPE(
+      "The return type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
+
+  /**
+   * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance member <i>m2</i>, the signature of <i>m2</i> explicitly specifies a default value for
    * a formal parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value
    * for <i>p</i>.
    */
   INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES(""),
-
-  /**
-   * 7.2 Getters: It is a static warning if a getter <i>m1</i> overrides a getter <i>m2</i> and the
-   * type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
-   * 
-   * @see #INVALID_MEMBER_OVERRIDE_RETURN_TYPE
-   */
-  INVALID_GETTER_OVERRIDE_RETURN_TYPE(
-      "The return type '%s' is not assignable to '%s' as required from getter it is overriding from '%s'"),
 
   /**
    * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a setter <i>m2</i> and the
@@ -306,6 +306,18 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>F</i> of <i>S.m</i> may not be assigned to a function type.
    */
   INVOCATION_OF_NON_FUNCTION(""),
+
+  /**
+   * 15.1 Static Types: A type <i>T</i> is malformed iff: <li><i>T</i> has the form <i>id</i> or the
+   * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
+   * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type variable in the
+   * enclosing lexical scope, but occurs in the signature or body of a static member.</li> <li>
+   * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
+   * and <i>G</i> is malformed.</li></ul>
+   * <p>
+   * Any use of a malformed type gives rise to a static warning.
+   */
+  MALFORMED_TYPE(""),
 
   /**
    * 7.3 Setters: It is a static warning if a class has a setter named <i>v=</i> with argument type
@@ -359,7 +371,7 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
    */
-  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE("Missing inherited member '%s' from '%s'"),
+  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE("Missing inherited members"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -369,15 +381,7 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
    */
-  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE("Missing inherited members"),
-
-  /**
-   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
-   * 
-   * @param requiredCount the expected number of required arguments
-   * @param argumentCount the actual number of positional arguments given
-   */
-  NOT_ENOUGH_REQUIRED_ARGUMENTS("%d required argument(s) expected, but only %d found"),
+  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE("Missing inherited member '%s' from '%s'"),
 
   /**
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type available in the
@@ -405,6 +409,14 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.3 Setters: It is a static warning if a setter declares a return type other than void.
    */
   NON_VOID_RETURN_FOR_SETTER("The return type of the setter must be 'void'"),
+
+  /**
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
+   * 
+   * @param requiredCount the expected number of required arguments
+   * @param argumentCount the actual number of positional arguments given
+   */
+  NOT_ENOUGH_REQUIRED_ARGUMENTS("%d required argument(s) expected, but only %d found"),
 
   /**
    * 14.3 Parts: It is a static warning if the referenced part declaration <i>p</i> names a library
