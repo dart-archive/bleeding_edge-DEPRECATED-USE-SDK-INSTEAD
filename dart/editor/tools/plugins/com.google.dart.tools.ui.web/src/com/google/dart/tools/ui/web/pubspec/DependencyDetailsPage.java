@@ -176,7 +176,24 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
       }
     });
 
-    toolkit.createLabel(client, "");
+    buf = new StringBuffer();
+    buf.append("<form>");
+    buf.append("<p>");
+    buf.append("<a href=\"http://pub.dartlang.org/doc/dependencies.html#dev-dependencies\">what is dev dependency?</a>");
+    buf.append("</p>");
+    buf.append("</form>");
+
+    info = toolkit.createFormText(client, true);
+    gd = new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1);
+    info.setLayoutData(gd);
+    info.setText(buf.toString(), true, true);
+    info.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        ExternalBrowserUtil.openInExternalBrowser((String) e.getHref());
+      }
+    });
+
     pathLabel = toolkit.createLabel(client, "Path:");
     pathText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER); //$NON-NLS-1$
     pathText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
