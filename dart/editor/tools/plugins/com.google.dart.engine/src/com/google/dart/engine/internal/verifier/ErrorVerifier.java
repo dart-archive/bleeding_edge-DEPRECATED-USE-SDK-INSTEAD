@@ -1343,25 +1343,25 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (parameterType == null) {
       return false;
     }
-    // prepare argument type
-    Type argumentType = getBestType(argument);
-    if (argumentType == null) {
+    // Test the static type of the argument
+    Type staticType = getStaticType(argument);
+    if (staticType == null) {
       return false;
     }
-    // OK, argument is assignable
-    if (argumentType.isAssignableTo(parameterType)) {
+    if (staticType.isAssignableTo(parameterType)) {
       return false;
     }
-    // TODO(scheglov) bug in type algebra?
-    if (parameterType.isObject() && argumentType instanceof FunctionType) {
+    // Test the propagated type of the argument
+    Type propagatedType = getPropagatedType(argument);
+    if (propagatedType != null && propagatedType.isAssignableTo(parameterType)) {
       return false;
     }
     // report problem
     errorReporter.reportError(
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
         argument,
-        argumentType,
-        parameterType);
+        (propagatedType == null ? staticType : propagatedType).getDisplayName(),
+        parameterType.getDisplayName());
     return true;
   }
 

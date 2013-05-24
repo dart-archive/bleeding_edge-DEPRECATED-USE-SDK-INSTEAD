@@ -26,6 +26,7 @@ import com.google.dart.engine.type.Type;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.functionElement;
+import static com.google.dart.engine.element.ElementFactory.getObject;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -238,6 +239,12 @@ public class FunctionTypeImplTest extends EngineTestCase {
     // note, this is a different assertion from the other "tHasMoreParams" tests, this is
     // intentional as it is a difference of the "normal parameters"
     assertFalse(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_Object() {
+    FunctionType f = functionElement("f").getType();
+    InterfaceType t = getObject().getType();
+    assertTrue(f.isSubtypeOf(t));
   }
 
   public void test_isSubtypeOf_optionalParameters_isAssignable() {

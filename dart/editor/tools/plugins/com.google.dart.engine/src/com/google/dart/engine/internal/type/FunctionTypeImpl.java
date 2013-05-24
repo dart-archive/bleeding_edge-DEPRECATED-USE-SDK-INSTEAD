@@ -249,7 +249,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // trivial base cases
     if (type == null) {
       return false;
-    } else if (this == type || type.isDynamic() || type.isDartCoreFunction()) {
+    } else if (this == type || type.isDynamic() || type.isDartCoreFunction() || type.isObject()) {
       return true;
     } else if (!(type instanceof FunctionType)) {
       return false;
