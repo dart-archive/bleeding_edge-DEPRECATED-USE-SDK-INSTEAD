@@ -210,13 +210,25 @@ class AnalyzerImpl {
   }
 
   private File getPackageDirectoryFor(File sourceFile) {
-    File packagesDir = new File(sourceFile.getParentFile(), "packages");
+    // look in the containing dir
+    File dir = sourceFile.getParentFile();
+
+    File packagesDir = new File(dir, "packages");
 
     if (packagesDir.exists()) {
       return packagesDir;
-    } else {
-      return null;
     }
+
+    // and in the parent dir (to capture files in the lib directory)
+    dir = dir.getParentFile();
+
+    packagesDir = new File(dir, "packages");
+
+    if (packagesDir.exists()) {
+      return packagesDir;
+    }
+
+    return null;
   }
 
 }

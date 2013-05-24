@@ -130,13 +130,6 @@ public class AnalyzerOptions {
   //usage = "Print verbose information while analyzing")
   private boolean enableVerbose = false;
 
-  @SuppressWarnings("unused")
-  @Option(name = "--additional-warnings", //
-  aliases = {"-w"})
-  // TODO(devoncarew): document this flag when it is supported
-  //usage = "Enable warnings for deprecation usage and inferred warnings")
-  private boolean enableAdditionalWarnings = false;
-
   @Option(name = "--package-root", //
   metaVar = "<dir>", //
   usage = "The path to the package root")
