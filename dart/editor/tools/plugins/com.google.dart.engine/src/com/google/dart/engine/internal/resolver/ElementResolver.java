@@ -448,7 +448,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           recordResolution(name, element);
           return null;
         }
-        if (!element.getLibrary().equals(resolver.getDefiningLibrary())) {
+        LibraryElement library = element.getLibrary();
+        if (library == null) {
+          // TODO(brianwilkerson) We need to understand how the library could ever be null.
+          AnalysisEngine.getInstance().getLogger().logError(
+              "Found element with null library: " + element.getName());
+        } else if (!library.equals(resolver.getDefiningLibrary())) {
           // TODO(brianwilkerson) Report this error.
         }
         recordResolution(name, element);
