@@ -24,7 +24,6 @@ import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartPreferenceConstants;
-import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.generator.DartProjectGenerator;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaBuilder;
 import com.google.dart.tools.core.internal.model.delta.IDeltaProcessor;
@@ -1038,8 +1037,6 @@ public class DartModelManager {
     }
   }
 
-
-
   /**
    * Remove the given listener from the list of objects that are listening for changes to Dart
    * elements. Has no affect if an identical listener is not registered.
@@ -1482,7 +1479,7 @@ public class DartModelManager {
     // DartPreferenceConstants.ENABLED);
 
     // Formatter settings
-    defaultOptionsMap.putAll(DefaultCodeFormatterConstants.getEclipseDefaultSettings());
+    //defaultOptionsMap.putAll(DefaultCodeFormatterConstants.getEclipseDefaultSettings());
 
     // CodeAssist settings
     defaultOptionsMap.put(

@@ -18,7 +18,6 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
-import com.google.dart.tools.ui.internal.text.comment.CommentFormattingStrategy;
 import com.google.dart.tools.ui.internal.text.correction.DartCorrectionAssistant;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistProcessor;
 import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy;
@@ -27,7 +26,6 @@ import com.google.dart.tools.ui.internal.text.dart.DartCodeScanner;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProcessor;
 import com.google.dart.tools.ui.internal.text.dart.DartDocDoubleClickStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartDoubleClickSelector;
-import com.google.dart.tools.ui.internal.text.dart.DartFormattingStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartStringAutoIndentStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartStringDoubleClickSelector;
 import com.google.dart.tools.ui.internal.text.dart.SmartSemicolonAutoEditStrategy;
@@ -69,7 +67,6 @@ import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.formatter.IContentFormatter;
-import org.eclipse.jface.text.formatter.MultiPassContentFormatter;
 import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.information.IInformationProvider;
 import org.eclipse.jface.text.information.InformationPresenter;
@@ -370,21 +367,23 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
 
   @Override
   public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
-    final MultiPassContentFormatter formatter = new MultiPassContentFormatter(
-        getConfiguredDocumentPartitioning(sourceViewer),
-        IDocument.DEFAULT_CONTENT_TYPE);
+//    final MultiPassContentFormatter formatter = new MultiPassContentFormatter(
+//        getConfiguredDocumentPartitioning(sourceViewer),
+//        IDocument.DEFAULT_CONTENT_TYPE);
+//
+//    formatter.setMasterStrategy(new DartFormattingStrategy());
+//    formatter.setSlaveStrategy(new CommentFormattingStrategy(), DartPartitions.DART_DOC);
+//    formatter.setSlaveStrategy(
+//        new CommentFormattingStrategy(),
+//        DartPartitions.DART_SINGLE_LINE_COMMENT);
+//    formatter.setSlaveStrategy(new CommentFormattingStrategy(), DartPartitions.DART_SINGLE_LINE_DOC);
+//    formatter.setSlaveStrategy(
+//        new CommentFormattingStrategy(),
+//        DartPartitions.DART_MULTI_LINE_COMMENT);
+//
+//    return formatter;
 
-    formatter.setMasterStrategy(new DartFormattingStrategy());
-    formatter.setSlaveStrategy(new CommentFormattingStrategy(), DartPartitions.DART_DOC);
-    formatter.setSlaveStrategy(
-        new CommentFormattingStrategy(),
-        DartPartitions.DART_SINGLE_LINE_COMMENT);
-    formatter.setSlaveStrategy(new CommentFormattingStrategy(), DartPartitions.DART_SINGLE_LINE_DOC);
-    formatter.setSlaveStrategy(
-        new CommentFormattingStrategy(),
-        DartPartitions.DART_MULTI_LINE_COMMENT);
-
-    return formatter;
+    return null;
   }
 
   @Override

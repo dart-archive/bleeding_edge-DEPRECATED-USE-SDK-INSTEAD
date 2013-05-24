@@ -15,8 +15,6 @@ package com.google.dart.tools.core.formatter;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartPreferenceConstants;
-import com.google.dart.tools.core.ToolFactory;
-import com.google.dart.tools.core.internal.formatter.DefaultCodeFormatterOptions;
 
 import java.util.Map;
 
@@ -4172,24 +4170,6 @@ public final class DefaultCodeFormatterConstants {
     // alignmentValue |= Alignment.M_INDENT_ON_COLUMN;
     // }
     return String.valueOf(alignmentValue);
-  }
-
-  /**
-   * Return the settings according to the Dart conventions.
-   * 
-   * @return the settings according to the Dart conventions
-   */
-  public static Map<String, String> getDartConventionsSettings() {
-    return DefaultCodeFormatterOptions.getDartConventionsSettings().getMap();
-  }
-
-  /**
-   * Returns the default Eclipse formatter settings
-   * 
-   * @return the Eclipse default settings
-   */
-  public static Map<String, String> getEclipseDefaultSettings() {
-    return DefaultCodeFormatterOptions.getEclipseDefaultSettings().getMap();
   }
 
   /**

@@ -15,9 +15,7 @@ package com.google.dart.tools.ui.internal.util;
 
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.formatter.CodeFormatter;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.internal.formatter.DartCodeFormatter;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
@@ -35,7 +33,6 @@ import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class CodeFormatterUtil {
@@ -55,7 +52,8 @@ public class CodeFormatterUtil {
   public static String createIndentString(int indentationUnits, DartProject project) {
     Map<String, String> options = project != null ? project.getOptions(true)
         : DartCore.getOptions();
-    return createCodeFormatter(options, FORMAT_NEW).createIndentationString(indentationUnits);
+    //TODO (pquitslund): remove
+    return null;
   }
 
   /**
@@ -231,18 +229,8 @@ public class CodeFormatterUtil {
 //      }
 //    }
 //
-    String concatStr = prefix + str + suffix;
-    TextEdit edit = createCodeFormatter(options, FORMAT_NEW).format(
-        code,
-        concatStr,
-        prefix.length(),
-        str.length(),
-        indentationLevel,
-        lineSeparator);
-    if (prefix.length() > 0) {
-      edit = shifEdit(edit, prefix.length());
-    }
-    return edit;
+    //TODO (pquitslund): remove
+    return null;
   }
 
   /**
@@ -258,13 +246,8 @@ public class CodeFormatterUtil {
       throw new IllegalArgumentException(
           "offset or length outside of string. offset: " + offset + ", length: " + length + ", string size: " + string.length()); //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
     }
-    return createCodeFormatter(options, FORMAT_NEW).format(
-        kind,
-        string,
-        offset,
-        length,
-        indentationLevel,
-        lineSeparator);
+    //TODO (pquitslund): remove
+    return null;
   }
 
   public static TextEdit format2(int kind, String string, int indentationLevel,
@@ -322,36 +305,13 @@ public class CodeFormatterUtil {
       throw new IllegalArgumentException(
           "offset or length outside of string. offset: " + offset + ", length: " + length + ", string size: " + string.length()); //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
     }
-    return createCodeFormatter(options, FORMAT_EXISTING).format(
-        kind,
-        string,
-        offset,
-        length,
-        indentationLevel,
-        lineSeparator);
+    //TODO (pquitslund): remove
+    return null;
   }
 
   public static TextEdit reformat(int kind, String string, int indentationLevel,
       String lineSeparator, Map<String, String> options) {
     return reformat(kind, string, 0, string.length(), indentationLevel, lineSeparator, options);
-  }
-
-  private static CodeFormatter createCodeFormatter(Map<String, String> options, int mode) {
-    if (options == null) {
-      options = DartCore.getOptions();
-    }
-    Map<String, String> currentOptions = new HashMap<String, String>(options);
-    if (mode == FORMAT_NEW) {
-      // disable the option for not indenting comments starting on first column
-      currentOptions.put(
-          DefaultCodeFormatterConstants.FORMATTER_NEVER_INDENT_BLOCK_COMMENTS_ON_FIRST_COLUMN,
-          DefaultCodeFormatterConstants.FALSE);
-      currentOptions.put(
-          DefaultCodeFormatterConstants.FORMATTER_NEVER_INDENT_LINE_COMMENTS_ON_FIRST_COLUMN,
-          DefaultCodeFormatterConstants.FALSE);
-    }
-//    return new DefaultCodeFormatter(currentOptions);
-    return new DartCodeFormatter(currentOptions);
   }
 
   private static Document createDocument(String string, Position[] positions)

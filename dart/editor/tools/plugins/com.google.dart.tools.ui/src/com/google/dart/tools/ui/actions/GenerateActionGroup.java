@@ -128,7 +128,7 @@ public class GenerateActionGroup extends ActionGroup {
 //  private FindBrokenNLSKeysAction fFindNLSProblems;
 //  private MultiSortMembersAction fSortMembers;
 
-  private FormatAllAction fFormatAll;
+//  private FormatAllAction fFormatAll;
 
   private static final String QUICK_MENU_ID = "com.google.dart.tools.ui.edit.text.source.quickMenu"; //$NON-NLS-1$
 
@@ -261,8 +261,8 @@ public class GenerateActionGroup extends ActionGroup {
 //    fSortMembers = new MultiSortMembersAction(site);
 //    fSortMembers.setActionDefinitionId(DartEditorActionDefinitionIds.SORT_MEMBERS);
 
-    fFormatAll = new FormatAllAction(site);
-    fFormatAll.setActionDefinitionId(DartEditorActionDefinitionIds.FORMAT);
+//    fFormatAll = new FormatAllAction(site);
+//    fFormatAll.setActionDefinitionId(DartEditorActionDefinitionIds.FORMAT);
 
 //    fCleanUp = new AllCleanUpsAction(site);
 //    fCleanUp.setActionDefinitionId(DartEditorActionDefinitionIds.CLEAN_UP);
@@ -281,7 +281,7 @@ public class GenerateActionGroup extends ActionGroup {
 //    fCleanUp.update(selection);
     fAddTaskAction.update(selection);
 //    fSortMembers.update(selection);
-    fFormatAll.update(selection);
+//    fFormatAll.update(selection);
     if (selection instanceof IStructuredSelection) {
       IStructuredSelection ss = (IStructuredSelection) selection;
       fAddBookmark.selectionChanged(ss);
@@ -301,7 +301,7 @@ public class GenerateActionGroup extends ActionGroup {
     // registerSelectionListener(provider, fHashCodeEquals);
 //    registerSelectionListener(provider, fAddJavaDocStub);
     registerSelectionListener(provider, fAddBookmark);
-    registerSelectionListener(provider, fFormatAll);
+//    registerSelectionListener(provider, fFormatAll);
 //    registerSelectionListener(provider, fSortMembers);
     registerSelectionListener(provider, fAddTaskAction);
 //    registerSelectionListener(provider, fCleanUp);
@@ -442,7 +442,7 @@ public class GenerateActionGroup extends ActionGroup {
     source.add(new Separator(GROUP_COMMENT));
 //    added += addAction(source, fAddJavaDocStub);
     source.add(new Separator(GROUP_EDIT));
-    added += addAction(source, fFormatAll);
+//    added += addAction(source, fFormatAll);
     source.add(new Separator(GROUP_IMPORT));
 //    added += addAction(source, fSortMembers);
 //    added += addAction(source, fCleanUp);
@@ -512,7 +512,7 @@ public class GenerateActionGroup extends ActionGroup {
       // editor provides its own implementation of these actions.
       actionBar.setGlobalActionHandler(IDEActionFactory.BOOKMARK.getId(), fAddBookmark);
       actionBar.setGlobalActionHandler(IDEActionFactory.ADD_TASK.getId(), fAddTaskAction);
-      actionBar.setGlobalActionHandler(JdtActionConstants.FORMAT, fFormatAll);
+//      actionBar.setGlobalActionHandler(JdtActionConstants.FORMAT, fFormatAll);
     }
   }
 }

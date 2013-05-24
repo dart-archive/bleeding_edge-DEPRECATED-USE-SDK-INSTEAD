@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartPreferenceConstants;
-import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Platform;
@@ -53,7 +52,7 @@ public class OptionManager {
   private EclipsePreferencesListener instancePreferencesListener = new EclipsePreferencesListener();
   private IEclipsePreferences.IPreferenceChangeListener propertyListener;
   private IEclipsePreferences.IPreferenceChangeListener resourcesPropertyListener;
-  
+
   private static final int PREF_INSTANCE = 0;
   private static final int PREF_DEFAULT = 1;
 
@@ -278,7 +277,7 @@ public class OptionManager {
     Map<String, String> defaultOptionsMap = new HashMap<String, String>();
 
     // Formatter settings
-    defaultOptionsMap.putAll(DefaultCodeFormatterConstants.getEclipseDefaultSettings());
+    //defaultOptionsMap.putAll(DefaultCodeFormatterConstants.getEclipseDefaultSettings());
 
     // CodeAssist settings
     defaultOptionsMap.put(

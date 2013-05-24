@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.completion;
 
-import com.google.dart.tools.core.formatter.CodeFormatter;
 import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
@@ -25,7 +24,6 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.JavaPreferencesSettings;
 import com.google.dart.tools.ui.internal.text.dart.DartTextMessages;
 import com.google.dart.tools.ui.internal.text.dart.ImportRewrite;
-import com.google.dart.tools.ui.internal.util.CodeFormatterUtil;
 import com.google.dart.tools.ui.internal.util.Strings;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
@@ -37,7 +35,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension4;
 import org.eclipse.jface.viewers.StyledString;
@@ -208,20 +205,24 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
     String stub = buf.toString();
 
     // use the code formatter
-    IRegion region = document.getLineInformationOfOffset(getReplacementOffset());
-    int lineStart = region.getOffset();
-    int indent = Strings.computeIndentUnits(
-        document.get(lineStart, getReplacementOffset() - lineStart),
-        settings.tabWidth,
-        settings.indentWidth);
+//    IRegion region = document.getLineInformationOfOffset(getReplacementOffset());
+//    int lineStart = region.getOffset();
+//    int indent = Strings.computeIndentUnits(
+//        document.get(lineStart, getReplacementOffset() - lineStart),
+//        settings.tabWidth,
+//        settings.indentWidth);
+//
+//    String replacement = CodeFormatterUtil.format(
+//        CodeFormatter.K_CLASS_BODY_DECLARATIONS,
+//        stub,
+//        indent,
+//        null,
+//        lineDelim,
+//        fType.getDartProject());
 
-    String replacement = CodeFormatterUtil.format(
-        CodeFormatter.K_CLASS_BODY_DECLARATIONS,
-        stub,
-        indent,
-        null,
-        lineDelim,
-        fType.getDartProject());
+    //TODO (pquitslund): hook in formatting
+
+    String replacement = stub;
 
     if (replacement.endsWith(lineDelim)) {
       replacement = replacement.substring(0, replacement.length() - lineDelim.length());

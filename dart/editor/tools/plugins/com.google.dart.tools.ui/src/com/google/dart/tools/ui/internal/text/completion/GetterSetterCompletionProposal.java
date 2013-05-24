@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.text.completion;
 
 import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.tools.core.formatter.CodeFormatter;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
@@ -26,7 +25,6 @@ import com.google.dart.tools.ui.JavaPreferencesSettings;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.text.dart.DartTextMessages;
 import com.google.dart.tools.ui.internal.text.dart.ImportRewrite;
-import com.google.dart.tools.ui.internal.util.CodeFormatterUtil;
 import com.google.dart.tools.ui.internal.util.Strings;
 import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
@@ -36,7 +34,6 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension4;
 import org.eclipse.jface.viewers.StyledString;
@@ -153,20 +150,25 @@ public class GetterSetterCompletionProposal extends DartTypeCompletionProposal i
     // use the code formatter
     String lineDelim = TextUtilities.getDefaultLineDelimiter(document);
 
-    IRegion region = document.getLineInformationOfOffset(getReplacementOffset());
-    int lineStart = region.getOffset();
-    int indent = Strings.computeIndentUnits(
-        document.get(lineStart, getReplacementOffset() - lineStart),
-        settings.tabWidth,
-        settings.indentWidth);
+    //TODO (pquitslund): hook in formatting
 
-    String replacement = CodeFormatterUtil.format(
-        CodeFormatter.K_CLASS_BODY_DECLARATIONS,
-        stub,
-        indent,
-        null,
-        lineDelim,
-        fField.getDartProject());
+//
+//    IRegion region = document.getLineInformationOfOffset(getReplacementOffset());
+//    int lineStart = region.getOffset();
+//    int indent = Strings.computeIndentUnits(
+//        document.get(lineStart, getReplacementOffset() - lineStart),
+//        settings.tabWidth,
+//        settings.indentWidth);
+
+//    String replacement = CodeFormatterUtil.format(
+//        CodeFormatter.K_CLASS_BODY_DECLARATIONS,
+//        stub,
+//        indent,
+//        null,
+//        lineDelim,
+//        fField.getDartProject());
+
+    String replacement = stub;
 
     if (replacement.endsWith(lineDelim)) {
       replacement = replacement.substring(0, replacement.length() - lineDelim.length());
