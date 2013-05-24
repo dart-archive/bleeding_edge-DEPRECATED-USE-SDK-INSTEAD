@@ -18,7 +18,6 @@ import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.internal.search.scope.WorkspaceSearchScope;
 import com.google.dart.tools.core.internal.util.CharOperation;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModifiers;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
@@ -38,7 +37,6 @@ import java.util.List;
  * Instances of the class <code>InternalCompletionProposal</code> implement a completion proposal.
  */
 public class InternalCompletionProposal extends CompletionProposal {
-  protected CompletionEngine completionEngine;
   protected char[] declarationTypeName;
   protected char[] typeName;
   protected char[][] parameterTypeNames;
@@ -187,96 +185,7 @@ public class InternalCompletionProposal extends CompletionProposal {
   @SuppressWarnings("deprecation")
   @Override
   public char[][] findParameterNames(IProgressMonitor monitor) {
-    if (!this.parameterNamesComputed) {
-      this.parameterNamesComputed = true;
-
-      switch (this.completionKind) {
-        case ANONYMOUS_CLASS_DECLARATION:
-          try {
-            this.parameterNames = findMethodParameterNames(
-                this.declarationTypeName,
-                CharOperation.lastSegment(this.declarationTypeName, '.'),
-                getParameterTypes(this.originalSignature == null ? this.signature
-                    : this.originalSignature));
-          } catch (IllegalArgumentException e) {
-            // protection for invalid signature
-            if (this.parameterTypeNames != null) {
-              this.parameterNames = CompletionEngine.createDefaultParameterNames(this.parameterTypeNames.length);
-            } else {
-              this.parameterNames = null;
-            }
-          }
-          break;
-        case ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION:
-          try {
-            this.parameterNames = findConstructorParameterNames(
-                this.declarationTypeName,
-                CharOperation.lastSegment(this.declarationTypeName, '.'),
-                getParameterTypes(this.originalSignature == null ? this.signature
-                    : this.originalSignature));
-          } catch (IllegalArgumentException e) {
-            // protection for invalid signature
-            if (this.parameterTypeNames != null) {
-              this.parameterNames = CompletionEngine.createDefaultParameterNames(this.parameterTypeNames.length);
-            } else {
-              this.parameterNames = null;
-            }
-          }
-          break;
-        case METHOD_REF:
-        case METHOD_REF_WITH_CASTED_RECEIVER:
-          try {
-            this.parameterNames = findMethodParameterNames(
-                this.declarationTypeName,
-                this.name,
-                getParameterTypes(this.originalSignature == null ? this.signature
-                    : this.originalSignature));
-          } catch (IllegalArgumentException e) {
-            // protection for invalid signature
-            if (this.parameterTypeNames != null) {
-              this.parameterNames = CompletionEngine.createDefaultParameterNames(this.parameterTypeNames.length);
-            } else {
-              this.parameterNames = null;
-            }
-          }
-          break;
-        case CONSTRUCTOR_INVOCATION:
-          try {
-            this.parameterNames = findConstructorParameterNames(
-                this.declarationTypeName,
-                this.name,
-                getParameterTypes(this.originalSignature == null ? this.signature
-                    : this.originalSignature));
-          } catch (IllegalArgumentException e) {
-            // protection for invalid signature
-            if (this.parameterTypeNames != null) {
-              this.parameterNames = CompletionEngine.createDefaultParameterNames(this.parameterTypeNames.length);
-            } else {
-              this.parameterNames = null;
-            }
-          }
-          break;
-        case METHOD_DECLARATION:
-          try {
-            this.parameterNames = findMethodParameterNames(
-                this.declarationTypeName,
-                this.name,
-                getParameterTypes(this.originalSignature == null ? this.signature
-                    : this.originalSignature));
-          } catch (IllegalArgumentException e) {
-            // protection for invalid signature
-            if (this.parameterTypeNames != null) {
-              this.parameterNames = CompletionEngine.createDefaultParameterNames(this.parameterTypeNames.length);
-            } else {
-              this.parameterNames = null;
-            }
-          }
-          if (this.parameterNames != null) {
-            this.updateCompletion = true;
-          }
-          break;
-      }
-    }
+    //TODO (pquitslund): remove
     return this.parameterNames;
   }
 
@@ -1138,154 +1047,15 @@ public class InternalCompletionProposal extends CompletionProposal {
 
   protected char[][] findConstructorParameterNames(char[] declaringTypeName, char[] selector,
       char[][] paramTypeNames) {
-    if (paramTypeNames == null || declaringTypeName == null) {
-      return null;
-    }
 
-    char[][] parameters = null;
-    int length = paramTypeNames.length;
-
-//    char[] tName = declaringTypeName;
-//    Object cachedType = this.completionEngine.typeCache.get(tName);
-
-    Type type = null;
-//    if(cachedType != null) {
-//      if(cachedType != NO_ATTACHED_SOURCE && cachedType instanceof BinaryType) {
-//        type = (BinaryType)cachedType;
-//      }
-//    } else {
-    type = findTypeNamed(new String(declaringTypeName));
-//    NameLookup.Answer answer = this.nameLookup.findType(new String(
-//        declaringTypeName), false, NameLookup.ACCEPT_CLASSES
-//        & NameLookup.ACCEPT_INTERFACES, true/* consider secondary types */,
-//        false/* do NOT wait for indexes */,
-//        false/* don't check restrictions */, null);
-//    type = answer == null ? null : answer.type;
-//      if(type instanceof BinaryType){
-//        this.completionEngine.typeCache.put(tName, type);
-//      } else {
-//    type = null;
-//      }
-//    }
-
-    if (type != null) {
-      // https://bugs.eclipse.org/bugs/show_bug.cgi?id=316937
-      // BinaryType#getMethod() creates a new instance of BinaryMethod, which is
-      // a dummy.
-      // Instead we have to use IType#findMethods() to get a handle to the
-      // method of our interest.
-      try {
-        Method method = findMethod(type, selector, paramTypeNames);
-//        if (this.hasNoParameterNamesFromIndex) {
-//
-//          IPackageFragmentRoot packageFragmentRoot = (IPackageFragmentRoot)type.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT);
-//          if (packageFragmentRoot.isArchive() ||
-//              this.completionEngine.openedBinaryTypes < getOpenedBinaryTypesThreshold()) {
-//            SourceMapper mapper = ((JavaElement)method).getSourceMapper();
-//            if (mapper != null) {
-//              char[][] paramNames = mapper.getMethodParameterNames(method);
-//
-//              // map source and try to find parameter names
-//              if(paramNames == null) {
-//                if (!packageFragmentRoot.isArchive()) this.completionEngine.openedBinaryTypes++;
-//                IBinaryType info = (IBinaryType) ((BinaryType) type).getElementInfo();
-//                char[] source = mapper.findSource(type, info);
-//                if (source != null){
-//                  mapper.mapSource(type, source, info);
-//                }
-//                paramNames = mapper.getMethodParameterNames(method);
-//              }
-//
-//              if(paramNames != null) {
-//                parameters = paramNames;
-//              }
-//            }
-//          }
-//        } else {
-        String[] argumentNames = method.getParameterNames();
-        if (argumentNames != null && argumentNames.length == length) {
-          parameters = new char[argumentNames.length][];
-          for (int i = 0; i < argumentNames.length; i++) {
-            parameters[i] = argumentNames[i].toCharArray();
-          }
-          return parameters;
-        }
-
-        parameters = new char[length][];
-        String[] params = method.getParameterNames();
-        for (int i = 0; i < length; i++) {
-          parameters[i] = params[i].toCharArray();
-        }
-//        }
-      } catch (DartModelException e) {
-        parameters = null;
-      }
-    }
-
-    // default parameters name
-    if (parameters == null) {
-      parameters = CompletionEngine.createDefaultParameterNames(length);
-    }
-
-    return parameters;
+    //TODO (pquitslund): remove
+    return null;
   }
 
   protected char[][] findMethodParameterNames(char[] declaringTypeName, char[] selector,
       char[][] paramTypeNames) {
-    if (paramTypeNames == null || declaringTypeName == null) {
-      return null;
-    }
-
-    char[][] parameters = null;
-    int length = paramTypeNames.length;
-
-//    char[] tName = declaringTypeName;
-//    Object cachedType = this.completionEngine.typeCache.get(tName);
-
-    Type type = null;
-//    if(cachedType != null) {
-//      if(cachedType != NO_ATTACHED_SOURCE && cachedType instanceof BinaryType) {
-//        type = (BinaryType)cachedType;
-//      }
-//    } else {
-    type = findTypeNamed(new String(declaringTypeName));
-//    NameLookup.Answer answer = this.nameLookup.findType(new String(
-//        declaringTypeName), false, NameLookup.ACCEPT_CLASSES
-//        & NameLookup.ACCEPT_INTERFACES, true/* consider secondary types */,
-//        false/* do NOT wait for indexes */,
-//        false/* don't check restrictions */, null);
-//    type = answer == null ? null : answer.type;
-//      if(type instanceof BinaryType){
-//        this.completionEngine.typeCache.put(tName, type);
-//      } else {
-//    type = null;
-//      }
-//    }
-
-//    if (type != null) {
-//      // https://bugs.eclipse.org/bugs/show_bug.cgi?id=316937
-//      // BinaryType#getMethod() creates a new instance of BinaryMethod, which is
-//      // a dummy.
-//      // Instead we have to use IType#findMethods() to get a handle to the
-//      // method of our interest.
-    try {
-      Method method = findMethod(type, selector, paramTypeNames);
-      parameters = new char[length][];
-      String[] params = method.getParameterNames();
-      for (int i = 0; i < length; i++) {
-        parameters[i] = params[i].toCharArray();
-      }
-    } catch (DartModelException e) {
-      parameters = null;
-    }
-//    }
-
-    // default parameters name
-    if (parameters == null) {
-      parameters = CompletionEngine.createDefaultParameterNames(length);
-    }
-
-    return parameters;
+    //TODO (pquitslund): remove
+    return null;
   }
 
   protected char[] getDeclarationTypeName() {

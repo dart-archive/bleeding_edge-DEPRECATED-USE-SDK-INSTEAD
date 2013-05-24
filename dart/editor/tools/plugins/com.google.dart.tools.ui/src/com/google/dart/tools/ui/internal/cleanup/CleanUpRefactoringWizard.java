@@ -29,10 +29,8 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeAbs
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeInterface_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M3_Future_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M3_corelib_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M4_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_trailingSpace_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.style.Style_useBlocks_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_useTypeAnnotations_CleanUp;
 import com.google.dart.tools.ui.internal.util.GridDataFactory;
 import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
@@ -87,7 +85,6 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       CLEAN_UPS.put(
           ID_MIGRATE_SYNTAX_1M2_FUNCTION_LITERAL,
           new Migrate_1M2_functionLiteral_CleanUp());
-      CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M3_LIBRARY, new Migrate_1M3_corelib_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M3_FUTURE, new Migrate_1M3_Future_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_1M4_LIBRARY, new Migrate_1M4_CleanUp());
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_IDENTICAL, true);
@@ -102,7 +99,6 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       settings.setDefault(ID_MIGRATE_1M4_LIBRARY, false);
       // style
       CLEAN_UPS.put(ID_STYLE_TRAILING_WHITESPACE, new Style_trailingSpace_CleanUp());
-      CLEAN_UPS.put(ID_STYLE_USE_BLOCKS, new Style_useBlocks_CleanUp());
       CLEAN_UPS.put(ID_STYLE_USE_TYPE_ANNOTATIONS, new Style_useTypeAnnotations_CleanUp());
       settings.setDefault(ID_STYLE_TRAILING_WHITESPACE, true);
       settings.setDefault(ID_STYLE_USE_BLOCKS, true);

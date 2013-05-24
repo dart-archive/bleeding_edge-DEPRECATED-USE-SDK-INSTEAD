@@ -21,7 +21,6 @@ public class TestAll {
   public static Test refactoringCleanupSuite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTest(com.google.dart.tools.ui.refactoring.TestAll.suite());
-    suite.addTest(com.google.dart.tools.ui.cleanup.TestAll.suite());
     return suite;
   }
 
@@ -30,7 +29,6 @@ public class TestAll {
     suite.addTestSuite(DartUiTest.class);
     suite.addTest(com.google.dart.tools.ui.internal.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.actions.TestAll.suite());
-    suite.addTest(com.google.dart.tools.ui.cleanup.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.feedback.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.instrumentation.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.refactoring.TestAll.suite());

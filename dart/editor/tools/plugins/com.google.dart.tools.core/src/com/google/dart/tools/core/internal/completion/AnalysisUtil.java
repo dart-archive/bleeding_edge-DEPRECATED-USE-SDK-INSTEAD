@@ -13,7 +13,7 @@ public class AnalysisUtil implements CompletionRequestor {
 
   @Override
   public void accept(CompletionProposal proposal) {
-    requestor.accept(new ProxyProposal(proposal));
+    //TODO (pquitslund): remove
   }
 
   @Override
@@ -27,8 +27,7 @@ public class AnalysisUtil implements CompletionRequestor {
   }
 
   public void setRequestor(com.google.dart.tools.core.completion.CompletionRequestor requestor) {
-    this.requestor = requestor;
-    requestor.acceptContext(new InternalCompletionContext());
+    //TODO (pquitslund): remove
   }
 
 }

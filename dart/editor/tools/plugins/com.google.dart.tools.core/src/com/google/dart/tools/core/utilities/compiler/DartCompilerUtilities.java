@@ -14,12 +14,9 @@
 package com.google.dart.tools.core.utilities.compiler;
 
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.tools.core.internal.completion.CompletionParser;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
@@ -101,16 +98,6 @@ public class DartCompilerUtilities {
 
   public static DartUnit resolveUnit(CompilationUnitImpl source,
       List<DartCompilationError> parseErrors) {
-    // TODO remove
-    return null;
-  }
-
-  public static DartUnit secureParseUnit(CompletionParser parser, DartSource sourceFile) {
-    // TODO remove
-    return null;
-  }
-
-  public static DartUnit secureParseUnit(DartParser parser, Object sourceFile) {
     // TODO remove
     return null;
   }

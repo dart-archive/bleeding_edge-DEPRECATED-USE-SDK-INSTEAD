@@ -20,8 +20,6 @@ import com.google.dart.tools.core.buffer.BufferChangedListener;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.internal.buffer.BufferManager;
 import com.google.dart.tools.core.internal.buffer.NullBuffer;
-import com.google.dart.tools.core.internal.completion.CompletionEngine;
-import com.google.dart.tools.core.internal.completion.CompletionEnvironment;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.internal.util.Util;
@@ -334,49 +332,7 @@ public abstract class OpenableElementImpl extends DartElementImpl implements Ope
   protected void codeComplete(CompilationUnit cu, CompilationUnit unitToSkip, int position,
       CompletionRequestor requestor, WorkingCopyOwner owner, IProgressMonitor monitor)
       throws DartModelException {
-    if (requestor == null) {
-      throw new IllegalArgumentException("Completion requestor cannot be null"); //$NON-NLS-1$
-    }
-//    PerformanceStats performanceStats = CompletionEngine.PERF
-//        ? PerformanceStats.getStats(DartModelManager.COMPLETION_PERF, this)
-//        : null;
-//    if (performanceStats != null) {
-//      performanceStats.startRun(new String(cu.getFileName())
-//          + " at " + position); //$NON-NLS-1$
-//    }
-    Buffer buffer = getBuffer();
-    if (buffer == null) {
-      return;
-    }
-    if (position < -1 || position > buffer.getLength()) {
-      throw new DartModelException(new DartModelStatusImpl(
-          DartModelStatusConstants.INDEX_OUT_OF_BOUNDS));
-    }
-    DartProjectImpl project = (DartProjectImpl) getDartProject();
-//    SearchScope scope = SearchScopeFactory.createWorkspaceScope();
-    CompletionEnvironment environment = new CompletionEnvironment(project, owner, unitToSkip);
-//    SearchableEnvironment environment = project.newSearchableNameEnvironment(owner);
-    // set unit to skip
-//    environment.unitToSkip = unitToSkip;
-
-    // code complete
-    CompletionEngine engine = new CompletionEngine(
-        environment,
-        requestor,
-        project.getOptions(true),
-        project,
-        owner,
-        monitor);
-    engine.complete(cu, position, 0);
-//    if (performanceStats != null) {
-//      performanceStats.endRun();
-//    }
-//    if (NameLookup.VERBOSE) {
-//      System.out.println(Thread.currentThread()
-//          + " TIME SPENT in NameLoopkup#seekTypesInSourcePackage: " + environment.nameLookup.timeSpentInSeekTypesInSourcePackage + "ms"); //$NON-NLS-1$ //$NON-NLS-2$
-//      System.out.println(Thread.currentThread()
-//          + " TIME SPENT in NameLoopkup#seekTypesInBinaryPackage: " + environment.nameLookup.timeSpentInSeekTypesInBinaryPackage + "ms"); //$NON-NLS-1$ //$NON-NLS-2$
-//    }
+    //TODO (pquitslund): remove
   }
 
 //  protected DartElement[] codeSelect(org.eclipse.jdt.internal.compiler.env.ICompilationUnit cu, int offset, int length, WorkingCopyOwner owner) throws DartModelException {

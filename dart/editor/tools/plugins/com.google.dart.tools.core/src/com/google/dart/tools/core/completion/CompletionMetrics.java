@@ -16,7 +16,6 @@ package com.google.dart.tools.core.completion;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.tools.core.internal.completion.CompletionEngine;
 import com.google.dart.tools.core.model.CompilationUnit;
 
 import java.util.Collection;

@@ -14,14 +14,11 @@
 package com.google.dart.tools.internal.corext.refactoring;
 
 import com.google.dart.compiler.ast.DartExprStmt;
-import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.dom.NodeFinder;
-import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
-import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartClassTypeAlias;
@@ -1542,17 +1539,17 @@ public class RefactoringAvailabilityTester {
     if (node == null) {
       return null;
     }
-    if (node instanceof DartIdentifier) {
-      StructuralPropertyDescriptor locationInParent = PropertyDescriptorHelper.getLocationInParent(node);
-      System.out.println("locationInParent: " + locationInParent);
-//      if (locationInParent == MethodDeclaration.NAME_PROPERTY) {
-//        return node.getParent();
-//      } else if (locationInParent == MethodInvocation.NAME_PROPERTY
-//          || locationInParent == SuperMethodInvocation.NAME_PROPERTY) {
-//        return unit instanceof CompilationUnit ? node.getParent() : null; // don't start on invocations in binary
-//      }
-      return null;
-    }
+//    if (node instanceof DartIdentifier) {
+//      StructuralPropertyDescriptor locationInParent = PropertyDescriptorHelper.getLocationInParent(node);
+//      System.out.println("locationInParent: " + locationInParent);
+////      if (locationInParent == MethodDeclaration.NAME_PROPERTY) {
+////        return node.getParent();
+////      } else if (locationInParent == MethodInvocation.NAME_PROPERTY
+////          || locationInParent == SuperMethodInvocation.NAME_PROPERTY) {
+////        return unit instanceof CompilationUnit ? node.getParent() : null; // don't start on invocations in binary
+////      }
+//      return null;
+//    }
 //    switch (node.getNodeType()) {
 //      case DartNode.SIMPLE_NAME:
 //      case DartNode.EXPRESSION_STATEMENT:
