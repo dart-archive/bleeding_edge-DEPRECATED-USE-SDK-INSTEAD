@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.search;
 
-import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
-import com.google.dart.tools.core.internal.search.SearchEngineImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
@@ -22,12 +20,14 @@ import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
  * The class <code>SearchEngineFactory</code> defines utility methods that can be used to create
  * {@link SearchEngine search engines}.
  */
+//TODO (pquitslund): remove
 public final class SearchEngineFactory {
   /**
    * Create a search engine.
    */
   public static SearchEngine createSearchEngine() {
-    return new SearchEngineImpl(InMemoryIndex.getInstance());
+    //TODO (pquitslund): remove
+    return null;
   }
 
   /**
@@ -38,8 +38,8 @@ public final class SearchEngineFactory {
    *          units
    */
   public static SearchEngine createSearchEngine(CompilationUnit[] workingCopies) {
-    // TODO(brianwilkerson) Need to figure out how to handle alternate universes.
-    return new SearchEngineImpl(InMemoryIndex.getInstance());
+    //TODO (pquitslund): remove
+    return null;
   }
 
   /**
@@ -50,8 +50,8 @@ public final class SearchEngineFactory {
    *          precedence over their original compilation units
    */
   public static SearchEngine createSearchEngine(WorkingCopyOwner workingCopyOwner) {
-    // TODO(brianwilkerson) Need to figure out how to handle alternate universes.
-    return new SearchEngineImpl(InMemoryIndex.getInstance());
+    //TODO (pquitslund): remove
+    return null;
   }
 
   /**

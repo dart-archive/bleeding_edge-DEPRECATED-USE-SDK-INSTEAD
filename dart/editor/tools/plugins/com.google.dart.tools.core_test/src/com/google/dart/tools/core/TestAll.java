@@ -36,15 +36,11 @@ public class TestAll {
     suite.addTest(com.google.dart.tools.core.generator.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.snapshot.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.html.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.index.TestAll.suite());
 //    suite.addTest(com.google.dart.tools.core.indexer.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.TestAll.suite());
     // suite.addTest(com.google.dart.tools.core.model.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.pub.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.refresh.TestAll.suite());
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      suite.addTest(com.google.dart.tools.core.search.TestAll.suite());
-    }
     suite.addTest(com.google.dart.tools.core.utilities.TestAll.suite());
     if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       suite.addTest(com.google.dart.tools.core.workingcopy.TestAll.suite());

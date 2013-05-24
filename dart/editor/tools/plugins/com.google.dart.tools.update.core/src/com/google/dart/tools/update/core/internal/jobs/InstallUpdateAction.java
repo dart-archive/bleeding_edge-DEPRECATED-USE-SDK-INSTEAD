@@ -15,7 +15,6 @@ package com.google.dart.tools.update.core.internal.jobs;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
-import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
@@ -103,11 +102,6 @@ public class InstallUpdateAction extends Action {
         }
         //on linux and windows, we handle a merge post-copy
         return false;
-      }
-
-      // configuration/com.google.dart.tools.core/index.idx
-      if (name.equals(InMemoryIndex.INDEX_FILE)) {
-        return true;
       }
 
       return false;

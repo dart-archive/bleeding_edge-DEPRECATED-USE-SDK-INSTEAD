@@ -17,8 +17,6 @@ package com.google.dart.tools.core.test.util;
 import com.google.common.io.CharStreams;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.index.NotifyCallback;
-import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 
@@ -67,12 +65,13 @@ public class TestProject {
     }
     try {
       final CountDownLatch latch = new CountDownLatch(1);
-      InMemoryIndex.getInstance().notify(new NotifyCallback() {
-        @Override
-        public void done() {
-          latch.countDown();
-        }
-      });
+      //TODO (pquitslund): remove
+//      InMemoryIndex.getInstance().notify(new NotifyCallback() {
+//        @Override
+//        public void done() {
+//          latch.countDown();
+//        }
+//      });
       latch.await();
     } catch (Throwable e) {
     }
