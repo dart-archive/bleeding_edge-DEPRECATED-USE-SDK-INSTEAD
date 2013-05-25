@@ -455,14 +455,6 @@
    </extension>
 
    <extension
-         point="org.eclipse.ui.elementFactories">
-      <factory
-            class="com.google.dart.tools.ui.internal.text.editor.ExternalCompilationUnitEditorInputFactory"
-            id="com.google.dart.tools.ui.ExternalCompilationUnitEditorInputFactory">
-      </factory>
-   </extension>
-
-   <extension
          id="darteditor"
          point="org.eclipse.ui.editors">
       <editor

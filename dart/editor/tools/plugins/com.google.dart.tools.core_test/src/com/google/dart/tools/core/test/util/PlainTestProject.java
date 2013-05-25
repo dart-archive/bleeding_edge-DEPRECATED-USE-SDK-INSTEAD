@@ -15,8 +15,6 @@
 package com.google.dart.tools.core.test.util;
 
 import com.google.common.io.CharStreams;
-import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +31,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -138,12 +135,7 @@ public class PlainTestProject {
       file.setCharset("UTF-8", null);
     }
     // notify AnalysisServer
-    {
-      AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-      File javaFile = file.getLocation().toFile();
-      server.scan(javaFile, 5000);
-      server.changed(javaFile);
-    }
+
     // done
     return file;
   }

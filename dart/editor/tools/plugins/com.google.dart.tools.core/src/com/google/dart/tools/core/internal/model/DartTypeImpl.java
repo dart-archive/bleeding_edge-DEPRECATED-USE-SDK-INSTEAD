@@ -226,7 +226,7 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
 
   @Override
   public Field getField(String fieldName) {
-    return new DartFieldImpl(this, fieldName);
+    return null;
   }
 
   @Override
@@ -242,7 +242,7 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
 
   @Override
   public Method getMethod(String methodName, String[] parameterTypeSignatures) {
-    return new DartMethodImpl(this, methodName);
+    return null;
   }
 
   @Override
@@ -356,17 +356,11 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
         DartTypeParameterImpl typeParameter = new DartTypeParameterImpl(this, tokenizer.nextToken());
         return typeParameter.getHandleFromMemento(tokenizer, owner);
       case MEMENTO_DELIMITER_FIELD:
-        if (!tokenizer.hasMoreTokens()) {
-          return this;
-        }
-        DartFieldImpl field = new DartFieldImpl(this, tokenizer.nextToken());
-        return field.getHandleFromMemento(tokenizer, owner);
+        return this;
       case MEMENTO_DELIMITER_METHOD:
-        if (!tokenizer.hasMoreTokens()) {
-          return this;
-        }
-        DartMethodImpl method = new DartMethodImpl(this, tokenizer.nextToken());
-        return method.getHandleFromMemento(tokenizer, owner);
+
+        return this;
+
     }
     return null;
   }

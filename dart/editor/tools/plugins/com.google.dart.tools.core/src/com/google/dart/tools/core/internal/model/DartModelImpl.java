@@ -18,7 +18,6 @@ import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartModelInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
@@ -33,7 +32,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -62,28 +60,6 @@ public class DartModelImpl extends OpenableElementImpl implements DartModel {
   public void delete(DartElement[] elements, boolean force, IProgressMonitor monitor)
       throws DartModelException {
     DartCore.notYetImplemented();
-  }
-
-  /**
-   * Return the bundled compilation unit with the given URI, or <code>null</code> if there is no
-   * such bundled compilation unit. If the returned value is not <code>null</code>, it will always
-   * be the case that
-   * <code>getBundledCompilationUnit(uri).getSourceRef().getUri().equals(uri)</code> returns
-   * <code>true</code>.
-   * 
-   * @param uri the URI of the compilation unit to be returned
-   * @return the external compilation unit with the given URI
-   */
-  public ExternalCompilationUnitImpl getBundledCompilationUnit(URI uri) throws DartModelException {
-    for (DartLibrary library : getBundledLibraries()) {
-      for (CompilationUnit unit : library.getCompilationUnits()) {
-        URI unitUri = unit.getSourceRef().getUri();
-        if (uri.equals(unitUri)) {
-          return (ExternalCompilationUnitImpl) unit;
-        }
-      }
-    }
-    return null;
   }
 
   @Override

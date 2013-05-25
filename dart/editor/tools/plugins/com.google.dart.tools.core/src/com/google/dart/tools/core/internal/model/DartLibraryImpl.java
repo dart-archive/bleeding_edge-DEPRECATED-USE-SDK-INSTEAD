@@ -51,7 +51,6 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
-import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.core.utilities.general.SourceUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
@@ -59,7 +58,6 @@ import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -126,9 +124,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
     URI uri = libraryFile.toURI().normalize();
 
-    PackageLibraryManager libMgr = PackageLibraryManagerProvider.getPackageLibraryManager(libraryFile);
-
-    return new UrlLibrarySource(uri, libMgr);
+    return new UrlLibrarySource(uri, null);
   }
 
   /**
@@ -250,9 +246,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   public void delete(IProgressMonitor monitor) throws DartModelException {
     if (libraryFile != null) {
       IPath location = libraryFile.getLocation();
-      if (location != null) {
-        PackageLibraryManagerProvider.getDefaultAnalysisServer().discard(location.toFile());
-      }
+
     }
     DartProject project = getDartProject();
     project.close();
@@ -412,11 +406,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     if (sourceFile != null) {
       // fix for names of libraries in folders below package root open in the editor
       if (getCorrespondingResource() == null) {
-        PackageLibraryManager libMgr = PackageLibraryManagerProvider.getPackageLibraryManager();
-        URI uri = libMgr.getShortUri(sourceFile.getUri());
-        if (uri != null) {
-          return uri.toString();
-        }
+
       }
     }
     try {
@@ -710,22 +700,14 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     }
     final ArrayList<DartElementImpl> children = new ArrayList<DartElementImpl>();
     final CompilationUnitImpl definingUnit;
-    if (libraryFile == null) {
-      String relativePath = sourceFile.getName();
-      definingUnit = new ExternalCompilationUnitImpl(
-          this,
-          relativePath,
-          sourceFile.getSourceFor(relativePath));
-      libraryInfo.setDefiningCompilationUnit(definingUnit);
-      children.add(definingUnit);
-    } else {
-      definingUnit = new CompilationUnitImpl(
-          DartLibraryImpl.this,
-          libraryFile,
-          DefaultWorkingCopyOwner.getInstance());
-      libraryInfo.setDefiningCompilationUnit(definingUnit);
-      children.add(definingUnit);
-    }
+
+    definingUnit = new CompilationUnitImpl(
+        DartLibraryImpl.this,
+        libraryFile,
+        DefaultWorkingCopyOwner.getInstance());
+    libraryInfo.setDefiningCompilationUnit(definingUnit);
+    children.add(definingUnit);
+
     DartUnit unit = parseLibraryFile();
     if (unit == null) {
       libraryInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
@@ -879,14 +861,11 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
                 unitFile,
                 DefaultWorkingCopyOwner.getInstance());
             children.add(sourceUnit);
-            libraryInfo.addPart(new DartPartImpl(
-                sourceUnit,
-                SourceRangeFactory.create(node),
-                SourceRangeFactory.create(sourceUri)));
+
             return null;
           }
         }
-        children.add(new ExternalCompilationUnitImpl(DartLibraryImpl.this, relativePath, source));
+
         return null;
       }
 
@@ -951,26 +930,17 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         }
         String path = tokenizer.nextToken();
         CompilationUnitImpl unit;
-        if (getDartProject().exists()) {
-          unit = new CompilationUnitImpl(
-              this,
-              libraryFile.getProject().getFile(new Path(path)),
-              owner);
-          if (!unit.exists()) {
-            unit = new ExternalCompilationUnitImpl(this, path);
-          }
-        } else {
-          unit = new ExternalCompilationUnitImpl(this, path);
-        }
+
+        unit = new CompilationUnitImpl(
+            this,
+            libraryFile.getProject().getFile(new Path(path)),
+            owner);
+
         return unit.getHandleFromMemento(tokenizer, owner);
       case MEMENTO_DELIMITER_LIBRARY_FOLDER:
-        if (!tokenizer.hasMoreTokens()) {
-          return this;
-        }
-        String folderName = tokenizer.nextToken();
-        IFolder parentFolder = libraryFile.getParent().getFolder(new Path(folderName));
-        DartLibraryFolderImpl folder = new DartLibraryFolderImpl(this, parentFolder);
-        return folder.getHandleFromMemento(tokenizer, owner);
+
+        return this;
+
       case MEMENTO_DELIMITER_HTML_FILE:
         if (!tokenizer.hasMoreTokens()) {
           return this;
@@ -999,10 +969,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   @Override
   protected String getHandleMementoName() {
     URI uri = getUri();
-    URI shortUri = PackageLibraryManagerProvider.getPackageLibraryManager().getShortUri(uri);
-    if (shortUri != null) {
-      return shortUri.toString();
-    }
+
     if (uri == null) {
       // If the library location in the workspace directory hierarchy
       // then return a path relative to the workspace root
@@ -1093,11 +1060,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
   private String getElementName0() {
     if (sourceFile != null) {
-      PackageLibraryManager libMgr = PackageLibraryManagerProvider.getPackageLibraryManager();
-      URI shortUri = libMgr.getShortUri(sourceFile.getUri());
-      if (shortUri != null) {
-        return shortUri.toString();
-      }
+
       return sourceFile.getName();
     }
     return libraryFile.getName();

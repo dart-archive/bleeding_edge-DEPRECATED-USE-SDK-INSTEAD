@@ -17,9 +17,7 @@ import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -94,19 +92,8 @@ public class DartModelInfo extends OpenableElementInfo {
   private void initializeBundledLibraries() {
     ArrayList<DartLibrary> libraries = new ArrayList<DartLibrary>();
 
-    try {
-      if (DartSdkManager.getManager().hasSdk()) {
-        PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getPackageLibraryManager();
-        coreLibrary = createBundledLibrary(libraryManager, "dart:core");
-        for (String spec : libraryManager.getAllLibrarySpecs()) {
-          libraries.add(createBundledLibrary(libraryManager, spec));
-        }
-      }
-    } catch (URISyntaxException exception) {
-      throw new AssertionError(exception);
-    } finally {
-      bundledLibraries = libraries.toArray(new DartLibrary[libraries.size()]);
-    }
+    bundledLibraries = libraries.toArray(new DartLibrary[libraries.size()]);
+
   }
 
   private void initializeCache() {

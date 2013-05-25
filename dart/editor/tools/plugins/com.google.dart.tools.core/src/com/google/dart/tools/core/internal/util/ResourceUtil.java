@@ -16,7 +16,6 @@ package com.google.dart.tools.core.internal.util;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.Source;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -89,26 +88,9 @@ public class ResourceUtil {
    * @return the file corresponding to the specified Dart source
    */
   public static File getFile(Source source) {
-    if (source == null) {
-      return null;
-    }
 
-    URI uri = URIUtilities.safelyResolveDartUri(source.getUri());
+    return null;
 
-    try {
-      if (uri.isAbsolute() && "file".equals(uri.getScheme())) {
-        return new File(uri);
-      }
-      String relativePath = uri.getPath();
-      if (relativePath == null) {
-        DartCore.logError("Illegal file URI: " + uri, new Exception());
-        return null;
-      }
-      return new File(new File(".").getAbsoluteFile(), relativePath);
-    } catch (IllegalArgumentException ex) {
-      DartCore.logError("Illegal file URI: " + uri, ex);
-      return null;
-    }
   }
 
   /**

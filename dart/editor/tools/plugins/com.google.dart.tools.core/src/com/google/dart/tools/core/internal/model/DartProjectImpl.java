@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
@@ -836,8 +835,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     }
     IFile file = findFileForUri(uri);
 
-    PackageLibraryManager libMgr = PackageLibraryManagerProvider.getPackageLibraryManager();
-    LibrarySource librarySource = new UrlLibrarySource(uri, libMgr);
+    LibrarySource librarySource = new UrlLibrarySource(uri, null);
     DartLibraryImpl library;
 
     // Otherwise build an external library reference

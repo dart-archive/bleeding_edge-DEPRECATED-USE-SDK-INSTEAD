@@ -14,17 +14,11 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.core.buffer.Buffer;
-import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.SourceFileElement;
-import com.google.dart.tools.core.utilities.net.URIUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
-import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IPath;
-
-import java.net.URI;
 
 /**
  * A WorkingCopyOwner that knows about editor Documents.
@@ -33,11 +27,7 @@ public class DocumentWorkingCopyOwner extends WorkingCopyOwner {
 
   @Override
   public Buffer createBuffer(SourceFileElement<?> workingCopy) {
-    if (workingCopy instanceof ExternalCompilationUnitImpl) {
-      URI unitUri = ((ExternalCompilationUnitImpl) workingCopy).getSourceRef().getUri();
-      IPath path = URIUtil.toPath(URIUtilities.safelyResolveDartUri(unitUri));
-      return new DocumentAdapter(workingCopy, path);
-    }
+
     IResource resource = workingCopy.getResource();
     if (resource instanceof IFile) {
       return new DocumentAdapter(workingCopy, (IFile) resource);

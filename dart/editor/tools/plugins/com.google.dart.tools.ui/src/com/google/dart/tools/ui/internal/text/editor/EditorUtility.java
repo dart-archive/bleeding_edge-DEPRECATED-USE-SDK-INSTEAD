@@ -21,7 +21,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -30,7 +29,6 @@ import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.TypeMember;
-import com.google.dart.tools.core.utilities.net.URIUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
@@ -726,15 +724,7 @@ public class EditorUtility {
         if (resource instanceof IFile) {
           return new FileEditorInput((IFile) resource);
         }
-        if (unit instanceof ExternalCompilationUnitImpl) {
-          ExternalCompilationUnitImpl cu = (ExternalCompilationUnitImpl) unit;
-          URI uri = URIUtilities.safelyResolveDartUri(cu.getUri());
-          if (JarEntryStorage.isJarUri(uri)) {
-            return new JarEntryEditorInput(new JarEntryStorage(uri));
-          }
-          IFileStore fileStore = EFS.getLocalFileSystem().getStore(uri);
-          return new ExternalCompilationUnitEditorInput(fileStore, cu, uri);
-        }
+
 //      } else if (element instanceof LibraryConfigurationFileImpl) {
 //        // external libraries
 //        DartElement dartElement = ((LibraryConfigurationFileImpl) element).getParent();

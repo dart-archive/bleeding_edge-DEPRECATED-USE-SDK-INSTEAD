@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import com.google.dart.tools.core.DartCoreDebug;
-
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -22,31 +20,9 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
 
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      suite.addTestSuite(CompilationUnitImplTest.class);
-//    suite.addTestSuite(CompilationUnitImpl2Test.class);
-      suite.addTestSuite(DartElementImplTest.class);
-      suite.addTestSuite(DartFieldImplTest.class);
-      suite.addTestSuite(DartFunctionImplTest.class);
-    }
-
     suite.addTestSuite(DartIgnoreFileTest.class);
     suite.addTestSuite(DartIgnoreManagerTest.class);
 
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      suite.addTestSuite(DartImportImplTest.class);
-      // TODO (danrubel): Don't run flaky test on bots
-//      suite.addTestSuite(DartLibraryImplTest.class);
-      suite.addTestSuite(DartMethodImplTest.class);
-      suite.addTestSuite(DartModelImplTest.class);
-      suite.addTestSuite(DartProjectImplTest.class);
-      suite.addTestSuite(DartProjectNatureTest.class);
-      suite.addTestSuite(DartTypeImplTest.class);
-      suite.addTestSuite(DartVariableImplTest.class);
-      suite.addTestSuite(HTMLFileImplTest.class);
-      suite.addTestSuite(PackageLibraryManagerProviderAnyTest.class);
-      suite.addTest(com.google.dart.tools.core.internal.model.info.TestAll.suite());
-    }
     return suite;
   }
 }

@@ -16,15 +16,12 @@ package com.google.dart.tools.core.workingcopy;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.internal.buffer.BufferManager;
-import com.google.dart.tools.core.internal.model.StandAloneCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElementDelta;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceFileElement;
 import com.google.dart.tools.core.problem.ProblemRequestor;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 
@@ -123,16 +120,6 @@ public abstract class WorkingCopyOwner {
    */
   public final CompilationUnit newWorkingCopy(IPath path, IProgressMonitor monitor)
       throws DartModelException {
-
-    IFile libraryFile = null;
-    if (path.segmentCount() > 1) {
-      libraryFile = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
-      if (libraryFile != null) {
-        StandAloneCompilationUnitImpl cu = new StandAloneCompilationUnitImpl(libraryFile, this);
-        cu.becomeWorkingCopy(getProblemRequestor(cu), monitor);
-        return cu;
-      }
-    }
 
     return null;
   }

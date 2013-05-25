@@ -45,10 +45,8 @@ import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.internal.buffer.BufferManager;
 import com.google.dart.tools.core.internal.model.info.CompilationUnitInfo;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
-import com.google.dart.tools.core.internal.model.info.DartFieldInfo;
 import com.google.dart.tools.core.internal.model.info.DartFunctionInfo;
 import com.google.dart.tools.core.internal.model.info.DartFunctionTypeAliasInfo;
-import com.google.dart.tools.core.internal.model.info.DartMethodInfo;
 import com.google.dart.tools.core.internal.model.info.DartTypeInfo;
 import com.google.dart.tools.core.internal.model.info.DartTypeParameterInfo;
 import com.google.dart.tools.core.internal.model.info.DartVariableInfo;
@@ -148,28 +146,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         if (member instanceof DartFieldDefinition) {
           DartFieldDefinition fieldListNode = (DartFieldDefinition) member;
           for (DartField fieldNode : fieldListNode.getFields()) {
-            if (fieldNode.getModifiers().isGetter() || fieldNode.getModifiers().isSetter()) {
-              processMethodDefinition(fieldNode.getAccessor(), typeImpl, className, children);
-            } else {
-              DartFieldImpl fieldImpl = new DartFieldImpl(typeImpl, fieldNode.getName().toString());
-              DartFieldInfo fieldInfo = new DartFieldInfo();
-              fieldInfo.setSourceRangeStart(fieldNode.getSourceInfo().getOffset());
-              fieldInfo.setSourceRangeEnd(fieldNode.getSourceInfo().getEnd());
-              captureDartDoc(fieldNode, typeInfo);
-              fieldInfo.setNameRange(SourceRangeFactory.create(fieldNode.getName()));
-              fieldInfo.setTypeName(extractTypeName(fieldListNode.getTypeNode(), false));
-              fieldInfo.setModifiers(fieldNode.getModifiers());
-              children.add(fieldImpl);
-              addNewElement(fieldImpl, fieldInfo);
 
-              FunctionGatherer functionGatherer = new FunctionGatherer(
-                  fieldNode,
-                  fieldImpl,
-                  newElements);
-              fieldNode.accept(functionGatherer);
-              List<DartFunctionImpl> functions = functionGatherer.getFunctions();
-              fieldInfo.setChildren(DartElementImpl.toArray(functions));
-            }
           }
         } else if (member instanceof DartMethodDefinition) {
           boolean isConstructor = processMethodDefinition(
@@ -187,19 +164,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       boolean isInterface = node.isInterface();
       if (!constructorFound && !isInterface) {
         DartIdentifier typeName = node.getName();
-        if (typeName != null) {
-          DartMethodImpl methodImpl = new DartMethodImpl(typeImpl, typeName.getName());
-          DartMethodInfo methodInfo = new DartMethodInfo();
-          methodInfo.setSourceRangeStart(typeName.getSourceInfo().getOffset());
-          methodInfo.setSourceRangeEnd(typeName.getSourceInfo().getEnd());
-          methodInfo.setNameRange(SourceRangeFactory.create(typeName));
-          methodInfo.setModifiers(Modifiers.NONE);
-          methodInfo.setConstructor(true);
-          methodInfo.setImplicit(true);
-          methodInfo.setReturnTypeName(typeName.getName().toCharArray());
-          children.add(methodImpl);
-          addNewElement(methodImpl, methodInfo);
-        }
+
       }
 
       typeInfo.setIsInterface(isInterface);
@@ -219,23 +184,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      */
     @Override
     public Void visitClassTypeAlias(DartClassTypeAlias node) {
-      String className = node.getClassName();
-      DartClassTypeAliasImpl typeImpl = new DartClassTypeAliasImpl(compilationUnit, className);
-      DartTypeInfo typeInfo = new DartTypeInfo();
-      List<DartElementImpl> children = Lists.newArrayList();
-      addNewElement(typeImpl, typeInfo);
 
-      // add DartTypeParameter elements
-      addTypeParameters(node.getTypeParameters(), typeImpl, children);
-
-      typeInfo.setSuperclassName(extractTypeName(node.getSuperclass(), false));
-      typeInfo.setInterfaceNames(extractTypeNames(node.getInterfaces(), false));
-      typeInfo.setSourceRangeStart(node.getSourceInfo().getOffset());
-      typeInfo.setSourceRangeEnd(node.getSourceInfo().getEnd());
-      captureDartDoc(node, typeInfo);
-      typeInfo.setNameRange(SourceRangeFactory.create(node.getName()));
-      typeInfo.setChildren(DartElementImpl.toArray(children));
-      topLevelElements.add(typeImpl);
       return null;
     }
 
@@ -441,41 +390,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      */
     private boolean processMethodDefinition(DartMethodDefinition methodNode, DartTypeImpl typeImpl,
         String className, List<DartElementImpl> children) {
-      DartMethodImpl methodImpl = new DartMethodImpl(typeImpl, methodNode.getName().toString());
-      DartMethodInfo methodInfo = new DartMethodInfo();
-      methodInfo.setParametersOpenParen(methodNode.getFunction().getParametersOpenParen());
-      methodInfo.setParametersCloseParen(methodNode.getFunction().getParametersCloseParen());
-      methodInfo.setOptionalParametersOpeningGroupChar(methodNode.getFunction().getParametersOptionalOpen());
-      methodInfo.setOptionalParametersClosingGroupChar(methodNode.getFunction().getParametersOptionalClose());
-      methodInfo.setSourceRangeStart(methodNode.getSourceInfo().getOffset());
-      methodInfo.setSourceRangeEnd(methodNode.getSourceInfo().getEnd());
-      captureDartDoc(methodNode, methodInfo);
-      methodInfo.setNameRange(SourceRangeFactory.create(methodNode.getName()));
-      methodInfo.setModifiers(methodNode.getModifiers());
-      boolean isConstructor = isConstructor(className, methodNode);
-      methodInfo.setConstructor(isConstructor);
-      methodInfo.setReturnTypeName(extractTypeName(
-          methodNode.getFunction().getReturnTypeNode(),
-          false));
-      children.add(methodImpl);
-      addNewElement(methodImpl, methodInfo);
-
-      List<DartElementImpl> methodChildren = getParameters(methodImpl, methodNode.getFunction());
-
-      FunctionGatherer functionGatherer = new FunctionGatherer(methodNode, methodImpl, newElements);
-      methodNode.accept(functionGatherer);
-      methodChildren.addAll(functionGatherer.getFunctions());
-
-      LocalVariableGatherer variableGatherer = new LocalVariableGatherer(
-          methodNode,
-          methodImpl,
-          newElements);
-      methodNode.accept(variableGatherer);
-      methodChildren.addAll(variableGatherer.getLocalVariables());
-
-      methodInfo.setChildren(DartElementImpl.toArray(methodChildren));
-
-      return isConstructor;
+      return false;
     }
   }
 
@@ -1583,11 +1498,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         DartTypeImpl type = new DartTypeImpl(this, tokenizer.nextToken());
         return type.getHandleFromMemento(tokenizer, owner);
       case MEMENTO_DELIMITER_CLASS_TYPE_ALIAS:
-        if (!tokenizer.hasMoreTokens()) {
-          return this;
-        }
-        DartClassTypeAliasImpl type2 = new DartClassTypeAliasImpl(this, tokenizer.nextToken());
-        return type2.getHandleFromMemento(tokenizer, owner);
+
+        return this;
+
       case MEMENTO_DELIMITER_VARIABLE:
         if (!tokenizer.hasMoreTokens()) {
           return this;

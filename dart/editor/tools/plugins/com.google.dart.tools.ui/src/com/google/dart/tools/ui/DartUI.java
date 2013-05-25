@@ -29,7 +29,6 @@ import com.google.dart.tools.ui.internal.SharedImages;
 import com.google.dart.tools.ui.internal.dialogs.FilteredTypesSelectionDialog;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
-import com.google.dart.tools.ui.internal.text.editor.ExternalCompilationUnitEditorInput;
 import com.google.dart.tools.ui.text.IColorManager;
 
 import org.eclipse.core.resources.IFile;
@@ -451,9 +450,7 @@ public final class DartUI {
    * @return the Dart element wrapped by <code>editorInput</code> or <code>null</code> if none
    */
   public static DartElement getEditorInputDartElement(IEditorInput editorInput) {
-    if (editorInput instanceof ExternalCompilationUnitEditorInput) {
-      return ((ExternalCompilationUnitEditorInput) editorInput).getCompilationUnit();
-    }
+
     // Performance: check working copy manager first: this is faster
     DartElement de = DartToolsPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(
         editorInput);

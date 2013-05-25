@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.utilities.net;
 
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
-
 import java.io.File;
 import java.net.URI;
 
@@ -87,25 +85,6 @@ public final class URIUtilities {
     }
 
     return URI.create(sb.toString());
-  }
-
-  /**
-   * Attempt to resolve the given URI. Return the resolved URI, or the original URI if the original
-   * URI could not be resolved.
-   * 
-   * @param uri the URI to be resolved
-   * @return the resolved URI
-   */
-  public static URI safelyResolveDartUri(URI uri) {
-    try {
-      URI resolvedUri = PackageLibraryManagerProvider.getPackageLibraryManager().resolveDartUri(uri);
-      if (resolvedUri != null) {
-        return resolvedUri;
-      }
-    } catch (RuntimeException exception) {
-      // Fall through to returned the URI that was provided.
-    }
-    return uri;
   }
 
   /**

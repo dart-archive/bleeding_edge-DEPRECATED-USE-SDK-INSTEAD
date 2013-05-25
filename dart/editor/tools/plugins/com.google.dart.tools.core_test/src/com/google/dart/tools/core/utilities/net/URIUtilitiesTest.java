@@ -55,28 +55,6 @@ public class URIUtilitiesTest extends TestCase {
     assertTrue(result.toString(), result.toString().endsWith("/foo/bar"));
   }
 
-  public void test_URIUtilities_safelyResolveDartUri_invalidDart() throws Exception {
-    String path = "core/core_impl.dart/core_impl.dart";
-    URI uri = new URI("dart", path, null);
-    URI result = URIUtilities.safelyResolveDartUri(uri);
-    assertNotNull(result);
-    assertTrue(result.toString(), result.toString().endsWith(path));
-  }
-
-  public void test_URIUtilities_safelyResolveDartUri_nonDart() throws Exception {
-    URI uri = new URI("file", "relative/path.dart", null);
-    URI result = URIUtilities.safelyResolveDartUri(uri);
-    assertEquals(uri, result);
-  }
-
-  public void test_URIUtilities_safelyResolveDartUri_validDart() throws Exception {
-    String path = "core.lib";
-    URI uri = new URI("dart", path, null);
-    URI result = URIUtilities.safelyResolveDartUri(uri);
-    assertNotNull(result);
-    assertTrue(result.toString(), result.toString().endsWith(path));
-  }
-
   public void test_URIUtilities_uriEncode_encodeSpace() throws Exception {
     String result = URIUtilities.uriEncode("foo bar");
     assertNotNull(result);
