@@ -17,6 +17,8 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldFormalParameterElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.internal.element.member.Member;
@@ -76,6 +78,12 @@ public class NameOccurrencesFinder extends RecursiveASTVisitor<Void> {
           this.target4 = member.getBaseElement();
         }
         break;
+      case PARAMETER:
+        ParameterElement param = (ParameterElement) source;
+        if (param.isInitializingFormal()) {
+          FieldFormalParameterElement fieldInit = (FieldFormalParameterElement) param;
+          this.target2 = fieldInit.getField();
+        }
     }
     if (target2 == null) {
       target2 = target;
@@ -115,6 +123,13 @@ public class NameOccurrencesFinder extends RecursiveASTVisitor<Void> {
         PropertyInducingElement propertyElem = (PropertyInducingElement) element;
         match(propertyElem.getGetter(), node);
         match(propertyElem.getSetter(), node);
+        break;
+      case PARAMETER:
+        ParameterElement param = (ParameterElement) element;
+        if (param.isInitializingFormal()) {
+          FieldFormalParameterElement fieldInit = (FieldFormalParameterElement) param;
+          match(fieldInit.getField(), node);
+        }
         break;
     }
     return null;

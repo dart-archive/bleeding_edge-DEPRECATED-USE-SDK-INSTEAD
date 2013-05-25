@@ -286,6 +286,22 @@ public class NameOccurrencesFinderTest extends ResolverTestCase {
     );
   }
 
+  public void test6() throws Exception {
+    // test refs of synthetic member
+    test(//
+        compose(//
+            "class X {",
+            "  var !1element;//",
+            "  X({this.!2element});",
+            "}"),
+        "1+element;//",
+        "1+element}",
+        "1+element;//",
+        "2+element}"
+    //end
+    );
+  }
+
   protected CompilationUnit resolve(List<Source> sources) throws AnalysisException {
     AnalysisContext context = getAnalysisContext();
     CompilationUnit libraryUnit = null;
