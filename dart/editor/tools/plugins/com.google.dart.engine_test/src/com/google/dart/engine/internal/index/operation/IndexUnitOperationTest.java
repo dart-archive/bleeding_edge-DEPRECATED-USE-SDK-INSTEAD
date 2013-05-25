@@ -52,7 +52,7 @@ public class IndexUnitOperationTest extends EngineTestCase {
 
   public void test_performOperation() throws Exception {
     operation.performOperation();
-    verify(store).removeSource(context, unitSource);
+    verify(store).clearSource(context, unitSource);
     verify(unit).accept(isA(IndexContributor.class));
   }
 

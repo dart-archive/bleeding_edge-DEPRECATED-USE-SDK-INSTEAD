@@ -47,7 +47,6 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -68,7 +67,6 @@ import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
-import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
@@ -77,7 +75,6 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.collection.IntStack;
 
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Visits resolved AST and adds relationships into {@link IndexStore}.
@@ -90,7 +87,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    * @return the {@link Location} representing location of the {@link Element}.
    */
   @VisibleForTesting
-  public static Location createElementLocation(Element element) {
+  public static Location createLocation(Element element) {
     if (element != null) {
       int offset = element.getNameOffset();
       int length = element.getDisplayName().length();
@@ -185,11 +182,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     ClassElement element = node.getElement();
     enterScope(element);
     try {
-      {
-        Location location = createElementLocation(element);
-        recordRelationship(libraryElement, IndexConstants.DEFINES_CLASS, location);
-        recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_CLASS, location);
-      }
+      recordElementDefinition(element, IndexConstants.DEFINES_CLASS);
       {
         ExtendsClause extendsClause = node.getExtendsClause();
         if (extendsClause != null) {
@@ -224,11 +217,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     ClassElement element = node.getElement();
     enterScope(element);
     try {
-      {
-        Location location = createElementLocation(element);
-        recordRelationship(libraryElement, IndexConstants.DEFINES_CLASS_ALIAS, location);
-        recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_CLASS_ALIAS, location);
-      }
+      recordElementDefinition(element, IndexConstants.DEFINES_CLASS_ALIAS);
       {
         TypeName superclassNode = node.getSuperclass();
         if (superclassNode != null) {
@@ -264,7 +253,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       elementStack.add(unitElement);
       libraryElement = unitElement.getEnclosingElement();
       if (libraryElement != null) {
-        recordUnitElements(unitElement);
         return super.visitCompilationUnit(node);
       }
     }
@@ -325,9 +313,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     Element element = node.getElement();
-    Location location = createElementLocation(element);
-    recordRelationship(libraryElement, IndexConstants.DEFINES_FUNCTION, location);
-    recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_FUNCTION, location);
+    recordElementDefinition(element, IndexConstants.DEFINES_FUNCTION);
     enterScope(element);
     try {
       return super.visitFunctionDeclaration(node);
@@ -339,9 +325,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
     Element element = node.getElement();
-    Location location = createElementLocation(element);
-    recordRelationship(libraryElement, IndexConstants.DEFINES_FUNCTION_TYPE, location);
-    recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_FUNCTION_TYPE, location);
+    recordElementDefinition(element, IndexConstants.DEFINES_FUNCTION_TYPE);
     return super.visitFunctionTypeAlias(node);
   }
 
@@ -475,9 +459,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     VariableDeclarationList variables = node.getVariables();
     for (VariableDeclaration variableDeclaration : variables.getVariables()) {
       Element element = variableDeclaration.getElement();
-      Location location = createElementLocation(element);
-      recordRelationship(libraryElement, IndexConstants.DEFINES_VARIABLE, location);
-      recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_VARIABLE, location);
+      recordElementDefinition(element, IndexConstants.DEFINES_VARIABLE);
     }
     return super.visitTopLevelVariableDeclaration(node);
   }
@@ -583,6 +565,15 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
+   * Records the {@link Element} definition in the library and universe.
+   */
+  private void recordElementDefinition(Element element, Relationship relationship) {
+    Location location = createLocation(element);
+    recordRelationship(libraryElement, relationship, location);
+    recordRelationship(IndexConstants.UNIVERSE, relationship, location);
+  }
+
+  /**
    * Records {@link ImportElement} reference if given {@link SimpleIdentifier} references some
    * top-level element and not qualified with import prefix.
    */
@@ -651,40 +642,5 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
         recordRelationship(superElement, relationship, createLocation(superNode));
       }
     }
-  }
-
-  /**
-   * Remembers {@link Element}s declared in the {@link Source} of the given
-   * {@link CompilationUnitElement}.
-   */
-  private void recordUnitElements(final CompilationUnitElement unitElement) {
-    final List<Element> unitElements = Lists.newArrayList();
-    // add elements of unit itself
-    unitElement.accept(new GeneralizingElementVisitor<Void>() {
-      @Override
-      public Void visitElement(Element element) {
-        unitElements.add(element);
-        return super.visitElement(element);
-      }
-    });
-    // add also children of LibraryElement
-    if (libraryElement.getDefiningCompilationUnit() == unitElement) {
-      libraryElement.accept(new GeneralizingElementVisitor<Void>() {
-        @Override
-        public Void visitElement(Element element) {
-          // don't visit units
-          if (element instanceof CompilationUnitElement) {
-            return null;
-          }
-          // visit LibraryElement children
-          unitElements.add(element);
-          return super.visitElement(element);
-        }
-      });
-    }
-    // do record
-    AnalysisContext context = unitElement.getContext();
-    Source source = unitElement.getSource();
-    store.recordSourceElements(context, source, unitElements);
   }
 }

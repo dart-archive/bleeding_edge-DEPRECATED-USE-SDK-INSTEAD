@@ -20,7 +20,6 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.internal.index.MemoryIndexStoreImpl.ElementRelationKey;
-import com.google.dart.engine.utilities.collection.FastRemoveList;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -52,7 +51,7 @@ class MemoryIndexWriter {
     dos.writeInt(FILE_VERSION_NUMBER);
     // prepare Element(s) to write relations for
     List<ElementRelationKey> keysToWrite = Lists.newArrayList();
-    for (ElementRelationKey key : impl.relationshipMap.keySet()) {
+    for (ElementRelationKey key : impl.keyToLocations.keySet()) {
       Element element = key.element;
       if (!isElementOfContext(element)) {
         continue;
@@ -67,9 +66,8 @@ class MemoryIndexWriter {
       dos.writeUTF(key.relationship.getIdentifier());
       // prepare Location(s) to write
       List<Location> locationsToWrite = Lists.newArrayList();
-      FastRemoveList<ContributedLocation> contributedLocations = impl.relationshipMap.get(key);
-      for (ContributedLocation contributedLocation : contributedLocations) {
-        Location location = contributedLocation.getLocation();
+      List<Location> contributedLocations = impl.keyToLocations.get(key);
+      for (Location location : contributedLocations) {
         // TODO(scheglov) restore when we will share Elements between contexts
 //        Element locationElement = location.getElement();
 //        if (!isElementOfContext(locationElement)) {

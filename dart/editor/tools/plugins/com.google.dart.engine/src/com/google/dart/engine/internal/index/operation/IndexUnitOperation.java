@@ -86,7 +86,7 @@ public class IndexUnitOperation implements IndexOperation {
   @Override
   public void performOperation() {
     synchronized (indexStore) {
-      indexStore.removeSource(context, source);
+      indexStore.clearSource(context, source);
       try {
         IndexContributor contributor = new IndexContributor(indexStore);
         unit.accept(contributor);

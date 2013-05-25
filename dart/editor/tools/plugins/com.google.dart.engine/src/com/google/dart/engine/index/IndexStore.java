@@ -19,14 +19,22 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 
-import java.util.List;
-
 /**
  * Container of information computed by the index - relationships between elements.
  * 
  * @coverage dart.engine.index
  */
 public interface IndexStore {
+  /**
+   * Remove from the index locations within the given source.
+   * <p>
+   * This method should be invoked when a source was updated and new locations will be added.
+   * 
+   * @param the {@link AnalysisContext} in which {@link Source} being cleared
+   * @param source the source being cleared
+   */
+  void clearSource(AnalysisContext context, Source source);
+
   /**
    * Return the locations of the elements that have the given relationship with the given element.
    * For example, if the element represents a method and the relationship is the is-referenced-by
@@ -70,11 +78,6 @@ public interface IndexStore {
    * @param location the {@link Location} where relationship happens
    */
   void recordRelationship(Element element, Relationship relationship, Location location);
-
-  /**
-   * Remembers {@link Element}s declared in the given {@link Source}.
-   */
-  void recordSourceElements(AnalysisContext context, Source source, List<Element> elements);
 
   /**
    * Remove from the index all of the information associated with {@link AnalysisContext}.

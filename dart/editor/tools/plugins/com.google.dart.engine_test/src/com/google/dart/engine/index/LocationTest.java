@@ -20,30 +20,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class LocationTest extends EngineTestCase {
-  public void test_equals() throws Exception {
-    Element elementA = mock(Element.class);
-    Element elementB = mock(Element.class);
-    Location location = new Location(elementA, 1, 2, null);
-    // not Location
-    assertFalse(location.equals(null));
-    assertFalse(location.equals(this));
-    // true
-    assertTrue(location.equals(location));
-    assertTrue(location.equals(new Location(elementA, 1, 2, null)));
-    // not equal attribute
-    assertFalse(location.equals(new Location(elementB, 1, 2, null)));
-    assertFalse(location.equals(new Location(elementA, 10, 2, null)));
-    assertFalse(location.equals(new Location(elementA, 1, 20, null)));
-    assertFalse(location.equals(new Location(elementA, 1, 2, "pref")));
-  }
-
-  public void test_hashCode() throws Exception {
-    Element element = mock(Element.class);
-    Location location = new Location(element, 1, 2, null);
-    // just ask
-    location.hashCode();
-  }
-
   public void test_new() throws Exception {
     Element element = mock(Element.class);
     when(element.toString()).thenReturn("myElement");

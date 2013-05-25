@@ -203,12 +203,12 @@ public class IndexContributorTest extends AbstractDartTest {
   public void test_createElementLocation() throws Exception {
     ElementLocation elementLocation = mock(ElementLocation.class);
     Element element = mockElement(Element.class, elementLocation, 42, "myName");
-    Location location = IndexContributor.createElementLocation(element);
+    Location location = IndexContributor.createLocation(element);
     assertLocation(location, element, 42, "myName", null);
   }
 
   public void test_createElementLocation_null() throws Exception {
-    assertSame(null, IndexContributor.createElementLocation(null));
+    assertSame(null, IndexContributor.createLocation(null));
   }
 
   public void test_definesClass() throws Exception {

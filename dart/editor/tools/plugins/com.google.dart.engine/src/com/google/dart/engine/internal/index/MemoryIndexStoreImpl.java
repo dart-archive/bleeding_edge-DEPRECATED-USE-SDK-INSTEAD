@@ -21,9 +21,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.MemoryIndexStore;
@@ -33,7 +31,6 @@ import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.internal.element.member.Member;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
-import com.google.dart.engine.utilities.collection.FastRemoveList;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,43 +57,21 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     @Override
     public boolean equals(Object obj) {
       ElementRelationKey other = (ElementRelationKey) obj;
-      if (other.relationship != relationship) {
-        return false;
-      }
-      if (element instanceof NameElementImpl) {
-        return Objects.equal(other.element, element);
-      }
-      return other.element == element;
+      return other.relationship == relationship && Objects.equal(other.element, element);
     }
 
     @Override
     public int hashCode() {
       return Objects.hashCode(element, relationship);
     }
+
+    @Override
+    public String toString() {
+      return element + " " + relationship;
+    }
   }
 
   private static final Object WEAK_SET_VALUE = new Object();
-
-  /**
-   * @return the {@link Source} which contains given {@link Element}, may be {@code null}.
-   */
-  @VisibleForTesting
-  public static Source findSource(Element element) {
-    while (element != null) {
-      if (element instanceof LibraryElement) {
-        element = ((LibraryElement) element).getDefiningCompilationUnit();
-        // something wrong with this library
-        if (element == null) {
-          return null;
-        }
-      }
-      if (element instanceof CompilationUnitElement) {
-        return ((CompilationUnitElement) element).getSource();
-      }
-      element = element.getEnclosingElement();
-    }
-    return null;
-  }
 
   /**
    * When logging is on, {@link AnalysisEngine} actually creates
@@ -111,97 +86,118 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     return context;
   }
 
+  /**
+   * We add {@link AnalysisContext} to this weak set to ensure that we don't continue to add
+   * relationships after some context was removing using {@link #removeContext(AnalysisContext)}.
+   */
   private final Map<AnalysisContext, Object> removedContexts = new MapMaker().weakKeys().makeMap();
+
+  /**
+   * The mapping of {@link ElementRelationKey} to the {@link Location}s, one-to-many.
+   */
+  final Map<ElementRelationKey, List<Location>> keyToLocations = Maps.newHashMap();
+
+  /**
+   * The mapping of the {@link Location} to its {@link ElementRelationKey}, one-to-one. It is used
+   * in {@link #clearSource(AnalysisContext, Source)} to find {@link Location}s list in
+   * {@link #keyToLocations} to remove locations from.
+   */
+  final Map<Location, ElementRelationKey> locationToKey = Maps.newHashMap();
+
+  /**
+   * The mapping of {@link Source} to the {@link ElementRelationKey}s. It is used in
+   * {@link #removeSource(AnalysisContext, Source)} to identify keys to remove from
+   * {@link #keyToLocations}.
+   */
+  final Map<AnalysisContext, Map<Source, Set<ElementRelationKey>>> contextToSourceToKeys = Maps.newHashMap();
+
+  /**
+   * The mapping of {@link Source} to the {@link Location}s existing in it. It is used in
+   * {@link #clearSource(AnalysisContext, Source)} to identify locations to remove from
+   * {@link #keyToLocations}.
+   */
+  final Map<AnalysisContext, Map<Source, List<Location>>> contextToSourceToLocations = Maps.newHashMap();
+
   private int sourceCount;
-  private int elementCount;
-  private int relationshipCount;
+  private int keyCount;
+  private int locationCount;
 
-  /**
-   * A table mapping elements to tables mapping relationships to lists of locations.
-   */
-  final Map<ElementRelationKey, FastRemoveList<ContributedLocation>> relationshipMap = Maps.newHashMapWithExpectedSize(4096);
-
-  /**
-   * A set of all {@link Source}s with elements or relationships.
-   */
-  final Map<AnalysisContext, Set<Source>> sources = Maps.newHashMapWithExpectedSize(64);
-
-  /**
-   * {@link Element}s by {@link Source} where they are declared.
-   */
-  final Map<AnalysisContext, Map<Source, List<Element>>> sourceToDeclarations = Maps.newHashMapWithExpectedSize(64);
-
-  /**
-   * {@link ContributedLocation}s by {@link Source} where they are contributed.
-   */
-  final Map<AnalysisContext, Map<Source, FastRemoveList<ContributedLocation>>> sourceToLocations = Maps.newHashMapWithExpectedSize(64);
-
-  @VisibleForTesting
-  public int getDeclarationCount(AnalysisContext context) {
-    context = unwrapContext(context);
-    int count = 0;
-    Map<Source, List<Element>> contextDeclarations = sourceToDeclarations.get(context);
-    if (contextDeclarations != null) {
-      for (List<Element> sourceDeclarations : contextDeclarations.values()) {
-        count += sourceDeclarations.size();
+  @Override
+  public void clearSource(AnalysisContext context, Source source) {
+    Map<Source, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(context);
+    Set<ElementRelationKey> keys = sourceToKeys != null ? sourceToKeys.get(source) : null;
+    // remove locations within given Source
+    Map<Source, List<Location>> sourceToLocations = contextToSourceToLocations.get(context);
+    if (sourceToLocations != null) {
+      List<Location> sourceLocations = sourceToLocations.remove(source);
+      if (sourceLocations != null) {
+        for (Location location : sourceLocations) {
+          ElementRelationKey key = locationToKey.remove(location);
+          List<Location> relLocations = keyToLocations.get(key);
+          if (relLocations != null) {
+            relLocations.remove(location);
+            locationCount--;
+            // no locations with this key
+            if (relLocations.isEmpty()) {
+              keyToLocations.remove(key);
+              keyCount--;
+              // remove key
+              if (keys != null) {
+                keys.remove(key);
+              }
+            }
+          }
+        }
       }
     }
-    return count;
-  }
-
-  @VisibleForTesting
-  public int getLocationCount(AnalysisContext context) {
-    context = unwrapContext(context);
-    int count = 0;
-    Map<Source, FastRemoveList<ContributedLocation>> contextLocations = sourceToLocations.get(context);
-    if (contextLocations != null) {
-      for (FastRemoveList<ContributedLocation> contributedLocations : contextLocations.values()) {
-        count += contributedLocations.size();
-      }
+    // if no keys, remove from sourceToKeys
+    if (keys != null && keys.isEmpty()) {
+      sourceToKeys.remove(source);
+      sourceCount--;
     }
-    return count;
   }
 
   @Override
   public Location[] getRelationships(Element element, Relationship relationship) {
-    ElementRelationKey relKey = new ElementRelationKey(element, relationship);
-    FastRemoveList<ContributedLocation> contributedLocations = relationshipMap.get(relKey);
-    if (contributedLocations != null) {
-      int count = contributedLocations.size();
-      Location[] locations = new Location[count];
-      int locationIndex = 0;
-      for (ContributedLocation contributedLocation : contributedLocations) {
-        locations[locationIndex++] = contributedLocation.getLocation();
-      }
-      return locations;
+    ElementRelationKey key = new ElementRelationKey(element, relationship);
+    List<Location> locations = keyToLocations.get(key);
+    if (locations != null) {
+      return locations.toArray(new Location[locations.size()]);
     }
     return Location.EMPTY_ARRAY;
   }
 
   @Override
   public String getStatistics() {
-    return relationshipCount + " relationships in " + elementCount + " elements in " + sourceCount
-        + " sources";
+    return locationCount + " relationships in " + keyCount + " keys in " + sourceCount + " sources";
   }
 
-  public int internalGetElementCount() {
-    Set<Element> elements = Sets.newHashSet();
-    for (ElementRelationKey key : relationshipMap.keySet()) {
-      elements.add(key.element);
-    }
-    return elements.size();
+  @VisibleForTesting
+  public int internalGetKeyCount() {
+    return keyToLocations.size();
   }
 
-  public int internalGetRelationshipCount() {
+  @VisibleForTesting
+  public int internalGetLocationCount() {
     int count = 0;
-    for (FastRemoveList<ContributedLocation> contributedLocations : relationshipMap.values()) {
-      count += contributedLocations.size();
+    for (List<Location> locations : keyToLocations.values()) {
+      count += locations.size();
     }
     return count;
   }
 
-  public int internalGetSourceCount() {
-    return sourceCount;
+  @VisibleForTesting
+  public int internalGetLocationCount(AnalysisContext context) {
+    context = unwrapContext(context);
+    int count = 0;
+    for (List<Location> locations : keyToLocations.values()) {
+      for (Location location : locations) {
+        if (location.getElement().getContext() == context) {
+          count++;
+        }
+      }
+    }
+    return count;
   }
 
   @Override
@@ -215,11 +211,20 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (element == null || location == null) {
       return;
     }
+    location = new Location(location);
     // prepare information
     AnalysisContext elementContext = element.getContext();
     AnalysisContext locationContext = location.getElement().getContext();
-    Source elementSource = findSource(element);
-    Source locationSource = findSource(location.getElement());
+    Source elementSource = element.getSource();
+    Source locationSource = location.getElement().getSource();
+    // sanity check
+    if (locationContext == null) {
+      return;
+    }
+    if (elementContext == null && !(element instanceof NameElementImpl)
+        && !(element instanceof UniverseElementImpl)) {
+      return;
+    }
     // may be already removed in other thread
     if (removedContexts.containsKey(elementContext)) {
       return;
@@ -227,126 +232,86 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (removedContexts.containsKey(locationContext)) {
       return;
     }
-    // TODO(scheglov) we started to resolve some elements as Member(s),
-    // but at the index level we don't care.
+    // at the index level we don't care about Member(s)
     if (element instanceof Member) {
       element = ((Member) element).getBaseElement();
     }
-    // Sanity check.
-    // Sometimes Element in Location has no enclosing, so we don't have context.
-    // This is probably bug in resolver.
-    if (locationContext == null) {
-      return;
-    }
-    // TODO(scheglov) remove after fix in resolver
-    if (elementContext == null && !(element instanceof NameElementImpl)
-        && !(element instanceof UniverseElementImpl)) {
-      return;
-    }
-    // remember sources
-    addSource(elementContext, elementSource);
-    addSource(locationContext, locationSource);
-    //
-    Map<Source, FastRemoveList<ContributedLocation>> contextLocations = sourceToLocations.get(locationContext);
-    if (contextLocations == null) {
-      contextLocations = Maps.newHashMap();
-      sourceToLocations.put(locationContext, contextLocations);
-    }
-    //
-    FastRemoveList<ContributedLocation> sourceLocations = contextLocations.get(locationSource);
-    if (sourceLocations == null) {
-      sourceLocations = FastRemoveList.newInstance();
-      contextLocations.put(locationSource, sourceLocations);
-    }
-    // add ContributedLocation for "element"
+    // record: key -> location(s)
+    ElementRelationKey key = new ElementRelationKey(element, relationship);
     {
-      ElementRelationKey relKey = new ElementRelationKey(element, relationship);
-      FastRemoveList<ContributedLocation> locations = relationshipMap.get(relKey);
+      List<Location> locations = keyToLocations.remove(key);
       if (locations == null) {
-        locations = FastRemoveList.newInstance();
-        relationshipMap.put(relKey, locations);
+        locations = Lists.newArrayList();
+      } else {
+        keyCount--;
       }
-      new ContributedLocation(sourceLocations, locations, location);
-      relationshipCount++;
+      keyToLocations.put(key, locations);
+      keyCount++;
+      locations.add(location);
+      locationCount++;
     }
-  }
-
-  @Override
-  public void recordSourceElements(AnalysisContext context, Source source, List<Element> elements) {
-    if (removedContexts.containsKey(context)) {
-      return;
+    // record: location -> key
+    locationToKey.put(location, key);
+    // record: element source -> keys
+    {
+      Map<Source, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(elementContext);
+      if (sourceToKeys == null) {
+        sourceToKeys = Maps.newHashMap();
+        contextToSourceToKeys.put(elementContext, sourceToKeys);
+      }
+      Set<ElementRelationKey> keys = sourceToKeys.get(elementSource);
+      if (keys == null) {
+        keys = Sets.newHashSet();
+        sourceToKeys.put(elementSource, keys);
+        sourceCount++;
+      }
+      keys.remove(key);
+      keys.add(key);
     }
-    // prepare AnalysisContext declarations
-    Map<Source, List<Element>> contextElements = sourceToDeclarations.get(context);
-    if (contextElements == null) {
-      contextElements = Maps.newHashMap();
-      sourceToDeclarations.put(context, contextElements);
+    // record: location source -> locations
+    {
+      Map<Source, List<Location>> sourceToLocations = contextToSourceToLocations.get(locationContext);
+      if (sourceToLocations == null) {
+        sourceToLocations = Maps.newHashMap();
+        contextToSourceToLocations.put(locationContext, sourceToLocations);
+      }
+      List<Location> locations = sourceToLocations.get(locationSource);
+      if (locations == null) {
+        locations = Lists.newArrayList();
+        sourceToLocations.put(locationSource, locations);
+      }
+      locations.add(location);
     }
-    // remember Element in Source
-    List<Element> sourceElements = contextElements.get(source);
-    if (sourceElements == null) {
-      sourceElements = Lists.newArrayList();
-      contextElements.put(source, sourceElements);
-    }
-    sourceElements.addAll(elements);
-    elementCount += elements.size();
   }
 
   @Override
   public void removeContext(AnalysisContext context) {
     context = unwrapContext(context);
     removedContexts.put(context, WEAK_SET_VALUE);
-    // remove context sources
-    {
-      Set<Source> contextSources = sources.remove(context);
-      if (contextSources != null) {
-        sourceCount -= contextSources.size();
-      }
-    }
-    // remove elements declared in Source(s) of removed context
-    Map<Source, List<Element>> contextElements = sourceToDeclarations.remove(context);
-    if (contextElements != null) {
-      for (List<Element> sourceElements : contextElements.values()) {
-        elementCount -= sourceElements.size();
-        removeSourceDeclaredElements(sourceElements);
-      }
-    }
-    // remove relationships in Source(s) of removed context
-    Map<Source, FastRemoveList<ContributedLocation>> contextLocations = sourceToLocations.remove(context);
-    if (contextLocations != null) {
-      for (FastRemoveList<ContributedLocation> sourceLocations : contextLocations.values()) {
-        removeSourceContributedLocations(sourceLocations);
-      }
-    }
+    removeSources(context, null);
+    // remove context
+    contextToSourceToKeys.remove(context);
+    contextToSourceToLocations.remove(context);
   }
 
   @Override
   public void removeSource(AnalysisContext context, Source source) {
     context = unwrapContext(context);
-    {
-      Set<Source> contextSources = sources.get(context);
-      if (contextSources != null) {
-        boolean removed = contextSources.remove(source);
-        if (removed) {
-          sourceCount--;
+    // remove locations defined in source
+    clearSource(context, source);
+    // remove keys for elements defined in source
+    Map<Source, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(context);
+    if (sourceToKeys != null) {
+      Set<ElementRelationKey> keys = sourceToKeys.remove(source);
+      if (keys != null) {
+        for (ElementRelationKey key : keys) {
+          List<Location> locations = keyToLocations.remove(key);
+          if (locations != null) {
+            keyCount--;
+            locationCount -= locations.size();
+          }
         }
-      }
-    }
-    // remove relationships with elements declared in removed source
-    Map<Source, List<Element>> contextElements = sourceToDeclarations.get(context);
-    if (contextElements != null) {
-      List<Element> sourceElements = contextElements.remove(source);
-      if (sourceElements != null) {
-        elementCount -= sourceElements.size();
-        removeSourceDeclaredElements(sourceElements);
-      }
-    }
-    // remove relationships in removed source
-    Map<Source, FastRemoveList<ContributedLocation>> contextLocations = sourceToLocations.get(context);
-    if (contextLocations != null) {
-      FastRemoveList<ContributedLocation> sourceLocations = contextLocations.remove(source);
-      if (sourceLocations != null) {
-        removeSourceContributedLocations(sourceLocations);
+        sourceCount--;
       }
     }
   }
@@ -354,21 +319,25 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   @Override
   public void removeSources(AnalysisContext context, SourceContainer container) {
     context = unwrapContext(context);
-    // prepare sources to remove
-    Set<Source> sourcesToRemove = Sets.newHashSet();
-    {
-      Set<Source> contextSources = sources.get(context);
-      if (contextSources != null) {
-        for (Source source : contextSources) {
-          if (container.contains(source)) {
-            sourcesToRemove.add(source);
-          }
+    // remove sources #1
+    Map<Source, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(context);
+    if (sourceToKeys != null) {
+      List<Source> sources = Lists.newArrayList(sourceToKeys.keySet());
+      for (Source source : sources) {
+        if (container == null || container.contains(source)) {
+          removeSource(context, source);
         }
       }
     }
-    // do remove sources
-    for (Source source : sourcesToRemove) {
-      removeSource(context, source);
+    // remove sources #2
+    Map<Source, List<Location>> sourceToLocations = contextToSourceToLocations.get(context);
+    if (sourceToLocations != null) {
+      List<Source> sources = Lists.newArrayList(sourceToLocations.keySet());
+      for (Source source : sources) {
+        if (container == null || container.contains(source)) {
+          removeSource(context, source);
+        }
+      }
     }
   }
 
@@ -376,39 +345,5 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   public void writeIndex(AnalysisContext context, OutputStream output) throws IOException {
     context = unwrapContext(context);
     new MemoryIndexWriter(this, context, output).write();
-  }
-
-  private void addSource(AnalysisContext context, Source source) {
-    Set<Source> contextSources = sources.get(context);
-    if (contextSources == null) {
-      contextSources = Sets.newHashSet();
-      sources.put(context, contextSources);
-    }
-    boolean added = contextSources.add(source);
-    if (added) {
-      sourceCount++;
-    }
-  }
-
-  private void removeSourceContributedLocations(FastRemoveList<ContributedLocation> sourceLocations) {
-    for (ContributedLocation contributedLocation : sourceLocations) {
-      contributedLocation.removeFromLocationOwner();
-      relationshipCount--;
-    }
-  }
-
-  private void removeSourceDeclaredElements(List<Element> sourceElements) {
-    for (Element sourceElement : sourceElements) {
-      for (Relationship relationship : Relationship.values()) {
-        ElementRelationKey relKey = new ElementRelationKey(sourceElement, relationship);
-        FastRemoveList<ContributedLocation> contributedLocations = relationshipMap.remove(relKey);
-        if (contributedLocations != null) {
-          for (ContributedLocation contributedLocation : contributedLocations) {
-            contributedLocation.removeFromDeclarationOwner();
-            relationshipCount--;
-          }
-        }
-      }
-    }
   }
 }
