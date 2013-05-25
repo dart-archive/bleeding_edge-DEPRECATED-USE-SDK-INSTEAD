@@ -85,6 +85,11 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   }
 
   @Override
+  public String getUri() {
+    return getActualElement().getUri();
+  }
+
+  @Override
   protected CompilationUnitElement getActualElement() {
     return (CompilationUnitElement) super.getActualElement();
   }

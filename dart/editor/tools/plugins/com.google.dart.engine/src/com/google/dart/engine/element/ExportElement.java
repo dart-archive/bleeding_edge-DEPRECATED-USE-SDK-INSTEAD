@@ -19,7 +19,7 @@ package com.google.dart.engine.element;
  * 
  * @coverage dart.engine.element
  */
-public interface ExportElement extends Element {
+public interface ExportElement extends Element, UriReferencedElement {
   /**
    * An empty array of export elements.
    */

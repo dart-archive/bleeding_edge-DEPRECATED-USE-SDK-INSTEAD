@@ -27,7 +27,7 @@ import com.google.dart.engine.element.PrefixElement;
  */
 public class ImportElementImpl extends ElementImpl implements ImportElement {
   /**
-   * The URI that was is specified by this import directive.
+   * The URI that is specified by this directive.
    */
   private String uri;
 
@@ -115,9 +115,9 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
   }
 
   /**
-   * Set the URI that was is specified by this import directive.
+   * Set the URI that is specified by this directive.
    * 
-   * @param uri the URI that was is specified by this import directive.
+   * @param uri the URI that is specified by this directive.
    */
   public void setUri(String uri) {
     this.uri = uri;

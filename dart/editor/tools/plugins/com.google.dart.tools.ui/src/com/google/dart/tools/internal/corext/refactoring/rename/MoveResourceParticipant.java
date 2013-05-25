@@ -17,7 +17,6 @@ import com.google.common.base.Objects;
 import com.google.dart.compiler.util.apache.FilenameUtils;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
-import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -25,6 +24,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.UriReferencedElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.FileBasedSource;
@@ -82,19 +82,24 @@ public class MoveResourceParticipant extends MoveParticipant {
   }
 
   /**
-   * @return {@code true} if we can prove that the given URI is relative, so should be updated.
+   * @return {@code true} if we can prove that the given {@link UriBasedDirective} has relative URI,
+   *         so should be updated.
    */
-  private static boolean isRelativeUri(StringLiteral uriNode) {
-    if (uriNode instanceof SimpleStringLiteral) {
-      String uriString = ((SimpleStringLiteral) uriNode).getValue();
-      try {
-        URI uri = new URI(uriString);
-        return !uri.isAbsolute();
-      } catch (URISyntaxException e) {
-        return false;
-      }
+  private static boolean isRelativeUri(UriBasedDirective directive) {
+    UriReferencedElement uriElement = (UriReferencedElement) directive.getElement();
+    if (uriElement == null) {
+      return false;
     }
-    return false;
+    String uriString = uriElement.getUri();
+    if (uriString == null) {
+      return false;
+    }
+    try {
+      URI uri = new URI(uriString);
+      return !uri.isAbsolute();
+    } catch (URISyntaxException e) {
+      return false;
+    }
   }
 
   private final TextChangeManager changeManager = new TextChangeManager();
@@ -228,10 +233,12 @@ public class MoveResourceParticipant extends MoveParticipant {
           URI newUnitUri = destContainer.getLocationURI();
           for (Directive directive : fileUnit.getDirectives()) {
             if (directive instanceof UriBasedDirective) {
-              StringLiteral uriNode = ((UriBasedDirective) directive).getUri();
-              if (!isRelativeUri(uriNode)) {
+              UriBasedDirective uriDirective = (UriBasedDirective) directive;
+              // may be not relative
+              if (!isRelativeUri(uriDirective)) {
                 continue;
               }
+              // prepare target Element
               Element targetElement = directive.getElement();
               if (targetElement instanceof ImportElement) {
                 targetElement = ((ImportElement) targetElement).getImportedLibrary();
@@ -239,6 +246,8 @@ public class MoveResourceParticipant extends MoveParticipant {
               if (targetElement instanceof ExportElement) {
                 targetElement = ((ExportElement) targetElement).getExportedLibrary();
               }
+              // do update
+              StringLiteral uriNode = uriDirective.getUri();
               addUnitUriTextEdit(fileElement, newUnitUri, targetElement, uriNode);
             }
           }

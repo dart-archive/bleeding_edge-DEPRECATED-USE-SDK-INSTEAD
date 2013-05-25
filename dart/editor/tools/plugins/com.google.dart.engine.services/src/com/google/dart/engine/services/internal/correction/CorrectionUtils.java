@@ -167,7 +167,7 @@ public class CorrectionUtils {
       public Void visitElement(Element element) {
         if (element == parent) {
           super.visitElement(element);
-        } else if (name == null || element.getDisplayName().equals(name)) {
+        } else if (name == null || hasDisplayName(element, name)) {
           children.add(element);
         }
         return null;
@@ -571,6 +571,28 @@ public class CorrectionUtils {
     }
     // done
     return res.toArray(new String[res.size()]);
+  }
+
+  /**
+   * @return {@code true} if the given {@link Element#getDisplayName()} equals to the given name.
+   */
+  public static boolean hasDisplayName(Element element, String name) {
+    if (element == null) {
+      return false;
+    }
+    String elementDisplayName = element.getDisplayName();
+    return StringUtils.equals(elementDisplayName, name);
+  }
+
+  /**
+   * @return {@code true} if the given {@link Element#getName()} equals to the given name.
+   */
+  public static boolean hasName(Element element, String name) {
+    if (element == null) {
+      return false;
+    }
+    String elementName = element.getName();
+    return StringUtils.equals(elementName, name);
   }
 
   /**

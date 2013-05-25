@@ -119,8 +119,6 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.SdkLibrary;
-import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -471,6 +469,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitExportDirective(ExportDirective node) {
     checkForAmbiguousExport(node);
     checkForExportDuplicateLibraryName(node);
+    checkForExportInternalLibrary(node);
     return super.visitExportDirective(node);
   }
 
@@ -1851,6 +1850,39 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * Check that if the visiting library is not system, then any passed library should not be SDK
+   * internal library.
+   * 
+   * @param node the export directive to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#EXPORT_INTERNAL_LIBRARY
+   */
+  private boolean checkForExportInternalLibrary(ExportDirective node) {
+    if (isInSystemLibrary) {
+      return false;
+    }
+    // prepare export element
+    Element element = node.getElement();
+    if (!(element instanceof ExportElement)) {
+      return false;
+    }
+    ExportElement exportElement = (ExportElement) element;
+    // should be private
+    DartSdk sdk = currentLibrary.getContext().getSourceFactory().getDartSdk();
+    String uri = exportElement.getUri();
+    SdkLibrary sdkLibrary = sdk.getSdkLibrary(uri);
+    if (sdkLibrary == null) {
+      return false;
+    }
+    if (!sdkLibrary.isInternal()) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY, node, node.getUri());
+    return true;
+  }
+
+  /**
    * This verifies that the passed extends clause does not extend classes such as num or String.
    * 
    * @param node the extends clause to test
@@ -2128,20 +2160,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     ImportElement importElement = (ImportElement) element;
-    // prepare imported library
-    LibraryElement importedLibrary = importElement.getImportedLibrary();
-    if (importedLibrary == null) {
-      return false;
-    }
-    // prepare imported library source
-    Source importSource = importedLibrary.getSource();
-    if (importSource == null) {
-      return false;
-    }
-    // should be dart: URI
-    if (importSource.getUriKind() != UriKind.DART_URI) {
-      return false;
-    }
     // should be private
     DartSdk sdk = currentLibrary.getContext().getSourceFactory().getDartSdk();
     String uri = importElement.getUri();

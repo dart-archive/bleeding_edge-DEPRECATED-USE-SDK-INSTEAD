@@ -448,6 +448,7 @@ public class LibraryResolver {
         } else if (directive instanceof ExportDirective) {
           ExportDirective exportDirective = (ExportDirective) directive;
           ExportElementImpl exportElement = new ExportElementImpl();
+          exportElement.setUri(library.getUri(exportDirective));
           exportElement.setCombinators(buildCombinators(exportDirective));
           Library exportedLibrary = library.getExport(exportDirective);
           if (exportedLibrary != null) {

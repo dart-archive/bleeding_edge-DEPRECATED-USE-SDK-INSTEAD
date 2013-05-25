@@ -284,6 +284,13 @@ public enum CompileTimeErrorCode implements ErrorCode {
   DUPLICATE_NAMED_ARGUMENT("The argument for the named parameter '%s' was already specified"),
 
   /**
+   * SDK implementation libraries can be exported only by other SDK libraries.
+   * 
+   * @param uri the uri pointing to a library
+   */
+  EXPORT_INTERNAL_LIBRARY("The library %s is internal and cannot be exported"),
+
+  /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
    * not a library declaration.
    * 

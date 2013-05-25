@@ -1001,6 +1001,14 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_exportInternalLibrary() throws Exception {
+    Source source = addSource(createSource(//
+    "export 'dart:_interceptors';"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY);
+    verify(source);
+  }
+
   public void test_exportOfNonLibrary() throws Exception {
     Source source = addSource(createSource(//
         "library L;",

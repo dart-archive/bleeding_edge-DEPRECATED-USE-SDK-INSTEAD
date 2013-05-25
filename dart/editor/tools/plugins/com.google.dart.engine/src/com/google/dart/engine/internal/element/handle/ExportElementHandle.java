@@ -50,6 +50,11 @@ public class ExportElementHandle extends ElementHandle implements ExportElement 
   }
 
   @Override
+  public String getUri() {
+    return getActualElement().getUri();
+  }
+
+  @Override
   protected ExportElement getActualElement() {
     return (ExportElement) super.getActualElement();
   }

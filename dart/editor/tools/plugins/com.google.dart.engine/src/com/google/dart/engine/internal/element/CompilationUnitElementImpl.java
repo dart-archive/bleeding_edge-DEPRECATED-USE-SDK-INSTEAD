@@ -34,6 +34,11 @@ import com.google.dart.engine.source.Source;
  */
 public class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitElement {
   /**
+   * An empty array of compilation unit elements.
+   */
+  public static final CompilationUnitElement[] EMPTY_ARRAY = new CompilationUnitElement[0];
+
+  /**
    * An array containing all of the top-level accessors (getters and setters) contained in this
    * compilation unit.
    */
@@ -65,9 +70,10 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   private ClassElement[] types = ClassElementImpl.EMPTY_ARRAY;
 
   /**
-   * An empty array of compilation unit elements.
+   * The URI that is specified by the "part" directive in the enclosing library, or {@code null} if
+   * this is the defining compilation unit of a library.
    */
-  public static final CompilationUnitElement[] EMPTY_ARRAY = new CompilationUnitElement[0];
+  private String uri;
 
   /**
    * Initialize a newly created compilation unit element to have the given name.
@@ -180,6 +186,11 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   }
 
   @Override
+  public String getUri() {
+    return uri;
+  }
+
+  @Override
   public int hashCode() {
     return source.hashCode();
   }
@@ -252,6 +263,15 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
       ((ClassElementImpl) type).setEnclosingElement(this);
     }
     this.types = types;
+  }
+
+  /**
+   * Set the URI that is specified by the "part" directive in the enclosing library.
+   * 
+   * @param uri the URI that is specified by the "part" directive in the enclosing library.
+   */
+  public void setUri(String uri) {
+    this.uri = uri;
   }
 
   @Override

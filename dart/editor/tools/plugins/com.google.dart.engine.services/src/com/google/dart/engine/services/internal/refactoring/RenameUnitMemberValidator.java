@@ -29,6 +29,7 @@ import com.google.dart.engine.services.status.RefactoringStatusContext;
 
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementKindName;
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementQualifiedName;
+import static com.google.dart.engine.services.internal.correction.CorrectionUtils.hasDisplayName;
 
 import java.text.MessageFormat;
 import java.util.List;
@@ -65,7 +66,7 @@ class RenameUnitMemberValidator {
               return super.visitElement(element);
             }
             // top-level
-            if (element.getDisplayName().equals(newName)) {
+            if (hasDisplayName(element, newName)) {
               String message = MessageFormat.format(
                   "Library already declares {0} with name ''{1}''.",
                   getElementKindName(element),
@@ -91,7 +92,7 @@ class RenameUnitMemberValidator {
                   return super.visitElement(maybeShadow);
                 }
                 // class member
-                if (maybeShadow.getDisplayName().equals(newName)) {
+                if (hasDisplayName(maybeShadow, newName)) {
                   String message = MessageFormat.format(
                       "Reference to renamed {0} will shadowed by {1} ''{2}''.",
                       getElementKindName(elementKind),

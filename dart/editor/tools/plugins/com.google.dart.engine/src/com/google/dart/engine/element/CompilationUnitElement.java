@@ -19,7 +19,7 @@ package com.google.dart.engine.element;
  * 
  * @coverage dart.engine.element
  */
-public interface CompilationUnitElement extends Element {
+public interface CompilationUnitElement extends Element, UriReferencedElement {
   /**
    * Return an array containing all of the top-level accessors (getters and setters) contained in
    * this compilation unit.

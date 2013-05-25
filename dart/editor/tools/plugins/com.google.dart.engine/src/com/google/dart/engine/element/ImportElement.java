@@ -19,7 +19,7 @@ package com.google.dart.engine.element;
  * 
  * @coverage dart.engine.element
  */
-public interface ImportElement extends Element {
+public interface ImportElement extends Element, UriReferencedElement {
   /**
    * An empty array of import elements.
    */
@@ -47,11 +47,4 @@ public interface ImportElement extends Element {
    * @return the prefix that was specified as part of the import directive
    */
   public PrefixElement getPrefix();
-
-  /**
-   * Return the URI that was is specified by this import directive.
-   * 
-   * @return the URI that was is specified by this import directive.
-   */
-  public String getUri();
 }
