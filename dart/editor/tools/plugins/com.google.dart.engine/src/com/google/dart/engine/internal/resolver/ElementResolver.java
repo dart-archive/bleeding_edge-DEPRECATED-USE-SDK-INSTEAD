@@ -804,6 +804,25 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     } else if (recordedElement instanceof ExecutableElement) {
       resolveArgumentsToParameters(node.getArgumentList(), (ExecutableElement) recordedElement);
+    } else if (recordedElement instanceof VariableElement) {
+      VariableElement variable = (VariableElement) recordedElement;
+      Type type = variable.getType();
+      // function type
+      if (type instanceof FunctionType && variable instanceof ParameterElement) {
+        ParameterElement parameter = (ParameterElement) variable;
+        ParameterElement[] parameters = parameter.getParameters();
+        resolveArgumentsToParameters(node.getArgumentList(), parameters);
+      }
+      // "call" invocation
+      if (type instanceof InterfaceType) {
+        MethodElement callMethod = ((InterfaceType) type).lookUpMethod(
+            CALL_METHOD_NAME,
+            resolver.getDefiningLibrary());
+        if (callMethod != null) {
+          ParameterElement[] parameters = callMethod.getParameters();
+          resolveArgumentsToParameters(node.getArgumentList(), parameters);
+        }
+      }
     }
     //
     // Then check for error conditions.
@@ -1910,6 +1929,17 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return;
     }
     ParameterElement[] parameters = executableElement.getParameters();
+    resolveArgumentsToParameters(argumentList, parameters);
+  }
+
+  /**
+   * Given a list of arguments and the element that will be invoked using those argument, compute
+   * the list of parameters that correspond to the list of arguments.
+   * 
+   * @param argumentList the list of arguments being passed to the element
+   * @param parameters the of the function that will be invoked with the arguments
+   */
+  private void resolveArgumentsToParameters(ArgumentList argumentList, ParameterElement[] parameters) {
     ArrayList<ParameterElement> requiredParameters = new ArrayList<ParameterElement>();
     ArrayList<ParameterElement> positionalParameters = new ArrayList<ParameterElement>();
     HashMap<String, ParameterElement> namedParameters = new HashMap<String, ParameterElement>();

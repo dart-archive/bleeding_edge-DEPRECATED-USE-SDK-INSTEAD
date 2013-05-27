@@ -353,6 +353,43 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_argumentTypeNotAssignable_invocation_callParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  call(int p) {}",
+        "}",
+        "f(A a) {",
+        "  a('0');",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_invocation_callVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  call(int p) {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a('0');",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_invocation_functionParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "a(b(int p)) {",
+        "  b('0');",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_argumentTypeNotAssignable_invocation_generic() throws Exception {
     Source source = addSource(createSource(//
         "class A<T> {",
