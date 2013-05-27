@@ -4841,10 +4841,8 @@ public class Parser {
   private Expression parseThrowExpression() {
     Token keyword = expect(Keyword.THROW);
     if (matches(TokenType.SEMICOLON) || matches(TokenType.CLOSE_PAREN)) {
-      // TODO(brianwilkerson) Uncomment the lines below once 'rethrow' is supported everywhere.
-//      reportError(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, currentToken);
-//      return new ThrowExpression(keyword, createSyntheticIdentifier());
-      return new ThrowExpression(keyword, null);
+      reportError(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, currentToken);
+      return new ThrowExpression(keyword, createSyntheticIdentifier());
     }
     Expression expression = parseExpression();
     return new ThrowExpression(keyword, expression);
@@ -4863,10 +4861,8 @@ public class Parser {
   private Expression parseThrowExpressionWithoutCascade() {
     Token keyword = expect(Keyword.THROW);
     if (matches(TokenType.SEMICOLON) || matches(TokenType.CLOSE_PAREN)) {
-      // TODO(brianwilkerson) Uncomment the lines below once 'rethrow' is supported everywhere.
-//      reportError(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, currentToken);
-//      return new ThrowExpression(keyword, createSyntheticIdentifier());
-      return new ThrowExpression(keyword, null);
+      reportError(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, currentToken);
+      return new ThrowExpression(keyword, createSyntheticIdentifier());
     }
     Expression expression = parseExpressionWithoutCascade();
     return new ThrowExpression(keyword, expression);
