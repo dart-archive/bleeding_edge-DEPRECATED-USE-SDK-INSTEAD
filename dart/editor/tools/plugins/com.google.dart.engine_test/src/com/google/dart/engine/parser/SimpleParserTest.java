@@ -28,6 +28,8 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
+import static com.google.dart.engine.ast.ASTFactory.typeArgumentList;
+import static com.google.dart.engine.ast.ASTFactory.typeName;
 import static com.google.dart.engine.scanner.TokenFactory.token;
 
 import junit.framework.AssertionFailedError;
@@ -1802,7 +1804,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseConstExpression_mapLiteral_typed() throws Exception {
-    MapLiteral literal = parse("parseConstExpression", "const <A> {}");
+    MapLiteral literal = parse("parseConstExpression", "const <A, B> {}");
     assertNotNull(literal.getLeftBracket());
     assertSize(0, literal.getEntries());
     assertNotNull(literal.getRightBracket());
@@ -3093,7 +3095,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseListOrMapLiteral_map_type() throws Exception {
-    MapLiteral literal = parse("parseListOrMapLiteral", new Object[] {null}, "<int> {'1' : 1}");
+    MapLiteral literal = parse(
+        "parseListOrMapLiteral",
+        new Object[] {null},
+        "<String, int> {'1' : 1}");
     assertNull(literal.getModifier());
     assertNotNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
@@ -3119,7 +3124,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseMapLiteral_empty() throws Exception {
     Token token = token(Keyword.CONST);
-    TypeArgumentList typeArguments = new TypeArgumentList(null, null, null);
+    TypeArgumentList typeArguments = typeArgumentList(typeName("String"), typeName("int"));
     MapLiteral literal = parse("parseMapLiteral", new Object[] {token, typeArguments}, "{}");
     assertEquals(token, literal.getModifier());
     assertEquals(typeArguments, literal.getTypeArguments());
@@ -3589,9 +3594,9 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parsePrimaryExpression_mapLiteral_typed() throws Exception {
-    MapLiteral literal = parse("parsePrimaryExpression", "<A>{}");
+    MapLiteral literal = parse("parsePrimaryExpression", "<A, B>{}");
     assertNotNull(literal.getTypeArguments());
-    assertSize(1, literal.getTypeArguments().getArguments());
+    assertSize(2, literal.getTypeArguments().getArguments());
   }
 
   public void test_parsePrimaryExpression_new() throws Exception {

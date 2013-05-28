@@ -29,7 +29,7 @@ public class SDKLibrariesReaderTest extends EngineTestCase {
     LibraryMap libraryMap = new SdkLibrariesReader().readFrom(
         createFile("/libs.dart"),
         createSource(//
-            "final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {",
+            "final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {",
             "  'first' : const LibraryInfo(",
             "    'first/first.dart',",
             "    category: 'First',",

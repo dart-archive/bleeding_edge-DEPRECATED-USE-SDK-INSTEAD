@@ -3652,6 +3652,14 @@ public class Parser {
    * @return the map literal that was parsed
    */
   private MapLiteral parseMapLiteral(Token modifier, TypeArgumentList typeArguments) {
+    // validate number of type arguments
+    if (typeArguments != null) {
+      int num = typeArguments.getArguments().size();
+      if (num != 2) {
+        reportError(ParserErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, typeArguments, num);
+      }
+    }
+    // open
     Token leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
     List<MapLiteralEntry> entries = new ArrayList<MapLiteralEntry>();
     if (matches(TokenType.CLOSE_CURLY_BRACKET)) {

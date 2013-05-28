@@ -16,6 +16,7 @@ package com.google.dart.engine.parser;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SuperExpression;
@@ -448,6 +449,22 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_expectedToken_whileMissingInDoStatement() throws Exception {
     parseStatement("do {} (x);", ParserErrorCode.EXPECTED_TOKEN);
+  }
+
+  public void test_expectedTwoMapTypeArguments_one() throws Exception {
+    Expression expression = parse(
+        "parsePrimaryExpression",
+        "<int>{}",
+        ParserErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
+    assertInstanceOf(MapLiteral.class, expression);
+  }
+
+  public void test_expectedTwoMapTypeArguments_three() throws Exception {
+    Expression expression = parse(
+        "parsePrimaryExpression",
+        "<int, int, int>{}",
+        ParserErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
+    assertInstanceOf(MapLiteral.class, expression);
   }
 
   public void test_expectedTypeName_is() throws Exception {
