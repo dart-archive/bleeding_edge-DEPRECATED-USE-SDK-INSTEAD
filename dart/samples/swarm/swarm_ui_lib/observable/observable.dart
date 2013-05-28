@@ -325,6 +325,8 @@ class ObservableList<T>
   }
 
   bool get isEmpty => length == 0;
+
+  bool get isNotEmpty => !isEmpty;
 }
 
 // TODO(jmesserly): is this too granular? Other similar systems make whole
