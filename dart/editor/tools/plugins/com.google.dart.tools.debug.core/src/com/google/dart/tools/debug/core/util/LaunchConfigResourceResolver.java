@@ -111,7 +111,9 @@ public class LaunchConfigResourceResolver implements IResourceResolver {
 
     if (resourcePath.startsWith(containerPath)) {
       String relPath = resourcePath.substring(containerPath.length());
-
+      if (relPath.startsWith("-")) {
+        relPath = relPath.substring(relPath.indexOf("/"));
+      }
       if (relPath.startsWith("/")) {
         return relPath.substring(1);
       } else {
