@@ -635,7 +635,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             // TODO(brianwilkerson) We should implement a displayName() method for types that will
             // work nicely with function types and then use that below.
             resolver.reportError(
-                StaticWarningCode.FIELD_INITIALIZER_WITH_INVALID_TYPE,
+                StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
                 node,
                 declaredType.getDisplayName(),
                 fieldType.getDisplayName());

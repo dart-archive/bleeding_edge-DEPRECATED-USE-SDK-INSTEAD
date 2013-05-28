@@ -182,13 +182,31 @@ public enum StaticWarningCode implements ErrorCode {
   EXTRA_POSITIONAL_ARGUMENTS("%d positional arguments expected, but %d found"),
 
   /**
+   * 7.6.1 Generative Constructors: Execution of an initializer of the form <b>this</b>.<i>v</i> =
+   * <i>e</i> proceeds as follows: First, the expression <i>e</i> is evaluated to an object
+   * <i>o</i>. Then, the instance variable <i>v</i> of the object denoted by this is bound to
+   * <i>o</i>.
+   * <p>
+   * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static type of
+   * <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of <i>p<sub>i</sub>, 1 &lt;= i &lt;=
+   * n+k</i> and let <i>S<sub>q</sub></i> be the type of the named parameter <i>q</i> of <i>f</i>.
+   * It is a static warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1 &lt;=
+   * j &lt;= m</i>.
+   * 
+   * @param initializerType the name of the type of the initializer expression
+   * @param fieldType the name of the type of the field
+   */
+  FIELD_INITIALIZER_NOT_ASSIGNABLE(
+      "The initializer type '%s' cannot be assigned to the field type '%s'"),
+
+  /**
    * 7.6.1 Generative Constructors: An initializing formal has the form <i>this.id</i>. It is a
    * static warning if the static type of <i>id</i> is not assignable to <i>T<sub>id</sub></i>.
    * 
    * @param parameterType the name of the type of the field formal parameter
    * @param fieldType the name of the type of the field
    */
-  FIELD_INITIALIZER_WITH_INVALID_TYPE(
+  FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE(
       "The parameter type '%s' is incompatable with the field type '%s'"),
 
   /**

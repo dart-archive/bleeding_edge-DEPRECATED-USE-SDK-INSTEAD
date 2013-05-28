@@ -591,14 +591,25 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_fieldInitializerWithInvalidType() throws Exception {
+  public void test_fieldInitializerNotAssignable() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int x;",
+        "  A() : x = '';",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_fieldInitializingFormalNotAssignable() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  int x;",
         "  A(String this.x) {}",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.FIELD_INITIALIZER_WITH_INVALID_TYPE);
+    assertErrors(StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE);
     verify(source);
   }
 

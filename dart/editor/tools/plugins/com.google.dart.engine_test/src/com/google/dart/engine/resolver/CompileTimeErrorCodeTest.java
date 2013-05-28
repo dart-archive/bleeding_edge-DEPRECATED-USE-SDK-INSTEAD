@@ -1191,6 +1191,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_fieldInitializerNotAssignable() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final int x;",
+        "  const A() : x = '';",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_fieldInitializerOutsideConstructor() throws Exception {
     // TODO(brianwilkerson) Fix the duplicate error messages.
     Source source = addSource(createSource(//
@@ -2172,7 +2183,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_nonConstValueInInitializer_binary_notBool_left() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  final int a;",
+        "  final bool a;",
         "  const A(String p) : a = p && true;",
         "}"));
     resolve(source);
@@ -2183,7 +2194,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_nonConstValueInInitializer_binary_notBool_right() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  final int a;",
+        "  final bool a;",
         "  const A(String p) : a = true && p;",
         "}"));
     resolve(source);

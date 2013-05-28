@@ -447,6 +447,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     isInConstructorInitializer = true;
     try {
+      checkForFieldInitializerNotAssignable(node);
       return super.visitConstructorFieldInitializer(node);
     } finally {
       isInConstructorInitializer = false;
@@ -1939,6 +1940,59 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * This verifies that the passed constructor field initializer has compatible field and
+   * initializer expression types.
+   * 
+   * @param node the constructor field initializer to test
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE
+   * @see StaticWarningCode#FIELD_INITIALIZER_NOT_ASSIGNABLE
+   */
+  private boolean checkForFieldInitializerNotAssignable(ConstructorFieldInitializer node) {
+    // prepare field element
+    Element fieldNameElement = node.getFieldName().getElement();
+    if (!(fieldNameElement instanceof FieldElement)) {
+      return false;
+    }
+    FieldElement fieldElement = (FieldElement) fieldNameElement;
+    // prepare field type
+    Type fieldType = fieldElement.getType();
+    // prepare expression type
+    Expression expression = node.getExpression();
+    if (expression == null) {
+      return false;
+    }
+    // test the static type of the expression
+    Type staticType = getStaticType(expression);
+    if (staticType == null) {
+      return false;
+    }
+    if (staticType.isAssignableTo(fieldType)) {
+      return false;
+    }
+    // test the propagated type of the expression
+    Type propagatedType = getPropagatedType(expression);
+    if (propagatedType != null && propagatedType.isAssignableTo(fieldType)) {
+      return false;
+    }
+    // report problem
+    if (isEnclosingConstructorConst) {
+      errorReporter.reportError(
+          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+          expression,
+          (propagatedType == null ? staticType : propagatedType).getDisplayName(),
+          fieldType.getDisplayName());
+    } else {
+      errorReporter.reportError(
+          StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+          expression,
+          (propagatedType == null ? staticType : propagatedType).getDisplayName(),
+          fieldType.getDisplayName());
+    }
+    return true;
   }
 
   /**
