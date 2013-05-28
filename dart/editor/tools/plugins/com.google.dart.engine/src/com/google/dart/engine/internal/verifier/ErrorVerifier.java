@@ -51,7 +51,6 @@ import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
-import com.google.dart.engine.ast.InvokableDeclaration;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
@@ -132,7 +131,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Stack;
 
 /**
  * Instances of the class {@code ErrorVerifier} traverse an AST structure looking for additional
@@ -141,13 +139,6 @@ import java.util.Stack;
  * @coverage dart.engine.resolver
  */
 public class ErrorVerifier extends RecursiveASTVisitor<Void> {
-  /**
-   * Information about accessors in classes.
-   */
-  private static class ClassAccessorInformation {
-    public HashMap<String, MethodDeclaration> classGettersAndSetters = new HashMap<String, MethodDeclaration>();
-  }
-
   /**
    * This enum holds one of four states of a field initialization state through a constructor
    * signature, not initialized, initialized in the field declaration, initialized in the field
@@ -281,21 +272,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private final InterfaceType[] DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
 
-  /**
-   * A hash of all of the compilation unit accessors for use in discovering their counterparts.
-   */
-  private HashMap<String, FunctionDeclaration> compilationUnitAccessors;
-
-  /**
-   * Analysis information for classes (withs support for nested classes).
-   */
-  Stack<ClassAccessorInformation> classesAnalysisInformation = new Stack<ClassAccessorInformation>();
-
-  /**
-   * Analysis information for the class currently being visited.
-   */
-  private ClassAccessorInformation currentClassInformation;
-
   public ErrorVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
       TypeProvider typeProvider, InheritanceManager inheritanceManager) {
     this.errorReporter = errorReporter;
@@ -363,9 +339,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitClassDeclaration(ClassDeclaration node) {
     ClassElement outerClass = enclosingClass;
 
-    // Make a reference to the class currently being visited, and push to the class stack.
-    currentClassInformation = new ClassAccessorInformation();
-    classesAnalysisInformation.push(currentClassInformation);
     try {
       enclosingClass = node.getElement();
       checkForBuiltInIdentifierAsName(
@@ -395,7 +368,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     } finally {
       initialFieldElementsMap = null;
       enclosingClass = outerClass;
-      classesAnalysisInformation.pop();
     }
   }
 
@@ -406,13 +378,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     checkForAllMixinErrorCodes(node.getWithClause());
     return super.visitClassTypeAlias(node);
-  }
-
-  @Override
-  public Void visitCompilationUnit(CompilationUnit node) {
-    // Initialize a new HashMap of getters and setters for the new compilation unit.
-    compilationUnitAccessors = new HashMap<String, FunctionDeclaration>();
-    return super.visitCompilationUnit(node);
   }
 
   @Override
@@ -485,9 +450,15 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = enclosingFunction;
     try {
+      SimpleIdentifier identifier = node.getName();
+      String methoName = "";
+      if (identifier != null) {
+        methoName = identifier.getName();
+      }
+
       enclosingFunction = node.getElement();
       if (node.isSetter() || node.isGetter()) {
-        checkForMismatchedAccessorTypes(node);
+        checkForMismatchedAccessorTypes(node, methoName);
         if (node.isSetter()) {
           FunctionExpression functionExpression = node.getFunctionExpression();
           if (functionExpression != null) {
@@ -607,8 +578,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ExecutableElement previousFunction = enclosingFunction;
     try {
       enclosingFunction = node.getElement();
+      SimpleIdentifier identifier = node.getName();
+      String methoName = "";
+      if (identifier != null) {
+        methoName = identifier.getName();
+      }
       if (node.isSetter() || node.isGetter()) {
-        checkForMismatchedAccessorTypes(node);
+        checkForMismatchedAccessorTypes(node, methoName);
       }
       if (node.isSetter()) {
         checkForWrongNumberOfParametersForSetter(node.getName(), node.getParameters());
@@ -2453,52 +2429,45 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param node The accessor currently being visited.
    */
-  private void checkForMismatchedAccessorTypes(InvokableDeclaration accessorDeclaration) {
-    SimpleIdentifier accessorName;
-    InvokableDeclaration counterpartAccessor;
+  private void checkForMismatchedAccessorTypes(Declaration accessorDeclaration,
+      String accessorTextName) {
+    PropertyAccessorElement counterpartAccessor = null;
+    ExecutableElement accessorElement = (ExecutableElement) accessorDeclaration.getElement();
 
-    accessorName = accessorDeclaration.getName();
-    String accessorTextName = accessorName.getName();
-
-    // Get an existing counterpart accessor if any.
-    if (accessorDeclaration instanceof FunctionDeclaration) {
-      counterpartAccessor = compilationUnitAccessors.get(accessorTextName);
-    } else {
-      counterpartAccessor = currentClassInformation.classGettersAndSetters.get(accessorTextName);
+    if (!(accessorElement instanceof PropertyAccessorElement)) {
+      return;
     }
 
+    PropertyAccessorElement propertyAccessorElement = (PropertyAccessorElement) accessorElement;
+    counterpartAccessor = propertyAccessorElement.getCorrespondingSetter();
     if (counterpartAccessor == null) {
-      // If no counterpart, just make a reference to the accessor and move on.
-      if (accessorDeclaration instanceof FunctionDeclaration) {
-        compilationUnitAccessors.put(accessorTextName, (FunctionDeclaration) accessorDeclaration);
-      } else {
-        currentClassInformation.classGettersAndSetters.put(
-            accessorTextName,
-            (MethodDeclaration) accessorDeclaration);
-      }
-    } else {
-      Type getterType;
-      Type setterType;
+      // Nothing to report.  There is no corresponding accessor
+      return;
+    }
 
-      // Get the type of the existing counterpart, and then the current element.
-      if (counterpartAccessor.isGetter()) {
-        getterType = getGetterType(counterpartAccessor);
-        setterType = getSetterType(accessorDeclaration);
-      } else {
-        getterType = getGetterType(accessorDeclaration);
-        setterType = getSetterType(counterpartAccessor);
-      }
+    // Default of null == no accessor or no type (dynamic)
+    Type getterType = null;
+    Type setterType = null;
 
-      // If either types are not assignable to each other, report an error (if the getter is null,
-      // it is dynamic which is assignable to everything).
-      if (getterType != null && !getterType.isAssignableTo(setterType)) {
-        errorReporter.reportError(
-            StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
-            (Declaration) accessorDeclaration,
-            accessorTextName,
-            setterType.getDisplayName(),
-            getterType.getDisplayName());
-      }
+    // Get an existing counterpart accessor if any.
+    if (propertyAccessorElement.isGetter()) {
+      getterType = getGetterType(propertyAccessorElement);
+      setterType = getSetterType(counterpartAccessor);
+    } else if (propertyAccessorElement.isSetter()) {
+      setterType = getSetterType(propertyAccessorElement);
+      counterpartAccessor = propertyAccessorElement.getCorrespondingGetter();
+      getterType = getGetterType(counterpartAccessor);
+    }
+
+    // If either types are not assignable to each other, report an error (if the getter is null,
+    // it is dynamic which is assignable to everything).
+    if (getterType != null && !getterType.isAssignableTo(setterType)) {
+      errorReporter.reportError(
+          StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+          accessorDeclaration,
+          accessorTextName,
+          setterType.getDisplayName(),
+          getterType.getDisplayName());
     }
     // TODO(ericarnold): If this is a method.  Check our superiors
   }
@@ -3464,13 +3433,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   /**
    * Returns the Type (return type) for a given getter.
    * 
-   * @param getterDeclaration
+   * @param propertyAccessorElement
    * @return The type of the given getter.
    */
-  private Type getGetterType(InvokableDeclaration getterDeclaration) {
-    TypeName getterTypeName = getterDeclaration.getReturnType();
-    if (getterTypeName != null) {
-      return getterTypeName.getType();
+  private Type getGetterType(PropertyAccessorElement propertyAccessorElement) {
+    FunctionType functionType = propertyAccessorElement.getType();
+    if (functionType != null) {
+      return functionType.getReturnType();
     } else {
       return null;
     }
@@ -3489,24 +3458,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   /**
    * Returns the Type (first and only parameter) for a given setter.
    * 
-   * @param setterDeclaration
+   * @param propertyAccessorElement
    * @return The type of the given setter.
    */
-  private Type getSetterType(InvokableDeclaration setterDeclaration) {
+  private Type getSetterType(PropertyAccessorElement propertyAccessorElement) {
     // Get the parameters for MethodDeclaration or FunctionDeclaration
-    FormalParameterList parameters;
-    if (setterDeclaration instanceof FunctionDeclaration) {
-      FunctionDeclaration functionDeclaration = (FunctionDeclaration) setterDeclaration;
-      parameters = functionDeclaration.getFunctionExpression().getParameters();
-    } else {
-      MethodDeclaration methodDeclaration = (MethodDeclaration) setterDeclaration;
-      parameters = methodDeclaration.getParameters();
-    }
+    ParameterElement[] setterParameters = propertyAccessorElement.getParameters();
 
-    // Get and return the setter Type
-    FormalParameter firstParameter = parameters.getParameters().get(0);
-    Type setterType = firstParameter.getElement().getType();
-    return setterType;
+    // If there are no setter parameters, return no type.
+    if (setterParameters.length == 0) {
+      return null;
+    }
+    return setterParameters[0].getType();
   }
 
   /**
