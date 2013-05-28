@@ -158,7 +158,8 @@ public class WebkitRuntime extends WebkitDomain {
           if (functionResult.getWasThrown()) {
             r.setError(functionResult.getResult().getValue());
           } else {
-            r.setResult(functionResult.getResult().getValue());
+            r.setResult(functionResult.getResult() == null ? "null"
+                : functionResult.getResult().getValue());
           }
 
           callback.handleResult(r);
