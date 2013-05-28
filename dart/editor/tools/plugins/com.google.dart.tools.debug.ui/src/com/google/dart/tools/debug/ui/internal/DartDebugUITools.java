@@ -93,6 +93,7 @@ public class DartDebugUITools {
       ILaunch[] launches = DebugPlugin.getDefault().getLaunchManager().getLaunches();
       ILaunch browserLaunch = BrowserManager.currentLaunch;
       if (browserLaunch != null && !browserLaunch.isTerminated()
+          && browserLaunch.getDebugTarget() != null
           && config.equals(browserLaunch.getLaunchConfiguration())) {
         isAppRunning = true;
       } else {
