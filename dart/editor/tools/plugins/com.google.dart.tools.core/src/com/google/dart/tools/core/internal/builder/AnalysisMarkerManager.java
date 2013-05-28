@@ -22,6 +22,7 @@ import com.google.dart.tools.core.DartCore;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -47,24 +48,28 @@ import java.util.ArrayList;
  * background process if it is running.
  */
 public class AnalysisMarkerManager {
+
   /**
    * Errors to be translated into markers
    */
-  private static final class Result {
+  private static final class ErrorResult implements Result {
     final IResource resource;
     final LineInfo lineInfo;
     final AnalysisError[] errors;
 
-    Result(IResource resource, LineInfo lineInfo, AnalysisError[] errors) {
+    ErrorResult(IResource resource, LineInfo lineInfo, AnalysisError[] errors) {
       this.resource = resource;
       this.lineInfo = lineInfo;
       this.errors = errors;
     }
 
-    /**
-     * Set markers on the specified resource to represent the cached analysis errors
-     */
-    void showErrors() throws CoreException {
+    @Override
+    public IResource getResource() {
+      return resource;
+    }
+
+    @Override
+    public void showErrors() throws CoreException {
       if (!resource.isAccessible()) {
         return;
       }
@@ -110,6 +115,65 @@ public class AnalysisMarkerManager {
         }
       }
     }
+  }
+
+  /**
+   * Add/remove marker indicating that a particular project has an SDK associated with it
+   */
+  private final class HasSdkResult implements Result {
+
+    private final IProject project;
+    private final boolean hasSdk;
+
+    public HasSdkResult(IProject project, boolean hasSdk) {
+      this.project = project;
+      this.hasSdk = hasSdk;
+    }
+
+    @Override
+    public IResource getResource() {
+      return project;
+    }
+
+    @Override
+    public void showErrors() throws CoreException {
+      if (!project.isAccessible()) {
+        return;
+      }
+
+      project.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_ZERO);
+
+      if (!hasSdk) {
+        IMarker marker = project.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);
+        marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+        marker.setAttribute(IMarker.CHAR_START, 0);
+        marker.setAttribute(IMarker.CHAR_END, 0);
+        marker.setAttribute(IMarker.LINE_NUMBER, 1);
+        //TODO (danrubel): replace with real error code
+        marker.setAttribute(ERROR_CODE, 0);
+        //TODO (danrubel): improve error message to indicate action to install SDK
+        marker.setAttribute(IMarker.MESSAGE, "Missing Dart SDK");
+        //TODO (danrubel): Quick Fix ?
+      }
+    }
+  }
+
+  /**
+   * Results to be translated into markers
+   */
+  private interface Result {
+
+    /**
+     * The resource for which markers are being added / removed.
+     * 
+     * @return the resource
+     */
+    IResource getResource();
+
+    /**
+     * Set markers on the specified resource to represent the cached analysis errors
+     */
+    void showErrors() throws CoreException;
   }
 
   private static final int MAX_ERROR_COUNT = 500;
@@ -256,25 +320,21 @@ public class AnalysisMarkerManager {
    * @param errors the errors to be translated (not {@code null}, contains no {@code null}s)
    */
   public void queueErrors(IResource resource, LineInfo lineInfo, AnalysisError[] errors) {
-    synchronized (lock) {
-      done = false;
+    queueResult(new ErrorResult(resource, lineInfo, errors));
+  }
 
-      // queue the errors to be translated
-      if (results == null) {
-        results = new ArrayList<Result>();
-      }
-      results.add(new Result(resource, lineInfo, errors));
-
-      // kick off a background thread if one has not already been started
-      if (updateThread == null) {
-        updateThread = new Thread(getClass().getSimpleName()) {
-          @Override
-          public void run() {
-            translateErrors();
-          }
-        };
-        updateThread.start();
-      }
+  /**
+   * Queue the specified information about whether the project has a Dart SDK associated with it so
+   * that the information can be translated into an Eclipse marker at a later time.
+   * 
+   * @param resource the resource (not {@code null})
+   * @param hasSdk {@code true} if there is a Dart SDK, else {@code false}
+   */
+  public void queueHasDartSdk(IResource resource, boolean hasSdk) {
+    IProject project = resource.getProject();
+    // workspace root getProject() returns null
+    if (project != null) {
+      queueResult(new HasSdkResult(project, hasSdk));
     }
   }
 
@@ -306,6 +366,34 @@ public class AnalysisMarkerManager {
         }
       }
       return true;
+    }
+  }
+
+  /**
+   * Queue the specified result for later translation to Eclipse markers.
+   * 
+   * @param result the result to be translated (not {@code null})
+   */
+  private void queueResult(Result result) {
+    synchronized (lock) {
+      done = false;
+
+      // queue the errors to be translated
+      if (results == null) {
+        results = new ArrayList<Result>();
+      }
+      results.add(result);
+
+      // kick off a background thread if one has not already been started
+      if (updateThread == null) {
+        updateThread = new Thread(getClass().getSimpleName()) {
+          @Override
+          public void run() {
+            translateErrors();
+          }
+        };
+        updateThread.start();
+      }
     }
   }
 
@@ -350,7 +438,7 @@ public class AnalysisMarkerManager {
             try {
               result.showErrors();
             } catch (CoreException e) {
-              DartCore.logError("Failed to show errors for " + result.resource, e);
+              DartCore.logError("Failed to show errors for " + result.getResource(), e);
             }
           }
           resultsBeingTranslated = null;

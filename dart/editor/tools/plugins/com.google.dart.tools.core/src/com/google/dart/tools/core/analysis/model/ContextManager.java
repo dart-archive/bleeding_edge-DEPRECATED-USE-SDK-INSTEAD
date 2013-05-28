@@ -20,6 +20,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 
@@ -83,6 +84,13 @@ public interface ContextManager {
    * @return the pub folder or {@code null} if no pub folder contains this resource
    */
   PubFolder getPubFolder(IResource resource);
+
+  /**
+   * Answer the underlying Eclipse resource associated with this object
+   * 
+   * @return the resource (not {@code null})
+   */
+  IContainer getResource();
 
   /**
    * Answer the resource associated with the specified source.

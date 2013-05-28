@@ -192,14 +192,17 @@ public class AnalysisWorker {
   public void performAnalysis() {
 
     // Check for a valid context and SDK
+    DartSdk sdk;
     synchronized (lock) {
       if (context == null) {
         return;
       }
-      DartSdk sdk = context.getSourceFactory().getDartSdk();
-      if (sdk == DartSdkManager.NO_SDK) {
-        return;
-      }
+      sdk = context.getSourceFactory().getDartSdk();
+    }
+    boolean hasSdk = sdk != DartSdkManager.NO_SDK;
+    markerManager.queueHasDartSdk(this.contextManager.getResource(), hasSdk);
+    if (!hasSdk) {
+      return;
     }
 
     boolean analysisComplete = false;
