@@ -98,12 +98,60 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_argumentTypeNotAssignable_invocation_functionParameter_generic()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A<K> {",
+        "  m(f(K k), K v) {",
+        "    f(v);",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_invocation_typedef_generic() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef A<T>(T p);",
+        "f(A<int> a) {",
+        "  a(1);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_argumentTypeNotAssignable_Object_Function() throws Exception {
     Source source = addSource(createSource(//
         "main() {",
         "  process(() {});",
         "}",
         "process(Object x) {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_typedef_local() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef A(int p1, String p2);",
+        "A getA() => null;",
+        "f() {",
+        "  A a = getA();",
+        "  a(1, '2');",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_typedef_parameter() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef A(int p1, String p2);",
+        "f(A a) {",
+        "  a(1, '2');",
+        "}"));
     resolve(source);
     assertNoErrors();
     verify(source);
@@ -442,6 +490,51 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "export 'lib1.dart';"));
     addSource("/lib1.dart", createSource(//
         ""));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_extraPositionalArguments_function() throws Exception {
+    Source source = addSource(createSource(//
+        "f(p1, p2) {}",
+        "main() {",
+        "  f(1, 2);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_extraPositionalArguments_Function() throws Exception {
+    Source source = addSource(createSource(//
+        "f(Function a) {",
+        "  a(1, 2);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_extraPositionalArguments_typedef_local() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef A(p1, p2);",
+        "A getA() => null;",
+        "f() {",
+        "  A a = getA();",
+        "  a(1, 2);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_extraPositionalArguments_typedef_parameter() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef A(p1, p2);",
+        "f(A a) {",
+        "  a(1, 2);",
+        "}"));
     resolve(source);
     assertNoErrors();
     verify(source);

@@ -76,6 +76,7 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -807,14 +808,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else if (recordedElement instanceof VariableElement) {
       VariableElement variable = (VariableElement) recordedElement;
       Type type = variable.getType();
-      // function type
-      if (type instanceof FunctionType && variable instanceof ParameterElement) {
-        ParameterElement parameter = (ParameterElement) variable;
-        ParameterElement[] parameters = parameter.getParameters();
-        resolveArgumentsToParameters(node.getArgumentList(), parameters);
-      }
-      // "call" invocation
-      if (type instanceof InterfaceType) {
+      if (type instanceof FunctionType) {
+        if (type.getElement() instanceof FunctionTypeAliasElement) {
+          // function type alias
+          FunctionTypeAliasElement ftaElement = (FunctionTypeAliasElement) type.getElement();
+          // TODO(scheglov) apply type arguments
+          ParameterElement[] parameters = ftaElement.getParameters();
+          resolveArgumentsToParameters(node.getArgumentList(), parameters);
+        } else if (variable instanceof ParameterElement) {
+          // function type parameter
+          ParameterElement parameter = (ParameterElement) variable;
+          ParameterElement[] parameters = parameter.getParameters();
+          resolveArgumentsToParameters(node.getArgumentList(), parameters);
+        }
+      } else if (type instanceof InterfaceType) {
+        // "call" invocation
         MethodElement callMethod = ((InterfaceType) type).lookUpMethod(
             CALL_METHOD_NAME,
             resolver.getDefiningLibrary());

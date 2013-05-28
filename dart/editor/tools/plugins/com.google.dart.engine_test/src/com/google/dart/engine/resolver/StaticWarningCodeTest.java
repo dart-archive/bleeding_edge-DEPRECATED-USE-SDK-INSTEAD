@@ -18,6 +18,32 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticWarningCodeTest extends ResolverTestCase {
+  // TODO(scheglov) requires Member-like support for FunctionTypeAliasElement
+  public void fail_argumentTypeNotAssignable_invocation_functionParameter_generic()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A<K, V> {",
+        "  m(f(K k), V v) {",
+        "    f(v);",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  // TODO(scheglov) requires Member-like support for FunctionTypeAliasElement
+  public void fail_argumentTypeNotAssignable_invocation_typedef_generic() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef A<T>(T p);",
+        "f(A<int> a) {",
+        "  a('1');",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void fail_castToNonType() throws Exception {
     Source source = addSource(createSource(//
         "var A = 0;",
@@ -430,6 +456,30 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "f(String p) {}",
         "main() {",
         "  f(42);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_invocation_typedef_local() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef A(int p);",
+        "A getA() => null;",
+        "main() {",
+        "  A a = getA();",
+        "  a('1');",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_invocation_typedef_parameter() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef A(int p);",
+        "f(A a) {",
+        "  a('1');",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
