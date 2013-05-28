@@ -26,9 +26,9 @@ View createGrid(Map<String, Map<String, String>> styles) {
 }
 
 void _onLoad() {
-  var query = Uri.parseQuery(window.location.search)['q'];
+  var query = SwarmUri.parseQuery(window.location.search)['q'];
   if (query != null && query.length == 1) {
-    query = Uri.decodeComponent(query[0]);
+    query = SwarmUri.decodeComponent(query[0]);
     addGridStyles('100%', '100%', 'margin:0px;');
     final view = createGrid(GridExamples.styles[query]);
     view.addToDocument(document.body);

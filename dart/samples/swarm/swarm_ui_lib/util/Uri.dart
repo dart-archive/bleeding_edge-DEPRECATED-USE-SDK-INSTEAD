@@ -8,7 +8,7 @@ part of utilslib;
  * A parsed URI, inspired by:
  * http://closure-library.googlecode.com/svn/docs/class_goog_Uri.html
  */
-class Uri extends uri.Uri {
+class SwarmUri {
   /**
    * Parses a URL query string into a map. Because you can have multiple values
    * for the same parameter name, each parameter name maps to a list of
@@ -74,6 +74,4 @@ class Uri extends uri.Uri {
                     .replaceAll('%26', '&')
                     .replaceAll('%20', ' ');
   }
-
-  Uri(String uri) : super(uri);
 }

@@ -187,7 +187,7 @@ class Article {
   }
 
   String get dataUri {
-    return Uri.encodeComponent(id).replaceAll('%2F', '/').
+    return SwarmUri.encodeComponent(id).replaceAll('%2F', '/').
         replaceAll('%253A', '%3A');
   }
 

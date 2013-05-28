@@ -7,7 +7,6 @@ library utilslib;
 import 'dart:math' as Math;
 
 import '../observable/observable.dart';
-import 'dart:uri' as uri;
 
 part 'CollectionUtils.dart';
 part 'DateUtils.dart';
