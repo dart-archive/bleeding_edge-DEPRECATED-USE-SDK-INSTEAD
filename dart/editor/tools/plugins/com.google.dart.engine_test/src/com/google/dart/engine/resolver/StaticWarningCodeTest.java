@@ -18,7 +18,7 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticWarningCodeTest extends ResolverTestCase {
-  // TODO(scheglov) requires Member-like support for FunctionTypeAliasElement
+  // TODO(scheglov) requires fix for TypeVariableTypeImpl.isSubtypeOf()
   public void fail_argumentTypeNotAssignable_invocation_functionParameter_generic()
       throws Exception {
     Source source = addSource(createSource(//
@@ -26,18 +26,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  m(f(K k), V v) {",
         "    f(v);",
         "  }",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
-    verify(source);
-  }
-
-  // TODO(scheglov) requires Member-like support for FunctionTypeAliasElement
-  public void fail_argumentTypeNotAssignable_invocation_typedef_generic() throws Exception {
-    Source source = addSource(createSource(//
-        "typedef A<T>(T p);",
-        "f(A<int> a) {",
-        "  a('1');",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
@@ -456,6 +444,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "f(String p) {}",
         "main() {",
         "  f(42);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_invocation_typedef_generic() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef A<T>(T p);",
+        "f(A<int> a) {",
+        "  a('1');",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);

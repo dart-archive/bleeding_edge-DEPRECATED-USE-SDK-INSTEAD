@@ -25,7 +25,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
  * 
  * @coverage dart.engine.type
  */
-public interface InterfaceType extends Type {
+public interface InterfaceType extends ParameterizedType {
   @Override
   public ClassElement getElement();
 
@@ -103,17 +103,6 @@ public interface InterfaceType extends Type {
    * @return the superclass of this type
    */
   public InterfaceType getSuperclass();
-
-  /**
-   * Return an array containing the actual types of the type arguments. If this type's element does
-   * not have type parameters, then the array should be empty (although it is possible for type
-   * arguments to be erroneously declared). If the element has type parameters and the actual type
-   * does not explicitly include argument values, then the type "dynamic" will be automatically
-   * provided.
-   * 
-   * @return the actual types of the type arguments
-   */
-  public Type[] getTypeArguments();
 
   /**
    * Return {@code true} if this type is a direct supertype of the given type. The implicit

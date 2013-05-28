@@ -45,7 +45,6 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
@@ -68,6 +67,7 @@ import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.type.AnonymousFunctionTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
@@ -301,8 +301,10 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     super.visitFunctionTypedFormalParameter(node);
     ParameterElementImpl element = (ParameterElementImpl) node.getIdentifier().getElement();
-    FunctionTypeImpl type = new FunctionTypeImpl((ExecutableElement) null);
-    setTypeInformation(type, node.getReturnType(), getElements(node.getParameters()));
+    AnonymousFunctionTypeImpl type = new AnonymousFunctionTypeImpl();
+    ParameterElement[] parameters = getElements(node.getParameters());
+    setTypeInformation(type, node.getReturnType(), parameters);
+    type.setBaseParameters(parameters);
     element.setType(type);
     return null;
   }

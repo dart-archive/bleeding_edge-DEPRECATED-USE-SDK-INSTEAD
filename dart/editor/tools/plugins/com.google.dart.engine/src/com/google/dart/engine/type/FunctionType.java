@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.type;
 
+import com.google.dart.engine.element.ParameterElement;
+
 import java.util.Map;
 
 /**
@@ -30,7 +32,7 @@ import java.util.Map;
  * 
  * @coverage dart.engine.type
  */
-public interface FunctionType extends Type {
+public interface FunctionType extends ParameterizedType {
   /**
    * Return a map from the names of named parameters to the types of the named parameters of this
    * type of function. The entries in the map will be iterated in the same order as the order in
@@ -60,22 +62,19 @@ public interface FunctionType extends Type {
   public Type[] getOptionalParameterTypes();
 
   /**
+   * Return an array containing the parameters elements of this type of function. The parameter
+   * types are in the same order as they appear in the declaration of the function.
+   * 
+   * @return the parameters elements of this type of function
+   */
+  public ParameterElement[] getParameters();
+
+  /**
    * Return the type of object returned by this type of function.
    * 
    * @return the type of object returned by this type of function
    */
   public Type getReturnType();
-
-  /**
-   * Return an array containing the actual types of the type arguments. If this type's element does
-   * not have type parameters, then the array should be empty (although it is possible for type
-   * arguments to be erroneously declared). If the element has type parameters and the actual type
-   * does not explicitly include argument values, then the type "dynamic" will be automatically
-   * provided.
-   * 
-   * @return the actual types of the type arguments
-   */
-  public Type[] getTypeArguments();
 
   /**
    * Return {@code true} if this type is a subtype of the given type.

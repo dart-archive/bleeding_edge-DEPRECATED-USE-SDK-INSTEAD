@@ -115,4 +115,9 @@ public class PropertyAccessorMember extends ExecutableMember implements Property
   public boolean isSetter() {
     return getBaseElement().isSetter();
   }
+
+  @Override
+  protected InterfaceType getDefiningType() {
+    return (InterfaceType) super.getDefiningType();
+  }
 }

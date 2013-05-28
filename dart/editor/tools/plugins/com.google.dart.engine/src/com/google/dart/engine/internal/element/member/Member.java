@@ -24,6 +24,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.ParameterizedType;
 import com.google.dart.engine.type.Type;
 
 /**
@@ -39,7 +40,7 @@ public abstract class Member implements Element {
   /**
    * The type in which the element is defined.
    */
-  private InterfaceType definingType;
+  private ParameterizedType definingType;
 
   /**
    * Initialize a newly created element to represent the member of the given parameterized type.
@@ -47,7 +48,7 @@ public abstract class Member implements Element {
    * @param baseElement the element on which the parameterized element was created
    * @param definingType the type in which the element is defined
    */
-  public Member(Element baseElement, InterfaceType definingType) {
+  public Member(Element baseElement, ParameterizedType definingType) {
     this.baseElement = baseElement;
     this.definingType = definingType;
   }
@@ -142,7 +143,7 @@ public abstract class Member implements Element {
    * 
    * @return the type in which the element is defined
    */
-  protected InterfaceType getDefiningType() {
+  protected ParameterizedType getDefiningType() {
     return definingType;
   }
 
@@ -182,7 +183,7 @@ public abstract class Member implements Element {
   @SuppressWarnings("unchecked")
   protected <E extends Type> E substituteFor(E type) {
     Type[] argumentTypes = definingType.getTypeArguments();
-    Type[] parameterTypes = TypeVariableTypeImpl.getTypes(definingType.getElement().getTypeVariables());
+    Type[] parameterTypes = TypeVariableTypeImpl.getTypes(definingType.getTypeVariables());
     return (E) type.substitute(argumentTypes, parameterTypes);
   }
 

@@ -76,7 +76,6 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -809,18 +808,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       VariableElement variable = (VariableElement) recordedElement;
       Type type = variable.getType();
       if (type instanceof FunctionType) {
-        if (type.getElement() instanceof FunctionTypeAliasElement) {
-          // function type alias
-          FunctionTypeAliasElement ftaElement = (FunctionTypeAliasElement) type.getElement();
-          // TODO(scheglov) apply type arguments
-          ParameterElement[] parameters = ftaElement.getParameters();
-          resolveArgumentsToParameters(node.getArgumentList(), parameters);
-        } else if (variable instanceof ParameterElement) {
-          // function type parameter
-          ParameterElement parameter = (ParameterElement) variable;
-          ParameterElement[] parameters = parameter.getParameters();
-          resolveArgumentsToParameters(node.getArgumentList(), parameters);
-        }
+        FunctionType functionType = (FunctionType) type;
+        ParameterElement[] parameters = functionType.getParameters();
+        resolveArgumentsToParameters(node.getArgumentList(), parameters);
       } else if (type instanceof InterfaceType) {
         // "call" invocation
         MethodElement callMethod = ((InterfaceType) type).lookUpMethod(

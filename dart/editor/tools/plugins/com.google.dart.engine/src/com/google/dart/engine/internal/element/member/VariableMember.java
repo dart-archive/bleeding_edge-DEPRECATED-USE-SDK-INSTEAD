@@ -16,7 +16,7 @@ package com.google.dart.engine.internal.element.member;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.VariableElement;
-import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.ParameterizedType;
 import com.google.dart.engine.type.Type;
 
 /**
@@ -32,7 +32,7 @@ public abstract class VariableMember extends Member implements VariableElement {
    * @param baseElement the element on which the parameterized element was created
    * @param definingType the type in which the element is defined
    */
-  public VariableMember(VariableElement baseElement, InterfaceType definingType) {
+  public VariableMember(VariableElement baseElement, ParameterizedType definingType) {
     super(baseElement, definingType);
   }
 

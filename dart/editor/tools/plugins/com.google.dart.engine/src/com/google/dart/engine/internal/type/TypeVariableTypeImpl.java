@@ -78,6 +78,7 @@ public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
 
   @Override
   public boolean isSubtypeOf(Type type) {
+    // TODO(scheglov) really? without checking if this is another type variable and bound?
     return true;
   }
 

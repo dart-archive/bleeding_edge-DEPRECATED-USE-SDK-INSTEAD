@@ -72,6 +72,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   public static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) {
     return computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
   }
+  
+  @Override
+  public TypeVariableElement[] getTypeVariables() {
+    return getElement().getTypeVariables();
+  }
 
   /**
    * This method computes the longest inheritance path from some passed {@link Type} to Object. This

@@ -95,4 +95,9 @@ public class FieldMember extends VariableMember implements FieldElement {
   public boolean isStatic() {
     return getBaseElement().isStatic();
   }
+
+  @Override
+  protected InterfaceType getDefiningType() {
+    return (InterfaceType) super.getDefiningType();
+  }
 }

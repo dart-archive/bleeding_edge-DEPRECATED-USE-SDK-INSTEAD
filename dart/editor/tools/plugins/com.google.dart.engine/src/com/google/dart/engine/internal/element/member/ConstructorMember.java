@@ -122,4 +122,9 @@ public class ConstructorMember extends ExecutableMember implements ConstructorEl
     }
     return builder.toString();
   }
+
+  @Override
+  protected InterfaceType getDefiningType() {
+    return (InterfaceType) super.getDefiningType();
+  }
 }

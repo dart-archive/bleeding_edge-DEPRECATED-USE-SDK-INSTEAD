@@ -17,6 +17,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
+import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.internal.element.member.ParameterMember;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
@@ -226,6 +230,22 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @Override
+  public ParameterElement[] getParameters() {
+    ParameterElement[] baseParameters = getBaseParameters();
+    // no parameters, quick return
+    int parameterCount = baseParameters.length;
+    if (parameterCount == 0) {
+      return baseParameters;
+    }
+    // create specialized parameters
+    ParameterElement[] specializedParameters = new ParameterElement[parameterCount];
+    for (int i = 0; i < parameterCount; i++) {
+      specializedParameters[i] = ParameterMember.from(baseParameters[i], this);
+    }
+    return specializedParameters;
+  }
+
+  @Override
   public Type getReturnType() {
     return returnType;
   }
@@ -233,6 +253,15 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @Override
   public Type[] getTypeArguments() {
     return typeArguments;
+  }
+
+  @Override
+  public TypeVariableElement[] getTypeVariables() {
+    Element element = getElement();
+    if (element instanceof FunctionTypeAliasElement) {
+      return ((FunctionTypeAliasElement) element).getTypeVariables();
+    }
+    return TypeVariableElementImpl.EMPTY_ARRAY;
   }
 
   @Override
@@ -392,6 +421,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         argumentTypes,
         parameterTypes));
     newType.namedParameterTypes = substitute(namedParameterTypes, argumentTypes, parameterTypes);
+    newType.setTypeArguments(argumentTypes);
     return newType;
   }
 
@@ -450,6 +480,18 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       builder.append("null");
     } else {
       ((TypeImpl) returnType).appendTo(builder);
+    }
+  }
+
+  /**
+   * @return the base parameter elements of this function element, not {@code null}.
+   */
+  protected ParameterElement[] getBaseParameters() {
+    Element element = getElement();
+    if (element instanceof ExecutableElement) {
+      return ((ExecutableElement) element).getParameters();
+    } else {
+      return ((FunctionTypeAliasElement) element).getParameters();
     }
   }
 }

@@ -21,6 +21,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.ParameterizedType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -41,13 +42,13 @@ public class ParameterMember extends VariableMember implements ParameterElement 
    *          substitution
    * @return the parameter element that will return the correctly substituted types
    */
-  public static ParameterElement from(ParameterElement baseParameter, InterfaceType definingType) {
+  public static ParameterElement from(ParameterElement baseParameter, ParameterizedType definingType) {
     if (baseParameter == null || definingType.getTypeArguments().length == 0) {
       return baseParameter;
     }
     Type baseType = baseParameter.getType();
     Type[] argumentTypes = definingType.getTypeArguments();
-    Type[] parameterTypes = TypeVariableTypeImpl.getTypes(definingType.getElement().getTypeVariables());
+    Type[] parameterTypes = TypeVariableTypeImpl.getTypes(definingType.getTypeVariables());
     Type substitutedType = baseType.substitute(argumentTypes, parameterTypes);
     if (baseType.equals(substitutedType)) {
       return baseParameter;
@@ -63,7 +64,7 @@ public class ParameterMember extends VariableMember implements ParameterElement 
    * @param baseElement the element on which the parameterized element was created
    * @param definingType the type in which the element is defined
    */
-  public ParameterMember(ParameterElement baseElement, InterfaceType definingType) {
+  public ParameterMember(ParameterElement baseElement, ParameterizedType definingType) {
     super(baseElement, definingType);
   }
 
@@ -76,12 +77,18 @@ public class ParameterMember extends VariableMember implements ParameterElement 
   @SuppressWarnings("unchecked")
   public <E extends Element> E getAncestor(Class<E> elementClass) {
     E element = getBaseElement().getAncestor(elementClass);
-    if (element instanceof ConstructorElement) {
-      return (E) ConstructorMember.from((ConstructorElement) element, getDefiningType());
-    } else if (element instanceof MethodElement) {
-      return (E) MethodMember.from((MethodElement) element, getDefiningType());
-    } else if (element instanceof PropertyAccessorElement) {
-      return (E) PropertyAccessorMember.from((PropertyAccessorElement) element, getDefiningType());
+    ParameterizedType definingType = getDefiningType();
+    if (definingType instanceof InterfaceType) {
+      InterfaceType definingInterfaceType = (InterfaceType) definingType;
+      if (element instanceof ConstructorElement) {
+        return (E) ConstructorMember.from((ConstructorElement) element, definingInterfaceType);
+      } else if (element instanceof MethodElement) {
+        return (E) MethodMember.from((MethodElement) element, definingInterfaceType);
+      } else if (element instanceof PropertyAccessorElement) {
+        return (E) PropertyAccessorMember.from(
+            (PropertyAccessorElement) element,
+            definingInterfaceType);
+      }
     }
     return element;
   }
