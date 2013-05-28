@@ -2754,19 +2754,60 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     // TODO (jwren/scheglov) Add a quick fix which needs the following array.
-    //ExecutableElement[] missingOverridesArray = missingOverrides.toArray(new ExecutableElement[missingOverridesSize]);
+    ExecutableElement[] missingOverridesArray = missingOverrides.toArray(new ExecutableElement[missingOverridesSize]);
     if (missingOverridesSize == 1) {
-      ExecutableElement executableElt = missingOverrides.iterator().next();
       errorReporter.reportError(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE,
+          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           node.getName(),
-          executableElt.getDisplayName(),
-          executableElt.getEnclosingElement().getDisplayName());
+          missingOverridesArray[0].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[0].getDisplayName());
+      return true;
+    } else if (missingOverridesSize == 2) {
+      errorReporter.reportError(
+          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+          node.getName(),
+          missingOverridesArray[0].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[0].getDisplayName(),
+          missingOverridesArray[1].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[1].getDisplayName());
+      return true;
+    } else if (missingOverridesSize == 3) {
+      errorReporter.reportError(
+          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
+          node.getName(),
+          missingOverridesArray[0].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[0].getDisplayName(),
+          missingOverridesArray[1].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[1].getDisplayName(),
+          missingOverridesArray[2].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[2].getDisplayName());
+      return true;
+    } else if (missingOverridesSize == 4) {
+      errorReporter.reportError(
+          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
+          node.getName(),
+          missingOverridesArray[0].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[0].getDisplayName(),
+          missingOverridesArray[1].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[1].getDisplayName(),
+          missingOverridesArray[2].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[2].getDisplayName(),
+          missingOverridesArray[3].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[3].getDisplayName());
       return true;
     } else {
       errorReporter.reportError(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE,
-          node.getName());
+          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
+          node.getName(),
+          missingOverridesArray[0].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[0].getDisplayName(),
+          missingOverridesArray[1].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[1].getDisplayName(),
+          missingOverridesArray[2].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[2].getDisplayName(),
+          missingOverridesArray[3].getEnclosingElement().getDisplayName(),
+          missingOverridesArray[3].getDisplayName(),
+          missingOverridesArray.length - 4);
       return true;
     }
   }

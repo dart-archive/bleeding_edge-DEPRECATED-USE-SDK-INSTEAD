@@ -1018,33 +1018,38 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_nonAbstractClassInheritsAbstractMemberMuliple_fromSuperclass() throws Exception {
+  public void test_nonAbstractClassInheritsAbstractMemberFivePlus() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
-        "  m(p);",
-        "  n(p);",
+        "  m();",
+        "  n();",
+        "  o();",
+        "  p();",
+        "  q();",
         "}",
         "class C extends A {",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS);
     verify(source);
   }
 
-  public void test_nonAbstractClassInheritsAbstractMemberMultiple_fromInterface() throws Exception {
+  public void test_nonAbstractClassInheritsAbstractMemberFour() throws Exception {
     Source source = addSource(createSource(//
-        "class I {",
-        "  m(p) {}",
-        "  n(p) {}",
+        "abstract class A {",
+        "  m();",
+        "  n();",
+        "  o();",
+        "  p();",
         "}",
-        "class C implements I {",
+        "class C extends A {",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR);
     verify(source);
   }
 
-  public void test_nonAbstractClassInheritsAbstractMemberSingle_getter_fromInterface()
+  public void test_nonAbstractClassInheritsAbstractMemberOne_getter_fromInterface()
       throws Exception {
     Source source = addSource(createSource(//
         "class I {",
@@ -1053,11 +1058,11 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "class C implements I {",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
     verify(source);
   }
 
-  public void test_nonAbstractClassInheritsAbstractMemberSingle_getter_fromSuperclass()
+  public void test_nonAbstractClassInheritsAbstractMemberOne_getter_fromSuperclass()
       throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
@@ -1066,11 +1071,11 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "class C extends A {",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
     verify(source);
   }
 
-  public void test_nonAbstractClassInheritsAbstractMemberSingle_method_fromInterface()
+  public void test_nonAbstractClassInheritsAbstractMemberOne_method_fromInterface()
       throws Exception {
     Source source = addSource(createSource(//
         "class I {",
@@ -1079,11 +1084,11 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "class C implements I {",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
     verify(source);
   }
 
-  public void test_nonAbstractClassInheritsAbstractMemberSingle_method_fromSuperclass()
+  public void test_nonAbstractClassInheritsAbstractMemberOne_method_fromSuperclass()
       throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
@@ -1092,11 +1097,11 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "class C extends A {",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
     verify(source);
   }
 
-  public void test_nonAbstractClassInheritsAbstractMemberSingle_setter_fromInterface()
+  public void test_nonAbstractClassInheritsAbstractMemberOne_setter_fromInterface()
       throws Exception {
     Source source = addSource(createSource(//
         "class I {",
@@ -1105,11 +1110,11 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "class C implements I {",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
     verify(source);
   }
 
-  public void test_nonAbstractClassInheritsAbstractMemberSingle_setter_fromSuperclass()
+  public void test_nonAbstractClassInheritsAbstractMemberOne_setter_fromSuperclass()
       throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
@@ -1118,7 +1123,34 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "class C extends A {",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberThree() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  m();",
+        "  n();",
+        "  o();",
+        "}",
+        "class C extends A {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberTwo() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  m();",
+        "  n();",
+        "}",
+        "class C extends A {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO);
     verify(source);
   }
 
