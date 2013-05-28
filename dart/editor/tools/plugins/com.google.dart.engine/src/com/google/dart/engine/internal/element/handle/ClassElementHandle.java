@@ -63,6 +63,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public PropertyAccessorElement getGetter(String getterName) {
+    return getActualElement().getGetter(getterName);
+  }
+
+  @Override
   public InterfaceType[] getInterfaces() {
     return getActualElement().getInterfaces();
   }
@@ -70,6 +75,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   @Override
   public ElementKind getKind() {
     return ElementKind.CLASS;
+  }
+
+  @Override
+  public MethodElement getMethod(String methodName) {
+    return getActualElement().getMethod(methodName);
   }
 
   @Override
@@ -85,6 +95,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   @Override
   public ConstructorElement getNamedConstructor(String name) {
     return getActualElement().getNamedConstructor(name);
+  }
+
+  @Override
+  public PropertyAccessorElement getSetter(String setterName) {
+    return getActualElement().getSetter(setterName);
   }
 
   @Override

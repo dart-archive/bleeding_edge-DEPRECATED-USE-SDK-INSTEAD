@@ -54,12 +54,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param type the {@link Type} to compute the longest inheritance path of from the passed
    *          {@link Type} to Object
    * @return the computed longest inheritance path to Object
-   * @see #computeLongestInheritancePathToObject(Type, int)
    * @see InterfaceType#getLeastUpperBound(Type)
    */
   @VisibleForTesting
   public static int computeLongestInheritancePathToObject(InterfaceType type) {
-    return computeLongestInheritancePathToObject(type, 0);
+    return computeLongestInheritancePathToObject(type, 0, new HashSet<ClassElement>());
   }
 
   /**
@@ -67,7 +66,6 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * 
    * @param type the {@link Type} to compute the set of superinterfaces of
    * @return the {@link Set} of superinterfaces of the passed {@link Type}
-   * @see #computeSuperinterfaceSet(Type, HashSet)
    * @see #getLeastUpperBound(Type)
    */
   @VisibleForTesting
@@ -83,34 +81,45 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param type the {@link Type} to compute the longest inheritance path of from the passed
    *          {@link Type} to Object
    * @param depth a field used recursively
+   * @param visitedClasses the classes that have already been visited
    * @return the computed longest inheritance path to Object
    * @see #computeLongestInheritancePathToObject(Type)
    * @see #getLeastUpperBound(Type)
    */
-  private static int computeLongestInheritancePathToObject(InterfaceType type, int depth) {
+  private static int computeLongestInheritancePathToObject(InterfaceType type, int depth,
+      HashSet<ClassElement> visitedClasses) {
     ClassElement classElement = type.getElement();
     // Object case
-    if (classElement.getSupertype() == null) {
+    if (classElement.getSupertype() == null || visitedClasses.contains(classElement)) {
       return depth;
     }
-    InterfaceType[] superinterfaces = classElement.getInterfaces();
     int longestPath = 1;
-    int pathLength;
-    if (superinterfaces.length > 0) {
-      // loop through each of the superinterfaces recursively calling this method and keeping track
-      // of the longest path to return
-      for (InterfaceType superinterface : superinterfaces) {
-        pathLength = computeLongestInheritancePathToObject(superinterface, depth + 1);
-        if (pathLength > longestPath) {
-          longestPath = pathLength;
+    try {
+      visitedClasses.add(classElement);
+      InterfaceType[] superinterfaces = classElement.getInterfaces();
+      int pathLength;
+      if (superinterfaces.length > 0) {
+        // loop through each of the superinterfaces recursively calling this method and keeping track
+        // of the longest path to return
+        for (InterfaceType superinterface : superinterfaces) {
+          pathLength = computeLongestInheritancePathToObject(
+              superinterface,
+              depth + 1,
+              visitedClasses);
+          if (pathLength > longestPath) {
+            longestPath = pathLength;
+          }
         }
       }
-    }
-    // finally, perform this same check on the super type
-    InterfaceType supertype = classElement.getSupertype();
-    pathLength = computeLongestInheritancePathToObject(supertype, depth + 1);
-    if (pathLength > longestPath) {
-      longestPath = pathLength;
+      // finally, perform this same check on the super type
+      // TODO(brianwilkerson) Does this also need to add in the number of mixin classes?
+      InterfaceType supertype = classElement.getSupertype();
+      pathLength = computeLongestInheritancePathToObject(supertype, depth + 1, visitedClasses);
+      if (pathLength > longestPath) {
+        longestPath = pathLength;
+      }
+    } finally {
+      visitedClasses.remove(classElement);
     }
     return longestPath;
   }
@@ -132,13 +141,15 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       ClassElement classElement = (ClassElement) element;
       InterfaceType[] superinterfaces = classElement.getInterfaces();
       for (InterfaceType superinterface : superinterfaces) {
-        set.add(superinterface);
-        computeSuperinterfaceSet(superinterface, set);
+        if (set.add(superinterface)) {
+          computeSuperinterfaceSet(superinterface, set);
+        }
       }
       InterfaceType supertype = classElement.getSupertype();
       if (supertype != null) {
-        set.add(supertype);
-        computeSuperinterfaceSet(supertype, set);
+        if (set.add(supertype)) {
+          computeSuperinterfaceSet(supertype, set);
+        }
       }
     }
     return set;
@@ -507,8 +518,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = getSuperclass();
-    while (supertype != null) {
+    ClassElement supertypeElement = supertype == null ? null : supertype.getElement();
+    while (supertype != null && !visitedClasses.contains(supertypeElement)) {
+      visitedClasses.add(supertypeElement);
       PropertyAccessorElement element = supertype.getGetter(getterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
@@ -520,6 +534,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
       supertype = supertype.getSuperclass();
+      supertypeElement = supertype == null ? null : supertype.getElement();
     }
     return null;
   }
@@ -541,8 +556,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = getSuperclass();
-    while (supertype != null) {
+    ClassElement supertypeElement = supertype == null ? null : supertype.getElement();
+    while (supertype != null && !visitedClasses.contains(supertypeElement)) {
+      visitedClasses.add(supertypeElement);
       MethodElement element = supertype.getMethod(methodName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
@@ -554,6 +572,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
       supertype = supertype.getSuperclass();
+      supertypeElement = supertype == null ? null : supertype.getElement();
     }
     return null;
   }
@@ -575,8 +594,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return element;
       }
     }
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     InterfaceType supertype = getSuperclass();
-    while (supertype != null) {
+    ClassElement supertypeElement = supertype == null ? null : supertype.getElement();
+    while (supertype != null && !visitedClasses.contains(supertypeElement)) {
+      visitedClasses.add(supertypeElement);
       PropertyAccessorElement element = supertype.getSetter(setterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
@@ -588,6 +610,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
       supertype = supertype.getSuperclass();
+      supertypeElement = supertype == null ? null : supertype.getElement();
     }
     return null;
   }

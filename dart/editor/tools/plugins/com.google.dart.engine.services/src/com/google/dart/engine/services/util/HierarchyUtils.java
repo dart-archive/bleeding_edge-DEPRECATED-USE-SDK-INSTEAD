@@ -130,6 +130,10 @@ public class HierarchyUtils {
       // check super ClassElement
       classElement = superType.getElement();
       if (classElement != null) {
+        // stop if we have a loop in the superclass hierarchy
+        if (classes.contains(classElement)) {
+          break;
+        }
         // stop at Object
         if (Objects.equal(classElement.getDisplayName(), "Object")) {
           break;

@@ -934,13 +934,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     // SWC.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     if (overriddenExecutable == null) {
       if (!node.isGetter() && !node.isSetter() && !node.isOperator()) {
-        ClassElement superclassClassElement = null;
+        HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
         InterfaceType superclassType = enclosingClass.getSupertype();
-        if (superclassType != null) {
-          superclassClassElement = superclassType.getElement();
-        }
-        while (superclassClassElement != null) {
-          FieldElement[] fieldElts = superclassClassElement.getFields();
+        ClassElement superclassElement = superclassType == null ? null
+            : superclassType.getElement();
+        while (superclassElement != null && !visitedClasses.contains(superclassElement)) {
+          visitedClasses.add(superclassElement);
+          FieldElement[] fieldElts = superclassElement.getFields();
           for (FieldElement fieldElt : fieldElts) {
             if (fieldElt.getName().equals(methodNameStr) && fieldElt.isStatic()) {
               errorReporter.reportError(
@@ -951,7 +951,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               return true;
             }
           }
-          PropertyAccessorElement[] propertyAccessorElts = superclassClassElement.getAccessors();
+          PropertyAccessorElement[] propertyAccessorElts = superclassElement.getAccessors();
           for (PropertyAccessorElement accessorElt : propertyAccessorElts) {
             if (accessorElt.getName().equals(methodNameStr) && accessorElt.isStatic()) {
               errorReporter.reportError(
@@ -962,7 +962,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               return true;
             }
           }
-          MethodElement[] methodElements = superclassClassElement.getMethods();
+          MethodElement[] methodElements = superclassElement.getMethods();
           for (MethodElement methodElement : methodElements) {
             if (methodElement.getName().equals(methodNameStr) && methodElement.isStatic()) {
               errorReporter.reportError(
@@ -973,8 +973,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               return true;
             }
           }
-          superclassClassElement = superclassClassElement.getSupertype() != null
-              ? superclassClassElement.getSupertype().getElement() : null;
+          superclassType = superclassElement.getSupertype();
+          superclassElement = superclassType == null ? null : superclassType.getElement();
         }
       }
       return false;

@@ -116,6 +116,13 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertEquals(0, InterfaceTypeImpl.computeLongestInheritancePathToObject(object));
   }
 
+  public void test_computeLongestInheritancePathToObject_recursion() {
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    classA.setSupertype(classB.getType());
+    assertEquals(2, InterfaceTypeImpl.computeLongestInheritancePathToObject(classA.getType()));
+  }
+
   public void test_computeLongestInheritancePathToObject_singleInterfacePath() {
     //
     //   Object
@@ -168,20 +175,18 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     classE.setInterfaces(new InterfaceType[] {classB.getType(), classD.getType()});
     // D
     Set<InterfaceType> superinterfacesOfD = InterfaceTypeImpl.computeSuperinterfaceSet(classD.getType());
-    assertNotNull(superinterfacesOfD);
+    assertSize(3, superinterfacesOfD);
     assertTrue(superinterfacesOfD.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfD.contains(classA.getType()));
     assertTrue(superinterfacesOfD.contains(classC.getType()));
-    assertEquals(3, superinterfacesOfD.size());
     // E
     Set<InterfaceType> superinterfacesOfE = InterfaceTypeImpl.computeSuperinterfaceSet(classE.getType());
-    assertNotNull(superinterfacesOfE);
+    assertSize(5, superinterfacesOfE);
     assertTrue(superinterfacesOfE.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfE.contains(classA.getType()));
     assertTrue(superinterfacesOfE.contains(classB.getType()));
     assertTrue(superinterfacesOfE.contains(classC.getType()));
     assertTrue(superinterfacesOfE.contains(classD.getType()));
-    assertEquals(5, superinterfacesOfE.size());
   }
 
   public void test_computeSuperinterfaceSet_multipleSuperclassPaths() {
@@ -193,20 +198,27 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     classE.setInterfaces(new InterfaceType[] {classD.getType()});
     // D
     Set<InterfaceType> superinterfacesOfD = InterfaceTypeImpl.computeSuperinterfaceSet(classD.getType());
-    assertNotNull(superinterfacesOfD);
+    assertSize(3, superinterfacesOfD);
     assertTrue(superinterfacesOfD.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfD.contains(classA.getType()));
     assertTrue(superinterfacesOfD.contains(classC.getType()));
-    assertEquals(3, superinterfacesOfD.size());
     // E
     Set<InterfaceType> superinterfacesOfE = InterfaceTypeImpl.computeSuperinterfaceSet(classE.getType());
-    assertNotNull(superinterfacesOfE);
+    assertSize(5, superinterfacesOfE);
     assertTrue(superinterfacesOfE.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfE.contains(classA.getType()));
     assertTrue(superinterfacesOfE.contains(classB.getType()));
     assertTrue(superinterfacesOfE.contains(classC.getType()));
     assertTrue(superinterfacesOfE.contains(classD.getType()));
-    assertEquals(5, superinterfacesOfE.size());
+  }
+
+  public void test_computeSuperinterfaceSet_recursion() {
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    classA.setSupertype(classB.getType());
+
+    Set<InterfaceType> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(classB.getType());
+    assertSize(2, superinterfacesOfB);
   }
 
   public void test_computeSuperinterfaceSet_singleInterfacePath() {
@@ -217,46 +229,47 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     classC.setInterfaces(new InterfaceType[] {classB.getType()});
     // A
     Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(classA.getType());
-    assertNotNull(superinterfacesOfA);
+    assertSize(1, superinterfacesOfA);
     assertTrue(superinterfacesOfA.contains(ElementFactory.getObject().getType()));
-    assertEquals(1, superinterfacesOfA.size());
     // B
     Set<InterfaceType> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(classB.getType());
-    assertNotNull(superinterfacesOfB);
+    assertSize(2, superinterfacesOfB);
     assertTrue(superinterfacesOfB.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfB.contains(classA.getType()));
-    assertEquals(2, superinterfacesOfB.size());
     // C
     Set<InterfaceType> superinterfacesOfC = InterfaceTypeImpl.computeSuperinterfaceSet(classC.getType());
-    assertNotNull(superinterfacesOfC);
+    assertSize(3, superinterfacesOfC);
     assertTrue(superinterfacesOfC.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfC.contains(classA.getType()));
     assertTrue(superinterfacesOfC.contains(classB.getType()));
-    assertEquals(3, superinterfacesOfC.size());
   }
 
   public void test_computeSuperinterfaceSet_singleSuperclassPath() {
+    //
+    //  A
+    //  |
+    //  B
+    //  |
+    //  C
+    //
     ClassElement classA = classElement("A");
     ClassElement classB = classElement("B", classA.getType());
     ClassElement classC = classElement("C", classB.getType());
     // A
     Set<InterfaceType> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(classA.getType());
-    assertNotNull(superinterfacesOfA);
+    assertSize(1, superinterfacesOfA);
     assertTrue(superinterfacesOfA.contains(ElementFactory.getObject().getType()));
-    assertEquals(1, superinterfacesOfA.size());
     // B
     Set<InterfaceType> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(classB.getType());
-    assertNotNull(superinterfacesOfB);
+    assertSize(2, superinterfacesOfB);
     assertTrue(superinterfacesOfB.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfB.contains(classA.getType()));
-    assertEquals(2, superinterfacesOfB.size());
     // C
     Set<InterfaceType> superinterfacesOfC = InterfaceTypeImpl.computeSuperinterfaceSet(classC.getType());
-    assertNotNull(superinterfacesOfC);
+    assertSize(3, superinterfacesOfC);
     assertTrue(superinterfacesOfC.contains(ElementFactory.getObject().getType()));
     assertTrue(superinterfacesOfC.contains(classA.getType()));
     assertTrue(superinterfacesOfC.contains(classB.getType()));
-    assertEquals(3, superinterfacesOfC.size());
   }
 
   public void test_creation() {
@@ -1187,6 +1200,23 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertSame(getterG, typeB.lookUpGetter(getterName, library));
   }
 
+  public void test_lookUpGetter_recursive() {
+    //
+    // class A extends B {}
+    // class B extends A {}
+    //
+    ClassElementImpl classA = classElement("A");
+    InterfaceType typeA = classA.getType();
+    ClassElementImpl classB = classElement("B", typeA);
+    classA.setSupertype(classB.getType());
+
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA, classB});
+
+    assertNull(typeA.lookUpGetter("g", library));
+  }
+
   public void test_lookUpGetter_unimplemented() {
     //
     // class A {}
@@ -1272,6 +1302,23 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertSame(typeI, parameterTypes[0]);
   }
 
+  public void test_lookUpMethod_recursive() {
+    //
+    // class A extends B {}
+    // class B extends A {}
+    //
+    ClassElementImpl classA = classElement("A");
+    InterfaceType typeA = classA.getType();
+    ClassElementImpl classB = classElement("B", typeA);
+    classA.setSupertype(classB.getType());
+
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA, classB});
+
+    assertNull(typeA.lookUpMethod("m", library));
+  }
+
   public void test_lookUpMethod_unimplemented() {
     //
     // class A {}
@@ -1320,6 +1367,23 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA, classB});
 
     assertSame(setterS, typeB.lookUpSetter(setterName, library));
+  }
+
+  public void test_lookUpSetter_recursive() {
+    //
+    // class A extends B {}
+    // class B extends A {}
+    //
+    ClassElementImpl classA = classElement("A");
+    InterfaceType typeA = classA.getType();
+    ClassElementImpl classB = classElement("B", typeA);
+    classA.setSupertype(classB.getType());
+
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA, classB});
+
+    assertNull(typeA.lookUpSetter("s", library));
   }
 
   public void test_lookUpSetter_unimplemented() {

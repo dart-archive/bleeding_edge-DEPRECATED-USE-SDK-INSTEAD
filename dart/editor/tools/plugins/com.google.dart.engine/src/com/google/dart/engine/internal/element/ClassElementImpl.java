@@ -26,6 +26,7 @@ import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
@@ -106,7 +107,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @Override
   public InterfaceType[] getAllSupertypes() {
-    HashSet<InterfaceType> list = new HashSet<InterfaceType>();
+    ArrayList<InterfaceType> list = new ArrayList<InterfaceType>();
     collectAllSupertypes(list);
     return list.toArray(new InterfaceType[list.size()]);
   }
@@ -171,13 +172,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     return fields;
   }
 
-  /**
-   * Return the element representing the getter with the given name that is declared in this class,
-   * or {@code null} if this class does not declare a getter with the given name.
-   * 
-   * @param getterName the name of the getter to be returned
-   * @return the getter declared in this class with the given name
-   */
+  @Override
   public PropertyAccessorElement getGetter(String getterName) {
     for (PropertyAccessorElement accessor : accessors) {
       if (accessor.isGetter() && accessor.getName().equals(getterName)) {
@@ -197,13 +192,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     return ElementKind.CLASS;
   }
 
-  /**
-   * Return the element representing the method with the given name that is declared in this class,
-   * or {@code null} if this class does not declare a method with the given name.
-   * 
-   * @param methodName the name of the method to be returned
-   * @return the method declared in this class with the given name
-   */
+  @Override
   public MethodElement getMethod(String methodName) {
     for (MethodElement method : methods) {
       if (method.getName().equals(methodName)) {
@@ -234,13 +223,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
-  /**
-   * Return the element representing the setter with the given name that is declared in this class,
-   * or {@code null} if this class does not declare a setter with the given name.
-   * 
-   * @param setterName the name of the getter to be returned
-   * @return the setter declared in this class with the given name
-   */
+  @Override
   public PropertyAccessorElement getSetter(String setterName) {
     // TODO (jwren) revisit- should we append '=' here or require clients to include it?
     // Do we need the check for isSetter below?
@@ -283,24 +266,31 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @Override
   public boolean hasNonFinalField() {
-    // check fields
-    for (FieldElement field : fields) {
-      if (!field.isFinal() && !field.isConst() && !field.isStatic() && !field.isSynthetic()) {
-        return true;
-      }
-    }
-    // check mixins
-    for (InterfaceType mixinType : mixins) {
-      ClassElement mixinElement = mixinType.getElement();
-      if (mixinElement.hasNonFinalField()) {
-        return true;
-      }
-    }
-    // check super
-    if (supertype != null) {
-      ClassElement superElement = supertype.getElement();
-      if (superElement.hasNonFinalField()) {
-        return true;
+    ArrayList<ClassElement> classesToVisit = new ArrayList<ClassElement>();
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    classesToVisit.add(this);
+    while (!classesToVisit.isEmpty()) {
+      ClassElement currentElement = classesToVisit.remove(0);
+      if (visitedClasses.add(currentElement)) {
+        // check fields
+        for (FieldElement field : currentElement.getFields()) {
+          if (!field.isFinal() && !field.isConst() && !field.isStatic() && !field.isSynthetic()) {
+            return true;
+          }
+        }
+        // check mixins
+        for (InterfaceType mixinType : currentElement.getMixins()) {
+          ClassElement mixinElement = mixinType.getElement();
+          classesToVisit.add(mixinElement);
+        }
+        // check super
+        InterfaceType supertype = currentElement.getSupertype();
+        if (supertype != null) {
+          ClassElement superElement = supertype.getElement();
+          if (superElement != null) {
+            classesToVisit.add(superElement);
+          }
+        }
       }
     }
     // not found
@@ -329,72 +319,84 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @Override
   public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
-    PropertyAccessorElement element = getGetter(getterName);
-    if (element != null && element.isAccessibleIn(library)) {
-      return element;
-    }
-    for (InterfaceType mixin : mixins) {
-      ClassElement mixinElement = mixin.getElement();
-      if (mixinElement != null) {
-        element = ((ClassElementImpl) mixinElement).getGetter(getterName);
-        if (element != null && element.isAccessibleIn(library)) {
-          return element;
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    ClassElement currentElement = this;
+    while (currentElement != null && !visitedClasses.contains(currentElement)) {
+      visitedClasses.add(currentElement);
+      PropertyAccessorElement element = currentElement.getGetter(getterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+      for (InterfaceType mixin : currentElement.getMixins()) {
+        ClassElement mixinElement = mixin.getElement();
+        if (mixinElement != null) {
+          element = mixinElement.getGetter(getterName);
+          if (element != null && element.isAccessibleIn(library)) {
+            return element;
+          }
         }
       }
-    }
-    if (supertype != null) {
-      ClassElement supertypeElement = supertype.getElement();
-      if (supertypeElement != null) {
-        return supertypeElement.lookUpGetter(getterName, library);
+      InterfaceType supertype = currentElement.getSupertype();
+      if (supertype == null) {
+        return null;
       }
+      currentElement = supertype.getElement();
     }
     return null;
   }
 
   @Override
   public MethodElement lookUpMethod(String methodName, LibraryElement library) {
-    MethodElement element = getMethod(methodName);
-    if (element != null && element.isAccessibleIn(library)) {
-      return element;
-    }
-    for (InterfaceType mixin : mixins) {
-      ClassElement mixinElement = mixin.getElement();
-      if (mixinElement != null) {
-        element = ((ClassElementImpl) mixinElement).getMethod(methodName);
-        if (element != null && element.isAccessibleIn(library)) {
-          return element;
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    ClassElement currentElement = this;
+    while (currentElement != null && !visitedClasses.contains(currentElement)) {
+      visitedClasses.add(currentElement);
+      MethodElement element = currentElement.getMethod(methodName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+      for (InterfaceType mixin : currentElement.getMixins()) {
+        ClassElement mixinElement = mixin.getElement();
+        if (mixinElement != null) {
+          element = mixinElement.getMethod(methodName);
+          if (element != null && element.isAccessibleIn(library)) {
+            return element;
+          }
         }
       }
-    }
-    if (supertype != null) {
-      ClassElement supertypeElement = supertype.getElement();
-      if (supertypeElement != null) {
-        return supertypeElement.lookUpMethod(methodName, library);
+      InterfaceType supertype = currentElement.getSupertype();
+      if (supertype == null) {
+        return null;
       }
+      currentElement = supertype.getElement();
     }
     return null;
   }
 
   @Override
   public PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library) {
-    PropertyAccessorElement element = getSetter(setterName);
-    if (element != null && element.isAccessibleIn(library)) {
-      return element;
-    }
-    for (InterfaceType mixin : mixins) {
-      ClassElement mixinElement = mixin.getElement();
-      if (mixinElement != null) {
-        element = ((ClassElementImpl) mixinElement).getSetter(setterName);
-        if (element != null && element.isAccessibleIn(library)) {
-          return element;
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    ClassElement currentElement = this;
+    while (currentElement != null && !visitedClasses.contains(currentElement)) {
+      visitedClasses.add(currentElement);
+      PropertyAccessorElement element = currentElement.getSetter(setterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+      for (InterfaceType mixin : currentElement.getMixins()) {
+        ClassElement mixinElement = mixin.getElement();
+        if (mixinElement != null) {
+          element = mixinElement.getSetter(setterName);
+          if (element != null && element.isAccessibleIn(library)) {
+            return element;
+          }
         }
       }
-    }
-    if (supertype != null) {
-      ClassElement supertypeElement = supertype.getElement();
-      if (supertypeElement != null) {
-        return supertypeElement.lookUpSetter(setterName, library);
+      InterfaceType supertype = currentElement.getSupertype();
+      if (supertype == null) {
+        return null;
       }
+      currentElement = supertype.getElement();
     }
     return null;
   }
@@ -563,21 +565,31 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     }
   }
 
-  private void collectAllSupertypes(HashSet<InterfaceType> list) {
-    if (supertype == null || list.contains(supertype)) {
-      return;
-    }
-    list.add(supertype);
-    ((ClassElementImpl) supertype.getElement()).collectAllSupertypes(list);
-    for (InterfaceType type : getInterfaces()) {
-      if (!list.contains(type)) {
-        list.add(type);
-        ((ClassElementImpl) type.getElement()).collectAllSupertypes(list);
-      }
-    }
-    for (InterfaceType type : getMixins()) {
-      if (!list.contains(type)) {
-        list.add(type);
+  private void collectAllSupertypes(ArrayList<InterfaceType> supertypes) {
+    ArrayList<InterfaceType> typesToVisit = new ArrayList<InterfaceType>();
+    ArrayList<ClassElement> visitedClasses = new ArrayList<ClassElement>();
+    typesToVisit.add(this.getType());
+    while (!typesToVisit.isEmpty()) {
+      InterfaceType currentType = typesToVisit.remove(0);
+      ClassElement currentElement = currentType.getElement();
+      if (!visitedClasses.contains(currentElement)) {
+        visitedClasses.add(currentElement);
+        if (currentType != this.getType()) {
+          supertypes.add(currentType);
+        }
+        InterfaceType supertype = currentType.getSuperclass();
+        if (supertype != null) {
+          typesToVisit.add(supertype);
+        }
+        for (InterfaceType type : currentElement.getInterfaces()) {
+          typesToVisit.add(type);
+        }
+        for (InterfaceType type : currentElement.getMixins()) {
+          ClassElement element = type.getElement();
+          if (!visitedClasses.contains(element)) {
+            supertypes.add(type);
+          }
+        }
       }
     }
   }

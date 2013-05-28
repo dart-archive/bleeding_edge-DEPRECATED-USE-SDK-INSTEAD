@@ -29,7 +29,8 @@ public interface ClassElement extends Element {
   public PropertyAccessorElement[] getAccessors();
 
   /**
-   * Return an array containing all the supertypes defined for this class and its supertypes.
+   * Return an array containing all the supertypes defined for this class and its supertypes. This
+   * includes superclasses, mixins and interfaces.
    * 
    * @return all the supertypes of this class, including mixins
    */
@@ -50,11 +51,34 @@ public interface ClassElement extends Element {
   public FieldElement[] getFields();
 
   /**
+   * Return the element representing the getter with the given name that is declared in this class,
+   * or {@code null} if this class does not declare a getter with the given name.
+   * 
+   * @param getterName the name of the getter to be returned
+   * @return the getter declared in this class with the given name
+   */
+  public PropertyAccessorElement getGetter(String getterName);
+
+  /**
    * Return an array containing all of the interfaces that are implemented by this class.
+   * <p>
+   * <b>Note:</b> Because the element model represents the state of the code, it is possible for it
+   * to be semantically invalid. In particular, it is not safe to assume that the inheritance
+   * structure of a class does not contain a cycle. Clients that traverse the inheritance structure
+   * must explicitly guard against infinite loops.
    * 
    * @return the interfaces that are implemented by this class
    */
   public InterfaceType[] getInterfaces();
+
+  /**
+   * Return the element representing the method with the given name that is declared in this class,
+   * or {@code null} if this class does not declare a method with the given name.
+   * 
+   * @param methodName the name of the method to be returned
+   * @return the method declared in this class with the given name
+   */
+  public MethodElement getMethod(String methodName);
 
   /**
    * Return an array containing all of the methods declared in this class.
@@ -66,6 +90,11 @@ public interface ClassElement extends Element {
   /**
    * Return an array containing all of the mixins that are applied to the class being extended in
    * order to derive the superclass of this class.
+   * <p>
+   * <b>Note:</b> Because the element model represents the state of the code, it is possible for it
+   * to be semantically invalid. In particular, it is not safe to assume that the inheritance
+   * structure of a class does not contain a cycle. Clients that traverse the inheritance structure
+   * must explicitly guard against infinite loops.
    * 
    * @return the mixins that are applied to derive the superclass of this class
    */
@@ -81,9 +110,23 @@ public interface ClassElement extends Element {
   public ConstructorElement getNamedConstructor(String name);
 
   /**
+   * Return the element representing the setter with the given name that is declared in this class,
+   * or {@code null} if this class does not declare a setter with the given name.
+   * 
+   * @param setterName the name of the getter to be returned
+   * @return the setter declared in this class with the given name
+   */
+  public PropertyAccessorElement getSetter(String setterName);
+
+  /**
    * Return the superclass of this class, or {@code null} if the class represents the class
    * 'Object'. All other classes will have a non-{@code null} superclass. If the superclass was not
    * explicitly declared then the implicit superclass 'Object' will be returned.
+   * <p>
+   * <b>Note:</b> Because the element model represents the state of the code, it is possible for it
+   * to be semantically invalid. In particular, it is not safe to assume that the inheritance
+   * structure of a class does not contain a cycle. Clients that traverse the inheritance structure
+   * must explicitly guard against infinite loops.
    * 
    * @return the superclass of this class
    */

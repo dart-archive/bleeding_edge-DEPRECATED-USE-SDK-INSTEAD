@@ -15,11 +15,13 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.type.InterfaceType;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.fieldElement;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
 import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
@@ -66,6 +68,14 @@ public class ClassElementImplTest extends EngineTestCase {
     assertFalse(types.contains(typeC));
   }
 
+  public void test_getAllSupertypes_recursive() {
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    classA.setSupertype(classB.getType());
+    InterfaceType[] supers = classB.getAllSupertypes();
+    assertLength(1, supers);
+  }
+
   public void test_getMethod_declared() {
     ClassElementImpl classA = classElement("A");
     String methodName = "m";
@@ -80,6 +90,38 @@ public class ClassElementImplTest extends EngineTestCase {
     MethodElement method = methodElement(methodName, null);
     classA.setMethods(new MethodElement[] {method});
     assertNull(classA.getMethod(methodName + "x"));
+  }
+
+  public void test_hasNonFinalField_false_const() {
+    ClassElementImpl classA = classElement("A");
+    classA.setFields(new FieldElement[] {fieldElement("f", false, false, true, classA.getType())});
+    assertFalse(classA.hasNonFinalField());
+  }
+
+  public void test_hasNonFinalField_false_final() {
+    ClassElementImpl classA = classElement("A");
+    classA.setFields(new FieldElement[] {fieldElement("f", false, true, false, classA.getType())});
+    assertFalse(classA.hasNonFinalField());
+  }
+
+  public void test_hasNonFinalField_false_recursive() {
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    classA.setSupertype(classB.getType());
+    assertFalse(classA.hasNonFinalField());
+  }
+
+  public void test_hasNonFinalField_true_immediate() {
+    ClassElementImpl classA = classElement("A");
+    classA.setFields(new FieldElement[] {fieldElement("f", false, false, false, classA.getType())});
+    assertTrue(classA.hasNonFinalField());
+  }
+
+  public void test_hasNonFinalField_true_inherited() {
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    classA.setFields(new FieldElement[] {fieldElement("f", false, false, false, classA.getType())});
+    assertTrue(classB.hasNonFinalField());
   }
 
   public void test_lookUpGetter_declared() {
@@ -108,6 +150,16 @@ public class ClassElementImplTest extends EngineTestCase {
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertNull(classA.lookUpGetter("g", library));
+  }
+
+  public void test_lookUpGetter_undeclared_recursive() {
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    classA.setSupertype(classB.getType());
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
     assertNull(classA.lookUpGetter("g", library));
   }
 
@@ -140,6 +192,16 @@ public class ClassElementImplTest extends EngineTestCase {
     assertNull(classA.lookUpMethod("m", library));
   }
 
+  public void test_lookUpMethod_undeclared_recursive() {
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    classA.setSupertype(classB.getType());
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
+    assertNull(classA.lookUpMethod("m", library));
+  }
+
   public void test_lookUpSetter_declared() {
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
@@ -166,6 +228,16 @@ public class ClassElementImplTest extends EngineTestCase {
     LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
+    assertNull(classA.lookUpSetter("s", library));
+  }
+
+  public void test_lookUpSetter_undeclared_recursive() {
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
+    ClassElementImpl classA = classElement("A");
+    ClassElementImpl classB = classElement("B", classA.getType());
+    classA.setSupertype(classB.getType());
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        classA, classB});
     assertNull(classA.lookUpSetter("s", library));
   }
 }
