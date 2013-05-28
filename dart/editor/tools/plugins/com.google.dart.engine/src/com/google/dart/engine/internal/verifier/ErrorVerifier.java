@@ -672,16 +672,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitSwitchCase(SwitchCase node) {
-    checkForCaseBlockNotTerminated(node);
-    return super.visitSwitchCase(node);
-  }
-
-  @Override
   public Void visitSwitchStatement(SwitchStatement node) {
     checkForCaseExpressionTypeImplementsEquals(node);
     checkForInconsistentCaseExpressionTypes(node);
     checkForSwitchExpressionNotAssignable(node);
+    checkForCaseBlocksNotTerminated(node);
     return super.visitSwitchStatement(node);
   }
 
@@ -1464,6 +1459,27 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     // report error
     errorReporter.reportError(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, node.getKeyword());
     return true;
+  }
+
+  /**
+   * This verifies that the switch cases in the given switch statement is terminated with 'break',
+   * 'continue', 'return' or 'throw'.
+   * 
+   * @param node the switch statement containing the cases to be checked
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#CASE_BLOCK_NOT_TERMINATED
+   */
+  private boolean checkForCaseBlocksNotTerminated(SwitchStatement node) {
+    boolean foundError = false;
+    NodeList<SwitchMember> members = node.getMembers();
+    int lastMember = members.size() - 1;
+    for (int i = 0; i < lastMember; i++) {
+      SwitchMember member = members.get(i);
+      if (member instanceof SwitchCase) {
+        foundError |= checkForCaseBlockNotTerminated((SwitchCase) member);
+      }
+    }
+    return foundError;
   }
 
   /**

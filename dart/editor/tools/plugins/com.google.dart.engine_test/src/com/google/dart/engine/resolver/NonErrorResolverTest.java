@@ -224,6 +224,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_caseBlockNotTerminated_lastCase() throws Exception {
+    Source source = addSource(createSource(//
+        "f(int p) {",
+        "  switch (p) {",
+        "    case 0:",
+        "      p = p + 1;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_caseExpressionTypeImplementsEquals_int() throws Exception {
     Source source = addSource(createSource(//
         "f(int i) {",

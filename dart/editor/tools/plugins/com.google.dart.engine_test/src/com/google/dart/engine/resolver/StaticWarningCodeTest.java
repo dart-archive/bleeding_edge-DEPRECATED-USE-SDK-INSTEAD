@@ -575,18 +575,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_caseBlockNotTerminated_noFollowingSwitchCase() throws Exception {
-    Source source = addSource(createSource(//
-        "f(int p) {",
-        "  switch (p) {",
-        "    case 0:",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED);
-    verify(source);
-  }
-
   public void test_concreteClassWithAbstractMember() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
