@@ -46,12 +46,12 @@ public class HtmlRenderHelper {
       File tempFile = File.createTempFile("htmlRender", ".html");
       try {
         IOUtils2.writeBytes(tempFile, content.getBytes());
-        // start DumpRenderTree
+        // start content shell.
         if (processOutputStream == null) {
           String path;
           {
             Bundle bundle = DartDesignerPlugin.getDefault().getBundle();
-            URL url = bundle.getEntry("lib/DumpRenderTree.app/Contents/MacOS/DumpRenderTree");
+            URL url = bundle.getEntry("lib/Content Shell.app/Contents/MacOS/Content Shell");
             path = FileLocator.toFileURL(url).getPath();
           }
 //        ProcessBuilder builder = new ProcessBuilder(path, "-p", tempFile.getAbsolutePath());

@@ -35,12 +35,12 @@ main() {
     deliverChangesSync();
 
     // To ensure we click in the correct place, we calculate x, y offset where
-    // we want to click based on the coordinates given by DumpRenderTree, and
+    // we want to click based on the coordinates given by content shell, and
     // then adapt those offset in the current window. This makes is possible to
     // debug the application in Dartium reliably.
 
     var bounding = document.body.getBoundingClientRect();
-    // The x, y location of body in the DumpRenderTree output was: (117, 130)
+    // The x, y location of body in the content shell output was: (117, 130)
     // and location of the node we want to click was: (119, 398)
     int x = bounding.left.toInt() + (119 - 117);
     int y = bounding.top.toInt() + (398 - 130);

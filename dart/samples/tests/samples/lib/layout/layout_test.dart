@@ -19,7 +19,7 @@ part 'grid_examples.dart';
 part 'css.dart';
 
 // TODO(jmesserly): these tests would be easier to work with if they were WebKit
-// layout tests. The way DumpRenderTree works is exactly what we want for
+// layout tests. The way content shell works is exactly what we want for
 // testing layout: run the example and then print the element tree with metrics.
 // The UnitTestSuite wrapper gets in our way here, because you can't "see" the
 // test layout visually when you're debugging.
