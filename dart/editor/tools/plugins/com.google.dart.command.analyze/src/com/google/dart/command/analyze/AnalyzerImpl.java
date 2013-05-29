@@ -14,7 +14,6 @@
 package com.google.dart.command.analyze;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -82,37 +81,39 @@ class AnalyzerImpl {
       throw new IllegalArgumentException("sourceFile cannot be null");
     }
 
-    AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
-    ContentCache contentCache = new ContentCache();
-    SourceFactory sourceFactory;
-
+    // prepare "packages" directory
+    File packageDirectory;
     if (options.getPackageRootPath() != null) {
+      packageDirectory = options.getPackageRootPath();
+    } else {
+      packageDirectory = getPackageDirectoryFor(sourceFile);
+    }
+
+    // create SourceFactory
+    SourceFactory sourceFactory;
+    ContentCache contentCache = new ContentCache();
+    if (packageDirectory != null) {
       sourceFactory = new SourceFactory(
           contentCache,
           new DartUriResolver(sdk),
           new FileUriResolver(),
-          new PackageUriResolver(options.getPackageRootPath()));
-    } else if (getPackageDirectoryFor(sourceFile) != null) {
-      sourceFactory = new SourceFactory(
-          new DartUriResolver(sdk),
-          new FileUriResolver(),
-          new PackageUriResolver(getPackageDirectoryFor(sourceFile)));
+          new PackageUriResolver(packageDirectory));
     } else {
       sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     }
 
+    // prepare AnalysisContext
+    AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
     context.setSourceFactory(sourceFactory);
 
+    // analyze the given file
     Source librarySource = new FileBasedSource(contentCache, sourceFile);
     LibraryElement library = context.computeLibraryElement(librarySource);
+    context.resolveCompilationUnit(librarySource, library);
 
-    @SuppressWarnings("unused")
-    CompilationUnit unit = context.resolveCompilationUnit(librarySource, library);
-
+    // prepare errors
     Set<Source> sources = getAllSources(library);
-
     getAllErrors(context, sources, errors);
-
     return getMaxErrorSeverity(errors);
   }
 
@@ -210,22 +211,17 @@ class AnalyzerImpl {
   }
 
   private File getPackageDirectoryFor(File sourceFile) {
-    // look in the containing dir
+    // we are going to ask parent file, so get absolute path
+    sourceFile = sourceFile.getAbsoluteFile();
+
+    // look in the containing directories
     File dir = sourceFile.getParentFile();
-
-    File packagesDir = new File(dir, "packages");
-
-    if (packagesDir.exists()) {
-      return packagesDir;
-    }
-
-    // and in the parent dir (to capture files in the lib directory)
-    dir = dir.getParentFile();
-
-    packagesDir = new File(dir, "packages");
-
-    if (packagesDir.exists()) {
-      return packagesDir;
+    while (dir != null) {
+      File packagesDir = new File(dir, "packages");
+      if (packagesDir.exists()) {
+        return packagesDir;
+      }
+      dir = dir.getParentFile();
     }
 
     return null;
