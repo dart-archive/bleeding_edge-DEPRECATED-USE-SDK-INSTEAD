@@ -1343,7 +1343,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   private Type computeReturnType(FunctionDeclaration node) {
     TypeName returnType = node.getReturnType();
     if (returnType == null) {
-      return computeReturnType(node.getFunctionExpression());
+      return dynamicType;
     }
     return returnType.getType();
   }

@@ -1160,6 +1160,66 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_misMatchedGetterAndSetterTypes_instance_sameTypes() throws Exception {
+    Source source = addSource(createSource(//
+        "class C {",
+        "  int get x => 0;",
+        "  set x(int v) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_misMatchedGetterAndSetterTypes_instance_unspecifiedGetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class C {",
+        "  get x => 0;",
+        "  set x(String v) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_misMatchedGetterAndSetterTypes_instance_unspecifiedSetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class C {",
+        "  int get x => 0;",
+        "  set x(v) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_misMatchedGetterAndSetterTypes_topLevel_sameTypes() throws Exception {
+    Source source = addSource(createSource(//
+        "int get x => 0;",
+        "set x(int v) {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_misMatchedGetterAndSetterTypes_topLevel_unspecifiedGetter() throws Exception {
+    Source source = addSource(createSource(//
+        "get x => 0;",
+        "set x(String v) {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_misMatchedGetterAndSetterTypes_topLevel_unspecifiedSetter() throws Exception {
+    Source source = addSource(createSource(//
+        "int get x => 0;",
+        "set x(v) {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_mixinDeclaresConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
