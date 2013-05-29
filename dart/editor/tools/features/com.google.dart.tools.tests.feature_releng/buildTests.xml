@@ -253,14 +253,6 @@
             </fileset>
         </copy>
         
-        <!-- com.google.dart.compiler.js_test -->
-        <property name="dart.compiler.js_test.dir" 
-                  value="${build.stage.plugins}/com.google.dart.compiler.js_test" />
-        <mkdir dir="${dart.compiler.js_test.dir}/javatests" />
-        <copy todir="${dart.compiler.js_test.dir}/javatests">
-             <fileset dir="${build.source.root}/compiler/javatests" />
-        </copy>
-        
         <!-- deploy the plugins and features to the dropins directory -->
         <unzip dest="${build.target.dropins}" src="${build.out}/dart-editor-${build.eclipse.os.ws}.${build.eclipse.arch}.zip">
             <patternset>

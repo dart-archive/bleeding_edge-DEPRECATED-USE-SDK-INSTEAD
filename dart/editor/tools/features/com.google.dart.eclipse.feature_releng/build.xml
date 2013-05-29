@@ -79,15 +79,6 @@
     	
       <property name="source.root" location="${source.dir}/../.." /> 	
     	
-    	<!-- compiler.js dependencies-->
-    	
-      <!-- com.google.dart.compiler.js -->
-    	<property name="dart.compiler.js.dir" 
-    	          location="${build.dir}/plugins/com.google.dart.compiler.js" />
-    	<mkdir dir="${dart.compiler.js.dir}/src-compiler" />
-    	<copy todir="${dart.compiler.js.dir}/src-compiler">
-    	    <fileset dir="${source.root}/compiler/java" />
-    	</copy>
     	
       <!-- com.google.dart.thirdparty -->
       <property name="dart.compiler.thirdparty.dir" 

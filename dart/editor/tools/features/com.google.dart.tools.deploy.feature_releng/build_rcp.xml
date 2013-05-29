@@ -413,21 +413,6 @@ build system.  The PDE build system has to run under Eclipse.
             </fileset>
         </copy>
         
-        <!-- com.google.dart.compiler.js -->
-        <property name="dart.compiler.js.dir" 
-                  value="${build.stage.plugins}/com.google.dart.compiler.js" />
-        <mkdir dir="${dart.compiler.js.dir}/src-compiler" />
-        <copy todir="${dart.compiler.js.dir}/src-compiler">
-             <fileset dir="${build.source.root}/compiler/java" />
-        </copy>
-
-        <!-- com.google.dart.compiler.js_test -->
-        <property name="dart.compiler.js_test.dir" 
-                  value="${build.stage.plugins}/com.google.dart.compiler.js_test" />
-        <mkdir dir="${dart.compiler.js_test.dir}/javatests" />
-        <copy todir="${dart.compiler.js_test.dir}/javatests">
-             <fileset dir="${build.source.root}/compiler/javatests" />
-        </copy>
     </target>
 
     <!-- - - - - - - - - - - - - - - - - - 
