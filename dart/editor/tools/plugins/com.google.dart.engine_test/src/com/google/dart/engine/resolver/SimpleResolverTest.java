@@ -449,6 +449,24 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_labels_switch() throws Exception {
+    Source source = addSource(createSource(//
+        "void doSwitch(int target) {",
+        "  switch (target) {",
+        "    l0: case 0:",
+        "      continue l1;",
+        "    l1: case 1:",
+        "      continue l0;",
+        "    default:",
+        "      continue l1;",
+        "  }",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_metadata_class() throws Exception {
     Source source = addSource(createSource(//
         "const A = null;",

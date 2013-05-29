@@ -345,28 +345,24 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitSwitchCase(SwitchCase node) {
     node.getExpression().accept(this);
-    LabelScope outerLabelScope = addScopesFor(node.getLabels());
     Scope outerNameScope = nameScope;
     nameScope = new EnclosedScope(nameScope);
     try {
       node.getStatements().accept(this);
     } finally {
       nameScope = outerNameScope;
-      labelScope = outerLabelScope;
     }
     return null;
   }
 
   @Override
   public Void visitSwitchDefault(SwitchDefault node) {
-    LabelScope outerLabelScope = addScopesFor(node.getLabels());
     Scope outerNameScope = nameScope;
     nameScope = new EnclosedScope(nameScope);
     try {
       node.getStatements().accept(this);
     } finally {
       nameScope = outerNameScope;
-      labelScope = outerLabelScope;
     }
     return null;
   }
@@ -379,7 +375,7 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
       for (Label label : member.getLabels()) {
         SimpleIdentifier labelName = label.getLabel();
         LabelElement labelElement = (LabelElement) labelName.getElement();
-        labelScope = new LabelScope(outerScope, labelName.getName(), labelElement);
+        labelScope = new LabelScope(labelScope, labelName.getName(), labelElement);
       }
     }
     try {
