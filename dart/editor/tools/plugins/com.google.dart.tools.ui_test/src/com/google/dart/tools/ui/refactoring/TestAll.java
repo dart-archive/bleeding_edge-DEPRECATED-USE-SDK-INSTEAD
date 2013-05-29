@@ -26,7 +26,6 @@ public class TestAll {
 //    suite.addTestSuite(RenameResourceParticipant_OLD_Test.class);
     suite.addTestSuite(MoveResourceParticipantTest.class);
     // extract
-    suite.addTestSuite(ExtractUtilsTest.class);
 //    suite.addTestSuite(ExtractLocalRefactoringTest.class);
 //    suite.addTestSuite(ExtractMethodRefactoringTest.class);
     // inline

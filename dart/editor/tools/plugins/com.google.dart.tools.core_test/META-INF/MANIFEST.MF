@@ -7,8 +7,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: com.google.dart.tools.core_test;singleton:=true
 Bundle-Version: 0.0.0.qualifier
 Bundle-Vendor: %providerName
-Require-Bundle: com.google.dart.compiler.js,
- com.google.dart.engine,
+Require-Bundle: com.google.dart.engine,
  com.google.dart.tools.core,
  com.google.dart.thirdparty_test;visibility:=reexport,
  org.eclipse.core.resources,

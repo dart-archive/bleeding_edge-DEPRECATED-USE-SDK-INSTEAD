@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.swtbot.util;
 
-import com.google.dart.compiler.util.apache.FileUtils;
 import com.google.dart.tools.ui.swtbot.DartLib;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -41,7 +40,25 @@ public class AntRunner {
     return runner;
   }
 
+  private static File toFile(URL url) {
+    if (url == null || !url.getProtocol().equals("file")) {
+      return null;
+    } else {
+      String filename = url.getFile().replace('/', File.separatorChar);
+      int pos = 0;
+      while ((pos = filename.indexOf('%', pos)) >= 0) {
+        if (pos + 2 < filename.length()) {
+          String hexStr = filename.substring(pos + 1, pos + 3);
+          char ch = (char) Integer.parseInt(hexStr, 16);
+          filename = filename.substring(0, pos) + ch + filename.substring(pos + 3);
+        }
+      }
+      return new File(filename);
+    }
+  }
+
   private String target;
+
   private Map<String, String> properties;
 
   private AntRunner() {
@@ -129,7 +146,7 @@ public class AntRunner {
       throw new RuntimeException("Failed to find lib/ant-launcher.jar in plugin org.apache.ant");
     }
     try {
-      File file = FileUtils.toFile(FileLocator.toFileURL(entry));
+      File file = toFile(FileLocator.toFileURL(entry));
       return file.toString();
     } catch (IOException e) {
       throw new RuntimeException(e);
