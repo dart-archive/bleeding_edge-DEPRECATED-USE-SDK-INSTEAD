@@ -2477,7 +2477,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
     // If either types are not assignable to each other, report an error (if the getter is null,
     // it is dynamic which is assignable to everything).
-    if (getterType != null && !getterType.isAssignableTo(setterType)) {
+    if (setterType != null && getterType != null && !getterType.isAssignableTo(setterType)) {
       errorReporter.reportError(
           StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
           accessorDeclaration,
