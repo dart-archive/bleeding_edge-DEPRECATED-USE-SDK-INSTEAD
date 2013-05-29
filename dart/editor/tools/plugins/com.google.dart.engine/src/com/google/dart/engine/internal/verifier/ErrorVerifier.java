@@ -2665,13 +2665,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         // abstract method from the superclass.
         if (methodElt.isAbstract()) {
           String methodName = entry.getKey();
-          boolean foundOverridingMethod = false;
-          if (methodsInEnclosingClass.contains(methodName)) {
-            foundOverridingMethod = true;
-          }
-          // If an abstract method was found in a superclass, but it is not in the subclass, then
-          // add the executable element to the missingOverides set.
-          if (!foundOverridingMethod) {
+          // If an abstract method was inherited from a superclass, but is not overridden in the
+          // subclass, then add the inherited method to the missingOverides set.
+          if (!methodsInEnclosingClass.contains(methodName)) {
             missingOverrides.add(executableElt);
           }
         }
@@ -2681,13 +2677,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         // the abstract accessor from the superclass.
         if (propertyAccessorElt.isAbstract()) {
           String accessorName = entry.getKey();
-          boolean foundOverridingMember = false;
-          if (accessorsInEnclosingClass.contains(accessorName)) {
-            foundOverridingMember = true;
-          }
-          // If an abstract method was found in a superclass, but it is not in the subclass, then
-          // add the executable element to the missingOverides set.
-          if (!foundOverridingMember) {
+          // If an abstract accessor was inherited from a superclass, but is not overridden in the
+          // subclass, then add the inherited accessor to the missingOverides set.
+          if (!accessorsInEnclosingClass.contains(accessorName)) {
             missingOverrides.add(executableElt);
           }
         }
@@ -2711,25 +2703,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       if (executableElt instanceof MethodElement) {
         // Verify that this class has a method which overrides the method from the interface.
         String methodName = entry.getKey();
-        boolean foundOverridingMethod = false;
-        if (methodsInEnclosingClass.contains(methodName)) {
-          foundOverridingMethod = true;
-        }
-        // If a method was found in an interface, but it is not in the enclosing class, then add the
-        // executable element to the missingOverides set.
-        if (!foundOverridingMethod) {
+        // If a method was inherited from an interface, but is not implemented by either the class
+        // or one of its superclasses, then add the inherited method to the missingOverides set.
+        if (!methodsInEnclosingClass.contains(methodName)) {
           missingOverrides.add(executableElt);
         }
       } else if (executableElt instanceof PropertyAccessorElement) {
         // Verify that this class has a member which overrides the method from the interface.
         String accessorName = entry.getKey();
-        boolean foundOverridingMember = false;
-        if (accessorsInEnclosingClass.contains(accessorName)) {
-          foundOverridingMember = true;
-        }
-        // If a method was found in an interface, but it is not in the enclosing class, then add the
-        // executable element to the missingOverides set.
-        if (!foundOverridingMember) {
+        // If an accessor was inherited from an interface, but is not implemented by either the
+        // class or one of its superclasses, then add the inherited accessor to the missingOverides
+        // set.
+        if (!accessorsInEnclosingClass.contains(accessorName)) {
           missingOverrides.add(executableElt);
         }
       }
