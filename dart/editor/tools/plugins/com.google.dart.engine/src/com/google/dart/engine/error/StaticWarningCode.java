@@ -242,6 +242,9 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares an instance method
    * named <i>n</i> and an accessible static member named <i>n</i> is declared in a superclass of
    * <i>C</i>.
+   * 
+   * @param memberName the name of the member with the name conflict
+   * @param superclassName the name of the enclosing class that has the static member
    */
   INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC(
       "'%s' collides with a static member in the superclass '%s'"),
@@ -255,7 +258,11 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.2 Getters: It is a static warning if a getter <i>m1</i> overrides a getter <i>m2</i> and the
    * type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
-   * @see #INVALID_MEMBER_OVERRIDE_RETURN_TYPE
+   * @param actualReturnTypeName the name of the expected return type
+   * @param expectedReturnType the name of the actual return type, not assignable to the
+   *          actualReturnTypeName
+   * @param className the name of the class where the overridden getter is declared
+   * @see #INVALID_METHOD_OVERRIDE_RETURN_TYPE
    */
   INVALID_GETTER_OVERRIDE_RETURN_TYPE(
       "The return type '%s' is not assignable to '%s' as required from getter it is overriding from '%s'"),
@@ -264,8 +271,10 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
-   * @param methodName the name of the method being overridden
-   * @param className the name of the class where the overridden member is declared
+   * @param actualParamTypeName the name of the expected parameter type
+   * @param expectedParamType the name of the actual parameter type, not assignable to the
+   *          actualParamTypeName
+   * @param className the name of the class where the overridden method is declared
    */
   INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE(
       "The parameter type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
@@ -274,8 +283,11 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
-   * @param methodName the name of the method being overridden
-   * @param className the name of the class where the overridden member is declared
+   * @param actualParamTypeName the name of the expected parameter type
+   * @param expectedParamType the name of the actual parameter type, not assignable to the
+   *          actualParamTypeName
+   * @param className the name of the class where the overridden method is declared
+   * @see #INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE
    */
   INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE(
       "The parameter type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'"),
@@ -284,8 +296,10 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
-   * @param methodName the name of the method being overridden
-   * @param className the name of the class where the overridden member is declared
+   * @param actualParamTypeName the name of the expected parameter type
+   * @param expectedParamType the name of the actual parameter type, not assignable to the
+   *          actualParamTypeName
+   * @param className the name of the class where the overridden method is declared
    */
   INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE(
       "The parameter type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
@@ -294,8 +308,11 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
    * instance method <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
-   * @param methodName the name of the method being overridden
-   * @param className the name of the class where the overridden member is declared
+   * @param actualReturnTypeName the name of the expected return type
+   * @param expectedReturnType the name of the actual return type, not assignable to the
+   *          actualReturnTypeName
+   * @param className the name of the class where the overridden method is declared
+   * @see #INVALID_GETTER_OVERRIDE_RETURN_TYPE
    */
   INVALID_METHOD_OVERRIDE_RETURN_TYPE(
       "The return type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
@@ -312,7 +329,11 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a setter <i>m2</i> and the
    * type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
-   * @see #INVALID_MEMBER_OVERRIDE_NORMAL_PARAM_TYPE
+   * @param actualParamTypeName the name of the expected parameter type
+   * @param expectedParamType the name of the actual parameter type, not assignable to the
+   *          actualParamTypeName
+   * @param className the name of the class where the overridden setter is declared
+   * @see #INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
    */
   INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE(
       "The parameter type '%s' is not assignable to '%s' as required by the setter it is overriding from '%s'"),

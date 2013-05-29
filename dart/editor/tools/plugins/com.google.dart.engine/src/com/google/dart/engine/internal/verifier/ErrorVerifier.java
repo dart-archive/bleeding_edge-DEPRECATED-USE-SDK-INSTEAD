@@ -882,7 +882,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#INVALID_OVERRIDE_REQUIRED
    * @see CompileTimeErrorCode#INVALID_OVERRIDE_POSITIONAL
    * @see CompileTimeErrorCode#INVALID_OVERRIDE_NAMED
+   * @see StaticWarningCode#INVALID_GETTER_OVERRIDE_RETURN_TYPE
    * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_RETURN_TYPE
+   * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
+   * @see StaticWarningCode#INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE
+   * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE
+   * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE
    */
   private boolean checkForAllInvalidOverrideErrorCodes(MethodDeclaration node) {
     // TODO (jwren) Missing check for INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES, we need the
@@ -2634,8 +2639,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param node the {@link ClassDeclaration} to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_SINGLE
-   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_MULTIPLE
+   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
+   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO
+   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE
+   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR
+   * @see StaticWarningCode#NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS
    */
   private boolean checkForNonAbstractClassInheritsAbstractMember(ClassDeclaration node) {
     if (enclosingClass.isAbstract()) {
@@ -2731,7 +2739,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           node.getName(),
           missingOverridesArray[0].getEnclosingElement().getDisplayName(),
           missingOverridesArray[0].getDisplayName());
-      return true;
     } else if (missingOverridesSize == 2) {
       errorReporter.reportError(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
@@ -2740,7 +2747,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           missingOverridesArray[0].getDisplayName(),
           missingOverridesArray[1].getEnclosingElement().getDisplayName(),
           missingOverridesArray[1].getDisplayName());
-      return true;
     } else if (missingOverridesSize == 3) {
       errorReporter.reportError(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
@@ -2751,7 +2757,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           missingOverridesArray[1].getDisplayName(),
           missingOverridesArray[2].getEnclosingElement().getDisplayName(),
           missingOverridesArray[2].getDisplayName());
-      return true;
     } else if (missingOverridesSize == 4) {
       errorReporter.reportError(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
@@ -2764,7 +2769,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           missingOverridesArray[2].getDisplayName(),
           missingOverridesArray[3].getEnclosingElement().getDisplayName(),
           missingOverridesArray[3].getDisplayName());
-      return true;
     } else {
       errorReporter.reportError(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
@@ -2778,8 +2782,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           missingOverridesArray[3].getEnclosingElement().getDisplayName(),
           missingOverridesArray[3].getDisplayName(),
           missingOverridesArray.length - 4);
-      return true;
     }
+    return true;
   }
 
   /**
