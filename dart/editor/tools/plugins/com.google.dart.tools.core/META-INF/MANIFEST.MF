@@ -7,8 +7,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: com.google.dart.tools.core;singleton:=true
 Bundle-Version: 0.0.0.qualifier
 Bundle-Vendor: %providerName
-Require-Bundle: com.google.dart.compiler.js,
- org.eclipse.core.filesystem,
+Require-Bundle: org.eclipse.core.filesystem,
  org.eclipse.core.resources,
  org.eclipse.core.runtime,
  org.eclipse.ltk.core.refactoring,
@@ -19,7 +18,16 @@ Require-Bundle: com.google.dart.compiler.js,
  com.google.dart.thirdparty;visibility:=reexport
 Bundle-ClassPath: .,
   lib/snakeyaml-1.10.jar
-Export-Package: com.google.dart.tools.core,
+Export-Package: com.google.dart.compiler,
+ com.google.dart.compiler.ast,
+ com.google.dart.compiler.common,
+ com.google.dart.compiler.metrics,
+ com.google.dart.compiler.parser,
+ com.google.dart.compiler.resolver,
+ com.google.dart.compiler.type,
+ com.google.dart.compiler.util,
+ com.google.dart.compiler.util.apache,
+ com.google.dart.tools.core,
  com.google.dart.tools.core.analysis,
  com.google.dart.tools.core.analysis.model,
  com.google.dart.tools.core.buffer,

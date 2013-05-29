@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
-import com.google.dart.compiler.util.apache.FileUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
@@ -34,6 +33,7 @@ import org.eclipse.ltk.core.refactoring.participants.RenameParticipant;
 import org.eclipse.ltk.core.refactoring.resource.ResourceChange;
 
 import java.io.File;
+import java.net.URL;
 
 /**
  * {@link RenameParticipant} for renaming {@link IProject} folder on disk.
@@ -63,7 +63,7 @@ public class RenameProjectParticipant extends RenameParticipant {
         IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(newName);
         IProjectDescription description = project.getDescription();
         // prepare locations
-        File currentFile = FileUtils.toFile(description.getLocationURI().toURL());
+        File currentFile = toFile(description.getLocationURI().toURL());
         File newFile = new File(currentFile.getParentFile(), newName);
         // point project to this new folder
         {
@@ -82,6 +82,23 @@ public class RenameProjectParticipant extends RenameParticipant {
     @Override
     protected IResource getModifiedResource() {
       return project;
+    }
+  }
+
+  private static File toFile(URL url) {
+    if (url == null || !url.getProtocol().equals("file")) {
+      return null;
+    } else {
+      String filename = url.getFile().replace('/', File.separatorChar);
+      int pos = 0;
+      while ((pos = filename.indexOf('%', pos)) >= 0) {
+        if (pos + 2 < filename.length()) {
+          String hexStr = filename.substring(pos + 1, pos + 3);
+          char ch = (char) Integer.parseInt(hexStr, 16);
+          filename = filename.substring(0, pos) + ch + filename.substring(pos + 3);
+        }
+      }
+      return new File(filename);
     }
   }
 

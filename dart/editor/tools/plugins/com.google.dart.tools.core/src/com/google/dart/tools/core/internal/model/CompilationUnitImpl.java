@@ -730,7 +730,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     }
     if (id instanceof DartPropertyAccess) {
       DartPropertyAccess p = (DartPropertyAccess) id;
-      DartIdentifier q = (DartIdentifier) p.getQualifier();
+      DartIdentifier q = p.getQualifier();
       DartIdentifier n = p.getName();
       typeName = q.getName() + "." + n.getName();
     } else {

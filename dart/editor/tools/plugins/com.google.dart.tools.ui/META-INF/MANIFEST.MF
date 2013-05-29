@@ -23,7 +23,6 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.compare,
  org.eclipse.ltk.core.refactoring,
  org.eclipse.ltk.ui.refactoring,
- com.google.dart.compiler.js,
  com.google.dart.tools.core,
  com.google.dart.tools.search,
  com.google.dart.engine
