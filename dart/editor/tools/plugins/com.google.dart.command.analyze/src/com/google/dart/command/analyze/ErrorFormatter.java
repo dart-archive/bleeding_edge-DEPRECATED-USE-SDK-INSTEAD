@@ -104,8 +104,8 @@ public class ErrorFormatter {
           length,
           escapePipe(error.getMessage())));
     } else {
-      // [warning] 'foo' is not a method or function (/Users/devoncarew/temp/foo.dart:-1:-1)
-      out.println(String.format("[%s] %s (%s:%d:%d)", //
+      // [warning] 'foo' is not a method or function (/Users/devoncarew/tmp/foo.dart, line 1, col 2)
+      out.println(String.format("[%s] %s (%s, line %d, col %d)", //
           error.getErrorCode().getErrorSeverity().getDisplayName(),
           error.getMessage(),
           source.getFullName(),
