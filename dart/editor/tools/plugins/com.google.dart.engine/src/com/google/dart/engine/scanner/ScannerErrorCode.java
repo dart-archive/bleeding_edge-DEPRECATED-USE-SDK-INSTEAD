@@ -59,9 +59,4 @@ public enum ScannerErrorCode implements ErrorCode {
   public ErrorType getType() {
     return ErrorType.SYNTACTIC_ERROR;
   }
-
-  @Override
-  public boolean needsRecompilation() {
-    return true;
-  }
 }

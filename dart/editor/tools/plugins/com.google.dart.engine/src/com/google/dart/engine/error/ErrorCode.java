@@ -40,13 +40,4 @@ public interface ErrorCode {
    * @return the type of the error
    */
   public ErrorType getType();
-
-  /**
-   * Return {@code true} if this error should cause recompilation of the source during the next
-   * incremental compilation.
-   * 
-   * @return {@code true} if this error should cause recompilation of the source during the next
-   *         incremental compilation
-   */
-  public boolean needsRecompilation();
 }

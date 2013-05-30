@@ -1129,9 +1129,4 @@ public enum CompileTimeErrorCode implements ErrorCode {
   public ErrorType getType() {
     return ErrorType.COMPILE_TIME_ERROR;
   }
-
-  @Override
-  public boolean needsRecompilation() {
-    return true;
-  }
 }

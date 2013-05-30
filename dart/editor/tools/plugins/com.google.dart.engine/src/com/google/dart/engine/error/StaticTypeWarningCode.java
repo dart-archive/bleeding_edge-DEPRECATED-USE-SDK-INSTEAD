@@ -263,9 +263,4 @@ public enum StaticTypeWarningCode implements ErrorCode {
   public ErrorType getType() {
     return ErrorType.STATIC_TYPE_WARNING;
   }
-
-  @Override
-  public boolean needsRecompilation() {
-    return true;
-  }
 }

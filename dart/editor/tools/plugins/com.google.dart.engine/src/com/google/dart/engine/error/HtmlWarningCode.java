@@ -67,9 +67,4 @@ public enum HtmlWarningCode implements ErrorCode {
     // TODO(brianwilkerson) We should probably define a new error type for this class.
     return ErrorType.STATIC_WARNING;
   }
-
-  @Override
-  public boolean needsRecompilation() {
-    return false;
-  }
 }

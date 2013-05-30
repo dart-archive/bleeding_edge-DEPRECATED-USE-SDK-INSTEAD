@@ -73,9 +73,4 @@ public enum ResolverErrorCode implements ErrorCode {
   public ErrorType getType() {
     return type;
   }
-
-  @Override
-  public boolean needsRecompilation() {
-    return true;
-  }
 }
