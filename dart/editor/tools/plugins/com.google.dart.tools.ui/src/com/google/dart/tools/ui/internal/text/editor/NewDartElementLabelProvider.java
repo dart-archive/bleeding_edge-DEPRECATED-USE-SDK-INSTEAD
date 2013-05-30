@@ -91,9 +91,10 @@ public class NewDartElementLabelProvider extends LabelProvider implements IStyle
 
   /**
    * Constant indicating the default label rendering. Currently the default is equivalent to
-   * <code>SHOW_PARAMETERS | SHOW_OVERLAY_ICONS</code>.
+   * <code>SHOW_PARAMETERS | SHOW_OVERLAY_ICONS | SHOW_RETURN_TYPE</code>.
    */
-  public final static int SHOW_DEFAULT = new Integer(SHOW_PARAMETERS | SHOW_OVERLAY_ICONS).intValue();
+  public final static int SHOW_DEFAULT = new Integer(SHOW_PARAMETERS | SHOW_OVERLAY_ICONS
+      | SHOW_RETURN_TYPE).intValue();
 
   private long textFlags;
   private int imageFlags;
