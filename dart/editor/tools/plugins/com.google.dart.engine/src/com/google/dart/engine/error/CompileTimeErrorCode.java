@@ -113,7 +113,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * class.
    */
   CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD(
-      "'%s' cannot be used to name a constructor and a field in this class"),
+      "'%s' cannot be used to name a constructor and a method in this class"),
 
   /**
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an

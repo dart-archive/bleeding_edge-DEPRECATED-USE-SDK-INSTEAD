@@ -596,6 +596,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
       if (node.isSetter() || node.isGetter()) {
         checkForMismatchedAccessorTypes(node, methoName);
+        checkForConflictingInstanceGetterAndSuperclassMember(node);
       }
       if (node.isSetter()) {
         checkForWrongNumberOfParametersForSetter(node.getName(), node.getParameters());
@@ -1581,7 +1582,17 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     return false;
   }
 
-  // TODO(jwren) replace this method with a generic "conflicting" error code evaluation
+  /**
+   * This verifies all possible conflicts of the constructor name with other constructors and
+   * members of the same class.
+   * 
+   * @param node the constructor declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#DUPLICATE_CONSTRUCTOR_DEFAULT
+   * @see CompileTimeErrorCode#DUPLICATE_CONSTRUCTOR_NAME
+   * @see CompileTimeErrorCode#CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD
+   * @see CompileTimeErrorCode#CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD
+   */
   private boolean checkForConflictingConstructorNameAndMember(ConstructorDeclaration node) {
     ConstructorElement constructorElement = node.getElement();
     SimpleIdentifier constructorName = node.getName();
@@ -1628,6 +1639,64 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * This verifies that the superclass of the enclosing class does not declare accessible static
+   * member with the same name as the passed instance getter/setter method declaration.
+   * 
+   * @param node the method declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER
+   * @see StaticWarningCode#CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER
+   */
+  private boolean checkForConflictingInstanceGetterAndSuperclassMember(MethodDeclaration node) {
+    if (node.isStatic()) {
+      return false;
+    }
+    // prepare name
+    SimpleIdentifier nameNode = node.getName();
+    if (nameNode == null) {
+      return false;
+    }
+    String name = nameNode.getName();
+    // prepare enclosing type
+    if (enclosingClass == null) {
+      return false;
+    }
+    InterfaceType enclosingType = enclosingClass.getType();
+    // try to find super element
+    ExecutableElement superElement;
+    superElement = enclosingType.lookUpGetterInSuperclass(name, currentLibrary);
+    if (superElement == null) {
+      superElement = enclosingType.lookUpSetterInSuperclass(name, currentLibrary);
+    }
+    if (superElement == null) {
+      superElement = enclosingType.lookUpMethodInSuperclass(name, currentLibrary);
+    }
+    if (superElement == null) {
+      return false;
+    }
+    // OK, not static
+    if (!superElement.isStatic()) {
+      return false;
+    }
+    // prepare "super" type to report its name
+    ClassElement superElementClass = (ClassElement) superElement.getEnclosingElement();
+    InterfaceType superElementType = superElementClass.getType();
+    // report problem
+    if (node.isGetter()) {
+      errorReporter.reportError(
+          StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
+          nameNode,
+          superElementType.getDisplayName());
+    } else {
+      errorReporter.reportError(
+          StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER,
+          nameNode,
+          superElementType.getDisplayName());
+    }
+    return true;
   }
 
   /**

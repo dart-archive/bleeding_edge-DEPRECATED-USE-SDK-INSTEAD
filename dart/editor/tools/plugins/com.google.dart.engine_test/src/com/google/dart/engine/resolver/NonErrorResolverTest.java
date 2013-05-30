@@ -303,6 +303,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_conflictingInstanceGetterAndSuperclassMember_instance() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  get v => 0;",
+        "}",
+        "class B extends A {",
+        "  get v => 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_constConstructorWithNonFinalField_constInstanceVar() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

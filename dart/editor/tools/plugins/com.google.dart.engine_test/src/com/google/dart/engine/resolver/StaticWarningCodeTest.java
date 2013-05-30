@@ -86,15 +86,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_conflictingInstanceGetterAndSuperclassMember() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER);
-    verify(source);
-  }
-
   public void fail_conflictingInstanceSetterAndSuperclassMember() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -640,6 +631,98 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingInstanceGetterAndSuperclassMember_direct_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static int v;",
+        "}",
+        "class B extends A {",
+        "  get v => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingInstanceGetterAndSuperclassMember_direct_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static get v => 0;",
+        "}",
+        "class B extends A {",
+        "  get v => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingInstanceGetterAndSuperclassMember_direct_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static v() {}",
+        "}",
+        "class B extends A {",
+        "  get v => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingInstanceGetterAndSuperclassMember_direct_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static set v(x) {}",
+        "}",
+        "class B extends A {",
+        "  get v => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingInstanceGetterAndSuperclassMember_indirect() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static int v;",
+        "}",
+        "class B extends A {}",
+        "class C extends B {",
+        "  get v => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingInstanceGetterAndSuperclassMember_mixin() throws Exception {
+    Source source = addSource(createSource(//
+        "class M {",
+        "  static int v;",
+        "}",
+        "class B extends Object with M {",
+        "  get v => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingInstanceSetterAndSuperclassMember() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static int v;",
+        "}",
+        "class B extends A {",
+        "  set v(x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER);
     verify(source);
   }
 

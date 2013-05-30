@@ -134,15 +134,21 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.2 Getters: It is a static warning if a class <i>C</i> declares an instance getter named
    * <i>v</i> and an accessible static member named <i>v</i> or <i>v=</i> is declared in a
    * superclass of <i>C</i>.
+   * 
+   * @param superName the name of the super class declaring a static member
    */
-  CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER(""),
+  CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER(
+      "Superclass '%s' declares static member with the same name"),
 
   /**
    * 7.3 Setters: It is a static warning if a class <i>C</i> declares an instance setter named
    * <i>v=</i> and an accessible static member named <i>v=</i> or <i>v</i> is declared in a
    * superclass of <i>C</i>.
+   * 
+   * @param superName the name of the super class declaring a static member
    */
-  CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER(""),
+  CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER(
+      "Superclass '%s' declares static member with the same name"),
 
   /**
    * 7.2 Getters: It is a static warning if a class declares a static getter named <i>v</i> and also
