@@ -429,6 +429,12 @@ public class BuildDartParticipant implements BuildParticipant {
             return false;
           }
 
+          // This is to address dartbug.com/10863.
+          // A more complete fix will happen for dartbug.com/8478.
+          if (resource.getName().equals("out")) {
+            return false;
+          }
+
           // Don't trigger builds from packages directories.
           if (resource.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
             return false;
