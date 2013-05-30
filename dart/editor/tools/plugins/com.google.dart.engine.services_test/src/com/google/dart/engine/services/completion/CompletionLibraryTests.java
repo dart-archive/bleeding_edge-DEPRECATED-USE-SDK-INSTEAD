@@ -152,4 +152,39 @@ public class CompletionLibraryTests extends CompletionTestCase {
         "2-_l1t");
   }
 
+  public void test008() throws Exception {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    // Check private library exclusion
+    sources.add(addSource(//
+        "/public.dart",
+        src(//
+            "library public;",
+            "class NonPrivate {",
+            "  void publicMethod() {",
+            "  }",
+            "}")));
+    sources.add(addSource(//
+        "/private.dart",
+        src(//
+            "library _private;",
+            "import 'public.dart';",
+            "class Private extends NonPrivate {",
+            "  void privateMethod() {",
+            "  }",
+            "}")));
+    test(//
+        src(//
+            "import 'private.dart';",
+            "import 'public.dart';",
+            "class Test {",
+            "  void test() {",
+            "    NonPrivate x = new NonPrivate();",
+            "    x.!1 //publicMethod but not privateMethod should appear",
+            "  }",
+            "}"),
+        sources,
+        "1-privateMethod",
+        "1+publicMethod");
+  }
+
 }

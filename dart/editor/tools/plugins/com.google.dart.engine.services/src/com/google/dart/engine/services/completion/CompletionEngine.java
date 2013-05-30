@@ -191,6 +191,9 @@ public class CompletionEngine {
     }
 
     void addNamesDefinedByType(InterfaceType type) {
+      if (inPrivateLibrary(type)) {
+        return;
+      }
       mergeNames(type.getElement().getAccessors());
       mergeNames(type.getElement().getMethods());
       mergeNames(type.getElement().getTypeVariables());
@@ -243,6 +246,14 @@ public class CompletionEngine {
           remove(execElem);
         }
       }
+    }
+
+    private boolean inPrivateLibrary(InterfaceType type) {
+      LibraryElement lib = type.getElement().getLibrary();
+      if (!lib.getName().startsWith("_")) {
+        return false;
+      }
+      return lib != getCurrentLibrary();
     }
 
     private void mergeName(Element element) {
