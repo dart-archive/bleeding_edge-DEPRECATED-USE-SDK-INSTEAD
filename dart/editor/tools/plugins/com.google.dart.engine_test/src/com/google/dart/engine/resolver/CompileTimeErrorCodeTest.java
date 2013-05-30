@@ -1109,6 +1109,19 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_extraPositionalArguments_const() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "}",
+        "main() {",
+        "  const A(0);",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS);
+    verify(source);
+  }
+
   public void test_fieldInitializedByMultipleInitializers() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2292,6 +2305,19 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_notEnoughRequiredArguments_const() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A(int p);",
+        "}",
+        "main() {",
+        "  const A();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
+    verify(source);
+  }
+
   public void test_optionalParameterInOperator_named() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2707,6 +2733,19 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT);
     verify(source);
+  }
+
+  public void test_undefinedNamedParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "}",
+        "main() {",
+        "  const A(p: 0);",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER);
+    // no verify(), 'p' is not resolved
   }
 
   public void test_uriDoesNotExist_export() throws Exception {

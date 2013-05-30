@@ -735,7 +735,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ConstructorElement invokedConstructor = node.getConstructorName().getElement();
     staticElementMap.put(node, invokedConstructor);
     node.setElement(invokedConstructor);
-    resolveArgumentsToParameters(node.getArgumentList(), invokedConstructor);
+    resolveArgumentsToParameters(node.isConst(), node.getArgumentList(), invokedConstructor);
     return null;
   }
 
@@ -791,26 +791,30 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
               CALL_METHOD_NAME,
               resolver.getDefiningLibrary());
           if (callMethod != null) {
-            resolveArgumentsToParameters(node.getArgumentList(), callMethod);
+            resolveArgumentsToParameters(false, node.getArgumentList(), callMethod);
           }
         } else if (getterReturnType instanceof FunctionType) {
           Element functionElement = ((FunctionType) getterReturnType).getElement();
           if (functionElement instanceof ExecutableElement) {
             resolveArgumentsToParameters(
+                false,
                 node.getArgumentList(),
                 (ExecutableElement) functionElement);
           }
         }
       }
     } else if (recordedElement instanceof ExecutableElement) {
-      resolveArgumentsToParameters(node.getArgumentList(), (ExecutableElement) recordedElement);
+      resolveArgumentsToParameters(
+          false,
+          node.getArgumentList(),
+          (ExecutableElement) recordedElement);
     } else if (recordedElement instanceof VariableElement) {
       VariableElement variable = (VariableElement) recordedElement;
       Type type = variable.getType();
       if (type instanceof FunctionType) {
         FunctionType functionType = (FunctionType) type;
         ParameterElement[] parameters = functionType.getParameters();
-        resolveArgumentsToParameters(node.getArgumentList(), parameters);
+        resolveArgumentsToParameters(false, node.getArgumentList(), parameters);
       } else if (type instanceof InterfaceType) {
         // "call" invocation
         MethodElement callMethod = ((InterfaceType) type).lookUpMethod(
@@ -818,7 +822,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             resolver.getDefiningLibrary());
         if (callMethod != null) {
           ParameterElement[] parameters = callMethod.getParameters();
-          resolveArgumentsToParameters(node.getArgumentList(), parameters);
+          resolveArgumentsToParameters(false, node.getArgumentList(), parameters);
         }
       }
     }
@@ -1018,7 +1022,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     staticElementMap.put(node, element);
     node.setElement(element);
-    resolveArgumentsToParameters(node.getArgumentList(), element);
+    resolveArgumentsToParameters(false, node.getArgumentList(), element);
     return null;
   }
 
@@ -1095,7 +1099,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     staticElementMap.put(node, element);
     node.setElement(element);
-    resolveArgumentsToParameters(node.getArgumentList(), element);
+    resolveArgumentsToParameters(false, node.getArgumentList(), element);
     return null;
   }
 
@@ -1918,26 +1922,31 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * Given a list of arguments and the element that will be invoked using those argument, compute
    * the list of parameters that correspond to the list of arguments.
    * 
+   * @param reportError if {@code true} then compile-time error should be reported; if {@code false}
+   *          then compile-time warning
    * @param argumentList the list of arguments being passed to the element
    * @param executableElement the element that will be invoked with the arguments
    */
-  private void resolveArgumentsToParameters(ArgumentList argumentList,
+  private void resolveArgumentsToParameters(boolean reportError, ArgumentList argumentList,
       ExecutableElement executableElement) {
     if (executableElement == null) {
       return;
     }
     ParameterElement[] parameters = executableElement.getParameters();
-    resolveArgumentsToParameters(argumentList, parameters);
+    resolveArgumentsToParameters(reportError, argumentList, parameters);
   }
 
   /**
    * Given a list of arguments and the element that will be invoked using those argument, compute
    * the list of parameters that correspond to the list of arguments.
    * 
+   * @param reportError if {@code true} then compile-time error should be reported; if {@code false}
+   *          then compile-time warning
    * @param argumentList the list of arguments being passed to the element
    * @param parameters the of the function that will be invoked with the arguments
    */
-  private void resolveArgumentsToParameters(ArgumentList argumentList, ParameterElement[] parameters) {
+  private void resolveArgumentsToParameters(boolean reportError, ArgumentList argumentList,
+      ParameterElement[] parameters) {
     ArrayList<ParameterElement> requiredParameters = new ArrayList<ParameterElement>();
     ArrayList<ParameterElement> positionalParameters = new ArrayList<ParameterElement>();
     HashMap<String, ParameterElement> namedParameters = new HashMap<String, ParameterElement>();
@@ -1969,7 +1978,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         String name = nameNode.getName();
         ParameterElement element = namedParameters.get(name);
         if (element == null) {
-          resolver.reportError(StaticWarningCode.UNDEFINED_NAMED_PARAMETER, nameNode, name);
+          ErrorCode errorCode = reportError ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
+              : StaticWarningCode.UNDEFINED_NAMED_PARAMETER;
+          resolver.reportError(errorCode, nameNode, name);
         } else {
           resolvedParameters[i] = element;
           recordResolution(nameNode, element);
@@ -1985,17 +1996,17 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     if (positionalArgumentCount < requiredParameters.size()) {
+      ErrorCode errorCode = reportError ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
+          : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS;
       resolver.reportError(
-          StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
+          errorCode,
           argumentList,
           requiredParameters.size(),
           positionalArgumentCount);
     } else if (positionalArgumentCount > unnamedParameterCount) {
-      resolver.reportError(
-          StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS,
-          argumentList,
-          unnamedParameterCount,
-          positionalArgumentCount);
+      ErrorCode errorCode = reportError ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
+          : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS;
+      resolver.reportError(errorCode, argumentList, unnamedParameterCount, positionalArgumentCount);
     }
     argumentList.setCorrespondingParameters(resolvedParameters);
   }

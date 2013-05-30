@@ -522,7 +522,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param requiredCount the expected number of required arguments
    * @param argumentCount the actual number of positional arguments given
    */
-  NOT_ENOUGH_REQUIRED_ARGUMENTS("%d required argument(s) expected, but only %d found"),
+  NOT_ENOUGH_REQUIRED_ARGUMENTS("%d required argument(s) expected, but %d found"),
 
   /**
    * 14.3 Parts: It is a static warning if the referenced part declaration <i>p</i> names a library

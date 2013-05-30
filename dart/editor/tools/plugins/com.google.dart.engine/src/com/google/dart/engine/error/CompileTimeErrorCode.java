@@ -340,6 +340,17 @@ public enum CompileTimeErrorCode implements ErrorCode {
   EXTENDS_DISALLOWED_CLASS("Classes cannot extend '%s'"),
 
   /**
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
+   * <p>
+   * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
+   * uncaught exception being thrown.
+   * 
+   * @param requiredCount the maximum number of positional arguments
+   * @param argumentCount the actual number of positional arguments given
+   */
+  EXTRA_POSITIONAL_ARGUMENTS("%d positional arguments expected, but %d found"),
+
+  /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or implement Null.
    * <p>
    * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement int.
@@ -811,6 +822,17 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "Initializer expressions in constant constructors must be constants"),
 
   /**
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
+   * <p>
+   * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
+   * uncaught exception being thrown.
+   * 
+   * @param requiredCount the expected number of required arguments
+   * @param argumentCount the actual number of positional arguments given
+   */
+  NOT_ENOUGH_REQUIRED_ARGUMENTS("%d required argument(s) expected, but %d found"),
+
+  /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the superinitializer appears
    * and let <i>S</i> be the superclass of <i>C</i>. Let <i>k</i> be a generative constructor. It is
    * a compile-time error if class <i>S</i> does not declare a generative constructor named <i>S</i>
@@ -997,6 +1019,18 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * or a compile-time error occurs.
    */
   UNINITIALIZED_FINAL_FIELD(""),
+
+  /**
+   * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
+   * must have a corresponding named parameter in the set {<i>p<sub>n+1</sub></i> ...
+   * <i>p<sub>n+k</sub></i>} or a static warning occurs.
+   * <p>
+   * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
+   * uncaught exception being thrown.
+   * 
+   * @param name the name of the requested named parameter
+   */
+  UNDEFINED_NAMED_PARAMETER("The named parameter '%s' is not defined"),
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
