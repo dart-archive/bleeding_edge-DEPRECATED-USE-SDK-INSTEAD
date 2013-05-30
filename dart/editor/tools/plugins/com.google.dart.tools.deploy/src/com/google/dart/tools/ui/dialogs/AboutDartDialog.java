@@ -31,9 +31,12 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.Geometry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -111,7 +114,7 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
    */
   protected void createContents() {
 
-    setSize(new Point(394, 440));
+    setSize(new Point(500, 550));
 
     addCopyDetailsPopup(this);
 
@@ -170,7 +173,30 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
     });
 
     //spacer and caret repressor
-    final StyledText spacer = new StyledText(this, SWT.NONE);
+    StyledText spacer = new StyledText(this, SWT.NONE);
+    spacer.setEditable(false);
+    spacer.setFocus();
+    spacer.getCaret().setSize(0, 0); //nuke the caret
+
+    //close button
+    Button closeButton = new Button(this, SWT.PUSH);
+    closeButton.setText("       Close       ");
+    center(closeButton);
+    closeButton.addSelectionListener(new SelectionListener() {
+      @Override
+      public void widgetDefaultSelected(SelectionEvent e) {
+        widgetSelected(e);
+      }
+
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        close();
+      }
+    });
+    setDefaultButton(closeButton);
+
+    //spacer and caret repressor
+    spacer = new StyledText(this, SWT.NONE);
     spacer.setEditable(false);
     spacer.setFocus();
     spacer.getCaret().setSize(0, 0); //nuke the caret
