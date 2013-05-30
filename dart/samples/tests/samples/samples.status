@@ -7,6 +7,9 @@
 chat/chat_server_test: Skip
 standalone/*: Skip
 
+[ $compiler == dart2js && $runtime == drt ]
+swarm/swarm_test: Pass, Crash # Issue 10950
+
 [ $compiler == none && $runtime == drt ]
 dartcombat/dartcombat_test: Skip # Issue 2790
 swarm/swarm_test: Pass, Fail # Issue 3977
@@ -45,7 +48,7 @@ dartcombat/dartcombat_test: Skip
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
 [ $compiler == dart2js && $runtime == ff ]
-swarm/swarm_test: Fail # BUG(5633)
+swarm/swarm_test: Fail # Issue 5633
 
 [ $compiler == dart2js && $runtime == drt && $system == windows ]
 swarm/swarm_test: Fail # Issue 4517
