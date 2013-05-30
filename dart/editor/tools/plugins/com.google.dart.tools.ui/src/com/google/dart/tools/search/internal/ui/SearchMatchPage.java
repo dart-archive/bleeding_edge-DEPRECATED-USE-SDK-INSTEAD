@@ -21,10 +21,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -527,7 +524,6 @@ public abstract class SearchMatchPage extends SearchPage {
   };
 
   private final SearchView searchView;
-  private final IFile context;
   private final String taskName;
   private final Set<IResource> markerResources = Sets.newHashSet();
   private TreeViewer viewer;
@@ -536,9 +532,8 @@ public abstract class SearchMatchPage extends SearchPage {
 
   private PositionTracker positionTracker;
 
-  public SearchMatchPage(SearchView searchView, IFile context, String taskName) {
+  public SearchMatchPage(SearchView searchView, String taskName) {
     this.searchView = searchView;
-    this.context = context;
     this.taskName = taskName;
   }
 
@@ -624,16 +619,9 @@ public abstract class SearchMatchPage extends SearchPage {
    * Adds markers for the given {@link ResultItem} and its children.
    */
   private void addMarkers(ResultItem item) throws CoreException {
-
-    if (context == null) {
-      return;
-    }
-
     // add marker if leaf
     if (!item.positions.isEmpty()) {
-      Source source = item.element.getSource();
-      ResourceMap resourceMap = DartCore.getProjectManager().getResourceMap(context);
-      IResource resource = resourceMap.getResource(source);
+      IFile resource = DartUI.getElementFile(item.element);
       if (resource != null && resource.exists()) {
         markerResources.add(resource);
         try {
@@ -728,7 +716,7 @@ public abstract class SearchMatchPage extends SearchPage {
     Position position = itemCursor.getPosition();
     // show Element and Position
     try {
-      IEditorPart editor = DartUI.openInEditor(context, element, true);
+      IEditorPart editor = DartUI.openInEditor(element);
       revealInEditor(editor, position);
     } catch (Throwable e) {
       ExceptionHandler.handle(e, "Search", "Exception during open.");
@@ -801,7 +789,7 @@ public abstract class SearchMatchPage extends SearchPage {
       viewer.setSelection(new StructuredSelection(itemCursor.item), true);
       // open editor with Element
       Element element = itemCursor.item.element;
-      IEditorPart editor = DartUI.openInEditor(context, element, false);
+      IEditorPart editor = DartUI.openInEditor(element, false, true);
       // show Position
       Position position = itemCursor.getPosition();
       if (position != null) {

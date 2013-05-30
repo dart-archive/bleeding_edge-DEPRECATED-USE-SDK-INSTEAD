@@ -35,7 +35,6 @@ import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import static com.google.dart.tools.search.internal.ui.FindDeclarationsAction.isInvocationNameOrPropertyAccessSelected;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
@@ -83,18 +82,16 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    IFile context = getSelectionContextFile(selection);
     Element element = ActionUtil.getActionElement(selection);
     ASTNode node = getSelectionNode(selection);
-    doSearch(context, element, node);
+    doSearch(element, node);
   }
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    IFile context = getSelectionContextFile(selection);
     Element element = getSelectionElement(selection);
-    doSearch(context, element, null);
+    doSearch(element, null);
   }
 
   @Override
@@ -109,7 +106,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
   /**
    * Asks {@link SearchView} to execute query and display results.
    */
-  private void doSearch(IFile context, Element element, ASTNode node) {
+  private void doSearch(Element element, ASTNode node) {
     // tweak
     element = DartElementUtil.getVariableIfSyntheticAccessor(element);
     if (element instanceof ImportElement) {
@@ -126,7 +123,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
       final Element searchElement = element;
       final String searchName = name;
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
-      view.showPage(new SearchMatchPage(view, context, "Searching for references...") {
+      view.showPage(new SearchMatchPage(view, "Searching for references...") {
         @Override
         protected List<SearchMatch> runQuery() {
           List<SearchMatch> allMatches = Lists.newArrayList();

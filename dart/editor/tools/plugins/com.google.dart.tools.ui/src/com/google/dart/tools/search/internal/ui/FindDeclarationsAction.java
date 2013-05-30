@@ -34,7 +34,6 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
@@ -103,9 +102,8 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
       UIInstrumentationBuilder instrumentation) {
     ASTNode node = getSelectionNode(selection);
     if (node instanceof SimpleIdentifier) {
-      IFile context = getSelectionContextFile(selection);
       String name = ((SimpleIdentifier) node).getName();
-      doSearch(context, name);
+      doSearch(name);
     }
   }
 
@@ -114,9 +112,8 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
       UIInstrumentationBuilder instrumentation) {
     Element element = getSelectionElement(selection);
     if (element != null) {
-      IFile context = getSelectionContextFile(selection);
       String name = element.getDisplayName();
-      doSearch(context, name);
+      doSearch(name);
     }
   }
 
@@ -132,11 +129,11 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
   /**
    * Asks {@link SearchView} to execute query and display results.
    */
-  private void doSearch(IFile context, final String name) {
+  private void doSearch(final String name) {
     try {
       final SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
-      view.showPage(new SearchMatchPage(view, context, "Searching for declarations...") {
+      view.showPage(new SearchMatchPage(view, "Searching for declarations...") {
         @Override
         protected List<SearchMatch> runQuery() {
           return searchEngine.searchDeclarations(name, null, null);
