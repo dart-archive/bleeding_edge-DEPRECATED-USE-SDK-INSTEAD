@@ -475,15 +475,18 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.10 Superinterfaces: It is a compile-time error if a type <i>T</i> appears more than once in
    * the implements clause of a class.
    * 
-   * @param name the name of the type in question
+   * @param className the name of the class that is implemented more than once
    */
   IMPLEMENTS_REPEATED("'%s' can only be implemented once"),
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
    * superinterface of itself.
+   * <p>
+   * Note: this error code is a subset of the {@link #RECURSIVE_INTERFACE_INHERITANCE} error code.
    * 
-   * @param name the name of the type in question
+   * @param className the name of the class that implements itself
+   * @see #RECURSIVE_INTERFACE_INHERITANCE
    */
   IMPLEMENTS_SELF("'%s' cannot implement itself"),
 
@@ -903,8 +906,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
 
   /**
    * 8.1 Superinterfaces: It is a compile-time error if an interface is a superinterface of itself.
+   * 
+   * @param className the name of the class that implements itself recursively
+   * @param strImplementsPath a string representation of the implements loop
+   * @see #IMPLEMENTS_SELF
    */
-  RECURSIVE_INTERFACE_INHERITANCE(""),
+  RECURSIVE_INTERFACE_INHERITANCE("'%s' cannot be a superinterface of itself: %s"),
 
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but

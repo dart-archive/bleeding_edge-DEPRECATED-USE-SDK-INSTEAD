@@ -209,23 +209,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_recursiveInterfaceInheritance_direct() throws Exception {
-    Source source = addSource(createSource(//
-    "class A implements A {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
-    verify(source);
-  }
-
-  public void fail_recursiveInterfaceInheritance_indirect() throws Exception {
-    Source source = addSource(createSource(//
-        "class A implements B {}",
-        "class B implements A {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
-    verify(source);
-  }
-
   public void fail_redirectToNonConstConstructor() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -2435,7 +2418,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
     verify(source);
   }
 
@@ -2464,7 +2450,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
     verify(source);
   }
 
@@ -2483,7 +2472,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
     verify(source);
   }
 
@@ -2505,7 +2497,46 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
-        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
+        CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
+    verify(source);
+  }
+
+  public void test_recursiveInterfaceInheritance() throws Exception {
+    Source source = addSource(createSource(//
+        "class A implements B {}",
+        "class B implements A {}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
+    verify(source);
+  }
+
+  public void test_recursiveInterfaceInheritance_tail() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A implements B {}",
+        "abstract class B implements A {}",
+        "class C implements A {}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
+    verify(source);
+  }
+
+  public void test_recursiveInterfaceInheritance_tail2() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A implements B {}",
+        "abstract class B implements C {}",
+        "abstract class C implements A {}",
+        "class D implements A {}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
     verify(source);
   }
 

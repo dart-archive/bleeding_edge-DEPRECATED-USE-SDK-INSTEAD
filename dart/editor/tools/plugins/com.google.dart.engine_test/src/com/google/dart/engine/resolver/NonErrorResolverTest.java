@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class NonErrorResolverTest extends ResolverTestCase {
@@ -1713,6 +1714,15 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertNoErrors();
+    verify(source);
+  }
+
+  public void test_recursiveInterfaceInheritance() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A implements A {}",
+        "class B implements A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_SELF);
     verify(source);
   }
 

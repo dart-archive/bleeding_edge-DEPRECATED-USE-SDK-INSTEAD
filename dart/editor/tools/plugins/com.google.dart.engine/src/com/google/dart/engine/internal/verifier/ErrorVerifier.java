@@ -127,6 +127,7 @@ import com.google.dart.engine.type.TypeVariableType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -343,15 +344,23 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
     try {
       enclosingClass = node.getElement();
+      WithClause withClause = node.getWithClause();
+      ImplementsClause implementsClause = node.getImplementsClause();
+      ExtendsClause extendsClause = node.getExtendsClause();
       checkForBuiltInIdentifierAsName(
           node.getName(),
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       checkForMemberWithClassName();
-      checkForAllMixinErrorCodes(node.getWithClause());
-      if (!checkForImplementsDisallowedClass(node.getImplementsClause())
-          && !checkForExtendsDisallowedClass(node.getExtendsClause())) {
-        checkForNonAbstractClassInheritsAbstractMember(node);
-        checkForInconsistentMethodInheritance();
+      checkForAllMixinErrorCodes(withClause);
+      if (implementsClause != null || extendsClause != null) {
+        if (!checkForImplementsDisallowedClass(implementsClause)
+            && !checkForExtendsDisallowedClass(extendsClause)) {
+          checkForNonAbstractClassInheritsAbstractMember(node);
+          checkForInconsistentMethodInheritance();
+        }
+      }
+      if (implementsClause != null) {
+        checkForRecursiveInterfaceInheritance(enclosingClass, new ArrayList<ClassElement>());
       }
       // initialize initialFieldElementsMap
       ClassElement classElement = node.getElement();
@@ -3042,6 +3051,71 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         redirectedConstructorNode);
     return true;
+  }
+
+  /**
+   * This checks the class declaration is not a superinterface to itself.
+   * 
+   * @param classElt the class element to test
+   * @param list a list containing the potentially cyclic implements path
+   * @return {@code true} if and only if an error code is generated on the passed element
+   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE
+   */
+  private boolean checkForRecursiveInterfaceInheritance(ClassElement classElt,
+      ArrayList<ClassElement> list) {
+    // Base case
+    if (classElt == null) {
+      return false;
+    }
+    // Detect error condition.
+    list.add(classElt);
+    // If this is not the first time this method is being called, (list.size() != 1) and the
+    // enclosing class is the passed class element, and this is not the A implements A case
+    // (list.size > 2) covered by CompileTimeErrorCode.IMPLEMENTS_SELF, then an error is generated
+    if (list.size() != 1 && enclosingClass.equals(classElt)) {
+      if (list.size() > 2) {
+        // Construct a string showing the cyclic implements path: "A, B, C, D, A"
+        String separator = ", ";
+        int listLength = list.size();
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < listLength; i++) {
+          builder.append(list.get(i).getDisplayName());
+          if (i != listLength - 1) {
+            builder.append(separator);
+          }
+        }
+        String enclosingClassName = enclosingClass.getDisplayName();
+        errorReporter.reportError(
+            CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+            enclosingClass.getNameOffset(),
+            enclosingClassName.length(),
+            enclosingClassName,
+            builder.toString());
+        return true;
+      }
+      list.remove(list.size() - 1);
+      return false;
+    }
+    // Before we recursively call ourselves, we need to check that there are no loops in the stack.
+    for (int i = 1; i < list.size() - 1; i++) {
+      if (classElt.equals(list.get(i))) {
+        list.remove(list.size() - 1);
+        return false;
+      }
+    }
+    // n-case
+    InterfaceType[] interfaceTypes = classElt.getInterfaces();
+    ClassElement[] interfaceElements = new ClassElement[interfaceTypes.length];
+    for (int i = 0; i < interfaceTypes.length; i++) {
+      interfaceElements[i] = interfaceTypes[i].getElement();
+    }
+    for (ClassElement classElt2 : interfaceElements) {
+      if (checkForRecursiveInterfaceInheritance(classElt2, list)) {
+        return true;
+      }
+    }
+    list.remove(list.size() - 1);
+    return false;
   }
 
   /**
