@@ -111,6 +111,7 @@ public class AnalyzerOptions {
   private boolean machineFormat = false;
 
   @Option(name = "--help", //
+  aliases = {"-h"}, //
   usage = "Prints this help message")
   private boolean showHelp = false;
 
@@ -154,13 +155,6 @@ public class AnalyzerOptions {
   @Option(name = "--fatal-type-errors")
   private boolean fatalTypeError = false;
 
-  @Option(name = "--create-sdk-index", //
-  metaVar = "<file>")
-  private File sdkIndexLocation = null;
-
-  @Option(name = "--test")
-  private boolean runTests = false;
-
   @SuppressWarnings("unused")
   @Option(name = "--ignore-unrecognized-flags")
   private boolean ignoreUnrecognizedFlags;
@@ -188,17 +182,6 @@ public class AnalyzerOptions {
    */
   public File getPackageRootPath() {
     return packageRootPath;
-  }
-
-  public boolean getRunTests() {
-    return runTests;
-  }
-
-  /**
-   * @return the output location to use when creating an SDK index
-   */
-  public File getSdkIndexLocation() {
-    return sdkIndexLocation;
   }
 
   /**

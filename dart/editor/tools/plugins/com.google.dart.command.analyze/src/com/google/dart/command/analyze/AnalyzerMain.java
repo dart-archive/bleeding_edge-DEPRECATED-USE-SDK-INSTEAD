@@ -22,8 +22,6 @@ import com.google.dart.engine.error.ErrorSeverity;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,6 +55,7 @@ public class AnalyzerMain {
       showVersion(options, System.out);
       System.out.println();
       showUsage(System.out);
+      System.out.println("For more information, see http://www.dartlang.org/tools/analyzer.");
       System.exit(0);
     }
 
@@ -75,20 +74,6 @@ public class AnalyzerMain {
       System.out.println(PROGRAM_NAME + ": invalid Dart SDK path: " + options.getDartSdkPath());
       showUsage(System.out);
       System.exit(1);
-    }
-
-    if (options.getSdkIndexLocation() != null) {
-      AnalyzerImpl analyzer = new AnalyzerImpl(options);
-      if (analyzer.createSdkIndex()) {
-        System.exit(0);
-      } else {
-        System.exit(1);
-      }
-    }
-
-    if (options.getRunTests()) {
-      runTests(options);
-      System.exit(0);
     }
 
     try {
@@ -188,49 +173,6 @@ public class AnalyzerMain {
     }
 
     return status;
-  }
-
-  /**
-   * If the unit tests are on our classpath, run them and exit with an appropriate status code
-   * 
-   * @param options
-   */
-  private static void runTests(AnalyzerOptions options) {
-    // org.junit.runner.JUnitCore.main("com.google.dart.command.analyze.CombinedEngineTestSuite");
-
-    try {
-      // Load the main test suite using Class.forName(). This lets any jar minimization tools in the
-      // build pipeline know that this class is referenced by reflection.
-      Class.forName("com.google.dart.command.analyze.CombinedEngineTestSuite");
-
-      Class<?> junitRunner = Class.forName("org.junit.runner.JUnitCore");
-
-      Method mainMethod = junitRunner.getMethod("main", String[].class);
-
-      System.setProperty("com.google.dart.sdk", options.getDartSdkPath().toString());
-
-      Object mainArgs = new String[] {"com.google.dart.command.analyze.CombinedEngineTestSuite"};
-
-      mainMethod.invoke(null, mainArgs);
-    } catch (ClassNotFoundException ex) {
-      System.out.println("Test classes not available in this build.");
-      System.exit(1);
-    } catch (SecurityException e) {
-      System.out.println("Test classes not available in this build.");
-      System.exit(1);
-    } catch (NoSuchMethodException e) {
-      System.out.println("Test classes not available in this build.");
-      System.exit(1);
-    } catch (IllegalArgumentException e) {
-      e.printStackTrace();
-      System.exit(1);
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-      System.exit(1);
-    } catch (InvocationTargetException e) {
-      e.printStackTrace();
-      System.exit(1);
-    }
   }
 
   private static void showUsage(PrintStream out) {

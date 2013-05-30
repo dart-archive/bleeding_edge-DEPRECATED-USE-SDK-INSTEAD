@@ -32,7 +32,6 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.UriKind;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -115,33 +114,6 @@ class AnalyzerImpl {
     Set<Source> sources = getAllSources(library);
     getAllErrors(context, sources, errors);
     return getMaxErrorSeverity(errors);
-  }
-
-  /**
-   * Create the serialized element file for the SDK.
-   * 
-   * @return true on success, false if an error occurred
-   */
-  public boolean createSdkIndex() {
-    @SuppressWarnings("unused")
-    DartSdk sdk = new DirectoryBasedDartSdk(options.getDartSdkPath());
-
-    try {
-      // TODO(devoncarew): call analysis engine methods to create an index file
-
-      FileOutputStream out = new FileOutputStream(options.getSdkIndexLocation());
-      out.write(0);
-      out.write(0);
-      out.write(0);
-      out.write(0);
-      out.close();
-
-      return true;
-    } catch (IOException ioe) {
-      ioe.printStackTrace();
-
-      return false;
-    }
   }
 
   Set<Source> getAllSources(LibraryElement library) {
