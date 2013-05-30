@@ -1752,6 +1752,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_redirectToNonConstConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A.a();",
+        "  const factory A.b() = A.a;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_referenceToDeclaredVariableInInitializer_constructorName() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

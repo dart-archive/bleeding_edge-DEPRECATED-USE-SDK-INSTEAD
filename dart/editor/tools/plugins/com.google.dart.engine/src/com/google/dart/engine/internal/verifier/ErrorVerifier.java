@@ -412,6 +412,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForRecursiveFactoryRedirect(node);
       checkForRedirectToInvalidFunction(node);
       checkForUndefinedConstructorInInitializerImplicit(node);
+      checkForRedirectToNonConstConstructor(node);
       return super.visitConstructorDeclaration(node);
     } finally {
       isEnclosingConstructorConst = false;
@@ -3277,6 +3278,45 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     // OK
     return false;
+  }
+
+  /**
+   * This checks if the passed constructor declaration has redirected constructor and references
+   * itself directly or indirectly. TODO(scheglov)
+   * 
+   * @param node the constructor declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#REDIRECT_TO_NON_CONST_CONSTRUCTOR
+   */
+  private boolean checkForRedirectToNonConstConstructor(ConstructorDeclaration node) {
+    // prepare redirected constructor
+    ConstructorName redirectedConstructorNode = node.getRedirectedConstructor();
+    if (redirectedConstructorNode == null) {
+      return false;
+    }
+    // prepare element
+    ConstructorElement element = node.getElement();
+    if (element == null) {
+      return false;
+    }
+    // OK, it is not 'const'
+    if (!element.isConst()) {
+      return false;
+    }
+    // prepare redirected constructor
+    ConstructorElement redirectedConstructor = element.getRedirectedConstructor();
+    if (redirectedConstructor == null) {
+      return false;
+    }
+    // OK, it is also 'const'
+    if (redirectedConstructor.isConst()) {
+      return false;
+    }
+    // report error
+    errorReporter.reportError(
+        CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+        redirectedConstructorNode);
+    return true;
   }
 
   /**

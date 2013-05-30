@@ -209,15 +209,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_redirectToNonConstConstructor() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR);
-    verify(source);
-  }
-
   public void fail_reservedWordAsIdentifier() throws Exception {
     Source source = addSource(createSource(//
     "int class = 2;"));
@@ -2537,6 +2528,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
+    verify(source);
+  }
+
+  public void test_redirectToNonConstConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.a() {}",
+        "  const factory A.b() = A.a;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR);
     verify(source);
   }
 

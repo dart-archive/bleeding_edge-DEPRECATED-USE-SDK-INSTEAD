@@ -917,7 +917,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but
    * <i>k'</i> is not a constant constructor.
    */
-  REDIRECT_TO_NON_CONST_CONSTRUCTOR(""),
+  REDIRECT_TO_NON_CONST_CONSTRUCTOR(
+      "Constant factory constructor cannot delegate to a non-constant constructor"),
 
   /**
    * 13.3 Local Variable Declaration: It is a compile-time error if <i>e</i> refers to the name
