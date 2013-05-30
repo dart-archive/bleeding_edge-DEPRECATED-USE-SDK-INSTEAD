@@ -14,12 +14,18 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConditionalExpression;
+import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.PostfixExpression;
+import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -54,6 +60,14 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
     }
   }
 
+  private Region getWordRegion(ASTNode node) {
+    if (node instanceof BinaryExpression) {
+      Token operator = ((BinaryExpression) node).getOperator();
+      return new Region(operator.getOffset(), operator.getLength());
+    }
+    return new Region(node.getOffset(), node.getLength());
+  }
+
   private IHyperlink[] internalDetectHyperlinks(ITextViewer textViewer, IRegion region,
       boolean canShowMultipleHyperlinks) {
     DartEditor editor = (DartEditor) getAdapter(ITextEditor.class);
@@ -76,14 +90,15 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
 
     ASTNode node = new NodeLocator(offset, offset + region.getLength()).searchWithin(cu);
     if (node == null || node instanceof com.google.dart.engine.ast.CompilationUnit
-        || node instanceof Directive || node instanceof ClassDeclaration) {
+        || node instanceof Directive || node instanceof Declaration
+        || node instanceof InstanceCreationExpression || node instanceof PrefixExpression
+        || node instanceof PostfixExpression || node instanceof ConditionalExpression) {
       return null;
     }
 
     Element element = ElementLocator.locate(node);
-
     if (element != null) {
-      IRegion wordRegion = new Region(node.getOffset(), node.getLength());
+      IRegion wordRegion = getWordRegion(node);
       return new IHyperlink[] {new DartElementHyperlink(element, wordRegion, new OpenAction(editor))};
     }
 
