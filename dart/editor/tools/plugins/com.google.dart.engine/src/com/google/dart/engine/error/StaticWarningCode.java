@@ -89,6 +89,7 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>L</i>, or if <i>c</i> is not the name of a constructor of a class declared in the exported
    * namespace of <i>L</i>.
    */
+  // Low priority- non-source code codes not a high priority
   COMMENT_REFERENCE_CONSTRUCTOR_NOT_VISIBLE(""),
 
   /**
@@ -97,18 +98,21 @@ public enum StaticWarningCode implements ErrorCode {
    * of the link will be <i>id</i>. It is a static warning if uri is not the URI of a dart library
    * <i>L</i>, or if <i>id</i> is not a name declared in the exported namespace of <i>L</i>.
    */
+  // Low priority- non-source code codes not a high priority
   COMMENT_REFERENCE_IDENTIFIER_NOT_VISIBLE(""),
 
   /**
    * 16.1.2 Comments: It is a static warning if <i>c</i> does not denote a constructor that
    * available in the scope of the documentation comment.
    */
+  // Low priority- non-source code codes not a high priority
   COMMENT_REFERENCE_UNDECLARED_CONSTRUCTOR(""),
 
   /**
    * 16.1.2 Comments: It is a static warning if <i>id</i> does not denote a declaration that
    * available in the scope of the documentation comment.
    */
+  // Low priority- non-source code codes not a high priority
   COMMENT_REFERENCE_UNDECLARED_IDENTIFIER(""),
 
   /**
@@ -117,6 +121,7 @@ public enum StaticWarningCode implements ErrorCode {
    * of the link will be <i>id</i>. It is a static warning if uri is not the URI of a dart library
    * <i>L</i>, or if <i>id</i> is not a name declared in the exported namespace of <i>L</i>.
    */
+  // Low priority- non-source code codes not a high priority
   COMMENT_REFERENCE_URI_NOT_LIBRARY(""),
 
   /**
