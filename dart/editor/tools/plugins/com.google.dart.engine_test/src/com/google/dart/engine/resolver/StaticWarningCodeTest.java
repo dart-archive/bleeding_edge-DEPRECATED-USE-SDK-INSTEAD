@@ -540,10 +540,69 @@ public class StaticWarningCodeTest extends ResolverTestCase {
 
   public void test_assignmentToFinal_localVariable() throws Exception {
     Source source = addSource(createSource(//
-        "final x = 0;",
         "f() {",
         "  final x = 0;",
         "  x = 1;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
+  public void test_assignmentToFinal_prefixMinusMinus() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  final x = 0;",
+        "  --x;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
+  public void test_assignmentToFinal_prefixPlusPlus() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  final x = 0;",
+        "  ++x;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
+  public void test_assignmentToFinal_propertyAccess() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get x => 0;",
+        "}",
+        "class B {",
+        "  static A a;",
+        "}",
+        "main() {",
+        "  B.a.x = 0;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
+  public void test_assignmentToFinal_suffixMinusMinus() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  final x = 0;",
+        "  x--;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ASSIGNMENT_TO_FINAL);
+    verify(source);
+  }
+
+  public void test_assignmentToFinal_suffixPlusPlus() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  final x = 0;",
+        "  x++;",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.ASSIGNMENT_TO_FINAL);

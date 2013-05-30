@@ -157,6 +157,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_assignmentToFinal_prefixNegate() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  final x = 0;",
+        "  -x;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_assignmentToFinals_importWithPrefix() throws Exception {
     Source source = addSource(createSource(//
         "library lib;",

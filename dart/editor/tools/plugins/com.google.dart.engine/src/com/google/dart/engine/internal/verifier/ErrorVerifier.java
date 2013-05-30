@@ -59,6 +59,8 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NativeFunctionBody;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NormalFormalParameter;
+import com.google.dart.engine.ast.PostfixExpression;
+import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
@@ -615,9 +617,23 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitPostfixExpression(PostfixExpression node) {
+    checkForAssignmentToFinal(node.getOperand());
+    return super.visitPostfixExpression(node);
+  }
+
+  @Override
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
     checkForStaticAccessToInstanceMember(node.getPrefix(), node.getIdentifier());
     return super.visitPrefixedIdentifier(node);
+  }
+
+  @Override
+  public Void visitPrefixExpression(PrefixExpression node) {
+    if (node.getOperator().getType().isIncrementOperator()) {
+      checkForAssignmentToFinal(node.getOperand());
+    }
+    return super.visitPrefixExpression(node);
   }
 
   @Override
@@ -1349,25 +1365,42 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see StaticWarningCode#ASSIGNMENT_TO_FINAL
    */
   private boolean checkForAssignmentToFinal(AssignmentExpression node) {
-    Expression lhs = node.getLeftHandSide();
-    if (lhs instanceof Identifier) {
-      Element leftElement = ((Identifier) lhs).getElement();
-      if (leftElement instanceof VariableElement) {
-        VariableElement leftVar = (VariableElement) leftElement;
-        if (leftVar.isFinal()) {
-          errorReporter.reportError(StaticWarningCode.ASSIGNMENT_TO_FINAL, lhs);
-          return true;
-        }
-        return false;
+    Expression leftExpression = node.getLeftHandSide();
+    return checkForAssignmentToFinal(leftExpression);
+  }
+
+  /**
+   * This verifies that the passed expression is not final.
+   * 
+   * @param node the expression to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#ASSIGNMENT_TO_FINAL
+   */
+  private boolean checkForAssignmentToFinal(Expression expression) {
+    // prepare LHS element
+    Element element = null;
+    if (expression instanceof Identifier) {
+      element = ((Identifier) expression).getElement();
+    }
+    if (expression instanceof PropertyAccess) {
+      element = ((PropertyAccess) expression).getPropertyName().getElement();
+    }
+    // check if LHS is assignable
+    if (element instanceof VariableElement) {
+      VariableElement leftVar = (VariableElement) element;
+      if (leftVar.isFinal()) {
+        errorReporter.reportError(StaticWarningCode.ASSIGNMENT_TO_FINAL, expression);
+        return true;
       }
-      if (leftElement instanceof PropertyAccessorElement) {
-        PropertyAccessorElement leftAccessor = (PropertyAccessorElement) leftElement;
-        if (!leftAccessor.isSetter()) {
-          errorReporter.reportError(StaticWarningCode.ASSIGNMENT_TO_FINAL, lhs);
-          return true;
-        }
-        return false;
+      return false;
+    }
+    if (element instanceof PropertyAccessorElement) {
+      PropertyAccessorElement leftAccessor = (PropertyAccessorElement) element;
+      if (!leftAccessor.isSetter()) {
+        errorReporter.reportError(StaticWarningCode.ASSIGNMENT_TO_FINAL, expression);
+        return true;
       }
+      return false;
     }
     return false;
   }
