@@ -258,6 +258,7 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
     final FontData data = fontDialog.open();
     if (data != null) {
       fontData = new FontData[] {data};
+      baseData = fontData;
       updatePreviewFont(SWTUtil.getFont(getMediumFont().getDevice(), fontData));
     }
   }
@@ -374,10 +375,9 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
   }
 
   private void initFromPrefs() {
-
     getFontData();
     getBaseData();
-    updatePreviewFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
+    updatePreviewFont(JFaceResources.getFont(EDITOR_FONT_KEY));
     selectFontButton();
     setCodeFontLabel();
   }
