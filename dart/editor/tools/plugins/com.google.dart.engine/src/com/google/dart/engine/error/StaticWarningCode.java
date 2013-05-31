@@ -154,13 +154,15 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.2 Getters: It is a static warning if a class declares a static getter named <i>v</i> and also
    * has a non-static setter named <i>v=</i>.
    */
-  CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER(""),
+  CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER(
+      "Class '%s' declares non-static setter with the same name"),
 
   /**
    * 7.3 Setters: It is a static warning if a class declares a static setter named <i>v=</i> and
    * also has a non-static member named <i>v</i>.
    */
-  CONFLICTING_STATIC_SETTER_AND_INSTANCE_GETTER(""),
+  CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER(
+      "Class '%s' declares non-static member with the same name"),
 
   /**
    * 12.11.2 Const: Given an instance creation expression of the form <i>const q(a<sub>1</sub>,

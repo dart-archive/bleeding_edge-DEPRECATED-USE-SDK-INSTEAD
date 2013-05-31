@@ -117,6 +117,7 @@ public final class ElementFactory {
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.setGetter(true);
+    getter.setStatic(isStatic);
     getter.setSynthetic(true);
     getter.setVariable(field);
     field.setGetter(getter);
@@ -128,6 +129,7 @@ public final class ElementFactory {
     if (!isConst && !isFinal) {
       PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
       setter.setSetter(true);
+      setter.setStatic(isStatic);
       setter.setSynthetic(true);
       setter.setVariable(field);
       field.setSetter(setter);
@@ -264,6 +266,7 @@ public final class ElementFactory {
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.setGetter(true);
+    getter.setStatic(isStatic);
     getter.setVariable(field);
     field.setGetter(getter);
 
@@ -354,6 +357,7 @@ public final class ElementFactory {
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.setGetter(true);
+    getter.setStatic(isStatic);
     getter.setVariable(field);
     field.setGetter(getter);
 
@@ -363,6 +367,7 @@ public final class ElementFactory {
 
     PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
     setter.setSetter(true);
+    setter.setStatic(isStatic);
     setter.setSynthetic(true);
     setter.setVariable(field);
     field.setSetter(setter);
@@ -390,6 +395,7 @@ public final class ElementFactory {
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);
     getter.setGetter(true);
+    getter.setStatic(true);
     getter.setSynthetic(true);
     getter.setVariable(variable);
     variable.setGetter(getter);
@@ -401,6 +407,7 @@ public final class ElementFactory {
     if (!isFinal) {
       PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(variable);
       setter.setSetter(true);
+      setter.setStatic(true);
       setter.setSynthetic(true);
       setter.setVariable(variable);
       variable.setSetter(setter);

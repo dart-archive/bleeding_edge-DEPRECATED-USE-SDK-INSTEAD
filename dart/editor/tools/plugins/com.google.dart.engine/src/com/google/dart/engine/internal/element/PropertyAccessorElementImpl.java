@@ -122,7 +122,7 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
 
   @Override
   public boolean isStatic() {
-    return getVariable().isStatic();
+    return hasModifier(Modifier.STATIC);
   }
 
   /**
@@ -150,6 +150,15 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
    */
   public void setSetter(boolean isSetter) {
     setModifier(Modifier.SETTER, isSetter);
+  }
+
+  /**
+   * Set whether this accessor is static to correspond to the given value.
+   * 
+   * @param isStatic {@code true} if the accessor is static
+   */
+  public void setStatic(boolean isStatic) {
+    setModifier(Modifier.STATIC, isStatic);
   }
 
   /**

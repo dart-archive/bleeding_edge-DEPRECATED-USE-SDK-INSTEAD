@@ -86,37 +86,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_conflictingInstanceSetterAndSuperclassMember() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER);
-    verify(source);
-  }
-
-  public void fail_conflictingStaticGetterAndInstanceSetter() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  static get x => 0;",
-        "  set x(int p) {}",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER);
-    verify(source);
-  }
-
-  public void fail_conflictingStaticSetterAndInstanceGetter() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  get x => 0;",
-        "  static set x(int p) {}",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_GETTER);
-    verify(source);
-  }
-
   public void fail_incorrectNumberOfArguments_tooFew() throws Exception {
     Source source = addSource(createSource(//
         "f(a, b) => 0;",
@@ -723,6 +692,65 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingStaticGetterAndInstanceSetter_mixin() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set x(int p) {}",
+        "}",
+        "class B extends Object with A {",
+        "  static get x => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER);
+    verify(source);
+  }
+
+  public void test_conflictingStaticGetterAndInstanceSetter_superClass() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set x(int p) {}",
+        "}",
+        "class B extends A {",
+        "  static get x => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER);
+    verify(source);
+  }
+
+  public void test_conflictingStaticGetterAndInstanceSetter_thisClass() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static get x => 0;",
+        "  set x(int p) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER);
+    verify(source);
+  }
+
+  public void test_conflictingStaticSetterAndInstanceMember_thisClass_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  get x => 0;",
+        "  static set x(int p) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER);
+    verify(source);
+  }
+
+  public void test_conflictingStaticSetterAndInstanceMember_thisClass_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  x() {}",
+        "  static set x(int p) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER);
     verify(source);
   }
 

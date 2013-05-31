@@ -357,6 +357,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         if (field == null) {
           field = new FieldElementImpl(node.getName().getName());
           field.setFinal(true);
+          field.setStatic(true);
 
           currentHolder.addField(field);
         }
@@ -368,6 +369,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
           getter.setVariable(field);
           getter.setGetter(true);
+          getter.setStatic(true);
           field.setGetter(getter);
 
           currentHolder.addAccessor(getter);
@@ -381,6 +383,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
           setter.setVariable(field);
           setter.setSetter(true);
+          setter.setStatic(true);
           field.setSetter(setter);
           field.setFinal(false);
 
@@ -489,6 +492,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       inFunction = wasInFunction;
     }
 
+    boolean isStatic = node.isStatic();
     Token property = node.getPropertyKeyword();
     if (property == null) {
       SimpleIdentifier methodName = node.getName();
@@ -503,7 +507,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       element.setLabels(holder.getLabels());
       element.setLocalVariables(holder.getLocalVariables());
       element.setParameters(holder.getParameters());
-      element.setStatic(node.isStatic());
+      element.setStatic(isStatic);
 
       currentHolder.addMethod(element);
       methodName.setElement(element);
@@ -514,7 +518,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       if (field == null) {
         field = new FieldElementImpl(node.getName().getName());
         field.setFinal(true);
-        field.setStatic(matches(node.getModifierKeyword(), Keyword.STATIC));
+        field.setStatic(isStatic);
 
         currentHolder.addField(field);
       }
@@ -528,6 +532,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         getter.setAbstract(node.getBody() instanceof EmptyFunctionBody
             && node.getExternalKeyword() == null);
         getter.setGetter(true);
+        getter.setStatic(isStatic);
         field.setGetter(getter);
 
         currentHolder.addAccessor(getter);
@@ -543,6 +548,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         setter.setAbstract(node.getBody() instanceof EmptyFunctionBody
             && !matches(node.getExternalKeyword(), Keyword.EXTERNAL));
         setter.setSetter(true);
+        setter.setStatic(isStatic);
         field.setSetter(setter);
         field.setFinal(false);
 
@@ -682,8 +688,16 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
     if (element instanceof PropertyInducingElementImpl) {
       PropertyInducingElementImpl variable = (PropertyInducingElementImpl) element;
+
+      if (inFieldContext) {
+        ((FieldElementImpl) variable).setStatic(matches(
+            ((FieldDeclaration) node.getParent().getParent()).getKeyword(),
+            Keyword.STATIC));
+      }
+
       PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);
       getter.setGetter(true);
+      getter.setStatic(variable.isStatic());
 
       currentHolder.addAccessor(getter);
       variable.setGetter(getter);
@@ -691,14 +705,10 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       if (!isFinal) {
         PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(variable);
         setter.setSetter(true);
+        setter.setStatic(variable.isStatic());
 
         currentHolder.addAccessor(setter);
         variable.setSetter(setter);
-      }
-      if (inFieldContext) {
-        ((FieldElementImpl) variable).setStatic(matches(
-            ((FieldDeclaration) node.getParent().getParent()).getKeyword(),
-            Keyword.STATIC));
       }
     }
     return null;

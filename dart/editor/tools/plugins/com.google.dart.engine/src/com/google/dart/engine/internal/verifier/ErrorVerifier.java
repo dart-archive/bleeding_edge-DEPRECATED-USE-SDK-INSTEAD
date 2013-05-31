@@ -603,9 +603,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         checkForMismatchedAccessorTypes(node, methoName);
         checkForConflictingInstanceGetterAndSuperclassMember(node);
       }
-      if (node.isSetter()) {
+      if (node.isGetter()) {
+        checkForConflictingStaticGetterAndInstanceSetter(node);
+      } else if (node.isSetter()) {
         checkForWrongNumberOfParametersForSetter(node.getName(), node.getParameters());
         checkForNonVoidReturnTypeForSetter(node.getReturnType());
+        checkForConflictingStaticSetterAndInstanceMember(node);
       } else if (node.isOperator()) {
         checkForOptionalParameterInOperator(node);
         checkForWrongNumberOfParametersForOperator(node);
@@ -1701,6 +1704,99 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           nameNode,
           superElementType.getDisplayName());
     }
+    return true;
+  }
+
+  /**
+   * This verifies that the enclosing class does not have an instance member with the same name as
+   * the passed static getter method declaration.
+   * 
+   * @param node the method declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER
+   */
+  private boolean checkForConflictingStaticGetterAndInstanceSetter(MethodDeclaration node) {
+    if (!node.isStatic()) {
+      return false;
+    }
+    // prepare name
+    SimpleIdentifier nameNode = node.getName();
+    if (nameNode == null) {
+      return false;
+    }
+    String name = nameNode.getName();
+    // prepare enclosing type
+    if (enclosingClass == null) {
+      return false;
+    }
+    InterfaceType enclosingType = enclosingClass.getType();
+    // try to find setter
+    ExecutableElement setter = enclosingType.lookUpSetter(name, currentLibrary);
+    if (setter == null) {
+      return false;
+    }
+    // OK, also static
+    if (setter.isStatic()) {
+      return false;
+    }
+    // prepare "setter" type to report its name
+    ClassElement setterClass = (ClassElement) setter.getEnclosingElement();
+    InterfaceType setterType = setterClass.getType();
+    // report problem
+    errorReporter.reportError(
+        StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER,
+        nameNode,
+        setterType.getDisplayName());
+    return true;
+  }
+
+  /**
+   * This verifies that the enclosing class does not have an instance member with the same name as
+   * the passed static getter method declaration.
+   * 
+   * @param node the method declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER
+   */
+  private boolean checkForConflictingStaticSetterAndInstanceMember(MethodDeclaration node) {
+    if (!node.isStatic()) {
+      return false;
+    }
+    // prepare name
+    SimpleIdentifier nameNode = node.getName();
+    if (nameNode == null) {
+      return false;
+    }
+    String name = nameNode.getName();
+    // prepare enclosing type
+    if (enclosingClass == null) {
+      return false;
+    }
+    InterfaceType enclosingType = enclosingClass.getType();
+    // try to find member
+    ExecutableElement member;
+    member = enclosingType.lookUpMethod(name, currentLibrary);
+    if (member == null) {
+      member = enclosingType.lookUpGetter(name, currentLibrary);
+    }
+    if (member == null) {
+      member = enclosingType.lookUpSetter(name, currentLibrary);
+    }
+    if (member == null) {
+      return false;
+    }
+    // OK, also static
+    if (member.isStatic()) {
+      return false;
+    }
+    // prepare "member" type to report its name
+    ClassElement memberClass = (ClassElement) member.getEnclosingElement();
+    InterfaceType memberType = memberClass.getType();
+    // report problem
+    errorReporter.reportError(
+        StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER,
+        nameNode,
+        memberType.getDisplayName());
     return true;
   }
 

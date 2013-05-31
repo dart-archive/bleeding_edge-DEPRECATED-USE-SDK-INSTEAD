@@ -315,6 +315,28 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_conflictingStaticGetterAndInstanceSetter_thisClass() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static get x => 0;",
+        "  static set x(int p) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_conflictingStaticSetterAndInstanceMember_thisClass_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static x() {}",
+        "  static set x(int p) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_constConstructorWithNonFinalField_constInstanceVar() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
