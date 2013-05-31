@@ -438,6 +438,14 @@ public interface AnalysisContext {
   public HtmlUnit resolveHtmlUnit(Source htmlSource) throws AnalysisException;
 
   /**
+   * Set the set of analysis options controlling the behavior of this context to the given options.
+   * Clients can safely assume that all necessary analysis results have been invalidated.
+   * 
+   * @param options the set of analysis options that will control the behavior of this context
+   */
+  public void setAnalysisOptions(AnalysisOptions options);
+
+  /**
    * Set the contents of the given source to the given contents and mark the source as having
    * changed. This has the effect of overriding the default contents of the source. If the contents
    * are {@code null} the override is removed so that the default contents will be returned.

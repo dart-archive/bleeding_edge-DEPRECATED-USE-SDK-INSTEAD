@@ -558,6 +558,17 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public void setAnalysisOptions(AnalysisOptions options) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-setAnalysisOptions");
+    try {
+      instrumentation.metric("contextId", contextId);
+      basis.setAnalysisOptions(options);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
   public void setContents(Source source, String contents) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-setContents");
     try {
@@ -577,7 +588,6 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
     } finally {
       instrumentation.log();
     }
-
   }
 
   @Override

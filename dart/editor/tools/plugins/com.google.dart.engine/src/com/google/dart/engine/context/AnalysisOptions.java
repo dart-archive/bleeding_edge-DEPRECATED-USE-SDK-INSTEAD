@@ -14,39 +14,15 @@
 package com.google.dart.engine.context;
 
 /**
- * Instances of the class {@code AnalysisOptions} represent a set of analysis options used to
- * control the behavior of an analysis context.
+ * The interface {@code AnalysisOptions} defines the behavior of objects that provide access to a
+ * set of analysis options used to control the behavior of an analysis context.
  */
-public class AnalysisOptions {
-  /**
-   * A flag indicating whether analysis is to use strict mode. In strict mode, error reporting is
-   * based exclusively on the static type information.
-   */
-  private boolean strictMode = false;
-
-  /**
-   * Initialize a newly created set of analysis options to have their default values.
-   */
-  public AnalysisOptions() {
-  }
-
+public interface AnalysisOptions {
   /**
    * Return {@code true} if analysis is to use strict mode. In strict mode, error reporting is based
    * exclusively on the static type information.
    * 
    * @return {@code true} if analysis is to use strict mode
    */
-  public boolean getStrictMode() {
-    return strictMode;
-  }
-
-  /**
-   * Set whether analysis is to use strict mode to the given value. In strict mode, error reporting
-   * is based exclusively on the static type information.
-   * 
-   * @param isStrict {@code true} if analysis is to use strict mode
-   */
-  public void setStrictMode(boolean isStrict) {
-    strictMode = isStrict;
-  }
+  public boolean getStrictMode();
 }

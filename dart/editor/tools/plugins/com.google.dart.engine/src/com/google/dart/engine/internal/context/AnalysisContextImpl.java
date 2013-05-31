@@ -122,7 +122,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * The set of analysis options controlling the behavior of this context.
    */
-  private AnalysisOptions options = new AnalysisOptions();
+  private AnalysisOptions options = new AnalysisOptionsImpl();
 
   /**
    * The source factory used to create the sources that can be analyzed in this context.
@@ -969,6 +969,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public void setAnalysisOptions(AnalysisOptions options) {
+    synchronized (cacheLock) {
+      this.options = options;
+      invalidateAllResults();
+    }
+  }
+
+  @Override
   public void setContents(Source source, String contents) {
     synchronized (cacheLock) {
       sourceFactory.setContents(source, contents);
@@ -989,18 +997,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       factory.setContext(this);
       sourceFactory = factory;
-      for (Map.Entry<Source, SourceEntry> mapEntry : sourceMap.entrySet()) {
-        SourceEntry sourceEntry = mapEntry.getValue();
-        if (sourceEntry instanceof HtmlEntry) {
-          HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
-          htmlCopy.setState(HtmlEntry.RESOLVED_UNIT, CacheState.INVALID);
-          mapEntry.setValue(htmlCopy);
-        } else if (sourceEntry instanceof DartEntry) {
-          DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
-          dartCopy.invalidateAllResolutionInformation();
-          mapEntry.setValue(dartCopy);
-        }
-      }
+      invalidateAllResults();
     }
   }
 
@@ -1485,6 +1482,26 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       throw new AnalysisException(exception);
     }
     return result;
+  }
+
+  /**
+   * Invalidate all of the results computed by this context.
+   * <p>
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   */
+  private void invalidateAllResults() {
+    for (Map.Entry<Source, SourceEntry> mapEntry : sourceMap.entrySet()) {
+      SourceEntry sourceEntry = mapEntry.getValue();
+      if (sourceEntry instanceof HtmlEntry) {
+        HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
+        htmlCopy.setState(HtmlEntry.RESOLVED_UNIT, CacheState.INVALID);
+        mapEntry.setValue(htmlCopy);
+      } else if (sourceEntry instanceof DartEntry) {
+        DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
+        dartCopy.invalidateAllResolutionInformation();
+        mapEntry.setValue(dartCopy);
+      }
+    }
   }
 
   /**
