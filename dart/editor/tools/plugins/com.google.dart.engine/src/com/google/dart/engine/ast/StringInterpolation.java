@@ -71,4 +71,9 @@ public class StringInterpolation extends StringLiteral {
   public void visitChildren(ASTVisitor<?> visitor) {
     elements.accept(visitor);
   }
+
+  @Override
+  protected void appendStringValue(StringBuilder builder) throws IllegalArgumentException {
+    throw new IllegalArgumentException();
+  }
 }

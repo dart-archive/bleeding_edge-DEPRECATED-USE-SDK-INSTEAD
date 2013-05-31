@@ -74,4 +74,11 @@ public class AdjacentStrings extends StringLiteral {
   public void visitChildren(ASTVisitor<?> visitor) {
     strings.accept(visitor);
   }
+
+  @Override
+  protected void appendStringValue(StringBuilder builder) {
+    for (StringLiteral stringLiteral : getStrings()) {
+      stringLiteral.appendStringValue(builder);
+    }
+  }
 }

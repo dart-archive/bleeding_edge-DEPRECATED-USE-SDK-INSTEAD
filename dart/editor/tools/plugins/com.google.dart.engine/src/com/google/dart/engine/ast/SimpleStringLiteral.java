@@ -146,4 +146,9 @@ public class SimpleStringLiteral extends StringLiteral {
   public void visitChildren(ASTVisitor<?> visitor) {
     // There are no children to visit.
   }
+
+  @Override
+  protected void appendStringValue(StringBuilder builder) {
+    builder.append(getValue());
+  }
 }

@@ -26,4 +26,29 @@ package com.google.dart.engine.ast;
  * @coverage dart.engine.ast
  */
 public abstract class StringLiteral extends Literal {
+
+  /**
+   * Return the value of the string literal, or {@code null} if the string is not a constant string
+   * without any string interpolation.
+   * 
+   * @return the value of the string literal
+   */
+  public String getStringValue() {
+    StringBuilder builder = new StringBuilder();
+    try {
+      appendStringValue(builder);
+    } catch (IllegalArgumentException exception) {
+      return null;
+    }
+    return builder.toString();
+  }
+
+  /**
+   * Append the value of the given string literal to the given string builder.
+   * 
+   * @param builder the builder to which the string's value is to be appended
+   * @throws IllegalArgumentException if the string is not a constant string without any string
+   *           interpolation
+   */
+  protected abstract void appendStringValue(StringBuilder builder) throws IllegalArgumentException;
 }

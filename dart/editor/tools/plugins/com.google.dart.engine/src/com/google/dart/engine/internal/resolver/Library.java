@@ -14,11 +14,9 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
@@ -304,7 +302,7 @@ public class Library {
           CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
-    String uriContent = getStringValue(uriLiteral);
+    String uriContent = uriLiteral.getStringValue().trim();
     directiveUris.put(directive, uriContent);
     try {
       new URI(uriContent);
@@ -373,27 +371,6 @@ public class Library {
   }
 
   /**
-   * Append the value of the given string literal to the given string builder.
-   * 
-   * @param builder the builder to which the string's value is to be appended
-   * @param literal the string literal whose value is to be appended to the builder
-   * @throws IllegalArgumentException if the string is not a constant string without any string
-   *           interpolation
-   */
-  private void appendStringValue(StringBuilder builder, StringLiteral literal)
-      throws IllegalArgumentException {
-    if (literal instanceof SimpleStringLiteral) {
-      builder.append(((SimpleStringLiteral) literal).getValue());
-    } else if (literal instanceof AdjacentStrings) {
-      for (StringLiteral stringLiteral : ((AdjacentStrings) literal).getStrings()) {
-        appendStringValue(builder, stringLiteral);
-      }
-    } else {
-      throw new IllegalArgumentException();
-    }
-  }
-
-  /**
    * Return the result of resolving the given URI against the URI of the library, or {@code null} if
    * the URI is not valid.
    * 
@@ -405,22 +382,5 @@ public class Library {
       return null;
     }
     return analysisContext.getSourceFactory().resolveUri(librarySource, uri);
-  }
-
-  /**
-   * Return the value of the given string literal, or {@code null} if the string is not a constant
-   * string without any string interpolation.
-   * 
-   * @param literal the string literal whose value is to be returned
-   * @return the value of the given string literal
-   */
-  private String getStringValue(StringLiteral literal) {
-    StringBuilder builder = new StringBuilder();
-    try {
-      appendStringValue(builder, literal);
-    } catch (IllegalArgumentException exception) {
-      return null;
-    }
-    return builder.toString().trim();
   }
 }
