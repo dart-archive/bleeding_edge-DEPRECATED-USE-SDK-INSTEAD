@@ -291,12 +291,10 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
   }
 
   public void test_guessNames_singleExpression() throws Exception {
-    // TODO(scheglov) change "getSelectedItem()" to return "null"
-    // it does not work not because of bug in Resolver
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class TreeItem {}",
-        "TreeItem getSelectedItem() => new TreeItem();",
+        "TreeItem getSelectedItem() => null;",
         "process(arg) {}",
         "main() {",
         "  process(getSelectedItem()); // marker",
@@ -307,9 +305,7 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     // check guesses
     String[] names = refactoring.guessNames();
-    // TODO(scheglov) we should have "arg" only Resolver will provide us with ParameterElement
-    assertThat(names).contains("selectedItem", "item", "treeItem");
-//    assertThat(names).contains("selectedItem", "item", "arg", "treeItem");
+    assertThat(names).contains("selectedItem", "item", "arg", "treeItem");
   }
 
   public void test_guessNames_stringPart() throws Exception {

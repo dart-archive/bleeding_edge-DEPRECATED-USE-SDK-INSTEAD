@@ -24,6 +24,8 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionFunctionBody;
+import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
@@ -125,6 +127,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   private final List<ParameterInfo> parameters = Lists.newArrayList();
   private ASTNode parentMember;
   private Expression selectionExpression;
+  private FunctionExpression selectionFunctionExpression;
 
   private List<Statement> selectionStatements;
   private final Map<String, List<SourceRange>> selectionParametersToRanges = Maps.newHashMap();
@@ -176,6 +179,13 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       result.merge(initializeParameters());
       initializeOccurrences();
       pm.worked(1);
+      // closure cannot have parameters
+      if (selectionFunctionExpression != null && !parameters.isEmpty()) {
+        String message = MessageFormat.format(
+            "Cannot extract closure as method, it references {0} external variable(s).",
+            parameters.size());
+        return RefactoringStatus.createFatalErrorStatus(message);
+      }
       // done
       return result;
     } finally {
@@ -227,7 +237,9 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         }
         // prepare invocation source
         String invocationSource;
-        {
+        if (selectionFunctionExpression != null) {
+          invocationSource = methodName;
+        } else {
           StringBuilder sb = new StringBuilder();
           // may be returns value
           if (returnVariable != null) {
@@ -292,6 +304,13 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         String declarationSource = null;
         {
           String returnExpressionSource = getMethodBodySource();
+          // closure
+          if (selectionFunctionExpression != null) {
+            declarationSource = methodName + returnExpressionSource;
+            if (selectionFunctionExpression.getBody() instanceof ExpressionFunctionBody) {
+              declarationSource += ";";
+            }
+          }
           // expression
           if (selectionExpression != null) {
             // add return type
@@ -461,6 +480,12 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         ASTNode selectedNode = selectionAnalyzer.getFirstSelectedNode();
         if (selectedNode instanceof Expression) {
           selectionExpression = (Expression) selectedNode;
+          // additional check for closure
+          if (selectionExpression instanceof FunctionExpression) {
+            selectionFunctionExpression = (FunctionExpression) selectionExpression;
+            selectionExpression = null;
+          }
+          // OK
           return new RefactoringStatus();
         }
       }
@@ -505,6 +530,15 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     // apply replacements
     source = CorrectionUtils.applyReplaceEdits(source, replaceEdits);
     // change indentation
+    if (selectionFunctionExpression != null) {
+      ASTNode baseNode = selectionFunctionExpression.getAncestor(Statement.class);
+      if (baseNode != null) {
+        String baseIndent = utils.getNodePrefix(baseNode);
+        String targetIndent = utils.getNodePrefix(parentMember);
+        source = utils.getIndentSource(source, baseIndent, targetIndent);
+        source = source.trim();
+      }
+    }
     if (selectionStatements != null) {
       String selectionIndent = utils.getNodePrefix(selectionStatements.get(0));
       String targetIndent = utils.getNodePrefix(parentMember) + "  ";
@@ -603,7 +637,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
 
       @Override
       public Void visitExpression(Expression node) {
-        if (selectionExpression != null && node.getClass() == selectionExpression.getClass()) {
+        if (selectionFunctionExpression != null || selectionExpression != null
+            && node.getClass() == selectionExpression.getClass()) {
           SourceRange nodeRange = SourceRangeFactory.rangeNode(node);
           tryToFindOccurrence(nodeRange);
         }

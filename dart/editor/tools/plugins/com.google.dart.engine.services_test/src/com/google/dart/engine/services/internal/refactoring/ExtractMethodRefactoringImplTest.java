@@ -861,6 +861,119 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "Method name must not contain '-'.");
   }
 
+  public void test_closure_asFunction_singleExpression() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(f(x)) {}",
+        "main() {",
+        "  process((x) => x * 2);",
+        "}");
+    setSelectionString("(x) => x * 2");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(f(x)) {}",
+        "main() {",
+        "  process(res);",
+        "}",
+        "",
+        "res(x) => x * 2;");
+  }
+
+  public void test_closure_asFunction_statements() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(f(x)) {}",
+        "main() {",
+        "  process((x) {",
+        "    print(x);",
+        "    return x * 2;",
+        "  }); // marker",
+        "}");
+    selectionStart = findOffset("(x) {");
+    selectionEnd = findOffset("); // marker");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(f(x)) {}",
+        "main() {",
+        "  process(res); // marker",
+        "}",
+        "",
+        "res(x) {",
+        "  print(x);",
+        "  return x * 2;",
+        "}");
+  }
+
+  public void test_closure_asMethod_statements() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(f(x)) {}",
+        "class A {",
+        "  int k = 2;",
+        "  main() {",
+        "    process((x) {",
+        "      print(x);",
+        "      return x * k;",
+        "    }); // marker",
+        "  }",
+        "}");
+    selectionStart = findOffset("(x) {");
+    selectionEnd = findOffset("); // marker");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(f(x)) {}",
+        "class A {",
+        "  int k = 2;",
+        "  main() {",
+        "    process(res); // marker",
+        "  }",
+        "",
+        "  res(x) {",
+        "    print(x);",
+        "    return x * k;",
+        "  }",
+        "}");
+  }
+
+  public void test_closure_bad_referencesLocalVariable() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(f(x)) {}",
+        "main() {",
+        "  int k = 2;",
+        "  process((x) => x * k);",
+        "}");
+    setSelectionString("(x) => x * k");
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Cannot extract closure as method, it references 1 external variable(s).");
+  }
+
+  public void test_closure_bad_referencesParameter() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(f(x)) {}",
+        "foo(int k) {",
+        "  process((x) => x * k);",
+        "}");
+    setSelectionString("(x) => x * k");
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Cannot extract closure as method, it references 1 external variable(s).");
+  }
+
   public void test_getRefactoringName_function() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
