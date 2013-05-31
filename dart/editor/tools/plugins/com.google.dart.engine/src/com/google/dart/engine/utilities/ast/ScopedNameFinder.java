@@ -137,6 +137,9 @@ public class ScopedNameFinder extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.getParameters() == null) {
+      return null;
+    }
     if (immediateChild != node.getParameters()) {
       addParameters(node.getParameters().getParameters());
     }
