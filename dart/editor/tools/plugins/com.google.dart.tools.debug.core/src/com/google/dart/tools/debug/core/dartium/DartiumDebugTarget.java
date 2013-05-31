@@ -36,10 +36,8 @@ import com.google.dart.tools.debug.core.webkit.WebkitResult;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
-import org.eclipse.debug.core.IDebugEventSetListener;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IBreakpoint;
@@ -54,8 +52,7 @@ import java.util.List;
 /**
  * The IDebugTarget implementation for the Dartium debug elements.
  */
-public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTarget,
-    IDebugEventSetListener {
+public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTarget {
   private static DartiumDebugTarget activeTarget;
 
   public static DartiumDebugTarget getActiveTarget() {
@@ -140,7 +137,6 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     } else {
       sourceMapManager = new SourceMapManager(ResourcesPlugin.getWorkspace().getRoot());
     }
-    DebugPlugin.getDefault().addDebugEventListener(this);
   }
 
   @Override
@@ -250,25 +246,6 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       return new IThread[] {debugThread};
     } else {
       return new IThread[0];
-    }
-  }
-
-  @Override
-  public void handleDebugEvents(DebugEvent[] events) {
-    if (events.length == 1) {
-      DebugEvent event = events[0];
-      if (event.getKind() == DebugEvent.TERMINATE
-          && event.getSource() instanceof DartiumDebugTarget) {
-
-        DartiumDebugTarget dartiumTarget = (DartiumDebugTarget) event.getSource();
-        if (dartiumTarget.launch.getLaunchConfiguration().equals(launch.getLaunchConfiguration())) {
-          try {
-            terminate();
-          } catch (DebugException e) {
-            DartDebugCorePlugin.logError(e);
-          }
-        }
-      }
     }
   }
 
