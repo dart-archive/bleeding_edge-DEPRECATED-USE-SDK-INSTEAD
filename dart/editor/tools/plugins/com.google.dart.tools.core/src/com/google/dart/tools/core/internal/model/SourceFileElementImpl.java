@@ -214,7 +214,7 @@ public abstract class SourceFileElementImpl<E> extends OpenableElementImpl imple
     // For backward compatibility, non primary working copies are always
     // returning true; in removal delta, clients can still check that element
     // was a working copy before being discarded.
-    return !isPrimary() || getPerWorkingCopyInfo() != null;
+    return !isPrimary();
   }
 
   @Override
@@ -234,14 +234,6 @@ public abstract class SourceFileElementImpl<E> extends OpenableElementImpl imple
    */
   protected abstract void becomeWorkingCopy(ProblemRequestor requestor, IProgressMonitor monitor)
       throws DartModelException;
-
-  /**
-   * Return the per working copy info for the receiver, or null if none exists. Note: the use count
-   * of the per working copy info is NOT incremented.
-   * 
-   * @return the per working copy info for the receiver
-   */
-  protected abstract PerWorkingCopyInfo getPerWorkingCopyInfo();
 
   /**
    * Return a shared working copy of this source file element using the given working copy owner to

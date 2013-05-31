@@ -31,7 +31,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.dom.visitor.SafeDartNodeTraverser;
 import com.google.dart.tools.core.internal.builder.LocalUrisTracker;
-import com.google.dart.tools.core.internal.model.delta.DartElementDeltaImpl;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartLibraryInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
@@ -41,7 +40,6 @@ import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartElementDelta;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -670,18 +668,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
   @Override
   public void setTopLevel(boolean topLevel) {
-    if (topLevel != isTopLevel()) {
-      try {
-        getDefiningResource().setPersistentProperty(
-            TOP_LEVEL_PROPERTY_NAME,
-            topLevel ? "true" : null);
-        DartElementDeltaImpl delta = new DartElementDeltaImpl(this);
-        delta.changed(DartElementDelta.F_TOP_LEVEL);
 
-      } catch (CoreException exception) {
-        // Ignore
-      }
-    }
   }
 
   @Override

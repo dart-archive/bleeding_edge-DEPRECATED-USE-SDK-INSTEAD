@@ -348,20 +348,7 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
   @Override
   protected DartElement getHandleFromMemento(String token, MementoTokenizer tokenizer,
       WorkingCopyOwner owner) {
-    switch (token.charAt(0)) {
-      case MEMENTO_DELIMITER_TYPE_PARAMETER:
-        if (!tokenizer.hasMoreTokens()) {
-          return this;
-        }
-        DartTypeParameterImpl typeParameter = new DartTypeParameterImpl(this, tokenizer.nextToken());
-        return typeParameter.getHandleFromMemento(tokenizer, owner);
-      case MEMENTO_DELIMITER_FIELD:
-        return this;
-      case MEMENTO_DELIMITER_METHOD:
 
-        return this;
-
-    }
     return null;
   }
 

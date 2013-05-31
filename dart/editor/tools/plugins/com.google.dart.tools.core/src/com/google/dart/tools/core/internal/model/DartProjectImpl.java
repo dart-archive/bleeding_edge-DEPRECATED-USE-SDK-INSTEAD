@@ -435,19 +435,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
 
   @Override
   public IPath getOutputLocation() throws DartModelException {
-    if (!DartProjectNature.hasDartNature(project)) {
-      return getDefaultOutputFullPath();
-    } else {
-      PerProjectInfo perProjectInfo = getPerProjectInfo();
-
-      IPath outputLocation = perProjectInfo.getOutputLocation();
-
-      if (outputLocation != null) {
-        return outputLocation;
-      } else {
-        return getDefaultOutputFullPath();
-      }
-    }
+    return null;
   }
 
   public List<String> getPackageDependencies() {
@@ -462,11 +450,6 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   @Override
   public IPath getPath() {
     return project.getFullPath();
-  }
-
-  public PerProjectInfo getPerProjectInfo() throws DartModelException {
-
-    return null;
   }
 
   @Override
@@ -671,12 +654,6 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
       // persist options
       projectPreferences.flush();
 
-      // flush cache immediately
-      try {
-        getPerProjectInfo().setOptions(null);
-      } catch (DartModelException e) {
-        // do nothing
-      }
     } catch (BackingStoreException e) {
       // problem with pref store - quietly ignore
     }
@@ -684,19 +661,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
 
   @Override
   public void setOutputLocation(IPath path, IProgressMonitor monitor) throws DartModelException {
-    // Null implies reset to the default output location.
-    if (path == null) {
-      path = getDefaultOutputFullPath();
-    }
 
-    // Don't change the setting if the values are the same.
-    if (path.equals(getOutputLocation())) {
-      return;
-    }
-
-    PerProjectInfo perProjectInfo = getPerProjectInfo();
-
-    perProjectInfo.setOutputLocation(path);
   }
 
   /**

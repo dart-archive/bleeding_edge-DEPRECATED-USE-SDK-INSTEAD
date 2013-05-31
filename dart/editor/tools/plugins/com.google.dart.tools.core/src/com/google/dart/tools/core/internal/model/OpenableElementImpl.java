@@ -378,33 +378,6 @@ public abstract class OpenableElementImpl extends DartElementImpl implements Ope
   protected void generateInfos(DartElementInfo info,
       HashMap<DartElement, DartElementInfo> newElements, IProgressMonitor monitor)
       throws DartModelException {
-    if (DartModelCache.VERBOSE) {
-      String element;
-      switch (getElementType()) {
-        case DART_PROJECT:
-          element = "project"; //$NON-NLS-1$
-          break;
-        case LIBRARY:
-          element = "library"; //$NON-NLS-1$
-          break;
-        // case PACKAGE_FRAGMENT_ROOT:
-        //          element = "root"; //$NON-NLS-1$
-        // break;
-        // case PACKAGE_FRAGMENT:
-        //          element = "package"; //$NON-NLS-1$
-        // break;
-        // case CLASS_FILE:
-        //          element = "class file"; //$NON-NLS-1$
-        // break;
-        case COMPILATION_UNIT:
-          element = "compilation unit"; //$NON-NLS-1$
-          break;
-        default:
-          element = "element"; //$NON-NLS-1$
-      }
-      System.out.println(Thread.currentThread()
-          + " OPENING " + element + " " + toStringWithAncestors()); //$NON-NLS-1$//$NON-NLS-2$
-    }
 
     // open its ancestors if needed
     openAncestors(newElements, monitor);
