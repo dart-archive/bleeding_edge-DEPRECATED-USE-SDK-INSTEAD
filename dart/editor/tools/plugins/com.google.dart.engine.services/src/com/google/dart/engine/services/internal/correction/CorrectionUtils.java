@@ -30,6 +30,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
@@ -593,6 +594,24 @@ public class CorrectionUtils {
     }
     String elementName = element.getName();
     return StringUtils.equals(elementName, name);
+  }
+
+  /**
+   * @return {@code true} if the given {@link SimpleIdentifier} is the name of the
+   *         {@link NamedExpression}.
+   */
+  public static boolean isNamedExpressionName(SimpleIdentifier node) {
+    ASTNode parent = node.getParent();
+    if (parent instanceof Label) {
+      Label label = (Label) parent;
+      if (label.getLabel() == node) {
+        ASTNode parent2 = label.getParent();
+        if (parent2 instanceof NamedExpression) {
+          return ((NamedExpression) parent2).getName() == label;
+        }
+      }
+    }
+    return false;
   }
 
   /**

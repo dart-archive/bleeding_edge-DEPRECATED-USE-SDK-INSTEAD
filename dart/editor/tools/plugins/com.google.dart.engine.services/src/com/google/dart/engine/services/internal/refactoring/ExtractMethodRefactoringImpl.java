@@ -316,7 +316,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
             declarationSource = annotations + getSignature(methodName) + " {" + eol;
             declarationSource += returnExpressionSource;
             if (returnVariable != null) {
-              declarationSource += prefix + "  return " + returnVariable.getDisplayName() + ";" + eol;
+              declarationSource += prefix + "  return " + returnVariable.getDisplayName() + ";"
+                  + eol;
             }
             declarationSource += prefix + "}";
           }
@@ -524,6 +525,11 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         if (partRange.covers(nodeRange)) {
           VariableElement variableElement = CorrectionUtils.getLocalOrParameterVariableElement(node);
           if (variableElement != null) {
+            // name of the named expression
+            if (CorrectionUtils.isNamedExpressionName(node)) {
+              return null;
+            }
+            // continue
             String originalName = variableElement.getDisplayName();
             String patternName = pattern.originalToPatternNames.get(originalName);
             if (patternName == null) {
@@ -660,6 +666,10 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           // analyze local variable
           VariableElement variableElement = CorrectionUtils.getLocalOrParameterVariableElement(node);
           if (variableElement != null) {
+            // name of the named expression
+            if (CorrectionUtils.isNamedExpressionName(node)) {
+              return null;
+            }
             // if declared outside, add parameter
             if (!isDeclaredInSelection(variableElement)) {
               String variableName = variableElement.getDisplayName();

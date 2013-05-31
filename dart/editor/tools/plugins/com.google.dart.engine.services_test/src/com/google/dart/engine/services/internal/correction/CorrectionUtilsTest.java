@@ -68,6 +68,8 @@ import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
 import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.label;
+import static com.google.dart.engine.ast.ASTFactory.namedExpression;
 import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
 import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
@@ -1536,6 +1538,19 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     // not whitespace
     assertFalse(utils.isJustWhitespaceOrComment(rangeStartLength(0, 1)));
     assertFalse(utils.isJustWhitespaceOrComment(rangeStartLength(3, 2)));
+  }
+
+  public void test_isNamedExpressionName_name() throws Exception {
+    SimpleIdentifier labelIdentifier = identifier("name");
+    namedExpression(label(labelIdentifier), identifier("value"));
+    assertTrue(CorrectionUtils.isNamedExpressionName(labelIdentifier));
+  }
+
+  public void test_isNamedExpressionName_value() throws Exception {
+    SimpleIdentifier labelIdentifier = identifier("name");
+    SimpleIdentifier valueIdentifier = identifier("value");
+    namedExpression(label(labelIdentifier), valueIdentifier);
+    assertFalse(CorrectionUtils.isNamedExpressionName(valueIdentifier));
   }
 
   public void test_new_withCharBuffer() throws Exception {

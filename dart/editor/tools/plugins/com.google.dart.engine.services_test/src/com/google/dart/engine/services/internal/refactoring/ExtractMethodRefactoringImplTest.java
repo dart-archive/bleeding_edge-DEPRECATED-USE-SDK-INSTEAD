@@ -1442,6 +1442,34 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
+  /**
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=10942
+   */
+  public void test_singleExpression_withVariables_namedExpression() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v1 = 1;",
+        "  int v2 = 2;",
+        "  int a = process(arg: v1 + v2); // marker",
+        "}",
+        "process({arg}) {}");
+    setSelectionString("process(arg: v1 + v2)");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v1 = 1;",
+        "  int v2 = 2;",
+        "  int a = res(v1, v2); // marker",
+        "}",
+        "",
+        "res(int v1, int v2) => process(arg: v1 + v2);",
+        "process({arg}) {}");
+  }
+
   public void test_singleExpression_withVariables_newType() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1724,7 +1752,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
-  public void test_statements_Dynamic() throws Exception {
+  public void test_statements_dynamic() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "dynaFunction(p) => 0;",
