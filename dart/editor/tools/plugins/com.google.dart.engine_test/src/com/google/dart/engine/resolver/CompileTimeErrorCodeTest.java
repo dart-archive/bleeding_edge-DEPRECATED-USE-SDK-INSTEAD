@@ -1460,14 +1460,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_implementsSelf() throws Exception {
-    Source source = addSource(createSource(//
-    "class A implements A {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_SELF);
-    verify(source);
-  }
-
   public void test_implicitThisReferenceInInitializer_field() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2494,7 +2486,29 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_recursiveInterfaceInheritance() throws Exception {
+  public void test_recursiveInterfaceInheritance_extends() throws Exception {
+    Source source = addSource(createSource(//
+        "class A extends B {}",
+        "class B extends A {}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
+    verify(source);
+  }
+
+  public void test_recursiveInterfaceInheritance_extends_implements() throws Exception {
+    Source source = addSource(createSource(//
+        "class A extends B {}",
+        "class B implements A {}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+        CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
+    verify(source);
+  }
+
+  public void test_recursiveInterfaceInheritance_implements() throws Exception {
     Source source = addSource(createSource(//
         "class A implements B {}",
         "class B implements A {}"));
@@ -2507,6 +2521,15 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_recursiveInterfaceInheritance_tail() throws Exception {
     Source source = addSource(createSource(//
+        "abstract class A implements A {}",
+        "class B implements A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS);
+    verify(source);
+  }
+
+  public void test_recursiveInterfaceInheritance_tail2() throws Exception {
+    Source source = addSource(createSource(//
         "abstract class A implements B {}",
         "abstract class B implements A {}",
         "class C implements A {}"));
@@ -2517,7 +2540,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_recursiveInterfaceInheritance_tail2() throws Exception {
+  public void test_recursiveInterfaceInheritance_tail3() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A implements B {}",
         "abstract class B implements C {}",
@@ -2528,6 +2551,32 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
+    verify(source);
+  }
+
+  public void test_recursiveInterfaceInheritanceBaseCaseExtends() throws Exception {
+    Source source = addSource(createSource(//
+    "class A extends A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS);
+    verify(source);
+  }
+
+  public void test_recursiveInterfaceInheritanceBaseCaseImplements() throws Exception {
+    Source source = addSource(createSource(//
+    "class A implements A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS);
+    verify(source);
+  }
+
+  public void test_recursiveInterfaceInheritanceBaseCaseImplements_typedef() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class M {}",
+        "typedef B = A with M implements B;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS);
     verify(source);
   }
 

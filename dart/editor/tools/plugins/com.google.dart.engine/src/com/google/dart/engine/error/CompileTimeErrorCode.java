@@ -480,17 +480,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   IMPLEMENTS_REPEATED("'%s' can only be implemented once"),
 
   /**
-   * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
-   * superinterface of itself.
-   * <p>
-   * Note: this error code is a subset of the {@link #RECURSIVE_INTERFACE_INHERITANCE} error code.
-   * 
-   * @param className the name of the class that implements itself
-   * @see #RECURSIVE_INTERFACE_INHERITANCE
-   */
-  IMPLEMENTS_SELF("'%s' cannot implement itself"),
-
-  /**
    * 7.6.1 Generative Constructors: Note that this is not in scope on the right hand side of an
    * initializer.
    * <p>
@@ -905,13 +894,41 @@ public enum CompileTimeErrorCode implements ErrorCode {
   RECURSIVE_FUNCTION_TYPE_ALIAS(""),
 
   /**
+   * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
+   * superinterface of itself.
+   * <p>
    * 8.1 Superinterfaces: It is a compile-time error if an interface is a superinterface of itself.
+   * <p>
+   * 7.9 Superclasses: It is a compile-time error if a class <i>C</i> is a superclass of itself.
    * 
    * @param className the name of the class that implements itself recursively
    * @param strImplementsPath a string representation of the implements loop
-   * @see #IMPLEMENTS_SELF
    */
   RECURSIVE_INTERFACE_INHERITANCE("'%s' cannot be a superinterface of itself: %s"),
+
+  /**
+   * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
+   * superinterface of itself.
+   * <p>
+   * 8.1 Superinterfaces: It is a compile-time error if an interface is a superinterface of itself.
+   * <p>
+   * 7.9 Superclasses: It is a compile-time error if a class <i>C</i> is a superclass of itself.
+   * 
+   * @param className the name of the class that implements itself recursively
+   */
+  RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS("'%s' cannot extend itself"),
+
+  /**
+   * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
+   * superinterface of itself.
+   * <p>
+   * 8.1 Superinterfaces: It is a compile-time error if an interface is a superinterface of itself.
+   * <p>
+   * 7.9 Superclasses: It is a compile-time error if a class <i>C</i> is a superclass of itself.
+   * 
+   * @param className the name of the class that implements itself recursively
+   */
+  RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS("'%s' cannot implement itself"),
 
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with the const modifier but

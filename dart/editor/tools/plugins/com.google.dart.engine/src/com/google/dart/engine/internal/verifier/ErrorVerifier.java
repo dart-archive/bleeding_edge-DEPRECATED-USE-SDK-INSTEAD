@@ -341,7 +341,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
     ClassElement outerClass = enclosingClass;
-
     try {
       enclosingClass = node.getElement();
       WithClause withClause = node.getWithClause();
@@ -357,10 +356,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             && !checkForExtendsDisallowedClass(extendsClause)) {
           checkForNonAbstractClassInheritsAbstractMember(node);
           checkForInconsistentMethodInheritance();
+          checkForRecursiveInterfaceInheritance(enclosingClass, new ArrayList<ClassElement>());
         }
-      }
-      if (implementsClause != null) {
-        checkForRecursiveInterfaceInheritance(enclosingClass, new ArrayList<ClassElement>());
       }
       // initialize initialFieldElementsMap
       ClassElement classElement = node.getElement();
@@ -388,6 +385,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     checkForAllMixinErrorCodes(node.getWithClause());
+    ClassElement outerClassElement = enclosingClass;
+    try {
+      enclosingClass = node.getElement();
+      checkForRecursiveInterfaceInheritance(node.getElement(), new ArrayList<ClassElement>());
+    } finally {
+      enclosingClass = outerClassElement;
+    }
     return super.visitClassTypeAlias(node);
   }
 
@@ -3130,6 +3134,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param list a list containing the potentially cyclic implements path
    * @return {@code true} if and only if an error code is generated on the passed element
    * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE
+   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
+   * @see CompileTimeErrorCode#RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS
    */
   private boolean checkForRecursiveInterfaceInheritance(ClassElement classElt,
       ArrayList<ClassElement> list) {
@@ -3137,12 +3143,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (classElt == null) {
       return false;
     }
+    InterfaceType supertype = classElt.getSupertype();
     // Detect error condition.
     list.add(classElt);
-    // If this is not the first time this method is being called, (list.size() != 1) and the
-    // enclosing class is the passed class element, and this is not the A implements A case
-    // (list.size > 2) covered by CompileTimeErrorCode.IMPLEMENTS_SELF, then an error is generated
+    // If this is not the base case (list.size() != 1), and the enclosing class is the passed class
+    // element then an error an error.
     if (list.size() != 1 && enclosingClass.equals(classElt)) {
+      String enclosingClassName = enclosingClass.getDisplayName();
       if (list.size() > 2) {
         // Construct a string showing the cyclic implements path: "A, B, C, D, A"
         String separator = ", ";
@@ -3154,7 +3161,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             builder.append(separator);
           }
         }
-        String enclosingClassName = enclosingClass.getDisplayName();
         errorReporter.reportError(
             CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
             enclosingClass.getNameOffset(),
@@ -3162,9 +3168,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             enclosingClassName,
             builder.toString());
         return true;
+      } else if (list.size() == 2) {
+        // RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS or RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
+        ErrorCode errorCode = supertype != null && enclosingClass.equals(supertype.getElement())
+            ? CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS
+            : CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS;
+        errorReporter.reportError(
+            errorCode,
+            enclosingClass.getNameOffset(),
+            enclosingClassName.length(),
+            enclosingClassName);
+        return true;
       }
-      list.remove(list.size() - 1);
-      return false;
     }
     // Before we recursively call ourselves, we need to check that there are no loops in the stack.
     for (int i = 1; i < list.size() - 1; i++) {
@@ -3174,10 +3189,19 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     // n-case
+    ClassElement[] interfaceElements;
     InterfaceType[] interfaceTypes = classElt.getInterfaces();
-    ClassElement[] interfaceElements = new ClassElement[interfaceTypes.length];
-    for (int i = 0; i < interfaceTypes.length; i++) {
-      interfaceElements[i] = interfaceTypes[i].getElement();
+    if (supertype != null && !supertype.isObject()) {
+      interfaceElements = new ClassElement[interfaceTypes.length + 1];
+      interfaceElements[0] = supertype.getElement();
+      for (int i = 0; i < interfaceTypes.length; i++) {
+        interfaceElements[i + 1] = interfaceTypes[i].getElement();
+      }
+    } else {
+      interfaceElements = new ClassElement[interfaceTypes.length];
+      for (int i = 0; i < interfaceTypes.length; i++) {
+        interfaceElements[i] = interfaceTypes[i].getElement();
+      }
     }
     for (ClassElement classElt2 : interfaceElements) {
       if (checkForRecursiveInterfaceInheritance(classElt2, list)) {

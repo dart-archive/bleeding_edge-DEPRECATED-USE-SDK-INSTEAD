@@ -684,7 +684,7 @@ public class IndexContributorTest extends AbstractDartTest {
   }
 
   public void test_isReferencedBy_ClassElement_withPrefix() throws Exception {
-    // Turn of verify of no errors since "pref.MyClass" is an undefined class.
+    // Turn off verify of no errors since "pref.MyClass" is an undefined class.
     verifyNoTestUnitErrors = false;
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1089,6 +1089,8 @@ public class IndexContributorTest extends AbstractDartTest {
   }
 
   public void test_isReferencedByQualified_ConstructorElement() throws Exception {
+    // Turn off verify of no errors since A implements B extends A
+    verifyNoTestUnitErrors = false;
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A implements B {",
@@ -1105,6 +1107,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "  new A.foo(); // marker-main-2",
         "}",
         "");
+    verifyNoTestUnitErrors = true;
     // set elements
     Element mainElement = findElement("main() {");
     ConstructorElement consB = findNode("B()", ConstructorDeclaration.class).getElement();
