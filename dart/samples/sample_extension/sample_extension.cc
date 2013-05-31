@@ -61,13 +61,13 @@ uint8_t* randomArray(int seed, int length) {
 void wrappedRandomArray(Dart_Port dest_port_id,
                         Dart_Port reply_port_id,
                         Dart_CObject* message) {
-  if (message->type == Dart_CObject::kArray &&
+  if (message->type == Dart_CObject_kArray &&
       2 == message->value.as_array.length) {
     // Use .as_array and .as_int32 to access the data in the Dart_CObject.
     Dart_CObject* param0 = message->value.as_array.values[0];
     Dart_CObject* param1 = message->value.as_array.values[1];
-    if (param0->type == Dart_CObject::kInt32 &&
-        param1->type == Dart_CObject::kInt32) {
+    if (param0->type == Dart_CObject_kInt32 &&
+        param1->type == Dart_CObject_kInt32) {
       int seed = param0->value.as_int32;
       int length = param1->value.as_int32;
 
@@ -75,8 +75,8 @@ void wrappedRandomArray(Dart_Port dest_port_id,
 
       if (values != NULL) {
         Dart_CObject result;
-        result.type = Dart_CObject::kTypedData;
-        result.value.as_typed_data.type = Dart_CObject::kUint8Array;
+        result.type = Dart_CObject_kTypedData;
+        result.value.as_typed_data.type = Dart_TypedData_kUint8;
         result.value.as_typed_data.values = values;
         result.value.as_typed_data.length = length;
         Dart_PostCObject(reply_port_id, &result);
@@ -88,7 +88,7 @@ void wrappedRandomArray(Dart_Port dest_port_id,
     }
   }
   Dart_CObject result;
-  result.type = Dart_CObject::kNull;
+  result.type = Dart_CObject_kNull;
   Dart_PostCObject(reply_port_id, &result);
 }
 
