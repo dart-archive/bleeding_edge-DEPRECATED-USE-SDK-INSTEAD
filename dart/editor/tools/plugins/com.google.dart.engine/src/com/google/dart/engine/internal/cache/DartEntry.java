@@ -36,6 +36,13 @@ public interface DartEntry extends SourceEntry {
       "DartEntry.ELEMENT");
 
   /**
+   * The data descriptor representing the list of referenced libraries. This data is only available
+   * for Dart files that are the defining compilation unit of a library.
+   */
+  public static final DataDescriptor<Source[]> REFERENCED_LIBRARIES = new DataDescriptor<Source[]>(
+      "DartEntry.REFERENCED_LIBRARIES");
+
+  /**
    * The data descriptor representing the list of included parts. This data is only available for
    * Dart files that are the defining compilation unit of a library.
    */

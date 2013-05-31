@@ -278,6 +278,11 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public Source[] getLibrariesDependingOn(Source librarySource) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     return null;
   }

@@ -257,6 +257,16 @@ public interface AnalysisContext {
   public Source[] getLibrariesContaining(Source source);
 
   /**
+   * Return the sources for the defining compilation units of any libraries that depend on the given
+   * library. One library depends on another if it either imports or exports that library.
+   * 
+   * @param librarySource the source for the defining compilation unit of the library being depended
+   *          on
+   * @return the sources for the libraries that depend on the given library
+   */
+  public Source[] getLibrariesDependingOn(Source librarySource);
+
+  /**
    * Return the element model corresponding to the library defined by the given source, or
    * {@code null} if the element model does not currently exist or if the library cannot be analyzed
    * for some reason.

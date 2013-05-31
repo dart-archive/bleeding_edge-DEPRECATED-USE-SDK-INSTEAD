@@ -167,6 +167,15 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   }
 
   @Override
+  public Source[] getLibrariesDependingOn(Source librarySource) {
+    if (librarySource.isInSystemLibrary()) {
+      return sdkAnalysisContext.getLibrariesDependingOn(librarySource);
+    } else {
+      return super.getLibrariesDependingOn(librarySource);
+    }
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     if (source.isInSystemLibrary()) {
       return sdkAnalysisContext.getLibraryElement(source);

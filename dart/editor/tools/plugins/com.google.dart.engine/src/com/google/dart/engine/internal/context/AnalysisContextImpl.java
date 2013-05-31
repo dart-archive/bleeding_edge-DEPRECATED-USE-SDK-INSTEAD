@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.context;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AnnotatedNode;
@@ -619,6 +620,26 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public Source[] getLibrariesDependingOn(Source librarySource) {
+    synchronized (cacheLock) {
+      ArrayList<Source> dependentLibraries = new ArrayList<Source>();
+      for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
+        if (entry.getValue().getKind() == SourceKind.LIBRARY) {
+          if (contains(
+              ((DartEntry) entry.getValue()).getValue(DartEntry.REFERENCED_LIBRARIES),
+              librarySource)) {
+            dependentLibraries.add(entry.getKey());
+          }
+        }
+      }
+      if (dependentLibraries.isEmpty()) {
+        return Source.EMPTY_ARRAY;
+      }
+      return dependentLibraries.toArray(new Source[dependentLibraries.size()]);
+    }
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     SourceEntry sourceEntry = getReadableSourceEntry(source);
     if (sourceEntry instanceof DartEntry) {
@@ -981,6 +1002,38 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return librarySources;
+  }
+
+  /**
+   * Return a list of the sources that would be processed by {@link #performAnalysisTask()}. This
+   * method is intended to be used for testing purposes only.
+   * 
+   * @return a list of the sources that would be processed by {@link #performAnalysisTask()}
+   */
+  @VisibleForTesting
+  protected List<Source> getSourcesNeedingProcessing() {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    synchronized (cacheLock) {
+      for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
+        SourceEntry sourceEntry = entry.getValue();
+        if (sourceEntry instanceof DartEntry) {
+          DartEntry dartEntry = (DartEntry) sourceEntry;
+          CacheState parsedUnitState = dartEntry.getState(DartEntry.PARSED_UNIT);
+          CacheState elementState = dartEntry.getState(DartEntry.ELEMENT);
+          if (parsedUnitState == CacheState.INVALID || elementState == CacheState.INVALID) {
+            sources.add(entry.getKey());
+          }
+        } else if (sourceEntry instanceof HtmlEntry) {
+          HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+          CacheState parsedUnitState = htmlEntry.getState(HtmlEntry.PARSED_UNIT);
+          CacheState resolvedUnitState = htmlEntry.getState(HtmlEntry.RESOLVED_UNIT);
+          if (parsedUnitState == CacheState.INVALID || resolvedUnitState == CacheState.INVALID) {
+            sources.add(entry.getKey());
+          }
+        }
+      }
+    }
+    return sources;
   }
 
   /**
@@ -1603,6 +1656,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     RecordingErrorListener errorListener = resolver.getErrorListener();
     for (Library library : resolver.getResolvedLibraries()) {
       Source librarySource = library.getLibrarySource();
+      HashSet<Source> referencedLibraries = new HashSet<Source>();
+      for (Library referencedLibrary : library.getExports()) {
+        referencedLibraries.add(referencedLibrary.getLibrarySource());
+      }
+      for (Library referencedLibrary : library.getImports()) {
+        referencedLibraries.add(referencedLibrary.getLibrarySource());
+      }
       for (Source source : library.getCompilationUnitSources()) {
         CompilationUnit unit = library.getAST(source);
         AnalysisError[] errors = errorListener.getErrors(source);
@@ -1618,6 +1678,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
             if (source == librarySource) {
               recordElementData(dartCopy, library.getLibraryElement(), htmlSource);
+              Source[] libraries;
+              if (referencedLibraries.isEmpty()) {
+                libraries = Source.EMPTY_ARRAY;
+              } else {
+                libraries = referencedLibraries.toArray(new Source[referencedLibraries.size()]);
+              }
+              dartCopy.setValue(DartEntry.REFERENCED_LIBRARIES, libraries);
             }
             sourceMap.put(source, dartCopy);
 
@@ -1698,7 +1765,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     // about the source.
     DartEntry dartEntry = getDartEntry(source);
     if (dartEntry != null) {
+      HashSet<Source> libraries = new HashSet<Source>();
       for (Source librarySource : getLibrariesContaining(source)) {
+        libraries.add(librarySource);
+        for (Source dependentLibrary : getLibrariesDependingOn(librarySource)) {
+          libraries.add(dependentLibrary);
+        }
+      }
+      for (Source librarySource : libraries) {
         invalidateLibraryResolution(librarySource);
       }
     }

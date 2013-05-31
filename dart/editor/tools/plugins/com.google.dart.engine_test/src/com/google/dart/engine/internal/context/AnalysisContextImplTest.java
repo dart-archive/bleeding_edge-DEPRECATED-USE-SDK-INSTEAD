@@ -40,6 +40,7 @@ import com.google.dart.engine.utilities.source.LineInfo;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import java.io.IOException;
+import java.util.List;
 
 public class AnalysisContextImplTest extends EngineTestCase {
   /**
@@ -110,6 +111,25 @@ public class AnalysisContextImplTest extends EngineTestCase {
   public void test_applyChanges_empty() {
     context.applyChanges(new ChangeSet());
     assertNull(context.performAnalysisTask());
+  }
+
+  public void test_applyChanges_remove() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source libA = addSource("/libA.dart", createSource(//
+        "library libA;",
+        "import 'libB.dart';"));
+    Source libB = addSource("/libB.dart", createSource(//
+        "library libB;"));
+    context.computeLibraryElement(libA);
+    assertSize(0, context.getSourcesNeedingProcessing());
+
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.removed(libB);
+    context.applyChanges(changeSet);
+    List<Source> sources = context.getSourcesNeedingProcessing();
+    assertSize(1, sources);
+    assertSame(libA, sources.get(0));
   }
 
   public void test_computeDocumentationComment_none() throws Exception {

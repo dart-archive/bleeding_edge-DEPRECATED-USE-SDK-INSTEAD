@@ -323,6 +323,21 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public Source[] getLibrariesDependingOn(Source librarySource) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getLibrariesDependingOn");
+    try {
+      instrumentation.metric("contextId", contextId);
+      Source[] ret = basis.getLibrariesDependingOn(librarySource);
+      if (ret != null) {
+        instrumentation.metric("Source-count", ret.length);
+      }
+      return ret;
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getLibraryElement");
     try {
