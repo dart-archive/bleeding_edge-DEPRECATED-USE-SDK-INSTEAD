@@ -47,7 +47,7 @@ import java.util.List;
  */
 public class FindReferencesAction extends AbstractDartSelectionAction {
   /**
-   * @return {@code true} if given {@link DartSelection} looks valid and we can try to open it.
+   * @return {@code true} if given {@link DartSelection} looks valid.
    */
   private static boolean isValidSelection(DartSelection selection) {
     Element element = ActionUtil.getActionElement(selection);

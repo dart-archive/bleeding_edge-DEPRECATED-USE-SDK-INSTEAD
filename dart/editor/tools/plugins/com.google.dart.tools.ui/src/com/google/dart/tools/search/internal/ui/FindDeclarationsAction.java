@@ -19,9 +19,6 @@ import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.FieldElement;
-import com.google.dart.engine.element.MethodElement;
-import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.tools.core.DartCore;
@@ -71,10 +68,17 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
     return false;
   }
 
-  private static boolean isResolvedClassMemberSelected(DartSelection selection) {
+  /**
+   * @return {@code true} if given {@link DartSelection} looks valid.
+   */
+  private static boolean isValidSelection(DartSelection selection) {
+    // we know the exact Element, no need to search for declarations
     Element element = getSelectionElement(selection);
-    return element instanceof MethodElement || element instanceof FieldElement
-        || element instanceof PropertyAccessorElement;
+    if (element != null) {
+      return false;
+    }
+    // we want to search only method and property declarations
+    return isInvocationNameOrPropertyAccessSelected(selection);
   }
 
   public FindDeclarationsAction(DartEditor editor) {
@@ -87,8 +91,7 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
 
   @Override
   public void selectionChanged(DartSelection selection) {
-    setEnabled(isResolvedClassMemberSelected(selection)
-        || isInvocationNameOrPropertyAccessSelected(selection));
+    setEnabled(isValidSelection(selection));
   }
 
   @Override
