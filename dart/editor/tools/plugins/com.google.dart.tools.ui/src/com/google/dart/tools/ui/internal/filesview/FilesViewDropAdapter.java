@@ -17,6 +17,7 @@ import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
 import com.google.dart.tools.ui.internal.refactoring.MoveSupport;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -78,6 +79,10 @@ public class FilesViewDropAdapter extends NavigatorDropAdapter {
             return false;
           }
         }
+      }
+      // wait for background analysis
+      if (!RefactoringUtils.waitReadyForRefactoring()) {
+        return false;
       }
       // execute MoveRefactoring
       return ExecutionUtils.runLog(new RunnableEx() {
