@@ -26,6 +26,25 @@ import com.google.dart.engine.source.TestSource;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class HtmlParserTest extends EngineTestCase {
+  public void fail_parse_scriptWithComment() throws Exception {
+    String scriptBody = createSource(//
+        "      /**",
+        "       *     <editable-label bind-value=\"dartAsignableValue\">",
+        "       *     </editable-label>",
+        "       */",
+        "      class Foo {}");
+    HtmlUnit htmlUnit = parse(createSource(//
+        "  <html>",
+        "    <body>",
+        "      <script type=\"application/dart\">",
+        scriptBody,
+        "      </script>",
+        "    </body>",
+        "  </html>")).getHtmlUnit();
+    validate(
+        htmlUnit,
+        t("html", t("body", t("script", a("type", "\"application/dart\""), scriptBody))));
+  }
 
   public void test_parse_attribute() throws Exception {
     HtmlUnit htmlUnit = parse(//
