@@ -303,7 +303,7 @@ public class CompletionProposalLabelProvider {
   StyledString createLabelWithType(CompletionProposal proposal) {
     StyledString buf = new StyledString();
     buf.append(proposal.getCompletion());
-    char[] typeName = Signature.getSignatureSimpleName(proposal.getSignature());
+    char[] typeName = proposal.getReturnTypeName();
 
     if (typeName.length > 0) {
       if (isDynamic(typeName)) {
