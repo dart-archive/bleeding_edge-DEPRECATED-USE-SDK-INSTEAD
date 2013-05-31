@@ -112,6 +112,14 @@ public class PrefixedIdentifier extends Identifier {
     return prefix;
   }
 
+  @Override
+  public Element getStaticElement() {
+    if (identifier == null) {
+      return null;
+    }
+    return identifier.getStaticElement();
+  }
+
   /**
    * Set the identifier being prefixed to the given identifier.
    * 

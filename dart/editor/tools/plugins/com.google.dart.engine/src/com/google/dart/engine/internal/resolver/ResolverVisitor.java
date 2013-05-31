@@ -118,11 +118,6 @@ public class ResolverVisitor extends ScopedVisitor {
   private TypeOverrideManager overrideManager = new TypeOverrideManager();
 
   /**
-   * A table mapping nodes in the AST to the element produced based on static type information.
-   */
-  private HashMap<ASTNode, ExecutableElement> staticElementMap = new HashMap<ASTNode, ExecutableElement>();
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
    * 
    * @param library the library containing the compilation unit being resolved
@@ -159,16 +154,6 @@ public class ResolverVisitor extends ScopedVisitor {
    */
   public TypeOverrideManager getOverrideManager() {
     return overrideManager;
-  }
-
-  /**
-   * Return a table mapping nodes in the AST to the element produced based on static type
-   * information.
-   * 
-   * @return the static element map
-   */
-  public HashMap<ASTNode, ExecutableElement> getStaticElementMap() {
-    return staticElementMap;
   }
 
   @Override

@@ -88,6 +88,11 @@ public class LibraryIdentifier extends Identifier {
   }
 
   @Override
+  public Element getStaticElement() {
+    return null;
+  }
+
+  @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     components.accept(visitor);
   }

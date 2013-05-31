@@ -217,6 +217,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
 
     @Override
+    public Element getStaticElement() {
+      return null;
+    }
+
+    @Override
     public void visitChildren(ASTVisitor<?> visitor) {
     }
   }
@@ -278,11 +283,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private ResolverVisitor resolver;
 
   /**
-   * A table mapping nodes in the AST to the element produced based on static type information.
-   */
-  private HashMap<ASTNode, ExecutableElement> staticElementMap;
-
-  /**
    * The name of the method that can be implemented by a class to allow its instances to be invoked
    * as if they were a function.
    */
@@ -301,7 +301,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    */
   public ElementResolver(ResolverVisitor resolver) {
     this.resolver = resolver;
-    staticElementMap = resolver.getStaticElementMap();
   }
 
   @Override
@@ -316,7 +315,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
         Type staticType = getStaticType(leftHandSide);
         MethodElement staticMethod = lookUpMethod(leftHandSide, staticType, methodName);
-        staticElementMap.put(node, staticMethod);
+        node.setStaticElement(staticMethod);
 
         Type propagatedType = getPropagatedType(leftHandSide);
         MethodElement propagatedMethod = lookUpMethod(leftHandSide, propagatedType, methodName);
@@ -347,7 +346,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
         Type staticType = getStaticType(leftOperand);
         MethodElement staticMethod = lookUpMethod(leftOperand, staticType, methodName);
-        staticElementMap.put(node, staticMethod);
+        node.setStaticElement(staticMethod);
 
         Type propagatedType = getPropagatedType(leftOperand);
         MethodElement propagatedMethod = lookUpMethod(leftOperand, propagatedType, methodName);
@@ -562,10 +561,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       constructor = interfaceType.lookUpConstructor(null, definingLibrary);
     } else {
       constructor = interfaceType.lookUpConstructor(name.getName(), definingLibrary);
-      staticElementMap.put(name, constructor);
+      name.setStaticElement(constructor);
       name.setElement(constructor);
     }
-    staticElementMap.put(node, constructor);
+    node.setStaticElement(constructor);
     node.setElement(constructor);
     return null;
   }
@@ -733,7 +732,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorElement invokedConstructor = node.getConstructorName().getElement();
-    staticElementMap.put(node, invokedConstructor);
+    node.setStaticElement(invokedConstructor);
     node.setElement(invokedConstructor);
     resolveArgumentsToParameters(node.isConst(), node.getArgumentList(), invokedConstructor);
     return null;
@@ -906,7 +905,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
     Type staticType = getStaticType(operand);
     MethodElement staticMethod = lookUpMethod(operand, staticType, methodName);
-    staticElementMap.put(node, staticMethod);
+    node.setStaticElement(staticMethod);
 
     Type propagatedType = getPropagatedType(operand);
     MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
@@ -970,7 +969,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
       Type staticType = getStaticType(operand);
       MethodElement staticMethod = lookUpMethod(operand, staticType, methodName);
-      staticElementMap.put(node, staticMethod);
+      node.setStaticElement(staticMethod);
 
       Type propagatedType = getPropagatedType(operand);
       MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
@@ -1020,7 +1019,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (name != null) {
       recordResolution(name, element);
     }
-    staticElementMap.put(node, element);
+    node.setStaticElement(element);
     node.setElement(element);
     resolveArgumentsToParameters(false, node.getArgumentList(), element);
     return null;
@@ -1048,10 +1047,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       } else if (!classDeclaresNoSuchMethod(resolver.getEnclosingClass())) {
         resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, node.getName());
       }
-    } else if (element instanceof ExecutableElement) {
-      staticElementMap.put(node, (ExecutableElement) element);
     }
-
     recordResolution(node, element);
     return null;
   }
@@ -1097,7 +1093,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (name != null) {
       recordResolution(name, element);
     }
-    staticElementMap.put(node, element);
+    node.setStaticElement(element);
     node.setElement(element);
     resolveArgumentsToParameters(false, node.getArgumentList(), element);
     return null;
@@ -1432,9 +1428,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       String methodName, Type staticType, Type propagatedType) {
     // lookup
     MethodElement staticMethod = lookUpMethod(target, staticType, methodName);
-    staticElementMap.put(node, staticMethod);
     MethodElement propagatedMethod = lookUpMethod(target, propagatedType, methodName);
     // set element
+    node.setStaticElement(staticMethod);
     node.setElement(select(staticMethod, propagatedMethod));
     // report problem
     if (shouldReportMissingMember(staticType, staticMethod)
@@ -1859,12 +1855,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param element the element to which the AST node was resolved
    */
   private void recordResolution(SimpleIdentifier node, Element element) {
-    if (element != null) {
-      if (element instanceof ExecutableElement) {
-        staticElementMap.put(node, (ExecutableElement) element);
-      }
-      node.setElement(element);
-    }
+    node.setStaticElement(element);
+    node.setElement(element);
   }
 
   /**
@@ -1879,44 +1871,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    */
   private Element recordResolution(SimpleIdentifier node, Element staticElement,
       Element propagatedElement) {
-    if (staticElement instanceof ExecutableElement) {
-      staticElementMap.put(node, (ExecutableElement) staticElement);
-    }
+    node.setStaticElement(staticElement);
     Element element = propagatedElement == null ? staticElement : propagatedElement;
     node.setElement(element);
     return element;
   }
-
-//  /**
-//   * Report the {@link StaticTypeWarningCode}s <code>UNDEFINED_SETTER</code> and
-//   * <code>UNDEFINED_GETTER</code>.
-//   * 
-//   * @param node the prefixed identifier that gives the context to determine if the error on the
-//   *          undefined identifier is a getter or a setter
-//   * @param identifier the identifier in the passed prefix identifier
-//   * @param typeName the name of the type of the left hand side of the passed prefixed identifier
-//   */
-//  private void reportGetterOrSetterNotFound(PrefixedIdentifier node, SimpleIdentifier identifier,
-//      String typeName) {
-//    // This method is only invoked when the prefixed identifier is effectively a property access.
-//    Type staticTargetType = getStaticType(node.getPrefix());
-//    Type propagatedTargetType = getPropagatedType(node.getPrefix());
-//    if ((staticTargetType == null || staticTargetType.isDynamic())
-//        && (propagatedTargetType == null || propagatedTargetType.isDynamic())) {
-//      return;
-//    }
-//    boolean staticNoSuchMethod = staticTargetType != null
-//        && classDeclaresNoSuchMethod(staticTargetType.getElement());
-//    boolean propagatedNoSuchMethod = propagatedTargetType != null
-//        && classDeclaresNoSuchMethod(propagatedTargetType.getElement());
-//    if (!staticNoSuchMethod && !propagatedNoSuchMethod) {
-//      // TODO(jwren) This needs to be modified to also generate the error code StaticTypeWarningCode.INACCESSIBLE_SETTER
-//      boolean isSetterContext = node.getIdentifier().inSetterContext();
-//      ErrorCode errorCode = isSetterContext ? StaticTypeWarningCode.UNDEFINED_SETTER
-//          : StaticTypeWarningCode.UNDEFINED_GETTER;
-//      resolver.reportError(errorCode, identifier, identifier.getName(), typeName);
-//    }
-//  }
 
   /**
    * Given a list of arguments and the element that will be invoked using those argument, compute
@@ -2150,7 +2109,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private void resolvePropertyAccess(Expression target, SimpleIdentifier propertyName) {
     Type staticType = getStaticType(target);
     ExecutableElement staticElement = resolveProperty(target, staticType, propertyName);
-    staticElementMap.put(propertyName, staticElement);
+    propertyName.setStaticElement(staticElement);
 
     Type propagatedType = getPropagatedType(target);
     ExecutableElement propagatedElement = resolveProperty(target, propagatedType, propertyName);

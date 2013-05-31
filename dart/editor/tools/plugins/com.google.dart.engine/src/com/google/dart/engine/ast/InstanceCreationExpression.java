@@ -46,10 +46,17 @@ public class InstanceCreationExpression extends Expression {
   private ArgumentList argumentList;
 
   /**
-   * The element associated with the constructor, or {@code null} if the AST structure has not been
-   * resolved or if the constructor could not be resolved.
+   * The element associated with the constructor based on static type information, or {@code null}
+   * if the AST structure has not been resolved or if the constructor could not be resolved.
    */
-  private ConstructorElement element;
+  private ConstructorElement staticElement;
+
+  /**
+   * The element associated with the constructor based on propagated type information, or
+   * {@code null} if the AST structure has not been resolved or if the constructor could not be
+   * resolved.
+   */
+  private ConstructorElement propagatedElement;
 
   /**
    * Initialize a newly created instance creation expression.
@@ -94,13 +101,14 @@ public class InstanceCreationExpression extends Expression {
   }
 
   /**
-   * Return the element associated with the constructor, or {@code null} if the AST structure has
-   * not been resolved or if the constructor could not be resolved.
+   * Return the element associated with the constructor based on propagated type information, or
+   * {@code null} if the AST structure has not been resolved or if the constructor could not be
+   * resolved.
    * 
    * @return the element associated with the constructor
    */
   public ConstructorElement getElement() {
-    return element;
+    return propagatedElement;
   }
 
   @Override
@@ -115,6 +123,17 @@ public class InstanceCreationExpression extends Expression {
    */
   public Token getKeyword() {
     return keyword;
+  }
+
+  /**
+   * Return the element associated with the constructor based on static type information, or
+   * {@code null} if the AST structure has not been resolved or if the constructor could not be
+   * resolved.
+   * 
+   * @return the element associated with the constructor
+   */
+  public ConstructorElement getStaticElement() {
+    return staticElement;
   }
 
   /**
@@ -146,12 +165,13 @@ public class InstanceCreationExpression extends Expression {
   }
 
   /**
-   * Set the element associated with the constructor to the given element.
+   * Set the element associated with the constructor based on propagated type information to the
+   * given element.
    * 
-   * @param element the element associated with the constructor
+   * @param element the element to be associated with the constructor
    */
   public void setElement(ConstructorElement element) {
-    this.element = element;
+    this.propagatedElement = element;
   }
 
   /**
@@ -161,6 +181,16 @@ public class InstanceCreationExpression extends Expression {
    */
   public void setKeyword(Token keyword) {
     this.keyword = keyword;
+  }
+
+  /**
+   * Set the element associated with the constructor based on static type information to the given
+   * element.
+   * 
+   * @param element the element to be associated with the constructor
+   */
+  public void setStaticElement(ConstructorElement element) {
+    this.staticElement = element;
   }
 
   @Override

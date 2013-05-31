@@ -57,10 +57,18 @@ public class IndexExpression extends Expression {
   private Token rightBracket;
 
   /**
-   * The element associated with the operator, or {@code null} if the AST structure has not been
-   * resolved or if the operator could not be resolved.
+   * The element associated with the operator based on the static type of the target, or
+   * {@code null} if the AST structure has not been resolved or if the operator could not be
+   * resolved.
    */
-  private MethodElement element;
+  private MethodElement staticElement;
+
+  /**
+   * The element associated with the operator based on the propagated type of the target, or
+   * {@code null} if the AST structure has not been resolved or if the operator could not be
+   * resolved.
+   */
+  private MethodElement propagatedElement;
 
   /**
    * Initialize a newly created index expression.
@@ -117,14 +125,15 @@ public class IndexExpression extends Expression {
   }
 
   /**
-   * Return the element associated with the operator, or {@code null} if the AST structure has not
-   * been resolved or if the operator could not be resolved. One example of the latter case is an
-   * operator that is not defined for the type of the left-hand operand.
+   * Return the element associated with the operator based on the propagated type of the target, or
+   * {@code null} if the AST structure has not been resolved or if the operator could not be
+   * resolved. One example of the latter case is an operator that is not defined for the type of the
+   * target.
    * 
    * @return the element associated with this operator
    */
   public MethodElement getElement() {
-    return element;
+    return propagatedElement;
   }
 
   @Override
@@ -190,6 +199,18 @@ public class IndexExpression extends Expression {
    */
   public Token getRightBracket() {
     return rightBracket;
+  }
+
+  /**
+   * Return the element associated with the operator based on the static type of the target, or
+   * {@code null} if the AST structure has not been resolved or if the operator could not be
+   * resolved. One example of the latter case is an operator that is not defined for the type of the
+   * target.
+   * 
+   * @return the element associated with the operator
+   */
+  public MethodElement getStaticElement() {
+    return staticElement;
   }
 
   /**
@@ -261,12 +282,13 @@ public class IndexExpression extends Expression {
   }
 
   /**
-   * Set the element associated with the operator to the given element.
+   * Set the element associated with the operator based on the propagated type of the target to the
+   * given element.
    * 
-   * @param element the element associated with this operator
+   * @param element the element to be associated with this operator
    */
   public void setElement(MethodElement element) {
-    this.element = element;
+    propagatedElement = element;
   }
 
   /**
@@ -305,6 +327,16 @@ public class IndexExpression extends Expression {
     rightBracket = bracket;
   }
 
+  /**
+   * Set the element associated with the operator based on the static type of the target to the
+   * given element.
+   * 
+   * @param element the static element to be associated with the operator
+   */
+  public void setStaticElement(MethodElement element) {
+    staticElement = element;
+  }
+
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(target, visitor);
@@ -321,10 +353,10 @@ public class IndexExpression extends Expression {
    *         expression will be bound
    */
   protected ParameterElement getParameterElementForIndex() {
-    if (element == null) {
+    if (propagatedElement == null) {
       return null;
     }
-    ParameterElement[] parameters = element.getParameters();
+    ParameterElement[] parameters = propagatedElement.getParameters();
     if (parameters.length < 1) {
       return null;
     }

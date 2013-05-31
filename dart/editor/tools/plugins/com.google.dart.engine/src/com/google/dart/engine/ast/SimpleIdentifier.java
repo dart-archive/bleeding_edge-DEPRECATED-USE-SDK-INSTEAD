@@ -38,10 +38,17 @@ public class SimpleIdentifier extends Identifier {
   private Token token;
 
   /**
-   * The element associated with this identifier, or {@code null} if the AST structure has not been
-   * resolved or if this identifier could not be resolved.
+   * The element associated with this identifier based on static type information, or {@code null}
+   * if the AST structure has not been resolved or if this identifier could not be resolved.
    */
-  private Element element;
+  private Element staticElement;
+
+  /**
+   * The element associated with this identifier based on propagated type information, or
+   * {@code null} if the AST structure has not been resolved or if this identifier could not be
+   * resolved.
+   */
+  private Element propagatedElement;
 
   /**
    * Initialize a newly created identifier.
@@ -64,7 +71,7 @@ public class SimpleIdentifier extends Identifier {
 
   @Override
   public Element getElement() {
-    return element;
+    return propagatedElement;
   }
 
   @Override
@@ -75,6 +82,11 @@ public class SimpleIdentifier extends Identifier {
   @Override
   public String getName() {
     return token.getLexeme();
+  }
+
+  @Override
+  public Element getStaticElement() {
+    return staticElement;
   }
 
   /**
@@ -210,12 +222,23 @@ public class SimpleIdentifier extends Identifier {
   }
 
   /**
-   * Set the element associated with this identifier to the given element.
+   * Set the element associated with this identifier based on propagated type information to the
+   * given element.
    * 
-   * @param element the element associated with this identifier
+   * @param element the element to be associated with this identifier
    */
   public void setElement(Element element) {
-    this.element = element;
+    propagatedElement = element;
+  }
+
+  /**
+   * Set the element associated with this identifier based on static type information to the given
+   * element.
+   * 
+   * @param element the element to be associated with this identifier
+   */
+  public void setStaticElement(Element element) {
+    staticElement = element;
   }
 
   /**

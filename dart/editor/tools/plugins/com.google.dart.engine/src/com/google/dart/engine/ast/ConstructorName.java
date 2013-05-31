@@ -45,10 +45,18 @@ public class ConstructorName extends ASTNode {
   private SimpleIdentifier name;
 
   /**
-   * The element associated with this constructor name, or {@code null} if the AST structure has not
-   * been resolved or if this constructor name could not be resolved.
+   * The element associated with this constructor name based on static type information, or
+   * {@code null} if the AST structure has not been resolved or if this constructor name could not
+   * be resolved.
    */
-  private ConstructorElement element;
+  private ConstructorElement staticElement;
+
+  /**
+   * The element associated with this constructor name based on propagated type information, or
+   * {@code null} if the AST structure has not been resolved or if this constructor name could not
+   * be resolved.
+   */
+  private ConstructorElement propagatedElement;
 
   /**
    * Initialize a newly created constructor name.
@@ -74,13 +82,14 @@ public class ConstructorName extends ASTNode {
   }
 
   /**
-   * Return the element associated with this constructor name, or {@code null} if the AST structure
-   * has not been resolved or if this constructor name could not be resolved.
+   * Return the element associated with this constructor name based on propagated type information,
+   * or {@code null} if the AST structure has not been resolved or if this constructor name could
+   * not be resolved.
    * 
    * @return the element associated with this constructor name
    */
   public ConstructorElement getElement() {
-    return element;
+    return propagatedElement;
   }
 
   @Override
@@ -112,6 +121,17 @@ public class ConstructorName extends ASTNode {
   }
 
   /**
+   * Return the element associated with this constructor name based on static type information, or
+   * {@code null} if the AST structure has not been resolved or if this constructor name could not
+   * be resolved.
+   * 
+   * @return the element associated with this constructor name
+   */
+  public ConstructorElement getStaticElement() {
+    return staticElement;
+  }
+
+  /**
    * Return the name of the type defining the constructor.
    * 
    * @return the name of the type defining the constructor
@@ -121,12 +141,13 @@ public class ConstructorName extends ASTNode {
   }
 
   /**
-   * Set the element associated with this constructor name to the given element.
+   * Set the element associated with this constructor name based on propagated type information to
+   * the given element.
    * 
-   * @param element the element associated with this constructor name
+   * @param element the element to be associated with this constructor name
    */
   public void setElement(ConstructorElement element) {
-    this.element = element;
+    propagatedElement = element;
   }
 
   /**
@@ -145,6 +166,16 @@ public class ConstructorName extends ASTNode {
    */
   public void setPeriod(Token period) {
     this.period = period;
+  }
+
+  /**
+   * Set the element associated with this constructor name based on static type information to the
+   * given element.
+   * 
+   * @param element the element to be associated with this constructor name
+   */
+  public void setStaticElement(ConstructorElement element) {
+    staticElement = element;
   }
 
   /**

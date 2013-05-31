@@ -14,7 +14,6 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.DoubleLiteral;
@@ -36,7 +35,6 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -189,7 +187,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
         TokenType.PLUS_EQ,
         resolvedInteger(1));
     MethodElement plusMethod = getMethod(numType, "+");
-    map(node, plusMethod);
+    node.setStaticElement(plusMethod);
     node.setElement(plusMethod);
     assertSame(numType, analyze(node));
     listener.assertNoErrors();
@@ -519,7 +517,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     SimpleIdentifier identifier = resolvedVariable(listType, "a");
     IndexExpression node = indexExpression(identifier, resolvedInteger(2));
     MethodElement indexMethod = listType.getElement().getMethods()[0];
-    map(node, indexMethod);
+    node.setStaticElement(indexMethod);
     node.setElement(indexMethod);
     assertSame(listType.getTypeArguments()[0], analyze(node));
     listener.assertNoErrors();
@@ -532,7 +530,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     SimpleIdentifier identifier = resolvedVariable(listType, "a");
     IndexExpression node = indexExpression(identifier, resolvedInteger(2));
     MethodElement indexMethod = listType.getElement().getMethods()[1];
-    map(node, indexMethod);
+    node.setStaticElement(indexMethod);
     node.setElement(indexMethod);
     assignmentExpression(node, TokenType.EQ, integer(0));
     assertSame(listType.getTypeArguments()[0], analyze(node));
@@ -553,7 +551,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // list[0] has MethodElement element (int) -> E
     IndexExpression indexExpression = indexExpression(identifier, integer(0));
     MethodElement indexMethod = MethodMember.from(methodElement, listOfIntType);
-    map(indexExpression, indexMethod);
+    indexExpression.setStaticElement(indexMethod);
     indexExpression.setElement(indexMethod);
     // analyze and assert result of the index expression
     assertSame(intType, analyze(indexExpression));
@@ -574,7 +572,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // list[0] has MethodElement element (int) -> E
     IndexExpression indexExpression = indexExpression(identifier, integer(0));
     MethodElement indexMethod = MethodMember.from(methodElement, listOfIntType);
-    map(indexExpression, indexMethod);
+    indexExpression.setStaticElement(indexMethod);
     indexExpression.setElement(indexMethod);
     // list[0] should be in a setter context
     assignmentExpression(indexExpression, TokenType.EQ, integer(0));
@@ -772,7 +770,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // -0
     PrefixExpression node = prefixExpression(TokenType.MINUS, resolvedInteger(0));
     MethodElement minusMethod = getMethod(typeProvider.getNumType(), "-");
-    map(node, minusMethod);
+    node.setStaticElement(minusMethod);
     node.setElement(minusMethod);
     assertSame(typeProvider.getNumType(), analyze(node));
     listener.assertNoErrors();
@@ -782,7 +780,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // --0
     PrefixExpression node = prefixExpression(TokenType.MINUS_MINUS, resolvedInteger(0));
     MethodElement minusMethod = getMethod(typeProvider.getNumType(), "-");
-    map(node, minusMethod);
+    node.setStaticElement(minusMethod);
     node.setElement(minusMethod);
     assertSame(typeProvider.getIntType(), analyze(node));
     listener.assertNoErrors();
@@ -799,7 +797,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // ++0
     PrefixExpression node = prefixExpression(TokenType.PLUS_PLUS, resolvedInteger(0));
     MethodElement plusMethod = getMethod(typeProvider.getNumType(), "+");
-    map(node, plusMethod);
+    node.setStaticElement(plusMethod);
     node.setElement(plusMethod);
     assertSame(typeProvider.getIntType(), analyze(node));
     listener.assertNoErrors();
@@ -809,7 +807,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // ~0
     PrefixExpression node = prefixExpression(TokenType.TILDE, resolvedInteger(0));
     MethodElement tildeMethod = getMethod(typeProvider.getIntType(), "~");
-    map(node, tildeMethod);
+    node.setStaticElement(tildeMethod);
     node.setElement(tildeMethod);
     assertSame(typeProvider.getIntType(), analyze(node));
     listener.assertNoErrors();
@@ -1025,16 +1023,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
   }
 
   /**
-   * Add an entry in the static element map mapping the given node to the given element.
-   * 
-   * @param node the node to be used as a key
-   * @param element the element to be mapped to the node
-   */
-  private void map(ASTNode node, ExecutableElement element) {
-    visitor.getStaticElementMap().put(node, element);
-  }
-
-  /**
    * Return an integer literal that has been resolved to the correct type.
    * 
    * @param value the value of the literal
@@ -1115,8 +1103,8 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
    * Sets the element for the node and remembers it as the static resolution.
    */
   private void setStaticElement(BinaryExpression node, MethodElement element) {
+    node.setStaticElement(element);
     node.setElement(element);
-    analyzer.getStaticElementMap().put(node, element);
   }
 
   /**

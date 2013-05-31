@@ -40,9 +40,10 @@ public abstract class Identifier extends Expression {
   }
 
   /**
-   * Return the element associated with this identifier, or {@code null} if the AST structure has
-   * not been resolved or if this identifier could not be resolved. One example of the latter case
-   * is an identifier that is not defined within the scope in which it appears.
+   * Return the element associated with this identifier based on propagated type information, or
+   * {@code null} if the AST structure has not been resolved or if this identifier could not be
+   * resolved. One example of the latter case is an identifier that is not defined within the scope
+   * in which it appears.
    * 
    * @return the element associated with this identifier
    */
@@ -54,6 +55,16 @@ public abstract class Identifier extends Expression {
    * @return the lexical representation of the identifier
    */
   public abstract String getName();
+
+  /**
+   * Return the element associated with this identifier based on static type information, or
+   * {@code null} if the AST structure has not been resolved or if this identifier could not be
+   * resolved. One example of the latter case is an identifier that is not defined within the scope
+   * in which it appears
+   * 
+   * @return the element associated with the operator
+   */
+  public abstract Element getStaticElement();
 
   @Override
   public boolean isAssignable() {

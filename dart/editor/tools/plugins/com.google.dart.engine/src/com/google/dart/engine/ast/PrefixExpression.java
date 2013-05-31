@@ -38,10 +38,18 @@ public class PrefixExpression extends Expression {
   private Expression operand;
 
   /**
-   * The element associated with the operator, or {@code null} if the AST structure has not been
-   * resolved, if the operator is not user definable, or if the operator could not be resolved.
+   * The element associated with the operator based on the static type of the operand, or
+   * {@code null} if the AST structure has not been resolved, if the operator is not user definable,
+   * or if the operator could not be resolved.
    */
-  private MethodElement element;
+  private MethodElement staticElement;
+
+  /**
+   * The element associated with the operator based on the propagated type of the operand, or
+   * {@code null} if the AST structure has not been resolved, if the operator is not user definable,
+   * or if the operator could not be resolved.
+   */
+  private MethodElement propagatedElement;
 
   /**
    * Initialize a newly created prefix expression.
@@ -65,14 +73,15 @@ public class PrefixExpression extends Expression {
   }
 
   /**
-   * Return the element associated with the operator, or {@code null} if the AST structure has not
-   * been resolved, if the operator is not user definable, or if the operator could not be resolved.
-   * One example of the latter case is an operator that is not defined for the type of the operand.
+   * Return the element associated with the operator based on the propagated type of the operand, or
+   * {@code null} if the AST structure has not been resolved, if the operator is not user definable,
+   * or if the operator could not be resolved. One example of the latter case is an operator that is
+   * not defined for the type of the operand.
    * 
    * @return the element associated with the operator
    */
   public MethodElement getElement() {
-    return element;
+    return propagatedElement;
   }
 
   @Override
@@ -99,12 +108,25 @@ public class PrefixExpression extends Expression {
   }
 
   /**
-   * Set the element associated with the operator to the given element.
+   * Return the element associated with the operator based on the static type of the operand, or
+   * {@code null} if the AST structure has not been resolved, if the operator is not user definable,
+   * or if the operator could not be resolved. One example of the latter case is an operator that is
+   * not defined for the type of the operand.
    * 
-   * @param element the element associated with the operator
+   * @return the element associated with the operator
+   */
+  public MethodElement getStaticElement() {
+    return staticElement;
+  }
+
+  /**
+   * Set the element associated with the operator based on the propagated type of the operand to the
+   * given element.
+   * 
+   * @param element the element to be associated with the operator
    */
   public void setElement(MethodElement element) {
-    this.element = element;
+    propagatedElement = element;
   }
 
   /**
@@ -123,6 +145,16 @@ public class PrefixExpression extends Expression {
    */
   public void setOperator(Token operator) {
     this.operator = operator;
+  }
+
+  /**
+   * Set the element associated with the operator based on the static type of the operand to the
+   * given element.
+   * 
+   * @param element the static element to be associated with the operator
+   */
+  public void setStaticElement(MethodElement element) {
+    staticElement = element;
   }
 
   @Override

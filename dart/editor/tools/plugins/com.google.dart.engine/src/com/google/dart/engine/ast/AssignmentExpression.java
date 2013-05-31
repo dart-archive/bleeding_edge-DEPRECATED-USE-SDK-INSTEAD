@@ -43,10 +43,18 @@ public class AssignmentExpression extends Expression {
   private Expression rightHandSide;
 
   /**
-   * The element associated with the operator, or {@code null} if the AST structure has not been
-   * resolved, if the operator is not a compound operator, or if the operator could not be resolved.
+   * The element associated with the operator based on the static type of the left-hand-side, or
+   * {@code null} if the AST structure has not been resolved, if the operator is not a compound
+   * operator, or if the operator could not be resolved.
    */
-  private MethodElement element;
+  private MethodElement staticElement;
+
+  /**
+   * The element associated with the operator based on the propagated type of the left-hand-side, or
+   * {@code null} if the AST structure has not been resolved, if the operator is not a compound
+   * operator, or if the operator could not be resolved.
+   */
+  private MethodElement propagatedElement;
 
   /**
    * Initialize a newly created assignment expression.
@@ -72,15 +80,15 @@ public class AssignmentExpression extends Expression {
   }
 
   /**
-   * Return the element associated with the operator, or {@code null} if the AST structure has not
-   * been resolved, if the operator is not a compound operator, or if the operator could not be
-   * resolved. One example of the latter case is an operator that is not defined for the type of the
-   * left-hand operand.
+   * Return the element associated with the operator based on the propagated type of the
+   * left-hand-side, or {@code null} if the AST structure has not been resolved, if the operator is
+   * not a compound operator, or if the operator could not be resolved. One example of the latter
+   * case is an operator that is not defined for the type of the left-hand operand.
    * 
    * @return the element associated with the operator
    */
   public MethodElement getElement() {
-    return element;
+    return propagatedElement;
   }
 
   @Override
@@ -116,12 +124,25 @@ public class AssignmentExpression extends Expression {
   }
 
   /**
-   * Set the element associated with the operator to the given element.
+   * Return the element associated with the operator based on the static type of the left-hand-side,
+   * or {@code null} if the AST structure has not been resolved, if the operator is not a compound
+   * operator, or if the operator could not be resolved. One example of the latter case is an
+   * operator that is not defined for the type of the left-hand operand.
    * 
-   * @param element the element associated with the operator
+   * @return the element associated with the operator
+   */
+  public MethodElement getStaticElement() {
+    return staticElement;
+  }
+
+  /**
+   * Set the element associated with the operator based on the propagated type of the left-hand-side
+   * to the given element.
+   * 
+   * @param element the element to be associated with the operator
    */
   public void setElement(MethodElement element) {
-    this.element = element;
+    propagatedElement = element;
   }
 
   /**
@@ -149,6 +170,16 @@ public class AssignmentExpression extends Expression {
    */
   public void setRightHandSide(Expression expression) {
     rightHandSide = becomeParentOf(expression);
+  }
+
+  /**
+   * Set the element associated with the operator based on the static type of the left-hand-side to
+   * the given element.
+   * 
+   * @param element the static element to be associated with the operator
+   */
+  public void setStaticElement(MethodElement element) {
+    staticElement = element;
   }
 
   @Override

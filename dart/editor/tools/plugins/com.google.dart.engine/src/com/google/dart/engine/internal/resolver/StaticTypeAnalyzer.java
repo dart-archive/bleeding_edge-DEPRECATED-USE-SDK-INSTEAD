@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
@@ -192,11 +191,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   private TypeOverrideManager overrideManager;
 
   /**
-   * A table mapping nodes in the AST to the element produced based on static type information.
-   */
-  private HashMap<ASTNode, ExecutableElement> staticElementMap;
-
-  /**
    * A table mapping HTML tag names to the names of the classes (in 'dart:html') that implement
    * those tags.
    */
@@ -212,18 +206,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     typeProvider = resolver.getTypeProvider();
     dynamicType = typeProvider.getDynamicType();
     overrideManager = resolver.getOverrideManager();
-    staticElementMap = resolver.getStaticElementMap();
-  }
-
-  /**
-   * Return a table mapping nodes in the AST to the element produced based on static type
-   * information.
-   * 
-   * @return the static element map
-   */
-  @VisibleForTesting
-  public HashMap<ASTNode, ExecutableElement> getStaticElementMap() {
-    return staticElementMap;
   }
 
   /**
@@ -330,7 +312,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
         resolver.override(element, overrideType);
       }
     } else {
-      ExecutableElement staticMethodElement = staticElementMap.get(node);
+      ExecutableElement staticMethodElement = node.getStaticElement();
       Type staticType = computeReturnType(staticMethodElement);
       recordStaticType(node, staticType);
 
@@ -384,7 +366,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitBinaryExpression(BinaryExpression node) {
-    ExecutableElement staticMethodElement = staticElementMap.get(node);
+    ExecutableElement staticMethodElement = node.getStaticElement();
     Type staticType = computeReturnType(staticMethodElement);
     staticType = refineBinaryExpressionType(node, staticType);
     recordStaticType(node, staticType);
@@ -540,7 +522,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    ExecutableElement staticMethodElement = staticElementMap.get(node);
+    ExecutableElement staticMethodElement = node.getStaticElement();
     Type staticType = computeReturnType(staticMethodElement);
     recordStaticType(node, staticType);
 
@@ -562,7 +544,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitIndexExpression(IndexExpression node) {
     if (node.inSetterContext()) {
-      ExecutableElement staticMethodElement = staticElementMap.get(node);
+      ExecutableElement staticMethodElement = node.getStaticElement();
       Type staticType = computeArgumentType(staticMethodElement);
       recordStaticType(node, staticType);
 
@@ -574,7 +556,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
         }
       }
     } else {
-      ExecutableElement staticMethodElement = staticElementMap.get(node);
+      ExecutableElement staticMethodElement = node.getStaticElement();
       Type staticType = computeReturnType(staticMethodElement);
       recordStaticType(node, staticType);
 
@@ -811,7 +793,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier methodNameNode = node.getMethodName();
-    Element staticMethodElement = staticElementMap.get(methodNameNode);
+    Element staticMethodElement = methodNameNode.getStaticElement();
     if (staticMethodElement == null) {
       staticMethodElement = methodNameNode.getElement();
     }
@@ -1016,7 +998,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       recordStaticType(node, typeProvider.getBoolType());
     } else {
       // The other cases are equivalent to invoking a method.
-      ExecutableElement staticMethodElement = staticElementMap.get(node);
+      ExecutableElement staticMethodElement = node.getStaticElement();
       Type staticType = computeReturnType(staticMethodElement);
       if (operator == TokenType.MINUS_MINUS || operator == TokenType.PLUS_PLUS) {
         Type intType = typeProvider.getIntType();

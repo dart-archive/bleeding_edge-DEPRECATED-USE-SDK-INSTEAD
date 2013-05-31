@@ -42,10 +42,16 @@ public class FunctionExpressionInvocation extends Expression {
   private ArgumentList argumentList;
 
   /**
-   * The element associated with the function being invoked, or {@code null} if the AST structure
-   * has not been resolved or the function could not be resolved.
+   * The element associated with the function being invoked based on static type information, or
+   * {@code null} if the AST structure has not been resolved or the function could not be resolved.
    */
-  private ExecutableElement element;
+  private ExecutableElement staticElement;
+
+  /**
+   * The element associated with the function being invoked based on propagated type information, or
+   * {@code null} if the AST structure has not been resolved or the function could not be resolved.
+   */
+  private ExecutableElement propagatedElement;
 
   /**
    * Initialize a newly created function expression invocation.
@@ -78,14 +84,15 @@ public class FunctionExpressionInvocation extends Expression {
   }
 
   /**
-   * Return the element associated with the function being invoked, or {@code null} if the AST
-   * structure has not been resolved or the function could not be resolved. One common example of
-   * the latter case is an expression whose value can change over time.
+   * Return the element associated with the function being invoked based on propagated type
+   * information, or {@code null} if the AST structure has not been resolved or the function could
+   * not be resolved. One common example of the latter case is an expression whose value can change
+   * over time.
    * 
    * @return the element associated with the function being invoked
    */
   public ExecutableElement getElement() {
-    return element;
+    return propagatedElement;
   }
 
   @Override
@@ -103,6 +110,18 @@ public class FunctionExpressionInvocation extends Expression {
   }
 
   /**
+   * Return the element associated with the function being invoked based on static type information,
+   * or {@code null} if the AST structure has not been resolved or the function could not be
+   * resolved. One common example of the latter case is an expression whose value can change over
+   * time.
+   * 
+   * @return the element associated with the function
+   */
+  public ExecutableElement getStaticElement() {
+    return staticElement;
+  }
+
+  /**
    * Set the list of arguments to the method to the given list.
    * 
    * @param argumentList the list of arguments to the method
@@ -112,12 +131,13 @@ public class FunctionExpressionInvocation extends Expression {
   }
 
   /**
-   * Set the element associated with the function being invoked to the given element.
+   * Set the element associated with the function being invoked based on propagated type information
+   * to the given element.
    * 
-   * @param element the element associated with the function being invoked
+   * @param element the element to be associated with the function being invoked
    */
   public void setElement(ExecutableElement element) {
-    this.element = element;
+    propagatedElement = element;
   }
 
   /**
@@ -127,6 +147,16 @@ public class FunctionExpressionInvocation extends Expression {
    */
   public void setFunction(Expression function) {
     function = becomeParentOf(function);
+  }
+
+  /**
+   * Set the element associated with the function being invoked based on static type information to
+   * the given element.
+   * 
+   * @param element the element to be associated with the function
+   */
+  public void setStaticElement(ExecutableElement element) {
+    this.staticElement = element;
   }
 
   @Override

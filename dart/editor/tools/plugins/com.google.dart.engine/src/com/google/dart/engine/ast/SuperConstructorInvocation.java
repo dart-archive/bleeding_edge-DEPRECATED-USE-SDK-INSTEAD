@@ -51,10 +51,16 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
   private ArgumentList argumentList;
 
   /**
-   * The element associated with the constructor, or {@code null} if the AST structure has not been
+   * The element associated with the constructor based on static type information, or {@code null}
+   * if the AST structure has not been resolved or if the constructor could not be resolved.
+   */
+  private ConstructorElement staticElement;
+
+  /**
+   * The element associated with the constructor based on propagated type information, or {@code null} if the AST structure has not been
    * resolved or if the constructor could not be resolved.
    */
-  private ConstructorElement element;
+  private ConstructorElement propagatedElement;
 
   /**
    * Initialize a newly created super invocation to invoke the inherited constructor with the given
@@ -103,13 +109,14 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
   }
 
   /**
-   * Return the element associated with the constructor, or {@code null} if the AST structure has
-   * not been resolved or if the constructor could not be resolved.
+   * Return the element associated with the constructor based on propagated type information, or
+   * {@code null} if the AST structure has not been resolved or if the constructor could not be
+   * resolved.
    * 
    * @return the element associated with the super constructor
    */
   public ConstructorElement getElement() {
-    return element;
+    return propagatedElement;
   }
 
   @Override
@@ -137,6 +144,17 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
   }
 
   /**
+   * Return the element associated with the constructor based on static type information, or
+   * {@code null} if the AST structure has not been resolved or if the constructor could not be
+   * resolved.
+   * 
+   * @return the element associated with the constructor
+   */
+  public ConstructorElement getStaticElement() {
+    return staticElement;
+  }
+
+  /**
    * Set the list of arguments to the constructor to the given list.
    * 
    * @param argumentList the list of arguments to the constructor
@@ -155,12 +173,13 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
   }
 
   /**
-   * Set the element associated with the constructor to the given element.
+   * Set the element associated with the constructor based on propagated type information to the
+   * given element.
    * 
-   * @param element the element associated with the constructor
+   * @param element the element to be associated with the constructor
    */
   public void setElement(ConstructorElement element) {
-    this.element = element;
+    propagatedElement = element;
   }
 
   /**
@@ -180,6 +199,16 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
    */
   public void setPeriod(Token period) {
     this.period = period;
+  }
+
+  /**
+   * Set the element associated with the constructor based on static type information to the given
+   * element.
+   * 
+   * @param element the element to be associated with the constructor
+   */
+  public void setStaticElement(ConstructorElement element) {
+    this.staticElement = element;
   }
 
   @Override
