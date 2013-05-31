@@ -69,6 +69,7 @@ public class DartFoldingStructureProviderTest extends ParserTestCase {
         "/// doc",
         "class T {",
         "  f() {",
+        "    //",
         "    A() {",
         "      return;",
         "    }",
@@ -81,8 +82,8 @@ public class DartFoldingStructureProviderTest extends ParserTestCase {
         "    return;",
         "  }",
         "}");
-    int[] offsets = {146, 260, 242, 81, 103, 205, 0, 306, 44, 52, 252, 314};
-    int[] lengths = {58, 30, 120, 22, 43, 47, 18, 54, 26, 28, 54, 30};
+    int[] offsets = {242, 267, 205, 81, 44, 0, 146, 52, 103, 252, 321, 313};
+    int[] lengths = {127, 30, 47, 22, 26, 18, 58, 28, 43, 61, 30, 54};
     verify(source, offsets, lengths);
   }
 

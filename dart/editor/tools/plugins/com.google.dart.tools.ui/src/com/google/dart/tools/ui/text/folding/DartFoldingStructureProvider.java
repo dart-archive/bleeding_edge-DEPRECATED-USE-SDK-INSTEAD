@@ -824,6 +824,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
     Token token = scanner.next();
     start = token.getOffset();
     Token comment = token.getPrecedingComments();
+    IDocument doc = dartEditor.getDocumentProvider().getDocument(dartEditor.getEditorInput());
     while (comment != null) {
       int s = comment.getOffset();
       int l = comment.getLength();
@@ -838,12 +839,15 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
       } else {
         comment = comment.getNext();
       }
-      regions.add(new Region(s, l));
+      if (isSpanningMultipleLines(doc, s, l)) {
+        regions.add(new Region(s, l));
+      }
       if (comment == token) {
         comment = null;
       }
     }
-    regions.add(new Region(start, shift + range.getLength() - start - 1));
+    int len = shift + range.getLength() - start - 1;
+    regions.add(new Region(start, len));
     IRegion[] result = new IRegion[regions.size()];
     regions.toArray(result);
     return result;
@@ -1102,6 +1106,14 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
       projectionListener.dispose();
       projectionListener = null;
       dartEditor = null;
+    }
+  }
+
+  private boolean isSpanningMultipleLines(IDocument doc, int offset, int length) {
+    try {
+      return doc.getLineOfOffset(offset + length) - doc.getLineOfOffset(offset) > 1;
+    } catch (BadLocationException ex) {
+      return false;
     }
   }
 
