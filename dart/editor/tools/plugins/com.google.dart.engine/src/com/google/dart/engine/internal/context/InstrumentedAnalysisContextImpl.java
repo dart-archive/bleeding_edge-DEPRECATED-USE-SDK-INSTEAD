@@ -4,6 +4,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
@@ -190,6 +191,17 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   public InternalAnalysisContext extractContextInto(SourceContainer container,
       InternalAnalysisContext newContext) {
     return basis.extractContextInto(container, newContext);
+  }
+
+  @Override
+  public AnalysisOptions getAnalysisOptions() {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getAnalysisOptions");
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.getAnalysisOptions();
+    } finally {
+      instrumentation.log();
+    }
   }
 
   /**

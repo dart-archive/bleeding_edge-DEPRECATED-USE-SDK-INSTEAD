@@ -26,6 +26,7 @@ import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -117,6 +118,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       super();
     }
   }
+
+  /**
+   * The set of analysis options controlling the behavior of this context.
+   */
+  private AnalysisOptions options = new AnalysisOptions();
 
   /**
    * The source factory used to create the sources that can be analyzed in this context.
@@ -466,6 +472,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
 
     return newContext;
+  }
+
+  @Override
+  public AnalysisOptions getAnalysisOptions() {
+    return options;
   }
 
   @Override

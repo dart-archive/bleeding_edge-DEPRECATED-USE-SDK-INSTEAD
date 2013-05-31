@@ -4,6 +4,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.AnalysisOptions;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
@@ -230,6 +231,11 @@ public class MockContext implements AnalysisContext {
   public AnalysisContext extractContext(SourceContainer container) {
     calls.add(this, EXTRACT_CONTEXT, container);
     return new MockContext();
+  }
+
+  @Override
+  public AnalysisOptions getAnalysisOptions() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

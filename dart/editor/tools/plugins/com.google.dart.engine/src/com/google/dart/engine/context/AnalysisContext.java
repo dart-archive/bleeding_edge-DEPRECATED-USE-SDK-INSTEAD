@@ -159,6 +159,13 @@ public interface AnalysisContext {
   public AnalysisContext extractContext(SourceContainer container);
 
   /**
+   * Return the set of analysis options controlling the behavior of this context.
+   * 
+   * @return the set of analysis options controlling the behavior of this context
+   */
+  public AnalysisOptions getAnalysisOptions();
+
+  /**
    * Return the element referenced by the given location, or {@code null} if the element is not
    * immediately available or if there is no element with the given location. The latter condition
    * can occur, for example, if the location describes an element from a different context or if the
