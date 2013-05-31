@@ -35,7 +35,8 @@ import java.util.List;
  */
 public class RunPubCacheListJob extends Job {
 
-  public static final String CACHELIST_COMMAND = "cache list"; //$NON-NLS-1$
+  public static final String CACHE_COMMAND = "cache"; //$NON-NLS-1$
+  public static final String CACHELIST_COMMAND = "list"; //$NON-NLS-1$
 
   public RunPubCacheListJob() {
     super("Pub cache list");
@@ -70,6 +71,7 @@ public class RunPubCacheListJob extends Job {
     File pubFile = sdk.getPubExecutable();
     List<String> args = new ArrayList<String>();
     args.add(pubFile.getAbsolutePath());
+    args.add(CACHE_COMMAND);
     args.add(CACHELIST_COMMAND);
     return args;
   }

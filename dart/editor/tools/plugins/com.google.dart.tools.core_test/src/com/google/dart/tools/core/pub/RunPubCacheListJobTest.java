@@ -32,8 +32,9 @@ public class RunPubCacheListJobTest extends TestCase {
       public IStatus run(IProgressMonitor monitor) {
         List<String> args = buildCacheListCommand();
         assertNotNull(args);
-        assertEquals(2, args.size());
-        assertEquals(RunPubCacheListJob.CACHELIST_COMMAND, args.get(1));
+        assertEquals(3, args.size());
+        assertEquals(RunPubCacheListJob.CACHE_COMMAND, args.get(1));
+        assertEquals(RunPubCacheListJob.CACHELIST_COMMAND, args.get(2));
         return new Status(
             IStatus.OK,
             DartCore.PLUGIN_ID,
