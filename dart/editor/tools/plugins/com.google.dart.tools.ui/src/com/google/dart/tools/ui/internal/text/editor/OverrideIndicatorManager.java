@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,19 +13,19 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.common.collect.Maps;
-import com.google.dart.compiler.ast.ASTVisitor;
-import com.google.dart.compiler.ast.DartExpression;
-import com.google.dart.compiler.ast.DartMethodDefinition;
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.MethodElement;
-import com.google.dart.compiler.resolver.MethodNodeElement;
-import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.Messages;
-import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener_OLD;
+import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.runtime.Assert;
@@ -38,34 +38,119 @@ import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModelExtension;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Manages the override and overwrite indicators for the given Dart element and annotation model.
  */
-//TODO (pquitslund): remove
-class OverrideIndicatorManager implements IDartReconcilingListener_OLD {
+class OverrideIndicatorManager {
+
+  static class OverriddenElementFinder extends GeneralizingASTVisitor<Void> {
+
+    private Map<Annotation, Position> annotationMap = new HashMap<Annotation, Position>();
+
+    @Override
+    public Void visitMethodDeclaration(MethodDeclaration node) {
+      ExecutableElement methodElement = node.getElement();
+      if (methodElement != null) {
+        Element superElement = findOverriddenElement(methodElement);
+        if (superElement == null) {
+          return null;
+        }
+        boolean isOverride = hasImplementation(superElement);
+        // prepare "super" method name
+        String qualifiedMethodName = MessageFormat.format(
+            "{0}.{1}",
+            superElement.getEnclosingElement().getName(),
+            superElement.getName());
+        // prepare text
+        String text;
+        if (isOverride) {
+          text = Messages.format(
+              DartEditorMessages.OverrideIndicatorManager_overrides,
+              qualifiedMethodName);
+        } else {
+          text = Messages.format(
+              DartEditorMessages.OverrideIndicatorManager_implements,
+              qualifiedMethodName);
+        }
+        // prepare "super" name of implemented
+        SimpleIdentifier name = node.getName();
+        Position position = new Position(name.getOffset(), name.getLength());
+        // add override annotation
+        annotationMap.put(new OverrideIndicator(superElement, text, isOverride), position);
+      }
+      return null;
+    }
+
+    private void addSupertypesToQueue(List<InterfaceType> queue, ClassElement classElement) {
+      InterfaceType[] mixins = classElement.getMixins();
+      for (int i = mixins.length - 1; i >= 0; i--) {
+        queue.add(mixins[i]);
+      }
+      InterfaceType superclass = classElement.getSupertype();
+      if (superclass != null) {
+        queue.add(superclass);
+      }
+    }
+
+    private MethodElement findOveriddenMethod(MethodElement methodElement) {
+      Element parent = methodElement;
+      while (parent != null && !(parent instanceof ClassElement)) {
+        parent = parent.getEnclosingElement();
+      }
+      if (parent == null) {
+        return null;
+      }
+      String methodName = methodElement.getDisplayName();
+      ClassElement classElement = (ClassElement) parent;
+      List<InterfaceType> queue = new LinkedList<InterfaceType>();
+      addSupertypesToQueue(queue, classElement);
+      while (!queue.isEmpty()) {
+        InterfaceType type = queue.remove(0);
+        MethodElement overriddenMethod = type.getMethod(methodName);
+        if (overriddenMethod != null) {
+          if (hasCompatibleParams(methodElement, overriddenMethod)) {
+            return overriddenMethod;
+          }
+        }
+        addSupertypesToQueue(queue, type.getElement());
+      }
+      return null;
+    }
+
+    private Element findOverriddenElement(ExecutableElement methodElement) {
+      switch (methodElement.getKind()) {
+        case METHOD:
+          return findOveriddenMethod((MethodElement) methodElement);
+      }
+      return null;
+    }
+
+    private boolean hasCompatibleParams(MethodElement a, MethodElement b) {
+      return a.getParameters().length == b.getParameters().length;
+    }
+  }
+
   /**
    * Overwrite and override indicator annotation.
    */
-  class OverrideIndicator extends Annotation {
-    private final boolean isOverride;
-    private final DartElement dartElement;
+  static class OverrideIndicator extends Annotation {
+
+    private boolean isOverride;
+    private Element element;
 
     OverrideIndicator(Element astElement, String text, boolean isOverride) {
       super(ANNOTATION_TYPE, false, text);
       this.isOverride = isOverride;
-      // TODO(scheglov) we (probably) can optimize this, don't compiler Element's, but also don't
-      // create DartElement. We need to remember enough lightweight information to do this.
-      {
-//        CompilationUnit dartUnit = managerDartElement.getAncestor(CompilationUnit.class);
-//        DartElementLocator locator = new DartElementLocator(dartUnit, astElement);
-//        dartElement = locator.getFoundElement();
-        dartElement = null;
-      }
+      this.element = astElement;
     }
 
     /**
@@ -81,8 +166,8 @@ class OverrideIndicatorManager implements IDartReconcilingListener_OLD {
      */
     public void open() {
       try {
-        if (dartElement != null) {
-          DartUI.openInEditor(dartElement);
+        if (element != null) {
+          DartUI.openInEditor(element);
         } else {
           String title = DartEditorMessages.OverrideIndicatorManager_open_error_title;
           String message = DartEditorMessages.OverrideIndicatorManager_open_error_message;
@@ -103,36 +188,43 @@ class OverrideIndicatorManager implements IDartReconcilingListener_OLD {
    * @return <code>true</code> if given {@link Element} has implementation.
    */
   private static boolean hasImplementation(Element element) {
-    if (element instanceof MethodElement) {
-      return ((MethodElement) element).hasBody();
-    }
+    // At this time we are only decorating methods that override a method defined in a superclass or mixin.
     return true;
   }
 
-  private final DartElement managerDartElement;
   private final IAnnotationModel annotationModel;
   private final Object annotationModelLockObject;
   private Annotation[] overrideAnnotations;
+  private CompilationUnitEditor dartEditor;
+  private IDartReconcilingListener reconcileListener = new IDartReconcilingListener() {
+    @Override
+    public void reconciled(CompilationUnit unit) {
+      updateAnnotations(unit, new NullProgressMonitor());
+    }
+  };
 
-  public OverrideIndicatorManager(IAnnotationModel annotationModel, DartElement dartElement,
-      DartUnit ast) {
+  public OverrideIndicatorManager(IAnnotationModel annotationModel, CompilationUnit ast) {
     Assert.isNotNull(annotationModel);
-    Assert.isNotNull(dartElement);
-    // assign to fields
-    this.managerDartElement = dartElement;
     this.annotationModel = annotationModel;
     this.annotationModelLockObject = getLockObject(annotationModel);
     // prepare initial annotations
     updateAnnotations(ast, new NullProgressMonitor());
   }
 
-  @Override
-  public void aboutToBeReconciled() {
+  public void install(ITextEditor editor) {
+    Assert.isLegal(editor != null);
+    uninstall();
+    if (editor instanceof CompilationUnitEditor) {
+      dartEditor = (CompilationUnitEditor) editor;
+      dartEditor.addReconcileListener(reconcileListener);
+    }
   }
 
-  @Override
-  public void reconciled(DartUnit ast, boolean forced, IProgressMonitor progressMonitor) {
-    updateAnnotations(ast, progressMonitor);
+  public void uninstall() {
+    if (dartEditor != null) {
+      dartEditor.removeReconcileListener(reconcileListener);
+      dartEditor = null;
+    }
   }
 
   /**
@@ -141,49 +233,14 @@ class OverrideIndicatorManager implements IDartReconcilingListener_OLD {
    * @param ast the compilation unit AST
    * @param progressMonitor the progress monitor
    */
-  protected void updateAnnotations(DartUnit ast, IProgressMonitor progressMonitor) {
+  protected void updateAnnotations(CompilationUnit ast, IProgressMonitor progressMonitor) {
     if (ast == null || progressMonitor.isCanceled()) {
       return;
     }
     // add annotations
-    final Map<Annotation, Position> annotationMap = Maps.newHashMapWithExpectedSize(50);
-    ASTVisitor<Void> visitor = new ASTVisitor<Void>() {
-      @Override
-      public Void visitMethodDefinition(DartMethodDefinition node) {
-        MethodNodeElement methodElement = node.getElement();
-        if (methodElement != null) {
-          for (Element superElement : methodElement.getOverridden()) {
-            boolean isOverride = hasImplementation(superElement);
-            // prepare "super" method name
-            String qualifiedMethodName = MessageFormat.format(
-                "{0}.{1}",
-                superElement.getEnclosingElement().getName(),
-                superElement.getName());
-            // prepare text
-            String text;
-            if (isOverride) {
-              text = Messages.format(
-                  DartEditorMessages.OverrideIndicatorManager_overrides,
-                  qualifiedMethodName);
-            } else {
-              text = Messages.format(
-                  DartEditorMessages.OverrideIndicatorManager_implements,
-                  qualifiedMethodName);
-            }
-            // prepare "super" name of implemented
-            DartExpression name = node.getName();
-            Position position = new Position(
-                name.getSourceInfo().getOffset(),
-                name.getSourceInfo().getLength());
-            // add override annotation
-            annotationMap.put(new OverrideIndicator(superElement, text, isOverride), position);
-          }
-        }
-        node.visitChildren(this);
-        return null;
-      }
-    };
+    OverriddenElementFinder visitor = new OverriddenElementFinder();
     ast.accept(visitor);
+    Map<Annotation, Position> annotationMap = visitor.annotationMap;
     // may be already cancelled
     if (progressMonitor.isCanceled()) {
       return;

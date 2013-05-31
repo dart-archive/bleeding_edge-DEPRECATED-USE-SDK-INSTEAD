@@ -1832,6 +1832,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * This editor's projection model updater
    */
   private IDartFoldingStructureProvider fProjectionModelUpdater;
+
   /**
    * The override and implements indicator manager for this editor.
    */
@@ -3761,21 +3762,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected void installOverrideIndicator(boolean provideAST) {
     uninstallOverrideIndicator();
     IAnnotationModel model = getDocumentProvider().getAnnotationModel(getEditorInput());
-    final DartElement inputElement = getInputDartElement();
-
-    if (model == null || inputElement == null) {
+    final com.google.dart.engine.ast.CompilationUnit cu = getInputUnit();
+    if (model == null) {
       return;
     }
-
-    fOverrideIndicatorManager = new OverrideIndicatorManager(model, inputElement, null);
-
-    if (provideAST) {
-      DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(
-          inputElement,
-          ASTProvider.WAIT_ACTIVE_ONLY,
-          getProgressMonitor());
-      fOverrideIndicatorManager.reconciled(ast, true, getProgressMonitor());
-    }
+    fOverrideIndicatorManager = new OverrideIndicatorManager(model, cu);
+    fOverrideIndicatorManager.install(this);
   }
 
   protected boolean isActivePart() {
@@ -4159,6 +4151,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected void uninstallOverrideIndicator() {
     if (fOverrideIndicatorManager != null) {
       fOverrideIndicatorManager.removeAnnotations();
+      fOverrideIndicatorManager.uninstall();
       fOverrideIndicatorManager = null;
     }
   }

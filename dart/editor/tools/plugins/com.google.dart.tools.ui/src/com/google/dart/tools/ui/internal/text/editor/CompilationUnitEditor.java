@@ -1764,20 +1764,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   }
 
   /*
-   * @see com.google.dart.tools.ui.editor.JavaEditor#installOverrideIndicator(boolean )
-   */
-  @Override
-  protected void installOverrideIndicator(boolean provideAST) {
-    super.installOverrideIndicator(provideAST);
-
-    if (fOverrideIndicatorManager == null) {
-      return;
-    }
-
-    addReconcileListener_OLD(fOverrideIndicatorManager);
-  }
-
-  /*
    * @see org.eclipse.ui.texteditor.AbstractTextEditor#installTabsToSpacesConverter()
    */
   @Override
@@ -1913,17 +1899,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     fContextMenuGroup.setContext(context);
     fContextMenuGroup.fillContextMenu(menu);
     fContextMenuGroup.setContext(null);
-  }
-
-  /*
-   * @see com.google.dart.tools.ui.editor.JavaEditor#uninstallOverrideIndicator()
-   */
-  @Override
-  protected void uninstallOverrideIndicator() {
-    if (fOverrideIndicatorManager != null) {
-      removeReconcileListener_OLD(fOverrideIndicatorManager);
-    }
-    super.uninstallOverrideIndicator();
   }
 
   @Override
