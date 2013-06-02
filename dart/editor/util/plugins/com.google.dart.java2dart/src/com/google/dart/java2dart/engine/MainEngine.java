@@ -685,6 +685,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("test_support.dart", null));
     unit.getDirectives().add(
         importDirective("scanner_test.dart", null, importShowCombinator("TokenFactory")));
+    unit.getDirectives().add(
+        importDirective("ast_test.dart", null, importShowCombinator("ASTFactory")));
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
@@ -716,12 +718,13 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(
         importDirective("parser.dart", null, importShowCombinator("Parser", "ParserErrorCode")));
-    unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
+    unit.getDirectives().add(
+        importDirective("sdk.dart", null, importShowCombinator("DartSdk", "SdkLibrary")));
     unit.getDirectives().add(
         importDirective(
             "element.dart",
             null,
-            importHideCombinator("HideCombinator", "ShowCombinator")));
+            importHideCombinator("Annotation", "HideCombinator", "ShowCombinator")));
     unit.getDirectives().add(importDirective("html.dart", "ht"));
     unit.getDirectives().add(importDirective("engine.dart", null));
     unit.getDirectives().add(importDirective("constant.dart", null));
@@ -867,7 +870,7 @@ public class MainEngine {
 
   private static CompilationUnit buildSdkIoLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
-    unit.getDirectives().add(libraryDirective("engine", "sdk"));
+    unit.getDirectives().add(libraryDirective("engine", "sdk", "io"));
     unit.getDirectives().add(importDirective("dart:io", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_io.dart", null));
@@ -996,7 +999,7 @@ public class MainEngine {
         importDirective(
             src_package + "engine.dart",
             null,
-            importShowCombinator("AnalysisContext", "AnalysisContextImpl")));
+            importShowCombinator("AnalysisContext", "AnalysisContextImpl", "RecordingErrorListener")));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {

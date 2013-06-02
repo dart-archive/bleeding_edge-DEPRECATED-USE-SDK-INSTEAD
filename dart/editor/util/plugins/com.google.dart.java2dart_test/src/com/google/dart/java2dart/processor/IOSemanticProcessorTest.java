@@ -87,6 +87,23 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_URI_create() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.net.URI;",
+        "public class Test {",
+        "  public URI test(String uriString) {",
+        "    return URI.create(uriString);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  Uri test(String uriString) => parseUriWithException(uriString);",
+        "}");
+  }
+
   public void test_URI_new() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -98,6 +115,9 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
         "    URI result = new URI(null, null, absolutePath, null);",
         "    return result;",
         "  }",
+        "  public URI newFromStr(String str) {",
+        "    return new URI(str);",
+        "  }",
         "  public URI newFromFile(File f) {",
         "    return f.toURI();",
         "  }",
@@ -106,9 +126,10 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(
         "class Test {",
         "  Uri newFromPath(String absolutePath) {",
-        "    Uri result = new Uri.fromComponents(path: absolutePath);",
+        "    Uri result = new Uri(path: absolutePath);",
         "    return result;",
         "  }",
+        "  Uri newFromStr(String str) => parseUriWithException(str);",
         "  Uri newFromFile(JavaFile f) => f.toURI();",
         "}");
   }

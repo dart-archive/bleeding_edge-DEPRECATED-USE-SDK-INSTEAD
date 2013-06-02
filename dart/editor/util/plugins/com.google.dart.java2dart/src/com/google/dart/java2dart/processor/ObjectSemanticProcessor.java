@@ -117,6 +117,31 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             return null;
           }
         }
+        // Dart has no "bool |=" operator
+        if (node.getOperator().getType() == TokenType.BAR_EQ) {
+          Expression leftExpr = node.getLeftHandSide();
+          ITypeBinding argTypeBinding = context.getNodeTypeBinding(leftExpr);
+          if (JavaUtils.isTypeNamed(argTypeBinding, "boolean")) {
+            Expression rightExpr = node.getRightHandSide();
+            replaceNode(
+                node,
+                assignmentExpression(
+                    leftExpr,
+                    TokenType.EQ,
+                    methodInvocation("javaBooleanOr", leftExpr, rightExpr)));
+            return null;
+          }
+        }
+        // String += 'c'
+        if (node.getOperator().getType() == TokenType.PLUS_EQ) {
+          Expression leftExpr = node.getLeftHandSide();
+          ITypeBinding argTypeBinding = context.getNodeTypeBinding(leftExpr);
+          if (JavaUtils.isTypeNamed(argTypeBinding, "java.lang.String")) {
+            Expression rightExpr = node.getRightHandSide();
+            replaceCharLiteralWithStringliteral(rightExpr);
+            return null;
+          }
+        }
         return null;
       }
 
@@ -258,6 +283,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
           return null;
         }
+        if (isMethodInClass(node, "getMessage", "java.lang.Throwable")) {
+          nameNode.setToken(token("toString"));
+          return null;
+        }
         if (isMethodInClass(node, "printStackTrace", "java.lang.Throwable")) {
           replaceNode(node, methodInvocation("print", node.getTarget()));
           return null;
@@ -270,7 +299,16 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           nameNode.setToken(token("codeUnitAt"));
           return null;
         }
-        if (isMethodInClass(node, "replace", "java.lang.String")) {
+        if (isMethodInClass2(node, "replace(char,char)", "java.lang.String")) {
+          nameNode.setToken(token("replaceAll"));
+          replaceCharLiteralWithStringliteral(args.get(0));
+          replaceCharLiteralWithStringliteral(args.get(1));
+          return null;
+        }
+        if (isMethodInClass2(
+            node,
+            "replace(java.lang.CharSequence,java.lang.CharSequence)",
+            "java.lang.String")) {
           nameNode.setToken(token("replaceAll"));
           return null;
         }
@@ -371,6 +409,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             || isMethodInClass(node, "longValue", "java.lang.Long")
             || isMethodInClass(node, "intValue", "java.math.BigInteger")) {
           replaceNode(node, node.getTarget());
+          return null;
+        }
+        if (isMethodInClass(node, "intValue", "java.lang.Number")) {
+          nameNode.setToken(token("toInt"));
           return null;
         }
         if (isMethodInClass(node, "doubleValue", "java.math.BigInteger")) {
@@ -522,6 +564,16 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           return null;
         }
         return null;
+      }
+
+      private void replaceCharLiteralWithStringliteral(Expression x) {
+        if (x instanceof IntegerLiteral) {
+          IntegerLiteral literal = (IntegerLiteral) x;
+          ITypeBinding typeBinding = context.getNodeTypeBinding(x);
+          if (JavaUtils.isTypeNamed(typeBinding, "char")) {
+            replaceNode(literal, string(String.valueOf((char) literal.getValue().intValue())));
+          }
+        }
       }
     });
   }

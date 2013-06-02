@@ -3063,7 +3063,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     // prepare statement
-    Statement statement = node.getAncestor(Statement.class);
+    Statement statement = node.getAncestor(ExpressionStatement.class);
     if (statement == null) {
       return false;
     }

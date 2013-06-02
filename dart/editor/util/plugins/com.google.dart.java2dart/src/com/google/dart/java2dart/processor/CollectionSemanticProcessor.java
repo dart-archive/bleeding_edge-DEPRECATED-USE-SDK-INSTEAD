@@ -268,6 +268,10 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
             nameNode.setToken(token("List"));
             return null;
           }
+          if (JavaUtils.isTypeNamed(binding, "java.util.LinkedList")) {
+            nameNode.setToken(token("Queue"));
+            return null;
+          }
           if ("EnumSet".equals(name)) {
             nameNode.setToken(token("Set"));
             return null;

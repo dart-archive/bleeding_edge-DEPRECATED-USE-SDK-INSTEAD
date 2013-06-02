@@ -50,6 +50,24 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Boolean_orEq() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public void test(boolean a, boolean b) {",
+        "    a |= b;",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  void test(bool a, bool b) {",
+        "    a = javaBooleanOr(a, b);",
+        "  }",
+        "}");
+  }
+
   public void test_Boolean_TRUE() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -398,6 +416,22 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    int.parse(p);",
         "    int.parse(p, radix: 16);",
         "  }",
+        "}");
+  }
+
+  public void test_Number_intValue() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public int main(Number p) {",
+        "    return p.intValue();",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  int main(num p) => p.toInt();",
         "}");
   }
 
@@ -776,19 +810,41 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  public void test_String_replace() throws Exception {
+  public void test_String_plusEqualsChar() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
         "public class Test {",
-        "  public String foo(String s, String p, String r) {",
-        "    return s.replace(p, r);",
+        "  public void test(String s) {",
+        "    s += '=';",
         "  }",
         "}");
     runProcessor();
     assertFormattedSource(//
         "class Test {",
-        "  String foo(String s, String p, String r) => s.replaceAll(p, r);",
+        "  void test(String s) {",
+        "    s += '=';",
+        "  }",
+        "}");
+  }
+
+  public void test_String_replace() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public String testA(String s, String p, String r) {",
+        "    return s.replace(p, r);",
+        "  }",
+        "  public String testB(String s, String r) {",
+        "    return s.replace('/', r);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  String testA(String s, String p, String r) => s.replaceAll(p, r);",
+        "  String testB(String s, String r) => s.replaceAll('/', r);",
         "}");
   }
 
@@ -860,6 +916,24 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    sb.length;",
         "    sb.length = 0;",
         "    return sb.toString();",
+        "  }",
+        "}");
+  }
+
+  public void test_Throwable_getMessage() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public main(Throwable e) {",
+        "    e.getMessage();",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  main(Exception e) {",
+        "    e.toString();",
         "  }",
         "}");
   }

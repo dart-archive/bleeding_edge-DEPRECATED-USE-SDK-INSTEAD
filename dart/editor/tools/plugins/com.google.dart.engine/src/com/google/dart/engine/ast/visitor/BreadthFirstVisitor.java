@@ -16,7 +16,6 @@ package com.google.dart.engine.ast.visitor;
 import com.google.dart.engine.ast.ASTNode;
 
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Instances of the class {@code BreadthFirstVisitor} implement an AST visitor that will recursively
@@ -27,8 +26,7 @@ import java.util.List;
  * @coverage dart.engine.ast
  */
 public class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
-
-  private List<ASTNode> queue = createQueue();
+  private final LinkedList<ASTNode> queue = new LinkedList<ASTNode>();
 
   private GeneralizingASTVisitor<Void> childVisitor = new GeneralizingASTVisitor<Void>() {
     @Override
@@ -46,7 +44,7 @@ public class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
   public void visitAllNodes(ASTNode root) {
     queue.add(root);
     while (!queue.isEmpty()) {
-      ASTNode next = queue.remove(0);
+      ASTNode next = queue.removeFirst();
       next.accept(this);
     }
   }
@@ -55,9 +53,5 @@ public class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
   public R visitNode(ASTNode node) {
     node.visitChildren(childVisitor);
     return null;
-  }
-
-  protected List<ASTNode> createQueue() {
-    return new LinkedList<ASTNode>();
   }
 }

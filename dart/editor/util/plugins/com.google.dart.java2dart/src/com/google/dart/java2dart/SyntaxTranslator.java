@@ -1415,6 +1415,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       if ("Boolean".equals(name)) {
         nameNode = identifier("bool");
       }
+      if ("Number".equals(name)) {
+        nameNode = identifier("num");
+      }
       if ("Short".equals(name) || "Integer".equals(name) || "Long".equals(name)) {
         nameNode = identifier("int");
       }

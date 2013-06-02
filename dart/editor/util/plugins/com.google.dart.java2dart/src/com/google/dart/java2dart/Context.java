@@ -29,6 +29,7 @@ import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.Identifier;
@@ -248,6 +249,19 @@ public class Context {
         } finally {
           hierarchyNames = null;
         }
+      }
+
+      @Override
+      public Void visitForEachStatement(ForEachStatement node) {
+        SimpleIdentifier nameNode = node.getLoopVariable().getIdentifier();
+        String variableName = nameNode.getName();
+        if (forbiddenNames.contains(variableName)) {
+          ensureHierarchyNames(node);
+          ensureMethodNames(node);
+          String newName = generateUniqueVariableName(variableName);
+          renameIdentifier(nameNode, newName);
+        }
+        return super.visitForEachStatement(node);
       }
 
       @Override

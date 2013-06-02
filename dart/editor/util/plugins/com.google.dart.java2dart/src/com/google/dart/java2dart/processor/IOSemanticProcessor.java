@@ -27,6 +27,7 @@ import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.JavaUtils;
 
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
+import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.namedExpression;
 import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.TokenFactory.token;
@@ -57,14 +58,17 @@ public class IOSemanticProcessor extends SemanticProcessor {
           ITypeBinding declaringClass = methodBinding.getDeclaringClass();
           List<Expression> args = node.getArgumentList().getArguments();
           // new URI()
-          if (JavaUtils.getQualifiedName(declaringClass).equals("java.net.URI") && args.size() == 4
-              && args.get(0) instanceof NullLiteral && args.get(1) instanceof NullLiteral
-              && args.get(3) instanceof NullLiteral) {
-            node.getConstructorName().setName(identifier("fromComponents"));
-            Expression pathExpression = args.get(2);
-            args.clear();
-            args.add(namedExpression("path", pathExpression));
-            return null;
+          if (JavaUtils.getQualifiedName(declaringClass).equals("java.net.URI")) {
+            if (args.size() == 1) {
+              replaceNode(node, methodInvocation(identifier("parseUriWithException"), args));
+            }
+            if (args.size() == 4 && args.get(0) instanceof NullLiteral
+                && args.get(1) instanceof NullLiteral && args.get(3) instanceof NullLiteral) {
+              Expression pathExpression = args.get(2);
+              args.clear();
+              args.add(namedExpression("path", pathExpression));
+              return null;
+            }
           }
           // new File(parent, child)
           if (isMethodInClass2(
@@ -86,8 +90,12 @@ public class IOSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         super.visitMethodInvocation(node);
-//        List<Expression> args = node.getArgumentList().getArguments();
+        List<Expression> args = node.getArgumentList().getArguments();
         SimpleIdentifier nameNode = node.getMethodName();
+        if (isMethodInClass2(node, "create(java.lang.String)", "java.net.URI")) {
+          replaceNode(node, methodInvocation(identifier("parseUriWithException"), args));
+          return null;
+        }
         if (isMethodInClass(node, "getScheme", "java.net.URI")) {
           replaceNode(node, propertyAccess(node.getTarget(), identifier("scheme")));
           return null;

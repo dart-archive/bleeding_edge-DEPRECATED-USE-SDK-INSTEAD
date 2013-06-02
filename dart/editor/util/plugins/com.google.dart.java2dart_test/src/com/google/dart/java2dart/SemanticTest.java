@@ -888,6 +888,39 @@ public class SemanticTest extends AbstractSemanticTest {
         "}"), getFormattedSource(unit));
   }
 
+  public void test_forbiddenNames_forEach() throws Exception {
+    File file = setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  static void main(String [] vars) {",
+            "    for (String var: vars) {",
+            "      print(var);",
+            "    }",
+            "  }",
+            "  static void print(String p) {}",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFile(file);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  static void main(List<String> vars) {",
+            "    for (String var2 in vars) {",
+            "      print(var2);",
+            "    }",
+            "  }",
+            "  static void print(String p) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_forbiddenNames_methods() throws Exception {
     setFileLines(
         "test/Test.java",

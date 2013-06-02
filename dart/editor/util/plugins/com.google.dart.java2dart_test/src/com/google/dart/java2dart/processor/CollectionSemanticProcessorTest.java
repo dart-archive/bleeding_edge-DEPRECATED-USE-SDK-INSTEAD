@@ -309,6 +309,26 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_LinkedList() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.List;",
+        "import java.util.LinkedList;",
+        "public class Test {",
+        "  public void test() {",
+        "    LinkedList<String> result = new LinkedList<String>();",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  void test() {",
+        "    Queue<String> result = new Queue<String>();",
+        "  }",
+        "}");
+  }
+
   public void test_List_addAtIndex() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
