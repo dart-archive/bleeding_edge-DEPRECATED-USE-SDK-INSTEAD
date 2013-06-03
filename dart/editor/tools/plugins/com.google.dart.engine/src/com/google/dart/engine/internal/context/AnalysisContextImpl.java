@@ -163,9 +163,20 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private static final String ATTRIBUTE_SRC = "src";
 
   /**
+   * The name of the 'type' attribute in a HTML tag.
+   */
+  private static final String ATTRIBUTE_TYPE = "type";
+
+  /**
    * The name of the 'script' tag in an HTML file.
    */
   private static final String TAG_SCRIPT = "script";
+
+  /**
+   * The value of the 'type' attribute of a 'script' tag that indicates that the script is written
+   * in Dart.
+   */
+  private static final String TYPE_DART = "application/dart";
 
   /**
    * The number of times that the flushing of information from the cache has been disabled without
@@ -369,9 +380,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public LibraryElement computeLibraryElement(Source source) throws AnalysisException {
-    if (!AnalysisEngine.isDartFileName(source.getShortName())) {
-      return null;
-    }
     synchronized (cacheLock) {
       DartEntry dartEntry = getDartEntry(source);
       if (dartEntry == null) {
@@ -1138,12 +1146,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       HtmlEntry htmlEntry = new HtmlEntryImpl();
       sourceMap.put(source, htmlEntry);
       return htmlEntry;
-    } else if (AnalysisEngine.isDartFileName(name)) {
+    } else {
       DartEntry dartEntry = new DartEntryImpl();
       sourceMap.put(source, dartEntry);
       return dartEntry;
     }
-    return null;
   }
 
   /**
@@ -1265,23 +1272,30 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       @Override
       public Void visitXmlTagNode(XmlTagNode node) {
         if (node.getTag().getLexeme().equalsIgnoreCase(TAG_SCRIPT)) {
+          boolean isDartScript = false;
+          XmlAttributeNode scriptAttribute = null;
           for (XmlAttributeNode attribute : node.getAttributes()) {
             if (attribute.getName().getLexeme().equalsIgnoreCase(ATTRIBUTE_SRC)) {
-              try {
-                URI uri = new URI(null, null, attribute.getText(), null);
-                String fileName = uri.getPath();
-                if (AnalysisEngine.isDartFileName(fileName)) {
-                  Source librarySource = sourceFactory.resolveUri(htmlSource, fileName);
-                  if (librarySource.exists()) {
-                    libraries.add(librarySource);
-                  }
-                }
-              } catch (Exception exception) {
-                AnalysisEngine.getInstance().getLogger().logError(
-                    "Invalid URL ('" + attribute.getText() + "') in script tag in '"
-                        + htmlSource.getFullName() + "'",
-                    exception);
+              scriptAttribute = attribute;
+            } else if (attribute.getName().getLexeme().equalsIgnoreCase(ATTRIBUTE_TYPE)) {
+              if (attribute.getText().equalsIgnoreCase(TYPE_DART)) {
+                isDartScript = true;
               }
+            }
+          }
+          if (isDartScript && scriptAttribute != null) {
+            try {
+              URI uri = new URI(null, null, scriptAttribute.getText(), null);
+              String fileName = uri.getPath();
+              Source librarySource = sourceFactory.resolveUri(htmlSource, fileName);
+              if (librarySource.exists()) {
+                libraries.add(librarySource);
+              }
+            } catch (Exception exception) {
+              AnalysisEngine.getInstance().getLogger().logError(
+                  "Invalid URL ('" + scriptAttribute.getText() + "') in script tag in '"
+                      + htmlSource.getFullName() + "'",
+                  exception);
             }
           }
         }

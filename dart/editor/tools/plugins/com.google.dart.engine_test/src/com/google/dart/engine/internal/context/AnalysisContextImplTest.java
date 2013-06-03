@@ -197,11 +197,6 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertSame(SourceKind.PART, context.computeKindOf(source));
   }
 
-  public void test_computeKindOf_unknown() {
-    Source source = addSource("/test.css", "");
-    assertSame(SourceKind.UNKNOWN, context.computeKindOf(source));
-  }
-
   public void test_computeLibraryElement() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
@@ -266,8 +261,8 @@ public class AnalysisContextImplTest extends EngineTestCase {
   public void test_getHtmlFilesReferencing_library() throws Exception {
     Source htmlSource = addSource("/test.html", createSource(//
         "<html><head>",
-        "<script src='test.dart'/>",
-        "<script src='test.js'/>",
+        "<script type='application/dart' src='test.dart'/>",
+        "<script type='application/dart' src='test.js'/>",
         "</head></html>"));
     Source librarySource = addSource("/test.dart", "library lib;");
     Source[] result = context.getHtmlFilesReferencing(librarySource);
