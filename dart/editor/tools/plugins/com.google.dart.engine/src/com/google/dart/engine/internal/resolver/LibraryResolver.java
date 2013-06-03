@@ -46,6 +46,7 @@ import com.google.dart.engine.internal.element.ShowCombinatorImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
+import com.google.dart.engine.internal.verifier.PubVerifier;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
@@ -779,6 +780,8 @@ public class LibraryResolver {
           typeProvider,
           library.getInheritanceManager());
       unit.accept(errorVerifier);
+
+      unit.accept(new PubVerifier(errorReporter));
 
       ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
       unit.accept(constantVerifier);

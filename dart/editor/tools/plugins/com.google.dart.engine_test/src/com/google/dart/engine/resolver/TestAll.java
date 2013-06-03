@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(CompileTimeErrorCodeTest.class);
     suite.addTestSuite(ErrorResolverTest.class);
     suite.addTestSuite(NonErrorResolverTest.class);
+    suite.addTestSuite(PubSuggestionCodeTest.class);
     suite.addTestSuite(SimpleResolverTest.class);
     suite.addTestSuite(StaticTypeWarningCodeTest.class);
     suite.addTestSuite(StaticWarningCodeTest.class);

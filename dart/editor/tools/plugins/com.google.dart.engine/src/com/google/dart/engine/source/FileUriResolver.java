@@ -25,7 +25,7 @@ public class FileUriResolver extends UriResolver {
   /**
    * The name of the {@code file} scheme.
    */
-  private static final String FILE_SCHEME = "file";
+  public static final String FILE_SCHEME = "file";
 
   /**
    * Return {@code true} if the given URI is a {@code file} URI.

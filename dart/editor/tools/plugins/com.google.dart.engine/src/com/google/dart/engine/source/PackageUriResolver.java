@@ -39,7 +39,7 @@ public class PackageUriResolver extends UriResolver {
   /**
    * The name of the {@code package} scheme.
    */
-  private static final String PACKAGE_SCHEME = "package";
+  public static final String PACKAGE_SCHEME = "package";
 
   /**
    * Log exceptions thrown with the message "Required key not available" only once.

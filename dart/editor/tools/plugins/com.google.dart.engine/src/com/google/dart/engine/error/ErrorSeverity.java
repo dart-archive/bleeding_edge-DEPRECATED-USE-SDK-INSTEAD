@@ -27,6 +27,12 @@ public enum ErrorSeverity {
   NONE(" ", "none"),
 
   /**
+   * The severity representing a suggestion. Suggestions are not specified in the Dart language
+   * specification, but provide information about best practices.
+   */
+  SUGGESTION("S", "suggestion"),
+
+  /**
    * The severity representing a warning. Warnings can become errors if the {@code -Werror} command
    * line flag is specified.
    */

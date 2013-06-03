@@ -26,6 +26,12 @@ public enum ErrorType {
   COMPILE_TIME_ERROR(ErrorSeverity.ERROR),
 
   /**
+   * Suggestions made in situations where the user has deviated from recommended pub programming
+   * practices.
+   */
+  PUB_SUGGESTION(ErrorSeverity.SUGGESTION),
+
+  /**
    * Static warnings are those warnings reported by the static checker. They have no effect on
    * execution. Static warnings must be provided by Dart compilers used during development.
    */
