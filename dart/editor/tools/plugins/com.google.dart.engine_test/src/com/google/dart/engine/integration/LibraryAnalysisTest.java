@@ -158,7 +158,7 @@ public abstract class LibraryAnalysisTest extends TestCase {
     LibraryElement library = element.getLibrary();
     AnalysisContext context = library.getContext();
     CompilationUnit unit = context.resolveCompilationUnit(element.getSource(), library);
-    AnalysisError[] errors = unit.getErrors();
+    AnalysisError[] errors = context.getErrors(element.getSource()).getErrors();
     if (errors == null) {
       Assert.fail("The compilation unit \"" + element.getSource().getFullName()
           + "\" was not resolved");
