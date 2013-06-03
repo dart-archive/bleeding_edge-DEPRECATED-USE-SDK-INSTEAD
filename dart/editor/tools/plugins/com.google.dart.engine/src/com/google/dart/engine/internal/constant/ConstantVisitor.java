@@ -202,6 +202,9 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
 
   @Override
   public EvaluationResultImpl visitListLiteral(ListLiteral node) {
+    if (node.getModifier() == null) {
+      return new ErrorResult(node, CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL);
+    }
     ErrorResult result = null;
     for (Expression element : node.getElements()) {
       result = union(result, element.accept(this));
@@ -214,6 +217,9 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
 
   @Override
   public EvaluationResultImpl visitMapLiteral(MapLiteral node) {
+    if (node.getModifier() == null) {
+      return new ErrorResult(node, CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL);
+    }
     ErrorResult result = null;
     for (MapLiteralEntry entry : node.getEntries()) {
       result = union(result, entry.getKey().accept(this));

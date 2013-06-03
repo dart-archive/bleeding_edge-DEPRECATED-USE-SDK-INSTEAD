@@ -782,6 +782,20 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constInitializedWithNonConstValue_missingConstInListLiteral() throws Exception {
+    Source source = addSource("const List L = [0];");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+    verify(source);
+  }
+
+  public void test_constInitializedWithNonConstValue_missingConstInMapLiteral() throws Exception {
+    Source source = addSource("const Map M = {'a' : 0};");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+    verify(source);
+  }
+
   public void test_constWithInvalidTypeParameters() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

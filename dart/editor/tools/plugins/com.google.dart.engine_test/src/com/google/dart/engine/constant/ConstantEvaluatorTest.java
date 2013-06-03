@@ -204,12 +204,12 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
   }
 
   public void test_literal_list() throws Exception {
-    EvaluationResult result = getExpressionValue("['a', 'b', 'c']");
+    EvaluationResult result = getExpressionValue("const ['a', 'b', 'c']");
     assertTrue(result.isValid());
   }
 
   public void test_literal_map() throws Exception {
-    EvaluationResult result = getExpressionValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}");
+    EvaluationResult result = getExpressionValue("const {'a' : 'm', 'b' : 'n', 'c' : 'o'}");
     assertTrue(result.isValid());
   }
 

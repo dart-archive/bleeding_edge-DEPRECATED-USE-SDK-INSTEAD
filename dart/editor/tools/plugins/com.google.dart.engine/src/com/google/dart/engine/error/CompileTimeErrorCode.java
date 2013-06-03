@@ -706,6 +706,18 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "'%s' cannot be used to name a method, there is already a getter with the same name"),
 
   /**
+   * 12.1 Constants: A constant expression is ... a constant list literal.
+   */
+  MISSING_CONST_IN_LIST_LITERAL(
+      "List literals must be prefixed with 'const' when used as a constant expression"),
+
+  /**
+   * 12.1 Constants: A constant expression is ... a constant map literal.
+   */
+  MISSING_CONST_IN_MAP_LITERAL(
+      "Map literals must be prefixed with 'const' when used as a constant expression"),
+
+  /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin explicitly declares a
    * constructor.
    * 
