@@ -199,9 +199,13 @@ public class TestTypeProvider implements TypeProvider {
       Type eType = listElement.getTypeVariables()[0].getType();
       InterfaceType supertype = getIterableType().substitute(new Type[] {eType});
       listElement.setSupertype(supertype);
+      listElement.setAccessors(new PropertyAccessorElement[] {getterElement(
+          "length",
+          false,
+          getIntType())});
       listElement.setMethods(new MethodElement[] {
-          methodElement("[]", eType, intType),
-          methodElement("[]=", VoidTypeImpl.getInstance(), intType, eType)});
+          methodElement("[]", eType, getIntType()),
+          methodElement("[]=", VoidTypeImpl.getInstance(), getIntType(), eType)});
     }
     return listType;
   }
@@ -211,7 +215,10 @@ public class TestTypeProvider implements TypeProvider {
     if (mapType == null) {
       ClassElementImpl mapElement = classElement("Map", "K", "V");
       mapType = mapElement.getType();
-      mapElement.setAccessors(new PropertyAccessorElement[] {getterElement("length", false, intType)});
+      mapElement.setAccessors(new PropertyAccessorElement[] {getterElement(
+          "length",
+          false,
+          getIntType())});
     }
     return mapType;
   }
@@ -234,7 +241,8 @@ public class TestTypeProvider implements TypeProvider {
             objectElement,
             null)});
         objectElement.setMethods(new MethodElement[] {
-            methodElement("toString", getStringType()), methodElement("==", boolType, objectType),
+            methodElement("toString", getStringType()),
+            methodElement("==", getBoolType(), objectType),
             methodElement("noSuchMethod", getDynamicType(), getDynamicType())});
         objectElement.setAccessors(new PropertyAccessorElement[] {
             getterElement("hashCode", false, getIntType()),
