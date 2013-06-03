@@ -195,6 +195,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private InheritanceManager inheritanceManager;
 
   /**
+   * A flag indicating whether we are running in strict mode. In strict mode, error reporting is
+   * based exclusively on the static type information.
+   */
+  private boolean strictMode;
+
+  /**
    * This is set to {@code true} iff the visitor is currently visiting children nodes of a
    * {@link ConstructorDeclaration} and the constructor is 'const'.
    * 
@@ -282,6 +288,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     this.isInSystemLibrary = currentLibrary.getSource().isInSystemLibrary();
     this.typeProvider = typeProvider;
     this.inheritanceManager = inheritanceManager;
+    strictMode = currentLibrary.getContext().getAnalysisOptions().getStrictMode();
     isEnclosingConstructorConst = false;
     isInCatchClause = false;
     dynamicType = typeProvider.getDynamicType();
@@ -1228,7 +1235,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     // RETURN_OF_INVALID_TYPE
     boolean isStaticAssignable = staticReturnType.isAssignableTo(expectedReturnType);
     Type propagatedReturnType = getPropagatedType(returnExpression);
-    if (propagatedReturnType == null) {
+    if (strictMode || propagatedReturnType == null) {
       if (isStaticAssignable) {
         return false;
       }
@@ -1360,6 +1367,15 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     if (staticType.isAssignableTo(parameterType)) {
       return false;
+    }
+    if (strictMode) {
+      // report problem
+      errorReporter.reportError(
+          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+          argument,
+          staticType.getDisplayName(),
+          parameterType.getDisplayName());
+      return true;
     }
     // Test the propagated type of the argument
     Type propagatedType = getPropagatedType(argument);
@@ -2181,6 +2197,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     if (staticType.isAssignableTo(fieldType)) {
       return false;
+    } else if (strictMode) {
+      // report problem
+      if (isEnclosingConstructorConst) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+            expression,
+            staticType.getDisplayName(),
+            fieldType.getDisplayName());
+      } else {
+        errorReporter.reportError(
+            StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+            expression,
+            staticType.getDisplayName(),
+            fieldType.getDisplayName());
+      }
+      return true;
     }
     // test the propagated type of the expression
     Type propagatedType = getPropagatedType(expression);
@@ -2547,7 +2579,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Type staticRightType = getStaticType(rhs);
     boolean isStaticAssignable = staticRightType.isAssignableTo(leftType);
     Type propagatedRightType = getPropagatedType(rhs);
-    if (propagatedRightType == null) {
+    if (strictMode || propagatedRightType == null) {
       if (!isStaticAssignable) {
         errorReporter.reportError(
             StaticTypeWarningCode.INVALID_ASSIGNMENT,

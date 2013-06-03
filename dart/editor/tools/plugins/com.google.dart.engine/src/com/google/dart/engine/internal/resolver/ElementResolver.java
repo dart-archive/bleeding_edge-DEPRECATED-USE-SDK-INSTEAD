@@ -283,6 +283,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private ResolverVisitor resolver;
 
   /**
+   * A flag indicating whether we are running in strict mode. In strict mode, error reporting is
+   * based exclusively on the static type information.
+   */
+  private boolean strictMode;
+
+  /**
    * The name of the method that can be implemented by a class to allow its instances to be invoked
    * as if they were a function.
    */
@@ -301,6 +307,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    */
   public ElementResolver(ResolverVisitor resolver) {
     this.resolver = resolver;
+    strictMode = resolver.getDefiningLibrary().getContext().getAnalysisOptions().getStrictMode();
   }
 
   @Override
@@ -322,7 +329,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         node.setElement(select(staticMethod, propagatedMethod));
 
         if (shouldReportMissingMember(staticType, staticMethod)
-            && (propagatedType == null || shouldReportMissingMember(
+            && (strictMode || propagatedType == null || shouldReportMissingMember(
                 propagatedType,
                 propagatedMethod))) {
           resolver.reportError(
@@ -353,7 +360,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         node.setElement(select(staticMethod, propagatedMethod));
 
         if (shouldReportMissingMember(staticType, staticMethod)
-            && (propagatedType == null || shouldReportMissingMember(
+            && (strictMode || propagatedType == null || shouldReportMissingMember(
                 propagatedType,
                 propagatedMethod))) {
           resolver.reportError(
@@ -912,7 +919,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     node.setElement(select(staticMethod, propagatedMethod));
 
     if (shouldReportMissingMember(staticType, staticMethod)
-        && (propagatedType == null || shouldReportMissingMember(propagatedType, propagatedMethod))) {
+        && (strictMode || propagatedType == null || shouldReportMissingMember(
+            propagatedType,
+            propagatedMethod))) {
       resolver.reportError(
           StaticTypeWarningCode.UNDEFINED_OPERATOR,
           node.getOperator(),
@@ -976,7 +985,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       node.setElement(select(staticMethod, propagatedMethod));
 
       if (shouldReportMissingMember(staticType, staticMethod)
-          && (propagatedType == null || shouldReportMissingMember(propagatedType, propagatedMethod))) {
+          && (strictMode || propagatedType == null || shouldReportMissingMember(
+              propagatedType,
+              propagatedMethod))) {
         resolver.reportError(
             StaticTypeWarningCode.UNDEFINED_OPERATOR,
             operator,
@@ -1434,7 +1445,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     node.setElement(select(staticMethod, propagatedMethod));
     // report problem
     if (shouldReportMissingMember(staticType, staticMethod)
-        && (propagatedType == null || shouldReportMissingMember(propagatedType, propagatedMethod))) {
+        && (strictMode || propagatedType == null || shouldReportMissingMember(
+            propagatedType,
+            propagatedMethod))) {
       Token leftBracket = node.getLeftBracket();
       Token rightBracket = node.getRightBracket();
       if (leftBracket == null || rightBracket == null) {
@@ -2117,7 +2130,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     propertyName.setElement(selectedElement);
 
     if (shouldReportMissingMember(staticType, staticElement)
-        && (propagatedType == null || shouldReportMissingMember(propagatedType, propagatedElement))) {
+        && (strictMode || propagatedType == null || shouldReportMissingMember(
+            propagatedType,
+            propagatedElement))) {
       boolean staticNoSuchMethod = staticType != null
           && classDeclaresNoSuchMethod(staticType.getElement());
       boolean propagatedNoSuchMethod = propagatedType != null
