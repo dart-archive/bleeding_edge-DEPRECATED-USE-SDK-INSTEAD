@@ -1031,7 +1031,9 @@ public class MainEngine {
     PrintStringWriter writer = new PrintStringWriter();
     writer.append(HEADER);
     node.accept(new ToFormattedSourceVisitor(writer));
-    return writer.toString();
+    String source = writer.toString();
+    source = removeTrailingWhitespaces(source);
+    return source;
   }
 
   /**
@@ -1050,5 +1052,16 @@ public class MainEngine {
   private static boolean isEngineTestPath(File file, String enginePackage) {
     return file.getAbsolutePath().startsWith(
         engineTestFolder.getAbsolutePath() + "/com/google/dart/engine/" + enginePackage);
+  }
+
+  /**
+   * Removes trailing spaces from the given Dart source.
+   */
+  private static String removeTrailingWhitespaces(String source) {
+    String[] lines = StringUtils.split(source, '\n');
+    for (int i = 0; i < lines.length; i++) {
+      lines[i] = StringUtils.stripEnd(lines[i], null);
+    }
+    return StringUtils.join(lines, "\n");
   }
 }
