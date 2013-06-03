@@ -169,11 +169,13 @@ public class PubYamlUtils {
     Map<String, Object> map = PubYamlUtils.parsePubspecYamlToMap(lockFileContents);
     if (map != null) {
       Map<String, Object> packagesMap = (Map<String, Object>) map.get("packages");
-      for (String key : packagesMap.keySet()) {
-        Map<String, Object> attrMap = (Map<String, Object>) packagesMap.get(key);
-        String version = (String) attrMap.get(PubspecConstants.VERSION);
-        if (version != null) {
-          versionMap.put(key, version);
+      if (packagesMap != null) {
+        for (String key : packagesMap.keySet()) {
+          Map<String, Object> attrMap = (Map<String, Object>) packagesMap.get(key);
+          String version = (String) attrMap.get(PubspecConstants.VERSION);
+          if (version != null) {
+            versionMap.put(key, version);
+          }
         }
       }
     }
