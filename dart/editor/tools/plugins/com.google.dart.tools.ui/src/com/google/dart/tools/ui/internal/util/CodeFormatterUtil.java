@@ -52,8 +52,11 @@ public class CodeFormatterUtil {
   public static String createIndentString(int indentationUnits, DartProject project) {
     Map<String, String> options = project != null ? project.getOptions(true)
         : DartCore.getOptions();
-    //TODO (pquitslund): remove
-    return null;
+    StringBuffer s = new StringBuffer();
+    for (int i = 0; i < indentationUnits; i++) {
+      s.append("  ");
+    }
+    return s.toString();
   }
 
   /**
