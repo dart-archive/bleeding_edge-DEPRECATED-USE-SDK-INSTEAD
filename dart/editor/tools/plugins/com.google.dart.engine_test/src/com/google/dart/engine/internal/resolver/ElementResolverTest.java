@@ -184,6 +184,39 @@ public class ElementResolverTest extends EngineTestCase {
     resolver = createResolver();
   }
 
+  public void test_lookUpMethodInInterfaces() throws Exception {
+    InterfaceType intType = typeProvider.getIntType();
+    //
+    // abstract class A { int operator[](int index); }
+    //
+    ClassElementImpl classA = classElement("A");
+    MethodElement operator = methodElement("[]", intType, intType);
+    classA.setMethods(new MethodElement[] {operator});
+    //
+    // class B implements A {}
+    //
+    ClassElementImpl classB = classElement("B");
+    classB.setInterfaces(new InterfaceType[] {classA.getType()});
+    //
+    // class C extends Object with B {}
+    //
+    ClassElementImpl classC = classElement("C");
+    classC.setMixins(new InterfaceType[] {classB.getType()});
+    //
+    // class D extends C {}
+    //
+    ClassElementImpl classD = classElement("D", classC.getType());
+    //
+    // D a;
+    // a[i];
+    //
+    SimpleIdentifier array = identifier("a");
+    array.setStaticType(classD.getType());
+    IndexExpression expression = indexExpression(array, identifier("i"));
+    assertSame(operator, resolve(expression));
+    listener.assertNoErrors();
+  }
+
   public void test_visitAssignmentExpression_compound() throws Exception {
     InterfaceType intType = typeProvider.getIntType();
     SimpleIdentifier leftHandSide = identifier("a");

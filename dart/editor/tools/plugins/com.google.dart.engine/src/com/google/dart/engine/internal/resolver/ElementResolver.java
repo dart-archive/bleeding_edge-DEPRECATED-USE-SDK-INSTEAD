@@ -1576,6 +1576,16 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         return getter;
       }
     }
+    for (InterfaceType mixinType : targetType.getMixins()) {
+      PropertyAccessorElement getter = lookUpGetterInInterfaces(
+          mixinType,
+          true,
+          getterName,
+          visitedInterfaces);
+      if (getter != null) {
+        return getter;
+      }
+    }
     InterfaceType superclass = targetType.getSuperclass();
     if (superclass == null) {
       return null;
@@ -1651,6 +1661,16 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     for (InterfaceType interfaceType : targetType.getInterfaces()) {
       ExecutableElement member = lookUpGetterOrMethodInInterfaces(
           interfaceType,
+          true,
+          memberName,
+          visitedInterfaces);
+      if (member != null) {
+        return member;
+      }
+    }
+    for (InterfaceType mixinType : targetType.getMixins()) {
+      ExecutableElement member = lookUpGetterOrMethodInInterfaces(
+          mixinType,
           true,
           memberName,
           visitedInterfaces);
@@ -1782,6 +1802,16 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         return method;
       }
     }
+    for (InterfaceType mixinType : targetType.getMixins()) {
+      MethodElement method = lookUpMethodInInterfaces(
+          mixinType,
+          true,
+          methodName,
+          visitedInterfaces);
+      if (method != null) {
+        return method;
+      }
+    }
     InterfaceType superclass = targetType.getSuperclass();
     if (superclass == null) {
       return null;
@@ -1848,6 +1878,16 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     for (InterfaceType interfaceType : targetType.getInterfaces()) {
       PropertyAccessorElement setter = lookUpSetterInInterfaces(
           interfaceType,
+          true,
+          setterName,
+          visitedInterfaces);
+      if (setter != null) {
+        return setter;
+      }
+    }
+    for (InterfaceType mixinType : targetType.getMixins()) {
+      PropertyAccessorElement setter = lookUpSetterInInterfaces(
+          mixinType,
           true,
           setterName,
           visitedInterfaces);
