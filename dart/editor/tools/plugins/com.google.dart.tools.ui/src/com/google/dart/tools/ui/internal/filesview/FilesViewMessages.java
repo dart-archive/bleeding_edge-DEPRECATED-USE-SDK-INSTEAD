@@ -25,6 +25,7 @@ public class FilesViewMessages extends NLS {
   public static String IgnoreResourcesAction_dont_analyze_label;
   public static String EnableDartBuilderAction_autoRunBuilder_label;
   public static String EnableDartBuilderAction_dontAutoRunBuilder_label;
+  public static String NewApplicationFromPackage_label;
 
   static {
     // initialize resource bundle

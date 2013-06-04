@@ -18,6 +18,7 @@ import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
@@ -127,6 +128,9 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
       }
     }
 
+    if (element instanceof IFileStore && ((IFileStore) element).getName().equals("lib")) {
+      return DartToolsPlugin.getImage(PACKAGE_ICON);
+    }
     return workbenchLabelProvider.getImage(element);
   }
 
@@ -200,6 +204,12 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
       return string;
     }
 
+    if (element instanceof DartPackageNode) {
+      StyledString string = new StyledString(((DartPackageNode) element).getLabel());
+      string.append(" [" + ((DartPackageNode) element).getVersion() + "]", //$NON-NLS-1$ //$NON-NLS-2$
+          StyledString.QUALIFIER_STYLER);
+      return string;
+    }
     return workbenchLabelProvider.getStyledText(element);
   }
 

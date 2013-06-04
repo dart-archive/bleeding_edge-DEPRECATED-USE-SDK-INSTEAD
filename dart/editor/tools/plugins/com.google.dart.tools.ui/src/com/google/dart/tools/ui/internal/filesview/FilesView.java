@@ -24,6 +24,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
 import com.google.dart.tools.ui.actions.DeleteAction;
+import com.google.dart.tools.ui.actions.NewAppFromPackageAction;
 import com.google.dart.tools.ui.actions.OpenAsTextAction;
 import com.google.dart.tools.ui.actions.OpenExternalDartdocAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
@@ -62,6 +63,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
@@ -133,9 +135,17 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
 
     @Override
-    public void pubCacheChanged(Map<String, Object> added, Map<String, Object> removed) {
-      // TODO Auto-generated method stub
-
+    public void pubCacheChanged(final Map<String, Object> added) {
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          if (treeViewer != null) {
+            InstalledPackagesNode node = ((ResourceContentProvider) treeViewer.getContentProvider()).getPackagesNode();
+            node.updatePackages(added);
+            treeViewer.refresh(node);
+          }
+        }
+      });
     }
 
   }
@@ -200,6 +210,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private RunPubAction pubInstallAction;
   private RunPubAction pubInstallOfflineAction;
 
+  private NewAppFromPackageAction copyPackageAction;
+
   private IPreferenceStore preferences;
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
     @Override
@@ -229,11 +241,14 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private OpenExternalDartdocAction browseDartDocAction;
 
+  private ResourceContentProvider resourceContentProvider;
+
   @Override
   public void createPartControl(Composite parent) {
     preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     treeViewer = new TreeViewer(parent);
-    treeViewer.setContentProvider(new ResourceContentProvider());
+    resourceContentProvider = new ResourceContentProvider();
+    treeViewer.setContentProvider(resourceContentProvider);
     resourceLabelProvider = ResourceLabelProvider.createInstance();
     treeViewer.setLabelProvider(new DecoratingStyledCellLabelProvider(
         resourceLabelProvider,
@@ -517,8 +532,15 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     // Dart SDK
 
-    if (selection.size() == 1 && !allElementsAreResources(selection)) {
+    if (selection.size() == 1 && !(selection.getFirstElement() instanceof IResource)
+        && isInDartSdkNode(selection.getFirstElement())) {
       manager.add(browseDartDocAction);
+    }
+
+    if (selection.size() == 1 && selection.getFirstElement() instanceof DartPackageNode) {
+      String name = ((DartPackageNode) selection.getFirstElement()).getLabel();
+      copyPackageAction.setText(NLS.bind(FilesViewMessages.NewApplicationFromPackage_label, name));
+      manager.add(copyPackageAction);
     }
   }
 
@@ -648,6 +670,18 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     return file instanceof IResource && DartCore.isDartLikeFileName(((IResource) file).getName());
   }
 
+  private boolean isInDartSdkNode(Object selection) {
+    while (selection != null) {
+      if (selection instanceof DartLibraryNode || selection instanceof DartSdkNode) {
+        return true;
+      } else {
+        selection = resourceContentProvider.getParent(selection);
+      }
+    }
+    return false;
+
+  }
+
   private boolean isPackagesDir(IStructuredSelection selection) {
 
     if (selection.isEmpty()) {
@@ -733,6 +767,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     pubUpdateAction = RunPubAction.createPubUpdateAction(getSite().getWorkbenchWindow());
     pubInstallAction = RunPubAction.createPubInstallAction(getSite().getWorkbenchWindow());
     pubInstallOfflineAction = RunPubAction.createPubInstallOfflineAction(getSite().getWorkbenchWindow());
+
+    copyPackageAction = new NewAppFromPackageAction(getSite());
 
     browseDartDocAction = new OpenExternalDartdocAction(getSite()) {
       @Override

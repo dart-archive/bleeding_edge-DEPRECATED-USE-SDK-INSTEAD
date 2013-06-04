@@ -163,6 +163,7 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
           }
         }
       }
+      PubCacheManager.getInstance().updatePackagesList(0, versionMap.keySet());
       PubManager.getInstance().notifyListeners(lockFile.getParent());
     }
   }

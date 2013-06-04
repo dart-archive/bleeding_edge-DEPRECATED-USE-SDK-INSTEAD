@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
+
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
@@ -42,12 +43,16 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
 
   private DartSdkNode sdkNode;
 
+  private InstalledPackagesNode packagesNode;
+
   private Map<IFileStore, DartLibraryNode> sdkChildMap;
 
   public ResourceContentProvider() {
     ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
 
     sdkNode = DartSdkNode.createInstance();
+
+    packagesNode = InstalledPackagesNode.createInstance();
   }
 
   @Override
@@ -65,7 +70,7 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
 
         children.addAll(Arrays.asList(root.members()));
         children.add(sdkNode);
-
+        children.add(packagesNode);
         return children.toArray();
       } else if (element instanceof IContainer) {
         IContainer container = (IContainer) element;
@@ -77,6 +82,10 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
         return ((DartSdkNode) element).getLibraries();
       } else if (element instanceof DartLibraryNode) {
         return ((DartLibraryNode) element).getFiles();
+      } else if (element instanceof InstalledPackagesNode) {
+        return ((InstalledPackagesNode) element).getPackages();
+      } else if (element instanceof DartPackageNode) {
+        return ((DartPackageNode) element).getFiles();
       }
     } catch (CoreException ce) {
       //fall through
@@ -88,6 +97,10 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
   @Override
   public Object[] getElements(Object inputElement) {
     return getChildren(inputElement);
+  }
+
+  public InstalledPackagesNode getPackagesNode() {
+    return packagesNode;
   }
 
   @Override

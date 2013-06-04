@@ -30,5 +30,5 @@ public interface IPubUpdateListener {
   /**
    * Notifies that pub cache has been changed and the packages added/removed
    */
-  void pubCacheChanged(Map<String, Object> added, Map<String, Object> removed);
+  void pubCacheChanged(Map<String, Object> added);
 }

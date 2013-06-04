@@ -16,12 +16,18 @@ package com.google.dart.tools.core.pub;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -31,28 +37,33 @@ import java.util.Set;
  */
 public class PubCacheManager {
 
-  class FillPubCacheList extends Job {
+  protected class FillPubCacheList extends Job {
 
-    public FillPubCacheList(String name) {
+    Collection<String> packages = null;
+
+    public FillPubCacheList(String name, Collection<String> packages) {
       super(name);
+      this.packages = packages;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public IStatus run(IProgressMonitor monitor) {
 
-      RunPubCacheListJob job = new RunPubCacheListJob();
-      String message = job.run(new NullProgressMonitor()).getMessage();
+      String message = getPubCacheList();
       // no errors
       if (message.startsWith("{\"packages")) {
         Map<String, Object> object = PubYamlUtils.parsePubspecYamlToMap(message);
-        Map<String, Object> map = (Map<String, Object>) object.get(PubspecConstants.PACKAGES);
-        Map<String, Object> added, removed;
-        synchronized (pubCachePackages) {
-          added = getPackagesAdded(map);
-          removed = getPackagesRemoved(map);
+        synchronized (pubUsedPackages) {
+          pubCachePackages = (HashMap<String, Object>) object.get(PubspecConstants.PACKAGES);
         }
-        PubManager.getInstance().notifyListeners(added, removed);
+        if (packages == null) {
+          initializeList();
+          PubManager.getInstance().notifyListeners(getLocalPackages());
+        } else {
+          Map<String, Object> added = processPackages(packages);
+          PubManager.getInstance().notifyListeners(added);
+        }
       } else {
         DartCore.logError(message);
       }
@@ -62,9 +73,16 @@ public class PubCacheManager {
   }
 
   /**
-   * A map to store the list of the installed packages currently in use and their locations.
+   * A map to store the list of the installed packages and their locations, synchronize on
+   * pubUsedPackages
    */
-  protected final HashMap<String, Object> pubCachePackages = new HashMap<String, Object>();
+  protected HashMap<String, Object> pubCachePackages = new HashMap<String, Object>();
+
+  /**
+   * A map of packages & locations used in the open folders in the editor, access should be
+   * synchronized against itself
+   */
+  protected final HashMap<String, Object> pubUsedPackages = new HashMap<String, Object>();
 
   private static final PubCacheManager INSTANCE = new PubCacheManager();
 
@@ -73,55 +91,77 @@ public class PubCacheManager {
   }
 
   public HashMap<String, Object> getLocalPackages() {
-    synchronized (pubCachePackages) {
-      HashMap<String, Object> copy = new HashMap<String, Object>(pubCachePackages);
+    synchronized (pubUsedPackages) {
+      HashMap<String, Object> copy = new HashMap<String, Object>(pubUsedPackages);
       return copy;
     }
   }
 
-  public void updatePubCacheList(int delay) {
-    new FillPubCacheList("update pub cache list").schedule(delay);
+  public void updatePackagesList(int delay) {
+    updatePackagesList(delay, null);
   }
 
-  // callers of this method should synchronize on pubCachePackages
-  protected Map<String, Object> getPackagesAdded(Map<String, Object> packages) {
+  public void updatePackagesList(int delay, Collection<String> packages) {
+    new FillPubCacheList("update installed packages", packages).schedule(delay);
+  }
+
+  protected IProject[] getProjects() {
+    return ResourcesPlugin.getWorkspace().getRoot().getProjects();
+  }
+
+  protected String getPubCacheList() {
+    RunPubCacheListJob job = new RunPubCacheListJob();
+    return job.run(new NullProgressMonitor()).getMessage();
+  }
+
+  protected void processLockFileContents(IResource resource) {
+    Map<String, String> versionMap = PubYamlUtils.getPackageVersionMap(resource);
+    if (versionMap != null && !versionMap.isEmpty()) {
+      synchronized (pubUsedPackages) {
+        for (String key : versionMap.keySet()) {
+          pubUsedPackages.put(key, pubCachePackages.get(key));
+        }
+      }
+
+    }
+  }
+
+  protected Map<String, Object> processPackages(Collection<String> packages) {
     Map<String, Object> added = new HashMap<String, Object>();
-    if (pubCachePackages.isEmpty()) {
-      pubCachePackages.putAll(packages);
-      added.putAll(packages);
-    } else {
-      Set<String> keys = packages.keySet();
-      Set<String> cacheKeys = pubCachePackages.keySet();
-      for (String key : keys) {
-        if (!cacheKeys.contains(key)) {
-          Object o = packages.get(key);
-          added.put(key, o);
-          pubCachePackages.put(key, o);
-        } else {
-          Object o = packages.get(key);
-          if (!pubCachePackages.get(key).equals(o)) {
-            pubCachePackages.put(key, o);
-            added.put(key, o);
-          }
+    synchronized (pubUsedPackages) {
+      Set<String> keySet = pubUsedPackages.keySet();
+      for (String packageName : packages) {
+        if (!keySet.contains(packageName)) {
+          pubUsedPackages.put(packageName, pubCachePackages.get(packageName));
+          added.put(packageName, pubCachePackages.get(packageName));
         }
       }
     }
     return added;
   }
 
-  //callers of this method should synchronize on pubCachePackages
-  protected Map<String, Object> getPackagesRemoved(Map<String, Object> packages) {
-    Map<String, Object> removed = new HashMap<String, Object>();
-    Set<String> keys = packages.keySet();
-    Set<String> cacheKeys = pubCachePackages.keySet();
-    for (String key : cacheKeys) {
-      if (!keys.contains(key)) {
-        removed.put(key, pubCachePackages.get(key));
+  private void initializeList() {
+    IProject[] projects = getProjects();
+    for (IProject project : projects) {
+      try {
+        project.accept(new IResourceVisitor() {
+
+          @Override
+          public boolean visit(IResource resource) throws CoreException {
+
+            if (resource.getType() != IResource.FILE) {
+              return true;
+            }
+            if (resource.getName().equals(DartCore.PUBSPEC_LOCK_FILE_NAME)) {
+              processLockFileContents(resource);
+            }
+            return false;
+          }
+        });
+      } catch (CoreException e) {
+        // do nothing
       }
     }
-    for (String key : removed.keySet()) {
-      pubCachePackages.remove(key);
-    }
-    return removed;
+
   }
 }

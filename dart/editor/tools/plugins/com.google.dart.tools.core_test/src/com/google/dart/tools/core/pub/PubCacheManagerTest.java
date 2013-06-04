@@ -13,26 +13,24 @@
  */
 package com.google.dart.tools.core.pub;
 
-import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.builder.TestProjects;
+import com.google.dart.tools.core.mock.MockFile;
+import com.google.dart.tools.core.mock.MockProject;
+import com.google.dart.tools.core.mock.MockWorkspaceRoot;
 
 import junit.framework.TestCase;
 
-import java.util.HashMap;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.NullProgressMonitor;
+
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 
 public class PubCacheManagerTest extends TestCase {
 
-  private static String cacheString = "{\"analyzer_experimental\":{\"version\":\"0.5.5\","
-      + "\"location\":\"/.pub-cache/hosted/pub.dartlang.org/analyzer_experimental-0.5.5\"},"
-      + "\"args\":{\"version\":\"0.5.5\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/args-0.5.5\"},"
-      + "\"benchmark_harness\":{\"version\":\"1.0.2\","
-      + "\"location\":\"/.pub-cache/hosted/pub.dartlang.org/benchmark_harness-1.0.2\"},"
-      + "\"bot\":{\"version\":\"0.20.1\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/bot-0.20.1\"},"
-      + "\"detester\":{\"version\":\"0.1.0\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/detester-0.1.0\"},"
-      + "\"google_maps\":{\"version\":\"1.1.1\",\"location\":\".pub-cache/hosted/pub.dartlang.org/google_maps-1.1.1\"},"
-      + "\"hop\":{\"version\":\"0.21.0\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/hop-0.21.0\"}}";
-
-  private static String cacheString2 = "{\"analyzer_experimental\":{\"version\":\"0.5.5\","
+  private static String cacheString = "{\"packages\":{\"analyzer_experimental\":{\"version\":\"0.5.5\","
       + "\"location\":\"/.pub-cache/hosted/pub.dartlang.org/analyzer_experimental-0.5.5\"},"
       + "\"bot_io\":{\"version\":\"0.20.2\","
       + "\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/bot_io-0.20.2\"},"
@@ -43,53 +41,73 @@ public class PubCacheManagerTest extends TestCase {
       + "\"args\":{\"version\":\"0.5.5\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/args-0.5.5\"},"
       + "\"bot\":{\"version\":\"0.20.1\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/bot-0.20.1\"},"
       + "\"detester\":{\"version\":\"0.1.0\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/detester-0.1.0\"},"
-      + "\"hop\":{\"version\":\"0.21.0\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/hop-0.21.0\"}}";
+      + "\"hop\":{\"version\":\"0.21.0\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/hop-0.21.0\"}}}";
+
+  private static String lockFileContents = "packages:\n" + "  bot_io:\n"
+      + "    description: bot_io\n " + "   source: hosted \n" + "    version: \"0.20.2\"\n"
+      + "  csslib:\n" + "    description: csslib\n" + "    source: hosted\n"
+      + "    version: \"0.4.6+4\"\n" + "  hop:\n" + "    description: hop\n"
+      + "    source: hosted\n" + "    version: \"0.21.0\"";
 
   PubCacheManager manager = new PubCacheManager() {
 
     @Override
-    public HashMap<String, Object> getLocalPackages() {
-      if (pubCachePackages.isEmpty()) {
-        Map<String, Object> map = PubYamlUtils.parsePubspecYamlToMap(cacheString);
-        added = getPackagesAdded(map);
-      }
-      return pubCachePackages;
+    public void updatePackagesList(int delay, Collection<String> packages) {
+      new FillPubCacheList("PubCacheManager test", packages).run(new NullProgressMonitor());
     }
 
     @Override
-    public void updatePubCacheList(int delay) {
-      Map<String, Object> map = PubYamlUtils.parsePubspecYamlToMap(cacheString2);
-      added = getPackagesAdded(map);
-      removed = getPackagesRemoved(map);
+    protected IProject[] getProjects() {
+      return rootContainer.getProjects();
     }
+
+    @Override
+    protected String getPubCacheList() {
+      return cacheString;
+    }
+
   };
 
-  private Map<String, Object> added;
-  private Map<String, Object> removed;
+  private MockWorkspaceRoot rootContainer;
 
-  public void test_getPackagesAdded() {
-    Map<String, Object> map = PubYamlUtils.parsePubspecYamlToMap(cacheString);
-    Map<String, Object> packages = manager.getLocalPackages();
-    assertNotNull(packages);
-    assertFalse(packages.isEmpty());
-    assertEquals(map.size(), packages.size());
-    assertEquals(map, packages);
+  public void test_getLocalPackages() {
+    Map<String, Object> p = manager.getLocalPackages();
+    assertNotNull(p);
+    assertTrue(p.isEmpty());
   }
 
-  public void test_getPackagesAdded2() {
-    Map<String, Object> packages = manager.getLocalPackages();
-    manager.updatePubCacheList(0);
-    packages = manager.getLocalPackages();
-    assertEquals(10, packages.size());
-    assertEquals(5, added.size());
-    assertEquals(2, removed.size());
-    assertTrue(added.containsKey("bot_io"));
-    assertTrue(added.containsKey("browser"));
-    assertTrue(added.containsKey("csslib"));
-    assertTrue(added.containsKey("dartlings"));
-    assertTrue(added.containsKey("dartflash"));
-    assertTrue(removed.containsKey("benchmark_harness"));
-    assertTrue(removed.containsKey("google_maps"));
+  public void test_updatePackagesList() {
+    manager.updatePackagesList(0);
+    Map<String, Object> p = manager.getLocalPackages();
+    assertNotNull(p);
+    assertEquals(3, p.size());
+    assertTrue(p.keySet().contains("hop"));
+  }
+
+  public void test_updatePackagesList2() {
+    manager.updatePackagesList(0, Arrays.asList("browser", "dartlings"));
+    Map<String, Object> p = manager.getLocalPackages();
+    assertNotNull(p);
+    assertEquals(2, p.size());
+    assertTrue(p.keySet().contains("dartlings"));
+
+    manager.updatePackagesList(0, Arrays.asList("browser", "dartflash"));
+    p = manager.getLocalPackages();
+    assertEquals(3, p.size());
+    assertTrue(p.keySet().contains("dartflash"));
+  }
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    rootContainer = new MockWorkspaceRoot();
+    MockProject projectContainer = TestProjects.newPubProject2(rootContainer);
+    rootContainer.add(projectContainer);
+    MockFile file = new MockFile(
+        projectContainer,
+        DartCore.PUBSPEC_LOCK_FILE_NAME,
+        lockFileContents);
+    projectContainer.add(file);
   }
 
 }

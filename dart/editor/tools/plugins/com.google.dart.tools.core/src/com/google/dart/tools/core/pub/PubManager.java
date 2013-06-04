@@ -42,9 +42,9 @@ public class PubManager {
     }
   }
 
-  public void notifyListeners(Map<String, Object> added, Map<String, Object> removed) {
+  public void notifyListeners(Map<String, Object> added) {
     for (Object listener : listeners.getListeners()) {
-      ((IPubUpdateListener) listener).pubCacheChanged(added, removed);
+      ((IPubUpdateListener) listener).pubCacheChanged(added);
     }
   }
 

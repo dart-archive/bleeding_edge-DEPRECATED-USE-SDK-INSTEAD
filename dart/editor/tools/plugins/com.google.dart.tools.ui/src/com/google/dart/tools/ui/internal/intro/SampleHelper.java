@@ -45,6 +45,44 @@ import java.text.MessageFormat;
  */
 public class SampleHelper {
 
+  public static File generateUniqueSampleDirFrom(String baseName, File dir) {
+    int index = 1;
+    int copyIndex = baseName.lastIndexOf("-"); //$NON-NLS-1$
+    if (copyIndex > -1) {
+      String trailer = baseName.substring(copyIndex + 1);
+      if (isNumber(trailer)) {
+        try {
+          index = Integer.parseInt(trailer);
+          baseName = baseName.substring(0, copyIndex);
+        } catch (NumberFormatException nfe) {
+        }
+      }
+    }
+    String newName = baseName;
+    File newDir = new File(dir.getParent(), newName);
+    while (newDir.exists()) {
+      newName = MessageFormat.format(IntroMessages.IntroEditor_projectName, new Object[] {
+          baseName, Integer.toString(index)});
+      index++;
+      newDir = new File(dir.getParent(), newName);
+    }
+
+    return newDir;
+  }
+
+  public static boolean isNumber(String string) {
+    int numChars = string.length();
+    if (numChars == 0) {
+      return false;
+    }
+    for (int i = 0; i < numChars; i++) {
+      if (!Character.isDigit(string.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Open the given sample.
    * 
@@ -133,31 +171,6 @@ public class SampleHelper {
     }
   }
 
-  private static File generateUniqueSampleDirFrom(String baseName, File dir) {
-    int index = 1;
-    int copyIndex = baseName.lastIndexOf("-"); //$NON-NLS-1$
-    if (copyIndex > -1) {
-      String trailer = baseName.substring(copyIndex + 1);
-      if (isNumber(trailer)) {
-        try {
-          index = Integer.parseInt(trailer);
-          baseName = baseName.substring(0, copyIndex);
-        } catch (NumberFormatException nfe) {
-        }
-      }
-    }
-    String newName = baseName;
-    File newDir = new File(dir.getParent(), newName);
-    while (newDir.exists()) {
-      newName = MessageFormat.format(IntroMessages.IntroEditor_projectName, new Object[] {
-          baseName, Integer.toString(index)});
-      index++;
-      newDir = new File(dir.getParent(), newName);
-    }
-
-    return newDir;
-  }
-
   private static File getDirectory(File file) {
     IPath path = new Path(file.getAbsolutePath());
     int i = getPathIndexForSamplesDir(path);
@@ -185,19 +198,6 @@ public class SampleHelper {
       }
     }
     return i;
-  }
-
-  private static boolean isNumber(String string) {
-    int numChars = string.length();
-    if (numChars == 0) {
-      return false;
-    }
-    for (int i = 0; i < numChars; i++) {
-      if (!Character.isDigit(string.charAt(i))) {
-        return false;
-      }
-    }
-    return true;
   }
 
 }
