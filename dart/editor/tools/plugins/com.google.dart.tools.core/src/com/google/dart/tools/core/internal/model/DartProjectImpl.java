@@ -22,7 +22,6 @@ import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
-import com.google.dart.tools.core.internal.model.info.DartLibraryInfo;
 import com.google.dart.tools.core.internal.model.info.DartProjectInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.internal.util.LibraryReferenceFinder;
@@ -107,8 +106,8 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
 
   /**
    * This should be called when a project is created or opened and immediately before it is closed
-   * or deleted to clear any cached {@link DartLibraryInfo} instances as they change as a result of
-   * either being mapped into the workspace or not.
+   * or deleted to clear any cached instances as they change as a result of either being mapped into
+   * the workspace or not.
    */
   public void clearLibraryInfo() {
 
@@ -116,8 +115,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
 
   /**
    * If the project is open or just prior to the project being closed, this method removes the
-   * preference change listener and calls {@link #clearLibraryInfo()} to clear any cached
-   * {@link DartLibraryInfo} instances.
+   * preference change listener and calls {@link #clearLibraryInfo()} to clear any cached instances.
    */
   @Override
   public void close() throws DartModelException {

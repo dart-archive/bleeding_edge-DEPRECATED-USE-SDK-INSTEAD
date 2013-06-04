@@ -18,10 +18,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassTypeAlias;
-import com.google.dart.compiler.ast.DartComment;
-import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExpression;
-import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -39,8 +36,6 @@ import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.internal.buffer.BufferManager;
 import com.google.dart.tools.core.internal.model.info.CompilationUnitInfo;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
-import com.google.dart.tools.core.internal.model.info.DartTypeInfo;
-import com.google.dart.tools.core.internal.model.info.DeclarationElementInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.internal.problem.CategorizedProblem;
 import com.google.dart.tools.core.internal.util.CharOperation;
@@ -60,7 +55,6 @@ import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.problem.ProblemRequestor;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
-import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.resources.IFile;
@@ -121,51 +115,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      */
     @Override
     public Void visitClass(DartClass node) {
-      String className = node.getClassName();
-      DartTypeImpl typeImpl = new DartTypeImpl(compilationUnit, className);
-      DartTypeInfo typeInfo = new DartTypeInfo();
-      List<DartElementImpl> children = Lists.newArrayList();
-      addNewElement(typeImpl, typeInfo);
 
-      // add DartTypeParameter elements
-      addTypeParameters(node.getTypeParameters(), typeImpl, children);
-
-      boolean constructorFound = false;
-      List<DartNode> members = node.getMembers();
-      for (DartNode member : members) {
-        if (member instanceof DartFieldDefinition) {
-          DartFieldDefinition fieldListNode = (DartFieldDefinition) member;
-          for (DartField fieldNode : fieldListNode.getFields()) {
-
-          }
-        } else if (member instanceof DartMethodDefinition) {
-          boolean isConstructor = processMethodDefinition(
-              (DartMethodDefinition) member,
-              typeImpl,
-              className,
-              children);
-          constructorFound = constructorFound || isConstructor;
-        } else {
-          // This should never happen, but if it does we need to know about it.
-          DartCore.logError("Unexpected type of node found as member of type: "
-              + member.getClass().getName(), new Throwable());
-        }
-      }
-      boolean isInterface = node.isInterface();
-      if (!constructorFound && !isInterface) {
-        DartIdentifier typeName = node.getName();
-
-      }
-
-      typeInfo.setIsInterface(isInterface);
-      typeInfo.setSuperclassName(extractTypeName(node.getSuperclass(), false));
-      typeInfo.setInterfaceNames(extractTypeNames(node.getInterfaces(), false));
-      typeInfo.setSourceRangeStart(node.getSourceInfo().getOffset());
-      typeInfo.setSourceRangeEnd(node.getSourceInfo().getEnd());
-      captureDartDoc(node, typeInfo);
-      typeInfo.setNameRange(SourceRangeFactory.create(node.getName()));
-      typeInfo.setChildren(DartElementImpl.toArray(children));
-      topLevelElements.add(typeImpl);
       return null;
     }
 
@@ -302,20 +252,6 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         element.setOccurrenceCount(++count);
       }
       newElements.put(element, info);
-    }
-
-    /**
-     * If the given declaration has a documentation comment associated with it, capture the range
-     * information in the given information holder.
-     * 
-     * @param node the AST node declaring the element corresponding to the info
-     * @param info the info about the element corresponding to the declaration
-     */
-    protected void captureDartDoc(DartDeclaration<?> node, DeclarationElementInfo info) {
-      DartComment docComment = node.getDartDoc();
-      if (docComment != null) {
-        info.setDartDocRange(SourceRangeFactory.create(docComment));
-      }
     }
 
     /**

@@ -18,8 +18,6 @@ import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
-import com.google.dart.tools.core.internal.model.info.DartTypeInfo;
-import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.DartElement;
@@ -253,45 +251,23 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
 
   @Override
   public SourceRange getNameRange() throws DartModelException {
-    return ((DartTypeInfo) getElementInfo()).getNameRange();
+    return null;
   }
 
   @Override
   public String getSuperclassName() throws DartModelException {
-    DartTypeInfo info = (DartTypeInfo) getElementInfo();
-    char[] superclassName = info.getSuperclassName();
-    if (superclassName == null) {
-      return null;
-    }
-    return new String(superclassName);
+
+    return null;
   }
 
   @Override
   public String[] getSuperInterfaceNames() throws DartModelException {
-    DartTypeInfo info = (DartTypeInfo) getElementInfo();
-    char[][] names = info.getInterfaceNames();
-    return CharOperation.toStrings(names);
+    return null;
   }
 
   @Override
   public String[] getSupertypeNames() throws DartModelException {
-    DartTypeInfo info = (DartTypeInfo) getElementInfo();
-    char[] superclassName = info.getSuperclassName();
-    char[][] names = info.getInterfaceNames();
-    int count = names.length;
-    if (superclassName != null) {
-      count++;
-    }
-    String[] supertypeNames = new String[count];
-    int index = 0;
-    if (superclassName != null) {
-      supertypeNames[0] = new String(superclassName);
-      index++;
-    }
-    for (char[] interfaceName : names) {
-      supertypeNames[index++] = new String(interfaceName);
-    }
-    return supertypeNames;
+    return null;
   }
 
   @Override
@@ -322,14 +298,12 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
 
   @Override
   public boolean isClass() throws DartModelException {
-    DartTypeInfo info = (DartTypeInfo) getElementInfo();
-    return !info.isInterface();
+    return false;
   }
 
   @Override
   public boolean isInterface() throws DartModelException {
-    DartTypeInfo info = (DartTypeInfo) getElementInfo();
-    return info.isInterface();
+    return false;
   }
 
   @Override

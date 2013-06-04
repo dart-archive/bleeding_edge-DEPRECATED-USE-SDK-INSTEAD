@@ -18,8 +18,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
-import com.google.dart.tools.core.internal.model.info.DeclarationElementInfo;
-import com.google.dart.tools.core.internal.model.info.SourceReferenceInfo;
 import com.google.dart.tools.core.internal.util.DOMFinder;
 import com.google.dart.tools.core.internal.util.Messages;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -121,14 +119,7 @@ public abstract class SourceReferenceImpl extends DartElementImpl implements Sou
   }
 
   public final SourceRange getDartDocRange() {
-    try {
-      DartElementInfo info = getElementInfo();
-      if (info instanceof DeclarationElementInfo) {
-        return ((DeclarationElementInfo) info).getDartDocRange();
-      }
-    } catch (DartModelException exception) {
-      // Fall through to return null
-    }
+
     return null;
   }
 
@@ -214,8 +205,7 @@ public abstract class SourceReferenceImpl extends DartElementImpl implements Sou
 
   @Override
   public SourceRange getSourceRange() throws DartModelException {
-    SourceReferenceInfo info = (SourceReferenceInfo) getElementInfo();
-    return info.getSourceRange();
+    return null;
   }
 
   @Override

@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
-import com.google.dart.tools.core.internal.model.info.DartModelInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.model.DartElement;
@@ -64,12 +63,12 @@ public class DartModelImpl extends OpenableElementImpl implements DartModel {
 
   @Override
   public DartLibrary[] getBundledLibraries() throws DartModelException {
-    return ((DartModelInfo) getElementInfo()).getBundledLibraries();
+    return null;
   }
 
   @Override
   public DartLibrary getCoreLibrary() throws DartModelException {
-    return ((DartModelInfo) getElementInfo()).getCoreLibrary();
+    return null;
   }
 
   @Override
@@ -143,7 +142,7 @@ public class DartModelImpl extends OpenableElementImpl implements DartModel {
 
   @Override
   public IResource[] getNonDartResources() throws DartModelException {
-    return ((DartModelInfo) getElementInfo()).getNonDartResources();
+    return null;
   }
 
   @Override
@@ -227,7 +226,7 @@ public class DartModelImpl extends OpenableElementImpl implements DartModel {
 
   @Override
   protected DartElementInfo createElementInfo() {
-    return new DartModelInfo();
+    return null;
   }
 
   @Override
