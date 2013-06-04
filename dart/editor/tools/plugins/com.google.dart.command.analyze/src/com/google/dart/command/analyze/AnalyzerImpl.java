@@ -33,7 +33,6 @@ import com.google.dart.engine.source.UriKind;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -189,8 +188,12 @@ class AnalyzerImpl {
   private void getAllErrors(AnalysisContext context, Set<Source> sources, List<AnalysisError> errors) {
     for (Source source : sources) {
       AnalysisError[] sourceErrors = context.getErrors(source).getErrors();
-
-      errors.addAll(Arrays.asList(sourceErrors));
+      for (AnalysisError error : sourceErrors) {
+        // TODO(brianwilkerson) Add an option to allow suggestions to also be displayed.
+        if (error.getErrorCode().getErrorSeverity() != ErrorSeverity.SUGGESTION) {
+          errors.add(error);
+        }
+      }
     }
   }
 
