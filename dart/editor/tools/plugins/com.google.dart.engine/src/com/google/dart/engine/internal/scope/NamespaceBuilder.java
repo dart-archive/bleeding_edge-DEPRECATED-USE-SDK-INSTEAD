@@ -263,6 +263,7 @@ public class NamespaceBuilder {
   private void hide(HashMap<String, Element> definedNames, String[] hiddenNames) {
     for (String name : hiddenNames) {
       definedNames.remove(name);
+      definedNames.remove(name + "=");
     }
   }
 
@@ -279,6 +280,11 @@ public class NamespaceBuilder {
       Element element = definedNames.get(name);
       if (element != null) {
         newNames.put(name, element);
+      }
+      String setterName = name + "=";
+      element = definedNames.get(setterName);
+      if (element != null) {
+        newNames.put(setterName, element);
       }
     }
     return newNames;

@@ -308,7 +308,26 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_importWithPrefix() throws Exception {
+  public void test_import_hide() throws Exception {
+    addSource("lib1.dart", createSource(//
+        "library lib1;",
+        "set foo(value) {}"));
+    addSource("lib2.dart", createSource(//
+        "library lib2;",
+        "set foo(value) {}"));
+    Source source = addSource("lib3.dart", createSource(//
+        "import 'lib1.dart' hide foo;",
+        "import 'lib2.dart';",
+        "",
+        "main() {",
+        "  foo = 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_import_prefix() throws Exception {
     addSource("/two.dart", createSource(//
         "library two;",
         "f(int x) {",
