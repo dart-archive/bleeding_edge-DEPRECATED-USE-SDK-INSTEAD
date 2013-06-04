@@ -41,27 +41,6 @@ public class DartDocAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy
     }
   }
 
-  protected String getLineStart(IDocument document, int offset, int end, boolean includeNonWs)
-      throws BadLocationException {
-    int start = offset;
-
-    while (offset < end) {
-      char c = document.getChar(offset);
-
-      if (c != ' ' && c != '\t') {
-        if (includeNonWs) {
-          return document.get(start, offset + 1 - start);
-        } else {
-          return document.get(start, offset - start);
-        }
-      }
-
-      offset++;
-    }
-
-    return document.get(start, end - start);
-  }
-
   /**
    * Copies the indentation of the previous line
    * {@link #customizeDocumentCommand(IDocument, DocumentCommand)}.
@@ -70,7 +49,7 @@ public class DartDocAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy
    * @param d the document to work on
    * @param c the command to deal with
    */
-  private void autoIndentAfterNewLine(IDocument d, DocumentCommand c) {
+  protected void autoIndentAfterNewLine(IDocument d, DocumentCommand c) {
     int offset = c.offset;
     if (offset == -1 || d.getLength() == 0) {
       return;
@@ -131,6 +110,27 @@ public class DartDocAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy
     } catch (BadLocationException excp) {
       // stop work
     }
+  }
+
+  protected String getLineStart(IDocument document, int offset, int end, boolean includeNonWs)
+      throws BadLocationException {
+    int start = offset;
+
+    while (offset < end) {
+      char c = document.getChar(offset);
+
+      if (c != ' ' && c != '\t') {
+        if (includeNonWs) {
+          return document.get(start, offset + 1 - start);
+        } else {
+          return document.get(start, offset - start);
+        }
+      }
+
+      offset++;
+    }
+
+    return document.get(start, end - start);
   }
 
   /**

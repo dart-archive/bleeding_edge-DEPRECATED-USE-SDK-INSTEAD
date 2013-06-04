@@ -13,15 +13,12 @@
  */
 package com.google.dart.tools.ui.text;
 
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.text.correction.DartCorrectionAssistant;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistProcessor;
 import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy;
-import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy_OLD;
 import com.google.dart.tools.ui.internal.text.dart.DartCodeScanner;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProcessor;
 import com.google.dart.tools.ui.internal.text.dart.DartDocDoubleClickStrategy;
@@ -31,8 +28,8 @@ import com.google.dart.tools.ui.internal.text.dart.DartStringDoubleClickSelector
 import com.google.dart.tools.ui.internal.text.dart.SmartSemicolonAutoEditStrategy;
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocAutoIndentStrategy;
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocScanner;
+import com.google.dart.tools.ui.internal.text.dartdoc.LineDocAutoIndentStrategy;
 import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
-import com.google.dart.tools.ui.internal.text.editor.ICompilationUnitDocumentProvider;
 import com.google.dart.tools.ui.internal.text.functions.AbstractDartScanner;
 import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
 import com.google.dart.tools.ui.internal.text.functions.DartCommentScanner;
@@ -83,11 +80,9 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.texteditor.ChainedPreferenceStore;
-import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import java.util.Arrays;
@@ -240,6 +235,8 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     if (DartPartitions.DART_DOC.equals(contentType)
         || DartPartitions.DART_MULTI_LINE_COMMENT.equals(contentType)) {
       return new IAutoEditStrategy[] {new DartDocAutoIndentStrategy(partitioning)};
+    } else if (DartPartitions.DART_SINGLE_LINE_DOC.equals(contentType)) {
+      return new IAutoEditStrategy[] {new LineDocAutoIndentStrategy(partitioning)};
     } else if (DartPartitions.DART_MULTI_LINE_STRING.equals(contentType)) {
       return new IAutoEditStrategy[] {
           new SmartSemicolonAutoEditStrategy(partitioning),
@@ -253,10 +250,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
           new SmartSemicolonAutoEditStrategy(partitioning),
           new DartAutoIndentStrategy(partitioning, sourceViewer)};
     } else {
-      return new IAutoEditStrategy[] {new DartAutoIndentStrategy_OLD(
-          partitioning,
-          getProject(),
-          sourceViewer)};
+      return new IAutoEditStrategy[] {new DartAutoIndentStrategy(partitioning, sourceViewer)};
     }
   }
 
@@ -837,27 +831,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
         return new DartOutlineInformationControl(parent, shellStyle, fTextEditor);
       }
     };
-  }
-
-  private DartProject getProject() {
-    ITextEditor editor = getEditor();
-    if (editor == null) {
-      return null;
-    }
-
-    DartElement element = null;
-    IEditorInput input = editor.getEditorInput();
-    IDocumentProvider provider = editor.getDocumentProvider();
-    if (provider instanceof ICompilationUnitDocumentProvider) {
-      ICompilationUnitDocumentProvider cudp = (ICompilationUnitDocumentProvider) provider;
-      element = cudp.getWorkingCopy(input);
-    }
-
-    if (element == null) {
-      return null;
-    }
-
-    return element.getDartProject();
   }
 
   /**
