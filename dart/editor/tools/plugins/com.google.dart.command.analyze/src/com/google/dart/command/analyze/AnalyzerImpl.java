@@ -34,6 +34,7 @@ import com.google.dart.engine.source.UriKind;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +43,7 @@ import java.util.Set;
  * Scans, parses, and analyzes a library.
  */
 class AnalyzerImpl {
+  private static final HashMap<File, DartSdk> sdkMap = new HashMap<File, DartSdk>();
 
   private static ErrorSeverity getMaxErrorSeverity(List<AnalysisError> errors) {
     ErrorSeverity status = ErrorSeverity.NONE;
@@ -55,14 +57,24 @@ class AnalyzerImpl {
     return status;
   }
 
+  /**
+   * @return the new or cached instance of the {@link DartSdk} with the given directory.
+   */
+  private static DartSdk getSdk(File sdkDirectory) {
+    DartSdk sdk = sdkMap.get(sdkDirectory);
+    if (sdk == null) {
+      sdk = new DirectoryBasedDartSdk(sdkDirectory);
+      sdkMap.put(sdkDirectory, sdk);
+    }
+    return sdk;
+  }
+
   private AnalyzerOptions options;
   private DartSdk sdk;
 
   public AnalyzerImpl(AnalyzerOptions options) {
     this.options = options;
-
-    // This sdk is shared between multiple runs of the analyzer.
-    sdk = new DirectoryBasedDartSdk(options.getDartSdkPath());
+    this.sdk = getSdk(options.getDartSdkPath());
   }
 
   /**
