@@ -8,7 +8,7 @@ chat/chat_server_test: Skip
 standalone/*: Skip
 
 [ $compiler == dart2js && $runtime == drt ]
-swarm/swarm_test: Pass, Crash # Issue 10950
+swarm/swarm_test: Pass, Crash, Fail # Issue 10950
 
 [ $compiler == none && $runtime == drt ]
 dartcombat/dartcombat_test: Skip # Issue 2790
