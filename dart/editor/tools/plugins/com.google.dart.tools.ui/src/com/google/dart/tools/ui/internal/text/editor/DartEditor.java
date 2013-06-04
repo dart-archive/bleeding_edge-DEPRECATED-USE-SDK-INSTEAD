@@ -32,7 +32,6 @@ import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
@@ -172,7 +171,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPartListener2;
@@ -2648,12 +2646,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * Synchronizes the outliner selection with the actual cursor position in the editor.
    */
   public void synchronizeOutlinePageSelection() {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      // TODO(scheglov)
+
+    // TODO(scheglov)
 //      synchronizeOutlinePage(computeHighlightRangeSourceElement());
-    } else {
-      synchronizeOutlinePage(computeHighlightRangeSourceReference());
-    }
   }
 
   public void updatedTitleImage(Image image) {
@@ -3711,45 +3706,23 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected void installOccurrencesFinder(boolean forceUpdate) {
     fMarkOccurrenceAnnotations = true;
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      occurrencesResponder = new ISelectionChangedListener() {
-        @Override
-        public void selectionChanged(SelectionChangedEvent event) {
-          ISelection selection = event.getSelection();
-          if (selection instanceof ITextSelection) {
-            fForcedMarkOccurrencesSelection = selection;
-            updateOccurrenceAnnotations((ITextSelection) selection, getParsedUnit());
-          }
-        }
-      };
-      getSelectionProvider().addSelectionChangedListener(occurrencesResponder);
-      if (forceUpdate && getSelectionProvider() != null) {
-        fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
-        if (getParsedUnit() != null) {
-          updateOccurrenceAnnotations(
-              (ITextSelection) fForcedMarkOccurrencesSelection,
-              getParsedUnit());
+    occurrencesResponder = new ISelectionChangedListener() {
+      @Override
+      public void selectionChanged(SelectionChangedEvent event) {
+        ISelection selection = event.getSelection();
+        if (selection instanceof ITextSelection) {
+          fForcedMarkOccurrencesSelection = selection;
+          updateOccurrenceAnnotations((ITextSelection) selection, getParsedUnit());
         }
       }
-    } else {
-      fPostSelectionListenerWithAST = new ISelectionListenerWithAST() {
-        @Override
-        public void selectionChanged(IEditorPart part, ITextSelection selection, DartUnit astRoot) {
-          updateOccurrenceAnnotations(selection, astRoot);
-        }
-      };
-      SelectionListenerWithASTManager.getDefault().addListener(this, fPostSelectionListenerWithAST);
-      if (forceUpdate && getSelectionProvider() != null) {
-        fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
-        DartElement input = getInputDartElement();
-        if (input != null) {
-          updateOccurrenceAnnotations(
-              (ITextSelection) fForcedMarkOccurrencesSelection,
-              DartToolsPlugin.getDefault().getASTProvider().getAST(
-                  getInputDartElement(),
-                  ASTProvider.WAIT_NO,
-                  getProgressMonitor()));
-        }
+    };
+    getSelectionProvider().addSelectionChangedListener(occurrencesResponder);
+    if (forceUpdate && getSelectionProvider() != null) {
+      fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
+      if (getParsedUnit() != null) {
+        updateOccurrenceAnnotations(
+            (ITextSelection) fForcedMarkOccurrencesSelection,
+            getParsedUnit());
       }
     }
 
@@ -3877,24 +3850,16 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return;
     }
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
-      updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, getParsedUnit());
-      // TODO(scheglov)
-      LightNodeElement element = computeHighlightRangeSourceElement(
-          parsedUnit,
-          ((ITextSelection) fForcedMarkOccurrencesSelection).getOffset());
+    fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
+    updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, getParsedUnit());
+    // TODO(scheglov)
+    LightNodeElement element = computeHighlightRangeSourceElement(
+        parsedUnit,
+        ((ITextSelection) fForcedMarkOccurrencesSelection).getOffset());
 //      if (getPreferenceStore().getBoolean(PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE)) {
 //        synchronizeOutlinePage(element);
 //      }
-      setSelectionRange(element, false);
-    } else {
-      SourceReference element = computeHighlightRangeSourceReference();
-      if (getPreferenceStore().getBoolean(PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE)) {
-        synchronizeOutlinePage(element);
-      }
-      setSelection(element, false);
-    }
+    setSelectionRange(element, false);
 
     if (!fSelectionChangedViaGotoAnnotation) {
       updateStatusLine();
@@ -4338,153 +4303,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected void updateOccurrenceAnnotations(ITextSelection selection, DartUnit astRoot) {
 
     //TODO (pquitslund): support occurence annotations for analysis engine elements
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return;
-    }
 
-//    if (fOccurrencesFinderJob != null) {
-//      fOccurrencesFinderJob.cancel();
-//    }
-//
-//    if (!fMarkOccurrenceAnnotations) {
-//      return;
-//    }
-//
-//    if (astRoot == null || selection == null) {
-//      return;
-//    }
-//
-//    IDocument document = getSourceViewer().getDocument();
-//    if (document == null) {
-//      return;
-//    }
-//
-//    if (document instanceof IDocumentExtension4) {
-//      int offset = selection.getOffset();
-//      long currentModificationStamp = ((IDocumentExtension4) document).getModificationStamp();
-//      IRegion markOccurrenceTargetRegion = fMarkOccurrenceTargetRegion;
-//      if (markOccurrenceTargetRegion != null
-//          && currentModificationStamp == fMarkOccurrenceModificationStamp) {
-//        if (markOccurrenceTargetRegion.getOffset() <= offset
-//            && offset <= markOccurrenceTargetRegion.getOffset()
-//                + markOccurrenceTargetRegion.getLength()) {
-//          return;
-//        }
-//      }
-//      fMarkOccurrenceTargetRegion = DartWordFinder.findWord(document, offset);
-//      fMarkOccurrenceModificationStamp = currentModificationStamp;
-//    }
-//
-//    DartX.todo("marking");
-//    List<DartNode> matches = null;
-//
-//    DartElement dartElement = getInputDartElement();
-//    if (dartElement == null) {
-//      return;
-//    }
-//
-//    CompilationUnit input = dartElement.getAncestor(CompilationUnit.class);
-//    DartElementLocator locator = new DartElementLocator(
-//        input,
-//        selection.getOffset(),
-//        selection.getOffset() + selection.getLength(),
-//        true);
-//    try {
-//      if (astRoot.getLibrary() == null) {
-//        // if astRoot is from ExternalCompilationUnit then it needs to be resolved; it is apparently not cached
-//        astRoot = DartCompilerUtilities.resolveUnit(input); // TODO clean up astRoot
-//      }
-//    } catch (DartModelException e) {
-//      DartToolsPlugin.log(e);
-//    }
-//    /* DartElement selectedModelNode = */locator.searchWithin(astRoot);
-//    Element selectedNode = locator.getResolvedElement();
-//
-////    if (fMarkExceptions || fMarkTypeOccurrences) {
-////      ExceptionOccurrencesFinder exceptionFinder = new ExceptionOccurrencesFinder();
-////      String message = exceptionFinder.initialize(astRoot, selectedNode);
-////      if (message == null) {
-////        matches = exceptionFinder.perform();
-////        if (!fMarkExceptions && !matches.isEmpty())
-////          matches.clear();
-////      }
-////    }
-//
-////    if ((matches == null || matches.isEmpty())
-////        && (fMarkMethodExitPoints || fMarkTypeOccurrences)) {
-////      MethodExitsFinder finder = new MethodExitsFinder();
-////      String message = finder.initialize(astRoot, selectedNode);
-////      if (message == null) {
-////        matches = finder.perform();
-////        if (!fMarkMethodExitPoints && !matches.isEmpty())
-////          matches.clear();
-////      }
-////    }
-//
-////    if ((matches == null || matches.isEmpty())
-////        && (fMarkBreakContinueTargets || fMarkTypeOccurrences)) {
-////      BreakContinueTargetFinder finder = new BreakContinueTargetFinder();
-////      String message = finder.initialize(astRoot, selectedNode);
-////      if (message == null) {
-////        matches = finder.perform();
-////        if (!fMarkBreakContinueTargets && !matches.isEmpty())
-////          matches.clear();
-////      }
-////    }
-//
-////    if ((matches == null || matches.isEmpty())
-////        && (fMarkImplementors || fMarkTypeOccurrences)) {
-////      ImplementOccurrencesFinder finder = new ImplementOccurrencesFinder();
-////      String message = finder.initialize(astRoot, selectedNode);
-////      if (message == null) {
-////        matches = finder.perform();
-////        if (!fMarkImplementors && !matches.isEmpty())
-////          matches.clear();
-////      }
-////    }
-//
-////    if (matches == null) {
-////      IBinding binding = null;
-////      if (selectedNode instanceof Name) {
-////        binding = ((Name) selectedNode).resolveBinding();
-////      }
-////
-////      if (binding != null && markOccurrencesOfType(binding)) {
-////        // Find the matches && extract positions so we can forget the AST
-////        NameOccurrencesFinder finder = new NameOccurrencesFinder(binding);
-////        String message = finder.initialize(astRoot, selectedNode);
-////        if (message == null) {
-////          matches = finder.perform();
-////        }
-////      }
-////    }
-//
-//    if (matches == null && selectedNode != null) {
-//      NameOccurrencesFinder finder = new NameOccurrencesFinder(selectedNode);
-//      finder.searchWithin(astRoot);
-//      matches = finder.getMatches();
-//    }
-//    if (matches == null || matches.size() == 0) {
-//      if (!fStickyOccurrenceAnnotations) {
-//        removeOccurrenceAnnotations();
-//      }
-//      return;
-//    }
-//
-//    Position[] positions = new Position[matches.size()];
-//    int i = 0;
-//    for (Iterator<DartNode> each = matches.iterator(); each.hasNext();) {
-//      DartNode currentNode = each.next();
-//      positions[i++] = new Position(
-//          currentNode.getSourceInfo().getOffset(),
-//          currentNode.getSourceInfo().getLength());
-//    }
-//
-//    fOccurrencesFinderJob = new OccurrencesFinderJob(document, positions, selection);
-////      fOccurrencesFinderJob.setPriority(Job.DECORATE);
-////      fOccurrencesFinderJob.setSystem(true);
-////      fOccurrencesFinderJob.schedule();
-//    fOccurrencesFinderJob.run(new NullProgressMonitor());
+    return;
+
   }
 
   @Override
@@ -4746,21 +4567,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private boolean isContentEditable() {
     if (!isEditableStateKnown) {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        if (inputResourceFile != null) {
-          isEditable = !inputResourceFile.isReadOnly();
-        } else {
-          isEditable = false;
-        }
+      if (inputResourceFile != null
+          && !inputResourceFile.getLocation().toPortableString().contains(
+              DartCore.PACKAGES_DIRECTORY_PATH)) {
+        isEditable = !inputResourceFile.isReadOnly();
       } else {
-        IDocumentProvider p = getDocumentProvider();
-        if (p instanceof ICompilationUnitDocumentProvider) {
-          ICompilationUnitDocumentProvider provider = (ICompilationUnitDocumentProvider) p;
-          CompilationUnit unit = provider.getWorkingCopy(getEditorInput());
-          isEditable = unit != null && !unit.isReadOnly();
-        } else {
-          isEditable = true;
-        }
+        isEditable = false;
       }
       isEditableStateKnown = true;
     }

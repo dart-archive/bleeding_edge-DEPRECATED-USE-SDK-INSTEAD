@@ -387,7 +387,8 @@ public class DartReconciler extends MonoReconciler {
     boolean readOnly = file.isReadOnly();
     if (lastReadOnly == null || lastReadOnly.booleanValue() != readOnly) {
       lastReadOnly = readOnly;
-      editor.setEditables(!readOnly);
+      editor.setEditables(!readOnly
+          && !file.getLocation().toPortableString().contains(DartCore.PACKAGES_DIRECTORY_PATH));
     }
   }
 }
