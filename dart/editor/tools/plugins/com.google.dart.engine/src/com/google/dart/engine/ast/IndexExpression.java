@@ -344,19 +344,41 @@ public class IndexExpression extends Expression {
   }
 
   /**
-   * Return the parameter element representing the parameter to which the value of the index
-   * expression will be bound. May be {@code null}.
+   * If the AST structure has been resolved, and the function being invoked is known based on
+   * propagated type information, then return the parameter element representing the parameter to
+   * which the value of the index expression will be bound. Otherwise, return {@code null}.
    * <p>
    * This method is only intended to be used by {@link Expression#getParameterElement()}.
    * 
    * @return the parameter element representing the parameter to which the value of the index
    *         expression will be bound
    */
-  protected ParameterElement getParameterElementForIndex() {
+  protected ParameterElement getPropagatedParameterElementForIndex() {
     if (propagatedElement == null) {
       return null;
     }
     ParameterElement[] parameters = propagatedElement.getParameters();
+    if (parameters.length < 1) {
+      return null;
+    }
+    return parameters[0];
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on static
+   * type information, then return the parameter element representing the parameter to which the
+   * value of the index expression will be bound. Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getStaticParameterElement()}.
+   * 
+   * @return the parameter element representing the parameter to which the value of the index
+   *         expression will be bound
+   */
+  protected ParameterElement getStaticParameterElementForIndex() {
+    if (staticElement == null) {
+      return null;
+    }
+    ParameterElement[] parameters = staticElement.getParameters();
     if (parameters.length < 1) {
       return null;
     }

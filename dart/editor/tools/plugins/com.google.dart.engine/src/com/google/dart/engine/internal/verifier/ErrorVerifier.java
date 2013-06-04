@@ -1350,44 +1350,61 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (argument == null) {
       return false;
     }
-    // prepare corresponding parameter
-    ParameterElement parameterElement = argument.getParameterElement();
-    if (parameterElement == null) {
-      return false;
-    }
-    // prepare parameter type
-    Type parameterType = parameterElement.getType();
-    if (parameterType == null) {
-      return false;
-    }
-    // Test the static type of the argument
-    Type staticType = getStaticType(argument);
-    if (staticType == null) {
-      return false;
-    }
-    if (staticType.isAssignableTo(parameterType)) {
+    //
+    // Test static type information
+    //
+    ParameterElement staticParameterElement = argument.getStaticParameterElement();
+    Type staticParameterType = staticParameterElement == null ? null
+        : staticParameterElement.getType();
+
+    Type staticArgumentType = getStaticType(argument);
+
+    if (staticArgumentType == null || staticParameterType == null) {
       return false;
     }
     if (strictMode) {
-      // report problem
+      if (staticArgumentType.isAssignableTo(staticParameterType)) {
+        return false;
+      }
       errorReporter.reportError(
           StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
           argument,
-          staticType.getDisplayName(),
-          parameterType.getDisplayName());
+          staticArgumentType.getDisplayName(),
+          staticParameterType.getDisplayName());
       return true;
     }
-    // Test the propagated type of the argument
-    Type propagatedType = getPropagatedType(argument);
-    if (propagatedType != null && propagatedType.isAssignableTo(parameterType)) {
+    //
+    // Test propagated type information
+    //
+    ParameterElement propagatedParameterElement = argument.getParameterElement();
+    Type propagatedParameterType = propagatedParameterElement == null ? null
+        : propagatedParameterElement.getType();
+
+    Type propagatedArgumentType = getPropagatedType(argument);
+
+    if (propagatedArgumentType == null || propagatedParameterType == null) {
+      if (staticArgumentType.isAssignableTo(staticParameterType)) {
+        return false;
+      }
+      errorReporter.reportError(
+          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+          argument,
+          staticArgumentType.getDisplayName(),
+          staticParameterType.getDisplayName());
+      return true;
+    }
+
+    if (staticArgumentType.isAssignableTo(staticParameterType)
+        || staticArgumentType.isAssignableTo(propagatedParameterType)
+        || propagatedArgumentType.isAssignableTo(staticParameterType)
+        || propagatedArgumentType.isAssignableTo(propagatedParameterType)) {
       return false;
     }
-    // report problem
     errorReporter.reportError(
         StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
         argument,
-        (propagatedType == null ? staticType : propagatedType).getDisplayName(),
-        parameterType.getDisplayName());
+        (propagatedArgumentType == null ? staticArgumentType : propagatedArgumentType).getDisplayName(),
+        (propagatedParameterType == null ? staticParameterType : propagatedParameterType).getDisplayName());
     return true;
   }
 

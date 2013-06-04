@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -160,5 +161,47 @@ public class PrefixExpression extends Expression {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(operand, visitor);
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on
+   * propagated type information, then return the parameter element representing the parameter to
+   * which the value of the operand will be bound. Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getParameterElement()}.
+   * 
+   * @return the parameter element representing the parameter to which the value of the right
+   *         operand will be bound
+   */
+  protected ParameterElement getPropagatedParameterElementForOperand() {
+    if (propagatedElement == null) {
+      return null;
+    }
+    ParameterElement[] parameters = propagatedElement.getParameters();
+    if (parameters.length < 1) {
+      return null;
+    }
+    return parameters[0];
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on static
+   * type information, then return the parameter element representing the parameter to which the
+   * value of the operand will be bound. Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getStaticParameterElement()}.
+   * 
+   * @return the parameter element representing the parameter to which the value of the right
+   *         operand will be bound
+   */
+  protected ParameterElement getStaticParameterElementForOperand() {
+    if (staticElement == null) {
+      return null;
+    }
+    ParameterElement[] parameters = staticElement.getParameters();
+    if (parameters.length < 1) {
+      return null;
+    }
+    return parameters[0];
   }
 }

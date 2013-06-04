@@ -741,7 +741,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ConstructorElement invokedConstructor = node.getConstructorName().getElement();
     node.setStaticElement(invokedConstructor);
     node.setElement(invokedConstructor);
-    resolveArgumentsToParameters(node.isConst(), node.getArgumentList(), invokedConstructor);
+    ArgumentList argumentList = node.getArgumentList();
+    ParameterElement[] parameters = resolveArgumentsToParameters(
+        node.isConst(),
+        argumentList,
+        invokedConstructor);
+    if (parameters != null) {
+      argumentList.setCorrespondingStaticParameters(parameters);
+    }
     return null;
   }
 
@@ -784,52 +791,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     // Record the results.
     //
-    Element recordedElement = recordResolution(methodName, staticElement, propagatedElement);
-    if (recordedElement instanceof PropertyAccessorElement) {
-      //
-      // This is an invocation of the call method defined on the value returned by the getter.
-      //
-      FunctionType getterType = ((PropertyAccessorElement) recordedElement).getType();
-      if (getterType != null) {
-        Type getterReturnType = getterType.getReturnType();
-        if (getterReturnType instanceof InterfaceType) {
-          MethodElement callMethod = ((InterfaceType) getterReturnType).lookUpMethod(
-              CALL_METHOD_NAME,
-              resolver.getDefiningLibrary());
-          if (callMethod != null) {
-            resolveArgumentsToParameters(false, node.getArgumentList(), callMethod);
-          }
-        } else if (getterReturnType instanceof FunctionType) {
-          Element functionElement = ((FunctionType) getterReturnType).getElement();
-          if (functionElement instanceof ExecutableElement) {
-            resolveArgumentsToParameters(
-                false,
-                node.getArgumentList(),
-                (ExecutableElement) functionElement);
-          }
-        }
+    recordResolution(methodName, staticElement, propagatedElement);
+    ArgumentList argumentList = node.getArgumentList();
+    if (staticElement != null) {
+      ParameterElement[] parameters = computePropagatedParameters(argumentList, staticElement);
+      if (parameters != null) {
+        argumentList.setCorrespondingStaticParameters(parameters);
       }
-    } else if (recordedElement instanceof ExecutableElement) {
-      resolveArgumentsToParameters(
-          false,
-          node.getArgumentList(),
-          (ExecutableElement) recordedElement);
-    } else if (recordedElement instanceof VariableElement) {
-      VariableElement variable = (VariableElement) recordedElement;
-      Type type = variable.getType();
-      if (type instanceof FunctionType) {
-        FunctionType functionType = (FunctionType) type;
-        ParameterElement[] parameters = functionType.getParameters();
-        resolveArgumentsToParameters(false, node.getArgumentList(), parameters);
-      } else if (type instanceof InterfaceType) {
-        // "call" invocation
-        MethodElement callMethod = ((InterfaceType) type).lookUpMethod(
-            CALL_METHOD_NAME,
-            resolver.getDefiningLibrary());
-        if (callMethod != null) {
-          ParameterElement[] parameters = callMethod.getParameters();
-          resolveArgumentsToParameters(false, node.getArgumentList(), parameters);
-        }
+    }
+    if (propagatedElement != null) {
+      ParameterElement[] parameters = computePropagatedParameters(argumentList, propagatedElement);
+      if (parameters != null) {
+        argumentList.setCorrespondingParameters(parameters);
       }
     }
     //
@@ -1032,7 +1005,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     node.setStaticElement(element);
     node.setElement(element);
-    resolveArgumentsToParameters(false, node.getArgumentList(), element);
+    ArgumentList argumentList = node.getArgumentList();
+    ParameterElement[] parameters = resolveArgumentsToParameters(false, argumentList, element);
+    if (parameters != null) {
+      argumentList.setCorrespondingStaticParameters(parameters);
+    }
     return null;
   }
 
@@ -1106,7 +1083,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     node.setStaticElement(element);
     node.setElement(element);
-    resolveArgumentsToParameters(false, node.getArgumentList(), element);
+    ArgumentList argumentList = node.getArgumentList();
+    ParameterElement[] parameters = resolveArgumentsToParameters(false, argumentList, element);
+    if (parameters != null) {
+      argumentList.setCorrespondingStaticParameters(parameters);
+    }
     return null;
   }
 
@@ -1259,6 +1240,63 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return classDeclaresNoSuchMethod((ClassElement) element);
     }
     return false;
+  }
+
+  /**
+   * Given a list of arguments and the element that will be invoked using those argument, compute
+   * the list of parameters that correspond to the list of arguments. Return the parameters that
+   * correspond to the arguments, or {@code null} if no correspondence could be computed.
+   * 
+   * @param argumentList the list of arguments being passed to the element
+   * @param executableElement the element that will be invoked with the arguments
+   * @return the parameters that correspond to the arguments
+   */
+  private ParameterElement[] computePropagatedParameters(ArgumentList argumentList, Element element) {
+    if (element instanceof PropertyAccessorElement) {
+      //
+      // This is an invocation of the call method defined on the value returned by the getter.
+      //
+      FunctionType getterType = ((PropertyAccessorElement) element).getType();
+      if (getterType != null) {
+        Type getterReturnType = getterType.getReturnType();
+        if (getterReturnType instanceof InterfaceType) {
+          MethodElement callMethod = ((InterfaceType) getterReturnType).lookUpMethod(
+              CALL_METHOD_NAME,
+              resolver.getDefiningLibrary());
+          if (callMethod != null) {
+            return resolveArgumentsToParameters(false, argumentList, callMethod);
+          }
+        } else if (getterReturnType instanceof FunctionType) {
+          Element functionElement = ((FunctionType) getterReturnType).getElement();
+          if (functionElement instanceof ExecutableElement) {
+            return resolveArgumentsToParameters(
+                false,
+                argumentList,
+                (ExecutableElement) functionElement);
+          }
+        }
+      }
+    } else if (element instanceof ExecutableElement) {
+      return resolveArgumentsToParameters(false, argumentList, (ExecutableElement) element);
+    } else if (element instanceof VariableElement) {
+      VariableElement variable = (VariableElement) element;
+      Type type = variable.getType();
+      if (type instanceof FunctionType) {
+        FunctionType functionType = (FunctionType) type;
+        ParameterElement[] parameters = functionType.getParameters();
+        return resolveArgumentsToParameters(false, argumentList, parameters);
+      } else if (type instanceof InterfaceType) {
+        // "call" invocation
+        MethodElement callMethod = ((InterfaceType) type).lookUpMethod(
+            CALL_METHOD_NAME,
+            resolver.getDefiningLibrary());
+        if (callMethod != null) {
+          ParameterElement[] parameters = callMethod.getParameters();
+          return resolveArgumentsToParameters(false, argumentList, parameters);
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -1882,43 +1920,45 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    *          information
    * @return the element that was associated with the node
    */
-  private Element recordResolution(SimpleIdentifier node, Element staticElement,
+  private void recordResolution(SimpleIdentifier node, Element staticElement,
       Element propagatedElement) {
     node.setStaticElement(staticElement);
-    Element element = propagatedElement == null ? staticElement : propagatedElement;
-    node.setElement(element);
-    return element;
+    node.setElement(propagatedElement == null ? staticElement : propagatedElement);
   }
 
   /**
    * Given a list of arguments and the element that will be invoked using those argument, compute
-   * the list of parameters that correspond to the list of arguments.
+   * the list of parameters that correspond to the list of arguments. Return the parameters that
+   * correspond to the arguments, or {@code null} if no correspondence could be computed.
    * 
    * @param reportError if {@code true} then compile-time error should be reported; if {@code false}
    *          then compile-time warning
    * @param argumentList the list of arguments being passed to the element
    * @param executableElement the element that will be invoked with the arguments
+   * @return the parameters that correspond to the arguments
    */
-  private void resolveArgumentsToParameters(boolean reportError, ArgumentList argumentList,
-      ExecutableElement executableElement) {
+  private ParameterElement[] resolveArgumentsToParameters(boolean reportError,
+      ArgumentList argumentList, ExecutableElement executableElement) {
     if (executableElement == null) {
-      return;
+      return null;
     }
     ParameterElement[] parameters = executableElement.getParameters();
-    resolveArgumentsToParameters(reportError, argumentList, parameters);
+    return resolveArgumentsToParameters(reportError, argumentList, parameters);
   }
 
   /**
-   * Given a list of arguments and the element that will be invoked using those argument, compute
-   * the list of parameters that correspond to the list of arguments.
+   * Given a list of arguments and the parameters related to the element that will be invoked using
+   * those argument, compute the list of parameters that correspond to the list of arguments. Return
+   * the parameters that correspond to the arguments.
    * 
    * @param reportError if {@code true} then compile-time error should be reported; if {@code false}
    *          then compile-time warning
    * @param argumentList the list of arguments being passed to the element
    * @param parameters the of the function that will be invoked with the arguments
+   * @return the parameters that correspond to the arguments
    */
-  private void resolveArgumentsToParameters(boolean reportError, ArgumentList argumentList,
-      ParameterElement[] parameters) {
+  private ParameterElement[] resolveArgumentsToParameters(boolean reportError,
+      ArgumentList argumentList, ParameterElement[] parameters) {
     ArrayList<ParameterElement> requiredParameters = new ArrayList<ParameterElement>();
     ArrayList<ParameterElement> positionalParameters = new ArrayList<ParameterElement>();
     HashMap<String, ParameterElement> namedParameters = new HashMap<String, ParameterElement>();
@@ -1980,7 +2020,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS;
       resolver.reportError(errorCode, argumentList, unnamedParameterCount, positionalArgumentCount);
     }
-    argumentList.setCorrespondingParameters(resolvedParameters);
+    return resolvedParameters;
   }
 
   /**
@@ -2137,7 +2177,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           && classDeclaresNoSuchMethod(staticType.getElement());
       boolean propagatedNoSuchMethod = propagatedType != null
           && classDeclaresNoSuchMethod(propagatedType.getElement());
-      if (!staticNoSuchMethod && !propagatedNoSuchMethod) {
+      if (!staticNoSuchMethod && (strictMode || !propagatedNoSuchMethod)) {
         boolean isStaticProperty = isStatic(selectedElement);
         if (propertyName.inSetterContext()) {
           if (isStaticProperty) {

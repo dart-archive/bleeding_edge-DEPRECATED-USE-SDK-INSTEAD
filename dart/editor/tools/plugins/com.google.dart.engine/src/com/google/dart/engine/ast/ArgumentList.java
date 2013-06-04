@@ -52,11 +52,20 @@ public class ArgumentList extends ASTNode {
   /**
    * An array containing the elements representing the parameters corresponding to each of the
    * arguments in this list, or {@code null} if the AST has not been resolved or if the function or
-   * method being invoked could not be determined. The array must be the same length as the number
-   * of arguments, but can contain {@code null} entries if a given argument does not correspond to a
-   * formal parameter.
+   * method being invoked could not be determined based on static type information. The array must
+   * be the same length as the number of arguments, but can contain {@code null} entries if a given
+   * argument does not correspond to a formal parameter.
    */
-  private ParameterElement[] correspondingParameters;
+  private ParameterElement[] correspondingStaticParameters;
+
+  /**
+   * An array containing the elements representing the parameters corresponding to each of the
+   * arguments in this list, or {@code null} if the AST has not been resolved or if the function or
+   * method being invoked could not be determined based on propagated type information. The array
+   * must be the same length as the number of arguments, but can contain {@code null} entries if a
+   * given argument does not correspond to a formal parameter.
+   */
+  private ParameterElement[] correspondingPropagatedParameters;
 
   /**
    * Initialize a newly created list of arguments.
@@ -128,7 +137,23 @@ public class ArgumentList extends ASTNode {
       throw new IllegalArgumentException("Expected " + arguments.size() + " parameters, not "
           + parameters.length);
     }
-    correspondingParameters = parameters;
+    correspondingPropagatedParameters = parameters;
+  }
+
+  /**
+   * Set the parameter elements corresponding to each of the arguments in this list to the given
+   * array of parameters. The array of parameters must be the same length as the number of
+   * arguments, but can contain {@code null} entries if a given argument does not correspond to a
+   * formal parameter.
+   * 
+   * @param parameters the parameter elements corresponding to the arguments
+   */
+  public void setCorrespondingStaticParameters(ParameterElement[] parameters) {
+    if (parameters.length != arguments.size()) {
+      throw new IllegalArgumentException("Expected " + arguments.size() + " parameters, not "
+          + parameters.length);
+    }
+    correspondingStaticParameters = parameters;
   }
 
   /**
@@ -156,9 +181,10 @@ public class ArgumentList extends ASTNode {
 
   /**
    * If the given expression is a child of this list, and the AST structure has been resolved, and
-   * the function being invoked is known, and the expression corresponds to one of the parameters of
-   * the function being invoked, then return the parameter element representing the parameter to
-   * which the value of the given expression will be bound. Otherwise, return {@code null}.
+   * the function being invoked is known based on propagated type information, and the expression
+   * corresponds to one of the parameters of the function being invoked, then return the parameter
+   * element representing the parameter to which the value of the given expression will be bound.
+   * Otherwise, return {@code null}.
    * <p>
    * This method is only intended to be used by {@link Expression#getParameterElement()}.
    * 
@@ -166,8 +192,8 @@ public class ArgumentList extends ASTNode {
    * @return the parameter element representing the parameter to which the value of the expression
    *         will be bound
    */
-  protected ParameterElement getParameterElementFor(Expression expression) {
-    if (correspondingParameters == null) {
+  protected ParameterElement getPropagatedParameterElementFor(Expression expression) {
+    if (correspondingPropagatedParameters == null) {
       // Either the AST structure has not been resolved or the invocation of which this list is a
       // part could not be resolved.
       return null;
@@ -177,6 +203,33 @@ public class ArgumentList extends ASTNode {
       // The expression isn't a child of this node.
       return null;
     }
-    return correspondingParameters[index];
+    return correspondingPropagatedParameters[index];
+  }
+
+  /**
+   * If the given expression is a child of this list, and the AST structure has been resolved, and
+   * the function being invoked is known based on static type information, and the expression
+   * corresponds to one of the parameters of the function being invoked, then return the parameter
+   * element representing the parameter to which the value of the given expression will be bound.
+   * Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getStaticParameterElement()}.
+   * 
+   * @param expression the expression corresponding to the parameter to be returned
+   * @return the parameter element representing the parameter to which the value of the expression
+   *         will be bound
+   */
+  protected ParameterElement getStaticParameterElementFor(Expression expression) {
+    if (correspondingStaticParameters == null) {
+      // Either the AST structure has not been resolved or the invocation of which this list is a
+      // part could not be resolved.
+      return null;
+    }
+    int index = arguments.indexOf(expression);
+    if (index < 0) {
+      // The expression isn't a child of this node.
+      return null;
+    }
+    return correspondingStaticParameters[index];
   }
 }

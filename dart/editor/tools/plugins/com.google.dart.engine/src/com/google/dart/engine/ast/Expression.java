@@ -43,9 +43,10 @@ public abstract class Expression extends ASTNode {
 
   /**
    * If this expression is an argument to an invocation, and the AST structure has been resolved,
-   * and the function being invoked is known, and this expression corresponds to one of the
-   * parameters of the function being invoked, then return the parameter element representing the
-   * parameter to which the value of this expression will be bound. Otherwise, return {@code null}.
+   * and the function being invoked is known based on propagated type information, and this
+   * expression corresponds to one of the parameters of the function being invoked, then return the
+   * parameter element representing the parameter to which the value of this expression will be
+   * bound. Otherwise, return {@code null}.
    * 
    * @return the parameter element representing the parameter to which the value of this expression
    *         will be bound
@@ -53,22 +54,22 @@ public abstract class Expression extends ASTNode {
   public ParameterElement getParameterElement() {
     ASTNode parent = getParent();
     if (parent instanceof ArgumentList) {
-      return ((ArgumentList) parent).getParameterElementFor(this);
-    }
-    if (parent instanceof IndexExpression) {
+      return ((ArgumentList) parent).getPropagatedParameterElementFor(this);
+    } else if (parent instanceof IndexExpression) {
       IndexExpression indexExpression = (IndexExpression) parent;
       if (indexExpression.getIndex() == this) {
-        return indexExpression.getParameterElementForIndex();
+        return indexExpression.getPropagatedParameterElementForIndex();
       }
-    }
-    if (parent instanceof BinaryExpression) {
+    } else if (parent instanceof BinaryExpression) {
       BinaryExpression binaryExpression = (BinaryExpression) parent;
       if (binaryExpression.getRightOperand() == this) {
-        return binaryExpression.getParameterElementForRightOperand();
+        return binaryExpression.getPropagatedParameterElementForRightOperand();
       }
+    } else if (parent instanceof PrefixExpression) {
+      return ((PrefixExpression) parent).getPropagatedParameterElementForOperand();
+    } else if (parent instanceof PostfixExpression) {
+      return ((PostfixExpression) parent).getPropagatedParameterElementForOperand();
     }
-    // TODO(brianwilkerson) Consider implementing this method for children of PrefixExpression
-    // and PostfixExpression.
     return null;
   }
 
@@ -80,6 +81,38 @@ public abstract class Expression extends ASTNode {
    */
   public Type getPropagatedType() {
     return propagatedType;
+  }
+
+  /**
+   * If this expression is an argument to an invocation, and the AST structure has been resolved,
+   * and the function being invoked is known based on static type information, and this expression
+   * corresponds to one of the parameters of the function being invoked, then return the parameter
+   * element representing the parameter to which the value of this expression will be bound.
+   * Otherwise, return {@code null}.
+   * 
+   * @return the parameter element representing the parameter to which the value of this expression
+   *         will be bound
+   */
+  public ParameterElement getStaticParameterElement() {
+    ASTNode parent = getParent();
+    if (parent instanceof ArgumentList) {
+      return ((ArgumentList) parent).getStaticParameterElementFor(this);
+    } else if (parent instanceof IndexExpression) {
+      IndexExpression indexExpression = (IndexExpression) parent;
+      if (indexExpression.getIndex() == this) {
+        return indexExpression.getStaticParameterElementForIndex();
+      }
+    } else if (parent instanceof BinaryExpression) {
+      BinaryExpression binaryExpression = (BinaryExpression) parent;
+      if (binaryExpression.getRightOperand() == this) {
+        return binaryExpression.getStaticParameterElementForRightOperand();
+      }
+    } else if (parent instanceof PrefixExpression) {
+      return ((PrefixExpression) parent).getStaticParameterElementForOperand();
+    } else if (parent instanceof PostfixExpression) {
+      return ((PostfixExpression) parent).getStaticParameterElementForOperand();
+    }
+    return null;
   }
 
   /**

@@ -681,7 +681,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertEquals(indices.length, argumentCount);
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments.get(i);
-      ParameterElement element = argument.getParameterElement();
+      ParameterElement element = argument.getStaticParameterElement();
       int index = indices[i];
       if (index < 0) {
         assertNull(element);

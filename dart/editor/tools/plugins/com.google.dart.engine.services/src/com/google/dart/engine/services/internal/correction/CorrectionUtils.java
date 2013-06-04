@@ -696,6 +696,9 @@ public class CorrectionUtils {
     // positional argument
     {
       ParameterElement parameter = expression.getParameterElement();
+      if (parameter == null) {
+        parameter = expression.getStaticParameterElement();
+      }
       if (parameter != null) {
         return parameter.getDisplayName();
       }
