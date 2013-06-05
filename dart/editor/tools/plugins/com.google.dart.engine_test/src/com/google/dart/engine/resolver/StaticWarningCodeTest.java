@@ -76,6 +76,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_finalNotInitialized_inConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final int x;",
+        "  A() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
   public void fail_incorrectNumberOfArguments_tooFew() throws Exception {
     Source source = addSource(createSource(//
         "f(a, b) => 0;",
@@ -804,6 +815,72 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_instanceField_const_static() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static const F;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_instanceField_final() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final F;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_instanceField_final_static() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static final F;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_library_const() throws Exception {
+    Source source = addSource(createSource(//
+    "const F;"));
+    resolve(source);
+    assertErrors(StaticWarningCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_library_final() throws Exception {
+    Source source = addSource(createSource(//
+    "final F;"));
+    resolve(source);
+    assertErrors(StaticWarningCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_local_const() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  const int x;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_local_final() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  final int x;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.FINAL_NOT_INITIALIZED);
     verify(source);
   }
 

@@ -916,7 +916,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 //        FieldElement fieldElement = entry.getKey();
 //        if (fieldElement.isFinal() || fieldElement.isConst()) {
 //          errorReporter.reportError(
-//              CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+//              StaticWarningCode.FINAL_NOT_INITIALIZED,
 //              node.getReturnType(),
 //              fieldElement.getName());
 //          foundError = true;
@@ -2340,7 +2340,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       for (VariableDeclaration variable : variables) {
         if (variable.getInitializer() == null) {
           errorReporter.reportError(
-              CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+              StaticWarningCode.FINAL_NOT_INITIALIZED,
               variable,
               variable.getName().getName());
           foundError = true;

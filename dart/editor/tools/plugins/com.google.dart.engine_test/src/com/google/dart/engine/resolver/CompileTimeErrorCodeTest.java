@@ -113,17 +113,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_finalNotInitialized_inConstructor() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  final int x;",
-        "  A() {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
   public void fail_invalidOverrideDefaultValue() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1333,72 +1322,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES);
-    verify(source);
-  }
-
-  public void test_finalNotInitialized_instanceField_const_static() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  static const F;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
-  public void test_finalNotInitialized_instanceField_final() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  final F;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
-  public void test_finalNotInitialized_instanceField_final_static() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  static final F;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
-  public void test_finalNotInitialized_library_const() throws Exception {
-    Source source = addSource(createSource(//
-    "const F;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
-  public void test_finalNotInitialized_library_final() throws Exception {
-    Source source = addSource(createSource(//
-    "final F;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
-  public void test_finalNotInitialized_local_const() throws Exception {
-    Source source = addSource(createSource(//
-        "f() {",
-        "  const int x;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
-  public void test_finalNotInitialized_local_final() throws Exception {
-    Source source = addSource(createSource(//
-        "f() {",
-        "  final int x;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
     verify(source);
   }
 

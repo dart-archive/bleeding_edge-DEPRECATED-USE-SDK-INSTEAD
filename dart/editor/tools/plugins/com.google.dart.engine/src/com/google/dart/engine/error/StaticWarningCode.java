@@ -223,6 +223,16 @@ public enum StaticWarningCode implements ErrorCode {
       "The parameter type '%s' is incompatable with the field type '%s'"),
 
   /**
+   * 5 Variables: It is a static warning if a library, static or local variable <i>v</i> is final
+   * and <i>v</i> is not initialized at its point of declaration.
+   * 
+   * @param name the name of the uninitialized final variable
+   */
+  // TODO(jwren) not yet being created,
+  // see ErrorVerifier.checkForAllFinalInitializedErrorCodes(ConstructorDeclaration)
+  FINAL_NOT_INITIALIZED("The final variable '%s' must be initialized"),
+
+  /**
    * 14.1 Imports: It is a static warning to import two different libraries with the same name.
    * 
    * @param uri1 the uri pointing to a first library
