@@ -345,20 +345,47 @@ public class InheritanceManager {
     } else {
       resultMap = new HashMap<String, ExecutableElement>();
     }
+    InterfaceType supertype = classElt.getSupertype();
+    ClassElement superclassElement = supertype != null ? supertype.getElement() : null;
     InterfaceType[] interfaces = classElt.getInterfaces();
-    if (interfaces.length == 0) {
+    if (superclassElement == null || interfaces.length == 0) {
       interfaceLookup.put(classElt, resultMap);
       return resultMap;
     }
     // Recursively collect the list of mappings from all of the interface types
     ArrayList<HashMap<String, ExecutableElement>> lookupMaps = new ArrayList<HashMap<String, ExecutableElement>>(
-        interfaces.length);
+        interfaces.length + 1);
+
+    // superclass element
+    if (superclassElement != null) {
+      if (!visitedInterfaces.contains(superclassElement)) {
+        try {
+          visitedInterfaces.add(superclassElement);
+          lookupMaps.add(computeInterfaceLookupMap(superclassElement, visitedInterfaces));
+        } finally {
+          visitedInterfaces.remove(superclassElement);
+        }
+      } else {
+        HashMap<String, ExecutableElement> map = interfaceLookup.get(classElt);
+        if (map != null) {
+          lookupMaps.add(map);
+        } else {
+          interfaceLookup.put(superclassElement, resultMap);
+          return resultMap;
+        }
+      }
+    }
+    //interface elements
     for (InterfaceType interfaceType : interfaces) {
       ClassElement interfaceElement = interfaceType.getElement();
       if (interfaceElement != null) {
         if (!visitedInterfaces.contains(interfaceElement)) {
-          visitedInterfaces.add(interfaceElement);
-          lookupMaps.add(computeInterfaceLookupMap(interfaceElement, visitedInterfaces));
+          try {
+            visitedInterfaces.add(interfaceElement);
+            lookupMaps.add(computeInterfaceLookupMap(interfaceElement, visitedInterfaces));
+          } finally {
+            visitedInterfaces.remove(interfaceElement);
+          }
         } else {
           HashMap<String, ExecutableElement> map = interfaceLookup.get(classElt);
           if (map != null) {
@@ -389,6 +416,37 @@ public class InheritanceManager {
       }
     }
     // Next loop through all of the members in the interfaces themselves, adding them to the unionMap
+    // supertype
+    if (superclassElement != null) {
+      MethodElement[] methods = superclassElement.getMethods();
+      for (MethodElement method : methods) {
+        if (method.isAccessibleIn(library) && !method.isStatic()) {
+          String key = method.getName();
+          if (!unionMap.containsKey(key)) {
+            HashSet<ExecutableElement> set = new HashSet<ExecutableElement>(4);
+            set.add(method);
+            unionMap.put(key, set);
+          } else {
+            unionMap.get(key).add(method);
+          }
+        }
+      }
+      PropertyAccessorElement[] accessors = superclassElement.getAccessors();
+      for (PropertyAccessorElement accessor : accessors) {
+        if (accessor.isAccessibleIn(library) && !accessor.isStatic()) {
+          String key = accessor.getName();
+          if (!unionMap.containsKey(key)) {
+            HashSet<ExecutableElement> set = new HashSet<ExecutableElement>(4);
+            set.add(accessor);
+            unionMap.put(key, set);
+          } else {
+            unionMap.get(key).add(accessor);
+          }
+        }
+      }
+    }
+
+    // interfaces
     for (InterfaceType interfaceType : interfaces) {
       ClassElement interfaceElement = interfaceType.getElement();
       if (interfaceElement != null) {
@@ -451,7 +509,7 @@ public class InheritanceManager {
           for (int i = 0; i < numOfEltsWithMatchingNames; i++) {
             executableElementTypes[i] = elements[i].getType();
           }
-          boolean foundSubtypeOfAllTypes = true;
+          boolean foundSubtypeOfAllTypes = false;
           for (int i = 0; i < numOfEltsWithMatchingNames; i++) {
             FunctionType subtype = executableElementTypes[i];
             if (subtype == null) {
@@ -462,12 +520,12 @@ public class InheritanceManager {
               if (i != j) {
                 if (!subtype.isSubtypeOf(executableElementTypes[j])) {
                   subtypeOfAllTypes = false;
-                  foundSubtypeOfAllTypes = false;
                   break;
                 }
               }
             }
             if (subtypeOfAllTypes) {
+              foundSubtypeOfAllTypes = true;
               resultMap.put(key, elements[i]);
               break;
             }

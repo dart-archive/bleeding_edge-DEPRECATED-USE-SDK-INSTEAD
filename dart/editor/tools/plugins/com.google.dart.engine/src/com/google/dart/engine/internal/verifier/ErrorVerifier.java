@@ -126,6 +126,7 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeVariableType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -2992,54 +2993,78 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (missingOverridesSize == 0) {
       return false;
     }
-    // TODO (jwren/scheglov) Add a quick fix which needs the following array.
+    // TODO (jwren/scheglov) Add a quick fix.
     ExecutableElement[] missingOverridesArray = missingOverrides.toArray(new ExecutableElement[missingOverridesSize]);
+    String[] stringTypeArray = new String[Math.min(missingOverridesSize, 4)];
+    final String GET = "get ";
+    final String SET = "set ";
+    for (int i = 0; i < stringTypeArray.length; i++) {
+      stringTypeArray[i] = StringUtilities.EMPTY;
+      if (missingOverridesArray[i] instanceof PropertyAccessorElement) {
+        stringTypeArray[i] = ((PropertyAccessorElement) missingOverridesArray[i]).isGetter() ? GET
+            : SET;
+      }
+    }
     if (missingOverridesSize == 1) {
       errorReporter.reportError(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           node.getName(),
+          stringTypeArray[0],
           missingOverridesArray[0].getEnclosingElement().getDisplayName(),
           missingOverridesArray[0].getDisplayName());
     } else if (missingOverridesSize == 2) {
       errorReporter.reportError(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
           node.getName(),
+          stringTypeArray[0],
           missingOverridesArray[0].getEnclosingElement().getDisplayName(),
           missingOverridesArray[0].getDisplayName(),
+          stringTypeArray[1],
           missingOverridesArray[1].getEnclosingElement().getDisplayName(),
           missingOverridesArray[1].getDisplayName());
     } else if (missingOverridesSize == 3) {
       errorReporter.reportError(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
           node.getName(),
+          stringTypeArray[0],
           missingOverridesArray[0].getEnclosingElement().getDisplayName(),
           missingOverridesArray[0].getDisplayName(),
+          stringTypeArray[1],
           missingOverridesArray[1].getEnclosingElement().getDisplayName(),
           missingOverridesArray[1].getDisplayName(),
+          stringTypeArray[2],
           missingOverridesArray[2].getEnclosingElement().getDisplayName(),
           missingOverridesArray[2].getDisplayName());
     } else if (missingOverridesSize == 4) {
       errorReporter.reportError(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
           node.getName(),
+          stringTypeArray[0],
           missingOverridesArray[0].getEnclosingElement().getDisplayName(),
           missingOverridesArray[0].getDisplayName(),
+          stringTypeArray[1],
           missingOverridesArray[1].getEnclosingElement().getDisplayName(),
           missingOverridesArray[1].getDisplayName(),
+          stringTypeArray[2],
           missingOverridesArray[2].getEnclosingElement().getDisplayName(),
           missingOverridesArray[2].getDisplayName(),
+          stringTypeArray[3],
           missingOverridesArray[3].getEnclosingElement().getDisplayName(),
           missingOverridesArray[3].getDisplayName());
     } else {
       errorReporter.reportError(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
           node.getName(),
+          stringTypeArray[0],
           missingOverridesArray[0].getEnclosingElement().getDisplayName(),
           missingOverridesArray[0].getDisplayName(),
+          stringTypeArray[1],
           missingOverridesArray[1].getEnclosingElement().getDisplayName(),
           missingOverridesArray[1].getDisplayName(),
+          stringTypeArray[2],
           missingOverridesArray[2].getEnclosingElement().getDisplayName(),
           missingOverridesArray[2].getDisplayName(),
+          stringTypeArray[3],
           missingOverridesArray[3].getEnclosingElement().getDisplayName(),
           missingOverridesArray[3].getDisplayName(),
           missingOverridesArray.length - 4);

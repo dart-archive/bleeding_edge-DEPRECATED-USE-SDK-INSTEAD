@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.resolver;
 
-import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
@@ -832,17 +831,18 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_inconsistentMethodInheritance() throws Exception {
+  public void test_inconsistentMethodInheritanceGetterAndMethod() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
-        "  x(int i);",
+        "  int x();",
         "}",
         "abstract class B {",
-        "  x(String s);",
+        "  int get x;",
         "}",
-        "abstract class C implements A, B {}"));
+        "class C implements A, B {",
+        "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE);
+    assertErrors(StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD);
     verify(source);
   }
 
@@ -1252,6 +1252,23 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  m(p);",
         "}",
         "class C extends A {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_method_optionalParamCount()
+      throws Exception {
+    // 7640
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  int x(int a);",
+        "}",
+        "abstract class B {",
+        "  int x(int a, [int b]);",
+        "}",
+        "class C implements A, B {",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
