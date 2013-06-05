@@ -59,10 +59,14 @@ public class PubCacheManager {
         }
         if (packages == null) {
           initializeList();
-          PubManager.getInstance().notifyListeners(getLocalPackages());
+          if (!pubUsedPackages.isEmpty()) {
+            PubManager.getInstance().notifyListeners(getLocalPackages());
+          }
         } else {
           Map<String, Object> added = processPackages(packages);
-          PubManager.getInstance().notifyListeners(added);
+          if (!added.isEmpty()) {
+            PubManager.getInstance().notifyListeners(added);
+          }
         }
       } else {
         DartCore.logError(message);
@@ -119,7 +123,10 @@ public class PubCacheManager {
     if (versionMap != null && !versionMap.isEmpty()) {
       synchronized (pubUsedPackages) {
         for (String key : versionMap.keySet()) {
-          pubUsedPackages.put(key, pubCachePackages.get(key));
+          Object object = pubCachePackages.get(key);
+          if (object != null) {
+            pubUsedPackages.put(key, pubCachePackages.get(key));
+          }
         }
       }
 
@@ -132,8 +139,11 @@ public class PubCacheManager {
       Set<String> keySet = pubUsedPackages.keySet();
       for (String packageName : packages) {
         if (!keySet.contains(packageName)) {
-          pubUsedPackages.put(packageName, pubCachePackages.get(packageName));
-          added.put(packageName, pubCachePackages.get(packageName));
+          Object object = pubCachePackages.get(packageName);
+          if (object != null) {
+            pubUsedPackages.put(packageName, pubCachePackages.get(packageName));
+            added.put(packageName, pubCachePackages.get(packageName));
+          }
         }
       }
     }
