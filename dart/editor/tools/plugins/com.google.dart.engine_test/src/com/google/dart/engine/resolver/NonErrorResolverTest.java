@@ -355,17 +355,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_constConstructorWithNonFinalField_constInstanceVar() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  const int x = 0;",
-        "  const A();",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-    verify(source);
-  }
-
   public void test_constConstructorWithNonFinalField_finalInstanceVar() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -487,7 +476,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_constWithTypeParameters_direct() throws Exception {
     Source source = addSource(createSource(//
         "class A<T> {",
-        "  const V = const A<int>();",
+        "  static const V = const A<int>();",
         "  const A();",
         "}"));
     resolve(source);

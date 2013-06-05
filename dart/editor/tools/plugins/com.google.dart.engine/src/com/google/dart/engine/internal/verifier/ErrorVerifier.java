@@ -464,6 +464,17 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitFieldDeclaration(FieldDeclaration node) {
+    if (!node.isStatic()) {
+      VariableDeclarationList variables = node.getFields();
+      if (variables.isConst()) {
+        errorReporter.reportError(CompileTimeErrorCode.CONST_INSTANCE_FIELD, variables.getKeyword());
+      }
+    }
+    return super.visitFieldDeclaration(node);
+  }
+
+  @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     checkForConstFormalParameter(node);
     checkForFieldInitializingFormalRedirectingConstructor(node);

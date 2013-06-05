@@ -796,6 +796,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constInstanceField() throws Exception {
+    Source source = addSource(createSource(//
+        "class C {",
+        "  const int f = 0;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_INSTANCE_FIELD);
+    verify(source);
+  }
+
   public void test_constWithInvalidTypeParameters() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -843,7 +853,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_constWithTypeParameters_direct() throws Exception {
     Source source = addSource(createSource(//
         "class A<T> {",
-        "  const V = const A<T>();",
+        "  static const V = const A<T>();",
         "  const A();",
         "}"));
     resolve(source);
@@ -854,7 +864,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_constWithTypeParameters_indirect() throws Exception {
     Source source = addSource(createSource(//
         "class A<T> {",
-        "  const V = const A<List<T>>();",
+        "  static const V = const A<List<T>>();",
         "  const A();",
         "}"));
     resolve(source);
@@ -1148,17 +1158,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_fieldInitializedInInitializerAndDeclaration_const() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  const int x = 0;",
-        "  A() : x = 1 {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION);
-    verify(source);
-  }
-
   public void test_fieldInitializedInInitializerAndDeclaration_final() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1334,16 +1333,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES);
-    verify(source);
-  }
-
-  public void test_finalNotInitialized_instanceField_const() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  const F;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
     verify(source);
   }
 

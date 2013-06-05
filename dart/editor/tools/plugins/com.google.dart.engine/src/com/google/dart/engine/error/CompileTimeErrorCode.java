@@ -157,6 +157,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
   CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE("'const' variables must be constant value"),
 
   /**
+   * 7.5 Instance Variables: It is a compile-time error if an instance variable is declared to be
+   * constant.
+   */
+  CONST_INSTANCE_FIELD("Only static fields can be declared as 'const'"),
+
+  /**
    * 12.11.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2, where e, e1 and e2
    * are constant expressions that evaluate to a boolean value.
    */
