@@ -98,6 +98,24 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_argumentTypeNotAssignable_classWithCall_Function() throws Exception {
+    Source source = addSource(createSource(//
+        "  caller(Function callee) {",
+        "    callee();",
+        "  }",
+        "",
+        "  class CallMeBack {",
+        "    call() => 0;",
+        "  }",
+        "",
+        "  main() {",
+        "    caller(new CallMeBack());",
+        "  }"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_argumentTypeNotAssignable_invocation_functionParameter_generic()
       throws Exception {
     Source source = addSource(createSource(//

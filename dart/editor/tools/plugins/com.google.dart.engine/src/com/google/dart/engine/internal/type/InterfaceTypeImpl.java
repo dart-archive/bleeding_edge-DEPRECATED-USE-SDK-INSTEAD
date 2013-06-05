@@ -72,11 +72,6 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   public static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) {
     return computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
   }
-  
-  @Override
-  public TypeVariableElement[] getTypeVariables() {
-    return getElement().getTypeVariables();
-  }
 
   /**
    * This method computes the longest inheritance path from some passed {@link Type} to Object. This
@@ -390,6 +385,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @Override
   public Type[] getTypeArguments() {
     return typeArguments;
+  }
+
+  @Override
+  public TypeVariableElement[] getTypeVariables() {
+    return getElement().getTypeVariables();
   }
 
   @Override
@@ -758,6 +758,8 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           return false;
         }
       }
+      return true;
+    } else if (typeS.isDartCoreFunction() && elementT.getMethod("call") != null) {
       return true;
     }
 
