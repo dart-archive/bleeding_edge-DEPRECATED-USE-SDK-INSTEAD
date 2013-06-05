@@ -209,6 +209,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private RunPubAction pubUpdateAction;
   private RunPubAction pubInstallAction;
   private RunPubAction pubInstallOfflineAction;
+  private RunPubAction pubDeployAction;
 
   private NewAppFromPackageAction copyPackageAction;
 
@@ -518,6 +519,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       manager.add(pubInstallAction);
       manager.add(pubInstallOfflineAction);
       manager.add(pubUpdateAction);
+      manager.add(pubDeployAction);
     }
 
     if (isPackagesDir) {
@@ -767,6 +769,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     pubUpdateAction = RunPubAction.createPubUpdateAction(getSite().getWorkbenchWindow());
     pubInstallAction = RunPubAction.createPubInstallAction(getSite().getWorkbenchWindow());
     pubInstallOfflineAction = RunPubAction.createPubInstallOfflineAction(getSite().getWorkbenchWindow());
+    pubDeployAction = RunPubAction.createPubDeployAction(getSite().getWorkbenchWindow());
 
     copyPackageAction = new NewAppFromPackageAction(getSite());
 
