@@ -68,10 +68,12 @@ public class InstalledPackagesNode implements IDartNode {
     if (localPackages != null && !localPackages.isEmpty()) {
       for (String packageName : localPackages.keySet()) {
         Map<String, Object> map = (Map<String, Object>) localPackages.get(packageName);
-        String location = (String) map.get(PubspecConstants.LOCATION);
-        String version = (String) map.get(PubspecConstants.VERSION);
-        if (location != null) {
-          nodes.add(new DartPackageNode(this, packageName, version, location));
+        if (map != null) {
+          String location = (String) map.get(PubspecConstants.LOCATION);
+          String version = (String) map.get(PubspecConstants.VERSION);
+          if (location != null && version != null) {
+            nodes.add(new DartPackageNode(this, packageName, version, location));
+          }
         }
       }
     }
