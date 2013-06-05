@@ -3708,8 +3708,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This checks that if the passed generative constructor has no explicit super constructor
-   * invocation, then super class has the default generative constructor.
+   * This checks that if the passed generative constructor has neither an explicit super constructor
+   * invocation nor a redirecting constructor invocation, that the superclass has a default
+   * generative constructor.
    * 
    * @param node the constructor declaration to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
@@ -3717,11 +3718,25 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#NON_GENERATIVE_CONSTRUCTOR
    */
   private boolean checkForUndefinedConstructorInInitializerImplicit(ConstructorDeclaration node) {
-    // ignore if not generative
+    //
+    // Ignore if the constructor is not generative.
+    //
     if (node.getFactoryKeyword() != null) {
       return false;
     }
-    // prepare "super"
+    //
+    // Ignore if the constructor has either an implicit super constructor invocation or a
+    // redirecting constructor invocation.
+    //
+    for (ConstructorInitializer constructorInitializer : node.getInitializers()) {
+      if (constructorInitializer instanceof SuperConstructorInvocation
+          || constructorInitializer instanceof RedirectingConstructorInvocation) {
+        return false;
+      }
+    }
+    //
+    // Check to see whether the superclass has a non-factory unnamed constructor.
+    //
     if (enclosingClass == null) {
       return false;
     }
@@ -3730,13 +3745,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     ClassElement superElement = superType.getElement();
-    // has implicit super constructor invocation
-    for (ConstructorInitializer constructorInitializer : node.getInitializers()) {
-      if (constructorInitializer instanceof SuperConstructorInvocation) {
-        return false;
-      }
-    }
-    // OK, super class has unnamed constructor
     ConstructorElement superDefaultConstructor = superElement.getUnnamedConstructor();
     if (superDefaultConstructor != null) {
       if (superDefaultConstructor.isFactory()) {
@@ -3748,7 +3756,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
       return false;
     }
-    // report error
     errorReporter.reportError(
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
         node.getReturnType(),

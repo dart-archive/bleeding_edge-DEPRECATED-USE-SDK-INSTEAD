@@ -2049,6 +2049,20 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_undefinedConstructorInInitializer_redirecting() throws Exception {
+    Source source = addSource(createSource(//
+        "class Foo {",
+        "  Foo.ctor();",
+        "}",
+        "class Bar extends Foo {",
+        "  Bar() : this.ctor();",
+        "  Bar.ctor() : super.ctor();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_undefinedGetter_noSuchMethod_getter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
