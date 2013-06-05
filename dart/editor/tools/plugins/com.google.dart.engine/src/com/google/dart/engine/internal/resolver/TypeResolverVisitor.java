@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
@@ -32,6 +33,7 @@ import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -448,9 +450,13 @@ public class TypeResolverVisitor extends ScopedVisitor {
       if (typeNameSimple.getName().equals("boolean")) {
         reportError(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple);
       } else if (isTypeNameInCatchClause(node)) {
-        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, node, node);
+        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());
+      } else if (isTypeNameInAsExpression(node)) {
+        reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
+      } else if (isTypeNameInIsExpression(node)) {
+        reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
       } else {
-        reportError(StaticWarningCode.UNDEFINED_CLASS, typeNameSimple, typeNameSimple.getName());
+        reportError(StaticWarningCode.UNDEFINED_CLASS, typeName, typeName.getName());
       }
       elementValid = false;
     }
@@ -485,7 +491,11 @@ public class TypeResolverVisitor extends ScopedVisitor {
       // The name does not represent a type.
       // TODO(brianwilkerson) Report this error
       if (isTypeNameInCatchClause(node)) {
-        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, node, node);
+        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());
+      } else if (isTypeNameInAsExpression(node)) {
+        reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
+      } else if (isTypeNameInIsExpression(node)) {
+        reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
       }
       setElement(typeName, dynamicType.getElement());
       typeName.setStaticType(dynamicType);
@@ -715,10 +725,25 @@ public class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Checks if the given type name is used as the exception type in the catch clause.
+   * Checks if the given type name is used as the type in an as expression.
    * 
    * @param typeName the type name to analyzer
-   * @return {@code true} if the given type name is used as the exception type in the catch clause.
+   * @return {@code true} if the given type name is used as the type in an as expression
+   */
+  private boolean isTypeNameInAsExpression(TypeName typeName) {
+    ASTNode parent = typeName.getParent();
+    if (parent instanceof AsExpression) {
+      AsExpression asExpression = (AsExpression) parent;
+      return asExpression.getType() == typeName;
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given type name is used as the exception type in a catch clause.
+   * 
+   * @param typeName the type name to analyzer
+   * @return {@code true} if the given type name is used as the exception type in a catch clause
    */
   private boolean isTypeNameInCatchClause(TypeName typeName) {
     ASTNode parent = typeName.getParent();
@@ -730,10 +755,10 @@ public class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Checks if the given type name is used as the type in the instance creation expression.
+   * Checks if the given type name is used as the type in an instance creation expression.
    * 
    * @param typeName the type name to analyzer
-   * @return {@code true} if the given type name is used as the type in the instance creation
+   * @return {@code true} if the given type name is used as the type in an instance creation
    *         expression
    */
   private boolean isTypeNameInInstanceCreationExpression(TypeName typeName) {
@@ -742,6 +767,21 @@ public class TypeResolverVisitor extends ScopedVisitor {
         && parent.getParent() instanceof InstanceCreationExpression) {
       ConstructorName constructorName = (ConstructorName) parent;
       return constructorName != null && constructorName.getType() == typeName;
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given type name is used as the type in an is expression.
+   * 
+   * @param typeName the type name to analyzer
+   * @return {@code true} if the given type name is used as the type in an is expression
+   */
+  private boolean isTypeNameInIsExpression(TypeName typeName) {
+    ASTNode parent = typeName.getParent();
+    if (parent instanceof IsExpression) {
+      IsExpression isExpression = (IsExpression) parent;
+      return isExpression.getType() == typeName;
     }
     return false;
   }

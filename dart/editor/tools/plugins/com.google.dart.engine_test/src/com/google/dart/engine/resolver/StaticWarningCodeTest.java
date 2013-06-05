@@ -31,15 +31,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_castToNonType() throws Exception {
-    Source source = addSource(createSource(//
-        "var A = 0;",
-        "f(String s) { var x = s as A; }"));
-    resolve(source);
-    assertErrors(StaticWarningCode.CAST_TO_NON_TYPE);
-    verify(source);
-  }
-
   public void fail_commentReferenceConstructorNotVisible() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -163,18 +154,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES);
-    verify(source);
-  }
-
-  public void fail_nonType() throws Exception {
-    Source source = addSource(createSource(//
-        "var A = 0;",
-        "f(var p) {",
-        "  if (p is A) {",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.NON_TYPE);
     verify(source);
   }
 
@@ -589,6 +568,15 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.CASE_BLOCK_NOT_TERMINATED);
+    verify(source);
+  }
+
+  public void test_castToNonType() throws Exception {
+    Source source = addSource(createSource(//
+        "var A = 0;",
+        "f(String s) { var x = s as A; }"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CAST_TO_NON_TYPE);
     verify(source);
   }
 
@@ -1515,6 +1503,18 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_typeTestNonType() throws Exception {
+    Source source = addSource(createSource(//
+        "var A = 0;",
+        "f(var p) {",
+        "  if (p is A) {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.TYPE_TEST_NON_TYPE);
     verify(source);
   }
 

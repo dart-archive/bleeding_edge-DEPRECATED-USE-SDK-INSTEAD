@@ -80,7 +80,7 @@ public enum StaticWarningCode implements ErrorCode {
    * 12.32 Type Cast: It is a static warning if <i>T</i> does not denote a type available in the
    * current lexical scope.
    */
-  CAST_TO_NON_TYPE(""),
+  CAST_TO_NON_TYPE("The name '%s' is not a type and cannot be used in an 'as' expression"),
 
   /**
    * 16.1.2 Comments: A token of the form <i>[new c](uri)</i> will be replaced by a link in the
@@ -531,12 +531,6 @@ public enum StaticWarningCode implements ErrorCode {
       "Missing inherited members: %s'%s.%s' and %s'%s.%s'"),
 
   /**
-   * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type available in the
-   * current lexical scope.
-   */
-  NON_TYPE(""),
-
-  /**
    * 13.11 Try: An on-catch clause of the form <i>on T catch (p<sub>1</sub>, p<sub>2</sub>) s</i> or
    * <i>on T s</i> matches an object <i>o</i> if the type of <i>o</i> is a subtype of <i>T</i>. It
    * is a static warning if <i>T</i> does not denote a type available in the lexical scope of the
@@ -632,6 +626,12 @@ public enum StaticWarningCode implements ErrorCode {
    */
   SWITCH_EXPRESSION_NOT_ASSIGNABLE(
       "Type '%s' of the switch expression is not assignable to the type '%s' of case expressions"),
+
+  /**
+   * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type available in the
+   * current lexical scope.
+   */
+  TYPE_TEST_NON_TYPE("The name '%s' is not a type and cannot be used in an 'is' expression"),
 
   /**
    * 12.15.3 Static Invocation: A static method invocation <i>i</i> has the form
