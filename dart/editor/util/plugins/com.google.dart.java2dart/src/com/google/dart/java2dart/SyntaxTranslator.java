@@ -151,6 +151,7 @@ import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.Type;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -922,10 +923,18 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   public boolean visit(org.eclipse.jdt.core.dom.FieldDeclaration node) {
     boolean isNotPublic = !org.eclipse.jdt.core.dom.Modifier.isPublic(node.getModifiers());
     boolean isStatic = org.eclipse.jdt.core.dom.Modifier.isStatic(node.getModifiers());
+    boolean isFinal = false;
+    // interface field
+    org.eclipse.jdt.core.dom.ASTNode parent = node.getParent();
+    if (parent instanceof TypeDeclaration && ((TypeDeclaration) parent).isInterface()) {
+      isStatic = true;
+      isFinal = true;
+    }
+    // create node
     FieldDeclaration fieldDeclaration = fieldDeclaration(
         translateJavadoc(node),
         isStatic,
-        translateVariableDeclarationList(false, node.getType(), node.fragments()));
+        translateVariableDeclarationList(isFinal, node.getType(), node.fragments()));
     if (isNotPublic) {
       context.putPrivateClassMember(fieldDeclaration);
     }
@@ -1315,6 +1324,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.PrimitiveType node) {
     String name = node.toString();
+    ITypeBinding binding = node.resolveBinding();
     if ("boolean".equals(name)) {
       name = "bool";
     }
@@ -1324,7 +1334,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     if ("float".equals(name)) {
       name = "double";
     }
-    return done(typeName(name));
+    TypeName typeName = typeName(name);
+    context.putNodeTypeBinding(typeName, binding);
+    return done(typeName);
   }
 
   @Override

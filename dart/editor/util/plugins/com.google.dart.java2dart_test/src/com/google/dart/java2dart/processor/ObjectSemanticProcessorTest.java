@@ -132,6 +132,26 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_double_castTo_int() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public int testA(double p) {",
+        "    return (int) p;",
+        "  }",
+        "  public long testB(double p) {",
+        "    return (long) p;",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  int testA(double p) => p.toInt();",
+        "  int testB(double p) => p.toInt();",
+        "}");
+  }
+
   public void test_Double_parseDouble() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -309,7 +329,11 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "package test;",
         "public class Test {",
         "  public int test(String p) {",
-        "    return Integer.parseInt(p);",
+        "    try {",
+        "      return Integer.parseInt(p);",
+        "    } catch (NumberFormatException e) {",
+        "      return 0;",
+        "    }",
         "  }",
         "  public int testX(String p) {",
         "    return Integer.parseInt(p, 16);",
@@ -318,7 +342,13 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
     runProcessor();
     assertFormattedSource(
         "class Test {",
-        "  int test(String p) => int.parse(p);",
+        "  int test(String p) {",
+        "    try {",
+        "      return int.parse(p);",
+        "    } on FormatException catch (e) {",
+        "      return 0;",
+        "    }",
+        "  }",
         "  int testX(String p) => int.parse(p, radix: 16);",
         "}");
   }
@@ -778,6 +808,8 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  public void main(String s) {",
         "    s.indexOf('1');",
         "    s.indexOf('2', 42);",
+        "    s.lastIndexOf('1');",
+        "    s.lastIndexOf('2', 42);",
         "  }",
         "}");
     runProcessor();
@@ -786,6 +818,8 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  void main(String s) {",
         "    s.indexOf('1');",
         "    s.indexOf('2', 42);",
+        "    s.lastIndexOf('1');",
+        "    s.lastIndexOf('2', 42);",
         "  }",
         "}");
   }

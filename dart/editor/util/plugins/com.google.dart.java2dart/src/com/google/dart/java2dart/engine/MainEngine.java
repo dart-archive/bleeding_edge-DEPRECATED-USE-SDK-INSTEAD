@@ -15,6 +15,7 @@
 package com.google.dart.java2dart.engine;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
@@ -56,6 +57,8 @@ import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Translates some parts of "com.google.dart.engine" project.
@@ -284,10 +287,26 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildConstantLibrary();
-      Files.write(
-          getFormattedSource(library),
-          new File(targetFolder + "/constant.dart"),
-          Charsets.UTF_8);
+      String source = getFormattedSource(library);
+      source = replaceSourceFragment(
+          source,
+          makeSource(
+              "  N findSink() {",
+              "    for (MapEntry<N, Set<N>> entry in getMapEntrySet(_edges)) {",
+              "      if (entry.getValue().isEmpty) {",
+              "        return entry.getKey();",
+              "      }",
+              "    }",
+              "    return null;",
+              "  }"),
+          makeSource(
+              "  N findSink() {",
+              "    for (N key in _edges.keys) {",
+              "      if (_edges[key].isEmpty) return key;",
+              "    }",
+              "    return null;",
+              "  }"));
+      Files.write(source, new File(targetFolder + "/constant.dart"), Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildElementLibrary();
@@ -298,10 +317,16 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildResolverLibrary();
-      Files.write(
-          getFormattedSource(library),
-          new File(targetFolder + "/resolver.dart"),
-          Charsets.UTF_8);
+      String source = getFormattedSource(library);
+      source = replaceSourceFragmentRE(
+          source,
+          "Object visitImportDirective\\(ImportDirective directive\\) \\{\n.*?FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE.*?return null;",
+          makeSource("Object visitImportDirective(ImportDirective directive) {", "    return null;"));
+      source = replaceSourceFragment(
+          source,
+          "fullName2.replaceAll(JavaFile.separatorChar, '/')",
+          "fullName2.replaceAll(r'\\', '/')");
+      Files.write(source, new File(targetFolder + "/resolver.dart"), Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildEngineLibrary();
@@ -1054,6 +1079,10 @@ public class MainEngine {
         engineTestFolder.getAbsolutePath() + "/com/google/dart/engine/" + enginePackage);
   }
 
+  private static String makeSource(String... lines) {
+    return Joiner.on("\n").join(lines);
+  }
+
   /**
    * Removes trailing spaces from the given Dart source.
    */
@@ -1063,5 +1092,37 @@ public class MainEngine {
       lines[i] = StringUtils.stripEnd(lines[i], null);
     }
     return StringUtils.join(lines, "\n");
+  }
+
+  /**
+   * Replaces the fragment of the source specified by the RE pattern with the given source.
+   * 
+   * @param source the source to replace fragment in
+   * @param pattern the fragment to replace
+   * @param replacement the source to replace fragment with
+   * @return the source with the replacement fragment
+   */
+  private static String replaceSourceFragment(String source, String pattern, String replacement) {
+    int index = source.indexOf(pattern);
+    if (index == -1) {
+      throw new IllegalArgumentException("Not found: " + pattern);
+    }
+    return StringUtils.replaceOnce(source, pattern, replacement);
+  }
+
+  /**
+   * Replaces the fragment of the source specified by the RE pattern with the given source.
+   * 
+   * @param source the source to replace fragment in
+   * @param pattern the regular expression describing fragment
+   * @param replacement the source to replace fragment with
+   * @return the source with the replacement fragment
+   */
+  private static String replaceSourceFragmentRE(String source, String pattern, String replacement) {
+    Matcher matcher = Pattern.compile(pattern, Pattern.MULTILINE | Pattern.DOTALL).matcher(source);
+    if (!matcher.find()) {
+      throw new IllegalArgumentException("Not found: " + pattern);
+    }
+    return matcher.replaceFirst(replacement);
   }
 }

@@ -774,11 +774,13 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
         "interface A {",
+        "  int VALUE = 42;",
         "  int foo();",
         "  void bar();",
         "}");
     assertDartSource(//
         "abstract class A {",
+        "  static final int VALUE = 42;",
         "  int foo();",
         "  void bar();",
         "}");

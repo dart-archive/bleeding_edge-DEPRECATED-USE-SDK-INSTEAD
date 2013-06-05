@@ -233,7 +233,11 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "sort", "java.util.Arrays")) {
-          replaceNode(node, methodInvocation(args.get(0), "sort"));
+          if (args.size() == 1) {
+            replaceNode(node, methodInvocation(args.get(0), "sort"));
+          } else {
+            replaceNode(node, methodInvocation(args.get(0), "sort", args.get(1)));
+          }
           return null;
         }
         if (isMethodInClass(node, "hashCode", "java.util.Arrays")) {

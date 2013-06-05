@@ -16,6 +16,7 @@ package com.google.dart.java2dart.processor;
 
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -26,6 +27,7 @@ import com.google.dart.engine.ast.InterpolationElement;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -100,6 +102,28 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
   @Override
   public void process(CompilationUnit unit) {
     unit.accept(new GeneralizingASTVisitor<Void>() {
+      @Override
+      public Void visitAsExpression(AsExpression node) {
+        super.visitAsExpression(node);
+        Expression expression = node.getExpression();
+        TypeName targetTypeName = node.getType();
+        ITypeBinding expressionTypeBinding = context.getNodeTypeBinding(expression);
+        ITypeBinding targetTypeBinding = context.getNodeTypeBinding(targetTypeName);
+        if (JavaUtils.isTypeNamed(expressionTypeBinding, "double")) {
+          if (JavaUtils.isTypeNamed(targetTypeBinding, "int")
+              || JavaUtils.isTypeNamed(targetTypeBinding, "long")) {
+            ASTNode nodeToReplace = node;
+            ASTNode parent = node.getParent();
+            if (parent instanceof ParenthesizedExpression) {
+              nodeToReplace = parent;
+            }
+            replaceNode(nodeToReplace, methodInvocation(expression, identifier("toInt")));
+            return null;
+          }
+        }
+        return null;
+      }
+
       @Override
       public Void visitAssignmentExpression(AssignmentExpression node) {
         super.visitAssignmentExpression(node);
@@ -318,13 +342,9 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
               methodInvocation("javaStringEqualsIgnoreCase", node.getTarget(), args.get(0)));
           return null;
         }
-        if (isMethodInClass(node, "indexOf", "java.lang.String")) {
-          IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
-          if (binding != null && binding.getParameterTypes().length >= 1
-              && binding.getParameterTypes()[0].getName().equals("int")) {
-            char c = (char) ((IntegerLiteral) args.get(0)).getValue().intValue();
-            replaceNode(args.get(0), string("" + c));
-          }
+        if (isMethodInClass(node, "indexOf", "java.lang.String")
+            || isMethodInClass(node, "lastIndexOf", "java.lang.String")) {
+          replaceCharLiteralWithStringliteral(args.get(0));
           return null;
         }
         if (isMethodInClass(node, "print", "java.io.PrintWriter")) {
@@ -535,6 +555,9 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
           if (JavaUtils.isTypeNamed(typeBinding, "java.lang.IndexOutOfBoundsException")) {
             replaceNode(nameNode, identifier("RangeError"));
+          }
+          if (JavaUtils.isTypeNamed(typeBinding, "java.lang.NumberFormatException")) {
+            replaceNode(nameNode, identifier("FormatException"));
           }
           // StringBuilder -> JavaStringBuilder
           if (name.equals("StringBuilder")) {

@@ -88,16 +88,23 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
         "import java.util.Arrays;",
+        "import java.util.Comparator;",
         "public class Test {",
-        "  public void foo(String[] items) {",
+        "  public void testA(String[] items) {",
         "    Arrays.sort(items);",
+        "  }",
+        "  public void testB(String[] items, Comparator<String> comparator) {",
+        "    Arrays.sort(items, comparator);",
         "  }",
         "}");
     runProcessor();
     assertFormattedSource(
         "class Test {",
-        "  void foo(List<String> items) {",
+        "  void testA(List<String> items) {",
         "    items.sort();",
+        "  }",
+        "  void testB(List<String> items, Comparator<String> comparator) {",
+        "    items.sort(comparator);",
         "  }",
         "}");
   }
