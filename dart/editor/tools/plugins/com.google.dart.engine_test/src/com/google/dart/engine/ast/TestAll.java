@@ -23,6 +23,7 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(IndexExpressionTest.class);
     suite.addTestSuite(SimpleIdentifierTest.class);
+    suite.addTestSuite(VariableDeclarationTest.class);
     suite.addTest(com.google.dart.engine.ast.visitor.TestAll.suite());
     return suite;
   }

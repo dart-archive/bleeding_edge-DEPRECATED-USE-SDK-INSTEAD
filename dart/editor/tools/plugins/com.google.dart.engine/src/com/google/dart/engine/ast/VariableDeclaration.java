@@ -70,6 +70,27 @@ public class VariableDeclaration extends Declaration {
     return visitor.visitVariableDeclaration(this);
   }
 
+  /**
+   * This overridden implementation of getDocumentationComment() looks in the grandparent node for
+   * dartdoc comments if no documentation is specifically available on the node.
+   */
+  @Override
+  public Comment getDocumentationComment() {
+    Comment comment = super.getDocumentationComment();
+
+    if (comment == null) {
+      if (getParent() != null && getParent().getParent() != null) {
+        ASTNode node = getParent().getParent();
+
+        if (node instanceof AnnotatedNode) {
+          return ((AnnotatedNode) node).getDocumentationComment();
+        }
+      }
+    }
+
+    return comment;
+  }
+
   @Override
   public VariableElement getElement() {
     return name != null ? (VariableElement) name.getElement() : null;
