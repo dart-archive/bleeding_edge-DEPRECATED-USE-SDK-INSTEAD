@@ -1352,8 +1352,10 @@ public class DartCore extends Plugin implements DartSdkListener {
   @Override
   public void start(BundleContext context) throws Exception {
     super.start(context);
+
     CmdLineOptions.setOptions(CmdLineOptions.parseCmdLine(Platform.getApplicationArgs()));
     CmdLineOptions.getOptions().printWarnings();
+
     AnalysisEngine.getInstance().setLogger(new Logger() {
       @Override
       public void logError(String message) {
@@ -1380,8 +1382,19 @@ public class DartCore extends Plugin implements DartSdkListener {
         DartCore.logInformation(message, exception);
       }
     });
+
     DartSdkManager.getManager().addSdkListener(this);
-    getProjectManager().start();
+
+    // Perform the project manager initialization in a job.
+    Job job = new Job("Initialize ProjectManager") {
+      @Override
+      protected IStatus run(IProgressMonitor monitor) {
+        getProjectManager().start();
+        return Status.OK_STATUS;
+      }
+    };
+    job.setSystem(true);
+    job.schedule();
   }
 
   @Override
