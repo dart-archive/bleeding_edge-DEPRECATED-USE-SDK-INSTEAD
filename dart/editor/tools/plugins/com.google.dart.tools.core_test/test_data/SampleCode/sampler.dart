@@ -60,10 +60,10 @@ class _PrivateClass {
   const _PrivateClass(this.constantField);
 }
 
-interface PublicInterface {
+class PublicInterface {
 }
 
-interface _PrivateInterface {
+class _PrivateInterface {
 }
 
 class NativeClass native "something" {
