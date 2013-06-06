@@ -491,13 +491,23 @@ public class TypeResolverVisitor extends ScopedVisitor {
       }
     } else {
       // The name does not represent a type.
-      // TODO(brianwilkerson) Report this error
       if (isTypeNameInCatchClause(node)) {
         reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, typeName.getName());
       } else if (isTypeNameInAsExpression(node)) {
         reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
       } else if (isTypeNameInIsExpression(node)) {
         reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
+      } else {
+        ASTNode parent = typeName.getParent();
+        while (parent instanceof TypeName) {
+          parent = parent.getParent();
+        }
+        if (parent instanceof ExtendsClause || parent instanceof ImplementsClause
+            || parent instanceof WithClause || parent instanceof ClassTypeAlias) {
+          // Ignored. The error will be reported elsewhere.
+        } else {
+          reportError(StaticWarningCode.NOT_A_TYPE, typeName, typeName.getName());
+        }
       }
       setElement(typeName, dynamicType.getElement());
       typeName.setStaticType(dynamicType);
@@ -921,13 +931,16 @@ public class TypeResolverVisitor extends ScopedVisitor {
   private void setElement(Identifier typeName, Element element) {
     if (element != null) {
       if (typeName instanceof SimpleIdentifier) {
+        ((SimpleIdentifier) typeName).setStaticElement(element);
         ((SimpleIdentifier) typeName).setElement(element);
       } else if (typeName instanceof PrefixedIdentifier) {
         PrefixedIdentifier identifier = (PrefixedIdentifier) typeName;
+        identifier.getIdentifier().setStaticElement(element);
         identifier.getIdentifier().setElement(element);
         SimpleIdentifier prefix = identifier.getPrefix();
         Element prefixElement = getNameScope().lookup(prefix, getDefiningLibrary());
         if (prefixElement != null) {
+          prefix.setStaticElement(prefixElement);
           prefix.setElement(prefixElement);
         }
       }

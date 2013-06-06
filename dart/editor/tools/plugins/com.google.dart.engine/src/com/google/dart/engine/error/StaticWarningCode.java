@@ -370,18 +370,6 @@ public enum StaticWarningCode implements ErrorCode {
   INVOCATION_OF_NON_FUNCTION(""),
 
   /**
-   * 15.1 Static Types: A type <i>T</i> is malformed iff: <li><i>T</i> has the form <i>id</i> or the
-   * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
-   * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type variable in the
-   * enclosing lexical scope, but occurs in the signature or body of a static member.</li> <li>
-   * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
-   * and <i>G</i> is malformed.</li></ul>
-   * <p>
-   * Any use of a malformed type gives rise to a static warning.
-   */
-  MALFORMED_TYPE(""),
-
-  /**
    * 7.3 Setters: It is a static warning if a class has a setter named <i>v=</i> with argument type
    * <i>T</i> and a getter named <i>v</i> with return type <i>S</i>, and <i>T</i> may not be
    * assigned to <i>S</i>.
@@ -562,6 +550,20 @@ public enum StaticWarningCode implements ErrorCode {
   NON_VOID_RETURN_FOR_SETTER("The return type of the setter must be 'void'"),
 
   /**
+   * 15.1 Static Types: A type <i>T</i> is malformed iff: <li><i>T</i> has the form <i>id</i> or the
+   * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
+   * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type variable in the
+   * enclosing lexical scope, but occurs in the signature or body of a static member.</li> <li>
+   * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
+   * and <i>G</i> is malformed.</li></ul>
+   * <p>
+   * Any use of a malformed type gives rise to a static warning.
+   * 
+   * @param nonTypeName the name that is not a type
+   */
+  NOT_A_TYPE("%s is not a type"),
+
+  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
    * 
    * @param requiredCount the expected number of required arguments
@@ -643,6 +645,18 @@ public enum StaticWarningCode implements ErrorCode {
    * current lexical scope.
    */
   TYPE_TEST_NON_TYPE("The name '%s' is not a type and cannot be used in an 'is' expression"),
+
+  /**
+   * 15.1 Static Types: A type <i>T</i> is malformed iff: <li><i>T</i> has the form <i>id</i> or the
+   * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
+   * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type variable in the
+   * enclosing lexical scope, but occurs in the signature or body of a static member.</li> <li>
+   * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
+   * and <i>G</i> is malformed.</li></ul>
+   * <p>
+   * Any use of a malformed type gives rise to a static warning.
+   */
+  TYPE_VARIABLE_IN_STATIC_SCOPE(""),
 
   /**
    * 12.15.3 Static Invocation: A static method invocation <i>i</i> has the form

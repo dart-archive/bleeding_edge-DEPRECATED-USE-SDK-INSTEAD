@@ -1189,7 +1189,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "var A = 0;",
         "void f() {",
-        "  A a = new A();",
+        "  var a = new A();",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.NEW_WITH_NON_TYPE);
@@ -1429,6 +1429,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER);
+    verify(source);
+  }
+
+  public void test_notAType() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {}",
+        "main() {",
+        "  f v = null;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NOT_A_TYPE);
     verify(source);
   }
 
