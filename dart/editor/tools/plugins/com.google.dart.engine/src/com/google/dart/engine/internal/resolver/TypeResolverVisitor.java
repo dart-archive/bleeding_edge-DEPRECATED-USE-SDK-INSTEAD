@@ -455,6 +455,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
         reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
       } else if (isTypeNameInIsExpression(node)) {
         reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
+      } else if (isTypeNameTargetInRedirectedConstructor(node)) {
+        reportError(StaticWarningCode.REDIRECT_TO_NON_CLASS, typeName, typeName.getName());
       } else {
         reportError(StaticWarningCode.UNDEFINED_CLASS, typeName, typeName.getName());
       }
@@ -782,6 +784,25 @@ public class TypeResolverVisitor extends ScopedVisitor {
     if (parent instanceof IsExpression) {
       IsExpression isExpression = (IsExpression) parent;
       return isExpression.getType() == typeName;
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given type name is the target in a redirected constructor.
+   * 
+   * @param typeName the type name to analyzer
+   * @return {@code true} if the given type name is used as the type in a redirected constructor
+   */
+  private boolean isTypeNameTargetInRedirectedConstructor(TypeName typeName) {
+    ASTNode parent = typeName.getParent();
+    if (parent instanceof ConstructorName) {
+      ConstructorName constructorName = (ConstructorName) parent;
+      parent = constructorName.getParent();
+      if (parent instanceof ConstructorDeclaration) {
+        ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) parent;
+        return constructorName.equals(constructorDeclaration.getRedirectedConstructor());
+      }
     }
     return false;
   }

@@ -168,24 +168,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_redirectToMissingConstructor() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR);
-    verify(source);
-  }
-
-  public void fail_redirectToNonClass() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(StaticWarningCode.REDIRECT_TO_NON_CLASS);
-    verify(source);
-  }
-
   public void fail_undefinedGetter() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -1495,6 +1477,40 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void test_redirectToMissingConstructor_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A implements B{",
+        "  A() {}",
+        "}",
+        "class B {",
+        "  B() = A.name;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR);
+  }
+
+  public void test_redirectToMissingConstructor_unnamed() throws Exception {
+    Source source = addSource(createSource(//
+        "class A implements B{",
+        "  A.name() {}",
+        "}",
+        "class B {",
+        "  B() = A;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR);
+  }
+
+  public void test_redirectToNonClass() throws Exception {
+    Source source = addSource(createSource(//
+        "class B {",
+        "  B() = A;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.REDIRECT_TO_NON_CLASS);
     verify(source);
   }
 
