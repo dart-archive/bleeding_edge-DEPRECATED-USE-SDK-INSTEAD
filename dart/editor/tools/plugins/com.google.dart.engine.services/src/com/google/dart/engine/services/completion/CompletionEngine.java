@@ -250,7 +250,7 @@ public class CompletionEngine {
 
     private boolean inPrivateLibrary(InterfaceType type) {
       LibraryElement lib = type.getElement().getLibrary();
-      if (!lib.getName().startsWith("_")) {
+      if (!(lib.getName().startsWith("_") || type.getDisplayName().startsWith("_"))) {
         return false;
       }
       return lib != getCurrentLibrary();
@@ -1784,10 +1784,30 @@ public class CompletionEngine {
     proposeNames(names, identifier);
   }
 
-  private InterfaceType[] allSubtypes(ClassElement classElement) {
+  private InterfaceType[] allSubtypes(final ClassElement classElement) {
     SearchEngine engine = context.getSearchEngine();
     SearchScope scope = SearchScopeFactory.createUniverseScope();
-    List<SearchMatch> matches = engine.searchSubtypes(classElement, scope, null);
+    SearchFilter directSubsOnly = new SearchFilter() {
+      @Override
+      public boolean passes(SearchMatch match) {
+        Element element = match.getElement();
+        if (element instanceof ClassElement) {
+          ClassElement clElem = (ClassElement) element;
+          while (clElem != null) {
+            InterfaceType ifType = clElem.getSupertype();
+            if (ifType == null) {
+              return false;
+            }
+            clElem = ifType.getElement();
+            if (clElem == classElement) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+    };
+    List<SearchMatch> matches = engine.searchSubtypes(classElement, scope, directSubsOnly);
     InterfaceType[] subtypes = new InterfaceType[matches.size()];
     int i = 0;
     for (SearchMatch match : matches) {

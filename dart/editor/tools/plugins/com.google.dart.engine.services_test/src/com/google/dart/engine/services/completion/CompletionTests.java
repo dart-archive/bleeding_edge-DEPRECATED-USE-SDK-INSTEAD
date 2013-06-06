@@ -479,6 +479,13 @@ public class CompletionTests extends CompletionTestCase {
         "3+ONE");
   }
 
+  public void test033() throws Exception {
+    test(
+        "class A{}class B extends A{b(){}}class C implements A {c(){}}class X{x(){A f;f.!1}}",
+        "1+b",
+        "1-c");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
