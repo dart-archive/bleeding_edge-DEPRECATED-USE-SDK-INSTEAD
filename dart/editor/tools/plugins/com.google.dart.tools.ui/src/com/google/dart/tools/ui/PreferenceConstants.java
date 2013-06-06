@@ -16,7 +16,6 @@ package com.google.dart.tools.ui;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.ui.internal.cleanup.CleanUpConstants;
 import com.google.dart.tools.ui.internal.text.IJavaThemeConstants;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightings;
 import com.google.dart.tools.ui.text.IDartColorConstants;
@@ -3686,7 +3685,6 @@ public class PreferenceConstants {
 
     // Code Clean Up
     DartX.todo();
-    CleanUpConstants.initDefaults(store);
   }
 
   /**

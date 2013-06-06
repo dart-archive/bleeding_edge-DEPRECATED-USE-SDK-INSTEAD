@@ -16,8 +16,6 @@ package com.google.dart.tools.ui;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.ui.internal.cleanup.CleanUpRegistry;
-import com.google.dart.tools.ui.internal.cleanup.preference.PreferencesAccess;
 import com.google.dart.tools.ui.internal.preferences.MembersOrderPreferenceCache;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory;
@@ -25,7 +23,6 @@ import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitDocumentProvider;
 import com.google.dart.tools.ui.internal.text.editor.ICompilationUnitDocumentProvider;
 import com.google.dart.tools.ui.internal.text.editor.WorkingCopyManager;
-import com.google.dart.tools.ui.internal.text.editor.saveparticipant.SaveParticipantRegistry;
 import com.google.dart.tools.ui.internal.text.folding.JavaFoldingStructureProviderRegistry;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.TypeFilter;
@@ -68,7 +65,6 @@ import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
-import org.osgi.service.prefs.BackingStoreException;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -178,19 +174,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
           p.removeFirstSegments(1).makeAbsolute().toString());
     } else {
       return getBundledImageDescriptor(p.makeAbsolute().toString());
-    }
-  }
-
-  /**
-   * Flushes the instance scope of this plug-in.
-   * 
-   * @since 3.7
-   */
-  public static void flushInstanceScope() {
-    try {
-      PreferencesAccess.INSTANCE_SCOPE.getNode(DartUI.ID_PLUGIN).flush();
-    } catch (BackingStoreException e) {
-      log(e);
     }
   }
 
@@ -499,21 +482,11 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   private ContentAssistHistory contentAssistHistory;
 
   /**
-   * The save participant registry.
-   */
-  private SaveParticipantRegistry saveParticipantRegistry;
-
-  /**
    * Theme listener.
    */
   //private IPropertyChangeListener fThemeListener;
 
   private FormToolkit dialogsFormToolkit;
-
-  /**
-   * The clean up registry
-   */
-  private CleanUpRegistry cleanUpRegistry;
 
   /**
    * The constructor
@@ -540,14 +513,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   public synchronized Object getClassFileDocumentProvider() {
     DartX.notYet();
     return null;
-  }
-
-  public synchronized CleanUpRegistry getCleanUpRegistry() {
-    if (cleanUpRegistry == null) {
-      cleanUpRegistry = new CleanUpRegistry();
-    }
-
-    return cleanUpRegistry;
   }
 
   /**
@@ -741,18 +706,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   }
 
   /**
-   * Returns the save participant registry.
-   * 
-   * @return the save participant registry, not null
-   */
-  public synchronized SaveParticipantRegistry getSaveParticipantRegistry() {
-    if (saveParticipantRegistry == null) {
-      saveParticipantRegistry = new SaveParticipantRegistry();
-    }
-    return saveParticipantRegistry;
-  }
-
-  /**
    * Returns the template context type registry for the java plug-in.
    * 
    * @return the template context type registry for the java plug-in
@@ -915,11 +868,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
       if (membersOrderPreferenceCache != null) {
         membersOrderPreferenceCache.dispose();
         membersOrderPreferenceCache = null;
-      }
-
-      if (saveParticipantRegistry != null) {
-        saveParticipantRegistry.dispose();
-        saveParticipantRegistry = null;
       }
 
       if (dialogsFormToolkit != null) {

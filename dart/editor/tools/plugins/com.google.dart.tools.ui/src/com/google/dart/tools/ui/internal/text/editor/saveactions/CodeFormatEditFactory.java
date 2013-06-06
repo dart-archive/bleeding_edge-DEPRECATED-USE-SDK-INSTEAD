@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.text.editor.saveactions;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.cleanup.ICleanUpFix;
 import com.google.dart.tools.ui.internal.cleanup.MultiFixMessages;
 import com.google.dart.tools.ui.text.DartPartitions;
 

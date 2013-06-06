@@ -35,7 +35,6 @@ Export-Package: com.google.dart.tools.internal.corext.codemanipulation;x-friends
  com.google.dart.tools.internal.corext.refactoring.util;x-friends:="com.google.dart.tools.ui_test,com.google.dart.tools.ui.swtbot_test,com.google.dart.tools.deploy",
  com.google.dart.tools.ui,
  com.google.dart.tools.ui.actions,
- com.google.dart.tools.ui.cleanup,
  com.google.dart.tools.ui.dialogs,
  com.google.dart.tools.ui.feedback,
  com.google.dart.tools.ui.instrumentation,
