@@ -2117,18 +2117,16 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
 
     // Quick Outline
-    {
-      if ((selection instanceof TextSelection) && ((TextSelection) selection).getLength() == 0) {
-        IAction action = getAction(DartEditorActionDefinitionIds.SHOW_OUTLINE);
-        menu.appendToGroup(ITextEditorActionConstants.GROUP_RESTORE, action);
-
-        // Revert action
-        addAction(
-            menu,
-            ITextEditorActionConstants.GROUP_RESTORE,
-            ITextEditorActionConstants.REVERT_TO_SAVED);
-      }
+    if ((selection instanceof TextSelection) && ((TextSelection) selection).getLength() == 0) {
+      IAction action = getAction(DartEditorActionDefinitionIds.SHOW_OUTLINE);
+      menu.appendToGroup(ITextEditorActionConstants.GROUP_RESTORE, action);
     }
+
+    // Revert action
+    addAction(
+        menu,
+        ITextEditorActionConstants.GROUP_RESTORE,
+        ITextEditorActionConstants.REVERT_TO_SAVED);
 
     // Cut/Copy/Paste actions
     addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.UNDO);
