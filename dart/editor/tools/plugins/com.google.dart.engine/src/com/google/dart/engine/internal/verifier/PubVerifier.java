@@ -147,7 +147,7 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
    * @return {@code true} if the import path contains ".."
    */
   private boolean checkForPackageImportContainsDotDot(String path) {
-    return path.contains("/../");
+    return path.startsWith("../") || path.contains("/../");
   }
 
   /**

@@ -28,6 +28,15 @@ public class PubSuggestionCodeTest extends ResolverTestCase {
         PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT);
   }
 
+  public void test_import_packageWithLeadingDotDot() throws Exception {
+    Source source = addSource(createSource(//
+    "import 'package:../other.dart';"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT);
+  }
+
   public void test_import_referenceIntoLibDirectory() throws Exception {
     Source source = addSource(createSource(//
     "import '../lib/other.dart';"));
