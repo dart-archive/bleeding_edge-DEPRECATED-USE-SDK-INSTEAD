@@ -735,6 +735,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "    print(1);",
             "  }",
             "  int compareTo(Test other) => ordinal - other.ordinal;",
+            "  int hashCode => ordinal;",
             "  String toString() => name;",
             "}",
             "class Test_EOF extends Test {",
@@ -778,6 +779,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  MyEnum(this.name, this.ordinal) {",
             "  }",
             "  int compareTo(MyEnum other) => ordinal - other.ordinal;",
+            "  int hashCode => ordinal;",
             "  String toString() => name;",
             "}"),
         getFormattedSource(unit));
@@ -811,6 +813,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  Test(this.name, this.ordinal) {",
             "  }",
             "  int compareTo(Test other) => ordinal - other.ordinal;",
+            "  int hashCode => ordinal;",
             "  String toString() => name;",
             "}"),
         getFormattedSource(unit));
@@ -859,6 +862,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  _jtd_constructor_1_impl(int p) {",
             "  }",
             "  int compareTo(Test other) => ordinal - other.ordinal;",
+            "  int hashCode => ordinal;",
             "  String toString() => name;",
             "}"),
         getFormattedSource(unit));
@@ -1673,6 +1677,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  A(this.name, this.ordinal) {",
             "  }",
             "  int compareTo(A other) => ordinal - other.ordinal;",
+            "  int hashCode => ordinal;",
             "  String toString() => name;",
             "}",
             "class B {",

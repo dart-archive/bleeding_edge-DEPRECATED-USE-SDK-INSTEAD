@@ -255,6 +255,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "  Direction.jtd_constructor_0_decl(this.name, this.ordinal) {",
         "  }",
         "  int compareTo(Direction other) => ordinal - other.ordinal;",
+        "  int hashCode => ordinal;",
         "  String toString() => name;",
         "}");
   }

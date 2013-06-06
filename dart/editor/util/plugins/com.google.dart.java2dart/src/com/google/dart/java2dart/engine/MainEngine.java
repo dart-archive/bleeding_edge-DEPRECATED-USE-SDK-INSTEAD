@@ -324,7 +324,7 @@ public class MainEngine {
           makeSource("Object visitImportDirective(ImportDirective directive) {", "    return null;"));
       source = replaceSourceFragment(
           source,
-          "fullName2.replaceAll(JavaFile.separatorChar, '/')",
+          "fullName2.replaceAll(new String.fromCharCode(JavaFile.separatorChar), '/')",
           "fullName2.replaceAll(r'\\', '/')");
       Files.write(source, new File(targetFolder + "/resolver.dart"), Charsets.UTF_8);
     }

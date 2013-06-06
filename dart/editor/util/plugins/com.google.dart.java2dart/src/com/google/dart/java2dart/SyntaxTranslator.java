@@ -888,6 +888,15 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
               identifier(ENUM_ORDINAL_FIELD_NAME),
               TokenType.MINUS,
               propertyAccess(identifier("other"), identifier(ENUM_ORDINAL_FIELD_NAME))))));
+      // get hashCode
+      members.add(methodDeclaration(
+          null,
+          typeName("int"),
+          null,
+          null,
+          identifier("hashCode"),
+          null,
+          expressionFunctionBody(identifier(ENUM_ORDINAL_FIELD_NAME))));
       // toString()
       members.add(methodDeclaration(
           typeName("String"),

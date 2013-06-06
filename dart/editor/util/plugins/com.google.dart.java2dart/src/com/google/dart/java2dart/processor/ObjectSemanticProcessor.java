@@ -162,7 +162,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           ITypeBinding argTypeBinding = context.getNodeTypeBinding(leftExpr);
           if (JavaUtils.isTypeNamed(argTypeBinding, "java.lang.String")) {
             Expression rightExpr = node.getRightHandSide();
-            replaceCharLiteralWithStringliteral(rightExpr);
+            replaceCharWithString(rightExpr);
             return null;
           }
         }
@@ -325,8 +325,8 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass2(node, "replace(char,char)", "java.lang.String")) {
           nameNode.setToken(token("replaceAll"));
-          replaceCharLiteralWithStringliteral(args.get(0));
-          replaceCharLiteralWithStringliteral(args.get(1));
+          replaceCharWithString(args.get(0));
+          replaceCharWithString(args.get(1));
           return null;
         }
         if (isMethodInClass2(
@@ -344,7 +344,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass(node, "indexOf", "java.lang.String")
             || isMethodInClass(node, "lastIndexOf", "java.lang.String")) {
-          replaceCharLiteralWithStringliteral(args.get(0));
+          replaceCharWithString(args.get(0));
           return null;
         }
         if (isMethodInClass(node, "print", "java.io.PrintWriter")) {
@@ -589,14 +589,27 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         return null;
       }
 
-      private void replaceCharLiteralWithStringliteral(Expression x) {
+      private void replaceCharWithString(Expression x) {
+        // should by 'char'
+        ITypeBinding typeBinding = context.getNodeTypeBinding(x);
+        if (!JavaUtils.isTypeNamed(typeBinding, "char")) {
+          return;
+        }
+        // replace literal
         if (x instanceof IntegerLiteral) {
           IntegerLiteral literal = (IntegerLiteral) x;
-          ITypeBinding typeBinding = context.getNodeTypeBinding(x);
-          if (JavaUtils.isTypeNamed(typeBinding, "char")) {
-            replaceNode(literal, string(String.valueOf((char) literal.getValue().intValue())));
-          }
+          replaceNode(x, string(String.valueOf((char) literal.getValue().intValue())));
+          return;
         }
+        // replace expression
+        SimpleIdentifier placeholder = identifier("ph");
+        InstanceCreationExpression newString = instanceCreationExpression(
+            Keyword.NEW,
+            typeName("String"),
+            "fromCharCode",
+            placeholder);
+        replaceNode(x, newString);
+        replaceNode(placeholder, x);
       }
     });
   }

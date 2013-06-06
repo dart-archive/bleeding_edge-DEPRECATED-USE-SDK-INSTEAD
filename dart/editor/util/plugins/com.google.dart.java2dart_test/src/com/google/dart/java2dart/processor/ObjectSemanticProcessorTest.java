@@ -873,12 +873,16 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  public String testB(String s, String r) {",
         "    return s.replace('/', r);",
         "  }",
+        "  public String testC(String s, char r) {",
+        "    return s.replace('/', r);",
+        "  }",
         "}");
     runProcessor();
     assertFormattedSource(
         "class Test {",
         "  String testA(String s, String p, String r) => s.replaceAll(p, r);",
         "  String testB(String s, String r) => s.replaceAll('/', r);",
+        "  String testC(String s, int r) => s.replaceAll('/', new String.fromCharCode(r));",
         "}");
   }
 
