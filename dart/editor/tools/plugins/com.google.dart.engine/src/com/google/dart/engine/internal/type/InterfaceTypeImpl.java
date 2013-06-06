@@ -285,6 +285,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Override
   public Type getLeastUpperBound(Type type) {
+    // quick check for self
+    if (type == this) {
+      return this;
+    }
+    // dynamic
     Type dynamicType = DynamicTypeImpl.getInstance();
     if (this == dynamicType || type == dynamicType) {
       return dynamicType;
