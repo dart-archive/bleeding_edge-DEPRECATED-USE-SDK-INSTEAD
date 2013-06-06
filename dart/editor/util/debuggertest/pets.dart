@@ -6,6 +6,9 @@ import 'dart:collection';
 import 'dart:isolate';
 import 'dart:math';
 
+/**
+ * The maximum number of cats.
+ */
 final num MAX_CATS = 10;
 
 final SPARKY = const Cat("Sparky");
@@ -13,6 +16,9 @@ final SPARKY = const Cat("Sparky");
 final CHIPPY = const _Chipmunk("Chi\np\npy");
 
 abstract class Animal {
+  /**
+   * True if a can live with b.
+   */
   bool livesWith(Animal other);
   void performAction();
 }
@@ -22,6 +28,9 @@ class Cat implements Animal {
 
   static final BLACK_CAT = const Cat("Midnight");
 
+  /**
+   * The Cat's name.
+   */
   final String name;
 
   final bool _declawed = false;
@@ -197,6 +206,9 @@ void testInfinity() {
   print(infTest); // Infinity
 }
 
+/**
+ * Create some isolates.
+ */
 void spawnAnimalsIsolate() {
   spawnFunction(_spawnAnimals);
 }
@@ -205,12 +217,15 @@ void _spawnAnimals() {
   int count = new Random().nextInt(10);
 
   print("isolate started");
-      
+  
   new Timer(new Duration(seconds: count), () {
     print("isolate finished after ${count} seconds");
   });
 }
 
+/**
+ * Display several different common collections types.
+ */
 void checkTypes() {
   // TODO: arrays vs lists
   List<String> list = new List<String>();

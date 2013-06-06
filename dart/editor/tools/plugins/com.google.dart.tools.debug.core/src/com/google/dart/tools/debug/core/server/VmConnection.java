@@ -101,6 +101,11 @@ public class VmConnection {
   private VmLocation currentLocation;
   private boolean isStepping;
 
+  /**
+   * A set of the currently paused isolates.
+   */
+  Set<VmIsolate> pausedIsolates = new HashSet<VmIsolate>();
+
   public VmConnection(String host, int port) {
     this.host = host;
     this.port = port;
@@ -319,12 +324,18 @@ public class VmConnection {
 
   public void getLibraries(VmIsolate isolate, final VmCallback<List<VmLibraryRef>> callback)
       throws IOException {
-    sendSimpleCommand("getLibraries", isolate.getId(), new Callback() {
-      @Override
-      public void handleResult(JSONObject result) throws JSONException {
-        callback.handleResult(convertGetLibrariesResult(result));
-      }
-    });
+    if (isIsolatePaused(isolate)) {
+      sendSimpleCommand("getLibraries", isolate.getId(), new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          callback.handleResult(convertGetLibrariesResult(result));
+        }
+      });
+    } else {
+      VmResult<List<VmLibraryRef>> result = new VmResult<List<VmLibraryRef>>();
+      result.setResult(new ArrayList<VmLibraryRef>());
+      callback.handleResult(result);
+    }
   }
 
   public void getLibraryProperties(final VmIsolate isolate, final int libraryId,
@@ -796,6 +807,10 @@ public class VmConnection {
     callbackMap.clear();
   }
 
+  protected boolean isIsolatePaused(VmIsolate isolate) {
+    return pausedIsolates.contains(isolate);
+  }
+
   protected void processJson(final JSONObject result) {
     threadPool.execute(new Runnable() {
       @Override
@@ -1125,6 +1140,8 @@ public class VmConnection {
         VmValue exception = VmValue.createFrom(isolate, params.optJSONObject("exception"));
         VmLocation location = VmLocation.createFrom(isolate, params.optJSONObject("location"));
 
+        pausedIsolates.add(isolate);
+
         sendDelayedDebuggerPaused(PausedReason.parse(reason), isolate, location, exception);
       } else if (eventName.equals(EVENT_BREAKPOINTRESOLVED)) {
         // { "event": "breakpointResolved", "params": {"breakpointId": 2, "url": "file:///Users/devoncarew/tools/eclipse_37/eclipse/samples/time/time_server.dart", "line": 19 }}
@@ -1152,6 +1169,8 @@ public class VmConnection {
           for (VmListener listener : listeners) {
             listener.isolateShutdown(isolate);
           }
+
+          pausedIsolates.remove(isolate);
 
           isolateMap.remove(isolate.getId());
         }
@@ -1262,6 +1281,8 @@ public class VmConnection {
         VmResult<String> response = VmResult.createFrom(result);
 
         if (!response.isError()) {
+          pausedIsolates.remove(isolate);
+
           notifyDebuggerResumed(isolate);
         }
       }
