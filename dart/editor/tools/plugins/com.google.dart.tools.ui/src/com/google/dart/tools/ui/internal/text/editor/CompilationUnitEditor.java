@@ -18,7 +18,6 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -1965,9 +1964,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   }
 
   /**
-   * We need to force reconcile each time when {@link AnalysisServer} recompiles underlying file.
-   * For example: use imports from saved unit; update problems-as-you-type after external change,
-   * such as reanalyze all.
+   * We need to force reconcile each time when builder reanalyzes underlying file. For example: use
+   * imports from saved unit; update problems-as-you-type after external change, such as reanalyze
+   * all.
    */
   private void scheduleReconcileAfterBuild() {
     //TODO (pquitslund): investigate whether we need hooks for reconcile on build

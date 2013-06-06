@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.CoreUtility;
@@ -49,15 +48,6 @@ public class RefactoringSaveHelper {
    */
   public static final int SAVE_NOTHING = 3;
 
-  /**
-   * Notifies {@link AnalysisServer} about a change so it will put on hold requests to the search
-   * engine until the changed file gets indexed. We need this because without it the builder may not
-   * notice changes prior to the refactoring processors making search queries.
-   */
-  private static void notifyAnalysisServerAboutFileChange(IEditorPart editor) {
-
-  }
-
   public RefactoringSaveHelper(int saveMode) {
     Assert.isLegal(saveMode == SAVE_ALL || saveMode == SAVE_NOTHING);
     this.saveMode = saveMode;
@@ -85,10 +75,6 @@ public class RefactoringSaveHelper {
         // do save
         if (!DartToolsPlugin.getActiveWorkbenchWindow().getWorkbench().saveAllEditors(false)) {
           return false;
-        }
-        // notify AnalysisServer
-        for (IEditorPart editor : dirtyEditors) {
-          notifyAnalysisServerAboutFileChange(editor);
         }
         // done
         filesSaved = true;

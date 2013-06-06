@@ -18,8 +18,6 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
-import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.AnalysisServerMock;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
@@ -381,15 +379,6 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static DartModel create(IWorkspaceRoot workspaceRoot) {
     return null;
-  }
-
-  /**
-   * A factory for creating analysis server instances.
-   * 
-   * @return an analysis server
-   */
-  public static AnalysisServer createAnalysisServer() {
-    return new AnalysisServerMock();
   }
 
   /**

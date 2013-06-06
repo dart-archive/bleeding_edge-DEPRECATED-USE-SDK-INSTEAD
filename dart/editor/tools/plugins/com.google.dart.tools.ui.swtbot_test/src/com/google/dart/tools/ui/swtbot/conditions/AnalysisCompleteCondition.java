@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.swtbot.conditions;
 
-import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
@@ -28,7 +27,7 @@ public class AnalysisCompleteCondition implements ICondition {
   private static boolean isIdle = true;
 
   /**
-   * Start gathering performance information from {@link AnalysisServer}
+   * Start gathering performance information
    */
   public static void startListening() {
 //    AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
