@@ -1042,6 +1042,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     CompletionProposal proposal = ((MemberProposalInfo) proposalInfo).fProposal;
     return proposal != null
         && (proposal.getKind() == CompletionProposal.METHOD_REF
+            || proposal.getKind() == CompletionProposal.ARGUMENT_LIST
             || proposal.getKind() == CompletionProposal.FIELD_REF
             || proposal.getKind() == CompletionProposal.TYPE_REF
 //          || proposal.getKind() == CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION

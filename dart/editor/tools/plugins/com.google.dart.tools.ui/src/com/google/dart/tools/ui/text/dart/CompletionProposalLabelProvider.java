@@ -86,6 +86,7 @@ public class CompletionProposalLabelProvider {
       case CompletionProposal.METHOD_DECLARATION:
       case CompletionProposal.METHOD_NAME_REFERENCE:
       case CompletionProposal.METHOD_REF:
+      case CompletionProposal.ARGUMENT_LIST:
       case CompletionProposal.POTENTIAL_METHOD_DECLARATION:
         descriptor = DartElementImageProvider.getMethodImageDescriptor(false, proposal.isPrivate());
         break;
@@ -138,6 +139,7 @@ public class CompletionProposalLabelProvider {
     switch (proposal.getKind()) {
       case CompletionProposal.METHOD_NAME_REFERENCE:
       case CompletionProposal.METHOD_REF:
+      case CompletionProposal.ARGUMENT_LIST:
       case CompletionProposal.POTENTIAL_METHOD_DECLARATION:
         if (fContext != null && fContext.isInJavadoc()) {
           return createJavadocMethodProposalLabel(proposal);
@@ -195,6 +197,7 @@ public class CompletionProposalLabelProvider {
     int kind = proposal.getKind();
     switch (kind) {
       case CompletionProposal.METHOD_REF:
+      case CompletionProposal.ARGUMENT_LIST:
         return appendUnboundedParameterList(new StringBuffer(), proposal).toString();
       default:
         Assert.isLegal(false);
@@ -206,6 +209,8 @@ public class CompletionProposalLabelProvider {
   public StyledString createStyledLabel(CompletionProposal proposal) {
     // TODO(messick) rewrite to create styled labels from the beginning
     switch (proposal.getKind()) {
+      case CompletionProposal.ARGUMENT_LIST:
+        return createArgumentList(proposal);
       case CompletionProposal.METHOD_NAME_REFERENCE:
       case CompletionProposal.METHOD_REF:
       case CompletionProposal.POTENTIAL_METHOD_DECLARATION:
@@ -235,6 +240,13 @@ public class CompletionProposalLabelProvider {
     buffer.append(DartTextMessages.ResultCollector_anonymous_type);
 
     return buffer.toString();
+  }
+
+  StyledString createArgumentList(CompletionProposal methodProposal) {
+    StringBuffer nameBuffer = new StringBuffer();
+    appendUnboundedParameterList(nameBuffer, methodProposal);
+    StyledString label = new StyledString(nameBuffer.toString());
+    return label;
   }
 
   ImageDescriptor createFieldImageDescriptor(CompletionProposal proposal) {

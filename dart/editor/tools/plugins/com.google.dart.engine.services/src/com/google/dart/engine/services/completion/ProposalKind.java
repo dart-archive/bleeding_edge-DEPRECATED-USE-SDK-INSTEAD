@@ -32,5 +32,6 @@ public enum ProposalKind {
   PARAMETER,
   SETTER,
   VARIABLE,
-  TYPE_VARIABLE
+  TYPE_VARIABLE,
+  ARGUMENT_LIST
 }

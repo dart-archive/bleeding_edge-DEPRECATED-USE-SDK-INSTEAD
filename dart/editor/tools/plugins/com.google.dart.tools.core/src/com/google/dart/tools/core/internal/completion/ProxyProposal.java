@@ -52,6 +52,8 @@ public class ProxyProposal extends CompletionProposal {
   @Override
   public int getKind() {
     switch (proposal.getKind()) {
+      case ARGUMENT_LIST:
+        return CompletionProposal.ARGUMENT_LIST;
       case CLASS:
         return CompletionProposal.TYPE_REF;
       case CLASS_ALIAS:
@@ -142,11 +144,6 @@ public class ProxyProposal extends CompletionProposal {
   @Override
   public boolean hasOptionalParameters() {
     return proposal.hasPositional() || proposal.hasNamed();
-  }
-
-  @Override
-  public boolean includeClosingParenForArgList() {
-    return proposal.includeClosingParenForArgList();
   }
 
   @Override

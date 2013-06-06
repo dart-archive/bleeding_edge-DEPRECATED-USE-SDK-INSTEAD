@@ -298,6 +298,7 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
     collector.setIgnored(CompletionProposal.METHOD_DECLARATION, true);
     collector.setIgnored(CompletionProposal.METHOD_NAME_REFERENCE, true);
     collector.setIgnored(CompletionProposal.METHOD_REF, true);
+    collector.setIgnored(CompletionProposal.ARGUMENT_LIST, true);
     collector.setIgnored(CompletionProposal.LIBRARY_PREFIX, true);
     collector.setIgnored(CompletionProposal.POTENTIAL_METHOD_DECLARATION, true);
     collector.setIgnored(CompletionProposal.VARIABLE_DECLARATION, true);

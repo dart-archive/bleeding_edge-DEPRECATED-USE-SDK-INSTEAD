@@ -128,7 +128,9 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
     }
 
     StringBuffer buffer = new StringBuffer();
-    appendMethodNameReplacement(buffer);
+    if (fProposal.getKind() != CompletionProposal.ARGUMENT_LIST) {
+      appendMethodNameReplacement(buffer);
+    }
 
     char[][] parameterNames = fProposal.findParameterNames(null);
     int count = parameterNames.length;
@@ -169,7 +171,7 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
       buffer.append(SPACE);
     }
 
-    if (getProposal().includeClosingParenForArgList()) {
+    if (fProposal.getKind() != CompletionProposal.ARGUMENT_LIST) {
       buffer.append(RPAREN);
     }
 

@@ -29,7 +29,6 @@ class ProposalCollector implements CompletionRequestor {
   @Override
   public void accept(CompletionProposal proposal) {
     proposals.add(proposal);
-    requestor.accept(proposal);
   }
 
   @Override
@@ -44,5 +43,9 @@ class ProposalCollector implements CompletionRequestor {
 
   List<CompletionProposal> getProposals() {
     return proposals;
+  }
+
+  CompletionRequestor getRequestor() {
+    return requestor;
   }
 }

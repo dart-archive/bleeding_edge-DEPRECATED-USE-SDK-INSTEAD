@@ -39,13 +39,9 @@ public interface CompletionProposal {
 
   boolean hasPositional();
 
-  boolean includeClosingParenForArgList();
-
   CompletionProposal setCompletion(String x);
 
   CompletionProposal setDeclaringType(String name);
-
-  CompletionProposal setIncludeClosingParenForArgList(boolean value);
 
   CompletionProposal setKind(ProposalKind x);
 

@@ -386,6 +386,8 @@ public class CompletionProposalCollector extends CompletionRequestor {
       case CompletionProposal.LOCAL_VARIABLE_REF:
       case CompletionProposal.VARIABLE_DECLARATION:
         return baseRelevance + 6;
+      case CompletionProposal.ARGUMENT_LIST:
+        return baseRelevance + 7;
       default:
         return baseRelevance;
     }
@@ -428,6 +430,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
         return createFieldProposal(proposal);
 //      case CompletionProposal.FIELD_REF_WITH_CASTED_RECEIVER:
 //        return createFieldWithCastedReceiverProposal(proposal);
+      case CompletionProposal.ARGUMENT_LIST:
       case CompletionProposal.METHOD_REF:
       case CompletionProposal.CONSTRUCTOR_INVOCATION:
 //      case CompletionProposal.METHOD_REF_WITH_CASTED_RECEIVER:
@@ -517,6 +520,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
       case CompletionProposal.METHOD_NAME_REFERENCE:
 //      case CompletionProposal.JAVADOC_METHOD_REF:
       case CompletionProposal.METHOD_REF:
+      case CompletionProposal.ARGUMENT_LIST:
       case CompletionProposal.CONSTRUCTOR_INVOCATION:
 //      case CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION:
 //      case CompletionProposal.METHOD_REF_WITH_CASTED_RECEIVER:

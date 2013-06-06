@@ -37,7 +37,6 @@ public class CompletionProposalImpl implements CompletionProposal {
   private boolean named = false;
   private boolean positional = false;
   private int relevance = 0;
-  private boolean includeClosingParenForArgList = true;
 
   @Override
   public String getCompletion() {
@@ -100,11 +99,6 @@ public class CompletionProposalImpl implements CompletionProposal {
   }
 
   @Override
-  public boolean includeClosingParenForArgList() {
-    return includeClosingParenForArgList;
-  }
-
-  @Override
   public CompletionProposal setCompletion(String x) {
     completion = x;
     if (replacementLength == 0) {
@@ -116,11 +110,6 @@ public class CompletionProposalImpl implements CompletionProposal {
   @Override
   public CompletionProposal setDeclaringType(String name) {
     declaringType = name;
-    return this;
-  }
-
-  public CompletionProposal setIncludeClosingParenForArgList(boolean value) {
-    includeClosingParenForArgList = value;
     return this;
   }
 

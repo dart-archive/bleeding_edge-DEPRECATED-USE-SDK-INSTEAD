@@ -686,28 +686,35 @@ public class CompletionEngine {
           // or node.getParent().accept(this); ?
           MethodInvocation invokeNode = (MethodInvocation) node.getParent();
           SimpleIdentifier methodName = invokeNode.getMethodName();
-          requestor = new ProposalCollector(requestor);
-          dispatchPrefixAnalysis(invokeNode);
+          ProposalCollector proposalRequestor = new ProposalCollector(requestor);
+          try {
+            requestor = proposalRequestor;
+            dispatchPrefixAnalysis(invokeNode);
+          } finally {
+            requestor = proposalRequestor.getRequestor();
+          }
           int offset = methodName.getOffset();
           int len = node.getRightParenthesis().getEnd() - offset;
-          for (CompletionProposal proposal : ((ProposalCollector) requestor).getProposals()) {
-            proposal.setReplacementLength(len);
-            proposal.setLocation(offset);
-            proposal.setIncludeClosingParenForArgList(false);
-            proposal.setRelevance(proposal.getRelevance() + 1);
+          String name = methodName.getName();
+          for (CompletionProposal proposal : proposalRequestor.getProposals()) {
+            if (proposal.getCompletion().equals(name)) {
+              pArgumentList(proposal, offset, len);
+            }
           }
         } else if (node.getParent() instanceof InstanceCreationExpression) {
           InstanceCreationExpression invokeNode = (InstanceCreationExpression) node.getParent();
           ConstructorName methodName = invokeNode.getConstructorName();
-          requestor = new ProposalCollector(requestor);
-          dispatchPrefixAnalysis(invokeNode);
+          ProposalCollector proposalRequestor = new ProposalCollector(requestor);
+          try {
+            requestor = proposalRequestor;
+            dispatchPrefixAnalysis(invokeNode);
+          } finally {
+            requestor = proposalRequestor.getRequestor();
+          }
           int offset = methodName.getOffset();
           int len = node.getRightParenthesis().getEnd() - offset;
           for (CompletionProposal proposal : ((ProposalCollector) requestor).getProposals()) {
-            proposal.setReplacementLength(len);
-            proposal.setLocation(offset);
-            proposal.setIncludeClosingParenForArgList(false);
-            proposal.setRelevance(proposal.getRelevance() + 1);
+            pArgumentList(proposal, offset, len);
           }
         }
         analyzeLocalName(new Ident(node));
@@ -2038,6 +2045,20 @@ public class CompletionEngine {
       }
       return name;
     }
+  }
+
+  private void pArgumentList(CompletionProposal proposal, int offset, int len) {
+    CompletionProposal prop = createProposal(ProposalKind.ARGUMENT_LIST);
+    prop.setCompletion(proposal.getCompletion()).setReturnType(proposal.getReturnType());
+    prop.setParameterNames(proposal.getParameterNames());
+    prop.setParameterTypes(proposal.getParameterTypes());
+    prop.setParameterStyle(
+        proposal.getPositionalParameterCount(),
+        proposal.hasNamed(),
+        proposal.hasPositional());
+    prop.setReplacementLength(proposal.getReplacementLength()).setLocation(proposal.getLocation());
+    prop.setRelevance(proposal.getRelevance() + 10);
+    requestor.accept(prop);
   }
 
   private void pDynamic() {

@@ -422,6 +422,8 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
       case CompletionProposal.LOCAL_VARIABLE_REF:
       case CompletionProposal.VARIABLE_DECLARATION:
         return baseRelevance + 6;
+      case CompletionProposal.ARGUMENT_LIST:
+        return baseRelevance + 7;
       default:
         return baseRelevance;
     }

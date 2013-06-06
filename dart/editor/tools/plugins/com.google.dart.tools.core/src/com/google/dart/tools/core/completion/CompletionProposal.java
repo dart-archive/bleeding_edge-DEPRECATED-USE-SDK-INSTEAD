@@ -602,6 +602,8 @@ public class CompletionProposal {
   @Deprecated
   public static final int ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION = 27;
 
+  public static final int ARGUMENT_LIST = 28;
+
   /**
    * First valid completion kind.
    */
@@ -610,7 +612,7 @@ public class CompletionProposal {
   /**
    * Last valid completion kind.
    */
-  protected static final int LAST_KIND = ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION;
+  protected static final int LAST_KIND = ARGUMENT_LIST;
 
   /**
    * Creates a basic completion proposal. All instance field have plausible default values unless
@@ -1132,10 +1134,6 @@ public class CompletionProposal {
 
   public boolean hasOptionalParameters() {
     return false;
-  }
-
-  public boolean includeClosingParenForArgList() {
-    return true;
   }
 
   /**

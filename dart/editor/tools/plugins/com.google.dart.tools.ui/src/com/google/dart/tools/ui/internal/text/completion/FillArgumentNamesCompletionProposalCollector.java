@@ -49,6 +49,7 @@ public final class FillArgumentNamesCompletionProposalCollector extends Completi
   protected IDartCompletionProposal createDartCompletionProposal(CompletionProposal proposal) {
     switch (proposal.getKind()) {
       case CompletionProposal.METHOD_REF:
+      case CompletionProposal.ARGUMENT_LIST:
       case CompletionProposal.CONSTRUCTOR_INVOCATION:
 //      case CompletionProposal.METHOD_REF_WITH_CASTED_RECEIVER:
         return createMethodReferenceProposal(proposal);
