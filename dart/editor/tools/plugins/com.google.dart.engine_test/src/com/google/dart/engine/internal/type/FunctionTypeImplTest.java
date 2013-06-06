@@ -77,6 +77,7 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_baseCase_classFunction() {
+    // () -> void :< Function
     ClassElementImpl functionElement = classElement("Function");
     InterfaceTypeImpl functionType = new InterfaceTypeImpl(functionElement) {
       @Override
@@ -89,22 +90,29 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_baseCase_notFunctionType() {
+    // class C
+    // ! () -> void :< C
     FunctionType f = functionElement("f").getType();
     InterfaceType t = classElement("C").getType();
     assertFalse(f.isSubtypeOf(t));
   }
 
   public void test_isSubtypeOf_baseCase_null() {
+    // ! () -> void :< null
     FunctionType f = functionElement("f").getType();
     assertFalse(f.isSubtypeOf(null));
   }
 
   public void test_isSubtypeOf_baseCase_self() {
+    // () -> void :< () -> void
     FunctionType f = functionElement("f").getType();
     assertTrue(f.isSubtypeOf(f));
   }
 
   public void test_isSubtypeOf_namedParameters_isAssignable() {
+    // B extends A
+    // ({name:a}) -> void :< ({name:b}) -> void
+    // ({name:b}) -> void :< ({name:a}) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement("t", null, null, new String[] {"name"}, new ClassElement[] {a}).getType();
@@ -114,6 +122,7 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_namedParameters_isNotAssignable() {
+    // ! ({name:a}) -> void :< ({name:b}) -> void
     FunctionType t = functionElement(
         "t",
         null,
@@ -130,6 +139,9 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_namedParameters_namesDifferent() {
+    // B extends A
+    // ! ({name:a}) -> void :< ({diff:b}) -> void
+    // ! ({diff:a}) -> void :< ({name:b}) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement("t", null, null, new String[] {"name"}, new ClassElement[] {a}).getType();
@@ -139,6 +151,8 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_namedParameters_orderOfParams() {
+    // B extends A
+    // ({A:a, B:b}) -> void :< ({B:b, A:a}) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement(
@@ -157,6 +171,8 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_namedParameters_orderOfParams2() {
+    // B extends A
+    // ! ({B:b}) -> void :< ({B:b, A:a}) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement("t", null, null, new String[] {"B"}, new ClassElement[] {b}).getType();
@@ -170,6 +186,8 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_namedParameters_orderOfParams3() {
+    // B extends A
+    // ({A:a, B:b}) -> void :< ({A:a}) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement(
@@ -183,6 +201,8 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_namedParameters_sHasMoreParams() {
+    // B extends A
+    // ! ({name:a}) -> void :< ({name:b, name2:b}) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement("t", null, null, new String[] {"name"}, new ClassElement[] {a}).getType();
@@ -196,6 +216,8 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_namedParameters_tHasMoreParams() {
+    // B extends A
+    // ({name:a, name2:a}) -> void :< ({name:b}) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement(
@@ -208,7 +230,50 @@ public class FunctionTypeImplTest extends EngineTestCase {
     assertTrue(t.isSubtypeOf(s));
   }
 
+  public void test_isSubtypeOf_normalAndPositionalArgs_1() {
+    // ([a]) -> void :< (a) -> void
+    ClassElement a = classElement("A");
+    FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s", new ClassElement[] {a}).getType();
+    assertTrue(t.isSubtypeOf(s));
+    assertFalse(s.isSubtypeOf(t));
+  }
+
+  public void test_isSubtypeOf_normalAndPositionalArgs_2() {
+    // (a, [a]) -> void :< (a) -> void
+    ClassElement a = classElement("A");
+    FunctionType t = functionElement("t", new ClassElement[] {a}, new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s", new ClassElement[] {a}).getType();
+    assertTrue(t.isSubtypeOf(s));
+    assertFalse(s.isSubtypeOf(t));
+  }
+
+  public void test_isSubtypeOf_normalAndPositionalArgs_3() {
+    // ([a]) -> void :< () -> void
+    ClassElement a = classElement("A");
+    FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s").getType();
+    assertTrue(t.isSubtypeOf(s));
+    assertFalse(s.isSubtypeOf(t));
+  }
+
+  public void test_isSubtypeOf_normalAndPositionalArgs_4() {
+    // (a, b, [c, d, e]) -> void :< (a, b, c, [d]) -> void
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B");
+    ClassElement c = classElement("C");
+    ClassElement d = classElement("D");
+    ClassElement e = classElement("E");
+    FunctionType t = functionElement("t", new ClassElement[] {a, b}, new ClassElement[] {c, d, e}).getType();
+    FunctionType s = functionElement("s", new ClassElement[] {a, b, c}, new ClassElement[] {d}).getType();
+    assertTrue(t.isSubtypeOf(s));
+    assertFalse(s.isSubtypeOf(t));
+  }
+
   public void test_isSubtypeOf_normalParameters_isAssignable() {
+    // B extends A
+    // (a) -> void :< (b) -> void
+    // (b) -> void :< (a) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement("t", new ClassElement[] {a}).getType();
@@ -218,12 +283,15 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_normalParameters_isNotAssignable() {
+    // ! (a) -> void :< (b) -> void
     FunctionType t = functionElement("t", new ClassElement[] {classElement("A")}).getType();
     FunctionType s = functionElement("s", new ClassElement[] {classElement("B")}).getType();
     assertFalse(t.isSubtypeOf(s));
   }
 
   public void test_isSubtypeOf_normalParameters_sHasMoreParams() {
+    // B extends A
+    // ! (a) -> void :< (b, b) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement("t", new ClassElement[] {a}).getType();
@@ -232,6 +300,8 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_normalParameters_tHasMoreParams() {
+    // B extends A
+    // ! (a, a) -> void :< (a) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement("t", new ClassElement[] {a, a}).getType();
@@ -242,12 +312,16 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_Object() {
+    // () -> void :< Object
     FunctionType f = functionElement("f").getType();
     InterfaceType t = getObject().getType();
     assertTrue(f.isSubtypeOf(t));
   }
 
-  public void test_isSubtypeOf_optionalParameters_isAssignable() {
+  public void test_isSubtypeOf_positionalParameters_isAssignable() {
+    // B extends A
+    // ([a]) -> void :< ([b]) -> void
+    // ([b]) -> void :< ([a]) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
@@ -256,13 +330,16 @@ public class FunctionTypeImplTest extends EngineTestCase {
     assertTrue(s.isSubtypeOf(t));
   }
 
-  public void test_isSubtypeOf_optionalParameters_isNotAssignable() {
+  public void test_isSubtypeOf_positionalParameters_isNotAssignable() {
+    // ! ([a]) -> void :< ([b]) -> void
     FunctionType t = functionElement("t", null, new ClassElement[] {classElement("A")}).getType();
     FunctionType s = functionElement("s", null, new ClassElement[] {classElement("B")}).getType();
     assertFalse(t.isSubtypeOf(s));
   }
 
-  public void test_isSubtypeOf_optionalParameters_sHasMoreParams() {
+  public void test_isSubtypeOf_positionalParameters_sHasMoreParams() {
+    // B extends A
+    // ! ([a]) -> void :< ([b, b]) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
@@ -270,7 +347,9 @@ public class FunctionTypeImplTest extends EngineTestCase {
     assertFalse(t.isSubtypeOf(s));
   }
 
-  public void test_isSubtypeOf_optionalParameters_tHasMoreParams() {
+  public void test_isSubtypeOf_positionalParameters_tHasMoreParams() {
+    // B extends A
+    // ([a, a]) -> void :< ([b]) -> void
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement("t", null, new ClassElement[] {a, a}).getType();
@@ -279,7 +358,8 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_returnType_sIsVoid() {
-    FunctionType t = functionElement("t", classElement("A")).getType();
+    // () -> void :< void
+    FunctionType t = functionElement("t").getType();
     FunctionType s = functionElement("s").getType();
     // function s has the implicit return type of void, we assert it here
     assertTrue(VoidTypeImpl.getInstance().equals(s.getReturnType()));
@@ -287,6 +367,9 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_returnType_tAssignableToS() {
+    // B extends A
+    // () -> A :< () -> B
+    // () -> B :< () -> A
     ClassElement a = classElement("A");
     ClassElement b = classElement("B", a.getType());
     FunctionType t = functionElement("t", a).getType();
@@ -296,12 +379,15 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_isSubtypeOf_returnType_tNotAssignableToS() {
+    // ! () -> A :< () -> B
     FunctionType t = functionElement("t", classElement("A")).getType();
     FunctionType s = functionElement("s", classElement("B")).getType();
     assertFalse(t.isSubtypeOf(s));
   }
 
   public void test_isSubtypeOf_wrongFunctionType_normal_named() {
+    // ! (a) -> void :< ({name:a}) -> void
+    // ! ({name:a}) -> void :< (a) -> void
     ClassElement a = classElement("A");
     FunctionType t = functionElement("t", new ClassElement[] {a}).getType();
     FunctionType s = functionElement("s", null, new String[] {"name"}, new ClassElement[] {a}).getType();
@@ -309,15 +395,9 @@ public class FunctionTypeImplTest extends EngineTestCase {
     assertFalse(s.isSubtypeOf(t));
   }
 
-  public void test_isSubtypeOf_wrongFunctionType_normal_optional() {
-    ClassElement a = classElement("A");
-    FunctionType t = functionElement("t", new ClassElement[] {a}).getType();
-    FunctionType s = functionElement("s", null, new ClassElement[] {a}).getType();
-    assertFalse(t.isSubtypeOf(s));
-    assertFalse(s.isSubtypeOf(t));
-  }
-
   public void test_isSubtypeOf_wrongFunctionType_optional_named() {
+    // ! ([a]) -> void :< ({name:a}) -> void
+    // ! ({name:a}) -> void :< ([a]) -> void
     ClassElement a = classElement("A");
     FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
     FunctionType s = functionElement("s", null, new String[] {"name"}, new ClassElement[] {a}).getType();

@@ -287,41 +287,31 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     FunctionType t = this;
     FunctionType s = (FunctionType) type;
-    // normal parameter types
-    if (t.getNormalParameterTypes().length != s.getNormalParameterTypes().length) {
-      return false;
-    } else if (t.getNormalParameterTypes().length > 0) {
-      Type[] tTypes = t.getNormalParameterTypes();
-      Type[] sTypes = s.getNormalParameterTypes();
-      for (int i = 0; i < tTypes.length; i++) {
-        if (!tTypes[i].isAssignableTo(sTypes[i])) {
-          return false;
-        }
-      }
-    }
 
-    // optional parameter types
-    if (t.getOptionalParameterTypes().length > 0) {
-      Type[] tOpTypes = t.getOptionalParameterTypes();
-      Type[] sOpTypes = s.getOptionalParameterTypes();
-      // if k >= m is false, return false: the passed function type has more optional parameter types than this
-      if (tOpTypes.length < sOpTypes.length) {
-        return false;
-      }
-      for (int i = 0; i < sOpTypes.length; i++) {
-        if (!tOpTypes[i].isAssignableTo(sOpTypes[i])) {
-          return false;
-        }
-      }
-      if (t.getNamedParameterTypes().size() > 0 || s.getNamedParameterTypes().size() > 0) {
-        return false;
-      }
-    } else if (s.getOptionalParameterTypes().length > 0) {
+    Type[] tTypes = t.getNormalParameterTypes();
+    Type[] tOpTypes = t.getOptionalParameterTypes();
+    Type[] sTypes = s.getNormalParameterTypes();
+    Type[] sOpTypes = s.getOptionalParameterTypes();
+
+    // If one function has positional and the other has named parameters, return false.
+    if ((sOpTypes.length > 0 && t.getNamedParameterTypes().size() > 0)
+        || (tOpTypes.length > 0 && s.getNamedParameterTypes().size() > 0)) {
       return false;
     }
 
     // named parameter types
     if (t.getNamedParameterTypes().size() > 0) {
+      // check that the number of required parameters are equal, and check that every t_i is
+      // assignable to every s_i
+      if (t.getNormalParameterTypes().length != s.getNormalParameterTypes().length) {
+        return false;
+      } else if (t.getNormalParameterTypes().length > 0) {
+        for (int i = 0; i < tTypes.length; i++) {
+          if (!tTypes[i].isAssignableTo(sTypes[i])) {
+            return false;
+          }
+        }
+      }
       Map<String, Type> namedTypesT = t.getNamedParameterTypes();
       Map<String, Type> namedTypesS = s.getNamedParameterTypes();
       // if k >= m is false, return false: the passed function type has more named parameter types than this
@@ -343,6 +333,36 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
     } else if (s.getNamedParameterTypes().size() > 0) {
       return false;
+    } else {
+      // optional parameter types
+      int tArgLength = tTypes.length + tOpTypes.length;
+      int sArgLength = sTypes.length + sOpTypes.length;
+      // Check that the total number of parameters in t is greater than or equal to the number of
+      // parameters in s and that the number of required parameters in s is greater than or equal to
+      // the number of required parameters in t.
+      if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
+        return false;
+      }
+      // Create single arrays holding all the argument types, up to sArgLength
+      Type[] tAllTypes = new Type[sArgLength];
+      for (int i = 0; i < tTypes.length; i++) {
+        tAllTypes[i] = tTypes[i];
+      }
+      for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
+        tAllTypes[i] = tOpTypes[j];
+      }
+      Type[] sAllTypes = new Type[sArgLength];
+      for (int i = 0; i < sTypes.length; i++) {
+        sAllTypes[i] = sTypes[i];
+      }
+      for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
+        sAllTypes[i] = sOpTypes[j];
+      }
+      for (int i = 0; i < sAllTypes.length; i++) {
+        if (!sAllTypes[i].isAssignableTo(tAllTypes[i])) {
+          return false;
+        }
+      }
     }
     return s.getReturnType().equals(VoidTypeImpl.getInstance())
         || t.getReturnType().isAssignableTo(s.getReturnType());
