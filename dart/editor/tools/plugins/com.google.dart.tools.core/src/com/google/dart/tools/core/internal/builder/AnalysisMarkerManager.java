@@ -86,8 +86,8 @@ public class AnalysisMarkerManager {
           severity = IMarker.SEVERITY_ERROR;
         } else if (errorSeverity == ErrorSeverity.WARNING) {
           severity = IMarker.SEVERITY_WARNING;
-//        } else if (errorSeverity == ErrorSeverity.INFO) {
-//          severity = IMarker.SEVERITY_INFO;
+        } else if (errorSeverity == ErrorSeverity.SUGGESTION) {
+          severity = IMarker.SEVERITY_INFO;
         } else {
           continue;
         }
