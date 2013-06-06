@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.html.ast;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.html.ast.visitor.ToSourceVisitor;
 import com.google.dart.engine.html.ast.visitor.XmlVisitor;
 import com.google.dart.engine.html.scanner.Token;
@@ -155,11 +156,56 @@ public abstract class XmlNode {
   }
 
   /**
+   * This method exists for debugging purposes only.
+   */
+  private void appendIdentifier(StringBuilder builder, XmlNode node) {
+    if (node instanceof XmlTagNode) {
+      builder.append(((XmlTagNode) node).getTag().getLexeme());
+    } else if (node instanceof XmlAttributeNode) {
+      builder.append(((XmlAttributeNode) node).getName().getLexeme());
+    } else {
+      builder.append("htmlUnit");
+    }
+  }
+
+  /**
+   * This method exists for debugging purposes only.
+   */
+  private String buildRecursiveStructureMessage(XmlNode newParent) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("Attempt to create recursive structure: ");
+    XmlNode current = newParent;
+    while (current != null) {
+      if (current != newParent) {
+        builder.append(" -> ");
+      }
+      if (current == this) {
+        builder.append('*');
+        appendIdentifier(builder, current);
+        builder.append('*');
+      } else {
+        appendIdentifier(builder, current);
+      }
+      current = current.getParent();
+    }
+    return builder.toString();
+  }
+
+  /**
    * Set the parent of this node to the given node.
    * 
    * @param newParent the node that is to be made the parent of this node
    */
   private void setParent(XmlNode newParent) {
+    XmlNode current = newParent;
+    while (current != null) {
+      if (current == this) {
+        AnalysisEngine.getInstance().getLogger().logError(
+            new IllegalArgumentException(buildRecursiveStructureMessage(newParent)));
+        return;
+      }
+      current = current.getParent();
+    }
     parent = newParent;
   }
 }
