@@ -131,26 +131,47 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 //    });
 //    layouter.perform(checkBox);
 
-    int duplicates = fRefactoring.getNumberOfDuplicates();
-    Button checkBox = new Button(result, SWT.CHECK);
-    if (duplicates == 0) {
-      checkBox.setText(RefactoringMessages.ExtractMethodInputPage_duplicates_none);
-    } else if (duplicates == 1) {
-      checkBox.setText(RefactoringMessages.ExtractMethodInputPage_duplicates_single);
-    } else {
-      checkBox.setText(Messages.format(
-          RefactoringMessages.ExtractMethodInputPage_duplicates_multi,
-          new Integer(duplicates)));
-    }
-    checkBox.setSelection(fRefactoring.getReplaceAllOccurrences());
-    checkBox.setEnabled(duplicates > 0);
-    checkBox.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        fRefactoring.setReplaceAllOccurrences(((Button) e.widget).getSelection());
+    // occurrences
+    {
+      int duplicates = fRefactoring.getNumberOfDuplicates();
+      Button checkBox = new Button(result, SWT.CHECK);
+      if (duplicates == 0) {
+        checkBox.setText(RefactoringMessages.ExtractMethodInputPage_duplicates_none);
+      } else if (duplicates == 1) {
+        checkBox.setText(RefactoringMessages.ExtractMethodInputPage_duplicates_single);
+      } else {
+        checkBox.setText(Messages.format(
+            RefactoringMessages.ExtractMethodInputPage_duplicates_multi,
+            new Integer(duplicates)));
       }
-    });
-    layouter.perform(checkBox);
+      checkBox.setSelection(fRefactoring.getReplaceAllOccurrences());
+      checkBox.setEnabled(duplicates > 0);
+      checkBox.addSelectionListener(new SelectionAdapter() {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+          fRefactoring.setReplaceAllOccurrences(((Button) e.widget).getSelection());
+        }
+      });
+      layouter.perform(checkBox);
+    }
+
+    // getter
+    {
+      boolean canExtractGetter = fRefactoring.canExtractGetter();
+      Button checkBox = new Button(result, SWT.CHECK);
+      checkBox.setText(RefactoringMessages.ExtractMethodInputPage_getter);
+      checkBox.setEnabled(canExtractGetter);
+      if (canExtractGetter) {
+        checkBox.setSelection(fRefactoring.getExtractGetter());
+      }
+      checkBox.addSelectionListener(new SelectionAdapter() {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+          fRefactoring.setExtractGetter(((Button) e.widget).getSelection());
+        }
+      });
+      layouter.perform(checkBox);
+    }
 
     label = new Label(result, SWT.SEPARATOR | SWT.HORIZONTAL);
     label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

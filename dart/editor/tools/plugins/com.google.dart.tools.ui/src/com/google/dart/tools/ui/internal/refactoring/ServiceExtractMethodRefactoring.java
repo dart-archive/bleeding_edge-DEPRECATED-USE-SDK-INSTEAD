@@ -33,6 +33,10 @@ public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
     this.refactoring = refactoring;
   }
 
+  public boolean canExtractGetter() {
+    return refactoring.canExtractGetter();
+  }
+
   public org.eclipse.ltk.core.refactoring.RefactoringStatus checkMethodName() {
     RefactoringStatus status = refactoring.checkMethodName();
     status = status.escalateErrorToFatal();
@@ -43,6 +47,10 @@ public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
     RefactoringStatus status = refactoring.checkParameterNames();
     status = status.escalateErrorToFatal();
     return toLTK(status);
+  }
+
+  public boolean getExtractGetter() {
+    return refactoring.getExtractGetter();
   }
 
   public int getNumberOfDuplicates() {
@@ -59,6 +67,10 @@ public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
 
   public String getSignature(String methodName) {
     return refactoring.getSignature(methodName);
+  }
+
+  public void setExtractGetter(boolean extractGetter) {
+    refactoring.setExtractGetter(extractGetter);
   }
 
   public void setMethodName(String methodName) {

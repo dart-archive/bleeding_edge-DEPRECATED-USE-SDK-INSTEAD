@@ -19,18 +19,25 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorInitializer;
+import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
+import com.google.dart.engine.ast.ForEachStatement;
+import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.VariableElement;
@@ -100,6 +107,21 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   /**
+   * @return {@code true} if the given {@link ASTNode} has {@link MethodInvocation}.
+   */
+  private static boolean hasMethodInvocation(ASTNode node) {
+    final boolean[] result = {false};
+    node.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitMethodInvocation(MethodInvocation node) {
+        result[0] = true;
+        return null;
+      }
+    });
+    return result[0];
+  }
+
+  /**
    * @return <code>true</code> if given {@link DartNode} is left hand side of assignment, or
    *         declaration of the variable.
    */
@@ -112,27 +134,28 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   private final AssistContext context;
-
   private final SourceRange selectionRange;
   private final CompilationUnit unitNode;
-  private final CorrectionUtils utils;
 
+  private final CorrectionUtils utils;
   private String methodName;
   private boolean replaceAllOccurrences = true;
 
+  private boolean extractGetter;
   private ExtractMethodAnalyzer selectionAnalyzer;
-  private final Set<String> usedNames = Sets.newHashSet();
 
+  private final Set<String> usedNames = Sets.newHashSet();
   private VariableElement returnVariable;
   private final List<ParameterInfo> parameters = Lists.newArrayList();
   private ASTNode parentMember;
   private Expression selectionExpression;
+
   private FunctionExpression selectionFunctionExpression;
-
   private List<Statement> selectionStatements;
-  private final Map<String, List<SourceRange>> selectionParametersToRanges = Maps.newHashMap();
 
+  private final Map<String, List<SourceRange>> selectionParametersToRanges = Maps.newHashMap();
   private final List<Occurrence> occurrences = Lists.newArrayList();
+
   private boolean staticContext;
 
   public ExtractMethodRefactoringImpl(AssistContext context) throws Exception {
@@ -140,6 +163,22 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     this.selectionRange = context.getSelectionRange();
     this.unitNode = context.getCompilationUnit();
     this.utils = new CorrectionUtils(unitNode);
+  }
+
+  @Override
+  public boolean canExtractGetter() {
+    if (!parameters.isEmpty()) {
+      return false;
+    }
+    if (selectionExpression != null) {
+      if (selectionExpression instanceof AssignmentExpression) {
+        return false;
+      }
+    }
+    if (selectionStatements != null) {
+      return returnVariable != null;
+    }
+    return true;
   }
 
   @Override
@@ -178,6 +217,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       // prepare parts
       result.merge(initializeParameters());
       initializeOccurrences();
+      initializeGetter();
       pm.worked(1);
       // closure cannot have parameters
       if (selectionFunctionExpression != null && !parameters.isEmpty()) {
@@ -257,23 +297,25 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           }
           // invocation itself
           sb.append(methodName);
-          sb.append("(");
-          boolean firstParameter = true;
-          for (ParameterInfo parameter : parameters) {
-            // may be comma
-            if (firstParameter) {
-              firstParameter = false;
-            } else {
-              sb.append(", ");
+          if (!extractGetter) {
+            sb.append("(");
+            boolean firstParameter = true;
+            for (ParameterInfo parameter : parameters) {
+              // may be comma
+              if (firstParameter) {
+                firstParameter = false;
+              } else {
+                sb.append(", ");
+              }
+              // argument name
+              {
+                String parameterOldName = parameter.getOldName();
+                String argumentName = occurence.parameterOldToOccurrenceName.get(parameterOldName);
+                sb.append(argumentName);
+              }
             }
-            // argument name
-            {
-              String parameterOldName = parameter.getOldName();
-              String argumentName = occurence.parameterOldToOccurrenceName.get(parameterOldName);
-              sb.append(argumentName);
-            }
+            sb.append(")");
           }
-          sb.append(")");
           invocationSource = sb.toString();
           // statements as extracted with their ";", so add new one after invocation
           if (selectionStatements != null) {
@@ -360,6 +402,11 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   @Override
+  public boolean getExtractGetter() {
+    return extractGetter;
+  }
+
+  @Override
   public int getNumberOfDuplicates() {
     return occurrences.size() - 1;
   }
@@ -386,31 +433,41 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   @Override
   public String getSignature(String methodName) {
     StringBuilder sb = new StringBuilder();
-    sb.append(methodName);
-    sb.append("(");
-    // add all parameters
-    boolean firstParameter = true;
-    for (ParameterInfo parameter : parameters) {
-      // may be comma
-      if (firstParameter) {
-        firstParameter = false;
-      } else {
-        sb.append(", ");
-      }
-      // type
-      {
-        String typeSource = parameter.getNewTypeName();
-        if (!"dynamic".equals(typeSource) && !"".equals(typeSource)) {
-          sb.append(typeSource);
-          sb.append(" ");
+    if (extractGetter) {
+      sb.append("get ");
+      sb.append(methodName);
+    } else {
+      sb.append(methodName);
+      sb.append("(");
+      // add all parameters
+      boolean firstParameter = true;
+      for (ParameterInfo parameter : parameters) {
+        // may be comma
+        if (firstParameter) {
+          firstParameter = false;
+        } else {
+          sb.append(", ");
         }
+        // type
+        {
+          String typeSource = parameter.getNewTypeName();
+          if (!"dynamic".equals(typeSource) && !"".equals(typeSource)) {
+            sb.append(typeSource);
+            sb.append(" ");
+          }
+        }
+        // name
+        sb.append(parameter.getNewName());
       }
-      // name
-      sb.append(parameter.getNewName());
+      sb.append(")");
     }
     // done
-    sb.append(")");
     return sb.toString();
+  }
+
+  @Override
+  public void setExtractGetter(boolean extractGetter) {
+    this.extractGetter = extractGetter;
   }
 
   @Override
@@ -581,6 +638,59 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     });
     pattern.patternSource = CorrectionUtils.applyReplaceEdits(originalSource, replaceEdits);
     return pattern;
+  }
+
+  /**
+   * Initializes {@link #extractGetter} flag.
+   */
+  private void initializeGetter() {
+    extractGetter = false;
+    // we cannot extract getter
+    if (!parameters.isEmpty()) {
+      return;
+    }
+    // OK, just expression
+    if (selectionExpression != null) {
+      extractGetter = !hasMethodInvocation(selectionExpression);
+      return;
+    }
+    // allow code blocks without cycles
+    if (selectionStatements != null) {
+      extractGetter = true;
+      for (Statement statement : selectionStatements) {
+        // method is something heavy, so we don't want to extract it as part of getter
+        if (hasMethodInvocation(statement)) {
+          extractGetter = false;
+          return;
+        }
+        // don't allow cycles
+        statement.accept(new RecursiveASTVisitor<Void>() {
+          @Override
+          public Void visitDoStatement(DoStatement node) {
+            extractGetter = false;
+            return super.visitDoStatement(node);
+          }
+
+          @Override
+          public Void visitForEachStatement(ForEachStatement node) {
+            extractGetter = false;
+            return super.visitForEachStatement(node);
+          }
+
+          @Override
+          public Void visitForStatement(ForStatement node) {
+            extractGetter = false;
+            return super.visitForStatement(node);
+          }
+
+          @Override
+          public Void visitWhileStatement(WhileStatement node) {
+            extractGetter = false;
+            return super.visitWhileStatement(node);
+          }
+        });
+      }
+    }
   }
 
   /**

@@ -26,6 +26,11 @@ import java.util.List;
  */
 public interface ExtractMethodRefactoring extends Refactoring {
   /**
+   * @return {@code true} if selected code can be extracted as "getter".
+   */
+  boolean canExtractGetter();
+
+  /**
    * Validates the name set using {@link #setMethodName(String)}.
    */
   RefactoringStatus checkMethodName();
@@ -36,13 +41,19 @@ public interface ExtractMethodRefactoring extends Refactoring {
   RefactoringStatus checkParameterNames();
 
   /**
+   * @return {@code true} if getter should be extracted instead of normal method.
+   */
+  boolean getExtractGetter();
+
+  /**
    * @return the number of other occurrences of the same source as selection (but not including
    *         selection itself).
    */
   int getNumberOfDuplicates();
 
   /**
-   * @return {@link ParameterInfoImpl}s describing parameters of the extracted expression of statements.
+   * @return {@link ParameterInfoImpl}s describing parameters of the extracted expression of
+   *         statements.
    */
   List<ParameterInfo> getParameters();
 
@@ -56,6 +67,11 @@ public interface ExtractMethodRefactoring extends Refactoring {
    * @return the signature of the extracted method.
    */
   String getSignature(String methodName);
+
+  /**
+   * Specifies if getter should be extracted instead of normal method.
+   */
+  void setExtractGetter(boolean extractGetter);
 
   /**
    * Sets the name for new method.

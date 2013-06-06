@@ -33,6 +33,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
   private int selectionEnd = -1;
   private String methodName = "res";
   private boolean replaceAllOccurences = true;
+  private boolean keepGetterFlag = false;
   private RefactoringStatus refactoringStatus;
 
   public void test_bad_assignmentLeftHandSide() throws Exception {
@@ -845,6 +846,64 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "Operation not applicable to a while statement's expression and body.");
   }
 
+  public void test_canExtractGetter_false_hasParameters() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f(int p) {",
+        "  int a = p + 1;",
+        "}",
+        "");
+    setSelectionString("p + 1");
+    createRefactoring();
+    //
+    assertFalse(refactoring.canExtractGetter());
+  }
+
+  public void test_canExtractGetter_false_returnNotUsed_assignment() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var topVar = 0;",
+        "f(int p) {",
+        "  topVar = 5;",
+        "}",
+        "");
+    setSelectionString("topVar = 5");
+    createRefactoring();
+    //
+    assertFalse(refactoring.canExtractGetter());
+  }
+
+  public void test_canExtractGetter_false_returnNotUsed_noReturn() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var topVar = 0;",
+        "main() {",
+        "// start",
+        "  int a = 1;",
+        "  int b = 2;",
+        "  topVar = a + b;",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    //
+    assertFalse(refactoring.canExtractGetter());
+  }
+
+  public void test_canExtractGetter_true() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1 + 2;",
+        "}",
+        "");
+    setSelectionString("1 + 2");
+    createRefactoring();
+    // no parameters
+    assertTrue(refactoring.canExtractGetter());
+  }
+
   public void test_checkMethodName() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -974,6 +1033,149 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "Cannot extract closure as method, it references 1 external variable(s).");
   }
 
+  public void test_getExtractGetter_false_do() throws Exception {
+    keepGetterFlag = true;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  int v = 0;",
+        "  do {",
+        "    v++;",
+        "  } while (v < 10);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    //
+    assertFalse(refactoring.getExtractGetter());
+  }
+
+  public void test_getExtractGetter_false_for() throws Exception {
+    keepGetterFlag = true;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  int v = 0;",
+        "  for (int i = 0; i < 10; i++) {",
+        "    v += i;",
+        "  }",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    //
+    assertFalse(refactoring.getExtractGetter());
+  }
+
+  public void test_getExtractGetter_false_forEach() throws Exception {
+    keepGetterFlag = true;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "List<int> L = [];",
+        "main() {",
+        "// start",
+        "  int v = 0;",
+        "  for (int i in L) {",
+        "    v += i;",
+        "  }",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    //
+    assertFalse(refactoring.getExtractGetter());
+  }
+
+  public void test_getExtractGetter_false_methodInvocation_expression() throws Exception {
+    keepGetterFlag = true;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "List<int> L = [];",
+        "main() {",
+        "  int v = calculateSomething() + 5;",
+        "}",
+        "int calculateSomething() => 42;",
+        "");
+    setSelectionString("calculateSomething() + 5");
+    createRefactoring();
+    //
+    assertFalse(refactoring.getExtractGetter());
+  }
+
+  public void test_getExtractGetter_false_methodInvocation_statements() throws Exception {
+    keepGetterFlag = true;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "List<int> L = [];",
+        "main() {",
+        "// start",
+        "  int v = calculateSomething();",
+        "// end",
+        "}",
+        "int calculateSomething() => 42;",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    //
+    assertFalse(refactoring.getExtractGetter());
+  }
+
+  public void test_getExtractGetter_false_while() throws Exception {
+    keepGetterFlag = true;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  int v = 0;",
+        "  while (v < 10) {",
+        "    v++;",
+        "  }",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    //
+    assertFalse(refactoring.getExtractGetter());
+  }
+
+  public void test_getExtractGetter_true_simpleBlock() throws Exception {
+    keepGetterFlag = true;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  int a = 1;",
+        "  int b = 2;",
+        "  int v = a + b;",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    //
+    assertTrue(refactoring.getExtractGetter());
+  }
+
+  public void test_getExtractGetter_true_singleExpression() throws Exception {
+    keepGetterFlag = true;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1 + 2;",
+        "}",
+        "");
+    setSelectionString("1 + 2");
+    createRefactoring();
+    //
+    assertTrue(refactoring.getExtractGetter());
+  }
+
   public void test_getRefactoringName_function() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1000,6 +1202,32 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     // access
     assertEquals("Extract Method", refactoring.getRefactoringName());
+  }
+
+  public void test_setExtractGetter() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1 + 2;",
+        "}",
+        "");
+    setSelectionString("1 + 2");
+    createRefactoring();
+    // false
+    refactoring.setExtractGetter(false);
+    assertEquals(false, refactoring.getExtractGetter());
+    // true
+    refactoring.setExtractGetter(true);
+    assertEquals(true, refactoring.getExtractGetter());
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = res;",
+        "}",
+        "",
+        "int get res => 1 + 2;",
+        "");
   }
 
   public void test_singleExpression() throws Exception {
@@ -2053,6 +2281,10 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     assertEquals(replaceAllOccurences, refactoring.getReplaceAllOccurrences());
     // prepare status
     refactoringStatus = refactoring.checkAllConditions(pm);
+    // reset some flags
+    if (!keepGetterFlag) {
+      refactoring.setExtractGetter(false);
+    }
   }
 
   private void setSelectionFromStartEndComments() throws Exception {

@@ -406,6 +406,8 @@ public final class RefactoringMessages extends NLS {
 
   public static String ExtractMethodInputPage_generateJavadocComment;
 
+  public static String ExtractMethodInputPage_getter;
+
   public static String ExtractMethodInputPage_label_text;
 
   public static String ExtractMethodInputPage_parameters;
