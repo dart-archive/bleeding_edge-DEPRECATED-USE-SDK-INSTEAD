@@ -20,7 +20,6 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
@@ -196,8 +195,8 @@ public class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
-  public Set<Type> searchAssignedTypes(FieldElement field, SearchScope scope) {
-    PropertyAccessorElement setter = field.getSetter();
+  public Set<Type> searchAssignedTypes(PropertyInducingElement variable, SearchScope scope) {
+    PropertyAccessorElement setter = variable.getSetter();
     // find locations
     final List<Location> locations = Lists.newArrayList();
     final CountDownLatch latch = new CountDownLatch(2);
