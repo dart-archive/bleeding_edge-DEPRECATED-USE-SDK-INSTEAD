@@ -18,6 +18,11 @@ package com.google.dart.engine.services.completion;
  */
 public class CompletionTests extends CompletionTestCase {
 
+  public void fail_test035() throws Exception {
+    // this case has not been indexed yet
+    test("class Y {var x='hi';mth() {x.length;}}", "1+length");
+  }
+
   public void test001() throws Exception {
     String source = src(//
         "void r1(var v) {",
@@ -484,6 +489,37 @@ public class CompletionTests extends CompletionTestCase {
         "class A{}class B extends A{b(){}}class C implements A {c(){}}class X{x(){A f;f.!1}}",
         "1+b",
         "1-c");
+  }
+
+  public void test034() throws Exception {
+    // test analysis of untyped fields and top-level vars
+    test(
+        src(
+            "var topvar;",
+            "class Top {top(){}}",
+            "class Left extends Top {left(){}}",
+            "class Right extends Top {right(){}}",
+            "t1() {",
+            "  topvar = new Left();",
+            "}",
+            "t2() {",
+            "  topvar = new Right();",
+            "}",
+            "class A {",
+            "  var field;",
+            "  a() {",
+            "    field = new Left();",
+            "  }",
+            "  b() {",
+            "    field = new Right();",
+            "  }",
+            "  test() {",
+            "    topvar.!1top();",
+            "    field.!2top();",
+            "  }",
+            "}"),
+        "1+top",
+        "2+top");
   }
 
   public void testCommentSnippets001() throws Exception {

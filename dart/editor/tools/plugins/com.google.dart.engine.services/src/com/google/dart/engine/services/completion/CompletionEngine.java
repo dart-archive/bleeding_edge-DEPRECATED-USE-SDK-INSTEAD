@@ -82,6 +82,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
@@ -90,6 +91,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
@@ -118,6 +120,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -2076,7 +2079,7 @@ public class CompletionEngine {
         proposal.getPositionalParameterCount(),
         proposal.hasNamed(),
         proposal.hasPositional());
-    prop.setReplacementLength(proposal.getReplacementLength()).setLocation(proposal.getLocation());
+    prop.setReplacementLength(0).setLocation(completionLocation());
     prop.setRelevance(proposal.getRelevance() + 10);
     requestor.accept(prop);
   }
@@ -2372,10 +2375,23 @@ public class CompletionEngine {
         receiverType = receiverElement.getType();
         break;
       }
+      case GETTER:
+        PropertyAccessorElement accessor = (PropertyAccessorElement) receiver;
+        if (accessor.isSynthetic()) {
+          PropertyInducingElement inducer = accessor.getVariable();
+          if (inducer.getType().isDynamic()) {
+            receiverType = typeSearch(inducer);
+            if (receiverType != null) {
+              break;
+            }
+          }
+        }
+        FunctionType accType = accessor.getType();
+        receiverType = accType == null ? null : accType.getReturnType();
+        break;
       case CONSTRUCTOR:
       case FUNCTION:
       case METHOD:
-      case GETTER:
       case SETTER: {
         ExecutableElement receiverElement = (ExecutableElement) receiver;
         FunctionType funType = receiverElement.getType();
@@ -2414,6 +2430,27 @@ public class CompletionEngine {
     if (type == null) {
       type = DynamicTypeImpl.getInstance();
     }
+    if (type.isDynamic()) {
+      final Type[] result = new Type[1];
+      AstNodeClassifier visitor = new AstNodeClassifier() {
+        @Override
+        public Void visitSimpleIdentifier(SimpleIdentifier node) {
+          Element elem = node.getElement();
+          if (elem.getKind() == ElementKind.GETTER) {
+            PropertyAccessorElement accessor = (PropertyAccessorElement) elem;
+            if (accessor.isSynthetic()) {
+              PropertyInducingElement var = accessor.getVariable();
+              result[0] = typeSearch(var);
+            }
+          }
+          return null;
+        }
+      };
+      expr.accept(visitor);
+      if (result[0] != null) {
+        return result[0];
+      }
+    }
     return type;
   }
 
@@ -2426,5 +2463,20 @@ public class CompletionEngine {
       parent = parent.getParent();
     }
     return DynamicTypeImpl.getInstance();
+  }
+
+  private Type typeSearch(PropertyInducingElement var) {
+    SearchEngine engine = context.getSearchEngine();
+    SearchScope scope = constructSearchScope();
+    Set<Type> matches = engine.searchAssignedTypes(var, scope);
+    if (matches.isEmpty()) {
+      return null;
+    }
+    Iterator<Type> iter = matches.iterator();
+    Type result = iter.next();
+    while (iter.hasNext()) {
+      result = result.getLeastUpperBound(iter.next());
+    }
+    return result;
   }
 }
