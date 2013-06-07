@@ -29,14 +29,13 @@ import com.google.dart.engine.services.status.RefactoringStatusEntry;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedPositions;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -45,8 +44,11 @@ import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
+import org.eclipse.text.edits.TextEdit;
+import org.eclipse.text.edits.TextEditGroup;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -126,12 +128,19 @@ public class ServiceUtils {
    */
   public static TextFileChange toLTK(SourceChange change) {
     Source source = change.getSource();
-    IFile file = (IFile) DartCore.getProjectManager().getResource(source);
-    TextFileChange ltkChange = new TextFileChange(source.getShortName(), file);
+    CompilationUnitChange ltkChange = new CompilationUnitChange(source.getShortName(), source);
     ltkChange.setEdit(new MultiTextEdit());
-    List<Edit> edits = change.getEdits();
-    for (Edit edit : edits) {
-      ltkChange.addEdit(new ReplaceEdit(edit.offset, edit.length, edit.replacement));
+    Map<String, List<Edit>> editGroups = change.getEditGroups();
+    for (Entry<String, List<Edit>> entry : editGroups.entrySet()) {
+      List<Edit> edits = entry.getValue();
+      // add edits
+      TextEdit ltkEdits[] = toLTK(edits);
+      for (TextEdit ltkEdit : ltkEdits) {
+        ltkChange.addEdit(ltkEdit);
+      }
+      // add group
+      String groupName = entry.getKey();
+      ltkChange.addTextEditGroup(new TextEditGroup(groupName, ltkEdits));
     }
     return ltkChange;
   }
@@ -192,6 +201,19 @@ public class ServiceUtils {
    */
   private static IStatus createRuntimeStatus(Throwable e) {
     return new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(), e.getMessage(), e);
+  }
+
+  private static TextEdit toLTK(Edit edit) {
+    return new ReplaceEdit(edit.offset, edit.length, edit.replacement);
+  }
+
+  private static TextEdit[] toLTK(List<Edit> edits) {
+    int length = edits.size();
+    TextEdit[] ltkEdits = new TextEdit[length];
+    for (int i = 0; i < length; i++) {
+      ltkEdits[i] = toLTK(edits.get(i));
+    }
+    return ltkEdits;
   }
 
   /**

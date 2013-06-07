@@ -14,7 +14,6 @@
 package com.google.dart.tools.internal.corext.refactoring.util;
 
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 
 import org.eclipse.ltk.core.refactoring.TextChange;
 
@@ -70,13 +69,14 @@ public class TextChangeManager_OLD {
    * @return the text change associated with the given compilation unit.
    */
   public TextChange get(CompilationUnit cu) {
-    TextChange result = fMap.get(cu);
-    if (result == null) {
-      result = new CompilationUnitChange(cu.getElementName(), cu);
-      result.setKeepPreviewEdits(fKeepExecutedTextEdits);
-      fMap.put(cu, result);
-    }
-    return result;
+    return null;
+//    TextChange result = fMap.get(cu);
+//    if (result == null) {
+//      result = new CompilationUnitChange(cu.getElementName(), cu);
+//      result.setKeepPreviewEdits(fKeepExecutedTextEdits);
+//      fMap.put(cu, result);
+//    }
+//    return result;
   }
 
   /**
