@@ -37,6 +37,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
+import com.google.dart.engine.index.LocationWithData;
 import com.google.dart.engine.internal.element.member.MethodMember;
 import com.google.dart.engine.internal.index.IndexConstants;
 import com.google.dart.engine.internal.index.IndexImpl;
@@ -56,6 +57,7 @@ import com.google.dart.engine.search.SearchPattern;
 import com.google.dart.engine.search.SearchPatternFactory;
 import com.google.dart.engine.search.SearchScope;
 import com.google.dart.engine.search.SearchScopeFactory;
+import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -63,6 +65,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -146,6 +149,64 @@ public class SearchEngineImplTest extends EngineTestCase {
   private final Element elementC = mock(Element.class);
   private final Element elementD = mock(Element.class);
   private final Element elementE = mock(Element.class);
+
+  public void test_searchAssignedTypes() throws Exception {
+    final PropertyAccessorElement setterElement = mock2(
+        PropertyAccessorElement.class,
+        ElementKind.SETTER);
+    final FieldElement fieldElement = mock2(FieldElement.class, ElementKind.FIELD);
+    when(fieldElement.getSetter()).thenReturn(setterElement);
+    final Type typeA = mock(Type.class);
+    final Type typeB = mock(Type.class);
+    final Type typeC = mock(Type.class);
+    {
+      Location location = new Location(elementA, 1, 10, null);
+      location = new LocationWithData<Type>(location, typeA);
+      indexStore.recordRelationship(
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          location);
+    }
+    {
+      Location location = new Location(elementB, 2, 20, null);
+      location = new LocationWithData<Type>(location, typeB);
+      indexStore.recordRelationship(
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+          location);
+    }
+    // will be filtered by scope
+    {
+      Location location = new Location(elementC, 3, 30, null);
+      location = new LocationWithData<Type>(location, typeC);
+      indexStore.recordRelationship(
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          location);
+    }
+    // not LocationWithData
+    {
+      Location location = new Location(elementD, 4, 40, null);
+      indexStore.recordRelationship(
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          location);
+    }
+    // ask types
+    Set<Type> types = runSearch(new SearchRunner<Set<Type>>() {
+      @Override
+      public Set<Type> run(OperationQueue queue, OperationProcessor processor, Index index,
+          SearchEngine engine) throws Exception {
+        return engine.searchAssignedTypes(fieldElement, new SearchScope() {
+          @Override
+          public boolean encloses(Element element) {
+            return element != elementC;
+          }
+        });
+      }
+    });
+    assertThat(types).containsOnly(typeA, typeB);
+  }
 
   public void test_searchDeclarations_String() throws Exception {
     Element referencedElement = new NameElementImpl("test");

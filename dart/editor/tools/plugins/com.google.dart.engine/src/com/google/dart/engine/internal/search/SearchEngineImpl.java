@@ -13,10 +13,14 @@
  */
 package com.google.dart.engine.internal.search;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
@@ -30,6 +34,7 @@ import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.Location;
+import com.google.dart.engine.index.LocationWithData;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.RelationshipCallback;
 import com.google.dart.engine.internal.element.member.Member;
@@ -48,9 +53,13 @@ import com.google.dart.engine.search.SearchListener;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.search.SearchPattern;
 import com.google.dart.engine.search.SearchScope;
+import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Implementation of {@link SearchEngine}.
@@ -184,6 +193,59 @@ public class SearchEngineImpl implements SearchEngine {
    */
   public SearchEngineImpl(Index index) {
     this.index = index;
+  }
+
+  @Override
+  public Set<Type> searchAssignedTypes(FieldElement field, SearchScope scope) {
+    PropertyAccessorElement setter = field.getSetter();
+    // find locations
+    final List<Location> locations = Lists.newArrayList();
+    final CountDownLatch latch = new CountDownLatch(2);
+    index.getRelationships(
+        setter,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new RelationshipCallback() {
+          @Override
+          public void hasRelationships(Element element, Relationship relationship, Location[] locs) {
+            Collections.addAll(locations, locs);
+            latch.countDown();
+          }
+        });
+    index.getRelationships(
+        setter,
+        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+        new RelationshipCallback() {
+          @Override
+          public void hasRelationships(Element element, Relationship relationship, Location[] locs) {
+            Collections.addAll(locations, locs);
+            latch.countDown();
+          }
+        });
+    Uninterruptibles.awaitUninterruptibly(latch);
+    // get types from locations
+    Set<Type> types = Sets.newHashSet();
+    for (Location location : locations) {
+      // check scope
+      if (scope != null) {
+        Element targetElement = location.getElement();
+        if (!scope.encloses(targetElement)) {
+          continue;
+        }
+      }
+      // we need data
+      if (!(location instanceof LocationWithData<?>)) {
+        continue;
+      }
+      LocationWithData<?> locationWithData = (LocationWithData<?>) location;
+      // add type
+      Object data = locationWithData.getData();
+      if (data instanceof Type) {
+        Type type = (Type) data;
+        types.add(type);
+      }
+    }
+    // done
+    return types;
   }
 
   @Override

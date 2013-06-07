@@ -84,6 +84,16 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   /**
+   * @return the new {@link Location} mock.
+   */
+  private static Location mockLocation(Element element) {
+    Location location = mock(Location.class);
+    when(location.clone()).thenReturn(location);
+    when(location.getElement()).thenReturn(element);
+    return location;
+  }
+
+  /**
    * @return the {@link SourceContainer} mock with contains given {@link Source}s.
    */
   private static SourceContainer mockSourceContainer(Source... sources) {
@@ -126,6 +136,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   private Source sourceC = mock(Source.class);
   private Source sourceD = mock(Source.class);
   private CompilationUnitElement unitElementA = mock(CompilationUnitElement.class);
+
   private CompilationUnitElement unitElementB = mock(CompilationUnitElement.class);
 
   private CompilationUnitElement unitElementC = mock(CompilationUnitElement.class);
@@ -134,7 +145,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
 
   private Relationship relationship = Relationship.getRelationship("test-relationship");
 
-  private Location location = mock(Location.class);
+  private Location location = mockLocation(elementC);
 
   public void test_getRelationships_hasOne() throws Exception {
     store.recordRelationship(elementA, relationship, location);
@@ -143,10 +154,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_getRelationships_hasTwo() throws Exception {
-    Location locationA = mock(Location.class);
-    Location locationB = mock(Location.class);
-    when(locationA.getElement()).thenReturn(elementA);
-    when(locationB.getElement()).thenReturn(elementB);
+    Location locationA = mockLocation(elementA);
+    Location locationB = mockLocation(elementB);
     store.recordRelationship(elementA, relationship, locationA);
     store.recordRelationship(elementA, relationship, locationB);
     Location[] locations = store.getRelationships(elementA, relationship);
@@ -166,10 +175,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(unitElementC.getSource()).thenReturn(sourceB);
     when(elementA.getContext()).thenReturn(contextA);
     when(elementB.getContext()).thenReturn(contextB);
-    Location locationA = mock(Location.class);
-    Location locationB = mock(Location.class);
-    when(locationA.getElement()).thenReturn(elementA);
-    when(locationB.getElement()).thenReturn(elementB);
+    Location locationA = mockLocation(elementA);
+    Location locationB = mockLocation(elementB);
     store.recordRelationship(elementA, relationship, locationA);
     store.recordRelationship(elementB, relationship, locationB);
     // "elementA"
@@ -214,8 +221,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(instrumentedContext.getBasis()).thenReturn(contextA);
     // configure B
     when(elementB.getContext()).thenReturn(contextA);
-    Location locationB = mock(Location.class);
-    when(locationB.getElement()).thenReturn(elementB);
+    Location locationB = mockLocation(elementB);
     // record: [B -> A]
     {
       store.recordRelationship(elementA, relationship, locationB);
@@ -234,10 +240,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(elementB.getContext()).thenReturn(contextB);
     when(elementC.getContext()).thenReturn(contextC);
     // configure B and C
-    Location locationB = mock(Location.class);
-    Location locationC = mock(Location.class);
-    when(locationB.getElement()).thenReturn(elementB);
-    when(locationC.getElement()).thenReturn(elementC);
+    Location locationB = mockLocation(elementB);
+    Location locationC = mockLocation(elementC);
     // record: [B -> A] and [C -> A]
     {
       store.recordRelationship(elementA, relationship, locationB);
@@ -268,10 +272,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(elementB.getContext()).thenReturn(contextB);
     when(elementC.getContext()).thenReturn(contextC);
     // configure B and C
-    Location locationB = mock(Location.class);
-    Location locationC = mock(Location.class);
-    when(locationB.getElement()).thenReturn(elementB);
-    when(locationC.getElement()).thenReturn(elementC);
+    Location locationB = mockLocation(elementB);
+    Location locationC = mockLocation(elementC);
     // record: [B -> A] and [C -> A]
     {
       store.recordRelationship(elementA, relationship, locationB);
@@ -306,10 +308,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_removeSource_withDeclaration() throws Exception {
-    Location locationB = mock(Location.class);
-    Location locationC = mock(Location.class);
-    when(locationB.getElement()).thenReturn(elementB);
-    when(locationC.getElement()).thenReturn(elementC);
+    Location locationB = mockLocation(elementB);
+    Location locationC = mockLocation(elementC);
     // record: [B -> A] and [C -> A]
     {
       store.recordRelationship(elementA, relationship, locationB);
@@ -324,10 +324,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_removeSource_withRelationship() throws Exception {
-    Location locationB = mock(Location.class);
-    Location locationC = mock(Location.class);
-    when(locationB.getElement()).thenReturn(elementB);
-    when(locationC.getElement()).thenReturn(elementC);
+    Location locationB = mockLocation(elementB);
+    Location locationC = mockLocation(elementC);
     // record: [B -> A] and [C -> A]
     {
       store.recordRelationship(elementA, relationship, locationB);
@@ -349,10 +347,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(elementB.getContext()).thenReturn(contextB);
     when(elementC.getContext()).thenReturn(contextC);
     // configure B and C
-    Location locationB = mock(Location.class);
-    Location locationC = mock(Location.class);
-    when(locationB.getElement()).thenReturn(elementB);
-    when(locationC.getElement()).thenReturn(elementC);
+    Location locationB = mockLocation(elementB);
+    Location locationC = mockLocation(elementC);
     // record: [B -> A] and [C -> A]
     {
       store.recordRelationship(elementA, relationship, locationB);
@@ -385,10 +381,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_removeSources_withDeclaration() throws Exception {
-    Location locationB = mock(Location.class);
-    Location locationC = mock(Location.class);
-    when(locationB.getElement()).thenReturn(elementB);
-    when(locationC.getElement()).thenReturn(elementC);
+    Location locationB = mockLocation(elementB);
+    Location locationC = mockLocation(elementC);
     // record: A, [B -> A],  [C -> A] and [B -> C]
     {
       store.recordRelationship(elementA, relationship, locationB);
@@ -410,10 +404,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_removeSources_withRelationship() throws Exception {
-    Location locationB = mock(Location.class);
-    Location locationC = mock(Location.class);
-    when(locationB.getElement()).thenReturn(elementB);
-    when(locationC.getElement()).thenReturn(elementC);
+    Location locationB = mockLocation(elementB);
+    Location locationC = mockLocation(elementC);
     // record: [B -> A] and [C -> A]
     {
       store.recordRelationship(elementA, relationship, locationB);
@@ -432,8 +424,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_tryToRecord_afterContextRemove_element() throws Exception {
-    Location locationB = mock(Location.class);
-    when(locationB.getElement()).thenReturn(elementB);
+    Location locationB = mockLocation(elementB);
     // remove "A" - context of "elementA"
     store.removeContext(contextA);
     // so, this record request is ignored
@@ -442,8 +433,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_tryToRecord_afterContextRemove_location() throws Exception {
-    Location locationB = mock(Location.class);
-    when(locationB.getElement()).thenReturn(elementB);
+    Location locationB = mockLocation(elementB);
     when(elementB.getContext()).thenReturn(contextB);
     // remove "B" - context of location
     store.removeContext(contextB);
@@ -523,7 +513,6 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(sourceB.toString()).thenReturn("sourceB");
     when(sourceC.toString()).thenReturn("sourceC");
     when(sourceD.toString()).thenReturn("sourceD");
-    when(location.getElement()).thenReturn(elementC);
     when(elementA.toString()).thenReturn("elementA");
     when(elementB.toString()).thenReturn("elementB");
     when(elementC.toString()).thenReturn("elementC");

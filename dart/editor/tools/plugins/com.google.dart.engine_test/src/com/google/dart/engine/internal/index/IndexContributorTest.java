@@ -41,8 +41,10 @@ import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
+import com.google.dart.engine.index.LocationWithData;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.Type;
 
 import org.mockito.ArgumentCaptor;
 
@@ -139,7 +141,7 @@ public class IndexContributorTest extends AbstractDartTest {
   /**
    * Asserts that given list of {@link RecordedRelation} has item with expected properties.
    */
-  private static void assertRecordedRelation(List<RecordedRelation> recordedRelations,
+  private static Location assertRecordedRelation(List<RecordedRelation> recordedRelations,
       Element expectedElement, Relationship expectedRelationship, ExpectedLocation expectedLocation) {
     for (RecordedRelation recordedRelation : recordedRelations) {
       if (equalsRecordedRelation(
@@ -147,11 +149,12 @@ public class IndexContributorTest extends AbstractDartTest {
           expectedElement,
           expectedRelationship,
           expectedLocation)) {
-        return;
+        return recordedRelation.location;
       }
     }
     fail("not found " + expectedElement + " " + expectedRelationship + " in " + expectedLocation
         + " in\n" + Joiner.on("\n").join(recordedRelations));
+    return null;
   }
 
   /**
@@ -287,6 +290,122 @@ public class IndexContributorTest extends AbstractDartTest {
         IndexConstants.DEFINES_VARIABLE,
         new ExpectedLocation(varElement, findOffset("myVar"), "myVar"));
     assertNoRecordedRelation(relations, varElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
+  @SuppressWarnings("unchecked")
+  public void test_FieldElement_assignedTypes_qualifed() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var myField;",
+        "}",
+        "main() {",
+        "  new A().myField = 1;",
+        "  A a = new A();",
+        "  a.myField = 2.0;",
+        "}");
+    // set elements
+    Element mainElement = findElement("main() {");
+    FieldElement fieldElement = findElement("myField;");
+    PropertyAccessorElement setterElement = fieldElement.getSetter();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    {
+      Location location = assertRecordedRelation(
+          relations,
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          new ExpectedLocation(mainElement, findOffset("myField = 1"), "myField"));
+      Type type = ((LocationWithData<Type>) location).getData();
+      assertEquals("int", type.toString());
+    }
+    {
+      Location location = assertRecordedRelation(
+          relations,
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          new ExpectedLocation(mainElement, findOffset("myField = 2.0"), "myField"));
+      Type type = ((LocationWithData<Type>) location).getData();
+      assertEquals("double", type.toString());
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public void test_FieldElement_assignedTypes_unqualifed() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var myField;",
+        "  main() {",
+        "    myField = 1;",
+        "    myField = 2.0;",
+        "    myField = '3';",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = findElement("main() {");
+    FieldElement fieldElement = findElement("myField;");
+    PropertyAccessorElement setterElement = fieldElement.getSetter();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    {
+      Location location = assertRecordedRelation(
+          relations,
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+          new ExpectedLocation(mainElement, findOffset("myField = 1"), "myField"));
+      Type type = ((LocationWithData<Type>) location).getData();
+      assertEquals("int", type.toString());
+    }
+    {
+      Location location = assertRecordedRelation(
+          relations,
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+          new ExpectedLocation(mainElement, findOffset("myField = 2.0"), "myField"));
+      Type type = ((LocationWithData<Type>) location).getData();
+      assertEquals("double", type.toString());
+    }
+    {
+      Location location = assertRecordedRelation(
+          relations,
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+          new ExpectedLocation(mainElement, findOffset("myField = '3'"), "myField"));
+      Type type = ((LocationWithData<Type>) location).getData();
+      assertEquals("String", type.toString());
+    }
+  }
+
+  public void test_FieldElement_noAssignedType_notLHS() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var myField;",
+        "  main() {",
+        "    print(myField);",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = findElement("main() {");
+    FieldElement fieldElement = findElement("myField;");
+    PropertyAccessorElement getterElement = fieldElement.getGetter();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    {
+      Location location = assertRecordedRelation(
+          relations,
+          getterElement,
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+          new ExpectedLocation(mainElement, findOffset("myField);"), "myField"));
+      assertSame(Location.class, location.getClass());
+    }
   }
 
   public void test_isDefinedBy_ConstructorElement() throws Exception {

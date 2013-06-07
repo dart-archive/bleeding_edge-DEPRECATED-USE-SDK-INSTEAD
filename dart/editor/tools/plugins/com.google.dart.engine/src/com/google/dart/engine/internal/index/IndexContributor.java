@@ -18,12 +18,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
@@ -69,6 +71,7 @@ import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
+import com.google.dart.engine.index.LocationWithData;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
@@ -112,6 +115,79 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     }
     // no prefix
     return null;
+  }
+
+  /**
+   * Return the propagated type of the given expression, or the static type if there is no
+   * propagated type information.
+   * 
+   * @param expression the expression whose type is to be returned
+   * @return the propagated or static type of the given expression, whichever is best
+   */
+  private static Type getBestType(Expression expression) {
+    Type type = expression.getPropagatedType();
+    if (type == null) {
+      type = expression.getStaticType();
+    }
+    return type;
+  }
+
+  /**
+   * If the given identifier has a synthetic {@link PropertyAccessorElement}, i.e. accessor for
+   * normal field, and it is LHS of assignment, then include {@link Type} of the assigned value into
+   * the {@link Location}.
+   * 
+   * @param identifier the identifier to record location
+   * @param element the element of the identifier
+   * @param location the raw location
+   * @return the {@link Location} with the type of the assigned value
+   */
+  private static Location getLocationWithTypeAssignedToField(SimpleIdentifier identifier,
+      Element element, Location location) {
+    // we need accessor
+    if (!(element instanceof PropertyAccessorElement)) {
+      return location;
+    }
+    PropertyAccessorElement accessor = (PropertyAccessorElement) element;
+    // should be setter
+    if (!accessor.isSetter()) {
+      return location;
+    }
+    // accessor should be synthetic, i.e. field normal
+    if (!accessor.isSynthetic()) {
+      return location;
+    }
+    // should be LHS of assignment
+    ASTNode parent;
+    {
+      ASTNode node = identifier;
+      parent = node.getParent();
+      // new T().field = x;
+      if (parent instanceof PropertyAccess) {
+        PropertyAccess propertyAccess = (PropertyAccess) parent;
+        if (propertyAccess.getPropertyName() == node) {
+          node = propertyAccess;
+          parent = propertyAccess.getParent();
+        }
+      }
+      // obj.field = x;
+      if (parent instanceof PrefixedIdentifier) {
+        PrefixedIdentifier prefixedIdentifier = (PrefixedIdentifier) parent;
+        if (prefixedIdentifier.getIdentifier() == node) {
+          node = prefixedIdentifier;
+          parent = prefixedIdentifier.getParent();
+        }
+      }
+    }
+    // OK, remember the type
+    if (parent instanceof AssignmentExpression) {
+      AssignmentExpression assignment = (AssignmentExpression) parent;
+      Expression rhs = assignment.getRightHandSide();
+      Type assignedType = getBestType(rhs);
+      location = new LocationWithData<Type>(location, assignedType);
+    }
+    // done
+    return location;
   }
 
   /**
@@ -416,6 +492,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       // TODO(scheglov) record ImportElement
 //      recordRelationship(element.get, IndexConstants.IS_REFERENCED_BY, location);
     } else if (element instanceof PropertyAccessorElement || element instanceof MethodElement) {
+      location = getLocationWithTypeAssignedToField(node, element, location);
       if (isQualified(node)) {
         recordRelationship(element, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
       } else {

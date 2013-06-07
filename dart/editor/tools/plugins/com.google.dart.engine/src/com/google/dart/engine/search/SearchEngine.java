@@ -15,8 +15,11 @@ package com.google.dart.engine.search;
 
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.type.Type;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The interface <code>SearchEngine</code> defines the behavior of objects that can be used to
@@ -25,6 +28,15 @@ import java.util.List;
  * @coverage dart.engine.search
  */
 public interface SearchEngine {
+
+  /**
+   * Synchronously search for the types assigned to the give field.
+   * 
+   * @param field the field to find assigned types for
+   * @param scope the scope containing the assignments to be searched, may be {@code null} if all
+   *          assignments should be returned
+   */
+  Set<Type> searchAssignedTypes(FieldElement field, SearchScope scope);
 
   /**
    * Synchronously search for declarations of the given name within the given scope. Return all

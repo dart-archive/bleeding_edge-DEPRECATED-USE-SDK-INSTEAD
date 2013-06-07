@@ -68,17 +68,9 @@ public class Location {
     this.importPrefix = importPrefix;
   }
 
-  /**
-   * Initialize a newly create location to be a copy of the given location.
-   * 
-   * @param location the location to make copy
-   */
-  public Location(Location location) {
-    this(
-        location.getElement(),
-        location.getOffset(),
-        location.getLength(),
-        location.getImportPrefix());
+  @Override
+  public Location clone() {
+    return new Location(element, offset, length, importPrefix);
   }
 
   /**

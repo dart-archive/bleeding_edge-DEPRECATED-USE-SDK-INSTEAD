@@ -211,7 +211,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (element == null || location == null) {
       return;
     }
-    location = new Location(location);
+    location = location.clone();
     // prepare information
     AnalysisContext elementContext = element.getContext();
     AnalysisContext locationContext = location.getElement().getContext();
