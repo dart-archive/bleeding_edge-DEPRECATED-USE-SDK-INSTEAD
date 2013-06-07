@@ -340,6 +340,25 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertEquals(librarySource, result[0]);
   }
 
+  public void test_getLibrariesDependingOn() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source libASource = addSource("/libA.dart", "library libA;");
+    addSource("/libB.dart", "library libB;");
+    Source lib1Source = addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "import 'libA.dart';",
+        "import 'libB.dart';"));
+    Source lib2Source = addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "import 'libA.dart';",
+        "import 'libB.dart';"));
+    context.computeLibraryElement(lib1Source);
+    context.computeLibraryElement(lib2Source);
+    Source[] result = context.getLibrariesDependingOn(libASource);
+    assertContains(result, lib1Source, lib2Source);
+  }
+
   public void test_getLibraryElement() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
