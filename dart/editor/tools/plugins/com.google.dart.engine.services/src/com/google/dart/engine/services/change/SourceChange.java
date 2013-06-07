@@ -29,7 +29,7 @@ import java.util.Map;
 public class SourceChange extends Change {
   private final Source source;
   private final List<Edit> edits = Lists.newArrayList();
-  private final Map<String, List<Edit>> editGroups = Maps.newHashMap();
+  private final Map<String, List<Edit>> editGroups = Maps.newTreeMap();
 
   /**
    * @param name the name of this change to display in UI
@@ -44,7 +44,7 @@ public class SourceChange extends Change {
    * Adds the {@link Edit} to apply.
    */
   public void addEdit(Edit edit) {
-    addEdit(null, edit);
+    addEdit("", edit);
   }
 
   /**

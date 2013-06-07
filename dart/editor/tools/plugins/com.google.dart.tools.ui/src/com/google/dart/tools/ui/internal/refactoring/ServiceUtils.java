@@ -36,6 +36,7 @@ import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrect
 import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedPositions;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -53,6 +54,8 @@ import java.util.Map.Entry;
 
 /**
  * Utilities to create LTK wrapper around Engine Services objects.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class ServiceUtils {
   /**
@@ -79,7 +82,6 @@ public class ServiceUtils {
     for (Change child : compositeChange.getChildren()) {
       ltkChange.add(toLTK(child));
     }
-    // TODO(scheglov) edit groups
     return ltkChange;
   }
 
@@ -128,7 +130,7 @@ public class ServiceUtils {
    */
   public static TextFileChange toLTK(SourceChange change) {
     Source source = change.getSource();
-    CompilationUnitChange ltkChange = new CompilationUnitChange(source.getShortName(), source);
+    CompilationUnitChange ltkChange = new CompilationUnitChange(change.getName(), source);
     ltkChange.setEdit(new MultiTextEdit());
     Map<String, List<Edit>> editGroups = change.getEditGroups();
     for (Entry<String, List<Edit>> entry : editGroups.entrySet()) {
@@ -140,7 +142,9 @@ public class ServiceUtils {
       }
       // add group
       String groupName = entry.getKey();
-      ltkChange.addTextEditGroup(new TextEditGroup(groupName, ltkEdits));
+      if (StringUtils.isNotEmpty(groupName)) {
+        ltkChange.addTextEditGroup(new TextEditGroup(groupName, ltkEdits));
+      }
     }
     return ltkChange;
   }

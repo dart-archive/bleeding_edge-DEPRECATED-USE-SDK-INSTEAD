@@ -52,7 +52,7 @@ public class SourceChangeTest extends TestCase {
     }
   }
 
-  public void test_edits_noDEscription() throws Exception {
+  public void test_edits_noDescription() throws Exception {
     Edit editA = mock(Edit.class);
     Edit editB = mock(Edit.class);
     // empty
@@ -65,7 +65,7 @@ public class SourceChangeTest extends TestCase {
     {
       Map<String, List<Edit>> editGroups = change.getEditGroups();
       assertThat(editGroups).hasSize(1);
-      assertThat(editGroups.get(null)).containsExactly(editA, editB);
+      assertThat(editGroups.get("")).containsExactly(editA, editB);
     }
   }
 }
