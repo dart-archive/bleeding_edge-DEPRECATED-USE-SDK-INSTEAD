@@ -65,6 +65,12 @@ public class SearchView extends ViewPart {
   }
 
   @Override
+  public void dispose() {
+    showPage(null);
+    super.dispose();
+  }
+
+  @Override
   public void setFocus() {
     pageBook.setFocus();
   }
