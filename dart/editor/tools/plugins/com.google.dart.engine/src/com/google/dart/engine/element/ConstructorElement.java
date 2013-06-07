@@ -19,15 +19,7 @@ package com.google.dart.engine.element;
  * 
  * @coverage dart.engine.element
  */
-public interface ConstructorElement extends ExecutableElement {
-  /**
-   * Return the type in which this constructor is defined.
-   * 
-   * @return the type in which this constructor is defined
-   */
-  @Override
-  public ClassElement getEnclosingElement();
-
+public interface ConstructorElement extends ClassMemberElement, ExecutableElement {
   /**
    * Return the constructor to which this constructor is redirecting.
    * 

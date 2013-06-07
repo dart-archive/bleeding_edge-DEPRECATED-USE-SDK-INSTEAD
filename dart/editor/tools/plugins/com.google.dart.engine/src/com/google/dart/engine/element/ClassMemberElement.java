@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,10 +14,15 @@
 package com.google.dart.engine.element;
 
 /**
- * The interface {@code FieldElement} defines the behavior of elements representing a field defined
- * within a type.
- * 
- * @coverage dart.engine.element
+ * The interface {@code ClassMemberElement} defines the behavior of elements that are contained
+ * within a {@link ClassElement}.
  */
-public interface FieldElement extends ClassMemberElement, PropertyInducingElement {
+public interface ClassMemberElement extends Element {
+  /**
+   * Return the type in which this constructor is defined.
+   * 
+   * @return the type in which this constructor is defined
+   */
+  @Override
+  public ClassElement getEnclosingElement();
 }

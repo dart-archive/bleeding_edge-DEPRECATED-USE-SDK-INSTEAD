@@ -19,15 +19,7 @@ package com.google.dart.engine.element;
  * 
  * @coverage dart.engine.element
  */
-public interface MethodElement extends ExecutableElement {
-  /**
-   * Return the type in which this method is defined.
-   * 
-   * @return the type in which this method is defined
-   */
-  @Override
-  public ClassElement getEnclosingElement();
-
+public interface MethodElement extends ClassMemberElement, ExecutableElement {
   /**
    * Return {@code true} if this method is abstract. Methods are abstract if they are not external
    * and have no body.
