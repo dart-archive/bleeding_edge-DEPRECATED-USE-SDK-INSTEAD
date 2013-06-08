@@ -199,27 +199,18 @@ public class SearchEngineImpl implements SearchEngine {
     PropertyAccessorElement setter = variable.getSetter();
     // find locations
     final List<Location> locations = Lists.newArrayList();
-    final CountDownLatch latch = new CountDownLatch(2);
-    index.getRelationships(
-        setter,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new RelationshipCallback() {
-          @Override
-          public void hasRelationships(Element element, Relationship relationship, Location[] locs) {
-            Collections.addAll(locations, locs);
-            latch.countDown();
-          }
-        });
-    index.getRelationships(
-        setter,
-        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        new RelationshipCallback() {
-          @Override
-          public void hasRelationships(Element element, Relationship relationship, Location[] locs) {
-            Collections.addAll(locations, locs);
-            latch.countDown();
-          }
-        });
+    final CountDownLatch latch = new CountDownLatch(4);
+    class Callback implements RelationshipCallback {
+      @Override
+      public void hasRelationships(Element element, Relationship relationship, Location[] locs) {
+        Collections.addAll(locations, locs);
+        latch.countDown();
+      }
+    }
+    index.getRelationships(setter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, new Callback());
+    index.getRelationships(setter, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, new Callback());
+    index.getRelationships(variable, IndexConstants.IS_REFERENCED_BY, new Callback());
+    index.getRelationships(variable, IndexConstants.IS_DEFINED_BY, new Callback());
     Uninterruptibles.awaitUninterruptibly(latch);
     // get types from locations
     Set<Type> types = Sets.newHashSet();

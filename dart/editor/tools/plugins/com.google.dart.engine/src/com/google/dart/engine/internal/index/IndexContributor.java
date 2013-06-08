@@ -23,6 +23,7 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
@@ -133,6 +134,36 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
+   * If the given expression has resolved type, returns the new location with this type.
+   * 
+   * @param location the base location
+   * @param expression the expression assigned at the given location
+   */
+  private static Location getLocationWithExpressionType(Location location, Expression expression) {
+    if (expression != null) {
+      Type type = getBestType(expression);
+      if (type != null) {
+        return new LocationWithData<Type>(location, type);
+      }
+    }
+    return location;
+  }
+
+  /**
+   * If the given node is the part of the {@link ConstructorFieldInitializer}, returns location with
+   * type of the initializer expression.
+   */
+  private static Location getLocationWithInitializerType(SimpleIdentifier node, Location location) {
+    if (node.getParent() instanceof ConstructorFieldInitializer) {
+      ConstructorFieldInitializer initializer = (ConstructorFieldInitializer) node.getParent();
+      if (initializer.getFieldName() == node) {
+        location = getLocationWithExpressionType(location, initializer.getExpression());
+      }
+    }
+    return location;
+  }
+
+  /**
    * If the given identifier has a synthetic {@link PropertyAccessorElement}, i.e. accessor for
    * normal field, and it is LHS of assignment, then include {@link Type} of the assigned value into
    * the {@link Location}.
@@ -183,8 +214,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     if (parent instanceof AssignmentExpression) {
       AssignmentExpression assignment = (AssignmentExpression) parent;
       Expression rhs = assignment.getRightHandSide();
-      Type assignedType = getBestType(rhs);
-      location = new LocationWithData<Type>(location, assignedType);
+      location = getLocationWithExpressionType(location, rhs);
     }
     // done
     return location;
@@ -480,9 +510,12 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       return null;
     }
     // record specific relations
-    if (element instanceof ClassElement || element instanceof FieldElement
-        || element instanceof FunctionElement || element instanceof FunctionTypeAliasElement
-        || element instanceof LabelElement || element instanceof TypeVariableElement) {
+    if (element instanceof ClassElement || element instanceof FunctionElement
+        || element instanceof FunctionTypeAliasElement || element instanceof LabelElement
+        || element instanceof TypeVariableElement) {
+      recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+    } else if (element instanceof FieldElement) {
+      location = getLocationWithInitializerType(node, location);
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     } else if (element instanceof FieldFormalParameterElement) {
       FieldFormalParameterElement fieldParameter = (FieldFormalParameterElement) element;
@@ -555,6 +588,14 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitVariableDeclaration(VariableDeclaration node) {
     VariableElement element = node.getElement();
+    // record declaration
+    {
+      SimpleIdentifier name = node.getName();
+      Location location = createLocation(name);
+      location = getLocationWithExpressionType(location, node.getInitializer());
+      recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
+    }
+    // visit
     enterScope(element);
     try {
       return super.visitVariableDeclaration(node);

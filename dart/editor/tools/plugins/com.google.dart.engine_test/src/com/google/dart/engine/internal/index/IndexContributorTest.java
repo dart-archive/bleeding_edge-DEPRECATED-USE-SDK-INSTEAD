@@ -293,7 +293,7 @@ public class IndexContributorTest extends AbstractDartTest {
   }
 
   @SuppressWarnings("unchecked")
-  public void test_FieldElement_assignedTypes_qualifed() throws Exception {
+  public void test_FieldElement_assignedTypes_assignment_qualifed() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -333,7 +333,7 @@ public class IndexContributorTest extends AbstractDartTest {
   }
 
   @SuppressWarnings("unchecked")
-  public void test_FieldElement_assignedTypes_unqualifed() throws Exception {
+  public void test_FieldElement_assignedTypes_assignment_unqualifed() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -378,6 +378,42 @@ public class IndexContributorTest extends AbstractDartTest {
           new ExpectedLocation(mainElement, findOffset("myField = '3'"), "myField"));
       Type type = ((LocationWithData<Type>) location).getData();
       assertEquals("String", type.toString());
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public void test_FieldElement_assignedTypes_initializer() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var myField = 1;",
+        "  A() : myField = 2.0;",
+        "}");
+    // set elements
+    Element classElement = findElement("A {");
+    Element constructorElement = findNode("A() :", ConstructorDeclaration.class).getElement();
+    FieldElement fieldElement = findElement("myField = 1;");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    {
+      Location location = assertRecordedRelation(
+          relations,
+          fieldElement,
+          IndexConstants.IS_DEFINED_BY,
+          new ExpectedLocation(classElement, findOffset("myField = 1"), "myField"));
+      Type type = ((LocationWithData<Type>) location).getData();
+      assertEquals("int", type.toString());
+    }
+    {
+      Location location = assertRecordedRelation(
+          relations,
+          fieldElement,
+          IndexConstants.IS_REFERENCED_BY,
+          new ExpectedLocation(constructorElement, findOffset("myField = 2.0"), "myField"));
+      Type type = ((LocationWithData<Type>) location).getData();
+      assertEquals("double", type.toString());
     }
   }
 

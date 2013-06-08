@@ -150,7 +150,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   private final Element elementD = mock(Element.class);
   private final Element elementE = mock(Element.class);
 
-  public void test_searchAssignedTypes() throws Exception {
+  public void test_searchAssignedTypes_assignments() throws Exception {
     final PropertyAccessorElement setterElement = mock2(
         PropertyAccessorElement.class,
         ElementKind.SETTER);
@@ -203,6 +203,31 @@ public class SearchEngineImplTest extends EngineTestCase {
             return element != elementC;
           }
         });
+      }
+    });
+    assertThat(types).containsOnly(typeA, typeB);
+  }
+
+  public void test_searchAssignedTypes_initializers() throws Exception {
+    final FieldElement fieldElement = mock2(FieldElement.class, ElementKind.FIELD);
+    final Type typeA = mock(Type.class);
+    final Type typeB = mock(Type.class);
+    {
+      Location location = new Location(elementA, 10, 1, null);
+      location = new LocationWithData<Type>(location, typeA);
+      indexStore.recordRelationship(fieldElement, IndexConstants.IS_DEFINED_BY, location);
+    }
+    {
+      Location location = new Location(elementB, 20, 1, null);
+      location = new LocationWithData<Type>(location, typeB);
+      indexStore.recordRelationship(fieldElement, IndexConstants.IS_REFERENCED_BY, location);
+    }
+    // ask types
+    Set<Type> types = runSearch(new SearchRunner<Set<Type>>() {
+      @Override
+      public Set<Type> run(OperationQueue queue, OperationProcessor processor, Index index,
+          SearchEngine engine) throws Exception {
+        return engine.searchAssignedTypes(fieldElement, null);
       }
     });
     assertThat(types).containsOnly(typeA, typeB);
