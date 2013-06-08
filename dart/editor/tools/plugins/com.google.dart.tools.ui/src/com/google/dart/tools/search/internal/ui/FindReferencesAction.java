@@ -13,13 +13,16 @@
  */
 package com.google.dart.tools.search.internal.ui;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
@@ -127,21 +130,34 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
         @Override
         protected List<SearchMatch> runQuery() {
           List<SearchMatch> allMatches = Lists.newArrayList();
-          // add Element references
-          if (searchElement != null) {
-            allMatches.addAll(searchEngine.searchReferences(searchElement, null, null));
+          allMatches.addAll(findElementReferences());
+          allMatches.addAll(findUnresolvedNameReferences());
+          return allMatches;
+        }
+
+        private List<SearchMatch> findElementReferences() {
+          if (searchElement == null) {
+            return ImmutableList.of();
           }
-          // add Name references
-          List<SearchMatch> nameReferences = searchEngine.searchQualifiedMemberReferences(
-              searchName,
-              null,
-              null);
-          for (SearchMatch match : nameReferences) {
-            if (searchElement == null || match.getKind() == MatchKind.NAME_REFERENCE_UNRESOLVED) {
-              allMatches.add(match);
+          return searchEngine.searchReferences(searchElement, null, null);
+        }
+
+        private List<SearchMatch> findUnresolvedNameReferences() {
+          // only methods and fields may have potential references
+          if (searchElement != null) {
+            ElementKind elementKind = searchElement.getKind();
+            if (elementKind != ElementKind.METHOD && elementKind != ElementKind.FIELD) {
+              return ImmutableList.of();
             }
           }
-          return allMatches;
+          // do search
+          return searchEngine.searchQualifiedMemberReferences(searchName, null, new SearchFilter() {
+            @Override
+            public boolean passes(SearchMatch match) {
+              return searchElement == null
+                  || match.getKind() == MatchKind.NAME_REFERENCE_UNRESOLVED;
+            }
+          });
         }
       });
     } catch (Throwable e) {
