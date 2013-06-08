@@ -37,6 +37,8 @@ import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.viewers.IPostSelectionProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
@@ -110,6 +112,18 @@ public class DartReconciler extends MonoReconciler {
     }
   }
 
+  private final class WidgetListener implements FocusListener {
+    @Override
+    public void focusGained(FocusEvent e) {
+      hasFocus = true;
+    }
+
+    @Override
+    public void focusLost(FocusEvent e) {
+      hasFocus = false;
+    }
+  }
+
   private static final String UNCHANGED_CODE = new String();
 
   private final DartEditor editor;
@@ -122,8 +136,10 @@ public class DartReconciler extends MonoReconciler {
   private EditorState loopEditorState;
   private String oldCode = UNCHANGED_CODE;
   private final Listener documentListener = new Listener();
+  private final WidgetListener widgetListener = new WidgetListener();
 
   private Boolean lastReadOnly = null;
+  private boolean hasFocus = true;
 
   public DartReconciler(ITextEditor editor, DartCompositeReconcilingStrategy strategy) {
     super(strategy, false);
@@ -160,6 +176,7 @@ public class DartReconciler extends MonoReconciler {
         IPostSelectionProvider provider = (IPostSelectionProvider) editor.getSelectionProvider();
         provider.addPostSelectionChangedListener(documentListener);
         getTextViewer().addTextInputListener(documentListener);
+        getTextViewer().getTextWidget().addFocusListener(widgetListener);
       }
       // start thread
       thread = new Thread() {
@@ -185,6 +202,7 @@ public class DartReconciler extends MonoReconciler {
         provider.removePostSelectionChangedListener(documentListener);
       }
       getTextViewer().removeTextInputListener(documentListener);
+      getTextViewer().getTextWidget().removeFocusListener(widgetListener);
     }
     // notify thread that it should be stopped
     thread = null;
@@ -331,7 +349,7 @@ public class DartReconciler extends MonoReconciler {
       try {
         // wait
         try {
-          Thread.sleep(25);
+          Thread.sleep(hasFocus ? 25 : 1000);
         } catch (InterruptedException e) {
         }
         // update read-only flag
