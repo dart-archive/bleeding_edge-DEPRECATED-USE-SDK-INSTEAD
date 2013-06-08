@@ -2434,6 +2434,11 @@ public class CompletionEngine {
       final Type[] result = new Type[1];
       AstNodeClassifier visitor = new AstNodeClassifier() {
         @Override
+        public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
+          return visitSimpleIdentifier(node.getIdentifier());
+        }
+
+        @Override
         public Void visitSimpleIdentifier(SimpleIdentifier node) {
           Element elem = node.getElement();
           if (elem.getKind() == ElementKind.GETTER) {
