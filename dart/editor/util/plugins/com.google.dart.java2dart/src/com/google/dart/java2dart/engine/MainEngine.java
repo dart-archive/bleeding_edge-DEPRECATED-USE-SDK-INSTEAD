@@ -648,6 +648,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("instrumentation.dart", null));
     unit.getDirectives().add(
         importDirective("element.dart", null, importShowCombinator("HtmlElementImpl")));
+    unit.getDirectives().add(
+        importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "html/scanner/") || isEnginePath(file, "html/ast/")
