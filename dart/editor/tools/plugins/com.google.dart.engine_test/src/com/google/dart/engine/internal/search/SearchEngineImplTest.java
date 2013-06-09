@@ -678,6 +678,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     // search matches
     List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
+    // TODO(scheglov) why no MatchKind.FIELD_READ_WRITE ?
     assertMatches(
         matches,
         new ExpectedMatch(elementA, MatchKind.VARIABLE_READ, 1, 10),
