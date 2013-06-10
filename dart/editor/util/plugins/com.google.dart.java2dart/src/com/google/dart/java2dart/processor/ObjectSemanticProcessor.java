@@ -347,6 +347,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           replaceCharWithString(args.get(0));
           return null;
         }
+        if (isMethodInClass2(node, "concat(java.lang.String)", "java.lang.String")) {
+          replaceNode(node, binaryExpression(node.getTarget(), TokenType.PLUS, args.get(0)));
+          return null;
+        }
         if (isMethodInClass(node, "print", "java.io.PrintWriter")) {
           IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
           if (binding != null && binding.getParameterTypes().length >= 1

@@ -716,6 +716,22 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_String_concat() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public String test(String a, String b) {",
+        "    return a.concat(b);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  String test(String a, String b) => a + b;",
+        "}");
+  }
+
   public void test_String_concat_literals() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

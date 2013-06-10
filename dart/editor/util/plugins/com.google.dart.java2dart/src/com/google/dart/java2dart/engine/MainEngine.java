@@ -41,7 +41,6 @@ import com.google.dart.java2dart.util.JavaUtils;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
 import static com.google.dart.java2dart.util.ASTFactory.exportDirective;
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
 import static com.google.dart.java2dart.util.ASTFactory.importDirective;
 import static com.google.dart.java2dart.util.ASTFactory.importHideCombinator;
 import static com.google.dart.java2dart.util.ASTFactory.importShowCombinator;
@@ -320,7 +319,7 @@ public class MainEngine {
       String source = getFormattedSource(library);
       source = replaceSourceFragmentRE(
           source,
-          "Object visitImportDirective\\(ImportDirective directive\\) \\{\n.*?FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE.*?return null;",
+          "Object visitImportDirective\\(ImportDirective directive\\) \\{\n.*?checkForPackageImportContainsDotDot.*?return null;",
           makeSource("Object visitImportDirective(ImportDirective directive) {", "    return null;"));
       source = replaceSourceFragment(
           source,
@@ -412,8 +411,7 @@ public class MainEngine {
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
-    unit.getDirectives().add(
-        importDirective("element.dart", null, importHideCombinator(identifier("Annotation"))));
+    unit.getDirectives().add(importDirective("element.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "ast/") || isEnginePath(file, "utilities/ast/")) {
@@ -542,10 +540,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
     unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
-    unit.getDirectives().add(
-        importDirective(src_package + "ast.dart", null, importHideCombinator("Annotation")));
-    unit.getDirectives().add(
-        importDirective(src_package + "element.dart", null, importHideCombinator("Annotation")));
+    unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "element.dart", null));
     unit.getDirectives().add(
         importDirective(
             src_package + "engine.dart",
@@ -751,7 +747,7 @@ public class MainEngine {
         importDirective(
             "element.dart",
             null,
-            importHideCombinator("Annotation", "HideCombinator", "ShowCombinator")));
+            importHideCombinator("HideCombinator", "ShowCombinator")));
     unit.getDirectives().add(importDirective("html.dart", "ht"));
     unit.getDirectives().add(importDirective("engine.dart", null));
     unit.getDirectives().add(importDirective("constant.dart", null));
@@ -808,8 +804,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "source_io.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
-    unit.getDirectives().add(
-        importDirective(src_package + "ast.dart", null, importHideCombinator("Annotation")));
+    unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
     unit.getDirectives().add(
         importDirective(src_package + "parser.dart", null, importShowCombinator("ParserErrorCode")));
     unit.getDirectives().add(importDirective(src_package + "element.dart", null));
