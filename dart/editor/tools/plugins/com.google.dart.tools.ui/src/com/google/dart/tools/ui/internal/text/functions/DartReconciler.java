@@ -193,8 +193,6 @@ public class DartReconciler extends MonoReconciler {
   @Override
   public void uninstall() {
     super.uninstall();
-    // this editor was closed, reset content
-    notifyContextAboutCode(null);
     // remove listeners
     {
       IPostSelectionProvider provider = (IPostSelectionProvider) editor.getSelectionProvider();

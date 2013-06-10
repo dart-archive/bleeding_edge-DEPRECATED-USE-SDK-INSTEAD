@@ -35,6 +35,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
+import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -2031,6 +2032,16 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   public void dispose() {
+    // close without save, remove content override
+    if (isDirty()) {
+      Project project = getInputProject();
+      AnalysisContext context = getInputAnalysisContext();
+      Source source = getInputSource();
+      if (project != null && context != null && source != null) {
+        context.setContents(source, null);
+        new AnalysisWorker(project, context).performAnalysisInBackground();
+      }
+    }
 
     DartX.todo("folding");
     if (fProjectionModelUpdater != null) {
