@@ -97,7 +97,7 @@ public class AnalyzerMain {
         });
 
         if (result != ErrorSeverity.NONE) {
-          System.exit(result.ordinal());
+          System.exit(getReturnCode(result));
         }
       } else {
         String sourceFilePath = options.getSourceFile();
@@ -111,7 +111,7 @@ public class AnalyzerMain {
         ErrorSeverity result = runAnalyzer(options);
 
         if (result != ErrorSeverity.NONE) {
-          System.exit(result.ordinal());
+          System.exit(getReturnCode(result));
         }
       }
     } catch (AnalysisException exception) {
@@ -173,6 +173,21 @@ public class AnalyzerMain {
     }
 
     return status;
+  }
+
+  /**
+   * Return the return code appropriate for the given severity.
+   * 
+   * @param severity the severity of the most severe error that was reported
+   * @return the return code that should be used returned by the analyzer
+   */
+  private static int getReturnCode(ErrorSeverity severity) {
+    if (severity == ErrorSeverity.WARNING) {
+      return 1;
+    } else if (severity == ErrorSeverity.ERROR) {
+      return 2;
+    }
+    return 0;
   }
 
   private static void showUsage(PrintStream out) {
