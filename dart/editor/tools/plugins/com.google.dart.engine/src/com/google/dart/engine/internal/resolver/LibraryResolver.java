@@ -781,7 +781,7 @@ public class LibraryResolver {
           library.getInheritanceManager());
       unit.accept(errorVerifier);
 
-      unit.accept(new PubVerifier(errorReporter));
+      unit.accept(new PubVerifier(analysisContext, errorReporter));
 
       ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
       unit.accept(constantVerifier);

@@ -19,6 +19,13 @@ import com.google.dart.engine.source.Source;
 
 public class PubSuggestionCodeTest extends ResolverTestCase {
 
+  public void test_import_package() throws Exception {
+    Source source = addSource(createSource(//
+    "import 'package:somepackage/other.dart';"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
   public void test_import_packageWithDotDot() throws Exception {
     Source source = addSource(createSource(//
     "import 'package:somepackage/../other.dart';"));
@@ -38,27 +45,63 @@ public class PubSuggestionCodeTest extends ResolverTestCase {
   }
 
   public void test_import_referenceIntoLibDirectory() throws Exception {
-    Source source = addSource(createSource(//
-    "import '../lib/other.dart';"));
+    cacheSource("/myproj/pubspec.yaml", "");
+    cacheSource("/myproj/lib/other.dart", "");
+    Source source = addSource("/myproj/web/test.dart", createSource(//
+        "import '../lib/other.dart';"));
     resolve(source);
-    assertErrors(
-        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE);
+    assertErrors(PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE);
+  }
+
+  public void test_import_referenceIntoLibDirectory_no_pubspec() throws Exception {
+    cacheSource("/myproj/lib/other.dart", "");
+    Source source = addSource("/myproj/web/test.dart", createSource(//
+        "import '../lib/other.dart';"));
+    resolve(source);
+    assertNoErrors();
   }
 
   public void test_import_referenceOutOfLibDirectory() throws Exception {
-    Source source = addSource("lib/test.dart", createSource(//
+    cacheSource("/myproj/pubspec.yaml", "");
+    cacheSource("/myproj/web/other.dart", "");
+    Source source = addSource("/myproj/lib/test.dart", createSource(//
         "import '../web/other.dart';"));
     resolve(source);
-    assertErrors(
-        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE);
+    assertErrors(PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE);
   }
 
-  public void test_import_valid() throws Exception {
-    Source source = addSource("lib2/test.dart", createSource(//
+  public void test_import_referenceOutOfLibDirectory_no_pubspec() throws Exception {
+    cacheSource("/myproj/web/other.dart", "");
+    Source source = addSource("/myproj/lib/test.dart", createSource(//
         "import '../web/other.dart';"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+    assertNoErrors();
+  }
+
+  public void test_import_valid_inside_lib1() throws Exception {
+    cacheSource("/myproj/pubspec.yaml", "");
+    cacheSource("/myproj/lib/other.dart", "");
+    Source source = addSource("/myproj/lib/test.dart", createSource(//
+        "import 'other.dart';"));
+    resolve(source);
+    assertNoErrors();
+  }
+
+  public void test_import_valid_inside_lib2() throws Exception {
+    cacheSource("/myproj/pubspec.yaml", "");
+    cacheSource("/myproj/lib/bar/other.dart", "");
+    Source source = addSource("/myproj/lib/foo/test.dart", createSource(//
+        "import '../bar/other.dart';"));
+    resolve(source);
+    assertNoErrors();
+  }
+
+  public void test_import_valid_outside_lib() throws Exception {
+    cacheSource("/myproj/pubspec.yaml", "");
+    cacheSource("/myproj/web/other.dart", "");
+    Source source = addSource("/myproj/lib2/test.dart", createSource(//
+        "import '../web/other.dart';"));
+    resolve(source);
+    assertNoErrors();
   }
 }

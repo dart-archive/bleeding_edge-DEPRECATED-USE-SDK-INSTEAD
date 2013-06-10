@@ -77,8 +77,7 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the added file
    */
   protected Source addSource(String filePath, String contents) {
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
-    sourceFactory.setContents(source, contents);
+    Source source = cacheSource(filePath, contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
     analysisContext.applyChanges(changeSet);
@@ -117,6 +116,20 @@ public class ResolverTestCase extends EngineTestCase {
       }
     }
     errorListener.assertNoErrors();
+  }
+
+  /**
+   * Cache the source file content in the source factory but don't add the source to the analysis
+   * context. The file path should be absolute.
+   * 
+   * @param filePath the path of the file being cached
+   * @param contents the contents to be returned by the content provider for the specified file
+   * @return the source object representing the cached file
+   */
+  protected Source cacheSource(String filePath, String contents) {
+    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
+    sourceFactory.setContents(source, contents);
+    return source;
   }
 
   /**

@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.error.PubSuggestionCode;
 import com.google.dart.engine.internal.error.ErrorReporter;
@@ -33,12 +34,20 @@ import java.io.File;
  */
 public class PubVerifier extends RecursiveASTVisitor<Void> {
 
+  private static final String PUBSPEC_YAML = "pubspec.yaml";
+
+  /**
+   * The analysis context containing the sources to be analyzed
+   */
+  private final AnalysisContext context;
+
   /**
    * The error reporter by which errors will be reported.
    */
   private final ErrorReporter errorReporter;
 
-  public PubVerifier(ErrorReporter errorReporter) {
+  public PubVerifier(AnalysisContext context, ErrorReporter errorReporter) {
+    this.context = context;
     this.errorReporter = errorReporter;
   }
 
@@ -69,38 +78,29 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
     }
 
     if (scheme.equals(FileUriResolver.FILE_SCHEME)) {
-      if (checkForFileImportOutsideLibReferencesFileInside(directive, path)) {
-        // Files outside the lib directory hierarchy should not reference files inside
-        // ... use package: url instead
-        errorReporter.reportError(
-            PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
-            uriLiteral);
-      } else if (checkForFileImportInsideLibReferencesFileOutside(directive, path)) {
-        // Files inside the lib directory hierarchy should not reference files outside
-        errorReporter.reportError(
-            PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
-            uriLiteral);
+      if (!checkForFileImportOutsideLibReferencesFileInside(uriLiteral, path)) {
+        checkForFileImportInsideLibReferencesFileOutside(uriLiteral, path);
       }
     } else if (scheme.equals(PackageUriResolver.PACKAGE_SCHEME)) {
-      if (checkForPackageImportContainsDotDot(path)) {
-        // Package import should not to contain ".."
-        errorReporter.reportError(PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral);
-      }
+      checkForPackageImportContainsDotDot(uriLiteral, path);
     }
     return null;
   }
 
   /**
-   * Determine if the file file path lies inside the "lib" directory hierarchy but references a file
-   * outside that directory hierarchy.
+   * This verifies that the passed file import directive is not contained in a source inside a
+   * package "lib" directory hierarchy referencing a source outside that package "lib" directory
+   * hierarchy.
    * 
-   * @param directive the import directive (not {@code null})
+   * @param uriLiteral the import URL (not {@code null})
    * @param path the file path being verified (not {@code null})
-   * @return {@code true} if the file is inside but references a file outside
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE
    */
-  private boolean checkForFileImportInsideLibReferencesFileOutside(ImportDirective directive,
+  private boolean checkForFileImportInsideLibReferencesFileOutside(StringLiteral uriLiteral,
       String path) {
-    String fullName = getSourceFullName(directive);
+    Source source = getSource(uriLiteral);
+    String fullName = getSourceFullName(source);
     if (fullName != null) {
       int pathIndex = 0;
       int fullNameIndex = fullName.length();
@@ -111,6 +111,14 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
         }
         // Check for "/lib" at a specified place in the fullName
         if (fullName.startsWith("/lib", fullNameIndex - 4)) {
+          String relativePubspecPath = path.substring(0, pathIndex + 3).concat(PUBSPEC_YAML);
+          Source pubspecSource = context.getSourceFactory().resolveUri(source, relativePubspecPath);
+          if (pubspecSource.exists()) {
+            // Files inside the lib directory hierarchy should not reference files outside
+            errorReporter.reportError(
+                PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
+                uriLiteral);
+          }
           return true;
         }
         pathIndex += 3;
@@ -120,55 +128,101 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Determine if the given file path lies outside the "lib" directory hierarchy but references a
-   * file inside that directory hierarchy.
+   * This verifies that the passed file import directive is not contained in a source outside a
+   * package "lib" directory hierarchy referencing a source inside that package "lib" directory
+   * hierarchy.
    * 
-   * @param directive the import directive (not {@code null})
+   * @param uriLiteral the import URL (not {@code null})
    * @param path the file path being verified (not {@code null})
-   * @return {@code true} if the file is outside but references a file inside
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE
    */
-  private boolean checkForFileImportOutsideLibReferencesFileInside(ImportDirective directive,
+  private boolean checkForFileImportOutsideLibReferencesFileInside(StringLiteral uriLiteral,
       String path) {
-    if (path.startsWith("lib/") || path.contains("/lib/")) {
-      String fullName = getSourceFullName(directive);
-      if (fullName != null) {
-        if (!fullName.contains("/lib/")) {
-          return true;
-        }
+    if (path.startsWith("lib/")) {
+      if (checkForFileImportOutsideLibReferencesFileInside(uriLiteral, path, 0)) {
+        return true;
+      }
+    }
+    int pathIndex = path.indexOf("/lib/");
+    while (pathIndex != -1) {
+      if (checkForFileImportOutsideLibReferencesFileInside(uriLiteral, path, pathIndex + 1)) {
+        return true;
+      }
+      pathIndex = path.indexOf("/lib/", pathIndex + 4);
+    }
+    return false;
+  }
+
+  private boolean checkForFileImportOutsideLibReferencesFileInside(StringLiteral uriLiteral,
+      String path, int pathIndex) {
+    Source source = getSource(uriLiteral);
+    String relativePubspecPath = path.substring(0, pathIndex).concat(PUBSPEC_YAML);
+    Source pubspecSource = context.getSourceFactory().resolveUri(source, relativePubspecPath);
+    if (!pubspecSource.exists()) {
+      return false;
+    }
+    String fullName = getSourceFullName(source);
+    if (fullName != null) {
+      if (!fullName.contains("/lib/")) {
+        // Files outside the lib directory hierarchy should not reference files inside
+        // ... use package: url instead
+        errorReporter.reportError(
+            PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
+            uriLiteral);
+        return true;
       }
     }
     return false;
   }
 
   /**
-   * Determine if the given package import path contains ".."
+   * This verifies that the passed package import directive does not contain ".."
    * 
+   * @param uriLiteral the import URL (not {@code null})
    * @param path the path to be validated (not {@code null})
-   * @return {@code true} if the import path contains ".."
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
    */
-  private boolean checkForPackageImportContainsDotDot(String path) {
-    return path.startsWith("../") || path.contains("/../");
+  private boolean checkForPackageImportContainsDotDot(StringLiteral uriLiteral, String path) {
+    if (path.startsWith("../") || path.contains("/../")) {
+      // Package import should not to contain ".."
+      errorReporter.reportError(PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral);
+      return true;
+    }
+    return false;
   }
 
   /**
-   * Answer the full name of the source associated with the compilation unit containing the given
-   * AST node. The returned value will have all {@link File#separatorChar} replace by '/'.
+   * Answer the source associated with the compilation unit containing the given AST node.
    * 
    * @param node the node (not {@code null})
-   * @return the full name or {@code null} if it could not be determined
+   * @return the source or {@code null} if it could not be determined
    */
-  private String getSourceFullName(ASTNode node) {
+  private Source getSource(ASTNode node) {
+    Source source = null;
     CompilationUnit unit = node.getAncestor(CompilationUnit.class);
     if (unit != null) {
       CompilationUnitElement element = unit.getElement();
       if (element != null) {
-        Source librarySource = element.getSource();
-        if (librarySource != null) {
-          String fullName = librarySource.getFullName();
-          if (fullName != null) {
-            return fullName.replace(File.separatorChar, '/');
-          }
-        }
+        source = element.getSource();
+      }
+    }
+    return source;
+  }
+
+  /**
+   * Answer the full name of the given source. The returned value will have all
+   * {@link File#separatorChar} replace by '/'.
+   * 
+   * @param source the source
+   * @return the full name or {@code null} if it could not be determined
+   */
+  private String getSourceFullName(Source source) {
+    if (source != null) {
+      String fullName = source.getFullName();
+      if (fullName != null) {
+        return fullName.replace(File.separatorChar, '/');
       }
     }
     return null;
