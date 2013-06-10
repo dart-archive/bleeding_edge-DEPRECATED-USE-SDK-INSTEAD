@@ -32,6 +32,7 @@ import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.functionElement;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
 import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
@@ -966,6 +967,25 @@ public class InterfaceTypeImplTest extends EngineTestCase {
 
     assertFalse(dynamicType.isSubtypeOf(typeA));
     assertTrue(typeA.isSubtypeOf(dynamicType));
+  }
+
+  public void test_isSubtypeOf_function() throws Exception {
+    //
+    // void f(String s) {}
+    // class A {
+    //   void call(String s) {}
+    // }
+    //
+    InterfaceType stringType = typeProvider.getStringType();
+    ClassElementImpl classA = classElement("A");
+    classA.setMethods(new MethodElement[] {methodElement(
+        "call",
+        VoidTypeImpl.getInstance(),
+        stringType)});
+
+    FunctionType functionType = functionElement("f", new ClassElement[] {stringType.getElement()}).getType();
+
+    assertTrue(classA.getType().isSubtypeOf(functionType));
   }
 
   public void test_isSubtypeOf_interface() {

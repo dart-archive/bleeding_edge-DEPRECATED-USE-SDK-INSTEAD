@@ -25,6 +25,7 @@ import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.member.ConstructorMember;
 import com.google.dart.engine.internal.element.member.MethodMember;
 import com.google.dart.engine.internal.element.member.PropertyAccessorMember;
+import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeVariableType;
@@ -486,6 +487,13 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     } else if (type instanceof TypeVariableType) {
       return true;
+    } else if (type instanceof FunctionType) {
+      ClassElement element = getElement();
+      MethodElement callMethod = element.lookUpMethod("call", element.getLibrary());
+      if (callMethod != null) {
+        return callMethod.getType().isSubtypeOf(type);
+      }
+      return false;
     } else if (!(type instanceof InterfaceType)) {
       return false;
     } else if (this.equals(type)) {
