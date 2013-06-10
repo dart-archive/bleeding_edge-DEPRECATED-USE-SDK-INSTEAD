@@ -740,6 +740,20 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Return <code>true</code> if the given file is contained in the packages directory created by
+   * pub
+   * 
+   * @param file the file that is to be checked
+   * @return <code>true</code> if the given file is in packages
+   */
+  public static boolean isContainedInPackages(IFile file) {
+    if (file.getFullPath().toString().contains(DartCore.PACKAGES_DIRECTORY_PATH)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Return <code>true</code> if the given file name's extension is an CSS-like extension.
    * 
    * @param fileName the file name being tested

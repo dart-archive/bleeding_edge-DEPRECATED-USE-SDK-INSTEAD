@@ -37,7 +37,6 @@ import org.eclipse.ui.views.tasklist.ITaskListResourceAdapter;
 /**
  * Implements basic UI adapter support for {@link Element}s.
  * <p>
- * To replace {@link DartElementAdapterFactory}.
  */
 public class NewDartElementAdapterFactory implements IAdapterFactory, IContributorResourceAdapter2 {
 

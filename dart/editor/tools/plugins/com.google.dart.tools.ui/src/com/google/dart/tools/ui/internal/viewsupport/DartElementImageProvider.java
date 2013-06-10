@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.viewsupport;
 
-import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
@@ -28,9 +27,6 @@ import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.ImportedDartLibrary;
-import com.google.dart.tools.ui.ImportedDartLibraryContainer;
-import com.google.dart.tools.ui.internal.DartWorkbenchAdapter;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -41,11 +37,8 @@ import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.model.IWorkbenchAdapter;
-
-import java.io.File;
 
 /**
  * Default strategy of the Dart plugin for the construction of Dart element icons.
@@ -248,21 +241,10 @@ public class DartElementImageProvider {
         return DartPluginImages.DESC_DART_CLASS_TYPE_ALIAS;
       }
       default:
-        // ignore. Must be a new, yet unknown element
-        // give an advanced IWorkbenchAdapter the chance
-        IWorkbenchAdapter wbAdapter = (IWorkbenchAdapter) element.getAdapter(IWorkbenchAdapter.class);
-        if (wbAdapter != null && !(wbAdapter instanceof DartWorkbenchAdapter)) { // avoid
-                                                                                 // recursion
-          ImageDescriptor imageDescriptor = wbAdapter.getImageDescriptor(element);
-          if (imageDescriptor != null) {
-            return imageDescriptor;
-          }
-        } else {
-          return DartPluginImages.DESC_OBJS_GHOST;
-        }
+        return DartPluginImages.DESC_OBJS_GHOST;
+
     }
 
-    return DartPluginImages.DESC_OBJS_GHOST;
   }
 
   /**
@@ -304,11 +286,8 @@ public class DartElementImageProvider {
    */
   public Image getImageLabel(Object element, int flags) {
 
-    if (element instanceof Element) {
-      return newImageProvider.getImageLabel(element, flags);
-    }
+    return newImageProvider.getImageLabel(element, flags);
 
-    return getImageLabel(computeDescriptor(element, flags));
   }
 
   /**
@@ -348,40 +327,6 @@ public class DartElementImageProvider {
     // else if (!containsJavaElements)
     // return JavaPluginImages.DESC_OBJS_EMPTY_PACKAGE;
     return DartPluginImages.DESC_OBJS_PACKAGE;
-  }
-
-  private ImageDescriptor computeDescriptor(Object element, int flags) {
-    if (element instanceof DartElement) {
-      return getDartImageDescriptor((DartElement) element, flags);
-    } else if (element instanceof IFile) {
-      IFile file = (IFile) element;
-      ImageDescriptor imageDescriptor = getWorkbenchImageDescriptor(file, flags);
-
-      if (file.isReadOnly() || !file.exists()) {
-        return decorateReadOnly(imageDescriptor);
-      } else {
-        return imageDescriptor;
-      }
-    } else if (element instanceof FileStoreEditorInput) {
-      ImageDescriptor imageDescriptor = DartPluginImages.DESC_DART_COMP_UNIT;
-      File file = new File(((FileStoreEditorInput) element).getURI());
-      imageDescriptor = DartPluginImages.DESC_DART_COMP_UNIT;
-      if (!file.canWrite()) {
-        return decorateReadOnly(imageDescriptor);
-      }
-      return imageDescriptor;
-    } else if (element instanceof IAdaptable) {
-      return getWorkbenchImageDescriptor((IAdaptable) element, flags);
-    } else if (element instanceof ImportedDartLibraryContainer
-        || element instanceof ImportedDartLibrary) {
-      Point size = useSmallSize(flags) ? SMALL_SIZE : BIG_SIZE;
-      ImageDescriptor baseDesc = getLibraryImageDescriptor(flags);
-      if (baseDesc != null) {
-        return new DartElementImageDescriptor(baseDesc, 0, size);
-      }
-      return new DartElementImageDescriptor(DartPluginImages.DESC_OBJS_GHOST, 0, size);
-    }
-    return null;
   }
 
   private int computeJavaAdornmentFlags(DartElement element, int renderFlags) {

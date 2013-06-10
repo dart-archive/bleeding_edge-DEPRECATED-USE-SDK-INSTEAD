@@ -4565,9 +4565,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private boolean isContentEditable() {
     if (!isEditableStateKnown) {
-      if (inputResourceFile != null
-          && !inputResourceFile.getLocation().toPortableString().contains(
-              DartCore.PACKAGES_DIRECTORY_PATH)) {
+      if (inputResourceFile != null && !DartCore.isContainedInPackages(inputResourceFile)) {
         isEditable = !inputResourceFile.isReadOnly();
       } else {
         isEditable = false;

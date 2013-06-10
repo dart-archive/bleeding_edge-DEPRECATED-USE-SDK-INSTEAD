@@ -52,25 +52,6 @@
 -->   
    
    <extension point="org.eclipse.core.runtime.adapters">
-      <factory 
-            class="com.google.dart.tools.ui.DartElementAdapterFactory" 
-            adaptableType="com.google.dart.tools.core.model.DartElement">
-            
-            <!--<adapter type="org.eclipse.core.resources.IResource"/>--> <!-- Adds the Open With... action -->
-            
-            <adapter type="org.eclipse.ui.IPersistableElement"/>
-            <!--<adapter type="org.eclipse.ui.IContributorResourceAdapter"/>--> <!-- Adds the Replace With action -->
-            <adapter type="org.eclipse.ui.ide.IContributorResourceAdapter2"/>
-            <adapter type="org.eclipse.ui.IContainmentAdapter"/>
-            
-            <!-- adapter type="org.eclipse.search.ui.ISearchPageScoreComputer"/-->
-            
-            <adapter type="org.eclipse.ui.model.IWorkbenchAdapter"/>
-            <adapter type="org.eclipse.ui.views.properties.IPropertySource"/>
-            <adapter type="org.eclipse.ui.views.tasklist.ITaskListResourceAdapter"/>
-            
-            <adapter type="com.google.dart.tools.ui.internal.IResourceLocator"/>
-      </factory>
    
       <factory 
             class="com.google.dart.tools.ui.NewDartElementAdapterFactory" 

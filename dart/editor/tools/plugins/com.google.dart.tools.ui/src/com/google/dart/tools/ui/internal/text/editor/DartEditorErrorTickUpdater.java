@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
@@ -77,13 +76,7 @@ public class DartEditorErrorTickUpdater implements IProblemChangedListener {
 
     Image newImage;
 
-    if (jelement instanceof CompilationUnit) {
-
-      newImage = fLabelProvider.getImage(((CompilationUnit) jelement).getResource());
-
-    } else {
-      newImage = fLabelProvider.getImage(jelement);
-    }
+    newImage = fLabelProvider.getImage(jelement);
 
     if (titleImage != newImage) {
       postImageChange(newImage);

@@ -19,13 +19,14 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.ImportedDartLibrary;
-import com.google.dart.tools.ui.ImportedDartLibraryContainer;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
@@ -34,8 +35,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.model.IWorkbenchAdapter;
-
-import java.io.File;
 
 /**
  * Dart element image provider.
@@ -225,11 +224,19 @@ public class NewDartElementImageProvider {
     if (baseDesc != null) {
       if (element instanceof CompilationUnitElement) {
 
-        //TODO (pquitslund): test for read-only-ness
-//        CompilationUnitElement cu = (CompilationUnitElement) element;
-//        if (cu.isReadOnly()) {
-//          baseDesc = decorateReadOnly(baseDesc);
-//        }
+        ResourceMap map = DartCore.getProjectManager().getResourceMap(element.getContext());
+
+        if (map != null) {
+          IResource resource = map.getResource(element.getSource());
+          // files in packages
+          if (resource != null && DartCore.isContainedInPackages((IFile) resource)) {
+
+            baseDesc = decorateReadOnly(baseDesc);
+          }
+        } else { // files in sdk
+          baseDesc = decorateReadOnly(baseDesc);
+        }
+
       }
 
       int adornmentFlags = computeDecorators(element, flags);
@@ -331,28 +338,18 @@ public class NewDartElementImageProvider {
       }
 
     } else if (element instanceof FileStoreEditorInput) {
-
+      // the only external dart files are in SDK and Installed Packages - these
+      // should be read only. If this changes, add check here
       ImageDescriptor imageDescriptor = DartPluginImages.DESC_DART_COMP_UNIT;
-      File file = new File(((FileStoreEditorInput) element).getURI());
+      //     File file = new File(((FileStoreEditorInput) element).getURI());
       imageDescriptor = DartPluginImages.DESC_DART_COMP_UNIT;
-      if (!file.canWrite()) {
-        return decorateReadOnly(imageDescriptor);
-      }
-      return imageDescriptor;
+      //     if (!file.canWrite()) {
+      return decorateReadOnly(imageDescriptor);
+      //     }
 
     } else if (element instanceof IAdaptable) {
 
       return getWorkbenchImageDescriptor((IAdaptable) element, flags);
-
-    } else if (element instanceof ImportedDartLibraryContainer
-        || element instanceof ImportedDartLibrary) {
-
-      Point size = useSmallSize(flags) ? SMALL_SIZE : BIG_SIZE;
-      ImageDescriptor baseDesc = getLibraryImageDescriptor(flags);
-      if (baseDesc != null) {
-        return new DartElementImageDescriptor(baseDesc, 0, size);
-      }
-      return new DartElementImageDescriptor(DartPluginImages.DESC_OBJS_GHOST, 0, size);
 
     }
 
