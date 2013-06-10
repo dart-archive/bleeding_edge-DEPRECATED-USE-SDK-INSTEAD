@@ -35,6 +35,22 @@ import org.eclipse.jface.text.Region;
 public class DartDebugHover implements ITextHover, ITextHoverExtension2 {
   private static DartDebugModelPresentation presentation = new DartDebugModelPresentation();
 
+  private static String convertNewLines(String str) {
+    if (str == null) {
+      return str;
+    }
+
+    return str.trim().replaceAll("\n", "<br>");
+  }
+
+  private static String escapeHtml(String str) {
+    if (str == null) {
+      return str;
+    }
+
+    return str.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  }
+
   /**
    * Returns a configured model presentation for use displaying variables.
    */
@@ -50,7 +66,7 @@ public class DartDebugHover implements ITextHover, ITextHoverExtension2 {
     DartDebugModelPresentation modelPresentation = getModelPresentation();
     buffer.append("<p><pre>"); //$NON-NLS-1$
     String variableText = modelPresentation.getVariableText(variable);
-    buffer.append(variableText);
+    buffer.append(convertNewLines(escapeHtml(shorten(variableText))));
     buffer.append("</pre></p>"); //$NON-NLS-1$
     modelPresentation.dispose();
 
@@ -59,6 +75,16 @@ public class DartDebugHover implements ITextHover, ITextHoverExtension2 {
     }
 
     return null;
+  }
+
+  private static String shorten(String str) {
+    final int MAX = 400;
+
+    if (str == null) {
+      return str;
+    }
+
+    return (str.length() > MAX) ? (str.substring(0, MAX) + "...") : str;
   }
 
   public DartDebugHover() {
