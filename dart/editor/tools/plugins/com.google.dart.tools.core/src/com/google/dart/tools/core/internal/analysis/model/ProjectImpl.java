@@ -389,6 +389,17 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     }
   }
 
+  @Override
+  public String toString() {
+    String name;
+    try {
+      name = getResource().getName();
+    } catch (Exception e) {
+      name = "unknown: " + e.getMessage();
+    }
+    return getClass().getSimpleName() + "[" + name + "]@" + Integer.toHexString(hashCode());
+  }
+
   /**
    * Answer the {@link AnalysisContext} for the specified container, creating one if necessary. Must
    * synchronize against {@link #pubFolders} before calling this method and either call

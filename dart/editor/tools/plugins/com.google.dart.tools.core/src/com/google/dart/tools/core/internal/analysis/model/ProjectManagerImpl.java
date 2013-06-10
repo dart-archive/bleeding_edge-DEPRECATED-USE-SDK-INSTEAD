@@ -36,6 +36,7 @@ import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
+import com.google.dart.tools.core.internal.builder.AnalysisWorker.Event;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
@@ -71,6 +72,13 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
   private final DartIgnoreManager ignoreManager;
   private final ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
+
+  private final AnalysisWorker.Listener indexNotifier = new AnalysisWorker.Listener() {
+    @Override
+    public void resolved(Event event) {
+      index.indexUnit(event.getContext(), event.getUnit());
+    }
+  };
 
   /**
    * A listener that updates the manager when a project is closed. In addition, this listener
@@ -324,14 +332,16 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     }.start();
     resource.getWorkspace().addResourceChangeListener(resourceChangeListener);
     ignoreManager.addListener(ignoreListener);
-    analyzeAllProjects();
+    AnalysisWorker.addListener(indexNotifier);
     new AnalysisWorker(this, getSdkContext()).performAnalysisInBackground();
+    analyzeAllProjects();
   }
 
   @Override
   public void stop() {
     resource.getWorkspace().removeResourceChangeListener(resourceChangeListener);
     ignoreManager.removeListener(ignoreListener);
+    AnalysisWorker.removeListener(indexNotifier);
     index.stop();
   }
 

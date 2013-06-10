@@ -270,6 +270,21 @@ public class DartReconciler extends MonoReconciler {
   }
 
   /**
+   * @return the short name of the {@link Source} which corresponds to the {@link IEditorInput}
+   */
+  private String getSourceShortName() {
+    Source source = getSource();
+    if (source == null) {
+      return "null";
+    }
+    String name = source.getShortName();
+    if (name == null) {
+      return "null name";
+    }
+    return name;
+  }
+
+  /**
    * Notifies {@link AnalysisContext} that {@link Source} was changed.
    */
   private void notifyContextAboutCode(String code) {
@@ -345,6 +360,7 @@ public class DartReconciler extends MonoReconciler {
     // run loop and wait for CompilationUnit changes
     WeakReference<CompilationUnit> lastParsedUnit = new WeakReference<CompilationUnit>(null);
     CompilationUnitElement previousUnitElement = null;
+    boolean exceptionLogged = false;
     while (thread != null) {
       try {
         // wait
@@ -391,6 +407,11 @@ public class DartReconciler extends MonoReconciler {
         // done with loop state
         loopEditorState = null;
       } catch (Throwable e) {
+        if (!exceptionLogged) {
+          // Log at most one exception so as not to flood the log
+          exceptionLogged = true;
+          DartCore.logError("Exception during refresh: " + getSourceShortName(), e);
+        }
       }
     }
   }

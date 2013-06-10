@@ -17,7 +17,6 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
@@ -42,6 +41,68 @@ import java.util.ArrayList;
  * based upon the analysis results.
  */
 public class AnalysisWorker {
+
+  /**
+   * {@code Event} contains information about the compilation unit that has been resolved.
+   */
+  public class Event {
+    private final AnalysisContext context;
+    CompilationUnit unit;
+    public Source source;
+    public IResource resource;
+
+    public Event(AnalysisContext context) {
+      this.context = context;
+    }
+
+    /**
+     * Answer the context in which the compilation unit was resolved.
+     * 
+     * @return the context (not {@code null})
+     */
+    public AnalysisContext getContext() {
+      return context;
+    }
+
+    /**
+     * Answer the resource of the compilation unit that was resolved.
+     * 
+     * @return the resource or {@code null} if the source is outside the workspace
+     */
+    public IResource getResource() {
+      return resource;
+    }
+
+    /**
+     * Answer the source of the compilation unit that was resolved.
+     * 
+     * @return the source (not {@code null})
+     */
+    public Source getSource() {
+      return source;
+    }
+
+    /**
+     * Answer the compilation unit that was resolved.
+     * 
+     * @return the unit (not {@code null})
+     */
+    public CompilationUnit getUnit() {
+      return unit;
+    }
+  }
+
+  /**
+   * {@code Listener} is used to notify others when a compilation unit has been resolved.
+   */
+  public interface Listener {
+    /**
+     * Called when a compilation unit has been resolved.
+     * 
+     * @param event contains information about the compilation unit that was resolved
+     */
+    void resolved(Event event);
+  }
 
   /**
    * A build level job processing workers in {@link AnalysisWorker#backgroundQueue}.
@@ -85,6 +146,61 @@ public class AnalysisWorker {
    * Synchronize against {@link #backgroundQueue} before accessing this field.
    */
   private static BackgroundAnalysisJob backgroundJob = null;
+
+  /**
+   * Objects to be notified when each compilation unit has been resolved. Contents of this array
+   * will not change, but the array itself may be replaced. Synchronize against
+   * {@link #allListenersLock} before accessing this field.
+   */
+  private static Listener[] allListeners = new Listener[] {};
+
+  /**
+   * Synchronize against {@code #allListenersLock} before accessing {@link #allListeners}
+   */
+  private static final Object allListenersLock = new Object();
+
+  /**
+   * Add a listener to be notified when compilation units are resolved
+   * 
+   * @param listener the listener
+   */
+  public static void addListener(Listener listener) {
+    if (listener == null) {
+      return;
+    }
+    synchronized (allListenersLock) {
+      for (Listener each : allListeners) {
+        if (listener == each) {
+          return;
+        }
+      }
+      int oldLen = allListeners.length;
+      Listener[] newListeners = new Listener[oldLen + 1];
+      System.arraycopy(allListeners, 0, newListeners, 0, oldLen);
+      newListeners[oldLen] = listener;
+      allListeners = newListeners;
+    }
+  }
+
+  /**
+   * Remove a listener from the list of objects to be notified.
+   * 
+   * @param listener the listener to be removed
+   */
+  public static void removeListener(Listener listener) {
+    synchronized (allListenersLock) {
+      for (int index = 0; index < allListeners.length; index++) {
+        if (listener == allListeners[index]) {
+          int oldLen = allListeners.length;
+          Listener[] newListeners = new Listener[oldLen - 1];
+          System.arraycopy(allListeners, 0, newListeners, 0, index);
+          System.arraycopy(allListeners, index + 1, newListeners, index, oldLen - index - 1);
+          allListeners = newListeners;
+          return;
+        }
+      }
+    }
+  }
 
   /**
    * Wait for any scheduled background analysis to complete or for the specified duration to elapse.
@@ -138,9 +254,9 @@ public class AnalysisWorker {
   private final ProjectManager projectManager;
 
   /**
-   * The index to be updated (not {@code null}).
+   * Contains information about the compilation unit that was resolved.
    */
-  private final Index index;
+  private final Event event;
 
   /**
    * Construct a new instance for performing analysis which updates the
@@ -169,9 +285,9 @@ public class AnalysisWorker {
     this.contextManager = contextManager;
     this.context = context;
     this.projectManager = projectManager;
-    this.index = projectManager.getIndex();
     this.markerManager = markerManager;
     this.contextManager.addWorker(this);
+    this.event = new Event(context);
   }
 
   /**
@@ -218,14 +334,20 @@ public class AnalysisWorker {
       }
 
       // Exit if no more analysis to be performed (changes == null)
-      ChangeNotice[] changes = context.performAnalysisTask();
+      ChangeNotice[] changes;
+      try {
+        changes = context.performAnalysisTask();
+      } catch (RuntimeException e) {
+        DartCore.logError("Analysis Failed: " + contextManager, e);
+        break;
+      }
       if (changes == null) {
         analysisComplete = true;
         break;
       }
 
       // Process changes and allow subclasses to check results
-      processChanges(changes);
+      processChanges(context, changes);
       checkResults(context);
     }
     stop();
@@ -273,11 +395,35 @@ public class AnalysisWorker {
   }
 
   /**
+   * Notify those interested that a compilation unit has been resolved.
+   * 
+   * @param context the analysis context containing the unit that was resolved (not {@code null})
+   * @param unit the unit that was resolved (not {@code null})
+   * @param source the source of the unit that was resolved (not {@code null})
+   * @param resource the resource of the unit that was resolved or {@code null} if outside the
+   *          workspace
+   */
+  private void notifyResolved(AnalysisContext context, CompilationUnit unit, Source source,
+      IResource resource) {
+    Listener[] currentListeners;
+    synchronized (allListenersLock) {
+      currentListeners = allListeners;
+    }
+    event.unit = unit;
+    event.source = source;
+    event.resource = resource;
+    for (Listener listener : currentListeners) {
+      listener.resolved(event);
+    }
+  }
+
+  /**
    * Update both the index and the error markers based upon the analysis results.
    * 
+   * @param context the analysis context containing the unit that was resolved (not {@code null})
    * @param changes the changes to be processed (not {@code null})
    */
-  private void processChanges(ChangeNotice[] changes) {
+  private void processChanges(AnalysisContext context, ChangeNotice[] changes) {
     for (ChangeNotice change : changes) {
       Source source = change.getSource();
       IResource res = contextManager.getResource(source);
@@ -307,10 +453,10 @@ public class AnalysisWorker {
         }
       }
 
-      // If there is a unit to be indexed, then do so
+      // If there is a resolved unit, then then notify others such as indexer
       CompilationUnit unit = change.getCompilationUnit();
       if (unit != null) {
-        index.indexUnit(context, unit);
+        notifyResolved(context, unit, source, res);
       }
     }
   }
