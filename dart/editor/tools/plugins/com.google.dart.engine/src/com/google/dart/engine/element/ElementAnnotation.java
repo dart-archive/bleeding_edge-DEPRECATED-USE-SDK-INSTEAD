@@ -14,12 +14,12 @@
 package com.google.dart.engine.element;
 
 /**
- * The interface {@code Annotation} defines the behavior of objects representing a single annotation
- * associated with an element.
+ * The interface {@code ElementAnnotation} defines the behavior of objects representing a single
+ * annotation associated with an element.
  * 
  * @coverage dart.engine.element
  */
-public interface Annotation {
+public interface ElementAnnotation {
   /**
    * Return the element representing the field, variable, or const constructor being used as an
    * annotation.

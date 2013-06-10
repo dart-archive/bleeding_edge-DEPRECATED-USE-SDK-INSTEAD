@@ -22,9 +22,9 @@ import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
-import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
@@ -496,7 +496,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertNotNull(unit);
     ClassElement[] classes = unit.getTypes();
     assertLength(1, classes);
-    Annotation[] annotations = classes[0].getMetadata();
+    ElementAnnotation[] annotations = classes[0].getMetadata();
     assertLength(1, annotations);
     assertNoErrors();
     verify(source);
@@ -515,7 +515,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     ClassElement[] classes = unit.getTypes();
     assertLength(1, classes);
     FieldElement field = classes[0].getFields()[0];
-    Annotation[] annotations = field.getMetadata();
+    ElementAnnotation[] annotations = field.getMetadata();
     assertLength(1, annotations);
     assertNoErrors();
     verify(source);
@@ -527,7 +527,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "const A = null;"));
     LibraryElement library = resolve(source);
     assertNotNull(library);
-    Annotation[] annotations = library.getMetadata();
+    ElementAnnotation[] annotations = library.getMetadata();
     assertLength(1, annotations);
     assertNoErrors();
     verify(source);
@@ -546,7 +546,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     ClassElement[] classes = unit.getTypes();
     assertLength(1, classes);
     MethodElement method = classes[0].getMethods()[0];
-    Annotation[] annotations = method.getMetadata();
+    ElementAnnotation[] annotations = method.getMetadata();
     assertLength(1, annotations);
     assertNoErrors();
     verify(source);

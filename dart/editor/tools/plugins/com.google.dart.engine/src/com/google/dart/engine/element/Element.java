@@ -137,7 +137,7 @@ public interface Element {
    * 
    * @return the metadata associated with this element
    */
-  public Annotation[] getMetadata();
+  public ElementAnnotation[] getMetadata();
 
   /**
    * Return the name of this element, or {@code null} if this element does not have a name.

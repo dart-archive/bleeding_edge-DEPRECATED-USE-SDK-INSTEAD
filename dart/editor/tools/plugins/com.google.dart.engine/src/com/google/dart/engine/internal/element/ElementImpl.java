@@ -16,8 +16,8 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.LibraryElement;
@@ -58,7 +58,7 @@ public abstract class ElementImpl implements Element {
   /**
    * An array containing all of the metadata associated with this element.
    */
-  private Annotation[] metadata = AnnotationImpl.EMPTY_ARRAY;
+  private ElementAnnotation[] metadata = ElementAnnotationImpl.EMPTY_ARRAY;
 
   /**
    * A cached copy of the calculated hashCode for this element.
@@ -151,7 +151,7 @@ public abstract class ElementImpl implements Element {
   }
 
   @Override
-  public Annotation[] getMetadata() {
+  public ElementAnnotation[] getMetadata() {
     return metadata;
   }
 
@@ -202,7 +202,7 @@ public abstract class ElementImpl implements Element {
    * 
    * @param metadata the metadata to be associated with this element
    */
-  public void setMetadata(Annotation[] metadata) {
+  public void setMetadata(ElementAnnotation[] metadata) {
     this.metadata = metadata;
   }
 

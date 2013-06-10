@@ -90,9 +90,9 @@ import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
-import com.google.dart.engine.internal.element.AnnotationImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.ElementAnnotationImpl;
 import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
@@ -1125,12 +1125,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param annotationList the list of elements to which new elements are to be added
    * @param annotations the AST nodes used to generate new elements
    */
-  private void addAnnotations(ArrayList<AnnotationImpl> annotationList,
+  private void addAnnotations(ArrayList<ElementAnnotationImpl> annotationList,
       NodeList<Annotation> annotations) {
     for (Annotation annotationNode : annotations) {
       Element resolvedElement = annotationNode.getElement();
       if (resolvedElement != null) {
-        annotationList.add(new AnnotationImpl(resolvedElement));
+        annotationList.add(new ElementAnnotationImpl(resolvedElement));
       }
     }
   }
@@ -2378,7 +2378,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (!(element instanceof ElementImpl)) {
       return;
     }
-    ArrayList<AnnotationImpl> annotationList = new ArrayList<AnnotationImpl>();
+    ArrayList<ElementAnnotationImpl> annotationList = new ArrayList<ElementAnnotationImpl>();
     addAnnotations(annotationList, node.getMetadata());
     if (node instanceof VariableDeclaration && node.getParent() instanceof VariableDeclarationList) {
       VariableDeclarationList list = (VariableDeclarationList) node.getParent();
@@ -2392,7 +2392,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     if (!annotationList.isEmpty()) {
-      ((ElementImpl) element).setMetadata(annotationList.toArray(new AnnotationImpl[annotationList.size()]));
+      ((ElementImpl) element).setMetadata(annotationList.toArray(new ElementAnnotationImpl[annotationList.size()]));
     }
   }
 

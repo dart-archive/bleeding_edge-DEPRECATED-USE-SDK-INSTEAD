@@ -43,6 +43,7 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -369,8 +370,8 @@ public class SemanticHighlightings {
   private static final class DeprecatedElementHighlighting extends DefaultSemanticHighlighting {
     private static boolean isDeprecatedElement(Element element) {
       if (element != null) {
-        com.google.dart.engine.element.Annotation[] annotations = element.getMetadata();
-        for (com.google.dart.engine.element.Annotation annotation : annotations) {
+        ElementAnnotation[] annotations = element.getMetadata();
+        for (ElementAnnotation annotation : annotations) {
           Element annotationElement = annotation.getElement();
           if (annotationElement != null) {
             if (annotationElement.getName().equals("deprecated")) {

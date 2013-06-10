@@ -15,8 +15,8 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.ElementVisitor;
@@ -112,8 +112,8 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @Override
-  public Annotation[] getMetadata() {
-    return AnnotationImpl.EMPTY_ARRAY;
+  public ElementAnnotation[] getMetadata() {
+    return ElementAnnotationImpl.EMPTY_ARRAY;
   }
 
   @Override

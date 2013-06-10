@@ -15,11 +15,11 @@ package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExportElement;
@@ -193,7 +193,7 @@ public abstract class ElementHandle implements Element {
   }
 
   @Override
-  public Annotation[] getMetadata() {
+  public ElementAnnotation[] getMetadata() {
     return getActualElement().getMetadata();
   }
 

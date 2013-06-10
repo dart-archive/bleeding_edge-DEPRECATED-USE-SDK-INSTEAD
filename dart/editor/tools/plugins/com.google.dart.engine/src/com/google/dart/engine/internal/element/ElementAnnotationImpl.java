@@ -13,15 +13,15 @@
  */
 package com.google.dart.engine.internal.element;
 
-import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementAnnotation;
 
 /**
- * Instances of the class {@code AnnotationImpl} implement an {@link Annotation}.
+ * Instances of the class {@code ElementAnnotationImpl} implement an {@link ElementAnnotation}.
  * 
  * @coverage dart.engine.element
  */
-public class AnnotationImpl implements Annotation {
+public class ElementAnnotationImpl implements ElementAnnotation {
   /**
    * The element representing the field, variable, or constructor being used as an annotation.
    */
@@ -30,7 +30,7 @@ public class AnnotationImpl implements Annotation {
   /**
    * An empty array of annotations.
    */
-  public static final AnnotationImpl[] EMPTY_ARRAY = new AnnotationImpl[0];
+  public static final ElementAnnotationImpl[] EMPTY_ARRAY = new ElementAnnotationImpl[0];
 
   /**
    * Initialize a newly created annotation.
@@ -38,7 +38,7 @@ public class AnnotationImpl implements Annotation {
    * @param element the element representing the field, variable, or constructor being used as an
    *          annotation
    */
-  public AnnotationImpl(Element element) {
+  public ElementAnnotationImpl(Element element) {
     this.element = element;
   }
 
