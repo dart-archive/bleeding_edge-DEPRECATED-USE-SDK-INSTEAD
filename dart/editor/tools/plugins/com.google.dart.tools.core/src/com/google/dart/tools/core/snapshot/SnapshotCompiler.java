@@ -36,9 +36,9 @@ import java.util.List;
  * the token stream, generated from parsing the code. It can decrease application load time by a
  * factor of 10x.
  * <p>
- * To generate a snapshot: dart --generate-script-snapshot=foo.snapshot foo.dart
+ * To generate a snapshot: dart --snapshot=foo.snapshot foo.dart
  * <p>
- * To use a snapshot: dart --use-script-snapshot=foo.snapshot foo.dart
+ * To use a snapshot: dart foo.snapshot
  * 
  * @see http://www.dartlang.org/articles/snapshots/
  */
@@ -81,7 +81,7 @@ public class SnapshotCompiler {
     List<String> args = new ArrayList<String>();
 
     args.add(DartSdkManager.getManager().getSdk().getVmExecutable().getPath());
-    args.add("--generate-script-snapshot=" + destFile.getPath());
+    args.add("--snapshot=" + destFile.getPath());
     args.add(sourceFile.getPath());
 
     builder.command(args);
