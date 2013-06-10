@@ -24,6 +24,7 @@ import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.utilities.source.SourceRangeFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -130,15 +131,31 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
         @Override
         protected List<SearchMatch> runQuery() {
           List<SearchMatch> allMatches = Lists.newArrayList();
-          allMatches.addAll(findElementReferences());
+          if (searchElement != null) {
+            allMatches.addAll(findElementDeclaration());
+            allMatches.addAll(findElementReferences());
+          }
           allMatches.addAll(findUnresolvedNameReferences());
           return allMatches;
         }
 
-        private List<SearchMatch> findElementReferences() {
-          if (searchElement == null) {
+        /**
+         * For local variable and parameters it is interesting to see their declaration with
+         * initializer and type.
+         */
+        private List<SearchMatch> findElementDeclaration() {
+          ElementKind elementKind = searchElement.getKind();
+          if (elementKind != ElementKind.PARAMETER && elementKind != ElementKind.LOCAL_VARIABLE) {
             return ImmutableList.of();
           }
+          return ImmutableList.of(new SearchMatch(
+              null,
+              MatchKind.VARIABLE_WRITE,
+              searchElement,
+              SourceRangeFactory.rangeElementName(searchElement)));
+        }
+
+        private List<SearchMatch> findElementReferences() {
           return searchEngine.searchReferences(searchElement, null, null);
         }
 
