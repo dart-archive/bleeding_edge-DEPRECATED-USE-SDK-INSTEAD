@@ -38,6 +38,7 @@ import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.ThisExpression;
@@ -276,8 +277,40 @@ public class Context {
 
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
-        hasNameReference |= node.getName().equals(currentVariableName);
-        return super.visitSimpleIdentifier(node);
+        if (node.getName().equals(currentVariableName)) {
+          ASTNode parent = node.getParent();
+          // name()
+          if (parent instanceof MethodInvocation) {
+            MethodInvocation invocation = (MethodInvocation) parent;
+            if (invocation.getMethodName() == node) {
+              // name = target.name()
+              if (invocation.getTarget() != null) {
+                return null;
+              }
+              // name = name()
+              hasNameReference = true;
+              return null;
+            }
+          }
+          // name = target.name
+          if (parent instanceof PropertyAccess) {
+            PropertyAccess propertyAccess = (PropertyAccess) parent;
+            if (propertyAccess.getPropertyName() == node && propertyAccess.getTarget() != null) {
+              return null;
+            }
+          }
+          // name = name_whichWasGetMethod_butNowGetter
+          {
+            Object bindingObject = getNodeBinding(node);
+            if (bindingObject instanceof IMethodBinding) {
+              SyntaxTranslator.replaceNode(parent, node, propertyAccess(thisExpression(), node));
+              return null;
+            }
+          }
+          // OK, this is really conflict
+          hasNameReference = true;
+        }
+        return null;
       }
 
       @Override

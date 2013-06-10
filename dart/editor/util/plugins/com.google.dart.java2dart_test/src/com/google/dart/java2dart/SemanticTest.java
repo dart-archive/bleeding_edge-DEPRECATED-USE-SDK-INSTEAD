@@ -1397,6 +1397,86 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_giveUniqueName_variableInitializer_propertyReference() throws Exception {
+    File file = setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  int getFoo() {return 42;}",
+            "  static void main() {",
+            "    int foo = getFoo();",
+            "    process(foo);",
+            "  }",
+            "  void process(int x) {}",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFile(file);
+    CompilationUnit unit = context.translate();
+    // convert to properties and run variable checks again
+    new PropertySemanticProcessor(context).process(unit);
+    context.ensureNoVariableNameReferenceFromInitializer(unit);
+    // verify
+    assertEquals(
+        toString(
+            "class Test {",
+            "  int get foo => 42;",
+            "  static void main() {",
+            "    int foo = this.foo;",
+            "    process(foo);",
+            "  }",
+            "  void process(int x) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_giveUniqueName_variableInitializer_qualifiedReference() throws Exception {
+    File file = setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  int foo() {return 42;}",
+            "  int bar;",
+            "  static void mainA() {",
+            "    int foo = this.foo();",
+            "    process(foo);",
+            "  }",
+            "  static void mainB() {",
+            "    int bar = this.bar;",
+            "    process(bar);",
+            "  }",
+            "  void process(int x) {}",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFile(file);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  int foo() => 42;",
+            "  int bar = 0;",
+            "  static void mainA() {",
+            "    int foo = this.foo();",
+            "    process(foo);",
+            "  }",
+            "  static void mainB() {",
+            "    int bar = this.bar;",
+            "    process(bar);",
+            "  }",
+            "  void process(int x) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_giveUniqueName_withStatic() throws Exception {
     setFileLines(
         "test/Super.java",
