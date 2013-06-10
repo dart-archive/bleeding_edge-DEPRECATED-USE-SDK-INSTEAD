@@ -99,8 +99,10 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorWithProperties;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.ErrorProperty;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.DynamicElementImpl;
@@ -3091,15 +3093,16 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             : SET;
       }
     }
+    AnalysisErrorWithProperties analysisError;
     if (missingOverridesSize == 1) {
-      errorReporter.reportError(
+      analysisError = errorReporter.newErrorWithProperties(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           node.getName(),
           stringTypeArray[0],
           missingOverridesArray[0].getEnclosingElement().getDisplayName(),
           missingOverridesArray[0].getDisplayName());
     } else if (missingOverridesSize == 2) {
-      errorReporter.reportError(
+      analysisError = errorReporter.newErrorWithProperties(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
           node.getName(),
           stringTypeArray[0],
@@ -3109,7 +3112,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           missingOverridesArray[1].getEnclosingElement().getDisplayName(),
           missingOverridesArray[1].getDisplayName());
     } else if (missingOverridesSize == 3) {
-      errorReporter.reportError(
+      analysisError = errorReporter.newErrorWithProperties(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
           node.getName(),
           stringTypeArray[0],
@@ -3122,7 +3125,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           missingOverridesArray[2].getEnclosingElement().getDisplayName(),
           missingOverridesArray[2].getDisplayName());
     } else if (missingOverridesSize == 4) {
-      errorReporter.reportError(
+      analysisError = errorReporter.newErrorWithProperties(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
           node.getName(),
           stringTypeArray[0],
@@ -3138,7 +3141,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           missingOverridesArray[3].getEnclosingElement().getDisplayName(),
           missingOverridesArray[3].getDisplayName());
     } else {
-      errorReporter.reportError(
+      analysisError = errorReporter.newErrorWithProperties(
           StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
           node.getName(),
           stringTypeArray[0],
@@ -3155,6 +3158,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           missingOverridesArray[3].getDisplayName(),
           missingOverridesArray.length - 4);
     }
+    analysisError.setProperty(ErrorProperty.UNIMPLEMENTED_METHODS, missingOverridesArray);
+    errorReporter.reportError(analysisError);
     return true;
   }
 

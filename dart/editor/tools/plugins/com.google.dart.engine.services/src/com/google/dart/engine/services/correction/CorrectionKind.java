@@ -43,6 +43,7 @@ public enum CorrectionKind {
   QF_CHANGE_TO(51, "Change to '%s'"),
   QF_CREATE_CLASS(50, CorrectionImage.IMG_CORRECTION_CLASS, "Create class '%s'"),
   QF_CREATE_METHOD(50, "Create method '%s'"),
+  QF_CREATE_MISSING_OVERRIDES(50, "Create %d missing override(s)"),
   QF_CREATE_PART(50, "Create part '%s'"),
   QF_IMPORT_LIBRARY_PREFIX(51, "Use imported library '%s' with prefix '%s'"),
   QF_IMPORT_LIBRARY_PROJECT(50, "Import library '%s'"),

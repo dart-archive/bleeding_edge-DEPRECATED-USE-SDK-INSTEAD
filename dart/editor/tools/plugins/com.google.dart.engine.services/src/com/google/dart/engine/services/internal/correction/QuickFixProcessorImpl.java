@@ -43,16 +43,20 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.RecursiveElementVisitor;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorWithProperties;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.ErrorProperty;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -75,6 +79,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -85,10 +90,13 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEr
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNode;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartLength;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -367,6 +375,16 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS) {
         addFix_removeParameters_inGetterDeclaration();
       }
+      if (errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
+          || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO
+          || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE
+          || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR
+          || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS) {
+        AnalysisErrorWithProperties errorWithProperties = (AnalysisErrorWithProperties) problem;
+        Object property = errorWithProperties.getProperty(ErrorProperty.UNIMPLEMENTED_METHODS);
+        ExecutableElement[] missingOverrides = (ExecutableElement[]) property;
+        addFix_createMissingOverrides(missingOverrides);
+      }
       if (errorCode == StaticWarningCode.UNDEFINED_CLASS) {
         addFix_importLibrary_withType();
         addFix_createClass();
@@ -414,6 +432,11 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     return errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST
         || errorCode == ParserErrorCode.EXPECTED_TOKEN
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
+        || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
+        || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO
+        || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE
+        || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR
+        || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS
         || errorCode == StaticWarningCode.UNDEFINED_CLASS
         || errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN
         || errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER
@@ -462,6 +485,81 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       // add proposal
       addUnitCorrectionProposal(CorrectionKind.QF_CREATE_CLASS, name);
     }
+  }
+
+  private void addFix_createMissingOverrides(ExecutableElement[] missingOverrides) throws Exception {
+    // sort by name
+    Arrays.sort(missingOverrides, new Comparator<Element>() {
+      @Override
+      public int compare(Element firstElement, Element secondElement) {
+        return ObjectUtils.compare(firstElement.getDisplayName(), secondElement.getDisplayName());
+      }
+    });
+    // add elements
+    ClassDeclaration targetClass = (ClassDeclaration) node.getParent();
+    for (ExecutableElement missingOverride : missingOverrides) {
+      addFix_createMissingOverrides_single(targetClass, missingOverride);
+    }
+    // add proposal
+    addUnitCorrectionProposal(CorrectionKind.QF_CREATE_MISSING_OVERRIDES, missingOverrides.length);
+  }
+
+  private void addFix_createMissingOverrides_appendType(StringBuilder sb, Type type) {
+    if (type != null && !type.isDynamic()) {
+      String typeSource = utils.getTypeSource(type);
+      sb.append(typeSource);
+      sb.append(" ");
+    }
+  }
+
+  private void addFix_createMissingOverrides_single(ClassDeclaration targetClass,
+      ExecutableElement missingOverride) throws Exception {
+    // prepare environment
+    String eol = utils.getEndOfLine();
+    String prefix = utils.getIndent(1);
+    String prefix2 = utils.getIndent(2);
+    int insertOffset = targetClass.getEnd() - 1;
+    // prepare source
+    StringBuilder sb = new StringBuilder();
+    // return type
+    sb.append(eol);
+    sb.append(prefix);
+    addFix_createMissingOverrides_appendType(sb, missingOverride.getType().getReturnType());
+    // may be property
+    ElementKind elementKind = missingOverride.getKind();
+    boolean isGetter = elementKind == ElementKind.GETTER;
+    boolean isSetter = elementKind == ElementKind.SETTER;
+    boolean isMethod = elementKind == ElementKind.METHOD;
+    if (isGetter) {
+      sb.append("get ");
+    } else if (isSetter) {
+      sb.append("set ");
+    }
+    // name
+    sb.append(missingOverride.getDisplayName());
+    // parameters + body
+    if (isGetter) {
+      sb.append(" => null; // TODO implement this getter");
+    } else if (isMethod || isSetter) {
+      ParameterElement[] parameters = missingOverride.getParameters();
+      appendParameters(sb, parameters);
+      sb.append(" {");
+      // TO-DO
+      sb.append(eol);
+      sb.append(prefix2);
+      if (isMethod) {
+        sb.append("// TODO implement this method");
+      } else {
+        sb.append("// TODO implement this setter");
+      }
+      sb.append(eol);
+      // close method
+      sb.append(prefix);
+      sb.append("}");
+    }
+    sb.append(eol);
+    // done
+    addInsertEdit(insertOffset, sb.toString());
   }
 
   private void addFix_createPart() throws Exception {
@@ -675,12 +773,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
-  // TODO(scheglov) use or remove
-//  private void addLinkedPositionProposal(String group, CorrectionImage icon, String text) {
-//    LinkedPositionProposal proposal = new LinkedPositionProposal(icon, text);
-//    addLinkedPositionProposal(group, proposal);
-//  }
-
   private void addFix_removeParentheses_inGetterInvocation() throws Exception {
     if (node instanceof SimpleIdentifier && node.getParent() instanceof MethodInvocation) {
       MethodInvocation invocation = (MethodInvocation) node.getParent();
@@ -753,35 +845,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
     }
   }
-
-  // TODO(scheglov) waiting for https://code.google.com/p/dart/issues/detail?id=10053
-//  private void addFix_useEffectiveIntegerDivision(IProblemLocation location) throws Exception {
-//    for (DartNode n = node; n != null; n = n.getParent()) {
-//      if (n instanceof DartMethodInvocation
-//          && n.getSourceInfo().getOffset() == location.getOffset()
-//          && n.getSourceInfo().getLength() == location.getLength()) {
-//        DartMethodInvocation invocation = (DartMethodInvocation) n;
-//        DartExpression target = invocation.getTarget();
-//        while (target instanceof DartParenthesizedExpression) {
-//          target = ((DartParenthesizedExpression) target).getExpression();
-//        }
-//        // replace "/" with "~/"
-//        DartBinaryExpression binary = (DartBinaryExpression) target;
-//        addReplaceEdit(
-//            SourceRangeFactory.forStartLength(binary.getOperatorOffset(), "/".length()),
-//            "~/");
-//        // remove everything before and after
-//        addRemoveEdit(SourceRangeFactory.forStartStart(invocation, binary.getArg1()));
-//        addRemoveEdit(SourceRangeFactory.forEndEnd(binary.getArg2(), invocation));
-//        // add proposal
-//        addUnitCorrectionProposal(
-//            CorrectionMessages.QuickFixProcessor_useEffectiveIntegerDivision,
-//            DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
-//        // done
-//        break;
-//      }
-//    }
-//  }
 
   private void addFix_undefinedMethod_useSimilar() throws Exception {
     if (node instanceof SimpleIdentifier && node.getParent() instanceof MethodInvocation) {
@@ -902,6 +965,35 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
+  // TODO(scheglov) waiting for https://code.google.com/p/dart/issues/detail?id=10053
+//  private void addFix_useEffectiveIntegerDivision(IProblemLocation location) throws Exception {
+//    for (DartNode n = node; n != null; n = n.getParent()) {
+//      if (n instanceof DartMethodInvocation
+//          && n.getSourceInfo().getOffset() == location.getOffset()
+//          && n.getSourceInfo().getLength() == location.getLength()) {
+//        DartMethodInvocation invocation = (DartMethodInvocation) n;
+//        DartExpression target = invocation.getTarget();
+//        while (target instanceof DartParenthesizedExpression) {
+//          target = ((DartParenthesizedExpression) target).getExpression();
+//        }
+//        // replace "/" with "~/"
+//        DartBinaryExpression binary = (DartBinaryExpression) target;
+//        addReplaceEdit(
+//            SourceRangeFactory.forStartLength(binary.getOperatorOffset(), "/".length()),
+//            "~/");
+//        // remove everything before and after
+//        addRemoveEdit(SourceRangeFactory.forStartStart(invocation, binary.getArg1()));
+//        addRemoveEdit(SourceRangeFactory.forEndEnd(binary.getArg2(), invocation));
+//        // add proposal
+//        addUnitCorrectionProposal(
+//            CorrectionMessages.QuickFixProcessor_useEffectiveIntegerDivision,
+//            DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+//        // done
+//        break;
+//      }
+//    }
+//  }
+
   /**
    * @return the possible return {@link Type}, may be <code>null</code> if can not be identified.
    */
@@ -954,6 +1046,22 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
+  private void addInsertEdit(int offset, String text) {
+    textEdits.add(createInsertEdit(offset, text));
+  }
+
+  /**
+   * Adds single linked position to the group. If {@link SourceBuilder} will be inserted before
+   * "position", translate it.
+   */
+  private void addLinkedPosition(String group, SourceBuilder sb, SourceRange position) {
+    if (sb.getOffset() < position.getOffset()) {
+      int delta = sb.length();
+      position = position.getTranslated(delta);
+    }
+    addLinkedPosition(group, position);
+  }
+
   // https://code.google.com/p/dart/issues/detail?id=10058
   // TODO(scheglov) implement this
 //  private void addFix_useStaticAccess_method() throws Exception {
@@ -993,22 +1101,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 //        Messages.format(CorrectionMessages.QuickFixProcessor_useStaticAccess_method, className),
 //        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
 //  }
-
-  private void addInsertEdit(int offset, String text) {
-    textEdits.add(createInsertEdit(offset, text));
-  }
-
-  /**
-   * Adds single linked position to the group. If {@link SourceBuilder} will be inserted before
-   * "position", translate it.
-   */
-  private void addLinkedPosition(String group, SourceBuilder sb, SourceRange position) {
-    if (sb.getOffset() < position.getOffset()) {
-      int delta = sb.length();
-      position = position.getTranslated(delta);
-    }
-    addLinkedPosition(group, position);
-  }
 
   /**
    * Adds single linked position to the group.
@@ -1092,8 +1184,79 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     resetProposalElements();
   }
 
+  private void appendParameters(StringBuilder sb, ParameterElement[] parameters) throws Exception {
+    Map<ParameterElement, String> defaultValueMap = getDefaultValueMap(parameters);
+    sb.append("(");
+    boolean firstParameter = true;
+    boolean sawNamed = false;
+    boolean sawPositional = false;
+    for (ParameterElement parameter : parameters) {
+      if (!firstParameter) {
+        sb.append(", ");
+      } else {
+        firstParameter = false;
+      }
+      // may be optional
+      ParameterKind parameterKind = parameter.getParameterKind();
+      if (parameterKind == ParameterKind.NAMED) {
+        if (!sawNamed) {
+          sb.append("{");
+          sawNamed = true;
+        }
+      }
+      if (parameterKind == ParameterKind.POSITIONAL) {
+        if (!sawPositional) {
+          sb.append("[");
+          sawPositional = true;
+        }
+      }
+      // parameter type
+      addFix_createMissingOverrides_appendType(sb, parameter.getType());
+      // parameter name
+      sb.append(parameter.getName());
+      // default value
+      String defaultSource = defaultValueMap.get(parameter);
+      if (defaultSource != null) {
+        if (sawPositional) {
+          sb.append(" = ");
+        } else {
+          sb.append(": ");
+        }
+        sb.append(defaultSource);
+      }
+    }
+    // close parameters
+    if (sawNamed) {
+      sb.append("}");
+    }
+    if (sawPositional) {
+      sb.append("]");
+    }
+    sb.append(")");
+  }
+
   private Edit createInsertEdit(int offset, String text) {
     return new Edit(offset, 0, text);
+  }
+
+  private Map<ParameterElement, String> getDefaultValueMap(ParameterElement[] parameters)
+      throws Exception {
+    Map<ParameterElement, String> defaultSourceMap = Maps.newHashMap();
+    Map<Source, String> sourceContentMap = Maps.newHashMap();
+    for (ParameterElement parameter : parameters) {
+      SourceRange valueRange = parameter.getDefaultValueRange();
+      if (valueRange != null) {
+        Source source = parameter.getSource();
+        String sourceContent = sourceContentMap.get(source);
+        if (sourceContent == null) {
+          sourceContent = CorrectionUtils.getSourceContent(source);
+          sourceContentMap.put(source, sourceContent);
+        }
+        String valueSource = sourceContent.substring(valueRange.getOffset(), valueRange.getEnd());
+        defaultSourceMap.put(parameter, valueSource);
+      }
+    }
+    return defaultSourceMap;
   }
 
   private void resetProposalElements() {

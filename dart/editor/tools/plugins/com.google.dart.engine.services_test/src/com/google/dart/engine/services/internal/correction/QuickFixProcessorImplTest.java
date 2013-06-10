@@ -169,6 +169,125 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         resultProposal.getLinkedPositions());
   }
 
+  public void test_createMissingOverrides_getter() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  get g1;",
+        "  int get g2;",
+        "}",
+        "",
+        "class B extends A {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_MISSING_OVERRIDES,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "abstract class A {",
+            "  get g1;",
+            "  int get g2;",
+            "}",
+            "",
+            "class B extends A {",
+            "",
+            "  get g1 => null; // TODO implement this getter",
+            "",
+            "  int get g2 => null; // TODO implement this getter",
+            "}"));
+  }
+
+  public void test_createMissingOverrides_method() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  m1();",
+        "  int m2();",
+        "  String m3(int p1, double p2, Map<int, List<String>> p3);",
+        "  String m4(p1, p2);",
+        "  String m5(p1, [int p2 = 2, int p3, p4 = 4]);",
+        "  String m6(p1, {int p2: 2, int p3, p4: 4});",
+        "}",
+        "",
+        "class B extends A {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_MISSING_OVERRIDES,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "abstract class A {",
+            "  m1();",
+            "  int m2();",
+            "  String m3(int p1, double p2, Map<int, List<String>> p3);",
+            "  String m4(p1, p2);",
+            "  String m5(p1, [int p2 = 2, int p3, p4 = 4]);",
+            "  String m6(p1, {int p2: 2, int p3, p4: 4});",
+            "}",
+            "",
+            "class B extends A {",
+            "",
+            "  m1() {",
+            "    // TODO implement this method",
+            "  }",
+            "",
+            "  int m2() {",
+            "    // TODO implement this method",
+            "  }",
+            "",
+            "  String m3(int p1, double p2, Map<int, List<String>> p3) {",
+            "    // TODO implement this method",
+            "  }",
+            "",
+            "  String m4(p1, p2) {",
+            "    // TODO implement this method",
+            "  }",
+            "",
+            "  String m5(p1, [int p2 = 2, int p3, p4 = 4]) {",
+            "    // TODO implement this method",
+            "  }",
+            "",
+            "  String m6(p1, {int p2: 2, int p3, p4: 4}) {",
+            "    // TODO implement this method",
+            "  }",
+            "}"));
+  }
+
+  public void test_createMissingOverrides_setter() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  set s1(x);",
+        "  set s2(int x);",
+        "  void set s3(String x);",
+        "}",
+        "",
+        "class B extends A {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_MISSING_OVERRIDES,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "abstract class A {",
+            "  set s1(x);",
+            "  set s2(int x);",
+            "  void set s3(String x);",
+            "}",
+            "",
+            "class B extends A {",
+            "",
+            "  set s1(x) {",
+            "    // TODO implement this setter",
+            "  }",
+            "",
+            "  set s2(int x) {",
+            "    // TODO implement this setter",
+            "  }",
+            "",
+            "  void set s3(String x) {",
+            "    // TODO implement this setter",
+            "  }",
+            "}"));
+  }
+
   public void test_createPart() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",

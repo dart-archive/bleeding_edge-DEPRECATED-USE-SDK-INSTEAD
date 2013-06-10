@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.error;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.AnalysisErrorWithProperties;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
@@ -57,6 +58,23 @@ public class ErrorReporter {
     this.errorListener = errorListener;
     this.defaultSource = defaultSource;
     this.source = defaultSource;
+  }
+
+  /**
+   * Creates an error with properties with the given error code and arguments.
+   * 
+   * @param errorCode the error code of the error to be reported
+   * @param node the node specifying the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  public AnalysisErrorWithProperties newErrorWithProperties(ErrorCode errorCode, ASTNode node,
+      Object... arguments) {
+    return new AnalysisErrorWithProperties(
+        source,
+        node.getOffset(),
+        node.getLength(),
+        errorCode,
+        arguments);
   }
 
   /**
