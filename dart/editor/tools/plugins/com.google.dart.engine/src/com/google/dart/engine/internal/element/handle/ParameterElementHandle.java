@@ -35,6 +35,11 @@ public class ParameterElementHandle extends VariableElementHandle implements Par
   }
 
   @Override
+  public SourceRange getDefaultValueRange() {
+    return getActualElement().getDefaultValueRange();
+  }
+
+  @Override
   public ElementKind getKind() {
     return ElementKind.PARAMETER;
   }

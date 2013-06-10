@@ -38,6 +38,17 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   private ParameterKind parameterKind;
 
   /**
+   * The offset to the beginning of the default value range for this element.
+   */
+  private int defaultValueRangeOffset;
+
+  /**
+   * The length of the default value range for this element, or {@code -1} if this element does not
+   * have a default value.
+   */
+  private int defaultValueRangeLength = -1;
+
+  /**
    * The offset to the beginning of the visible range for this element.
    */
   private int visibleRangeOffset;
@@ -68,6 +79,14 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   }
 
   @Override
+  public SourceRange getDefaultValueRange() {
+    if (defaultValueRangeLength < 0) {
+      return null;
+    }
+    return new SourceRange(defaultValueRangeOffset, defaultValueRangeLength);
+  }
+
+  @Override
   public ElementKind getKind() {
     return ElementKind.PARAMETER;
   }
@@ -93,6 +112,19 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   @Override
   public boolean isInitializingFormal() {
     return false;
+  }
+
+  /**
+   * Set the range of the default value for this parameter to the range starting at the given offset
+   * with the given length.
+   * 
+   * @param offset the offset to the beginning of the default value range for this element
+   * @param length the length of the default value range for this element, or {@code -1} if this
+   *          element does not have a default value
+   */
+  public void setDefaultValueRange(int offset, int length) {
+    defaultValueRangeOffset = offset;
+    defaultValueRangeLength = length;
   }
 
   /**

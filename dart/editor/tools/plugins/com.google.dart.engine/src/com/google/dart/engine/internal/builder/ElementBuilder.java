@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.EmptyFunctionBody;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.ForEachStatement;
@@ -280,6 +281,14 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     parameter.setFinal(node.isFinal());
     parameter.setInitializer(initializer);
     parameter.setParameterKind(node.getKind());
+
+    // default value range
+    Expression defaultValue = node.getDefaultValue();
+    if (defaultValue != null) {
+      parameter.setDefaultValueRange(defaultValue.getOffset(), defaultValue.getLength());
+    }
+
+    // visible range
     FunctionBody body = getFunctionBody(node);
     if (body != null) {
       parameter.setVisibleRange(body.getOffset(), body.getLength());
