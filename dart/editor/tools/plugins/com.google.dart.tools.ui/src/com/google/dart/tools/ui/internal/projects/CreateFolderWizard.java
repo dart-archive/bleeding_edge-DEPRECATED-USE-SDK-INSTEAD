@@ -98,7 +98,8 @@ public class CreateFolderWizard extends BasicNewFolderResourceWizard {
     }
     // if new folder is pub white listed directory/sub-directory, run pub install
     // to create the link to packages
-    if (pubDirectories.contains(folder.getName()) || isPubDirectoryParent(folder)) {
+    if (pubDirectories.contains(folder.getName()) || isPubDirectoryParent(folder)
+        || isLibDirectory(folder)) {
       IContainer pubspecDir = getPubWorkingDir(folder);
       if (pubspecDir != null) {
         RunPubJob job = new RunPubJob(pubspecDir, RunPubJob.INSTALL_COMMAND);
@@ -119,6 +120,14 @@ public class CreateFolderWizard extends BasicNewFolderResourceWizard {
       container = container.getParent();
     }
     return null;
+  }
+
+  private boolean isLibDirectory(IFolder folder) {
+    if (folder.getName().equals("lib")
+        && (folder.getParent().findMember(DartCore.PUBSPEC_FILE_NAME) != null)) {
+      return true;
+    }
+    return false;
   }
 
   private boolean isPubDirectoryParent(IFolder folder) {
