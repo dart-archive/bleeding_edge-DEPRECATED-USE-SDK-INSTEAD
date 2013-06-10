@@ -19,9 +19,9 @@ package com.google.dart.engine.element;
  */
 public interface ClassMemberElement extends Element {
   /**
-   * Return the type in which this constructor is defined.
+   * Return the type in which this member is defined.
    * 
-   * @return the type in which this constructor is defined
+   * @return the type in which this member is defined
    */
   @Override
   public ClassElement getEnclosingElement();
