@@ -233,8 +233,10 @@ public class NewDartElementImageProvider {
 
             baseDesc = decorateReadOnly(baseDesc);
           }
-        } else { // files in sdk
-          baseDesc = decorateReadOnly(baseDesc);
+        } else { // check if files in sdk
+          if (element.getSource().isInSystemLibrary()) {
+            baseDesc = decorateReadOnly(baseDesc);
+          }
         }
 
       }
