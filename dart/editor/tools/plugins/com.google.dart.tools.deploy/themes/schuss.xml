@@ -7,6 +7,7 @@
     <class color="#ca3349" />
     <commentTaskTag color="#d7d3cc" />
     <constant color="#ae25ab" />
+    <constructor color="#ca3349" />
     <currentLine color="#fff7cd" />
     <deletionIndication color="#9b5656" />
     <deprecatedMember color="#ab2525" />
@@ -15,6 +16,7 @@
     <filteredSearchResultIndication color="#CC6633" />
     <findScope color="#BCADAD" />
     <foreground color="#430400" />
+    <function color="#797a8a" />
     <inheritedMethod color="#2c577c" />
     <interface color="#ca3349" />
     <javadoc color="#05314d" />

@@ -4,10 +4,12 @@
     <bracket color="#CFBFAD" />
     <class color="#87CEFA" />
     <commentTaskTag color="#FF8BFF" />
+    <constructor color="#87CEFA" />
     <currentLine color="#2D2D44" />
     <dynamicType color="#CFBFAD" />
     <enum color="#CFBFAD" />
     <foreground color="#CFBFAD" />
+    <function color="#87CEFA" />
     <interface color="#87FAC4" />
     <keyword color="#808BED" />
     <lineNumber color="#2B91AF" />

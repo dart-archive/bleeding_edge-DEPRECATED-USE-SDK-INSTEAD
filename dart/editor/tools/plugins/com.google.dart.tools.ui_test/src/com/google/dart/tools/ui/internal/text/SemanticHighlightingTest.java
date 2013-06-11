@@ -375,6 +375,20 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.CLASS, "A .ZERO");
   }
 
+  public void test_constructor() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.name () {}",
+        "}",
+        "main() {",
+        "  new A.name ();",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.CONSTRUCTOR, "name () {}");
+    assertHasWordPosition(SemanticHighlightings.CONSTRUCTOR, "name ();");
+  }
+
   public void test_deprecated() throws Exception {
     setFileContent(
         "meta.dart",
@@ -590,6 +604,19 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.FIELD, "field ;");
     assertHasWordPosition(SemanticHighlightings.FIELD, "field =");
     assertHasWordPosition(SemanticHighlightings.FIELD, "field );");
+  }
+
+  public void test_function() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {}",
+        "main() {",
+        "  f ();",
+        "  print(f );",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.FUNCTION, "f ();");
+    assertHasWordPosition(SemanticHighlightings.FUNCTION, "f );");
   }
 
   public void test_getterDeclaration_function() throws Exception {

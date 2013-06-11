@@ -7,6 +7,7 @@
     <class color="#F9F9F9" bold="false" italic="false" underline="false" strikethrough="false" />
     <commentTaskTag color="#A8A8A8" italic="false" />
     <constant color="#3D9AD6" italic="false" underline="false" strikethrough="false" />
+    <constructor color="#F9F9F9" bold="false" italic="false" underline="false" strikethrough="false" />
     <currentLine color="#2F2F2F" />
     <deletionIndication color="#D25252" italic="false" underline="false" strikethrough="false" />
     <deprecatedMember color="#F9F9F9" italic="false" underline="false" strikethrough="false" />
@@ -16,6 +17,7 @@
     <filteredSearchResultIndication color="#5A5A5A" />
     <findScope color="#DDF0FF" />
     <foreground color="#F9F9F9" />
+    <function color="#F9F9F9" italic="false" />
     <inheritedMethod color="#F9F9F9" italic="false" underline="false" strikethrough="false" />
     <interface color="#F9F9F9" italic="false" />
     <javadoc color="#A8A8A8" italic="false" />

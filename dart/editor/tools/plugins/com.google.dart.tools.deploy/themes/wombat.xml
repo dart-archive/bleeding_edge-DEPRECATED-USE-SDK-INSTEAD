@@ -5,6 +5,7 @@
     <bracket color="#f3f6ee" />
     <class color="#cae682" />
     <commentTaskTag color="#ACC1AC" />
+    <constructor color="#cae682" />
     <currentLine color="#656565" />
     <deprecatedMember color="#FFFFFF" />
     <dynamicType color="#D4C4A9" />
@@ -12,6 +13,7 @@
     <filteredSearchResultIndication color="#3f3f6a" />
     <findScope color="#BCADAD" />
     <foreground color="#f6f3e8" />
+    <function color="#f3f6ee" />
     <interface color="#CAE682" />
     <javadoc color="#b3b5af" />
     <javadocKeyword color="#f08080" />

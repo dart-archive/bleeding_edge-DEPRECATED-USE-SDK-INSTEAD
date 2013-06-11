@@ -8,6 +8,7 @@
     <class color="#F00000" />
     <commentTaskTag color="#F00000" />
     <constant color="#F00000" />
+    <constructor color="#F00000" />
     <currentLine color="#F0F0F0" />
     <deletionIndication color="#F00000" />
     <deprecatedMember color="#F00000" />
@@ -18,6 +19,7 @@
     <filteredSearchResultIndication color="#F00000" />
     <findScope color="#F00000" />
     <foreground color="#F00000" />
+    <function color="#F00000" />
     <getter color="#F00000" />
     <inheritedMethod color="#F00000" />
     <interface color="#F00000" />

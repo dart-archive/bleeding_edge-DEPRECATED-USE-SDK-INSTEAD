@@ -42,9 +42,11 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementAnnotation;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
@@ -318,6 +320,30 @@ public class SemanticHighlightings {
     }
   }
 
+  private static class ConstructorHighlighting extends DefaultSemanticHighlighting {
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      SimpleIdentifier node = token.getNodeIdentifier();
+      Element element = node.getElement();
+      return element instanceof ConstructorElement;
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_constructor;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return CONSTRUCTOR;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
+
   /**
    * Abstract {@link SemanticHighlighting} with empty methods by default.
    */
@@ -564,6 +590,30 @@ public class SemanticHighlightings {
     @Override
     public String getPreferenceKey() {
       return FIELD;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
+
+  private static class FunctionHighlighting extends DefaultSemanticHighlighting {
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      SimpleIdentifier node = token.getNodeIdentifier();
+      Element element = node.getElement();
+      return element instanceof FunctionElement;
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_function;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return FUNCTION;
     }
 
     @Override
@@ -995,6 +1045,11 @@ public class SemanticHighlightings {
   public static final String DIRECTIVE = "directive"; //$NON-NLS-1$
 
   /**
+   * A named preference part that controls the highlighting of constructor.
+   */
+  public static final String CONSTRUCTOR = "constructor"; //$NON-NLS-1$
+
+  /**
    * A named preference part that controls the highlighting of fields.
    */
   public static final String FIELD = "field"; //$NON-NLS-1$
@@ -1067,10 +1122,15 @@ public class SemanticHighlightings {
   public static final String OBJECT_INITIALIZER = "objectInitializer"; //$NON-NLS-1$
 
   /**
-   * A named preference part that controls the highlighting of methods (invocations and
-   * declarations).
+   * A named preference part that controls the highlighting of methods (invocations and references).
    */
   public static final String METHOD = "method"; //$NON-NLS-1$
+
+  /**
+   * A named preference part that controls the highlighting of functions (invocations and
+   * references).
+   */
+  public static final String FUNCTION = "function"; //$NON-NLS-1$
 
   /**
    * A named preference part that controls the highlighting of static methods (invocations and
@@ -1209,8 +1269,8 @@ public class SemanticHighlightings {
           new ClassHighlighting(), new TypeVariableHighlighting(), new NumberHighlighting(),
           new LocalVariableDeclarationHighlighting(), new LocalVariableHighlighting(),
           new ParameterHighlighting(), new StaticMethodDeclarationHighlighting(),
-          new StaticMethodHighlighting(), new MethodDeclarationHighlighting(),
-          new MethodHighlighting()};
+          new StaticMethodHighlighting(), new ConstructorHighlighting(),
+          new MethodDeclarationHighlighting(), new MethodHighlighting(), new FunctionHighlighting()};
     }
     return SEMANTIC_HIGHTLIGHTINGS;
   }

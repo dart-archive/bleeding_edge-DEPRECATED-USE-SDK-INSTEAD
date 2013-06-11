@@ -7,6 +7,7 @@
     <class color="#bbbbbb" />
     <commentTaskTag color="#CCDF32" />
     <constant color="#edd400" />
+    <constructor color="#bbbbbb" />
     <currentLine color="#555753" />
     <deletionIndication color="#D25252" />
     <dynamicType color="#729fcf" />
@@ -14,6 +15,7 @@
     <filteredSearchResultIndication color="#D8D8D8" />
     <findScope color="#000000" />
     <foreground color="#d3d7cf" />
+    <function color="#FFFFFF" />
     <inheritedMethod color="#BED6FF" />
     <interface color="#D197D9" />
     <javadoc color="#888a85" />

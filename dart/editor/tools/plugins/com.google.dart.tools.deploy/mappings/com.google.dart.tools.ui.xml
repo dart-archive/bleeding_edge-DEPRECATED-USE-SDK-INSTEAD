@@ -33,6 +33,8 @@
         <semanticHighlightingMapping pluginKey="semanticHighlighting.number" themeKey="number" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.directive" themeKey="directive" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.class" themeKey="class" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.constructor" themeKey="constructor" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.function" themeKey="function" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.method" themeKey="method" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.methodDeclarationName" themeKey="methodDeclaration" />
         <semanticHighlightingMapping pluginKey="semanticHighlighting.staticMethodDeclarationName" themeKey="staticMethodDeclaration" />
