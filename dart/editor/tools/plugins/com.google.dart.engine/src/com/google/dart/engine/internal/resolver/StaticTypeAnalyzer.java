@@ -1620,8 +1620,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     if (operator == TokenType.MINUS || operator == TokenType.PERCENT || operator == TokenType.PLUS
         || operator == TokenType.STAR) {
       Type doubleType = typeProvider.getDoubleType();
-      if (getStaticType(node.getLeftOperand()) == doubleType
-          || getStaticType(node.getRightOperand()) == doubleType) {
+      if (getStaticType(node.getLeftOperand()) == typeProvider.getIntType()
+          && getStaticType(node.getRightOperand()) == doubleType) {
         return doubleType;
       }
     }

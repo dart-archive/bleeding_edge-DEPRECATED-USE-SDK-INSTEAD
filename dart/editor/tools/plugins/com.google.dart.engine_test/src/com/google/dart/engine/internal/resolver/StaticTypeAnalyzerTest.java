@@ -105,6 +105,7 @@ import static com.google.dart.engine.element.ElementFactory.constructorElement;
 import static com.google.dart.engine.element.ElementFactory.fieldElement;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
+import static com.google.dart.engine.element.ElementFactory.methodElement;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -265,6 +266,24 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
         resolvedInteger(2));
     setStaticElement(node, getMethod(typeProvider.getNumType(), "/"));
     assertSame(typeProvider.getDoubleType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitBinaryExpression_star_notSpecial() throws Exception {
+    // class A {
+    //   A operator *(double value);
+    // }
+    // (a as A) * 2.0
+    ClassElementImpl classA = classElement("A");
+    InterfaceType typeA = classA.getType();
+    MethodElement operator = methodElement("*", typeA, typeProvider.getDoubleType());
+    classA.setMethods(new MethodElement[] {operator});
+    BinaryExpression node = binaryExpression(
+        asExpression(identifier("a"), typeName(classA)),
+        TokenType.PLUS,
+        resolvedDouble(2.0));
+    setStaticElement(node, operator);
+    assertSame(typeA, analyze(node));
     listener.assertNoErrors();
   }
 
