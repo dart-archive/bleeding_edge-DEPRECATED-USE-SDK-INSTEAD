@@ -249,25 +249,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (source == null) {
       return null;
     }
-    final CharSequence[] contentHolder = new CharSequence[1];
-    try {
-      source.getContents(new Source.ContentReceiver() {
-        @Override
-        public void accept(CharBuffer contents, long modificationTime) {
-          contentHolder[0] = contents;
-        }
-
-        @Override
-        public void accept(String contents, long modificationTime) {
-          contentHolder[0] = contents;
-        }
-      });
-    } catch (Exception exception) {
-      throw new AnalysisException("Could not get contents of " + source.getFullName(), exception);
-    }
-    if (contentHolder[0] == null) {
-      return null;
-    }
     CompilationUnit unit = parseCompilationUnit(source);
     if (unit == null) {
       return null;
@@ -280,8 +261,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         if (comment == null) {
           return null;
         }
-        int offset = comment.getOffset();
-        return contentHolder[0].subSequence(offset, offset + comment.getLength()).toString();
+        StringBuilder builder = new StringBuilder();
+        for (Token token : comment.getTokens()) {
+          builder.append(token.getLexeme());
+        }
+        return builder.toString();
       }
       nameNode = nameNode.getParent();
     }

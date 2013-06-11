@@ -132,6 +132,20 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertSame(libA, sources.get(0));
   }
 
+  public void test_computeDocumentationComment_block() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    String comment = "/** Comment */";
+    Source source = addSource("/test.dart", createSource(//
+        comment,
+        "class A {}"));
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    assertNotNull(libraryElement);
+    ClassElement classElement = libraryElement.getDefiningCompilationUnit().getTypes()[0];
+    assertNotNull(libraryElement);
+    assertEquals(comment, context.computeDocumentationComment(classElement));
+  }
+
   public void test_computeDocumentationComment_none() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
@@ -144,10 +158,13 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNull(context.computeDocumentationComment(classElement));
   }
 
-  public void test_computeDocumentationComment_one() throws Exception {
+  public void test_computeDocumentationComment_singleLine_multiple() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
-    String comment = "/** Comment */";
+    String comment = createSource(//
+        "/// line 1",
+        "/// line 2",
+        "/// line 3");
     Source source = addSource("/test.dart", createSource(//
         comment,
         "class A {}"));
