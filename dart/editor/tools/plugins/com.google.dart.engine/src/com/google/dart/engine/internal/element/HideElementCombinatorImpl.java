@@ -13,16 +13,16 @@
  */
 package com.google.dart.engine.internal.element;
 
-import com.google.dart.engine.element.HideCombinator;
-import com.google.dart.engine.element.ShowCombinator;
+import com.google.dart.engine.element.HideElementCombinator;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
 /**
- * Instances of the class {@code ShowCombinatorImpl} implement a {@link ShowCombinator}.
+ * Instances of the class {@code HideElementCombinatorImpl} implement a
+ * {@link HideElementCombinator}.
  * 
  * @coverage dart.engine.element
  */
-public class HideCombinatorImpl implements HideCombinator {
+public class HideElementCombinatorImpl implements HideElementCombinator {
   /**
    * The names that are not to be made visible in the importing library even if they are defined in
    * the imported library.
@@ -32,7 +32,7 @@ public class HideCombinatorImpl implements HideCombinator {
   /**
    * Initialize a newly created combinator.
    */
-  public HideCombinatorImpl() {
+  public HideElementCombinatorImpl() {
     super();
   }
 

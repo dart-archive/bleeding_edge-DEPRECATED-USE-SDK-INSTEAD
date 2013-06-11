@@ -38,11 +38,11 @@ import com.google.dart.engine.internal.constant.ConstantValueComputer;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.element.ExportElementImpl;
-import com.google.dart.engine.internal.element.HideCombinatorImpl;
+import com.google.dart.engine.internal.element.HideElementCombinatorImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.PrefixElementImpl;
-import com.google.dart.engine.internal.element.ShowCombinatorImpl;
+import com.google.dart.engine.internal.element.ShowElementCombinatorImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
@@ -395,11 +395,11 @@ public class LibraryResolver {
     ArrayList<NamespaceCombinator> combinators = new ArrayList<NamespaceCombinator>();
     for (Combinator combinator : directive.getCombinators()) {
       if (combinator instanceof HideCombinator) {
-        HideCombinatorImpl hide = new HideCombinatorImpl();
+        HideElementCombinatorImpl hide = new HideElementCombinatorImpl();
         hide.setHiddenNames(getIdentifiers(((HideCombinator) combinator).getHiddenNames()));
         combinators.add(hide);
       } else {
-        ShowCombinatorImpl show = new ShowCombinatorImpl();
+        ShowElementCombinatorImpl show = new ShowElementCombinatorImpl();
         show.setShownNames(getIdentifiers(((ShowCombinator) combinator).getShownNames()));
         combinators.add(show);
       }

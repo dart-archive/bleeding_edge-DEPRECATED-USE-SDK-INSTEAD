@@ -20,13 +20,13 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
-import com.google.dart.engine.element.HideCombinator;
+import com.google.dart.engine.element.HideElementCombinator;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.NamespaceCombinator;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.ShowCombinator;
+import com.google.dart.engine.element.ShowElementCombinator;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 
 import java.util.HashMap;
@@ -185,10 +185,10 @@ public class NamespaceBuilder {
   private HashMap<String, Element> apply(HashMap<String, Element> definedNames,
       NamespaceCombinator[] combinators) {
     for (NamespaceCombinator combinator : combinators) {
-      if (combinator instanceof HideCombinator) {
-        hide(definedNames, ((HideCombinator) combinator).getHiddenNames());
-      } else if (combinator instanceof ShowCombinator) {
-        definedNames = show(definedNames, ((ShowCombinator) combinator).getShownNames());
+      if (combinator instanceof HideElementCombinator) {
+        hide(definedNames, ((HideElementCombinator) combinator).getHiddenNames());
+      } else if (combinator instanceof ShowElementCombinator) {
+        definedNames = show(definedNames, ((ShowElementCombinator) combinator).getShownNames());
       } else {
         // Internal error.
         AnalysisEngine.getInstance().getLogger().logError(

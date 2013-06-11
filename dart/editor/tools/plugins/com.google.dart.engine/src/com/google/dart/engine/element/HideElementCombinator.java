@@ -14,17 +14,17 @@
 package com.google.dart.engine.element;
 
 /**
- * The interface {@code ShowCombinator} defines the behavior of combinators that cause some of the
- * names in a namespace to be visible (and the rest hidden) when being imported.
+ * The interface {@code HideElementCombinator} defines the behavior of combinators that cause some
+ * of the names in a namespace to be hidden when being imported.
  * 
  * @coverage dart.engine.element
  */
-public interface ShowCombinator extends NamespaceCombinator {
+public interface HideElementCombinator extends NamespaceCombinator {
   /**
-   * Return an array containing the names that are to be made visible in the importing library if
-   * they are defined in the imported library.
+   * Return an array containing the names that are not to be made visible in the importing library
+   * even if they are defined in the imported library.
    * 
-   * @return the names from the imported library that are visible in the importing library
+   * @return the names from the imported library that are hidden from the importing library
    */
-  public String[] getShownNames();
+  public String[] getHiddenNames();
 }

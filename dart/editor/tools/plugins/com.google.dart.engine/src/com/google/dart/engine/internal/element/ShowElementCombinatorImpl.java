@@ -13,15 +13,16 @@
  */
 package com.google.dart.engine.internal.element;
 
-import com.google.dart.engine.element.ShowCombinator;
+import com.google.dart.engine.element.ShowElementCombinator;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
 /**
- * Instances of the class {@code ShowCombinatorImpl} implement a {@link ShowCombinator}.
+ * Instances of the class {@code ShowElementCombinatorImpl} implement a
+ * {@link ShowElementCombinator}.
  * 
  * @coverage dart.engine.element
  */
-public class ShowCombinatorImpl implements ShowCombinator {
+public class ShowElementCombinatorImpl implements ShowElementCombinator {
   /**
    * The names that are to be made visible in the importing library if they are defined in the
    * imported library.
@@ -31,7 +32,7 @@ public class ShowCombinatorImpl implements ShowCombinator {
   /**
    * Initialize a newly created combinator.
    */
-  public ShowCombinatorImpl() {
+  public ShowElementCombinatorImpl() {
     super();
   }
 
