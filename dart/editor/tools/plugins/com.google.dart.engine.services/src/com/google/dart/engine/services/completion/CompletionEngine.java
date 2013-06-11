@@ -2457,7 +2457,7 @@ public class CompletionEngine {
         @Override
         public Void visitSimpleIdentifier(SimpleIdentifier node) {
           Element elem = node.getElement();
-          if (elem.getKind() == ElementKind.GETTER) {
+          if (elem != null && elem.getKind() == ElementKind.GETTER) {
             PropertyAccessorElement accessor = (PropertyAccessorElement) elem;
             if (accessor.isSynthetic()) {
               PropertyInducingElement var = accessor.getVariable();
