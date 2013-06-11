@@ -382,6 +382,9 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
 
   @Override
   public String[] getDefaultPrefixes(ISourceViewer sourceViewer, String contentType) {
+    if (DartPartitions.DART_SINGLE_LINE_DOC.equals(contentType)) {
+      return new String[] {"///", ""}; //$NON-NLS-1$ //$NON-NLS-2$
+    }
     return new String[] {"//", ""}; //$NON-NLS-1$ //$NON-NLS-2$
   }
 
