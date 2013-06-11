@@ -387,13 +387,32 @@ public class SemanticHighlightingTest extends
         "// filler filler filler filler filler filler filler filler filler filler",
         "import '/meta.dart';",
         "@deprecated",
-        "class A {}",
+        "class A {",
+        "  @deprecated",
+        "  method() {}",
+        "  @deprecated",
+        "  var field;",
+        "  @deprecated",
+        "  get myGet => null;",
+        "  @deprecated",
+        "  set mySet(x) {}",
+        "}",
         "main() {",
         "  A a;",
+        "  a.method ();",
+        "  a.field ;",
+        "  a.field = 0;",
+        "  a.myGet ;",
+        "  a.mySet = 1;",
         "}",
         "");
-    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "A {}");
+    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "A {");
     assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "A a;");
+    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "method ();");
+    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "field ;");
+    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "field =");
+    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "myGet ;");
+    assertHasWordPosition(SemanticHighlightings.DEPRECATED_ELEMENT, "mySet =");
   }
 
   public void test_deprecated_libraryImport() throws Exception {

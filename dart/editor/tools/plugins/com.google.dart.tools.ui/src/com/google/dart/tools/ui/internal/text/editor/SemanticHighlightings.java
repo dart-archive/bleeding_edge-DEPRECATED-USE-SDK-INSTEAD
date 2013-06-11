@@ -370,6 +370,12 @@ public class SemanticHighlightings {
   private static final class DeprecatedElementHighlighting extends DefaultSemanticHighlighting {
     private static boolean isDeprecatedElement(Element element) {
       if (element != null) {
+        if (element instanceof PropertyAccessorElement) {
+          PropertyAccessorElement accessor = (PropertyAccessorElement) element;
+          if (accessor.isSynthetic()) {
+            element = accessor.getVariable();
+          }
+        }
         ElementAnnotation[] annotations = element.getMetadata();
         for (ElementAnnotation annotation : annotations) {
           Element annotationElement = annotation.getElement();
