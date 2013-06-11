@@ -53,7 +53,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return false;
     }
     Iterator<Map.Entry<String, Type>> firstIterator = firstTypes.entrySet().iterator();
-    Iterator<Map.Entry<String, Type>> secondIterator = firstTypes.entrySet().iterator();
+    Iterator<Map.Entry<String, Type>> secondIterator = secondTypes.entrySet().iterator();
     while (firstIterator.hasNext()) {
       Map.Entry<String, Type> firstEntry = firstIterator.next();
       Map.Entry<String, Type> secondEntry = secondIterator.next();
