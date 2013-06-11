@@ -42,6 +42,8 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.search.internal.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
@@ -1944,7 +1946,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
     // OK, schedule selection update
     resolvedUnit = unit;
-    Display.getDefault().asyncExec(new Runnable() {
+    ExecutionUtils.runLogAsync(new RunnableEx() {
       @Override
       public void run() {
         if (isDisposed()) {

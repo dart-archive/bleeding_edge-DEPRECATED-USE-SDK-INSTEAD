@@ -107,7 +107,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
@@ -1155,7 +1154,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   public void applyCompilationUnitElement(com.google.dart.engine.ast.CompilationUnit unit) {
     super.applyCompilationUnitElement(unit);
     if (unit != null) {
-      Display.getDefault().asyncExec(new Runnable() {
+      ExecutionUtils.runLogAsync(new RunnableEx() {
         @Override
         public void run() {
           ExecutionUtils.runLog(new RunnableEx() {
@@ -1355,7 +1354,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     if (!forced && !progressMonitor.isCanceled()) {
       Shell shell = getSite().getShell();
       if (shell != null && !shell.isDisposed()) {
-        shell.getDisplay().asyncExec(new Runnable() {
+        ExecutionUtils.runLogAsync(new RunnableEx() {
           @Override
           public void run() {
             selectionChanged();

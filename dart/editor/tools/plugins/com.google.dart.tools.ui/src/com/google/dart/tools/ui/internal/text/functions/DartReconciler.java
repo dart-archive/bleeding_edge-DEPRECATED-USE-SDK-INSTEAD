@@ -22,6 +22,8 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.resources.IFile;
@@ -40,7 +42,6 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -211,7 +212,7 @@ public class DartReconciler extends MonoReconciler {
    */
   private void displayReconcilerTick(final CompilationUnit unit, final boolean newUnit,
       final Point selectionRange) {
-    Display.getDefault().asyncExec(new Runnable() {
+    ExecutionUtils.runLogAsync(new RunnableEx() {
       @Override
       public void run() {
         editor.applyParsedUnitAndSelection(unit, newUnit, selectionRange);

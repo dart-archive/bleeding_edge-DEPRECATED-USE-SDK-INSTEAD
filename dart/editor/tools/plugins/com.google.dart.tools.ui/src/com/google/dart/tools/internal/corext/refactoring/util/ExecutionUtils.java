@@ -19,6 +19,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * Utilities for executing actions, such as {@link RunnableObjectEx}.
@@ -95,6 +96,22 @@ public class ExecutionUtils {
       DartCore.logError(e);
       return false;
     }
+  }
+
+  /**
+   * Runs given {@link RunnableEx} in UI thread asynchronously, using
+   * {@link Display#asyncExec(Runnable)}.
+   */
+  public static void runLogAsync(final RunnableEx runnable) {
+    if (!PlatformUI.isWorkbenchRunning()) {
+      return;
+    }
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        runLog(runnable);
+      }
+    });
   }
 
   /**
