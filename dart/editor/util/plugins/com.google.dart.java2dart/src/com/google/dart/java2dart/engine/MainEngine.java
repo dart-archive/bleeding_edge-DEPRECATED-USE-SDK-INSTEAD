@@ -532,7 +532,7 @@ public class MainEngine {
     unit.getDirectives().add(libraryDirective("engine", "element_test"));
     unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective("dart:io", null));
-    unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_core.dart", null, importHideCombinator('IOException')));
     unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_engine_io.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
@@ -894,7 +894,7 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "sdk", "io"));
     unit.getDirectives().add(importDirective("dart:io", null));
-    unit.getDirectives().add(importDirective("java_core.dart", null));
+    unit.getDirectives().add(importDirective("java_core.dart", null, importHideCombinator('IOException')));
     unit.getDirectives().add(importDirective("java_io.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("java_engine_io.dart", null));
@@ -949,7 +949,7 @@ public class MainEngine {
     unit.getDirectives().add(libraryDirective("engine", "source", "io"));
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("dart:io", null));
-    unit.getDirectives().add(importDirective("java_core.dart", null));
+    unit.getDirectives().add(importDirective("java_core.dart", null, importHideCombinator('IOException')));
     unit.getDirectives().add(importDirective("java_io.dart", null));
     unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
     unit.getDirectives().add(
