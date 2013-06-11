@@ -22,10 +22,7 @@ import com.google.common.io.Files;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
-import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
-import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.BeautifySemanticProcessor;
@@ -37,18 +34,14 @@ import com.google.dart.java2dart.processor.JUnitSemanticProcessor;
 import com.google.dart.java2dart.processor.ObjectSemanticProcessor;
 import com.google.dart.java2dart.processor.PropertySemanticProcessor;
 import com.google.dart.java2dart.processor.SemanticProcessor;
-import com.google.dart.java2dart.util.JavaUtils;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
 import static com.google.dart.java2dart.util.ASTFactory.exportDirective;
 import static com.google.dart.java2dart.util.ASTFactory.importDirective;
-import static com.google.dart.java2dart.util.ASTFactory.importHideCombinator;
 import static com.google.dart.java2dart.util.ASTFactory.importShowCombinator;
 import static com.google.dart.java2dart.util.ASTFactory.libraryDirective;
-import static com.google.dart.java2dart.util.TokenFactory.token;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jdt.core.dom.ITypeBinding;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -532,8 +525,7 @@ public class MainEngine {
     unit.getDirectives().add(libraryDirective("engine", "element_test"));
     unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective("dart:io", null));
-    unit.getDirectives().add(
-        importDirective(src_package + "java_core.dart", null, importHideCombinator("IOException")));
+    unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_engine_io.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
@@ -744,11 +736,7 @@ public class MainEngine {
         importDirective("parser.dart", null, importShowCombinator("Parser", "ParserErrorCode")));
     unit.getDirectives().add(
         importDirective("sdk.dart", null, importShowCombinator("DartSdk", "SdkLibrary")));
-    unit.getDirectives().add(
-        importDirective(
-            "element.dart",
-            null,
-            importHideCombinator("HideCombinator", "ShowCombinator")));
+    unit.getDirectives().add(importDirective("element.dart", null));
     unit.getDirectives().add(importDirective("html.dart", "ht"));
     unit.getDirectives().add(importDirective("engine.dart", null));
     unit.getDirectives().add(importDirective("constant.dart", null));
@@ -760,27 +748,6 @@ public class MainEngine {
         unit.getDeclarations().add(member);
       }
     }
-    // there is conflict between Hide/ShowCombinator classes in AST and Element, so tweak them
-    unit.getDirectives().add(
-        importDirective(
-            "element.dart",
-            "__imp_combi",
-            importShowCombinator("HideCombinator", "ShowCombinator")));
-    unit.accept(new RecursiveASTVisitor<Void>() {
-      @Override
-      public Void visitTypeName(TypeName node) {
-        ITypeBinding binding = context.getNodeTypeBinding(node);
-        if (binding != null) {
-          String shortName = binding.getName();
-          shortName = StringUtils.substringBefore(shortName, "<");
-          if (JavaUtils.isTypeNamed(binding, "com.google.dart.engine.element.HideCombinator")
-              || JavaUtils.isTypeNamed(binding, "com.google.dart.engine.element.ShowCombinator")) {
-            ((SimpleIdentifier) node.getName()).setToken(token("__imp_combi." + shortName));
-          }
-        }
-        return super.visitTypeName(node);
-      }
-    });
     EngineSemanticProcessor.useImportPrefix(
         context,
         unit,
@@ -895,8 +862,7 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "sdk", "io"));
     unit.getDirectives().add(importDirective("dart:io", null));
-    unit.getDirectives().add(
-        importDirective("java_core.dart", null, importHideCombinator("IOException")));
+    unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_io.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("java_engine_io.dart", null));
@@ -951,8 +917,7 @@ public class MainEngine {
     unit.getDirectives().add(libraryDirective("engine", "source", "io"));
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("dart:io", null));
-    unit.getDirectives().add(
-        importDirective("java_core.dart", null, importHideCombinator("IOException")));
+    unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_io.dart", null));
     unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
     unit.getDirectives().add(

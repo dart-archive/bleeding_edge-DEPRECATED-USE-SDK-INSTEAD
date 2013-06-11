@@ -268,6 +268,10 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
         if (node.getName() instanceof SimpleIdentifier) {
           SimpleIdentifier nameNode = (SimpleIdentifier) node.getName();
           String name = nameNode.getName();
+          if (JavaUtils.isTypeNamed(binding, "java.util.Collection")) {
+            nameNode.setToken(token("Iterable"));
+            return null;
+          }
           if (JavaUtils.isTypeNamed(binding, "java.util.ArrayList")) {
             nameNode.setToken(token("List"));
             return null;

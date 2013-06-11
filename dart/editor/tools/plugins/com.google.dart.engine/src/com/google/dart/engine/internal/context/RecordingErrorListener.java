@@ -20,11 +20,11 @@ import com.google.dart.engine.source.Source;
 import static com.google.dart.engine.error.AnalysisError.NO_ERRORS;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Instances of the class {@code RecordingErrorListener} implement an error listener that will
@@ -57,11 +57,12 @@ public class RecordingErrorListener implements AnalysisErrorListener {
    * @return an array of errors (not {@code null}, contains no {@code null}s)
    */
   public AnalysisError[] getErrors() {
-    Set<Entry<Source, List<AnalysisError>>> entrySet = errors.entrySet();
-    if (entrySet.size() == 0) {
+    Collection<Entry<Source, List<AnalysisError>>> entrySet = errors.entrySet();
+    int numEntries = entrySet.size();
+    if (numEntries == 0) {
       return NO_ERRORS;
     }
-    ArrayList<AnalysisError> resultList = new ArrayList<AnalysisError>(entrySet.size());
+    ArrayList<AnalysisError> resultList = new ArrayList<AnalysisError>(numEntries);
     for (Entry<Source, List<AnalysisError>> entry : entrySet) {
       resultList.addAll(entry.getValue());
     }

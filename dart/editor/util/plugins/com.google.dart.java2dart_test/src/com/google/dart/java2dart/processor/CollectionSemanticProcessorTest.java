@@ -109,6 +109,23 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Collection() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.Collection;",
+        "public class Test {",
+        "  public void main(Collection<String> items) {",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  void main(Iterable<String> items) {",
+        "  }",
+        "}");
+  }
+
   public void test_Collection_isEmpty() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
