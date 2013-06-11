@@ -65,7 +65,23 @@ public class ElementLocationImpl implements ElementLocation {
       return false;
     }
     ElementLocationImpl location = (ElementLocationImpl) object;
-    return Arrays.equals(components, location.components);
+    String[] otherComponents = location.components;
+    int length = components.length;
+    if (otherComponents.length != length) {
+      return false;
+    }
+    if (length > 0 && !equalSourceComponents(components[0], otherComponents[0])) {
+      return false;
+    }
+    if (length > 1 && !equalSourceComponents(components[1], otherComponents[1])) {
+      return false;
+    }
+    for (int i = 2; i < length; i++) {
+      if (!components[i].equals(otherComponents[i])) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -148,5 +164,25 @@ public class ElementLocationImpl implements ElementLocation {
       }
       builder.append(currentChar);
     }
+  }
+
+  /**
+   * Return {@code true} if the given components, when interpreted to be encoded sources with a
+   * leading source type indicator, are equal when the source type's are ignored.
+   * 
+   * @param left the left component being compared
+   * @param right the right component being compared
+   * @return {@code true} if the given components are equal when the source type's are ignored
+   */
+  private boolean equalSourceComponents(String left, String right) {
+    if (left == null) {
+      return right == null;
+    } else if (right == null) {
+      return false;
+    }
+    if (left.length() <= 1 || right.length() <= 1) {
+      return left.equals(right);
+    }
+    return left.substring(1).equals(right.substring(1));
   }
 }
