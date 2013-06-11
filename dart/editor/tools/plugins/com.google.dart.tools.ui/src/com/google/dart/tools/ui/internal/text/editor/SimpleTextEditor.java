@@ -14,9 +14,12 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.PreferenceConstants;
+import com.google.dart.tools.ui.internal.text.editor.saveactions.RemoveTrailingWhitespaceAction;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.swt.widgets.Display;
@@ -28,6 +31,8 @@ import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * An editor for all files that are non-HTML and non-Dart. We're overriding the default text editor
  * because we want to control the context menu contributions.
@@ -35,6 +40,7 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 public class SimpleTextEditor extends TextEditor {
 
   public static final String ID = "com.google.dart.tools.ui.text.editor.TextEditor"; //$NON-NLS-1$
+  private RemoveTrailingWhitespaceAction removeTrailingWhitespaceAction;
 
   public SimpleTextEditor() {
     setRulerContextMenuId("#DartSimpleTextEditorRulerContext"); //$NON-NLS-1$
@@ -46,6 +52,12 @@ public class SimpleTextEditor extends TextEditor {
       return false;
     }
     return super.isEditable();
+  }
+
+  @Override
+  protected void createActions() {
+    removeTrailingWhitespaceAction = new RemoveTrailingWhitespaceAction(getSourceViewer());
+    super.createActions();
   }
 
   @Override
@@ -101,10 +113,32 @@ public class SimpleTextEditor extends TextEditor {
   }
 
   @Override
+  protected void performSave(boolean overwrite, IProgressMonitor progressMonitor) {
+
+    performSaveActions();
+    super.performSave(overwrite, progressMonitor);
+  }
+
+  @Override
   protected void rulerContextMenuAboutToShow(IMenuManager menu) {
     super.rulerContextMenuAboutToShow(menu);
 
     // Remove the Preferences menu item
     menu.remove(ITextEditorActionConstants.RULER_PREFERENCES);
+  }
+
+  private boolean isRemoveTrailingWhitespaceEnabled() {
+    return PreferenceConstants.getPreferenceStore().getBoolean(
+        PreferenceConstants.EDITOR_REMOVE_TRAILING_WS);
+  }
+
+  private void performSaveActions() {
+    if (isRemoveTrailingWhitespaceEnabled()) {
+      try {
+        removeTrailingWhitespaceAction.run();
+      } catch (InvocationTargetException e) {
+        DartToolsPlugin.log(e);
+      }
+    }
   }
 }

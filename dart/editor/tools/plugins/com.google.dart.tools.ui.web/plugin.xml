@@ -7,7 +7,7 @@
       <editor
             class="com.google.dart.tools.ui.web.css.CssEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="css,scss,less"
+            extensions="css,scss,less,ess"
             icon="icons/file_obj.gif"
             id="com.google.dart.tools.ui.web.css.CSSEditor"
             symbolicFontName="com.google.dart.tools.ui.editors.textfont"
