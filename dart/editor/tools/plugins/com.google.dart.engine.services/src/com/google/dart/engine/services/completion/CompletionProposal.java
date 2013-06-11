@@ -39,9 +39,13 @@ public interface CompletionProposal {
 
   boolean hasPositional();
 
+  boolean isDeprecated();
+
   CompletionProposal setCompletion(String x);
 
   CompletionProposal setDeclaringType(String name);
+
+  CompletionProposal setDeprecated(boolean deprecated);
 
   CompletionProposal setKind(ProposalKind x);
 

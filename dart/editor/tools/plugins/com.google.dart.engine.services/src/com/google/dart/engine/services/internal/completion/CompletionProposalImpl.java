@@ -36,6 +36,7 @@ public class CompletionProposalImpl implements CompletionProposal {
   private int positionalParameterCount = 0;
   private boolean named = false;
   private boolean positional = false;
+  private boolean deprecated = false;
   private int relevance = 0;
 
   @Override
@@ -99,6 +100,11 @@ public class CompletionProposalImpl implements CompletionProposal {
   }
 
   @Override
+  public boolean isDeprecated() {
+    return deprecated;
+  }
+
+  @Override
   public CompletionProposal setCompletion(String x) {
     completion = x;
     if (replacementLength == 0) {
@@ -110,6 +116,12 @@ public class CompletionProposalImpl implements CompletionProposal {
   @Override
   public CompletionProposal setDeclaringType(String name) {
     declaringType = name;
+    return this;
+  }
+
+  @Override
+  public CompletionProposal setDeprecated(boolean deprecated) {
+    this.deprecated = deprecated;
     return this;
   }
 

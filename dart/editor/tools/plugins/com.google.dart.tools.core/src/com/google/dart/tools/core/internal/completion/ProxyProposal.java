@@ -50,6 +50,11 @@ public class ProxyProposal extends CompletionProposal {
   }
 
   @Override
+  public boolean isDeprecated() {
+    return proposal.isDeprecated();
+  }
+
+  @Override
   public int getKind() {
     switch (proposal.getKind()) {
       case ARGUMENT_LIST:

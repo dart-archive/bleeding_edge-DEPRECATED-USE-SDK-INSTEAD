@@ -716,6 +716,9 @@ public class CompletionProposalLabelProvider {
     if (kind == CompletionProposal.TYPE_REF && Flags.isAbstract(flags)) {
       adornments |= DartElementImageDescriptor.ABSTRACT;
     }
+    if (proposal.isDeprecated()) {
+      adornments |= DartElementImageDescriptor.DEPRECATED;
+    }
 
     return new DartElementImageDescriptor(
         descriptor,

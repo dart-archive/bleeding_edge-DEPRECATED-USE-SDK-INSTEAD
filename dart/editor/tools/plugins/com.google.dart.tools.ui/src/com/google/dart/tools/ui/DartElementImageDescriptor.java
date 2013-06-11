@@ -92,6 +92,7 @@ public class DartElementImageDescriptor extends CompositeImageDescriptor {
    * Flag to render the 'linked' adornment
    */
   public final static int LINKED = 0x20000;
+  public final static int DEPRECATED = 0x40000;
 
   private ImageDescriptor fBaseImage;
   private int fFlags;
@@ -271,6 +272,9 @@ public class DartElementImageDescriptor extends CompositeImageDescriptor {
     }
     if ((flags & SETTER) != 0) {
       addBottomRightImage(DartPluginImages.DESC_OVR_SETTER, pos);
+    }
+    if ((flags & DEPRECATED) != 0) {
+      addBottomRightImage(DartPluginImages.DESC_OVR_DEPRECATED, pos);
     }
   }
 
