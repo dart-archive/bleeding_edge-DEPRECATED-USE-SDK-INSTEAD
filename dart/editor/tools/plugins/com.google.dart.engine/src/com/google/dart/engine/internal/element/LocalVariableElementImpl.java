@@ -87,4 +87,9 @@ public class LocalVariableElementImpl extends VariableElementImpl implements Loc
     builder.append(" ");
     builder.append(getDisplayName());
   }
+
+  @Override
+  protected String getIdentifier() {
+    return super.getIdentifier() + "@" + getNameOffset();
+  }
 }

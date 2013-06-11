@@ -263,6 +263,46 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "}");
   }
 
+  public void test_createChange_localFunction_sameNameDifferenceScopes() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "    int test() => 0;",
+        "    print(test);",
+        "  }",
+        "  {",
+        "    int test() => 1;",
+        "    print(test);",
+        "  }",
+        "  {",
+        "    int test() => 2;",
+        "    print(test);",
+        "  }",
+        "}");
+    // configure refactoring
+    createRenameRefactoring("test() => 1");
+    assertEquals("Rename Local Function", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "    int test() => 0;",
+        "    print(test);",
+        "  }",
+        "  {",
+        "    int newName() => 1;",
+        "    print(newName);",
+        "  }",
+        "  {",
+        "    int test() => 2;",
+        "    print(test);",
+        "  }",
+        "}");
+  }
+
   public void test_createChange_localVariable() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -284,6 +324,46 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "  newName = 1;",
         "  newName += 2;",
         "  print(newName);",
+        "}");
+  }
+
+  public void test_createChange_localVariable_sameNameDifferenceScopes() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "    int test = 0;",
+        "    print(test);",
+        "  }",
+        "  {",
+        "    int test = 1;",
+        "    print(test);",
+        "  }",
+        "  {",
+        "    int test = 2;",
+        "    print(test);",
+        "  }",
+        "}");
+    // configure refactoring
+    createRenameRefactoring("test = 1");
+    assertEquals("Rename Local Variable", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "    int test = 0;",
+        "    print(test);",
+        "  }",
+        "  {",
+        "    int newName = 1;",
+        "    print(newName);",
+        "  }",
+        "  {",
+        "    int test = 2;",
+        "    print(test);",
+        "  }",
         "}");
   }
 
