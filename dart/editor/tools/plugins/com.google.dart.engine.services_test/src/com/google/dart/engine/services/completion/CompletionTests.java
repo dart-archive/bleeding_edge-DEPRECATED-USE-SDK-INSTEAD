@@ -519,13 +519,11 @@ public class CompletionTests extends CompletionTestCase {
 
   public void test035() throws Exception {
     // test analysis of untyped fields and top-level vars
-    // this case has not been indexed yet
     test("class Y {var x='hi';mth() {x.!1length;}}", "1+length");
   }
 
   public void test036() throws Exception {
     // test analysis of untyped fields and top-level vars
-    // this case has not been indexed yet
     test(
         src(
             "class A1 {",
@@ -542,6 +540,15 @@ public class CompletionTests extends CompletionTestCase {
             "}"),
         "1+round",
         "2+round");
+  }
+
+  public void test037() throws Exception {
+    test(src(//
+        "class HttpServer{}",
+        "class HttpClient{}",
+        "main() {",
+        "  new HtS!1",
+        "}"), "1+HttpServer", "1-HttpClient");
   }
 
   public void testCommentSnippets001() throws Exception {

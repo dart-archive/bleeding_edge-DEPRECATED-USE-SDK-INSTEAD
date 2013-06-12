@@ -128,6 +128,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * The analysis engine for code completion.
@@ -288,6 +289,8 @@ public class CompletionEngine {
 
   private class Filter {
     String prefix;
+    String originalPrefix;
+    Pattern pattern;
     boolean isPrivateDisallowed = true;
 
     Filter(SimpleIdentifier ident) {
@@ -310,6 +313,7 @@ public class CompletionEngine {
       if (prefix.length() >= 1) {
         isPrivateDisallowed = !Identifier.isPrivateName(prefix);
       }
+      originalPrefix = prefix;
       prefix = prefix.toLowerCase();
     }
 
@@ -322,6 +326,32 @@ public class CompletionEngine {
       return true;
     }
 
+    String makePattern() {
+      String source = filter.originalPrefix;
+      if (source == null || source.length() < 2) {
+        return "*";
+      }
+      int index = 0;
+      StringBuffer regex = new StringBuffer();
+      StringBuffer pattern = new StringBuffer();
+      regex.append(source.charAt(index));
+      pattern.append(source.charAt(index++));
+      while (index < source.length()) {
+        char ch = source.charAt(index++);
+        if (Character.isUpperCase(ch)) {
+          pattern.append('*');
+          regex.append("\\p{javaLowerCase}*");
+        }
+        pattern.append(ch);
+        regex.append(ch);
+      }
+      pattern.append('*');
+      regex.append("\\p{javaLowerCase}*");
+      String result = pattern.toString();
+      this.pattern = Pattern.compile(regex.toString(), 0);
+      return result;
+    }
+
     boolean match(Element elem) {
       return match(elem.getDisplayName());
     }
@@ -329,7 +359,9 @@ public class CompletionEngine {
     boolean match(String name) {
       // Return true if the filter passes. Return false for private elements that should not be visible
       // in the current context.
-      return isPermitted(name) && name.toLowerCase().startsWith(prefix);
+      return isPermitted(name)
+          && (name.toLowerCase().startsWith(prefix) || pattern != null
+              && pattern.matcher(name).matches());
     }
   }
 
@@ -1763,7 +1795,9 @@ public class CompletionEngine {
 
   void namedConstructorReference(ClassElement classElement, SimpleIdentifier identifier) {
     // Complete identifier when it refers to a named constructor defined in classElement.
-    filter = new Filter(identifier);
+    if (filter == null) {
+      filter = new Filter(identifier);
+    }
     for (ConstructorElement cons : classElement.getConstructors()) {
       if ((state.isCompileTimeConstantRequired ? cons.isConst() : true)
           && filter.isPermitted(cons.getDisplayName())) {
@@ -1939,7 +1973,7 @@ public class CompletionEngine {
   private Element[] findAllFunctions() {
     SearchEngine engine = context.getSearchEngine();
     SearchScope scope = constructSearchScope();
-    SearchPattern pattern = SearchPatternFactory.createWildcardPattern("*", false);
+    SearchPattern pattern = SearchPatternFactory.createWildcardPattern(makeSearchPattern(), false);
     SearchFilter filter = new ContainmentFilter(null);
     List<SearchMatch> matches = engine.searchFunctionDeclarations(scope, pattern, filter);
     return extractElementsFromSearchMatches(matches);
@@ -1953,7 +1987,7 @@ public class CompletionEngine {
   private Element[] findAllTypes() {
     SearchEngine engine = context.getSearchEngine();
     SearchScope scope = constructSearchScope();
-    SearchPattern pattern = SearchPatternFactory.createWildcardPattern("*", false);
+    SearchPattern pattern = SearchPatternFactory.createWildcardPattern(makeSearchPattern(), false);
     List<SearchMatch> matches = engine.searchTypeDeclarations(scope, pattern, null);
     return extractElementsFromSearchMatches(matches);
   }
@@ -1961,7 +1995,7 @@ public class CompletionEngine {
   private Element[] findAllVariables() {
     SearchEngine engine = context.getSearchEngine();
     SearchScope scope = constructSearchScope();
-    SearchPattern pattern = SearchPatternFactory.createWildcardPattern("*", false);
+    SearchPattern pattern = SearchPatternFactory.createWildcardPattern(makeSearchPattern(), false);
     List<SearchMatch> matches = engine.searchVariableDeclarations(scope, pattern, null);
     return extractElementsFromSearchMatches(matches);
   }
@@ -2088,6 +2122,13 @@ public class CompletionEngine {
       }
       return name;
     }
+  }
+
+  private String makeSearchPattern() {
+    if (filter == null) {
+      return "*";
+    }
+    return filter.makePattern();
   }
 
   private void pArgumentList(CompletionProposal proposal, int offset, int len) {
