@@ -129,7 +129,8 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
 
       switch (event.character) {
         case ';':
-          return new ExitFlags(ILinkedModeListener.NONE, true);
+          return new ExitFlags(ILinkedModeListener.EXTERNAL_MODIFICATION
+              | ILinkedModeListener.UPDATE_CARET | ILinkedModeListener.EXIT_ALL, true);
         case '\b':
           if (fInvocationContext != null) {
             if (fInvocationContext.getViewer().getSelectedRange().y > 0) {

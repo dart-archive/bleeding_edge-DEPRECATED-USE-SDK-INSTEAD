@@ -66,7 +66,9 @@ class OptionalArgumentModel extends LinkedModeModel {
       }
       isStopped = true;
       if ((flags & ILinkedModeListener.EXTERNAL_MODIFICATION) != 0) {
-        return;
+        if ((flags & (ILinkedModeListener.EXIT_ALL | ILinkedModeListener.EXIT_ALL)) == 0) {
+          return;
+        }
       }
 
       // Clean up unnecessary optional arguments.
