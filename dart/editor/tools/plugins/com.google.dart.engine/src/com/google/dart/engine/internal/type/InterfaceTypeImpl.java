@@ -255,6 +255,16 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
+  public PropertyAccessorElement[] getAccessors() {
+    PropertyAccessorElement[] accessors = getElement().getAccessors();
+    PropertyAccessorElement[] members = new PropertyAccessorElement[accessors.length];
+    for (int i = 0; i < accessors.length; i++) {
+      members[i] = PropertyAccessorMember.from(accessors[i], this);
+    }
+    return members;
+  }
+
+  @Override
   public ClassElement getElement() {
     return (ClassElement) super.getElement();
   }
@@ -349,6 +359,16 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @Override
   public MethodElement getMethod(String methodName) {
     return MethodMember.from(((ClassElementImpl) getElement()).getMethod(methodName), this);
+  }
+
+  @Override
+  public MethodElement[] getMethods() {
+    MethodElement[] methods = getElement().getMethods();
+    MethodElement[] members = new MethodElement[methods.length];
+    for (int i = 0; i < methods.length; i++) {
+      members[i] = MethodMember.from(methods[i], this);
+    }
+    return members;
   }
 
   @Override

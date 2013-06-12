@@ -26,6 +26,13 @@ import com.google.dart.engine.element.PropertyAccessorElement;
  * @coverage dart.engine.type
  */
 public interface InterfaceType extends ParameterizedType {
+  /**
+   * Return an array containing all of the accessors (getters and setters) declared in this type.
+   * 
+   * @return the accessors declared in this type
+   */
+  public PropertyAccessorElement[] getAccessors();
+
   @Override
   public ClassElement getElement();
 
@@ -74,6 +81,13 @@ public interface InterfaceType extends ParameterizedType {
    * @return the method declared in this class with the given name
    */
   public MethodElement getMethod(String methodName);
+
+  /**
+   * Return an array containing all of the methods declared in this type.
+   * 
+   * @return the methods declared in this type
+   */
+  public MethodElement[] getMethods();
 
   /**
    * Return an array containing all of the mixins that are applied to the class being extended in
