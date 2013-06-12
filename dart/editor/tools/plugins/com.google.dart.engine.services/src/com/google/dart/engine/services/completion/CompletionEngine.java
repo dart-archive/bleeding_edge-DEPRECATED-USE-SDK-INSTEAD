@@ -14,6 +14,7 @@
 package com.google.dart.engine.services.completion;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
@@ -89,6 +90,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -198,11 +200,13 @@ public class CompletionEngine {
       if (inPrivateLibrary(type)) {
         return;
       }
-      mergeNames(type.getElement().getAccessors());
-      mergeNames(type.getElement().getMethods());
+      PropertyAccessorElement[] accessors = type.getAccessors();
+      mergeNames(accessors);
+      MethodElement[] methods = type.getMethods();
+      mergeNames(methods);
       mergeNames(type.getElement().getTypeVariables());
-      filterStaticRefs(type.getElement().getAccessors());
-      filterStaticRefs(type.getElement().getMethods());
+      filterStaticRefs(accessors);
+      filterStaticRefs(methods);
     }
 
     void addNamesDefinedByTypes(InterfaceType[] types) {
@@ -371,6 +375,11 @@ public class CompletionEngine {
 
     IdentifierCompleter(SimpleIdentifier node) {
       completionNode = node;
+    }
+
+    @Override
+    public Void visitAnnotation(Annotation node) {
+      return null;
     }
 
     @Override
