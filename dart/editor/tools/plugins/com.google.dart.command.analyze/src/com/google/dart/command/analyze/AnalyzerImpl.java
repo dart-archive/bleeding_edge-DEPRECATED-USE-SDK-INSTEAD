@@ -107,7 +107,7 @@ class AnalyzerImpl {
           contentCache,
           new DartUriResolver(sdk),
           new FileUriResolver(),
-          new PackageUriResolver(packageDirectory));
+          new PackageUriResolver(packageDirectory.getAbsoluteFile()));
     } else {
       sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     }
@@ -117,7 +117,7 @@ class AnalyzerImpl {
     context.setSourceFactory(sourceFactory);
 
     // analyze the given file
-    Source librarySource = new FileBasedSource(contentCache, sourceFile);
+    Source librarySource = new FileBasedSource(contentCache, sourceFile.getAbsoluteFile());
     LibraryElement library = context.computeLibraryElement(librarySource);
     context.resolveCompilationUnit(librarySource, library);
 
