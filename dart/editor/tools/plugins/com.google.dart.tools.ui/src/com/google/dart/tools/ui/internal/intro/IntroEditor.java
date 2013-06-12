@@ -123,7 +123,7 @@ public class IntroEditor extends EditorPart {
     Composite client = toolkit.createComposite(section);
     GridLayoutFactory.swtDefaults().spacing(0, 0).applyTo(client);
 
-    Button createButton = new Button(client, SWT.PUSH);
+    Button createButton = new Button(client, SWT.PUSH | SWT.LEFT);
     createButton.setText("Create an application...");
     createButton.setImage(DartToolsPlugin.getImage("icons/full/dart16/package_obj_new.png"));
     createButton.addSelectionListener(new SelectionAdapter() {
