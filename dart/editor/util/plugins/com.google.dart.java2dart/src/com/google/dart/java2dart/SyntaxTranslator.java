@@ -160,6 +160,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Translates Java AST to Dart AST.
@@ -171,6 +173,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   private static final String ENUM_NAME_FIELD_COMMENT = "/// The name of this enum constant, as declared in the enum declaration.";
   private static final String ENUM_ORDINAL_FIELD_COMMENT = "/// The position in the enum declaration.";
+
+  private static final Pattern JAVADOC_CODE_PATTERN = Pattern.compile("\\{@code ([^\\}]*)\\}");
+  private static final Pattern JAVADOC_LINK_PATTERN = Pattern.compile("\\{@link ([^\\}]*)\\}");
 
   /**
    * Replaces "node" with "replacement" in parent of "node".
@@ -221,29 +226,6 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     throw new UnsupportedOperationException("" + parentClass);
   }
 
-  /**
-   * Translates given Java AST into Dart AST.
-   */
-  public static CompilationUnit translate(Context context,
-      org.eclipse.jdt.core.dom.CompilationUnit javaUnit) {
-    SyntaxTranslator translator = new SyntaxTranslator(context);
-    javaUnit.accept(translator);
-    return (CompilationUnit) translator.result;
-  }
-
-  static Expression getPrimitiveTypeDefaultValue(String typeName) {
-    if ("bool".equals(typeName)) {
-      return booleanLiteral(false);
-    }
-    if ("int".equals(typeName)) {
-      return integer(0);
-    }
-    if ("double".equals(typeName)) {
-      return doubleLiteral(0.0);
-    }
-    return null;
-  }
-
   //TODO(scheglov) improve JavaDoc translation
 //  /**
 //   * Escapes characters in the JavaDoc to make it valid DartDoc.
@@ -272,6 +254,29 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 //    // return with spaces and "*"
 //    return leadingSpaces + "*" + sb.toString();
 //  }
+
+  /**
+   * Translates given Java AST into Dart AST.
+   */
+  public static CompilationUnit translate(Context context,
+      org.eclipse.jdt.core.dom.CompilationUnit javaUnit) {
+    SyntaxTranslator translator = new SyntaxTranslator(context);
+    javaUnit.accept(translator);
+    return (CompilationUnit) translator.result;
+  }
+
+  static Expression getPrimitiveTypeDefaultValue(String typeName) {
+    if ("bool".equals(typeName)) {
+      return booleanLiteral(false);
+    }
+    if ("int".equals(typeName)) {
+      return integer(0);
+    }
+    if ("double".equals(typeName)) {
+      return doubleLiteral(0.0);
+    }
+    return null;
+  }
 
   private static org.eclipse.jdt.core.dom.MethodDeclaration getEnclosingMethod(
       org.eclipse.jdt.core.dom.ASTNode node) {
@@ -1081,6 +1086,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         dartDocString = StringUtils.replace(dartDocString, "]", "\\]");;
         // TODO(scheglov) improve JavaDoc translation
 //        String dartDocString = escapeDartDoc(javaTagString);
+        dartDocString = convertJavaDoc(dartDocString);
         buffer.append(dartDocString);
       }
       buffer.append("\n */\n");
@@ -1713,6 +1719,36 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
   }
 
+  protected String convertJavaDoc(String str) {
+    // <p> ==> blank lines (which get interpreted as <br>
+    str = str.replaceAll("<p>", "");
+
+    // {@code foo} ==> `foo`
+    Matcher matcher = JAVADOC_CODE_PATTERN.matcher(str);
+    while (matcher.find()) {
+      str = str.substring(0, matcher.start()) + "`" + matcher.group(1) + "`"
+          + str.substring(matcher.end());
+      matcher = JAVADOC_CODE_PATTERN.matcher(str);
+    }
+
+    // {@link #getPrefixes()} ==> [getPrefixes]
+    matcher = JAVADOC_LINK_PATTERN.matcher(str);
+    while (matcher.find()) {
+      str = str.substring(0, matcher.start()) + "[" + extractLinkReference(matcher.group(1)) + "]"
+          + str.substring(matcher.end());
+      matcher = JAVADOC_LINK_PATTERN.matcher(str);
+    }
+
+    // <ul>, </ul>
+    // TODO: even better would be to remove these lines -
+    str = str.replaceAll("<ul>", "").replaceAll("</ul>", "");
+
+    // <li>
+    str = str.replaceAll("<li>", "* ").replaceAll("</li>", "");
+
+    return str;
+  }
+
   private ClassDeclaration declareInnerClass(IMethodBinding constructorBinding,
       AnonymousClassDeclaration anoClassDeclaration, String innerClassName,
       String[] additionalParameters) {
@@ -1798,6 +1834,20 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   private boolean done(ASTNode node) {
     result = node;
     return false;
+  }
+
+  /**
+   * Convert #getPrefixes() to getPrefixes.
+   */
+  private String extractLinkReference(String ref) {
+    if (ref.startsWith("#")) {
+      ref = ref.substring(1);
+    }
+    int index = ref.indexOf('(');
+    if (index != -1) {
+      ref = ref.substring(0, index);
+    }
+    return ref;
   }
 
   private boolean isNumberOrNull(Expression expression) {

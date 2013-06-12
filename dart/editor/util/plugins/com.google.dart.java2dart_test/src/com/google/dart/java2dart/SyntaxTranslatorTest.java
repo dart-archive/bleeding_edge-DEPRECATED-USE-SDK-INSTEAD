@@ -787,6 +787,74 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "}");
   }
 
+  public void test_javadoc_code() throws Exception {
+    parseJava(//
+        "/**",
+        " * {@code fooBar}",
+        " */",
+        "public class A {",
+        "}");
+    assertDartSource(//
+        "",
+        "/**",
+        " * `fooBar`",
+        " */",
+        "class A {",
+        "}");
+  }
+
+  public void test_javadoc_li() throws Exception {
+    parseJava(//
+        "/**",
+        " * <ul>",
+        " * <li>foo bar",
+        " * </ul>",
+        " */",
+        "public class A {",
+        "}");
+    assertDartSource(//
+        "",
+        "/**",
+        " *",
+        " * * foo bar",
+        " *",
+        " */",
+        "class A {",
+        "}");
+  }
+
+  public void test_javadoc_link() throws Exception {
+    parseJava(//
+        "/**",
+        " * {@link #fooBar()}",
+        " */",
+        "public class A {",
+        "}");
+    assertDartSource(//
+        "",
+        "/**",
+        " * [fooBar]",
+        " */",
+        "class A {",
+        "}");
+  }
+
+  public void test_javadoc_para() throws Exception {
+    parseJava(//
+        "/**",
+        " * <p>",
+        " */",
+        "public class A {",
+        "}");
+    assertDartSource(//
+        "",
+        "/**",
+        " *",
+        " */",
+        "class A {",
+        "}");
+  }
+
   public void test_literalBoolean() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
