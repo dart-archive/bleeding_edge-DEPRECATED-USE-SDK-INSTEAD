@@ -342,6 +342,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     resource.getWorkspace().removeResourceChangeListener(resourceChangeListener);
     ignoreManager.removeListener(ignoreListener);
     AnalysisWorker.removeListener(indexNotifier);
+    AnalysisMarkerManager.getInstance().stop();
     index.stop();
   }
 
