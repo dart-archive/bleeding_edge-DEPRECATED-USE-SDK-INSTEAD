@@ -348,7 +348,8 @@ public class InheritanceManager {
     InterfaceType supertype = classElt.getSupertype();
     ClassElement superclassElement = supertype != null ? supertype.getElement() : null;
     InterfaceType[] interfaces = classElt.getInterfaces();
-    if (superclassElement == null || interfaces.length == 0) {
+    // If classElt is Object, or the class cannot inherit any members.
+    if ((superclassElement == null || supertype.isObject()) && interfaces.length == 0) {
       interfaceLookup.put(classElt, resultMap);
       return resultMap;
     }

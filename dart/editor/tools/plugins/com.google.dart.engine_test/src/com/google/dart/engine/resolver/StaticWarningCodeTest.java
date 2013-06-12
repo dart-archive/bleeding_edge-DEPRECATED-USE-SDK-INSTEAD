@@ -1348,6 +1348,23 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonAbstractClassInheritsAbstractMemberOne_superclasses_interface()
+      throws Exception {
+    // bug 11154
+    Source source = addSource(createSource(//
+        "class A {",
+        "  get a => 'a';",
+        "}",
+        "abstract class B implements A {",
+        "  get b => 'b';",
+        "}",
+        "class C extends B {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE);
+    verify(source);
+  }
+
   public void test_nonAbstractClassInheritsAbstractMemberThree() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
