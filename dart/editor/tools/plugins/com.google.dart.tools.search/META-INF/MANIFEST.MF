@@ -9,7 +9,7 @@ Bundle-Localization: plugin
 Export-Package: com.google.dart.tools.search.core.text,
  com.google.dart.tools.search.internal.core.text;x-internal:=true,
  com.google.dart.tools.search.internal.ui;x-internal:=true,
- com.google.dart.tools.search.internal.ui.text;x-internal:=true,
+ com.google.dart.tools.search.internal.ui.text,
  com.google.dart.tools.search.internal.ui.util;x-internal:=true,
  com.google.dart.tools.search.ui,
  com.google.dart.tools.search.ui.actions,

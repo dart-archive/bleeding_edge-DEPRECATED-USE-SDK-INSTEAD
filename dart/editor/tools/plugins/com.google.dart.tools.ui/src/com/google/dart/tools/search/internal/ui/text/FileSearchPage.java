@@ -123,7 +123,9 @@ public class FileSearchPage extends ThemedSearchResultPage implements IAdaptable
 
   @Override
   public void dispose() {
-    fActionGroup.dispose();
+    if (fActionGroup != null) {
+      fActionGroup.dispose();
+    }
     super.dispose();
   }
 

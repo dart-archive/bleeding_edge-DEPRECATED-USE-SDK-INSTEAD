@@ -189,7 +189,9 @@ public abstract class AbstractTextSearchViewPage extends Page implements ISearch
           }
         }
       }
-      fViewPart.updateLabel();
+      if (fViewPart != null) {
+        fViewPart.updateLabel();
+      }
       return Status.OK_STATUS;
     }
 
@@ -319,7 +321,9 @@ public abstract class AbstractTextSearchViewPage extends Page implements ISearch
     fViewerAdapter = new SelectionProviderAdapter();
     getSite().setSelectionProvider(fViewerAdapter);
     // Register menu
-    getSite().registerContextMenu(fViewPart.getViewSite().getId(), fMenu, fViewerAdapter);
+    if (fViewPart != null) {
+      getSite().registerContextMenu(fViewPart.getViewSite().getId(), fMenu, fViewerAdapter);
+    }
 
     createViewer(fViewerContainer, fCurrentLayout);
     showBusyLabel(fIsBusyShown);
@@ -681,7 +685,9 @@ public abstract class AbstractTextSearchViewPage extends Page implements ISearch
       scheduleUIUpdate();
 
     } else {
-      getViewPart().updateLabel();
+      if (getViewPart() != null) {
+        getViewPart().updateLabel();
+      }
     }
   }
 
@@ -1218,7 +1224,9 @@ public abstract class AbstractTextSearchViewPage extends Page implements ISearch
     fViewer.getControl().setMenu(menu);
 
     updateLayoutActions();
-    getViewPart().updateLabel();
+    if (getViewPart() != null) {
+      getViewPart().updateLabel();
+    }
   }
 
   private void disconnectViewer() {

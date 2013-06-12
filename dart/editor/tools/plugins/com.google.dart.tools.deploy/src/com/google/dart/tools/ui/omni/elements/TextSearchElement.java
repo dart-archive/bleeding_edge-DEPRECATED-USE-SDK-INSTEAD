@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
-import com.google.dart.tools.search.ui.actions.TextSearchAction;
+import com.google.dart.tools.search.internal.ui.TextSearchAction;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniBoxImages;
@@ -122,7 +122,6 @@ public class TextSearchElement extends OmniElement {
 
   @Override
   protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
-
     new TextSearchAction(((TextSearchProvider) getProvider()).getShell(), searchText).run();
   }
 
@@ -133,5 +132,4 @@ public class TextSearchElement extends OmniElement {
   protected void updateSearchText() {
     searchText = getSearchText();
   }
-
 }

@@ -24,7 +24,9 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.SubActionBars;
+import org.eclipse.ui.part.IPageSite;
 import org.eclipse.ui.part.PageBook;
+import org.eclipse.ui.part.PageSite;
 import org.eclipse.ui.part.ViewPart;
 
 /**
@@ -89,12 +91,20 @@ public class SearchView extends ViewPart {
     // activate new page
     page = newPage;
     if (page != null) {
+      // set IPageSite
+      pageActionBars = new SubActionBars(actionBars);
+      pageActionBars.activate();
+      IPageSite pageSite = new PageSite(getViewSite()) {
+        @Override
+        public IActionBars getActionBars() {
+          return pageActionBars;
+        }
+      };
+      page.init(pageSite);
       // show page Control
       page.createControl(pageBook);
       pageBook.showPage(page.getControl());
       // show page actions
-      pageActionBars = new SubActionBars(actionBars);
-      pageActionBars.activate();
       page.setActionBars(pageActionBars);
       pageActionBars.updateActionBars();
       // notify page

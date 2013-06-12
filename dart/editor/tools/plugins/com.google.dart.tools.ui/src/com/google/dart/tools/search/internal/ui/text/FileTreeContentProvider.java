@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-@SuppressWarnings("restriction")
 public class FileTreeContentProvider implements ITreeContentProvider, IFileSearchContentProvider {
 
   private final Object[] EMPTY_ARR = new Object[0];
@@ -43,7 +42,7 @@ public class FileTreeContentProvider implements ITreeContentProvider, IFileSearc
 
   private ArrayList<File> externalRoots;
 
-  FileTreeContentProvider(FileSearchPage page, AbstractTreeViewer viewer) {
+  public FileTreeContentProvider(FileSearchPage page, AbstractTreeViewer viewer) {
     fPage = page;
     fTreeViewer = viewer;
   }
