@@ -8,6 +8,7 @@ import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -132,6 +133,10 @@ public class RunPubJob extends Job {
       try {
         // Refresh the Eclipse resources
         container.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+        // run build.dart after pub updates - do a full build
+        if (command.equals(UPDATE_COMMAND)) {
+          container.getProject().build(IncrementalProjectBuilder.FULL_BUILD, monitor);
+        }
       } catch (CoreException e) {
         // Log the exception and move on
         DartCore.logError("Exception refreshing " + container, e);
