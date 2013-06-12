@@ -46,7 +46,6 @@ import com.google.dart.engine.internal.element.ShowElementCombinatorImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
-import com.google.dart.engine.internal.verifier.PubVerifier;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
@@ -781,7 +780,9 @@ public class LibraryResolver {
           library.getInheritanceManager());
       unit.accept(errorVerifier);
 
-      unit.accept(new PubVerifier(analysisContext, errorReporter));
+      // TODO(brianwilkerson) Re-enable this once there are no more false positives and suggestions
+      // only show up where they are suppose to.
+//      unit.accept(new PubVerifier(analysisContext, errorReporter));
 
       ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
       unit.accept(constantVerifier);
