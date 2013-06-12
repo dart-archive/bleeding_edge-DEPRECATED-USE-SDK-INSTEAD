@@ -18,6 +18,8 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
+import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 /**
  * Instances of the class {@code ConstructorElementImpl} implement a {@code ConstructorElement}.
@@ -67,6 +69,23 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
   @Override
   public boolean isConst() {
     return hasModifier(Modifier.CONST);
+  }
+
+  @Override
+  public boolean isDefaultConstructor() {
+    // unnamed
+    String name = getName();
+    if (name != null && name.length() != 0) {
+      return false;
+    }
+    // no required parameters
+    for (ParameterElement parameter : getParameters()) {
+      if (parameter.getParameterKind() == ParameterKind.REQUIRED) {
+        return false;
+      }
+    }
+    // OK, can be used as default constructor
+    return true;
   }
 
   @Override

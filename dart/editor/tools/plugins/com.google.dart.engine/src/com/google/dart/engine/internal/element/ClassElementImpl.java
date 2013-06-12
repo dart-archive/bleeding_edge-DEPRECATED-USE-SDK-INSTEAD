@@ -265,6 +265,16 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public boolean hasDefaultConstructor() {
+    for (ConstructorElement constructor : getConstructors()) {
+      if (constructor.isDefaultConstructor()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public boolean hasNonFinalField() {
     ArrayList<ClassElement> classesToVisit = new ArrayList<ClassElement>();
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();

@@ -91,6 +91,11 @@ public class ConstructorMember extends ExecutableMember implements ConstructorEl
   }
 
   @Override
+  public boolean isDefaultConstructor() {
+    return getBaseElement().isDefaultConstructor();
+  }
+
+  @Override
   public boolean isFactory() {
     return getBaseElement().isFactory();
   }

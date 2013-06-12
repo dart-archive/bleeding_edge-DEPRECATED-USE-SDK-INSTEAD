@@ -54,6 +54,11 @@ public class ConstructorElementHandle extends ExecutableElementHandle implements
   }
 
   @Override
+  public boolean isDefaultConstructor() {
+    return getActualElement().isDefaultConstructor();
+  }
+
+  @Override
   public boolean isFactory() {
     return getActualElement().isFactory();
   }

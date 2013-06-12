@@ -35,6 +35,14 @@ public interface ConstructorElement extends ClassMemberElement, ExecutableElemen
   public boolean isConst();
 
   /**
+   * Return {@code true} if this constructor can be used as a default constructor - unnamed and has
+   * no required parameters.
+   * 
+   * @return {@code true} if this constructor can be used as a default constructor.
+   */
+  public boolean isDefaultConstructor();
+
+  /**
    * Return {@code true} if this constructor represents a factory constructor.
    * 
    * @return {@code true} if this constructor represents a factory constructor

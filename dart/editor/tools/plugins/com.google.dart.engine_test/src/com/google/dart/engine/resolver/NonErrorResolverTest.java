@@ -2024,6 +2024,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_undefinedConstructorInInitializer_hasOptionalParameters() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A([p]) {}",
+        "}",
+        "class B extends A {",
+        "  B();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_undefinedConstructorInInitializer_implicit() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

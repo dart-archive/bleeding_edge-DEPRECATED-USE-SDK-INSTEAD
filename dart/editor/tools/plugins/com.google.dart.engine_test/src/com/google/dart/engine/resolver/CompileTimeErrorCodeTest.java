@@ -1020,7 +1020,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A extends bool {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    assertErrors(
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
   }
 
@@ -1028,7 +1030,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A extends double {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    assertErrors(
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
   }
 
@@ -1036,7 +1040,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A extends int {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    assertErrors(
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
   }
 
@@ -1044,7 +1050,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A extends num {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    assertErrors(
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
   }
 
@@ -1052,7 +1060,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A extends String {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    assertErrors(
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
   }
 

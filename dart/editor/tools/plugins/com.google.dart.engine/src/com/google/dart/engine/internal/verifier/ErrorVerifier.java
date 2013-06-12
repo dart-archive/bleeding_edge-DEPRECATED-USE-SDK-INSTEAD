@@ -362,6 +362,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           node.getName(),
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       checkForMemberWithClassName();
+      checkForNoDefaultSuperConstructorImplicit(node);
       checkForAllMixinErrorCodes(withClause);
       if (implementsClause != null || extendsClause != null) {
         if (!checkForImplementsDisallowedClass(implementsClause)
@@ -2960,6 +2961,38 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This checks that passed if the passed class declaration implicitly calls default constructor of
+   * its superclass, there should be such default constructor - implicit or explicit.
+   * 
+   * @param node the {@link ClassDeclaration} to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+   */
+  private boolean checkForNoDefaultSuperConstructorImplicit(ClassDeclaration node) {
+    // do nothing if there is explicit constructor
+    ConstructorElement[] constructors = enclosingClass.getConstructors();
+    if (!constructors[0].isSynthetic()) {
+      return false;
+    }
+    // prepare super
+    InterfaceType superType = enclosingClass.getSupertype();
+    if (superType == null) {
+      return false;
+    }
+    ClassElement superClass = superType.getElement();
+    // check if super has default constructor
+    if (superClass.hasDefaultConstructor()) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(
+        StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+        node.getName(),
+        superType.getDisplayName());
+    return true;
+  }
+
+  /**
    * This checks that passed class declaration overrides all members required by its superclasses
    * and interfaces.
    * 
@@ -3781,6 +3814,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
    * @see CompileTimeErrorCode#NON_GENERATIVE_CONSTRUCTOR
+   * @see StaticWarningCode#NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
    */
   private boolean checkForUndefinedConstructorInInitializerImplicit(ConstructorDeclaration node) {
     //
@@ -3810,14 +3844,29 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     ClassElement superElement = superType.getElement();
-    ConstructorElement superDefaultConstructor = superElement.getUnnamedConstructor();
-    if (superDefaultConstructor != null) {
-      if (superDefaultConstructor.isFactory()) {
+    ConstructorElement superUnnamedConstructor = superElement.getUnnamedConstructor();
+    if (superUnnamedConstructor != null) {
+      if (superUnnamedConstructor.isFactory()) {
         errorReporter.reportError(
             CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
             node.getReturnType(),
-            superDefaultConstructor);
+            superUnnamedConstructor);
         return true;
+      }
+      if (!superUnnamedConstructor.isDefaultConstructor()) {
+        int offset;
+        int length;
+        {
+          Identifier returnType = node.getReturnType();
+          SimpleIdentifier name = node.getName();
+          offset = returnType.getOffset();
+          length = (name != null ? name.getEnd() : returnType.getEnd()) - offset;
+        }
+        errorReporter.reportError(
+            StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
+            offset,
+            length,
+            superType.getDisplayName());
       }
       return false;
     }
