@@ -640,7 +640,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "}",
         "class B extends A {",
         "  int get x => super.x == null ? 0 : super.x;",
-        "  void f() => x = 1;",
+        "  int f() => x = 1;",
         "}"));
     resolve(source);
     assertNoErrors();

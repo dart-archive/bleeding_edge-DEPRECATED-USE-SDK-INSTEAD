@@ -36,6 +36,7 @@ import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FieldDeclaration;
@@ -467,6 +468,15 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    FunctionType functionType = enclosingFunction == null ? null : enclosingFunction.getType();
+    Type expectedReturnType = functionType == null ? DynamicTypeImpl.getInstance()
+        : functionType.getReturnType();
+    checkForReturnOfInvalidType(node.getExpression(), expectedReturnType);
+    return super.visitExpressionFunctionBody(node);
+  }
+
+  @Override
   public Void visitFieldDeclaration(FieldDeclaration node) {
     if (!node.isStatic()) {
       VariableDeclarationList variables = node.getFields();
@@ -489,14 +499,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ExecutableElement outerFunction = enclosingFunction;
     try {
       SimpleIdentifier identifier = node.getName();
-      String methoName = "";
+      String methodName = "";
       if (identifier != null) {
-        methoName = identifier.getName();
+        methodName = identifier.getName();
       }
 
       enclosingFunction = node.getElement();
       if (node.isSetter() || node.isGetter()) {
-        checkForMismatchedAccessorTypes(node, methoName);
+        checkForMismatchedAccessorTypes(node, methodName);
         if (node.isSetter()) {
           FunctionExpression functionExpression = node.getFunctionExpression();
           if (functionExpression != null) {
@@ -517,12 +527,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitFunctionExpression(FunctionExpression node) {
-    ExecutableElement outerFunction = enclosingFunction;
-    try {
-      enclosingFunction = node.getElement();
+    // If this function expression is wrapped in a function declaration, don't change the
+    // enclosingFunction field.
+    if (!(node.getParent() instanceof FunctionDeclaration)) {
+      ExecutableElement outerFunction = enclosingFunction;
+      try {
+        enclosingFunction = node.getElement();
+        return super.visitFunctionExpression(node);
+      } finally {
+        enclosingFunction = outerFunction;
+      }
+    } else {
       return super.visitFunctionExpression(node);
-    } finally {
-      enclosingFunction = outerFunction;
     }
   }
 
@@ -1306,48 +1322,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       errorReporter.reportError(StaticWarningCode.RETURN_WITHOUT_VALUE, node);
       return true;
     }
-    // void
-    Type staticReturnType = getStaticType(returnExpression);
-    if (expectedReturnType.isVoid()) {
-      if (staticReturnType.isVoid() || staticReturnType.isDynamic()
-          || staticReturnType == BottomTypeImpl.getInstance()) {
-        return false;
-      }
-      errorReporter.reportError(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-          returnExpression,
-          staticReturnType.getDisplayName(),
-          expectedReturnType.getDisplayName(),
-          enclosingFunction.getDisplayName());
-      return true;
-    }
     // RETURN_OF_INVALID_TYPE
-    boolean isStaticAssignable = staticReturnType.isAssignableTo(expectedReturnType);
-    Type propagatedReturnType = getPropagatedType(returnExpression);
-    if (strictMode || propagatedReturnType == null) {
-      if (isStaticAssignable) {
-        return false;
-      }
-      errorReporter.reportError(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-          returnExpression,
-          staticReturnType.getDisplayName(),
-          expectedReturnType.getDisplayName(),
-          enclosingFunction.getDisplayName());
-      return true;
-    } else {
-      boolean isPropagatedAssignable = propagatedReturnType.isAssignableTo(expectedReturnType);
-      if (isStaticAssignable || isPropagatedAssignable) {
-        return false;
-      }
-      errorReporter.reportError(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-          returnExpression,
-          staticReturnType.getDisplayName(),
-          expectedReturnType.getDisplayName(),
-          enclosingFunction.getDisplayName());
-      return true;
-    }
+    return checkForReturnOfInvalidType(returnExpression, expectedReturnType);
   }
 
   /**
@@ -3628,6 +3604,61 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * This checks that a type mis-match between the return type and the expressed return type by the
+   * enclosing method or function.
+   * <p>
+   * This method is called both by {@link #checkForAllReturnStatementErrorCodes(ReturnStatement)}
+   * and {@link #visitExpressionFunctionBody(ExpressionFunctionBody)}.
+   * 
+   * @param returnExpression the returned expression to evaluate
+   * @param expectedReturnType the expressed return type by the enclosing method or function
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#RETURN_OF_INVALID_TYPE
+   */
+  private boolean checkForReturnOfInvalidType(Expression returnExpression, Type expectedReturnType) {
+    Type staticReturnType = getStaticType(returnExpression);
+    if (expectedReturnType.isVoid()) {
+      if (staticReturnType.isVoid() || staticReturnType.isDynamic()
+          || staticReturnType == BottomTypeImpl.getInstance()) {
+        return false;
+      }
+      errorReporter.reportError(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+          returnExpression,
+          staticReturnType.getDisplayName(),
+          expectedReturnType.getDisplayName(),
+          enclosingFunction.getDisplayName());
+      return true;
+    }
+    boolean isStaticAssignable = staticReturnType.isAssignableTo(expectedReturnType);
+    Type propagatedReturnType = getPropagatedType(returnExpression);
+    if (strictMode || propagatedReturnType == null) {
+      if (isStaticAssignable) {
+        return false;
+      }
+      errorReporter.reportError(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+          returnExpression,
+          staticReturnType.getDisplayName(),
+          expectedReturnType.getDisplayName(),
+          enclosingFunction.getDisplayName());
+      return true;
+    } else {
+      boolean isPropagatedAssignable = propagatedReturnType.isAssignableTo(expectedReturnType);
+      if (isStaticAssignable || isPropagatedAssignable) {
+        return false;
+      }
+      errorReporter.reportError(
+          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+          returnExpression,
+          staticReturnType.getDisplayName(),
+          expectedReturnType.getDisplayName(),
+          enclosingFunction.getDisplayName());
+      return true;
+    }
   }
 
   /**

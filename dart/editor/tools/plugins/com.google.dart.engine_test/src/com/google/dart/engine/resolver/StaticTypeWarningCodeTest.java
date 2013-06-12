@@ -268,9 +268,63 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_returnOfInvalidType_expressionFunctionBody_function() throws Exception {
+    Source source = addSource(createSource(//
+    "int f() => '0';"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_returnOfInvalidType_expressionFunctionBody_getter() throws Exception {
+    Source source = addSource(createSource(//
+    "int get g => '0';"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_returnOfInvalidType_expressionFunctionBody_localFunction() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  String m() {",
+        "    int f() => '0';",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_returnOfInvalidType_expressionFunctionBody_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int f() => '0';",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_returnOfInvalidType_expressionFunctionBody_void() throws Exception {
+    Source source = addSource(createSource(//
+    "void f() => 42;"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
   public void test_returnOfInvalidType_function() throws Exception {
     Source source = addSource(createSource(//
     "int f() { return '0'; }"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_returnOfInvalidType_getter() throws Exception {
+    Source source = addSource(createSource(//
+    "int get g { return '0'; }"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
