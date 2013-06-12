@@ -428,11 +428,6 @@ public class AnalysisWorker {
       Source source = change.getSource();
       IResource res = contextManager.getResource(source);
 
-      // Ignore if user requested to don't analyze resource.
-      if (res != null && !DartCore.isAnalyzed(res)) {
-        continue;
-      }
-
       // If errors are available, then queue the errors to be translated to markers
       AnalysisError[] errors = change.getErrors();
       if (errors != null) {

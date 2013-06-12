@@ -76,6 +76,11 @@ public class AnalysisMarkerManager {
 
       resource.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_ZERO);
 
+      // Ignore if user requested to don't analyze resource.
+      if (!DartCore.isAnalyzed(resource)) {
+        return;
+      }
+
       int errorCount = 0;
 
       for (AnalysisError error : errors) {

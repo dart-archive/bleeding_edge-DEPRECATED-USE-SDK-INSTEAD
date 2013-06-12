@@ -72,9 +72,8 @@ public class AnalysisWorkerTest extends TestCase {
       worker.performAnalysis();
       markerManager.waitForMarkers(10000);
 
-      fileRes.assertMarkersNotDeleted();
+      fileRes.assertMarkersDeleted();
       assertTrue(fileRes.getMarkers().size() == 0);
-      assertFalse(resolveCalled);
     } finally {
       DartCore.removeFromIgnores(fileRes);
     }
