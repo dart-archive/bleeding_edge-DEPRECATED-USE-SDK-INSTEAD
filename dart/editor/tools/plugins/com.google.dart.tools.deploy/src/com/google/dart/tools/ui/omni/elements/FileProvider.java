@@ -83,13 +83,21 @@ public class FileProvider extends OmniProposalProvider {
       }
 
       String name = resource.getName();
+      IPath path = resource.getFullPath();
 
       //exclude .project && .children files
       //TODO (pquitslund): consider centralizing this filter when core search is integrated
-      if (name.equals(".project") || name.equals(".children")) { //$NON-NLS-1$ //$NON-NLS-2$
-        IPath path = resource.getFullPath();
+      if (name.equals(".project") || name.equals(".children")) { //$NON-NLS-1$ //$NON-NLS-2$      
         // e.g., /MyProject/.project
         if (path.segmentCount() == 2) {
+          return false;
+        }
+      }
+
+      // exclude files in packages in example, bin etc folders
+      String pathString = path.toString();
+      for (String packagePath : PUB_DIRECTORY_PATHS) {
+        if (pathString.contains(packagePath)) {
           return false;
         }
       }
@@ -178,6 +186,17 @@ public class FileProvider extends OmniProposalProvider {
       return name != null && !name.startsWith(".");
     }
   }
+
+  /**
+   * The directories in the pub white list, ones which have symlinks to the packages directory
+   */
+  // (TODO:keertip) Make sure this stays in sync with documentation 
+  // http://pub.dartlang.org/doc/pub-install.html
+  private static final List<String> PUB_DIRECTORY_PATHS = Arrays.asList(
+      "/web/packages/",
+      "/example/packages/",
+      "/test/packages/",
+      "/bin/packages/");
 
   /**
    * The base outer-container which will be used to search for resources. This is the root of the
