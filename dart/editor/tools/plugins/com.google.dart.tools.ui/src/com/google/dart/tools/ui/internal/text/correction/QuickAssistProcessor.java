@@ -19,8 +19,6 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
-import com.google.dart.engine.services.correction.CreateFileCorrectionProposal;
-import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
@@ -52,13 +50,9 @@ public class QuickAssistProcessor {
   static void addServiceProposals(List<ICompletionProposal> proposals,
       CorrectionProposal[] serviceProposals) {
     for (CorrectionProposal serviceProposal : serviceProposals) {
-      if (serviceProposal instanceof SourceCorrectionProposal) {
-        SourceCorrectionProposal sourceProposal = (SourceCorrectionProposal) serviceProposal;
-        proposals.add(ServiceUtils.toUI(sourceProposal));
-      }
-      if (serviceProposal instanceof CreateFileCorrectionProposal) {
-        CreateFileCorrectionProposal fileProposal = (CreateFileCorrectionProposal) serviceProposal;
-        proposals.add(ServiceUtils.toUI(fileProposal));
+      ICompletionProposal uiProposal = ServiceUtils.toUI(serviceProposal);
+      if (uiProposal != null) {
+        proposals.add(uiProposal);
       }
     }
   }

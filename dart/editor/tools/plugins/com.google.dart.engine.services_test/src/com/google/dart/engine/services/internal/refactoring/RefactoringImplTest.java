@@ -24,6 +24,7 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.CompositeChange;
+import com.google.dart.engine.services.change.CreateFileChange;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils;
@@ -39,6 +40,38 @@ import java.util.List;
  * Abstract test for testing {@link RenameRefactoring}s.
  */
 public abstract class RefactoringImplTest extends AbstractDartTest {
+  /**
+   * Assert result of applying given {@link Change} to the "source".
+   */
+  public static void assertChangeResult(Change compositeChange, Source source, String expected)
+      throws Exception {
+    SourceChange sourceChange = getSourceChange(compositeChange, source);
+    String sourceResult = getChangeResult(source, sourceChange);
+    assertEquals(expected, sourceResult);
+  }
+
+  /**
+   * @return the {@link CreateFileChange} for the file with the given name (not full path).
+   */
+  public static CreateFileChange findCreateFileChange(Change change, String fileName) {
+    if (change instanceof CreateFileChange) {
+      CreateFileChange fileChange = (CreateFileChange) change;
+      if (fileChange.getFile().getName().equals(fileName)) {
+        return fileChange;
+      }
+    }
+    if (change instanceof CompositeChange) {
+      CompositeChange compositeChange = (CompositeChange) change;
+      for (Change childChange : compositeChange.getChildren()) {
+        CreateFileChange fileChange = findCreateFileChange(childChange, fileName);
+        if (fileChange != null) {
+          return fileChange;
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * @return the {@link SourceChange} for the given {@link Source}.
    */
@@ -78,16 +111,6 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   private Index index;
 
   protected SearchEngine searchEngine;
-
-  /**
-   * Assert result of applying given {@link Change} to the "source".
-   */
-  protected final void assertChangeResult(Change compositeChange, Source source, String expected)
-      throws Exception {
-    SourceChange sourceChange = getSourceChange(compositeChange, source);
-    String sourceResult = getChangeResult(source, sourceChange);
-    assertEquals(expected, sourceResult);
-  }
 
   /**
    * Assert result of applying given {@link Change} to the {@link #testCode}.

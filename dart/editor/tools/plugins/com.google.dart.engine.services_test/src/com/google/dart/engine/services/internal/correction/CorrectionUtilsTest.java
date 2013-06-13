@@ -1007,6 +1007,15 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertSame(null, CorrectionUtils.getPropertyAccessorElement(identifier));
   }
 
+  public void test_getRecommendedFileNameForClass() throws Exception {
+    assertEquals("test.dart", CorrectionUtils.getRecommentedFileNameForClass("Test"));
+    assertEquals("my_test.dart", CorrectionUtils.getRecommentedFileNameForClass("MyTest"));
+    assertEquals(
+        "my_super_test.dart",
+        CorrectionUtils.getRecommentedFileNameForClass("MySuperTest"));
+    assertEquals("http_server.dart", CorrectionUtils.getRecommentedFileNameForClass("HTTPServer"));
+  }
+
   public void test_getResolvedNode_class() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

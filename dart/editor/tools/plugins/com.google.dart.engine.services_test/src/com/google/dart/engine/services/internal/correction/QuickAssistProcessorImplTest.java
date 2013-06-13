@@ -17,12 +17,16 @@ package com.google.dart.engine.services.internal.correction;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.change.Change;
+import com.google.dart.engine.services.change.CreateFileChange;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.correction.ChangeCorrectionProposal;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
 import com.google.dart.engine.services.correction.SourceCorrectionProposal;
+import com.google.dart.engine.services.internal.refactoring.RefactoringImplTest;
 import com.google.dart.engine.source.Source;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -39,6 +43,18 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     SourceChange change = proposal.getChange();
     List<Edit> edits = change.getEdits();
     return CorrectionUtils.applyReplaceEdits(code, edits);
+  }
+
+  /**
+   * @return the {@link CorrectionProposal} with the given kind.
+   */
+  private static CorrectionProposal findProposal(CorrectionProposal[] proposals, CorrectionKind kind) {
+    for (CorrectionProposal proposal : proposals) {
+      if (proposal.getKind() == kind) {
+        return proposal;
+      }
+    }
+    return null;
   }
 
   private int selectionOffset = 0;
@@ -440,6 +456,71 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   public void test_exchangeBinaryExpressionArguments_wrong_selectionWithBinary() throws Exception {
     selectionLength = 9;
     assert_exchangeBinaryExpressionArguments_wrong("1 + 2 + 3", "1 + 2 + 3");
+  }
+
+  public void test_extractClassIntoPart() throws Exception {
+    String partInitial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "part of app;",
+        "",
+        "int varBefore;",
+        "",
+        "class MySuperClass {",
+        "}",
+        "",
+        "int varAfter;");
+    String libInitial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library app;",
+        "",
+        "part 'test.dart';");
+    // prepare Source(s)
+    Source libSource = addSource("/my_app.dart", libInitial);
+    Source testSource = addSource("/test.dart", partInitial);
+    // initialize "test" fields
+    parseTestUnit(libSource, testSource);
+    selectionOffset = findOffset("MySuperClass {");
+    // prepare change
+    Change proposalChange;
+    {
+      CorrectionProposal[] proposals = getProposals();
+      CorrectionProposal proposal = findProposal(proposals, CorrectionKind.QA_EXTRACT_CLASS);
+      assertThat(proposal).isInstanceOf(ChangeCorrectionProposal.class);
+      proposalChange = ((ChangeCorrectionProposal) proposal).getChange();
+    }
+    // check Source(s)
+    RefactoringImplTest.assertChangeResult(
+        proposalChange,
+        testSource,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of app;",
+            "",
+            "int varBefore;",
+            "",
+            "",
+            "int varAfter;"));
+    RefactoringImplTest.assertChangeResult(
+        proposalChange,
+        libSource,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library app;",
+            "",
+            "part 'test.dart';",
+            "part 'my_super_class.dart';"));
+    {
+      CreateFileChange fileChange = RefactoringImplTest.findCreateFileChange(
+          proposalChange,
+          "my_super_class.dart");
+      assertNotNull(fileChange);
+      assertEquals(makeSource(//
+          "part of app;",
+          "",
+          "class MySuperClass {",
+          "}",
+          ""), fileChange.getContent());
+    }
   }
 
   public void test_joinIfStatementInner_OK_conditionAndOr() throws Exception {
@@ -1621,13 +1702,12 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
    */
   private void assert_runProcessor(String initialSource, CorrectionProposal[] proposals,
       CorrectionKind kind, String expectedSource) {
-    // find and apply required proposal
     String resultSource = initialSource;
-    for (CorrectionProposal proposal : proposals) {
-      if (proposal.getKind() == kind) {
-        assertThat(proposal).isInstanceOf(SourceCorrectionProposal.class);
-        resultSource = applyProposal(initialSource, (SourceCorrectionProposal) proposal);
-      }
+    // apply SourceCorrectionProposal 
+    CorrectionProposal proposal = findProposal(proposals, kind);
+    if (proposal != null) {
+      assertThat(proposal).isInstanceOf(SourceCorrectionProposal.class);
+      resultSource = applyProposal(initialSource, (SourceCorrectionProposal) proposal);
     }
     // assert result
     assertEquals(expectedSource, resultSource);

@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
@@ -47,6 +48,7 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -57,7 +59,11 @@ import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.TokenClass;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.change.Change;
+import com.google.dart.engine.services.change.CompositeChange;
+import com.google.dart.engine.services.change.CreateFileChange;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.correction.ChangeCorrectionProposal;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.LinkedPositionProposal;
@@ -78,6 +84,7 @@ import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVE
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_EXPRESSION_BODY;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_IS_NOT;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_EXCHANGE_OPERANDS;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_EXTRACT_CLASS;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_JOIN_VARIABLE_DECLARATION;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_REMOVE_TYPE_ANNOTATION;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_REPLACE_CONDITIONAL_WITH_IF_ELSE;
@@ -173,6 +180,11 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   private CompilationUnit unit;
   private ASTNode node;
 
+  private Source unitLibrarySource;
+  private LibraryElement unitLibraryElement;
+  private File unitLibraryFile;
+  private File unitLibraryFolder;
+
   private int selectionOffset;
   private int selectionLength;
   private CorrectionUtils utils;
@@ -210,7 +222,25 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     selectionOffset = context.getSelectionOffset();
     selectionLength = context.getSelectionLength();
     utils = new CorrectionUtils(context.getCompilationUnit());
-
+    // prepare elements
+    {
+      CompilationUnitElement unitElement = unit.getElement();
+      if (unitElement == null) {
+        return NO_PROPOSALS;
+      }
+      unitLibraryElement = unitElement.getLibrary();
+      if (unitLibraryElement == null) {
+        return NO_PROPOSALS;
+      }
+      unitLibrarySource = unitLibraryElement.getSource();
+      unitLibraryFile = QuickFixProcessorImpl.getSourceFile(unitLibrarySource);
+      if (unitLibraryFile == null) {
+        return NO_PROPOSALS;
+      }
+      unitLibraryFolder = unitLibraryFile.getParentFile();
+    }
+    this.analysisContext = unitLibraryElement.getContext();
+    // run with instrumentation
     final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
     try {
       for (final Method method : QuickAssistProcessorImpl.class.getDeclaredMethods()) {
@@ -410,6 +440,43 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     }
     // add proposal
     addUnitCorrectionProposal(QA_EXCHANGE_OPERANDS);
+  }
+
+  void addProposal_extractClassIntoPart() throws Exception {
+    // should be on the name
+    if (!(node instanceof SimpleIdentifier)) {
+      return;
+    }
+    if (!(node.getParent() instanceof ClassDeclaration)) {
+      return;
+    }
+    ClassDeclaration classDeclaration = (ClassDeclaration) node.getParent();
+    SourceRange linesRange = utils.getLinesRange(rangeNode(classDeclaration));
+    // prepare name
+    String className = classDeclaration.getName().getName();
+    String fileName = CorrectionUtils.getRecommentedFileNameForClass(className);
+    // prepare new file
+    File newFile = new File(unitLibraryFolder, fileName);
+    if (newFile.exists()) {
+      return;
+    }
+    // remove class from this unit
+    SourceChange unitChange = new SourceChange(source.getShortName(), source);
+    unitChange.addEdit(new Edit(linesRange, ""));
+    // create new unit
+    Change createFileChange;
+    {
+      String newContent = "part of " + unitLibraryElement.getDisplayName() + ";";
+      newContent += utils.getEndOfLine();
+      newContent += utils.getEndOfLine();
+      newContent += getSource(linesRange);
+      createFileChange = new CreateFileChange(newFile, newContent, fileName);
+    }
+    // add 'part'
+    SourceChange libraryChange = getInsertPartDirectiveChange(unitLibrarySource, fileName);
+    // add proposal
+    Change compositeChange = new CompositeChange("", unitChange, createFileChange, libraryChange);
+    proposals.add(new ChangeCorrectionProposal(compositeChange, QA_EXTRACT_CLASS, fileName));
   }
 
   void addProposal_joinIfStatementInner() throws Exception {
@@ -1286,30 +1353,14 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
         if (libraryFile == null) {
           continue;
         }
-        // prepare library CompilationUnit
-        CompilationUnit libraryUnit = analysisContext.getResolvedCompilationUnit(
-            librarySource,
-            librarySource);
-        if (libraryUnit == null) {
-          continue;
-        }
         // prepare relative URI
         URI libraryFolderUri = libraryFile.getParentFile().toURI();
         URI unitUri = unitFile.toURI();
         String relative = libraryFolderUri.relativize(unitUri).getPath();
-        // prepare location for "part" directive
-        utils = new CorrectionUtils(libraryUnit);
-        InsertDesc insertDesc = utils.getInsertDescPart();
-        // build source to insert
-        StringBuilder sb = new StringBuilder();
-        sb.append(insertDesc.prefix);
-        sb.append("part '");
-        sb.append(relative);
-        sb.append("';");
-        sb.append(insertDesc.suffix);
-        // add proposal
-        SourceChange change = new SourceChange(librarySource.getShortName(), librarySource);
-        change.addEdit(new Edit(insertDesc.offset, 0, sb.toString()));
+        SourceChange change = getInsertPartDirectiveChange(librarySource, relative);
+        if (change == null) {
+          continue;
+        }
         proposals.add(new SourceCorrectionProposal(change, CorrectionKind.QA_ADD_PART_DIRECTIVE));
       }
     }
@@ -1339,6 +1390,35 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       }
     }
     return null;
+  }
+
+  /**
+   * @return the {@link SourceChange} to insert "part" directive with given URI into the given
+   *         library.
+   */
+  private SourceChange getInsertPartDirectiveChange(Source librarySource, String uri)
+      throws Exception {
+    // prepare library CompilationUnit
+    CompilationUnit libraryUnit = analysisContext.getResolvedCompilationUnit(
+        librarySource,
+        librarySource);
+    if (libraryUnit == null) {
+      return null;
+    }
+    // prepare location for "part" directive
+    utils = new CorrectionUtils(libraryUnit);
+    InsertDesc insertDesc = utils.getInsertDescPart();
+    // build source to insert
+    StringBuilder sb = new StringBuilder();
+    sb.append(insertDesc.prefix);
+    sb.append("part '");
+    sb.append(uri);
+    sb.append("';");
+    sb.append(insertDesc.suffix);
+    // add proposal
+    SourceChange change = new SourceChange(librarySource.getShortName(), librarySource);
+    change.addEdit(new Edit(insertDesc.offset, 0, sb.toString()));
+    return change;
   }
 
   /**

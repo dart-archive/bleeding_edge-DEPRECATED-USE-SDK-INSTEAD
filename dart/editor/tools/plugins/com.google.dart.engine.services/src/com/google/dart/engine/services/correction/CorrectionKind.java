@@ -24,6 +24,7 @@ public enum CorrectionKind {
   QA_CONVERT_INTO_EXPRESSION_BODY(30, "Convert into expression body"),
   QA_CONVERT_INTO_IS_NOT(30, "Convert into is!"),
   QA_EXCHANGE_OPERANDS(30, "Exchange operands"),
+  QA_EXTRACT_CLASS(30, "Extract class into file '%s'"),
   QA_JOIN_IF_WITH_INNER(30, "Join 'if' statement with inner 'if' statement"),
   QA_JOIN_IF_WITH_OUTER(30, "Join 'if' statement with outer 'if' statement"),
   QA_JOIN_VARIABLE_DECLARATION(30, "Join variable declaration"),

@@ -45,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+import java.nio.CharBuffer;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -82,6 +83,25 @@ public class AbstractDartTest extends TestCase {
    */
   public static String[] formatLines(String... lines) {
     return lines;
+  }
+
+  /**
+   * @return the {@link String} content of the given {@link Source}.
+   */
+  public static String getSourceContent(Source source) throws Exception {
+    final String result[] = {null};
+    source.getContents(new Source.ContentReceiver() {
+      @Override
+      public void accept(CharBuffer contents, long modificationTime) {
+        result[0] = contents.toString();
+      }
+
+      @Override
+      public void accept(String contents, long modificationTime) {
+        result[0] = contents;
+      }
+    });
+    return result[0];
   }
 
   /**
@@ -159,11 +179,11 @@ public class AbstractDartTest extends TestCase {
   private final Set<Source> sourceWithSetContent = Sets.newHashSet();
 
   protected boolean verifyNoTestUnitErrors = true;
-
   protected String testCode;
   protected Source testSource;
   protected CompilationUnit testUnit;
   protected CompilationUnitElement testUnitElement;
+
   protected LibraryElement testLibraryElement;
 
   /**
@@ -294,28 +314,21 @@ public class AbstractDartTest extends TestCase {
    */
   protected final void parseTestUnit(Source source) throws Exception {
     testUnit = parseUnit(source);
-    testSource = testUnit.getElement().getSource();
-    testUnitElement = testUnit.getElement();
-    testLibraryElement = testUnitElement.getEnclosingElement();
-    if (verifyNoTestUnitErrors) {
-      assertThat(testUnit.getParsingErrors()).describedAs(testCode).isEmpty();
-      assertThat(testUnit.getResolutionErrors()).isEmpty();
-    }
+    initTestFields(testUnit);
+  }
+
+  protected final void parseTestUnit(Source libSource, Source unitSource) throws Exception {
+    CompilationUnit resolvedUnit = analysisContext.resolveCompilationUnit(unitSource, libSource);
+    initTestFields(resolvedUnit);
   }
 
   /**
    * Sets {@link #testUnit} with mocked {@link Source} which has given code.
    */
   protected final void parseTestUnit(String... lines) throws Exception {
-    testCode = makeSource(lines);
-    testUnit = parseUnit("/Test.dart", testCode);
-    testSource = testUnit.getElement().getSource();
-    testUnitElement = testUnit.getElement();
-    testLibraryElement = testUnitElement.getEnclosingElement();
-    if (verifyNoTestUnitErrors) {
-      assertThat(testUnit.getParsingErrors()).describedAs(testCode).isEmpty();
-      assertThat(testUnit.getResolutionErrors()).isEmpty();
-    }
+    String code = makeSource(lines);
+    testUnit = parseUnit("/Test.dart", code);
+    initTestFields(testUnit);
   }
 
   /**
@@ -375,5 +388,17 @@ public class AbstractDartTest extends TestCase {
     }
     // continue
     super.tearDown();
+  }
+
+  private void initTestFields(CompilationUnit resolvedUnit) throws Exception {
+    testUnit = resolvedUnit;
+    testUnitElement = testUnit.getElement();
+    testLibraryElement = testUnitElement.getEnclosingElement();
+    if (verifyNoTestUnitErrors) {
+      assertThat(testUnit.getParsingErrors()).describedAs(testCode).isEmpty();
+      assertThat(testUnit.getResolutionErrors()).isEmpty();
+    }
+    testSource = testUnitElement.getSource();
+    testCode = getSourceContent(testSource);;
   }
 }

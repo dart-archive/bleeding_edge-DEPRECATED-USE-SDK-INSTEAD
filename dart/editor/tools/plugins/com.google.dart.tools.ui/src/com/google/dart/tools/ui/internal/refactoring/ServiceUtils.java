@@ -17,9 +17,12 @@ package com.google.dart.tools.ui.internal.refactoring;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.CompositeChange;
+import com.google.dart.engine.services.change.CreateFileChange;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.correction.ChangeCorrectionProposal;
 import com.google.dart.engine.services.correction.CorrectionImage;
 import com.google.dart.engine.services.correction.CorrectionKind;
+import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.CreateFileCorrectionProposal;
 import com.google.dart.engine.services.correction.LinkedPositionProposal;
 import com.google.dart.engine.services.correction.SourceCorrectionProposal;
@@ -40,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.ltk.core.refactoring.TextChange;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
@@ -74,6 +78,14 @@ public class ServiceUtils {
     if (change instanceof SourceChange) {
       SourceChange sourceChange = (SourceChange) change;
       return toLTK(sourceChange);
+    }
+    // leaf CreateFileChange
+    if (change instanceof CreateFileChange) {
+      CreateFileChange fileChange = (CreateFileChange) change;
+      return new com.google.dart.tools.ui.internal.text.correction.proposals.CreateFileChange(
+          fileChange.getName(),
+          fileChange.getFile(),
+          fileChange.getContent());
     }
     // should be CompositeChange
     CompositeChange compositeChange = (CompositeChange) change;
@@ -155,6 +167,30 @@ public class ServiceUtils {
   public static org.eclipse.ltk.core.refactoring.RefactoringStatus toLTK(Throwable e) {
     IStatus status = createRuntimeStatus(e);
     return org.eclipse.ltk.core.refactoring.RefactoringStatus.create(status);
+  }
+
+  /**
+   * @return the Eclipse {@link ICompletionProposal} for the given {@link CorrectionProposal}.
+   */
+  public static ICompletionProposal toUI(CorrectionProposal serviceProposal) {
+    if (serviceProposal instanceof ChangeCorrectionProposal) {
+      ChangeCorrectionProposal changeProposal = (ChangeCorrectionProposal) serviceProposal;
+      org.eclipse.ltk.core.refactoring.Change ltkChange = toLTK(changeProposal.getChange());
+      return new com.google.dart.tools.ui.internal.text.correction.proposals.ChangeCorrectionProposal(
+          changeProposal.getName(),
+          ltkChange,
+          changeProposal.getKind().getRelevance(),
+          toLTK(changeProposal.getKind().getImage()));
+    }
+    if (serviceProposal instanceof CreateFileCorrectionProposal) {
+      CreateFileCorrectionProposal fileProposal = (CreateFileCorrectionProposal) serviceProposal;
+      return toUI(fileProposal);
+    }
+    if (serviceProposal instanceof SourceCorrectionProposal) {
+      SourceCorrectionProposal sourceProposal = (SourceCorrectionProposal) serviceProposal;
+      return toUI(sourceProposal);
+    }
+    return null;
   }
 
   /**

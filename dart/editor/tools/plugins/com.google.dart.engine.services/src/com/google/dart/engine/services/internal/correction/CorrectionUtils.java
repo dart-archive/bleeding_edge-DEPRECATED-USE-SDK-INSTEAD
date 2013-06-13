@@ -433,6 +433,44 @@ public class CorrectionUtils {
   }
 
   /**
+   * Returns the name of the file which corresponds to the name of the class according to the style
+   * guide. However class does not have to be in this file.
+   */
+  public static String getRecommentedFileNameForClass(String className) {
+    int len = className.length();
+    StringBuilder sb = new StringBuilder(len * 2);
+    boolean prevWasUpper = false;
+    for (int i = 0; i < len; i++) {
+      char c = className.charAt(i);
+      if (Character.isUpperCase(c)) {
+        boolean nextIsUpper = i < len - 1 && Character.isUpperCase(className.charAt(i + 1));
+        if (i == 0) {
+          // HttpServer
+          // ^
+        } else if (prevWasUpper) {
+          // HTTPServer
+          //     ^
+          if (!nextIsUpper) {
+            sb.append('_');
+          }
+        } else {
+          // HttpServer
+          //     ^
+          sb.append('_');
+        }
+        prevWasUpper = true;
+        c = Character.toLowerCase(c);
+      } else {
+        prevWasUpper = false;
+      }
+      sb.append(c);
+    }
+    sb.append(".dart");
+    String fileName = sb.toString();
+    return fileName;
+  }
+
+  /**
    * @return the resolved {@link ASTNode} which declares given {@link Element}.
    */
   @SuppressWarnings("unchecked")
