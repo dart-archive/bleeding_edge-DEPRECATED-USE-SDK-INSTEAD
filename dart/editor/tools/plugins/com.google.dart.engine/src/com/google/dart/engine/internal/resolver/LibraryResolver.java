@@ -773,6 +773,11 @@ public class LibraryResolver {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       CompilationUnit unit = library.getAST(source);
 
+      // Visit the ConstantVerifier before the ErrorVerifier since some error codes need the
+      // computed constant values.
+      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
+      unit.accept(constantVerifier);
+
       ErrorVerifier errorVerifier = new ErrorVerifier(
           errorReporter,
           library.getLibraryElement(),
@@ -783,9 +788,6 @@ public class LibraryResolver {
       // TODO(brianwilkerson) Re-enable this once there are no more false positives and suggestions
       // only show up where they are suppose to.
 //      unit.accept(new PubVerifier(analysisContext, errorReporter));
-
-      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);
-      unit.accept(constantVerifier);
     }
   }
 }

@@ -17,12 +17,12 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 
 /**
- * Instances of the class {@code ConstParameterElementImpl} implement a {@code ParameterElement} for
- * a 'const' parameter that has an initializer.
+ * Instances of the class {@code DefaultFieldFormalParameterElementImpl} implement a
+ * {@code FieldFormalParameterElementImpl} for parameters that have an initializer.
  * 
  * @coverage dart.engine.element
  */
-public class ConstParameterElementImpl extends ParameterElementImpl {
+public class DefaultFieldFormalParameterElementImpl extends FieldFormalParameterElementImpl {
   /**
    * The result of evaluating this variable's initializer.
    */
@@ -33,7 +33,7 @@ public class ConstParameterElementImpl extends ParameterElementImpl {
    * 
    * @param name the name of this element
    */
-  public ConstParameterElementImpl(Identifier name) {
+  public DefaultFieldFormalParameterElementImpl(Identifier name) {
     super(name);
   }
 
