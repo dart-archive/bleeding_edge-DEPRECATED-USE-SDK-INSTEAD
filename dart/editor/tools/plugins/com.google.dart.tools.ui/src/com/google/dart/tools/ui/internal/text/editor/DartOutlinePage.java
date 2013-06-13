@@ -82,7 +82,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     @Override
     protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       viewer.collapseAll();
-
     }
   }
 
@@ -117,7 +116,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     @Override
     protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       viewer.expandAll();
-
     }
   }
 
@@ -139,7 +137,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     @Override
     protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       valueChanged(isChecked(), true);
-
     }
 
     private void valueChanged(final boolean on, boolean store) {
@@ -206,8 +203,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     ColoredViewersManager.install(viewer);
     viewer.setContentProvider(LightNodeElements.newTreeContentProvider(editor));
     viewer.setLabelProvider(LightNodeElements.LABEL_PROVIDER);
-    // TODO(devoncarew): I'd like to use this but opening dart:html is too slow w/ this setting.
-    //viewer.setAutoExpandLevel(2);
     SWTUtil.bindJFaceResourcesFontToControl(tree);
     // install listeners added before UI creation
     {
@@ -268,11 +263,11 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
       public IStatus runInUIThread(IProgressMonitor monitor) {
         if (viewer != null) {
           viewer.setInput(input);
-          LightNodeElements.expandTreeItemsTimeBoxed(viewer, 75L * 1000000L);
+          //LightNodeElements.expandTreeItemsTimeBoxed(viewer, 75L * 1000000L);
         }
         return Status.OK_STATUS;
       }
-    }.schedule(100);
+    }.schedule();
   }
 
   @Override
