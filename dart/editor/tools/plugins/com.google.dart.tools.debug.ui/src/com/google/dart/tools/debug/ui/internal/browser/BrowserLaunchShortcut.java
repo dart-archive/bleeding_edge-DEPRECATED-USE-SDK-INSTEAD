@@ -15,10 +15,10 @@ package com.google.dart.tools.debug.ui.internal.browser;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.AbstractLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
+import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -80,7 +80,7 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
     ILaunchConfiguration config = findConfig(resource);
 
     if (config != null) {
-      DartDebugUITools.launch(config, mode);
+      LaunchUtils.launch(config, mode);
       return;
     }
 
@@ -112,7 +112,7 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
       return;
     }
 
-    DartDebugUITools.launch(config, mode);
+    LaunchUtils.launch(config, mode);
   }
 
   @Override

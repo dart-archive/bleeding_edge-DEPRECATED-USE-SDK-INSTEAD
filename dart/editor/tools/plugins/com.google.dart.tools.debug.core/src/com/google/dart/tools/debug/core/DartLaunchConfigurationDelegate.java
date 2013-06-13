@@ -43,8 +43,8 @@ public abstract class DartLaunchConfigurationDelegate extends LaunchConfiguratio
   public final void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
     InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
-    try {
 
+    try {
       instrumentation.metric("Mode", mode);
 
       doLaunch(configuration, mode, launch, monitor, instrumentation);
@@ -55,7 +55,6 @@ public abstract class DartLaunchConfigurationDelegate extends LaunchConfiguratio
     } finally {
       instrumentation.log();
     }
-
   }
 
   @Override
@@ -64,9 +63,11 @@ public abstract class DartLaunchConfigurationDelegate extends LaunchConfiguratio
     // indicate which project to save before launch
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
     IResource resource = launchConfig.getApplicationResource();
+
     if (resource != null) {
       return new IProject[] {resource.getProject()};
     }
+
     return null;
   }
 }

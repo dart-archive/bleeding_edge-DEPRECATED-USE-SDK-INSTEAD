@@ -25,6 +25,7 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
+import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.dartium.DartiumLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut;
@@ -35,7 +36,11 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.internal.ui.views.console.ProcessConsole;
@@ -47,6 +52,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -56,6 +62,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
+import org.eclipse.ui.ide.IDE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -442,6 +449,52 @@ public class LaunchUtils {
     }
 
     return false;
+  }
+
+  /**
+   * Launches the given launch configuration in the specified mode in a background job.
+   * 
+   * @param config the config to launch
+   * @param mode the launch mode
+   */
+  public static void launch(final ILaunchConfiguration config, final String mode) {
+    if (DartDebugCorePlugin.canFastLaunch(config)) {
+      // If there are any dirty editors for the given project, save them now.
+      DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+      IProject project = wrapper.getProject();
+
+      if (project != null) {
+        IDE.saveAllEditors(new IResource[] {project}, false);
+      }
+
+      Job launchJob = new Job("Launching " + config.getName()) {
+        @Override
+        protected IStatus run(IProgressMonitor monitor) {
+          try {
+            config.launch(mode, monitor, false);
+          } catch (final CoreException e) {
+            Display.getDefault().asyncExec(new Runnable() {
+              @Override
+              public void run() {
+                DebugErrorHandler.errorDialog(
+                    null,
+                    "Error Launching " + config.getName(),
+                    e.toString(),
+                    e.getStatus());
+              }
+            });
+          }
+
+          monitor.done();
+
+          return Status.OK_STATUS;
+        }
+      };
+
+      launchJob.schedule();
+    } else {
+      DebugUITools.launch(config, mode);
+    }
   }
 
   /**

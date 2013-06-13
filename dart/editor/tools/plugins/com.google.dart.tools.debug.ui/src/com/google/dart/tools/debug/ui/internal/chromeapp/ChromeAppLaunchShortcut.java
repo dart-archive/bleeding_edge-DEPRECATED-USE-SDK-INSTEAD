@@ -20,7 +20,6 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.AbstractLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
@@ -129,7 +128,7 @@ public class ChromeAppLaunchShortcut extends AbstractLaunchShortcut implements I
 
     DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
     launchWrapper.markAsLaunched();
-    DartDebugUITools.launch(config, mode);
+    LaunchUtils.launch(config, mode);
   }
 
   @Override

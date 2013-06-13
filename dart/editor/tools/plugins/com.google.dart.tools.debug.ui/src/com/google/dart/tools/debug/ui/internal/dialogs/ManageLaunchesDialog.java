@@ -16,7 +16,6 @@ package com.google.dart.tools.debug.ui.internal.dialogs;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
-import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
@@ -419,9 +418,9 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     }
 
     if (supportsDebug) {
-      DartDebugUITools.launch(selectedConfig, ILaunchManager.DEBUG_MODE);
+      LaunchUtils.launch(selectedConfig, ILaunchManager.DEBUG_MODE);
     } else {
-      DartDebugUITools.launch(selectedConfig, ILaunchManager.RUN_MODE);
+      LaunchUtils.launch(selectedConfig, ILaunchManager.RUN_MODE);
     }
 
     super.okPressed();

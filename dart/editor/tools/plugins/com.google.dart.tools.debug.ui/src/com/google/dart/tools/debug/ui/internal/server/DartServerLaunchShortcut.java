@@ -18,7 +18,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
@@ -175,7 +174,7 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
 
     ILaunchConfiguration config = findConfig(resource);
     if (config != null) {
-      DartDebugUITools.launch(config, mode);
+      LaunchUtils.launch(config, mode);
       return;
     }
 
@@ -203,7 +202,7 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
       return;
     }
 
-    DartDebugUITools.launch(config, mode);
+    LaunchUtils.launch(config, mode);
   }
 
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {

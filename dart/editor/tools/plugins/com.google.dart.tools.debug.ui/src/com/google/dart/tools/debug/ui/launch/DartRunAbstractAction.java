@@ -16,7 +16,6 @@ package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.DebugInstrumentationUtilities;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
@@ -156,7 +155,7 @@ public abstract class DartRunAbstractAction extends InstrumentedAction implement
         LaunchUtils.clearDartiumConsoles();
       }
 
-      DartDebugUITools.launch(config, mode);
+      LaunchUtils.launch(config, mode);
     } catch (CoreException e) {
       instrumentation.metric("Problem-Exception", e.getClass().getName());
       instrumentation.metric("Problem-Exception", e.toString());
