@@ -88,7 +88,7 @@ select=autofocus,disabled,form,multiple,name,required,size
 small
 source=src,type,media
 span
-string
+strong
 style=media,type,scoped
 sub
 summary
