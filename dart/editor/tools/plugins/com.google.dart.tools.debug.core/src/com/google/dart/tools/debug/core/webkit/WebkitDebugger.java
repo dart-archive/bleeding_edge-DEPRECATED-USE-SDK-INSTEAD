@@ -187,6 +187,9 @@ public class WebkitDebugger extends WebkitDomain {
 
   private int remoteObjectCount;
 
+  private WebkitLocation stepLocation;
+  private WebkitLocation currentLocation;
+
   public WebkitDebugger(WebkitConnection connection) {
     super(connection);
 
@@ -665,6 +668,10 @@ public class WebkitDebugger extends WebkitDomain {
   }
 
   public void stepOver() throws IOException {
+    // TODO(devoncarew): remove this stepping fix once the VM and Dartium have decided how exactly
+    // to do stepping
+    stepLocation = currentLocation;
+
     sendSimpleCommand("Debugger.stepOver");
   }
 
@@ -712,8 +719,32 @@ public class WebkitDebugger extends WebkitDomain {
         exception = WebkitRemoteObject.createFrom(params.getJSONObject("data"));
       }
 
-      for (DebuggerListener listener : listeners) {
-        listener.debuggerPaused(reason, frames, exception);
+      boolean restep = true;
+
+      if (exception != null || reason != PausedReasonType.other) {
+        restep = false;
+      }
+
+      WebkitLocation newLocation = frames.size() > 0 ? frames.get(0).getLocation() : null;
+
+      if (newLocation == null || !newLocation.isSameSourceLine(stepLocation)) {
+        restep = false;
+      }
+
+      currentLocation = newLocation;
+
+      if (restep) {
+        try {
+          sendSimpleCommand("Debugger.stepOver");
+        } catch (IOException e) {
+          throw new JSONException(e);
+        }
+      } else {
+        stepLocation = null;
+
+        for (DebuggerListener listener : listeners) {
+          listener.debuggerPaused(reason, frames, exception);
+        }
       }
     } else {
       DartDebugCorePlugin.logInfo("unhandled notification: " + method);

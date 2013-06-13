@@ -64,6 +64,18 @@ public class WebkitLocation {
     return scriptId;
   }
 
+  public boolean isSameSourceLine(WebkitLocation location) {
+    if (location == null) {
+      return false;
+    }
+
+    if (lineNumber != location.getLineNumber()) {
+      return false;
+    }
+
+    return scriptId.equals(location.getScriptId());
+  }
+
   public JSONObject toJSONObject() throws JSONException {
     JSONObject object = new JSONObject();
 
