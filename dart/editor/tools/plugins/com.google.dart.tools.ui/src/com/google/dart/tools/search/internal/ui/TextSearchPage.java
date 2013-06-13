@@ -15,15 +15,18 @@
 package com.google.dart.tools.search.internal.ui;
 
 import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.search.internal.ui.text.FileSearchPage;
 import com.google.dart.tools.search.internal.ui.text.FileSearchQuery;
 import com.google.dart.tools.search.internal.ui.text.FileSearchResult;
 import com.google.dart.tools.search.ui.ISearchQuery;
 import com.google.dart.tools.search.ui.text.FileTextSearchScope;
+import com.google.dart.tools.search.ui.text.Match;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -42,11 +45,24 @@ import org.eclipse.ui.progress.UIJob;
 
 public class TextSearchPage extends SearchPage {
   private static final String[] DEFAULT_FILE_EXTENSIONS = {"*"};
+
   private final SearchView searchView;
   private final String taskName;
   private final String searchText;
   private FileSearchPage fileSearchPage;
   private FileSearchResult searchResult;
+
+  private IAction refreshAction = new Action() {
+    {
+      setToolTipText("Refresh the Current Search");
+      DartPluginImages.setLocalImageDescriptors(this, "refresh.gif");
+    }
+
+    @Override
+    public void run() {
+      refresh();
+    }
+  };
 
   private IAction removeAction = new Action() {
     {
@@ -111,6 +127,7 @@ public class TextSearchPage extends SearchPage {
     toolBarManager.add(removeAction);
     toolBarManager.add(removeAllAction);
     toolBarManager.add(new Separator());
+    toolBarManager.add(refreshAction);
   }
 
   @Override
@@ -125,6 +142,10 @@ public class TextSearchPage extends SearchPage {
 
   private FileTextSearchScope createTextSearchScope() {
     return FileTextSearchScope.newWorkspaceScope(DEFAULT_FILE_EXTENSIONS, false);
+  }
+
+  private boolean isInWrongPackageFolder(IFile file) {
+    return DartCore.isInSelfLinkedPackageFolder(file) || DartCore.isInDuplicatePackageFolder(file);
   }
 
   private ISearchQuery newQuery() throws CoreException {
@@ -144,6 +165,7 @@ public class TextSearchPage extends SearchPage {
             ISearchQuery searchQuery = newQuery();
             searchQuery.run(monitor);
             searchResult = (FileSearchResult) searchQuery.getSearchResult();
+            removeWrongPackageFolders();
           } catch (Throwable e) {
             DartToolsPlugin.log(e);
             return Status.CANCEL_STATUS;
@@ -162,6 +184,28 @@ public class TextSearchPage extends SearchPage {
       }.schedule();
     } catch (Throwable e) {
       ExceptionHandler.handle(e, "Search", "Exception during search.");
+    }
+  }
+
+  /**
+   * Removes matches corresponding to the resources located in the "packages" sub-folder that
+   * references the enclosing package. There are no reason to show them - they are always duplicates
+   * and we don't want to edit "packages" resources anyway.
+   */
+  private void removeWrongPackageFolders() {
+    Object[] elements = searchResult.getElements();
+    for (Object element : elements) {
+      // prepare file
+      IFile file = searchResult.getFile(element);
+      if (file == null) {
+        continue;
+      }
+      // remove if in wrong folder
+      if (isInWrongPackageFolder(file)) {
+        Match[] matches = searchResult.getMatches(element);
+        searchResult.removeMatches(matches);
+        continue;
+      }
     }
   }
 }

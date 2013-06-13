@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
-import com.google.dart.tools.search.ui.actions.TextSearchAction;
+import com.google.dart.tools.search.internal.ui.TextSearchAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;

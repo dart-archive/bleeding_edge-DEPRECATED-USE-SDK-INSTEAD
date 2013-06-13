@@ -822,6 +822,65 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * @return {@code true} if the given resource is located in the top-level "packages" folder of its
+   *         enclosing package.
+   */
+  public static boolean isInDuplicatePackageFolder(IResource resource) {
+    if (resource == null) {
+      return false;
+    }
+    // prepare "pub" folder
+    PubFolder pubFolder = DartCore.getProjectManager().getPubFolder(resource);
+    if (pubFolder == null) {
+      return false;
+    }
+    IPath pubPath = pubFolder.getResource().getFullPath();
+    // check if resource is in "packages"
+    IPath resourcePath = resource.getFullPath();
+    String[] segments = resourcePath.segments();
+    for (int i = 1; i < segments.length - 1; i++) {
+      String segment = segments[i];
+      if (segment.equals("packages")) {
+        return !resourcePath.uptoSegment(i).equals(pubPath);
+      }
+    }
+    // not in "packages"
+    return false;
+  }
+
+  /**
+   * @return {@code true} if the given resource is located in the "packages" sub-folder that
+   *         corresponds to the enclosing package.
+   */
+  public static boolean isInSelfLinkedPackageFolder(IResource resource) {
+    if (resource == null) {
+      return false;
+    }
+    try {
+      // prepare "pub" folder
+      PubFolder pubFolder = DartCore.getProjectManager().getPubFolder(resource);
+      if (pubFolder == null) {
+        return false;
+      }
+      // the name of the enclosing package
+      String packageName = pubFolder.getPubspec().getName();
+      // check if resource is in "packages" and references the enclosing package
+      String[] segments = resource.getFullPath().segments();
+      for (int i = 0; i < segments.length - 1; i++) {
+        String segment = segments[i];
+        if (segment.equals("packages") && segments[i + 1].equals(packageName)) {
+          return true;
+        }
+      }
+    } catch (Throwable e) {
+      // pubFolder.getPubspec() may fail
+      return false;
+    }
+    // not a self-reference
+    return false;
+  }
+
+  /**
    * Return <code>true</code> if the given file name's extension is an HTML-like extension.
    * 
    * @param fileName the file name being tested
