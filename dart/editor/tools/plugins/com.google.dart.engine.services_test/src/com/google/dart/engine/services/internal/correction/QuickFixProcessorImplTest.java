@@ -169,6 +169,159 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         resultProposal.getLinkedPositions());
   }
 
+  public void test_createConstructorSuperExplicit() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A(bool p1, int p2, double p3, String p4, {p5});",
+        "}",
+        "class B extends A {",
+        "  B() {}",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_ADD_SUPER_CONSTRUCTOR_INVOCATION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A(bool p1, int p2, double p3, String p4, {p5});",
+            "}",
+            "class B extends A {",
+            "  B() : super(false, 0, 0.0, '') {}",
+            "}"));
+  }
+
+  public void test_createConstructorSuperExplicit_hasInitializers() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A(int p);",
+        "}",
+        "class B extends A {",
+        "  int field;",
+        "  B() : field = 42 {}",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_ADD_SUPER_CONSTRUCTOR_INVOCATION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A(int p);",
+            "}",
+            "class B extends A {",
+            "  int field;",
+            "  B() : field = 42, super(0) {}",
+            "}"));
+  }
+
+  public void test_createConstructorSuperExplicit_named() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.named(int p);",
+        "}",
+        "class B extends A {",
+        "  B() {}",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_ADD_SUPER_CONSTRUCTOR_INVOCATION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A.named(int p);",
+            "}",
+            "class B extends A {",
+            "  B() : super.named(0) {}",
+            "}"));
+  }
+
+  public void test_createConstructorSuperExplicit_named_private() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A._named(int p);",
+        "}",
+        "class B extends A {",
+        "  B() {}",
+        "}");
+    assertNoFix(CorrectionKind.QF_ADD_SUPER_CONSTRUCTOR_INVOCATION);
+  }
+
+  public void test_createConstructorSuperImplicit() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A(p1, int p2, List<String> p3, [int p4]);",
+        "}",
+        "class B extends A {",
+        "  int existingMember;",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A(p1, int p2, List<String> p3, [int p4]);",
+            "}",
+            "class B extends A {",
+            "  B(p1, int p2, List<String> p3) : super(p1, p2, p3);",
+            "",
+            "  int existingMember;",
+            "}"));
+  }
+
+  public void test_createConstructorSuperImplicit_fieldInitializer() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int _field;",
+        "  A(this._field);",
+        "}",
+        "class B extends A {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  int _field;",
+            "  A(this._field);",
+            "}",
+            "class B extends A {",
+            "  B(int field) : super(field);",
+            "}"));
+  }
+
+  public void test_createConstructorSuperImplicit_named() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.named(p1, int p2);",
+        "}",
+        "class B extends A {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A.named(p1, int p2);",
+            "}",
+            "class B extends A {",
+            "  B(p1, int p2) : super.named(p1, p2);",
+            "}"));
+  }
+
+  public void test_createConstructorSuperImplicit_private() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A._named(int p);",
+        "}",
+        "class B extends A {",
+        "}");
+    assertNoFix(CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER);
+  }
+
   public void test_createMissingOverrides_getter() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",

@@ -177,6 +177,27 @@ public class CorrectionUtils {
     return children;
   }
 
+  // TODO(scheglov) document and test
+  public static String getDefaultValueCode(Type type) {
+    if (type != null) {
+      String typeName = type.getDisplayName();
+      if (typeName.equals("bool")) {
+        return "false";
+      }
+      if (typeName.equals("int")) {
+        return "0";
+      }
+      if (typeName.equals("double")) {
+        return "0.0";
+      }
+      if (typeName.equals("String")) {
+        return "''";
+      }
+    }
+    // no better guess
+    return "null";
+  }
+
   /**
    * @return the number of characters this {@link Edit} will move offsets after its range.
    */

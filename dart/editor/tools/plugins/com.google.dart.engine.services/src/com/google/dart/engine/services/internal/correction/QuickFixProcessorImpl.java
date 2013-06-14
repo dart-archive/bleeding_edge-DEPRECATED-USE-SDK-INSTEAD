@@ -24,6 +24,8 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
@@ -41,6 +43,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
@@ -366,6 +369,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
     try {
       ErrorCode errorCode = problem.getErrorCode();
+      if (errorCode == CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
+        addFix_createConstructorSuperExplicit();
+      }
       if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
         addFix_createPart();
       }
@@ -374,6 +380,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
       if (errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS) {
         addFix_removeParameters_inGetterDeclaration();
+      }
+      if (errorCode == StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT) {
+        addFix_createConstructorSuperExplicit();
+      }
+      if (errorCode == StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT) {
+        addFix_createConstructorSuperImplicit();
       }
       if (errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
           || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO
@@ -429,9 +441,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   public boolean hasFix(AnalysisError problem) {
     ErrorCode errorCode = problem.getErrorCode();
 //    System.out.println(errorCode.getClass() + " " + errorCode);
-    return errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST
+    return errorCode == CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
+        || errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST
         || errorCode == ParserErrorCode.EXPECTED_TOKEN
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
+        || errorCode == StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
+        || errorCode == StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
         || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
         || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO
         || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE
@@ -487,6 +502,145 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
+  /**
+   * @see StaticWarningCode#NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
+   */
+  private void addFix_createConstructorSuperExplicit() {
+    ConstructorDeclaration targetConstructor = (ConstructorDeclaration) node.getParent();
+    ClassDeclaration targetClassNode = (ClassDeclaration) targetConstructor.getParent();
+    ClassElement targetClassElement = targetClassNode.getElement();
+    ClassElement superClassElement = targetClassElement.getSupertype().getElement();
+    // add proposals for all super constructors
+    ConstructorElement[] superConstructors = superClassElement.getConstructors();
+    for (ConstructorElement superConstructor : superConstructors) {
+      String constructorName = superConstructor.getName();
+      // skip private
+      if (SimpleIdentifier.isPrivateName(constructorName)) {
+        continue;
+      }
+      // prepare SourceBuilder
+      SourceBuilder sb;
+      {
+        List<ConstructorInitializer> initializers = targetConstructor.getInitializers();
+        if (initializers.isEmpty()) {
+          int insertOffset = targetConstructor.getParameters().getEnd();
+          sb = new SourceBuilder(insertOffset);
+          sb.append(" : ");
+        } else {
+          ConstructorInitializer lastInitializer = initializers.get(initializers.size() - 1);
+          int insertOffset = lastInitializer.getEnd();
+          sb = new SourceBuilder(insertOffset);
+          sb.append(", ");
+        }
+      }
+      // add super constructor name
+      sb.append("super");
+      if (!StringUtils.isEmpty(constructorName)) {
+        sb.append(".");
+        sb.append(constructorName);
+      }
+      // add arguments
+      sb.append("(");
+      boolean firstParameter = true;
+      for (ParameterElement parameter : superConstructor.getParameters()) {
+        // skip non-required parameters
+        if (parameter.getParameterKind() != ParameterKind.REQUIRED) {
+          break;
+        }
+        // comma
+        if (firstParameter) {
+          firstParameter = false;
+        } else {
+          sb.append(", ");
+        }
+        // default value
+        Type parameterType = parameter.getType();
+        sb.startPosition(parameter.getName());
+        sb.append(CorrectionUtils.getDefaultValueCode(parameterType));
+        sb.endPosition();
+      }
+      sb.append(")");
+      // insert proposal
+      addLinkedPositions(sb);
+      addInsertEdit(sb);
+      // add proposal
+      String proposalName = getConstructorProposalName(superConstructor);
+      addUnitCorrectionProposal(CorrectionKind.QF_ADD_SUPER_CONSTRUCTOR_INVOCATION, proposalName);
+    }
+  }
+
+  /**
+   * @see StaticWarningCode#NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+   */
+  private void addFix_createConstructorSuperImplicit() {
+    ClassDeclaration targetClassNode = (ClassDeclaration) node.getParent();
+    ClassElement targetClassElement = targetClassNode.getElement();
+    ClassElement superClassElement = targetClassElement.getSupertype().getElement();
+    String targetClassName = targetClassElement.getName();
+    // add proposals for all super constructors
+    ConstructorElement[] superConstructors = superClassElement.getConstructors();
+    for (ConstructorElement superConstructor : superConstructors) {
+      String constructorName = superConstructor.getName();
+      // skip private
+      if (SimpleIdentifier.isPrivateName(constructorName)) {
+        continue;
+      }
+      // prepare parameters and arguments
+      StringBuilder parametersBuffer = new StringBuilder();
+      StringBuilder argumentsBuffer = new StringBuilder();
+      boolean firstParameter = true;
+      for (ParameterElement parameter : superConstructor.getParameters()) {
+        // skip non-required parameters
+        if (parameter.getParameterKind() != ParameterKind.REQUIRED) {
+          break;
+        }
+        // comma
+        if (firstParameter) {
+          firstParameter = false;
+        } else {
+          parametersBuffer.append(", ");
+          argumentsBuffer.append(", ");
+        }
+        // type
+        Type parameterType = parameter.getType();
+        appendType(parametersBuffer, parameterType);
+        // name
+        String parameterName = parameter.getDisplayName();
+        if (parameterName.length() > 1 && parameterName.startsWith("_")) {
+          parameterName = parameterName.substring(1);
+        }
+        parametersBuffer.append(parameterName);
+        argumentsBuffer.append(parameterName);
+      }
+      // add proposal
+      StringBuilder sb = new StringBuilder();
+      {
+        String eol = utils.getEndOfLine();
+        String indent = utils.getIndent(1);
+        sb.append(eol);
+        sb.append(indent);
+        sb.append(targetClassName);
+        sb.append("(");
+        sb.append(parametersBuffer);
+        sb.append(") : super");
+        if (!constructorName.isEmpty()) {
+          sb.append(".");
+          sb.append(constructorName);
+        }
+        sb.append("(");
+        sb.append(argumentsBuffer);
+        sb.append(");");
+        if (!targetClassNode.getMembers().isEmpty()) {
+          sb.append(eol);
+        }
+      }
+      addInsertEdit(targetClassNode.getLeftBracket().getEnd(), sb.toString());
+      // add proposal
+      String proposalName = getConstructorProposalName(superConstructor);
+      addUnitCorrectionProposal(CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER, proposalName);
+    }
+  }
+
   private void addFix_createMissingOverrides(ExecutableElement[] missingOverrides) throws Exception {
     // sort by name
     Arrays.sort(missingOverrides, new Comparator<Element>() {
@@ -504,14 +658,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     addUnitCorrectionProposal(CorrectionKind.QF_CREATE_MISSING_OVERRIDES, missingOverrides.length);
   }
 
-  private void addFix_createMissingOverrides_appendType(StringBuilder sb, Type type) {
-    if (type != null && !type.isDynamic()) {
-      String typeSource = utils.getTypeSource(type);
-      sb.append(typeSource);
-      sb.append(" ");
-    }
-  }
-
   private void addFix_createMissingOverrides_single(ClassDeclaration targetClass,
       ExecutableElement missingOverride) throws Exception {
     // prepare environment
@@ -524,7 +670,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     // return type
     sb.append(eol);
     sb.append(prefix);
-    addFix_createMissingOverrides_appendType(sb, missingOverride.getType().getReturnType());
+    appendType(sb, missingOverride.getType().getReturnType());
     // may be property
     ElementKind elementKind = missingOverride.getKind();
     boolean isGetter = elementKind == ElementKind.GETTER;
@@ -965,35 +1111,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
-  // TODO(scheglov) waiting for https://code.google.com/p/dart/issues/detail?id=10053
-//  private void addFix_useEffectiveIntegerDivision(IProblemLocation location) throws Exception {
-//    for (DartNode n = node; n != null; n = n.getParent()) {
-//      if (n instanceof DartMethodInvocation
-//          && n.getSourceInfo().getOffset() == location.getOffset()
-//          && n.getSourceInfo().getLength() == location.getLength()) {
-//        DartMethodInvocation invocation = (DartMethodInvocation) n;
-//        DartExpression target = invocation.getTarget();
-//        while (target instanceof DartParenthesizedExpression) {
-//          target = ((DartParenthesizedExpression) target).getExpression();
-//        }
-//        // replace "/" with "~/"
-//        DartBinaryExpression binary = (DartBinaryExpression) target;
-//        addReplaceEdit(
-//            SourceRangeFactory.forStartLength(binary.getOperatorOffset(), "/".length()),
-//            "~/");
-//        // remove everything before and after
-//        addRemoveEdit(SourceRangeFactory.forStartStart(invocation, binary.getArg1()));
-//        addRemoveEdit(SourceRangeFactory.forEndEnd(binary.getArg2(), invocation));
-//        // add proposal
-//        addUnitCorrectionProposal(
-//            CorrectionMessages.QuickFixProcessor_useEffectiveIntegerDivision,
-//            DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
-//        // done
-//        break;
-//      }
-//    }
-//  }
-
   /**
    * @return the possible return {@link Type}, may be <code>null</code> if can not be identified.
    */
@@ -1046,8 +1163,41 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
+  // TODO(scheglov) waiting for https://code.google.com/p/dart/issues/detail?id=10053
+//  private void addFix_useEffectiveIntegerDivision(IProblemLocation location) throws Exception {
+//    for (DartNode n = node; n != null; n = n.getParent()) {
+//      if (n instanceof DartMethodInvocation
+//          && n.getSourceInfo().getOffset() == location.getOffset()
+//          && n.getSourceInfo().getLength() == location.getLength()) {
+//        DartMethodInvocation invocation = (DartMethodInvocation) n;
+//        DartExpression target = invocation.getTarget();
+//        while (target instanceof DartParenthesizedExpression) {
+//          target = ((DartParenthesizedExpression) target).getExpression();
+//        }
+//        // replace "/" with "~/"
+//        DartBinaryExpression binary = (DartBinaryExpression) target;
+//        addReplaceEdit(
+//            SourceRangeFactory.forStartLength(binary.getOperatorOffset(), "/".length()),
+//            "~/");
+//        // remove everything before and after
+//        addRemoveEdit(SourceRangeFactory.forStartStart(invocation, binary.getArg1()));
+//        addRemoveEdit(SourceRangeFactory.forEndEnd(binary.getArg2(), invocation));
+//        // add proposal
+//        addUnitCorrectionProposal(
+//            CorrectionMessages.QuickFixProcessor_useEffectiveIntegerDivision,
+//            DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+//        // done
+//        break;
+//      }
+//    }
+//  }
+
   private void addInsertEdit(int offset, String text) {
     textEdits.add(createInsertEdit(offset, text));
+  }
+
+  private void addInsertEdit(SourceBuilder builder) {
+    addInsertEdit(builder.getOffset(), builder.toString());
   }
 
   /**
@@ -1060,6 +1210,27 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       position = position.getTranslated(delta);
     }
     addLinkedPosition(group, position);
+  }
+
+  /**
+   * Adds single linked position to the group.
+   */
+  private void addLinkedPosition(String group, SourceRange position) {
+    List<SourceRange> positions = linkedPositions.get(group);
+    if (positions == null) {
+      positions = Lists.newArrayList();
+      linkedPositions.put(group, positions);
+    }
+    positions.add(position);
+  }
+
+  private void addLinkedPositionProposal(String group, LinkedPositionProposal proposal) {
+    List<LinkedPositionProposal> nodeProposals = linkedPositionProposals.get(group);
+    if (nodeProposals == null) {
+      nodeProposals = Lists.newArrayList();
+      linkedPositionProposals.put(group, nodeProposals);
+    }
+    nodeProposals.add(proposal);
   }
 
   // https://code.google.com/p/dart/issues/detail?id=10058
@@ -1101,27 +1272,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 //        Messages.format(CorrectionMessages.QuickFixProcessor_useStaticAccess_method, className),
 //        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
 //  }
-
-  /**
-   * Adds single linked position to the group.
-   */
-  private void addLinkedPosition(String group, SourceRange position) {
-    List<SourceRange> positions = linkedPositions.get(group);
-    if (positions == null) {
-      positions = Lists.newArrayList();
-      linkedPositions.put(group, positions);
-    }
-    positions.add(position);
-  }
-
-  private void addLinkedPositionProposal(String group, LinkedPositionProposal proposal) {
-    List<LinkedPositionProposal> nodeProposals = linkedPositionProposals.get(group);
-    if (nodeProposals == null) {
-      nodeProposals = Lists.newArrayList();
-      linkedPositionProposals.put(group, nodeProposals);
-    }
-    nodeProposals.add(proposal);
-  }
 
   /**
    * Adds positions from the given {@link SourceBuilder} to the {@link #linkedPositions}.
@@ -1186,6 +1336,11 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 
   private void appendParameters(StringBuilder sb, ParameterElement[] parameters) throws Exception {
     Map<ParameterElement, String> defaultValueMap = getDefaultValueMap(parameters);
+    appendParameters(sb, parameters, defaultValueMap);
+  }
+
+  private void appendParameters(StringBuilder sb, ParameterElement[] parameters,
+      Map<ParameterElement, String> defaultValueMap) {
     sb.append("(");
     boolean firstParameter = true;
     boolean sawNamed = false;
@@ -1211,18 +1366,20 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         }
       }
       // parameter type
-      addFix_createMissingOverrides_appendType(sb, parameter.getType());
+      appendType(sb, parameter.getType());
       // parameter name
       sb.append(parameter.getName());
       // default value
-      String defaultSource = defaultValueMap.get(parameter);
-      if (defaultSource != null) {
-        if (sawPositional) {
-          sb.append(" = ");
-        } else {
-          sb.append(": ");
+      if (defaultValueMap != null) {
+        String defaultSource = defaultValueMap.get(parameter);
+        if (defaultSource != null) {
+          if (sawPositional) {
+            sb.append(" = ");
+          } else {
+            sb.append(": ");
+          }
+          sb.append(defaultSource);
         }
-        sb.append(defaultSource);
       }
     }
     // close parameters
@@ -1235,8 +1392,34 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     sb.append(")");
   }
 
+  private void appendType(StringBuilder sb, Type type) {
+    if (type != null && !type.isDynamic()) {
+      String typeSource = utils.getTypeSource(type);
+      sb.append(typeSource);
+      sb.append(" ");
+    }
+  }
+
   private Edit createInsertEdit(int offset, String text) {
     return new Edit(offset, 0, text);
+  }
+
+  /**
+   * @return the string to display as the name of the given constructor in a proposal name.
+   */
+  private String getConstructorProposalName(ConstructorElement constructor) {
+    StringBuilder proposalNameBuffer = new StringBuilder();
+    proposalNameBuffer.append("super");
+    // may be named
+    String constructorName = constructor.getDisplayName();
+    if (!constructorName.isEmpty()) {
+      proposalNameBuffer.append(".");
+      proposalNameBuffer.append(constructorName);
+    }
+    // parameters
+    appendParameters(proposalNameBuffer, constructor.getParameters(), null);
+    // done
+    return proposalNameBuffer.toString();
   }
 
   private Map<ParameterElement, String> getDefaultValueMap(ParameterElement[] parameters)
