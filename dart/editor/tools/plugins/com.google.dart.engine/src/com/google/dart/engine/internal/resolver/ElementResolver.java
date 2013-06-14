@@ -419,7 +419,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 //            simpleIdentifier,
 //            simpleIdentifier.getName());
       } else {
-        if (!element.getLibrary().equals(resolver.getDefiningLibrary())) {
+        if (element.getLibrary() == null
+            || !element.getLibrary().equals(resolver.getDefiningLibrary())) {
           // TODO(brianwilkerson) Report this error?
         }
         recordResolution(simpleIdentifier, element);
