@@ -11,7 +11,7 @@
         '../../runtime/dart-runtime.gyp:dart',
       ],
       'include_dirs': [
-        '../../runtime/include',
+        '../../runtime',
       ],
       'sources': [
         'sample_extension.cc',
