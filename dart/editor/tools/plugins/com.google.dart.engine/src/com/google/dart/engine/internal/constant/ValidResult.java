@@ -139,6 +139,11 @@ public class ValidResult extends EvaluationResultImpl {
     return rightOperand.equalEqualValid(node, this);
   }
 
+  @Override
+  public boolean equalValues(EvaluationResultImpl result) {
+    return equalEqual(null, result) == RESULT_TRUE;
+  }
+
   public Object getValue() {
     return value;
   }

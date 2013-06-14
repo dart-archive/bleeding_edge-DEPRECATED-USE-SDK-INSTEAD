@@ -302,10 +302,8 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
           EvaluationResultImpl result = validate(
               defaultValue,
               CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
-          if (defaultParameter.isConst()) {
-            VariableElementImpl element = (VariableElementImpl) parameter.getElement();
-            element.setEvaluationResult(result);
-          }
+          VariableElementImpl element = (VariableElementImpl) parameter.getElement();
+          element.setEvaluationResult(result);
         }
       }
     }

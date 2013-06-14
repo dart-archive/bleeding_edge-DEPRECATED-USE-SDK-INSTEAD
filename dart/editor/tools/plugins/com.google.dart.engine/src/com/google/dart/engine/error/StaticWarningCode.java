@@ -346,7 +346,17 @@ public enum StaticWarningCode implements ErrorCode {
    * a formal parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value
    * for <i>p</i>.
    */
-  INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES(""),
+  INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED(
+      "Parameters cannot override default values, this method overrides '%s.%s' where '%s' has a different value"),
+
+  /**
+   * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
+   * instance member <i>m2</i>, the signature of <i>m2</i> explicitly specifies a default value for
+   * a formal parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value
+   * for <i>p</i>.
+   */
+  INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL(
+      "Parameters cannot override default values, this method overrides '%s.%s' where this positional parameter has a different value"),
 
   /**
    * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a setter <i>m2</i> and the

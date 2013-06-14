@@ -43,6 +43,8 @@ public abstract class EvaluationResultImpl {
 
   public abstract EvaluationResultImpl equalEqual(Expression node, EvaluationResultImpl rightOperand);
 
+  public abstract boolean equalValues(EvaluationResultImpl result);
+
   public abstract EvaluationResultImpl greaterThan(BinaryExpression node,
       EvaluationResultImpl rightOperand);
 

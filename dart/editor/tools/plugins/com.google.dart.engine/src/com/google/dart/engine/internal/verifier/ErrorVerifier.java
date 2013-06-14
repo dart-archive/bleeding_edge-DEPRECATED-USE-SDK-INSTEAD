@@ -106,8 +106,11 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.ErrorProperty;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
+import com.google.dart.engine.internal.constant.EvaluationResultImpl;
+import com.google.dart.engine.internal.constant.ValidResult;
 import com.google.dart.engine.internal.element.DynamicElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
+import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.member.ConstructorMember;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
@@ -961,10 +964,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see StaticWarningCode#INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE
    * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE
    * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE
+   * @see StaticWarningCode#INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES
    */
   private boolean checkForAllInvalidOverrideErrorCodes(MethodDeclaration node) {
-    // TODO (jwren) Missing check for INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES, we need the
-    // constant values cached to do this verification.
     if (enclosingClass == null || node.isStatic() || node.getBody() instanceof NativeFunctionBody) {
       return false;
     }
@@ -1141,7 +1143,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       parameterIndex++;
     }
 
-    // SWC.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE
+    // SWC.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE & SWC.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES
     Iterator<Entry<String, Type>> overriddenNamedPTIterator = overriddenNamedPT.entrySet().iterator();
     while (overriddenNamedPTIterator.hasNext()) {
       Entry<String, Type> overriddenNamedPTEntry = overriddenNamedPTIterator.next();
@@ -1177,7 +1179,89 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         }
       }
     }
-    return false;
+    // SWC.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES
+    //
+    // Create three arrays: an array of the optional parameter ASTs (FormalParameters), an array of
+    // the optional parameters elements from our method, and finally an array of the optional
+    // parameter elements from the method we are overriding.
+    //
+    boolean foundError = false;
+    ArrayList<FormalParameter> formalParameters = new ArrayList<FormalParameter>();
+    ArrayList<ParameterElementImpl> parameterElts = new ArrayList<ParameterElementImpl>();
+    ArrayList<ParameterElementImpl> overriddenParameterElts = new ArrayList<ParameterElementImpl>();
+    ParameterElement[] overriddenPEs = overriddenExecutable.getParameters();
+    for (FormalParameter formalParameter : parameterNodeList) {
+      if (formalParameter.getKind().isOptional()) {
+        formalParameters.add(formalParameter);
+        parameterElts.add((ParameterElementImpl) formalParameter.getElement());
+      }
+    }
+    for (ParameterElement parameterElt : overriddenPEs) {
+      if (parameterElt.getParameterKind().isOptional()) {
+        overriddenParameterElts.add((ParameterElementImpl) parameterElt);
+      }
+    }
+    //
+    // Next compare the list of optional parameter elements to the list of overridden optional
+    // parameter elements.
+    //
+    if (parameterElts.size() > 0) {
+      if (parameterElts.get(0).getParameterKind() == ParameterKind.NAMED) {
+        // Named parameters, consider the names when matching the parameterElts to the overriddenParameterElts
+        for (int i = 0; i < parameterElts.size(); i++) {
+          ParameterElementImpl parameterElt = parameterElts.get(i);
+          EvaluationResultImpl result = parameterElt.getEvaluationResult();
+          // TODO (jwren) Ignore Object types, see Dart bug 11287
+          if (result == null || result == ValidResult.RESULT_OBJECT) {
+            continue;
+          }
+          String parameterName = parameterElt.getName();
+          for (int j = 0; j < overriddenParameterElts.size(); j++) {
+            ParameterElementImpl overriddenParameterElt = overriddenParameterElts.get(j);
+            String overriddenParameterName = overriddenParameterElt.getName();
+            if (parameterName != null && parameterName.equals(overriddenParameterName)) {
+              EvaluationResultImpl overriddenResult = overriddenParameterElt.getEvaluationResult();
+              if (overriddenResult == null || result == ValidResult.RESULT_OBJECT) {
+                break;
+              }
+              if (!result.equalValues(overriddenResult)) {
+                errorReporter.reportError(
+                    StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
+                    formalParameters.get(i),
+                    overriddenExecutable.getEnclosingElement().getDisplayName(),
+                    overriddenExecutable.getDisplayName(),
+                    parameterName);
+                foundError = true;
+              }
+            }
+          }
+        }
+      } else {
+        // Positional parameters, consider the positions when matching the parameterElts to the overriddenParameterElts
+        for (int i = 0; i < parameterElts.size() && i < overriddenParameterElts.size(); i++) {
+          ParameterElementImpl parameterElt = parameterElts.get(i);
+          EvaluationResultImpl result = parameterElt.getEvaluationResult();
+          // TODO (jwren) Ignore Object types, see Dart bug 11287
+          if (result == null || result == ValidResult.RESULT_OBJECT) {
+            continue;
+          }
+          ParameterElementImpl overriddenParameterElt = overriddenParameterElts.get(i);
+          EvaluationResultImpl overriddenResult = overriddenParameterElt.getEvaluationResult();
+          if (overriddenResult == null || result == ValidResult.RESULT_OBJECT) {
+            continue;
+          }
+          if (!result.equalValues(overriddenResult)) {
+            errorReporter.reportError(
+                StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+                formalParameters.get(i),
+                overriddenExecutable.getEnclosingElement().getDisplayName(),
+                overriddenExecutable.getDisplayName());
+            foundError = true;
+          }
+        }
+      }
+    }
+    return foundError;
   }
 
   /**

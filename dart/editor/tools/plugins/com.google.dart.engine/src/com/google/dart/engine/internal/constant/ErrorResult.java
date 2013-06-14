@@ -135,6 +135,11 @@ public class ErrorResult extends EvaluationResultImpl {
     return rightOperand.equalEqualError(node, this);
   }
 
+  @Override
+  public boolean equalValues(EvaluationResultImpl result) {
+    return false;
+  }
+
   public ArrayList<ErrorData> getErrorData() {
     return errors;
   }

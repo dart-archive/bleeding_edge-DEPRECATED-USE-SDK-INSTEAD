@@ -118,19 +118,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invalidOverrideDifferentDefaultValues() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m([int p = 0]) {}",
-        "}",
-        "class B extends A {",
-        "  m([int p = 1]) {}",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES);
-    verify(source);
-  }
-
   public void fail_invocationOfNonFunction() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -1138,6 +1125,32 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE);
+    verify(source);
+  }
+
+  public void test_invalidOverrideDifferentDefaultValues_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m({int p : 0}) {}",
+        "}",
+        "class B extends A {",
+        "  m({int p : 1}) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED);
+    verify(source);
+  }
+
+  public void test_invalidOverrideDifferentDefaultValues_positional() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m([int p = 0]) {}",
+        "}",
+        "class B extends A {",
+        "  m([int p = 1]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL);
     verify(source);
   }
 

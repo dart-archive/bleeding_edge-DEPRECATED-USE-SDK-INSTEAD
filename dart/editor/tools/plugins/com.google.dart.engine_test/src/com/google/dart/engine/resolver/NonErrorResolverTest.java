@@ -994,6 +994,58 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidMethodOverrideNamedParamType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m({int a}) {}",
+        "}",
+        "class B implements A {",
+        "  m({int a, int b}) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidOverrideDifferentDefaultValues_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m({int p : 0}) {}",
+        "}",
+        "class B extends A {",
+        "  m({int p : 0}) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidOverrideDifferentDefaultValues_positional() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m([int p = 0]) {}",
+        "}",
+        "class B extends A {",
+        "  m([int p = 0]) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidOverrideDifferentDefaultValues_positional_changedOrder() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m([int a = 0, String b = '0']) {}",
+        "}",
+        "class B extends A {",
+        "  m([int b = 0, String a = '0']) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invalidOverrideNamed_unorderedNamedParameter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
