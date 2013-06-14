@@ -387,11 +387,17 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (errorCode == StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT) {
         addFix_createConstructorSuperImplicit();
       }
+      if (errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER) {
+        addFix_makeEnclosingClassAbstract();
+      }
       if (errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
           || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO
           || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE
           || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR
           || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS) {
+        // make class abstract
+        addFix_makeEnclosingClassAbstract();
+        // implement methods
         AnalysisErrorWithProperties errorWithProperties = (AnalysisErrorWithProperties) problem;
         Object property = errorWithProperties.getProperty(ErrorProperty.UNIMPLEMENTED_METHODS);
         ExecutableElement[] missingOverrides = (ExecutableElement[]) property;
@@ -447,6 +453,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
         || errorCode == StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
         || errorCode == StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+        || errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
         || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
         || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO
         || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE
@@ -651,15 +658,17 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     });
     // add elements
     ClassDeclaration targetClass = (ClassDeclaration) node.getParent();
+    boolean isFirst = true;
     for (ExecutableElement missingOverride : missingOverrides) {
-      addFix_createMissingOverrides_single(targetClass, missingOverride);
+      addFix_createMissingOverrides_single(targetClass, missingOverride, isFirst);
+      isFirst = false;
     }
     // add proposal
     addUnitCorrectionProposal(CorrectionKind.QF_CREATE_MISSING_OVERRIDES, missingOverrides.length);
   }
 
   private void addFix_createMissingOverrides_single(ClassDeclaration targetClass,
-      ExecutableElement missingOverride) throws Exception {
+      ExecutableElement missingOverride, boolean isFirst) throws Exception {
     // prepare environment
     String eol = utils.getEndOfLine();
     String prefix = utils.getIndent(1);
@@ -667,8 +676,11 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     int insertOffset = targetClass.getEnd() - 1;
     // prepare source
     StringBuilder sb = new StringBuilder();
+    // may be empty line
+    if (!isFirst || !targetClass.getMembers().isEmpty()) {
+      sb.append(eol);
+    }
     // return type
-    sb.append(eol);
     sb.append(prefix);
     appendType(sb, missingOverride.getType().getReturnType());
     // may be property
@@ -906,6 +918,13 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       addInsertEdit(insertOffset, ";");
       addUnitCorrectionProposal(CorrectionKind.QF_INSERT_SEMICOLON);
     }
+  }
+
+  private void addFix_makeEnclosingClassAbstract() {
+    ClassDeclaration enclosingClass = node.getAncestor(ClassDeclaration.class);
+    String className = enclosingClass.getName().getName();
+    addInsertEdit(enclosingClass.getClassKeyword().getOffset(), "abstract ");
+    addUnitCorrectionProposal(CorrectionKind.QF_MAKE_CLASS_ABSTRACT, className);
   }
 
   private void addFix_removeParameters_inGetterDeclaration() throws Exception {

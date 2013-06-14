@@ -342,7 +342,6 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "}",
             "",
             "class B extends A {",
-            "",
             "  get g1 => null; // TODO implement this getter",
             "",
             "  int get g2 => null; // TODO implement this getter",
@@ -377,7 +376,6 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "}",
             "",
             "class B extends A {",
-            "",
             "  m1() {",
             "    // TODO implement this method",
             "  }",
@@ -426,7 +424,6 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "}",
             "",
             "class B extends A {",
-            "",
             "  set s1(x) {",
             "    // TODO implement this setter",
             "  }",
@@ -665,6 +662,40 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  Future f = null;",
             "}",
             ""));
+  }
+
+  public void test_makeEnclosingClassAbstract_declaresAbstractMethod() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  m();",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_MAKE_CLASS_ABSTRACT,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "abstract class A {",
+            "  m();",
+            "}"));
+  }
+
+  public void test_makeEnclosingClassAbstract_inheritsAbstractMethod() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  m();",
+        "}",
+        "class B extends A {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_MAKE_CLASS_ABSTRACT,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "abstract class A {",
+            "  m();",
+            "}",
+            "abstract class B extends A {",
+            "}"));
   }
 
   public void test_removeParentheses_inGetterDeclaration() throws Exception {
