@@ -338,7 +338,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       }
       LinkedModeModel existingModel = LinkedModeModel.getModel(document, offset);
       if (existingModel != null && existingModel.anyPositionContains(offset)) {
-        if (existingModel.getClass().getSuperclass().isAssignableFrom(LinkedModeModel.class)) {
+        if (LinkedModeModel.class.isAssignableFrom(existingModel.getClass().getSuperclass())) {
           // Adding a bracket matcher while completion proposal editing is active causes problems
           return;
         }
