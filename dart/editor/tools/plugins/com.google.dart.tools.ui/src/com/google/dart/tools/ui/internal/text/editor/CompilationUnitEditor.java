@@ -71,6 +71,7 @@ import org.eclipse.jface.text.IDocumentExtension;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IPositionUpdater;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.IRewriteTarget;
 import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.ITextViewerExtension;
@@ -109,6 +110,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.text.edits.InsertEdit;
+import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
@@ -302,12 +305,16 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
           && isMultilineSelection()) {
         return;
       }
+      boolean checkWrappingThenReturn = false;
       switch (event.character) {
         case '(':
         case '<':
         case '[':
         case '\'':
         case '\"':
+          break;
+        case '{':
+          checkWrappingThenReturn = true;
           break;
         default:
           return;
@@ -319,6 +326,16 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       final Point selection = sourceViewer.getSelectedRange();
       final int offset = selection.x;
       final int length = selection.y;
+      if (length > 0) {
+        IRewriteTarget target = ((ITextViewerExtension) sourceViewer).getRewriteTarget();
+        if (couldWrapWithGroup(event.character, document, offset, length, target)) {
+          event.doit = false;
+          return;
+        }
+        if (checkWrappingThenReturn) {
+          return;
+        }
+      }
       LinkedModeModel existingModel = LinkedModeModel.getModel(document, offset);
       if (existingModel != null && existingModel.anyPositionContains(offset)) {
         if (existingModel.getClass().getSuperclass().isAssignableFrom(LinkedModeModel.class)) {
@@ -445,6 +462,47 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       } catch (BadPositionCategoryException e) {
         DartToolsPlugin.log(e);
       }
+    }
+
+    private boolean couldWrapWithGroup(char startCh, IDocument document, int offset, int length,
+        IRewriteTarget target) {
+      int end = offset + length;
+      if (offset < 0 || (document.getLength() <= end)) {
+        return false;
+      }
+      char endCh;
+      switch (startCh) {
+        case '(':
+          endCh = ')';
+          break;
+        case '<':
+          endCh = '>';
+          break;
+        case '[':
+          endCh = ']';
+          break;
+        case '{':
+          endCh = '}';
+          break;
+        case '\'':
+        case '\"':
+          endCh = startCh;
+          break;
+        default:
+          return false;
+      }
+      MultiTextEdit textEdit = new MultiTextEdit();
+      textEdit.addChild(new InsertEdit(offset, String.valueOf(startCh)));
+      textEdit.addChild(new InsertEdit(offset + length, String.valueOf(endCh)));
+      try {
+        target.beginCompoundChange();
+        textEdit.apply(document);
+      } catch (BadLocationException ex) {
+        return false;
+      } finally {
+        target.endCompoundChange();
+      }
+      return true;
     }
 
     private boolean isAngularIntroducer(String identifier) {
