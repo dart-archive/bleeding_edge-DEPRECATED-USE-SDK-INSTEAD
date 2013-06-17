@@ -1766,14 +1766,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       htmlCopy.setState(HtmlEntry.RESOLVED_UNIT, CacheState.INVALID);
       sourceMap.put(source, htmlCopy);
     } else if (sourceEntry instanceof DartEntry) {
-      HashSet<Source> librariesToInvalidate = new HashSet<Source>();
+//      HashSet<Source> librariesToInvalidate = new HashSet<Source>();
       Source[] containingLibraries = getLibrariesContaining(source);
-      for (Source containingLibrary : containingLibraries) {
-        librariesToInvalidate.add(containingLibrary);
-        for (Source dependentLibrary : getLibrariesDependingOn(containingLibrary)) {
-          librariesToInvalidate.add(dependentLibrary);
-        }
-      }
+//      for (Source containingLibrary : containingLibraries) {
+//        librariesToInvalidate.add(containingLibrary);
+//        for (Source dependentLibrary : getLibrariesDependingOn(containingLibrary)) {
+//          librariesToInvalidate.add(dependentLibrary);
+//        }
+//      }
 
       DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
       dartCopy.setState(SourceEntry.LINE_INFO, CacheState.INVALID);
@@ -1782,7 +1782,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       dartCopy.setState(DartEntry.SOURCE_KIND, CacheState.INVALID);
       sourceMap.put(source, dartCopy);
 
-      for (Source library : librariesToInvalidate) {
+//      for (Source library : librariesToInvalidate) {
+      for (Source library : containingLibraries) {
         invalidateLibraryResolution(library);
       }
     }
