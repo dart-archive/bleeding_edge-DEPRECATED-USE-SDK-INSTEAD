@@ -147,22 +147,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonConstantDefaultValue_named() throws Exception {
-    Source source = addSource(createSource(//
-    "f({x : 2 + 3}) {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
-    verify(source);
-  }
-
-  public void fail_nonConstantDefaultValue_positional() throws Exception {
-    Source source = addSource(createSource(//
-    "f([x = 2 + 3]) {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
-    verify(source);
-  }
-
   public void fail_objectCannotExtendAnotherClass() throws Exception {
     Source source = addSource(createSource(//
     // TODO(brianwilkerson) Figure out how to mock Object
@@ -2029,6 +2013,68 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "f() { return new A<A>(); }"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS);
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValue_function_named() throws Exception {
+    Source source = addSource(createSource(//
+        "int y;",
+        "f({x : y}) {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValue_function_positional() throws Exception {
+    Source source = addSource(createSource(//
+        "int y;",
+        "f([x = y]) {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValue_inConstructor_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int y;",
+        "  A({x : y}) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValue_inConstructor_positional() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int y;",
+        "  A([x = y]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValue_method_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int y;",
+        "  m({x : y}) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValue_method_positional() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int y;",
+        "  m([x = y]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
     verify(source);
   }
 

@@ -1452,6 +1452,62 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonConstantDefaultValue_function_named() throws Exception {
+    Source source = addSource(createSource(//
+    "f({x : 2 + 3}) {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValue_function_positional() throws Exception {
+    Source source = addSource(createSource(//
+    "f([x = 2 + 3]) {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValue_inConstructor_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A({x : 2 + 3}) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValue_inConstructor_positional() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A([x = 2 + 3]) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValue_method_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m({x : 2 + 3}) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonConstantDefaultValue_method_positional() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m([x = 2 + 3]) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_nonConstCaseExpression() throws Exception {
     Source source = addSource(createSource(//
         "f(Type t) {",

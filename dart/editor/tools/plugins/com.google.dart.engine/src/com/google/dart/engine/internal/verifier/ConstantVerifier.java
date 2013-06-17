@@ -104,6 +104,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     if (node.getConstKeyword() != null) {
       validateInitializers(node);
     }
+    validateDefaultValues(node.getParameters());
     return super.visitConstructorDeclaration(node);
   }
 
