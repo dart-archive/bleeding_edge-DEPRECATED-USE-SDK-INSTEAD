@@ -422,6 +422,22 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(StaticTypeWarningCode.UNDEFINED_METHOD);
   }
 
+  public void test_undefinedMethod_ignoreTypePropagation() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  m() {}",
+        "}",
+        "class C {",
+        "f() {",
+        "    A a = new B();",
+        "    a.m();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_METHOD);
+  }
+
   public void test_undefinedOperator_indexBoth() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",

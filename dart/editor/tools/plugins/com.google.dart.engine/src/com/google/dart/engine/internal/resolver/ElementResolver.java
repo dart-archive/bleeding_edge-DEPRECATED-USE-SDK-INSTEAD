@@ -809,22 +809,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     // Then check for error conditions.
     //
-    ErrorCode errorCode;
-    if (staticElement == null) {
-      if (propagatedElement == null) {
-        // TODO(brianwilkerson) It is possible that there is no element because we could not resolve
-        // the target. In such a case we would like to suppress this error to reduce noise.
-        errorCode = checkForInvocationError(target, staticElement);
-      } else {
-        errorCode = checkForInvocationError(target, propagatedElement);
-      }
-    } else {
-      errorCode = checkForInvocationError(target, staticElement);
-      if (propagatedElement != null) {
-        ErrorCode propagatedError = checkForInvocationError(target, propagatedElement);
-        errorCode = select(errorCode, propagatedError);
-      }
-    }
+    ErrorCode errorCode = checkForInvocationError(target, staticElement);
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
       resolver.reportError(
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
@@ -2323,25 +2308,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return bound;
     }
     return type;
-  }
-
-  /**
-   * Given two possible error codes for the same piece of code, one computed using static type
-   * information and the other using propagated type information, return the error code that should
-   * be reported, or {@code null} if no error should be reported.
-   * 
-   * @param staticError the error code computed using static type information
-   * @param propagatedError the error code computed using propagated type information
-   * @return the error code that should be reported
-   */
-  private ErrorCode select(ErrorCode staticError, ErrorCode propagatedError) {
-    if (staticError == null || propagatedError == null) {
-      return null;
-    }
-    //
-    // If the errors are different, we assume that the propagated error is more relevant.
-    //
-    return propagatedError;
   }
 
   /**

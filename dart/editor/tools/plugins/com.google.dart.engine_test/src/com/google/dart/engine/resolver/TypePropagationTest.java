@@ -32,6 +32,7 @@ import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -327,7 +328,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  }",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertErrors(StaticTypeWarningCode.UNDEFINED_METHOD);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(2);
