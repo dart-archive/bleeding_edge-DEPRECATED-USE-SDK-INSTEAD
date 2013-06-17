@@ -1008,16 +1008,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   SUPER_INITIALIZER_IN_OBJECT(""),
 
   /**
-   * 12.11 Instance Creation: It is a compile-time error if a constructor of a non-generic type
-   * invoked by a new expression or a constant object expression is passed any type arguments.
-   * <p>
-   * 12.32 Type Cast: It is a compile-time error if <i>T</i> is a parameterized type of the form
-   * <i>G&lt;T<sub>1</sub>, &hellip;, T<sub>n</sub>&gt;</i> and <i>G</i> is not a generic type with
-   * <i>n</i> type parameters.
-   */
-  TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS(""),
-
-  /**
    * 12.11.2 Const: It is a compile-time error if <i>T</i> is not a class accessible in the current
    * scope, optionally followed by type arguments.
    */

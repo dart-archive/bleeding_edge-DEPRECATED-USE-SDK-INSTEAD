@@ -216,39 +216,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_typeArgumentsForNonGenericClass_creation_const() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "f(p) {",
-        "  return const A<int>();",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS);
-    verify(source);
-  }
-
-  public void fail_typeArgumentsForNonGenericClass_creation_new() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "f(p) {",
-        "  return new A<int>();",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS);
-    verify(source);
-  }
-
-  public void fail_typeArgumentsForNonGenericClass_typeCast() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "f(p) {",
-        "  return p as A<int>;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS);
-    verify(source);
-  }
-
   public void fail_uninitializedFinalField() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
