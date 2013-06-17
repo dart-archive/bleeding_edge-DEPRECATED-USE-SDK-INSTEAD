@@ -56,6 +56,9 @@ swarm/swarm_test: Fail # Issue 4517
 [ $compiler == dart2js && $runtime == ie9 ]
 swarm/swarm_test: Skip, Timeout, Fail # BUG(5633) # Added Skip because selenium causes servere issues if we run this on IE9
 
+[ $compiler == dartanalyzer ]
+standalone/build_dart_test: Skip
+
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
