@@ -281,15 +281,14 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     ClassElement classElement = getElement();
     InterfaceType[] interfaces = classElement.getInterfaces();
     TypeVariableElement[] typeVariables = classElement.getTypeVariables();
+    Type[] parameterTypes = classElement.getType().getTypeArguments();
     if (typeVariables.length == 0) {
       return interfaces;
     }
     int count = interfaces.length;
     InterfaceType[] typedInterfaces = new InterfaceType[count];
     for (int i = 0; i < count; i++) {
-      typedInterfaces[i] = interfaces[i].substitute(
-          typeArguments,
-          TypeVariableTypeImpl.getTypes(typeVariables));
+      typedInterfaces[i] = interfaces[i].substitute(typeArguments, parameterTypes);
     }
     return typedInterfaces;
   }
@@ -376,15 +375,14 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     ClassElement classElement = getElement();
     InterfaceType[] mixins = classElement.getMixins();
     TypeVariableElement[] typeVariables = classElement.getTypeVariables();
+    Type[] parameterTypes = classElement.getType().getTypeArguments();
     if (typeVariables.length == 0) {
       return mixins;
     }
     int count = mixins.length;
     InterfaceType[] typedMixins = new InterfaceType[count];
     for (int i = 0; i < count; i++) {
-      typedMixins[i] = mixins[i].substitute(
-          typeArguments,
-          TypeVariableTypeImpl.getTypes(typeVariables));
+      typedMixins[i] = mixins[i].substitute(typeArguments, parameterTypes);
     }
     return typedMixins;
   }
@@ -403,9 +401,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (supertype == null) {
       return null;
     }
-    return supertype.substitute(
-        typeArguments,
-        TypeVariableTypeImpl.getTypes(classElement.getTypeVariables()));
+    return supertype.substitute(typeArguments, classElement.getType().getTypeArguments());
   }
 
   @Override
@@ -771,7 +767,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     visitedClasses.add(elementT);
 
-    typeT = substitute(typeArguments, TypeVariableTypeImpl.getTypes(elementT.getTypeVariables()));
+    typeT = substitute(typeArguments, elementT.getType().getTypeArguments());
     if (typeT.equals(typeS)) {
       return true;
     } else if (ObjectUtilities.equals(elementT, typeS.getElement())) {

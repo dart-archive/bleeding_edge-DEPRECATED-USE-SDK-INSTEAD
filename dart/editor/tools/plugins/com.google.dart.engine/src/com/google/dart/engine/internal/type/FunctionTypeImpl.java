@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.type;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
@@ -113,11 +114,6 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   private Map<String, Type> namedParameterTypes = ImmutableMap.of();
 
   /**
-   * The type of object returned by this type of function.
-   */
-  private Type returnType = VoidTypeImpl.getInstance();
-
-  /**
    * Initialize a newly created function type to be declared by the given element and to have the
    * given name.
    * 
@@ -147,13 +143,14 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         && Arrays.equals(normalParameterTypes, otherType.normalParameterTypes)
         && Arrays.equals(optionalParameterTypes, otherType.optionalParameterTypes)
         && equals(namedParameterTypes, otherType.namedParameterTypes)
-        && ObjectUtilities.equals(returnType, otherType.returnType);
+        && ObjectUtilities.equals(getReturnType(), otherType.getReturnType());
   }
 
   @Override
   public String getDisplayName() {
     String name = getName();
     if (name == null) {
+      Type returnType = getReturnType();
       StringBuilder builder = new StringBuilder();
       builder.append("(");
       boolean needsComma = false;
@@ -247,7 +244,10 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @Override
   public Type getReturnType() {
-    return returnType;
+    Type baseReturnType = getBaseReturnType();
+    return baseReturnType.substitute(
+        typeArguments,
+        TypeVariableTypeImpl.getTypes(getTypeVariables()));
   }
 
   @Override
@@ -260,6 +260,10 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     Element element = getElement();
     if (element instanceof FunctionTypeAliasElement) {
       return ((FunctionTypeAliasElement) element).getTypeVariables();
+    }
+    ClassElement definingClass = element.getAncestor(ClassElement.class);
+    if (definingClass != null) {
+      return definingClass.getTypeVariables();
     }
     return TypeVariableElementImpl.EMPTY_ARRAY;
   }
@@ -400,15 +404,6 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   /**
-   * Set the type of object returned by this type of function to the given type.
-   * 
-   * @param returnType the type of object returned by this type of function
-   */
-  public void setReturnType(Type returnType) {
-    this.returnType = returnType;
-  }
-
-  /**
    * Set the actual types of the type arguments to the given types.
    * 
    * @param typeArguments the actual types of the type arguments
@@ -434,19 +429,19 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     Element element = getElement();
     FunctionTypeImpl newType = (element instanceof ExecutableElement) ? new FunctionTypeImpl(
         (ExecutableElement) element) : new FunctionTypeImpl((FunctionTypeAliasElement) element);
-    newType.setReturnType(returnType.substitute(argumentTypes, parameterTypes));
     newType.setNormalParameterTypes(substitute(normalParameterTypes, argumentTypes, parameterTypes));
     newType.setOptionalParameterTypes(substitute(
         optionalParameterTypes,
         argumentTypes,
         parameterTypes));
     newType.namedParameterTypes = substitute(namedParameterTypes, argumentTypes, parameterTypes);
-    newType.setTypeArguments(argumentTypes);
+    newType.setTypeArguments(substitute(typeArguments, argumentTypes, parameterTypes));
     return newType;
   }
 
   @Override
   protected void appendTo(StringBuilder builder) {
+    Type returnType = getReturnType();
     builder.append("(");
     boolean needsComma = false;
     if (normalParameterTypes.length > 0) {
@@ -512,6 +507,20 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return ((ExecutableElement) element).getParameters();
     } else {
       return ((FunctionTypeAliasElement) element).getParameters();
+    }
+  }
+
+  /**
+   * Return the return type defined by this function's element.
+   * 
+   * @return the return type defined by this function's element
+   */
+  private Type getBaseReturnType() {
+    Element element = getElement();
+    if (element instanceof ExecutableElement) {
+      return ((ExecutableElement) element).getReturnType();
+    } else {
+      return ((FunctionTypeAliasElement) element).getReturnType();
     }
   }
 }

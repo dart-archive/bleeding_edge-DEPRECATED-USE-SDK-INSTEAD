@@ -14,6 +14,7 @@
 package com.google.dart.engine.element;
 
 import com.google.dart.engine.type.FunctionType;
+import com.google.dart.engine.type.Type;
 
 /**
  * The interface {@code ExecutableElement} defines the behavior of elements representing an
@@ -49,6 +50,13 @@ public interface ExecutableElement extends Element {
    * @return the parameters defined by this executable element
    */
   public ParameterElement[] getParameters();
+
+  /**
+   * Return the return type defined by this executable element.
+   * 
+   * @return the return type defined by this executable element
+   */
+  public Type getReturnType();
 
   /**
    * Return the type of function defined by this executable element.

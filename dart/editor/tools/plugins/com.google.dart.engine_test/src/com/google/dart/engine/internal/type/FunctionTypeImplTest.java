@@ -16,13 +16,16 @@ package com.google.dart.engine.internal.type;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
+import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.type.TypeVariableType;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
@@ -56,9 +59,12 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_getReturnType() {
-    FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
+    Type expectedReturnType = VoidTypeImpl.getInstance();
+    FunctionElementImpl functionElement = new FunctionElementImpl(identifier("f"));
+    functionElement.setReturnType(expectedReturnType);
+    FunctionTypeImpl type = new FunctionTypeImpl(functionElement);
     Type returnType = type.getReturnType();
-    assertEquals(VoidTypeImpl.getInstance(), returnType);
+    assertEquals(expectedReturnType, returnType);
   }
 
   public void test_getTypeArguments() {
@@ -400,16 +406,16 @@ public class FunctionTypeImplTest extends EngineTestCase {
     TypeVariableTypeImpl typeS = new TypeVariableTypeImpl(variableS);
 
     FunctionElementImpl functionAliasElement = new FunctionElementImpl(identifier("func"));
+    functionAliasElement.setReturnType(stringType);
     FunctionTypeImpl functionAliasType = new FunctionTypeImpl(functionAliasElement);
     functionAliasElement.setType(functionAliasType);
-    functionAliasType.setReturnType(stringType);
     functionAliasType.setNormalParameterTypes(new Type[] {typeB});
     functionAliasType.setOptionalParameterTypes(new Type[] {typeS});
 
     FunctionElementImpl functionElement = new FunctionElementImpl(identifier("f"));
+    functionElement.setReturnType(provider.getDynamicType());
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionElement.setType(functionType);
-    functionType.setReturnType(provider.getDynamicType());
     functionType.setNormalParameterTypes(new Type[] {boolType});
     functionType.setOptionalParameterTypes(new Type[] {stringType});
 
@@ -454,16 +460,22 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_setReturnType() {
-    FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
     Type expectedType = new InterfaceTypeImpl(new ClassElementImpl(identifier("C")));
-    type.setReturnType(expectedType);
-    Type returnType = type.getReturnType();
-    assertEquals(expectedType, returnType);
+
+    FunctionElementImpl functionElement = new FunctionElementImpl(identifier("f"));
+    functionElement.setReturnType(expectedType);
+
+    FunctionTypeImpl type = new FunctionTypeImpl(functionElement);
+
+    assertEquals(expectedType, type.getReturnType());
   }
 
   public void test_setTypeArguments() {
-    FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
-    Type expectedType = new TypeVariableTypeImpl(new TypeVariableElementImpl(identifier("C")));
+    ClassElementImpl enclosingClass = classElement("C", "E");
+    MethodElementImpl methodElement = new MethodElementImpl(identifier("m"));
+    enclosingClass.setMethods(new MethodElement[] {methodElement});
+    FunctionTypeImpl type = new FunctionTypeImpl(methodElement);
+    Type expectedType = enclosingClass.getTypeVariables()[0].getType();
     type.setTypeArguments(new Type[] {expectedType});
     Type[] arguments = type.getTypeArguments();
     assertLength(1, arguments);
@@ -471,13 +483,16 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_substitute2_equal() {
-    FunctionTypeImpl functionType = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
-    TypeVariableTypeImpl parameterType = new TypeVariableTypeImpl(new TypeVariableElementImpl(
-        identifier("E")));
+    ClassElementImpl definingClass = classElement("C", "E");
+    TypeVariableType parameterType = definingClass.getTypeVariables()[0].getType();
+    MethodElementImpl functionElement = new MethodElementImpl(identifier("m"));
+    functionElement.setReturnType(parameterType);
+    definingClass.setMethods(new MethodElement[] {functionElement});
 
-    functionType.setReturnType(parameterType);
+    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionType.setNormalParameterTypes(new Type[] {parameterType});
     functionType.setOptionalParameterTypes(new Type[] {parameterType});
+    functionType.setTypeArguments(new Type[] {parameterType});
     LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
     String namedParameterName = "c";
     namedParameterTypes.put(namedParameterName, parameterType);
@@ -501,13 +516,15 @@ public class FunctionTypeImplTest extends EngineTestCase {
   }
 
   public void test_substitute2_notEqual() {
-    FunctionTypeImpl functionType = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
     Type returnType = new InterfaceTypeImpl(new ClassElementImpl(identifier("R")));
     Type normalParameterType = new InterfaceTypeImpl(new ClassElementImpl(identifier("A")));
     Type optionalParameterType = new InterfaceTypeImpl(new ClassElementImpl(identifier("B")));
     Type namedParameterType = new InterfaceTypeImpl(new ClassElementImpl(identifier("C")));
 
-    functionType.setReturnType(returnType);
+    FunctionElementImpl functionElement = new FunctionElementImpl(identifier("f"));
+    functionElement.setReturnType(returnType);
+
+    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionType.setNormalParameterTypes(new Type[] {normalParameterType});
     functionType.setOptionalParameterTypes(new Type[] {optionalParameterType});
     LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();

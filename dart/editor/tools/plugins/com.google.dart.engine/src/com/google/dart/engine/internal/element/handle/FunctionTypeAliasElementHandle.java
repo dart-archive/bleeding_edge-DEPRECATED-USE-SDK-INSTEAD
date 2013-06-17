@@ -19,6 +19,7 @@ import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.type.FunctionType;
+import com.google.dart.engine.type.Type;
 
 /**
  * Instances of the class {@code FunctionTypeAliasElementHandle} implement a handle to a
@@ -26,7 +27,8 @@ import com.google.dart.engine.type.FunctionType;
  * 
  * @coverage dart.engine.element
  */
-public class FunctionTypeAliasElementHandle extends ElementHandle implements FunctionTypeAliasElement {
+public class FunctionTypeAliasElementHandle extends ElementHandle implements
+    FunctionTypeAliasElement {
   /**
    * Initialize a newly created element handle to represent the given element.
    * 
@@ -49,6 +51,11 @@ public class FunctionTypeAliasElementHandle extends ElementHandle implements Fun
   @Override
   public ParameterElement[] getParameters() {
     return getActualElement().getParameters();
+  }
+
+  @Override
+  public Type getReturnType() {
+    return getActualElement().getReturnType();
   }
 
   @Override

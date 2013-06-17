@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.builder;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.FieldElement;
@@ -48,18 +49,18 @@ import java.util.ArrayList;
  * @coverage dart.engine.resolver
  */
 public class ElementHolder {
-  private ArrayList<PropertyAccessorElement> accessors = new ArrayList<PropertyAccessorElement>();
-  private ArrayList<ConstructorElement> constructors = new ArrayList<ConstructorElement>();
-  private ArrayList<FieldElement> fields = new ArrayList<FieldElement>();
-  private ArrayList<FunctionElement> functions = new ArrayList<FunctionElement>();
-  private ArrayList<LabelElement> labels = new ArrayList<LabelElement>();
-  private ArrayList<VariableElement> localVariables = new ArrayList<VariableElement>();
-  private ArrayList<MethodElement> methods = new ArrayList<MethodElement>();
-  private ArrayList<FunctionTypeAliasElement> typeAliases = new ArrayList<FunctionTypeAliasElement>();
-  private ArrayList<ParameterElement> parameters = new ArrayList<ParameterElement>();
-  private ArrayList<VariableElement> topLevelVariables = new ArrayList<VariableElement>();
-  private ArrayList<ClassElement> types = new ArrayList<ClassElement>();
-  private ArrayList<TypeVariableElement> typeVariables = new ArrayList<TypeVariableElement>();
+  private ArrayList<PropertyAccessorElement> accessors;
+  private ArrayList<ConstructorElement> constructors;
+  private ArrayList<FieldElement> fields;
+  private ArrayList<FunctionElement> functions;
+  private ArrayList<LabelElement> labels;
+  private ArrayList<VariableElement> localVariables;
+  private ArrayList<MethodElement> methods;
+  private ArrayList<ParameterElement> parameters;
+  private ArrayList<VariableElement> topLevelVariables;
+  private ArrayList<ClassElement> types;
+  private ArrayList<FunctionTypeAliasElement> typeAliases;
+  private ArrayList<TypeVariableElement> typeVariables;
 
   /**
    * Initialize a newly created element holder.
@@ -69,68 +70,111 @@ public class ElementHolder {
   }
 
   public void addAccessor(PropertyAccessorElement element) {
+    if (accessors == null) {
+      accessors = new ArrayList<PropertyAccessorElement>();
+    }
     accessors.add(element);
   }
 
   public void addConstructor(ConstructorElement element) {
+    if (constructors == null) {
+      constructors = new ArrayList<ConstructorElement>();
+    }
     constructors.add(element);
   }
 
   public void addField(FieldElement element) {
+    if (fields == null) {
+      fields = new ArrayList<FieldElement>();
+    }
     fields.add(element);
   }
 
   public void addFunction(FunctionElement element) {
+    if (functions == null) {
+      functions = new ArrayList<FunctionElement>();
+    }
     functions.add(element);
   }
 
   public void addLabel(LabelElement element) {
+    if (labels == null) {
+      labels = new ArrayList<LabelElement>();
+    }
     labels.add(element);
   }
 
   public void addLocalVariable(LocalVariableElement element) {
+    if (localVariables == null) {
+      localVariables = new ArrayList<VariableElement>();
+    }
     localVariables.add(element);
   }
 
   public void addMethod(MethodElement element) {
+    if (methods == null) {
+      methods = new ArrayList<MethodElement>();
+    }
     methods.add(element);
   }
 
   public void addParameter(ParameterElement element) {
+    if (parameters == null) {
+      parameters = new ArrayList<ParameterElement>();
+    }
     parameters.add(element);
   }
 
   public void addTopLevelVariable(TopLevelVariableElement element) {
+    if (topLevelVariables == null) {
+      topLevelVariables = new ArrayList<VariableElement>();
+    }
     topLevelVariables.add(element);
   }
 
   public void addType(ClassElement element) {
+    if (types == null) {
+      types = new ArrayList<ClassElement>();
+    }
     types.add(element);
   }
 
   public void addTypeAlias(FunctionTypeAliasElement element) {
+    if (typeAliases == null) {
+      typeAliases = new ArrayList<FunctionTypeAliasElement>();
+    }
     typeAliases.add(element);
   }
 
   public void addTypeVariable(TypeVariableElement element) {
+    if (typeVariables == null) {
+      typeVariables = new ArrayList<TypeVariableElement>();
+    }
     typeVariables.add(element);
   }
 
   public PropertyAccessorElement[] getAccessors() {
-    if (accessors.isEmpty()) {
+    if (accessors == null) {
       return PropertyAccessorElementImpl.EMPTY_ARRAY;
     }
-    return accessors.toArray(new PropertyAccessorElement[accessors.size()]);
+    PropertyAccessorElement[] result = accessors.toArray(new PropertyAccessorElement[accessors.size()]);
+    accessors = null;
+    return result;
   }
 
   public ConstructorElement[] getConstructors() {
-    if (constructors.isEmpty()) {
+    if (constructors == null) {
       return ConstructorElementImpl.EMPTY_ARRAY;
     }
-    return constructors.toArray(new ConstructorElement[constructors.size()]);
+    ConstructorElement[] result = constructors.toArray(new ConstructorElement[constructors.size()]);
+    constructors = null;
+    return result;
   }
 
   public FieldElement getField(String fieldName) {
+    if (fields == null) {
+      return null;
+    }
     for (FieldElement field : fields) {
       if (field.getName().equals(fieldName)) {
         return field;
@@ -140,72 +184,181 @@ public class ElementHolder {
   }
 
   public FieldElement[] getFields() {
-    if (fields.isEmpty()) {
+    if (fields == null) {
       return FieldElementImpl.EMPTY_ARRAY;
     }
-    return fields.toArray(new FieldElement[fields.size()]);
+    FieldElement[] result = fields.toArray(new FieldElement[fields.size()]);
+    fields = null;
+    return result;
   }
 
   public FunctionElement[] getFunctions() {
-    if (functions.isEmpty()) {
+    if (functions == null) {
       return FunctionElementImpl.EMPTY_ARRAY;
     }
-    return functions.toArray(new FunctionElement[functions.size()]);
+    FunctionElement[] result = functions.toArray(new FunctionElement[functions.size()]);
+    functions = null;
+    return result;
   }
 
   public LabelElement[] getLabels() {
-    if (labels.isEmpty()) {
+    if (labels == null) {
       return LabelElementImpl.EMPTY_ARRAY;
     }
-    return labels.toArray(new LabelElement[labels.size()]);
+    LabelElement[] result = labels.toArray(new LabelElement[labels.size()]);
+    labels = null;
+    return result;
   }
 
   public LocalVariableElement[] getLocalVariables() {
-    if (localVariables.isEmpty()) {
+    if (localVariables == null) {
       return LocalVariableElementImpl.EMPTY_ARRAY;
     }
-    return localVariables.toArray(new LocalVariableElement[localVariables.size()]);
+    LocalVariableElement[] result = localVariables.toArray(new LocalVariableElement[localVariables.size()]);
+    localVariables = null;
+    return result;
   }
 
   public MethodElement[] getMethods() {
-    if (methods.isEmpty()) {
+    if (methods == null) {
       return MethodElementImpl.EMPTY_ARRAY;
     }
-    return methods.toArray(new MethodElement[methods.size()]);
+    MethodElement[] result = methods.toArray(new MethodElement[methods.size()]);
+    methods = null;
+    return result;
   }
 
   public ParameterElement[] getParameters() {
-    if (parameters.isEmpty()) {
+    if (parameters == null) {
       return ParameterElementImpl.EMPTY_ARRAY;
     }
-    return parameters.toArray(new ParameterElement[parameters.size()]);
+    ParameterElement[] result = parameters.toArray(new ParameterElement[parameters.size()]);
+    parameters = null;
+    return result;
   }
 
   public TopLevelVariableElement[] getTopLevelVariables() {
-    if (topLevelVariables.isEmpty()) {
+    if (topLevelVariables == null) {
       return TopLevelVariableElementImpl.EMPTY_ARRAY;
     }
-    return topLevelVariables.toArray(new TopLevelVariableElement[topLevelVariables.size()]);
+    TopLevelVariableElement[] result = topLevelVariables.toArray(new TopLevelVariableElement[topLevelVariables.size()]);
+    topLevelVariables = null;
+    return result;
   }
 
   public FunctionTypeAliasElement[] getTypeAliases() {
-    if (typeAliases.isEmpty()) {
+    if (typeAliases == null) {
       return FunctionTypeAliasElementImpl.EMPTY_ARRAY;
     }
-    return typeAliases.toArray(new FunctionTypeAliasElement[typeAliases.size()]);
+    FunctionTypeAliasElement[] result = typeAliases.toArray(new FunctionTypeAliasElement[typeAliases.size()]);
+    typeAliases = null;
+    return result;
   }
 
   public ClassElement[] getTypes() {
-    if (types.isEmpty()) {
+    if (types == null) {
       return ClassElementImpl.EMPTY_ARRAY;
     }
-    return types.toArray(new ClassElement[types.size()]);
+    ClassElement[] result = types.toArray(new ClassElement[types.size()]);
+    types = null;
+    return result;
   }
 
   public TypeVariableElement[] getTypeVariables() {
-    if (typeVariables.isEmpty()) {
+    if (typeVariables == null) {
       return TypeVariableElementImpl.EMPTY_ARRAY;
     }
-    return typeVariables.toArray(new TypeVariableElement[typeVariables.size()]);
+    TypeVariableElement[] result = typeVariables.toArray(new TypeVariableElement[typeVariables.size()]);
+    typeVariables = null;
+    return result;
+  }
+
+  public void validate() {
+    StringBuilder builder = new StringBuilder();
+    if (accessors != null) {
+      builder.append(accessors.size());
+      builder.append(" accessors");
+    }
+    if (constructors != null) {
+      if (builder.length() > 0) {
+        builder.append("; ");
+      }
+      builder.append(constructors.size());
+      builder.append(" constructors");
+    }
+    if (fields != null) {
+      if (builder.length() > 0) {
+        builder.append("; ");
+      }
+      builder.append(fields.size());
+      builder.append(" fields");
+    }
+    if (functions != null) {
+      if (builder.length() > 0) {
+        builder.append("; ");
+      }
+      builder.append(functions.size());
+      builder.append(" functions");
+    }
+    if (labels != null) {
+      if (builder.length() > 0) {
+        builder.append("; ");
+      }
+      builder.append(labels.size());
+      builder.append(" labels");
+    }
+    if (localVariables != null) {
+      if (builder.length() > 0) {
+        builder.append("; ");
+      }
+      builder.append(localVariables.size());
+      builder.append(" local variables");
+    }
+    if (methods != null) {
+      if (builder.length() > 0) {
+        builder.append("; ");
+      }
+      builder.append(methods.size());
+      builder.append(" methods");
+    }
+    if (parameters != null) {
+      if (builder.length() > 0) {
+        builder.append("; ");
+      }
+      builder.append(parameters.size());
+      builder.append(" parameters");
+    }
+    if (topLevelVariables != null) {
+      if (builder.length() > 0) {
+        builder.append("; ");
+      }
+      builder.append(topLevelVariables.size());
+      builder.append(" top-level variables");
+    }
+    if (types != null) {
+      if (builder.length() > 0) {
+        builder.append("; ");
+      }
+      builder.append(types.size());
+      builder.append(" types");
+    }
+    if (typeAliases != null) {
+      if (builder.length() > 0) {
+        builder.append("; ");
+      }
+      builder.append(typeAliases.size());
+      builder.append(" type aliases");
+    }
+    if (typeVariables != null) {
+      if (builder.length() > 0) {
+        builder.append("; ");
+      }
+      builder.append(typeVariables.size());
+      builder.append(" type variables");
+    }
+    if (builder.length() > 0) {
+      AnalysisEngine.getInstance().getLogger().logError(
+          "Failed to capture elements: " + builder.toString());
+    }
   }
 }

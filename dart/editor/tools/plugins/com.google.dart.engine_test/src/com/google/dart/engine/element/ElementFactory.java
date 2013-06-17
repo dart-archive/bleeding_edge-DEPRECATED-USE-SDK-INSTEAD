@@ -86,14 +86,13 @@ public final class ElementFactory {
     return classElement(typeName, getObject().getType(), parameterNames);
   }
 
-  public static ConstructorElementImpl constructorElement(ClassElement clazz, String name) {
-    Type type = clazz.getType();
+  public static ConstructorElementImpl constructorElement(ClassElement definingClass, String name) {
+    Type type = definingClass.getType();
     ConstructorElementImpl constructor = new ConstructorElementImpl(name == null ? null
         : identifier(name));
+    constructor.setReturnType(type);
 
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructorType.setNormalParameterTypes(new Type[] {type});
-    constructorType.setReturnType(type);
     constructor.setType(constructorType);
 
     return constructor;
@@ -120,10 +119,10 @@ public final class ElementFactory {
     getter.setStatic(isStatic);
     getter.setSynthetic(true);
     getter.setVariable(field);
+    getter.setReturnType(type);
     field.setGetter(getter);
 
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-    getterType.setReturnType(type);
     getter.setType(getterType);
 
     if (!isConst && !isFinal) {
@@ -132,11 +131,11 @@ public final class ElementFactory {
       setter.setStatic(isStatic);
       setter.setSynthetic(true);
       setter.setVariable(field);
+      setter.setReturnType(VoidTypeImpl.getInstance());
       field.setSetter(setter);
 
       FunctionTypeImpl setterType = new FunctionTypeImpl(getter);
       setterType.setNormalParameterTypes(new Type[] {type});
-      setterType.setReturnType(VoidTypeImpl.getInstance());
       setter.setType(setterType);
     }
 
@@ -162,8 +161,10 @@ public final class ElementFactory {
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionElement.setType(functionType);
     // return type
-    if (returnElement != null) {
-      functionType.setReturnType(returnElement.getType());
+    if (returnElement == null) {
+      functionElement.setReturnType(VoidTypeImpl.getInstance());
+    } else {
+      functionElement.setReturnType(returnElement.getType());
     }
     // normal parameters
     int normalCount = normalParameters == null ? 0 : normalParameters.length;
@@ -210,8 +211,10 @@ public final class ElementFactory {
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionElement.setType(functionType);
     // return type
-    if (returnElement != null) {
-      functionType.setReturnType(returnElement.getType());
+    if (returnElement == null) {
+      functionElement.setReturnType(VoidTypeImpl.getInstance());
+    } else {
+      functionElement.setReturnType(returnElement.getType());
     }
     // normal parameters
     int count = normalParameters == null ? 0 : normalParameters.length;
@@ -268,10 +271,10 @@ public final class ElementFactory {
     getter.setGetter(true);
     getter.setStatic(isStatic);
     getter.setVariable(field);
+    getter.setReturnType(type);
     field.setGetter(getter);
 
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-    getterType.setReturnType(type);
     getter.setType(getterType);
 
     return getter;
@@ -319,10 +322,10 @@ public final class ElementFactory {
       parameters[i] = parameter;
     }
     method.setParameters(parameters);
+    method.setReturnType(returnType);
 
     FunctionTypeImpl methodType = new FunctionTypeImpl(method);
     methodType.setNormalParameterTypes(argumentTypes);
-    methodType.setReturnType(returnType);
     method.setType(methodType);
     return method;
   }
@@ -359,10 +362,10 @@ public final class ElementFactory {
     getter.setGetter(true);
     getter.setStatic(isStatic);
     getter.setVariable(field);
+    getter.setReturnType(type);
     field.setGetter(getter);
 
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-    getterType.setReturnType(type);
     getter.setType(getterType);
 
     PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
@@ -370,11 +373,11 @@ public final class ElementFactory {
     setter.setStatic(isStatic);
     setter.setSynthetic(true);
     setter.setVariable(field);
+    setter.setReturnType(VoidTypeImpl.getInstance());
     field.setSetter(setter);
 
-    FunctionTypeImpl setterType = new FunctionTypeImpl(getter);
+    FunctionTypeImpl setterType = new FunctionTypeImpl(setter);
     setterType.setNormalParameterTypes(new Type[] {type});
-    setterType.setReturnType(VoidTypeImpl.getInstance());
     setter.setType(setterType);
 
     return setter;
@@ -398,10 +401,10 @@ public final class ElementFactory {
     getter.setStatic(true);
     getter.setSynthetic(true);
     getter.setVariable(variable);
+    getter.setReturnType(type);
     variable.setGetter(getter);
 
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-    getterType.setReturnType(type);
     getter.setType(getterType);
 
     if (!isFinal) {
@@ -410,11 +413,11 @@ public final class ElementFactory {
       setter.setStatic(true);
       setter.setSynthetic(true);
       setter.setVariable(variable);
+      setter.setReturnType(VoidTypeImpl.getInstance());
       variable.setSetter(setter);
 
       FunctionTypeImpl setterType = new FunctionTypeImpl(getter);
       setterType.setNormalParameterTypes(new Type[] {type});
-      setterType.setReturnType(VoidTypeImpl.getInstance());
       setter.setType(setterType);
     }
 

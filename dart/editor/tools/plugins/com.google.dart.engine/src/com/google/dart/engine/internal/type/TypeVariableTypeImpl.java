@@ -26,6 +26,11 @@ import com.google.dart.engine.utilities.general.ObjectUtilities;
  */
 public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
   /**
+   * An empty array of type variable types.
+   */
+  public static final TypeVariableType[] EMPTY_ARRAY = new TypeVariableType[0];
+
+  /**
    * Return an array containing the type variable types defined by the given array of type variable
    * elements.
    * 
@@ -34,6 +39,9 @@ public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
    */
   public static TypeVariableType[] getTypes(TypeVariableElement[] typeVariables) {
     int count = typeVariables.length;
+    if (count == 0) {
+      return EMPTY_ARRAY;
+    }
     TypeVariableType[] types = new TypeVariableType[count];
     for (int i = 0; i < count; i++) {
       types[i] = typeVariables[i].getType();

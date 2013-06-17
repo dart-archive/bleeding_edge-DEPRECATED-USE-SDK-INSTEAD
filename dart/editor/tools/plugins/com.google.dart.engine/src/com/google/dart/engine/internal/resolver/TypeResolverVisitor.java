@@ -69,11 +69,11 @@ import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
-import com.google.dart.engine.internal.type.AnonymousFunctionTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeImpl;
+import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.source.Source;
@@ -210,9 +210,11 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
+    ClassElement definingClass = (ClassElement) element.getEnclosingElement();
+    element.setReturnType(definingClass.getType());
     FunctionTypeImpl type = new FunctionTypeImpl(element);
-    setTypeInformation(type, null, element.getParameters());
-    type.setReturnType(((ClassElement) element.getEnclosingElement()).getType());
+    type.setTypeArguments(definingClass.getType().getTypeArguments());
+    setTypeInformation(type, element.getParameters());
     element.setType(type);
     return null;
   }
@@ -270,22 +272,17 @@ public class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
-//  @Override
-//  public Void visitFunctionExpression(FunctionExpression node) {
-//    super.visitFunctionExpression(node);
-//    ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
-//    FunctionTypeImpl type = new FunctionTypeImpl(element);
-//    setTypeInformation(type, null, element.getParameters());
-//    element.setType(type);
-//    return null;
-//  }
-
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     super.visitFunctionDeclaration(node);
     ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
+    element.setReturnType(computeReturnType(node.getReturnType()));
     FunctionTypeImpl type = new FunctionTypeImpl(element);
-    setTypeInformation(type, node.getReturnType(), element.getParameters());
+    ClassElement definingClass = element.getAncestor(ClassElement.class);
+    if (definingClass != null) {
+      type.setTypeArguments(definingClass.getType().getTypeArguments());
+    }
+    setTypeInformation(type, element.getParameters());
     element.setType(type);
     return null;
   }
@@ -294,8 +291,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
     super.visitFunctionTypeAlias(node);
     FunctionTypeAliasElementImpl element = (FunctionTypeAliasElementImpl) node.getElement();
+    element.setReturnType(computeReturnType(node.getReturnType()));
     FunctionTypeImpl type = (FunctionTypeImpl) element.getType();
-    setTypeInformation(type, node.getReturnType(), element.getParameters());
+    setTypeInformation(type, element.getParameters());
     return null;
   }
 
@@ -303,10 +301,26 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     super.visitFunctionTypedFormalParameter(node);
     ParameterElementImpl element = (ParameterElementImpl) node.getIdentifier().getElement();
-    AnonymousFunctionTypeImpl type = new AnonymousFunctionTypeImpl();
     ParameterElement[] parameters = getElements(node.getParameters());
-    setTypeInformation(type, node.getReturnType(), parameters);
-    type.setBaseParameters(parameters);
+    FunctionTypeAliasElementImpl aliasElement = new FunctionTypeAliasElementImpl(null);
+    aliasElement.setSynthetic(true);
+    aliasElement.setParameters(parameters);
+    aliasElement.setReturnType(computeReturnType(node.getReturnType()));
+    FunctionTypeImpl type = new FunctionTypeImpl(aliasElement);
+    ClassElement definingClass = element.getAncestor(ClassElement.class);
+    if (definingClass != null) {
+      aliasElement.setTypeVariables(definingClass.getTypeVariables());
+      type.setTypeArguments(definingClass.getType().getTypeArguments());
+    } else {
+      FunctionTypeAliasElement alias = element.getAncestor(FunctionTypeAliasElement.class);
+      if (alias != null) {
+        aliasElement.setTypeVariables(alias.getTypeVariables());
+        type.setTypeArguments(alias.getType().getTypeArguments());
+      } else {
+        type.setTypeArguments(TypeVariableTypeImpl.EMPTY_ARRAY);
+      }
+    }
+    setTypeInformation(type, parameters);
     element.setType(type);
     return null;
   }
@@ -315,8 +329,13 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
+    element.setReturnType(computeReturnType(node.getReturnType()));
     FunctionTypeImpl type = new FunctionTypeImpl(element);
-    setTypeInformation(type, node.getReturnType(), element.getParameters());
+    ClassElement definingClass = element.getAncestor(ClassElement.class);
+    if (definingClass != null) {
+      type.setTypeArguments(definingClass.getType().getTypeArguments());
+    }
+    setTypeInformation(type, element.getParameters());
     element.setType(type);
     if (element instanceof PropertyAccessorElement) {
       PropertyAccessorElement accessor = (PropertyAccessorElement) element;
@@ -591,14 +610,21 @@ public class TypeResolverVisitor extends ScopedVisitor {
       if (element instanceof PropertyInducingElement) {
         PropertyInducingElement variableElement = (PropertyInducingElement) element;
         PropertyAccessorElementImpl getter = (PropertyAccessorElementImpl) variableElement.getGetter();
+        getter.setReturnType(declaredType);
         FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-        getterType.setReturnType(declaredType);
+        ClassElement definingClass = element.getAncestor(ClassElement.class);
+        if (definingClass != null) {
+          getterType.setTypeArguments(definingClass.getType().getTypeArguments());
+        }
         getter.setType(getterType);
 
         PropertyAccessorElementImpl setter = (PropertyAccessorElementImpl) variableElement.getSetter();
         if (setter != null) {
+          setter.setReturnType(VoidTypeImpl.getInstance());
           FunctionTypeImpl setterType = new FunctionTypeImpl(setter);
-          setterType.setReturnType(VoidTypeImpl.getInstance());
+          if (definingClass != null) {
+            setterType.setTypeArguments(definingClass.getType().getTypeArguments());
+          }
           setterType.setNormalParameterTypes(new Type[] {declaredType});
           setter.setType(setterType);
         }
@@ -607,6 +633,21 @@ public class TypeResolverVisitor extends ScopedVisitor {
       // TODO(brianwilkerson) Report the internal error.
     }
     return null;
+  }
+
+  /**
+   * Given a type name representing the return type of a function, compute the return type of the
+   * function.
+   * 
+   * @param returnType the type name representing the return type of the function
+   * @return the return type that was computed
+   */
+  private Type computeReturnType(TypeName returnType) {
+    if (returnType == null) {
+      return dynamicType;
+    } else {
+      return returnType.getType();
+    }
   }
 
   /**
@@ -952,11 +993,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * given return type and parameter elements.
    * 
    * @param functionType the function type to be filled in
-   * @param returnType the return type of the function, or {@code null} if no type was declared
    * @param parameters the elements representing the parameters to the function
    */
-  private void setTypeInformation(FunctionTypeImpl functionType, TypeName returnType,
-      ParameterElement[] parameters) {
+  private void setTypeInformation(FunctionTypeImpl functionType, ParameterElement[] parameters) {
     ArrayList<Type> normalParameterTypes = new ArrayList<Type>();
     ArrayList<Type> optionalParameterTypes = new ArrayList<Type>();
     LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
@@ -981,11 +1020,6 @@ public class TypeResolverVisitor extends ScopedVisitor {
     }
     if (!namedParameterTypes.isEmpty()) {
       functionType.setNamedParameterTypes(namedParameterTypes);
-    }
-    if (returnType == null) {
-      functionType.setReturnType(dynamicType);
-    } else {
-      functionType.setReturnType(returnType.getType());
     }
   }
 }

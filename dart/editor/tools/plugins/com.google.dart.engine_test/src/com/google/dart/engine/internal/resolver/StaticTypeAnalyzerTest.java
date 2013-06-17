@@ -605,8 +605,8 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     ClassElementImpl classElement = classElement("C");
     String constructorName = "m";
     ConstructorElementImpl constructor = constructorElement(classElement, constructorName);
+    constructor.setReturnType(classElement.getType());
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructorType.setReturnType(classElement.getType());
     constructor.setType(constructorType);
     classElement.setConstructors(new ConstructorElement[] {constructor});
     InstanceCreationExpression node = instanceCreationExpression(
@@ -624,8 +624,8 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     ClassElementImpl elementI = classElement("I");
     ConstructorElementImpl constructor = constructorElement(elementC, null);
     elementC.setConstructors(new ConstructorElement[] {constructor});
+    constructor.setReturnType(elementC.getType());
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructorType.setReturnType(elementC.getType());
     constructor.setType(constructorType);
     TypeName typeName = typeName(elementC, typeName(elementI));
     typeName.setType(elementC.getType().substitute(new Type[] {elementI.getType()}));
@@ -642,8 +642,8 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // new C()
     ClassElementImpl classElement = classElement("C");
     ConstructorElementImpl constructor = constructorElement(classElement, null);
+    constructor.setReturnType(classElement.getType());
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructorType.setReturnType(classElement.getType());
     constructor.setType(constructorType);
     classElement.setConstructors(new ConstructorElement[] {constructor});
     InstanceCreationExpression node = instanceCreationExpression(null, typeName(classElement));

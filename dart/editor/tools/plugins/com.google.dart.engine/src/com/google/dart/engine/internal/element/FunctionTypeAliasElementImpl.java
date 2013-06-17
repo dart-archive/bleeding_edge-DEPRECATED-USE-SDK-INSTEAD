@@ -22,6 +22,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.FunctionType;
+import com.google.dart.engine.type.Type;
 
 /**
  * Instances of the class {@code FunctionTypeAliasElementImpl} implement a
@@ -34,6 +35,11 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
    * An array containing all of the parameters defined by this type alias.
    */
   private ParameterElement[] parameters = ParameterElementImpl.EMPTY_ARRAY;
+
+  /**
+   * The return type defined by this type alias.
+   */
+  private Type returnType;
 
   /**
    * The type of function defined by this type alias.
@@ -95,6 +101,11 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
   }
 
   @Override
+  public Type getReturnType() {
+    return returnType;
+  }
+
+  @Override
   public FunctionType getType() {
     return type;
   }
@@ -116,6 +127,15 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
       }
     }
     this.parameters = parameters;
+  }
+
+  /**
+   * Set the return type defined by this type alias.
+   * 
+   * @param returnType the return type defined by this type alias
+   */
+  public void setReturnType(Type returnType) {
+    this.returnType = returnType;
   }
 
   /**

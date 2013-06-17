@@ -21,6 +21,7 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 
 /**
  * The abstract class {@code ExecutableMember} defines the behavior common to members that represent
@@ -79,6 +80,11 @@ public abstract class ExecutableMember extends Member implements ExecutableEleme
       parameterizedParameters[i] = ParameterMember.from(baseParameters[i], getDefiningType());
     }
     return parameterizedParameters;
+  }
+
+  @Override
+  public Type getReturnType() {
+    return substituteFor(getBaseElement().getReturnType());
   }
 
   @Override

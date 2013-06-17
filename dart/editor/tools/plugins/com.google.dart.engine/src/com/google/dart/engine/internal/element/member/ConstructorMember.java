@@ -17,7 +17,6 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -45,7 +44,7 @@ public class ConstructorMember extends ExecutableMember implements ConstructorEl
     }
     FunctionType baseType = baseConstructor.getType();
     Type[] argumentTypes = definingType.getTypeArguments();
-    Type[] parameterTypes = TypeVariableTypeImpl.getTypes(definingType.getElement().getTypeVariables());
+    Type[] parameterTypes = definingType.getElement().getType().getTypeArguments();
     FunctionType substitutedType = baseType.substitute(argumentTypes, parameterTypes);
     if (baseType.equals(substitutedType)) {
       return baseConstructor;

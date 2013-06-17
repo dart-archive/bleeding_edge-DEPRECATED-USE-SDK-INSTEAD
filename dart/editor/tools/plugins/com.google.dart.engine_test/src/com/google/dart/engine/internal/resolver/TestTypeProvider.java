@@ -20,6 +20,8 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
+import com.google.dart.engine.internal.type.FunctionTypeImpl;
+import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -175,6 +177,7 @@ public class TestTypeProvider implements TypeProvider {
       iterableElement.setAccessors(new PropertyAccessorElement[] {//
           getterElement("iterator", false, getIteratorType().substitute(new Type[] {eType})),
           getterElement("last", false, eType),});
+      propagateTypeArguments(iterableElement);
     }
     return iterableType;
   }
@@ -186,6 +189,7 @@ public class TestTypeProvider implements TypeProvider {
       Type eType = iteratorElement.getTypeVariables()[0].getType();
       iteratorElement.setAccessors(new PropertyAccessorElement[] {//
       getterElement("current", false, eType),});
+      propagateTypeArguments(iteratorElement);
     }
     return iteratorType;
   }
@@ -205,7 +209,9 @@ public class TestTypeProvider implements TypeProvider {
           getIntType())});
       listElement.setMethods(new MethodElement[] {
           methodElement("[]", eType, getIntType()),
-          methodElement("[]=", VoidTypeImpl.getInstance(), getIntType(), eType)});
+          methodElement("[]=", VoidTypeImpl.getInstance(), getIntType(), eType),
+          methodElement("add", VoidTypeImpl.getInstance(), eType)});
+      propagateTypeArguments(listElement);
     }
     return listType;
   }
@@ -219,6 +225,7 @@ public class TestTypeProvider implements TypeProvider {
           "length",
           false,
           getIntType())});
+      propagateTypeArguments(mapElement);
     }
     return mapType;
   }
@@ -361,5 +368,27 @@ public class TestTypeProvider implements TypeProvider {
         methodElement("truncate", doubleType), methodElement("toString", stringType),
 //      methodElement(/*external static*/ "parse", doubleType, stringType),
     });
+  }
+
+  /**
+   * Given a class element representing a class with type parameters, propagate those type
+   * parameters to all of the accessors, methods and constructors defined for the class.
+   * 
+   * @param classElement the element representing the class with type parameters
+   */
+  private void propagateTypeArguments(ClassElementImpl classElement) {
+    Type[] typeArguments = TypeVariableTypeImpl.getTypes(classElement.getTypeVariables());
+    for (PropertyAccessorElement accessor : classElement.getAccessors()) {
+      FunctionTypeImpl functionType = (FunctionTypeImpl) accessor.getType();
+      functionType.setTypeArguments(typeArguments);
+    }
+    for (MethodElement method : classElement.getMethods()) {
+      FunctionTypeImpl functionType = (FunctionTypeImpl) method.getType();
+      functionType.setTypeArguments(typeArguments);
+    }
+    for (ConstructorElement constructor : classElement.getConstructors()) {
+      FunctionTypeImpl functionType = (FunctionTypeImpl) constructor.getType();
+      functionType.setTypeArguments(typeArguments);
+    }
   }
 }

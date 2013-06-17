@@ -19,6 +19,7 @@ import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.type.FunctionType;
+import com.google.dart.engine.type.Type;
 
 /**
  * The abstract class {@code ExecutableElementHandle} implements the behavior common to objects that
@@ -54,6 +55,11 @@ public abstract class ExecutableElementHandle extends ElementHandle implements E
   @Override
   public ParameterElement[] getParameters() {
     return getActualElement().getParameters();
+  }
+
+  @Override
+  public Type getReturnType() {
+    return getActualElement().getReturnType();
   }
 
   @Override

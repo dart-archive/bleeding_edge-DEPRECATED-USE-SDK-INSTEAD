@@ -299,13 +299,14 @@ public class InterfaceTypeImplTest extends EngineTestCase {
 
   public void test_getGetter_parameterized() {
     //
-    // class A<E> { E g {} }
+    // class A<E> { E get g {} }
     //
     ClassElementImpl classA = classElement("A", "E");
     Type typeE = classA.getType().getTypeArguments()[0];
     String getterName = "g";
     PropertyAccessorElement getterG = getterElement(getterName, false, typeE);
     classA.setAccessors(new PropertyAccessorElement[] {getterG});
+    ((FunctionTypeImpl) getterG.getType()).setTypeArguments(classA.getType().getTypeArguments());
     //
     // A<I>
     //
@@ -646,6 +647,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     String methodName = "m";
     MethodElementImpl methodM = methodElement(methodName, typeE, typeE);
     classA.setMethods(new MethodElement[] {methodM});
+    ((FunctionTypeImpl) methodM.getType()).setTypeArguments(classA.getType().getTypeArguments());
     //
     // A<I>
     //
@@ -733,13 +735,14 @@ public class InterfaceTypeImplTest extends EngineTestCase {
 
   public void test_getSetter_parameterized() {
     //
-    // class A<E> { s(E p) {} }
+    // class A<E> { set s(E p) {} }
     //
     ClassElementImpl classA = classElement("A", "E");
     Type typeE = classA.getType().getTypeArguments()[0];
     String setterName = "s";
     PropertyAccessorElement setterS = setterElement(setterName, false, typeE);
     classA.setAccessors(new PropertyAccessorElement[] {setterS});
+    ((FunctionTypeImpl) setterS.getType()).setTypeArguments(classA.getType().getTypeArguments());
     //
     // A<I>
     //
@@ -1297,6 +1300,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     String methodName = "m";
     MethodElementImpl methodM = methodElement(methodName, typeE, typeE);
     classA.setMethods(new MethodElement[] {methodM});
+    ((FunctionTypeImpl) methodM.getType()).setTypeArguments(classA.getType().getTypeArguments());
     ClassElementImpl classB = classElement("B", "F");
     InterfaceType typeB = classB.getType();
     InterfaceTypeImpl typeAF = new InterfaceTypeImpl(classA);

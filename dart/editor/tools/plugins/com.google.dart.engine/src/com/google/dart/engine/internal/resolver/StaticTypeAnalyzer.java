@@ -71,6 +71,7 @@ import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.internal.element.ExecutableElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
@@ -460,8 +461,10 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionExpression function = node.getFunctionExpression();
-    FunctionTypeImpl functionType = (FunctionTypeImpl) node.getElement().getType();
-    setTypeInformation(functionType, computeReturnType(node), function.getParameters());
+    ExecutableElementImpl functionElement = (ExecutableElementImpl) node.getElement();
+    functionElement.setReturnType(computeReturnType(node));
+    FunctionTypeImpl functionType = (FunctionTypeImpl) functionElement.getType();
+    setTypeInformation(functionType, function.getParameters());
     recordStaticType(function, functionType);
     return null;
   }
@@ -502,8 +505,10 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       // The function type will be resolved and set when we visit the parent node.
       return null;
     }
+    ExecutableElementImpl functionElement = (ExecutableElementImpl) node.getElement();
+    functionElement.setReturnType(computeReturnType(node));
     FunctionTypeImpl functionType = (FunctionTypeImpl) node.getElement().getType();
-    setTypeInformation(functionType, computeReturnType(node), node.getParameters());
+    setTypeInformation(functionType, node.getParameters());
     recordStaticType(node, functionType);
     return null;
   }
@@ -1643,11 +1648,9 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * given return type and parameter elements.
    * 
    * @param functionType the function type to be filled in
-   * @param returnType the return type of the function, or {@code null} if no type was declared
    * @param parameters the elements representing the parameters to the function
    */
-  private void setTypeInformation(FunctionTypeImpl functionType, Type returnType,
-      FormalParameterList parameterList) {
+  private void setTypeInformation(FunctionTypeImpl functionType, FormalParameterList parameterList) {
     ArrayList<Type> normalParameterTypes = new ArrayList<Type>();
     ArrayList<Type> optionalParameterTypes = new ArrayList<Type>();
     LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
@@ -1669,6 +1672,5 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     functionType.setNormalParameterTypes(normalParameterTypes.toArray(new Type[normalParameterTypes.size()]));
     functionType.setOptionalParameterTypes(optionalParameterTypes.toArray(new Type[optionalParameterTypes.size()]));
     functionType.setNamedParameterTypes(namedParameterTypes);
-    functionType.setReturnType(returnType);
   }
 }

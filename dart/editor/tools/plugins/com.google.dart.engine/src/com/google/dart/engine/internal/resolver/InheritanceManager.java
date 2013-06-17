@@ -22,7 +22,6 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
@@ -194,9 +193,9 @@ public class InheritanceManager {
     // loop backward through the list substituting as we go:
     InterfaceType lastType = inheritancePath.removeLast();
     while (inheritancePath.size() > 0) {
-      Type[] paramTypes = TypeVariableTypeImpl.getTypes(lastType.getElement().getTypeVariables());
-      Type[] argTypes = lastType.getTypeArguments();
-      functionTypeToReturn = functionTypeToReturn.substitute(argTypes, paramTypes);
+      Type[] parameterTypes = lastType.getElement().getType().getTypeArguments();
+      Type[] argumentTypes = lastType.getTypeArguments();
+      functionTypeToReturn = functionTypeToReturn.substitute(argumentTypes, parameterTypes);
       lastType = inheritancePath.removeLast();
     }
     return functionTypeToReturn;

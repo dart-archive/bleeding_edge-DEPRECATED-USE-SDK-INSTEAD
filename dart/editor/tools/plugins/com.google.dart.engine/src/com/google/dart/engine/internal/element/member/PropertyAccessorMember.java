@@ -18,7 +18,6 @@ import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -46,7 +45,7 @@ public class PropertyAccessorMember extends ExecutableMember implements Property
     }
     FunctionType baseType = baseAccessor.getType();
     Type[] argumentTypes = definingType.getTypeArguments();
-    Type[] parameterTypes = TypeVariableTypeImpl.getTypes(definingType.getElement().getTypeVariables());
+    Type[] parameterTypes = definingType.getElement().getType().getTypeArguments();
     FunctionType substitutedType = baseType.substitute(argumentTypes, parameterTypes);
     if (baseType.equals(substitutedType)) {
       return baseAccessor;

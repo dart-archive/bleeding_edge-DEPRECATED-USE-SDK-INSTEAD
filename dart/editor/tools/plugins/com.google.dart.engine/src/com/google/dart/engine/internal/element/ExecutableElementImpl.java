@@ -22,6 +22,7 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.FunctionType;
+import com.google.dart.engine.type.Type;
 
 /**
  * The abstract class {@code ExecutableElementImpl} implements the behavior common to
@@ -49,6 +50,11 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
    * An array containing all of the parameters defined by this executable element.
    */
   private ParameterElement[] parameters = ParameterElementImpl.EMPTY_ARRAY;
+
+  /**
+   * The return type defined by this executable element.
+   */
+  private Type returnType;
 
   /**
    * The type of function defined by this executable element.
@@ -126,6 +132,11 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
   }
 
   @Override
+  public Type getReturnType() {
+    return returnType;
+  }
+
+  @Override
   public FunctionType getType() {
     return type;
   }
@@ -181,6 +192,15 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
       ((ParameterElementImpl) parameter).setEnclosingElement(this);
     }
     this.parameters = parameters;
+  }
+
+  /**
+   * Set the return type defined by this executable element.
+   * 
+   * @param returnType the return type defined by this executable element
+   */
+  public void setReturnType(Type returnType) {
+    this.returnType = returnType;
   }
 
   /**

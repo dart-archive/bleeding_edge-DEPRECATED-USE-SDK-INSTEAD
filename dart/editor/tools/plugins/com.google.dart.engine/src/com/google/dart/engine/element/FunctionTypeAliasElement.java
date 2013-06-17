@@ -14,6 +14,7 @@
 package com.google.dart.engine.element;
 
 import com.google.dart.engine.type.FunctionType;
+import com.google.dart.engine.type.Type;
 
 /**
  * The interface {@code FunctionTypeAliasElement} defines the behavior of elements representing a
@@ -36,6 +37,13 @@ public interface FunctionTypeAliasElement extends Element {
    * @return the parameters defined by this type alias
    */
   public ParameterElement[] getParameters();
+
+  /**
+   * Return the return type defined by this type alias.
+   * 
+   * @return the return type defined by this type alias
+   */
+  public Type getReturnType();
 
   /**
    * Return the type of function defined by this type alias.

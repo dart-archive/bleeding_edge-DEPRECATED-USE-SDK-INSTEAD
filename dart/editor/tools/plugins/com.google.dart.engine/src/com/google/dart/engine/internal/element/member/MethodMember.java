@@ -17,7 +17,6 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -44,7 +43,7 @@ public class MethodMember extends ExecutableMember implements MethodElement {
     }
     FunctionType baseType = baseMethod.getType();
     Type[] argumentTypes = definingType.getTypeArguments();
-    Type[] parameterTypes = TypeVariableTypeImpl.getTypes(definingType.getElement().getTypeVariables());
+    Type[] parameterTypes = definingType.getElement().getType().getTypeArguments();
     FunctionType substitutedType = baseType.substitute(argumentTypes, parameterTypes);
     if (baseType.equals(substitutedType)) {
       return baseMethod;

@@ -78,6 +78,8 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.Type;
 
+import java.util.ArrayList;
+
 /**
  * Instances of the class {@code ElementBuilder} traverse an AST structure and build the element
  * model representing the AST structure.
@@ -104,6 +106,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
    * A flag indicating whether the class currently being visited can be used as a mixin.
    */
   private boolean isValidMixin = false;
+
+  /**
+   * A collection holding the function types defined in a class that need to have their type
+   * arguments set to the types of the type parameters for the class, or {@code null} if we are not
+   * currently processing nodes within a class.
+   */
+  private ArrayList<FunctionTypeImpl> functionTypesToFix = null;
 
   /**
    * Initialize a newly created element builder to build the elements for a compilation unit.
@@ -150,14 +159,16 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   public Void visitClassDeclaration(ClassDeclaration node) {
     ElementHolder holder = new ElementHolder();
     isValidMixin = true;
+    functionTypesToFix = new ArrayList<FunctionTypeImpl>();
     visitChildren(holder, node);
 
     SimpleIdentifier className = node.getName();
     ClassElementImpl element = new ClassElementImpl(className);
     TypeVariableElement[] typeVariables = holder.getTypeVariables();
 
+    Type[] typeArguments = createTypeVariableTypes(typeVariables);
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
-    interfaceType.setTypeArguments(createTypeVariableTypes(typeVariables));
+    interfaceType.setTypeArguments(typeArguments);
     element.setType(interfaceType);
 
     ConstructorElement[] constructors = holder.getConstructors();
@@ -175,14 +186,20 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setTypeVariables(typeVariables);
     element.setValidMixin(isValidMixin);
 
+    for (FunctionTypeImpl functionType : functionTypesToFix) {
+      functionType.setTypeArguments(typeArguments);
+    }
+    functionTypesToFix = null;
     currentHolder.addType(element);
     className.setElement(element);
+    holder.validate();
     return null;
   }
 
   @Override
   public Void visitClassTypeAlias(ClassTypeAlias node) {
     ElementHolder holder = new ElementHolder();
+    functionTypesToFix = new ArrayList<FunctionTypeImpl>();
     visitChildren(holder, node);
 
     SimpleIdentifier className = node.getName();
@@ -192,15 +209,21 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     TypeVariableElement[] typeVariables = holder.getTypeVariables();
     element.setTypeVariables(typeVariables);
 
+    Type[] typeArguments = createTypeVariableTypes(typeVariables);
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
-    interfaceType.setTypeArguments(createTypeVariableTypes(typeVariables));
+    interfaceType.setTypeArguments(typeArguments);
     element.setType(interfaceType);
 
     // set default constructor
     element.setConstructors(createDefaultConstructors(interfaceType));
 
+    for (FunctionTypeImpl functionType : functionTypesToFix) {
+      functionType.setTypeArguments(typeArguments);
+    }
+    functionTypesToFix = null;
     currentHolder.addType(element);
     className.setElement(element);
+    holder.validate();
     return null;
   }
 
@@ -237,6 +260,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     } else {
       constructorName.setElement(element);
     }
+    holder.validate();
     return null;
   }
 
@@ -296,6 +320,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     currentHolder.addParameter(parameter);
     parameterName.setElement(parameter);
     node.getParameter().accept(this);
+    holder.validate();
     return null;
   }
 
@@ -348,9 +373,6 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         element.setLocalVariables(holder.getLocalVariables());
         element.setParameters(holder.getParameters());
 
-        FunctionTypeImpl type = new FunctionTypeImpl(element);
-        element.setType(type);
-
         currentHolder.addFunction(element);
         expression.setElement(element);
         functionName.setElement(element);
@@ -399,6 +421,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
           propertyNameNode.setElement(setter);
         }
       }
+      holder.validate();
     }
     return null;
   }
@@ -429,10 +452,14 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
 
     FunctionTypeImpl type = new FunctionTypeImpl(element);
+    if (functionTypesToFix != null) {
+      functionTypesToFix.add(type);
+    }
     element.setType(type);
 
     currentHolder.addFunction(element);
     node.setElement(element);
+    holder.validate();
     return null;
   }
 
@@ -454,6 +481,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     currentHolder.addTypeAlias(element);
     aliasName.setElement(element);
+    holder.validate();
     return null;
   }
 
@@ -473,6 +501,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     ElementHolder holder = new ElementHolder();
     visitChildren(holder, node);
     ((ParameterElementImpl) node.getElement()).setParameters(holder.getParameters());
+    holder.validate();
     return null;
   }
 
@@ -564,6 +593,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         propertyNameNode.setElement(setter);
       }
     }
+    holder.validate();
     return null;
   }
 
@@ -693,6 +723,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       initializer.setLocalVariables(holder.getLocalVariables());
       initializer.setSynthetic(true);
       element.setInitializer(initializer);
+      holder.validate();
     }
     if (element instanceof PropertyInducingElementImpl) {
       PropertyInducingElementImpl variable = (PropertyInducingElementImpl) element;
@@ -731,12 +762,20 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   private ConstructorElement[] createDefaultConstructors(InterfaceTypeImpl interfaceType) {
     ConstructorElementImpl constructor = new ConstructorElementImpl(null);
     constructor.setSynthetic(true);
+    constructor.setReturnType(interfaceType);
     FunctionTypeImpl type = new FunctionTypeImpl(constructor);
-    type.setReturnType(interfaceType);
+    functionTypesToFix.add(type);
     constructor.setType(type);
     return new ConstructorElement[] {constructor};
   }
 
+  /**
+   * Create the types associated with the given type variables, setting the type of each type
+   * variable, and return an array of types corresponding to the given variables.
+   * 
+   * @param typeVariables the type variables for which types are to be created
+   * @return
+   */
   private Type[] createTypeVariableTypes(TypeVariableElement[] typeVariables) {
     int typeVariableCount = typeVariables.length;
     Type[] typeArguments = new Type[typeVariableCount];

@@ -17,7 +17,6 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
@@ -46,7 +45,7 @@ public class FieldMember extends VariableMember implements FieldElement {
       return baseField;
     }
     Type[] argumentTypes = definingType.getTypeArguments();
-    Type[] parameterTypes = TypeVariableTypeImpl.getTypes(definingType.getElement().getTypeVariables());
+    Type[] parameterTypes = definingType.getElement().getType().getTypeArguments();
     Type substitutedType = baseType.substitute(argumentTypes, parameterTypes);
     if (baseType.equals(substitutedType)) {
       return baseField;
