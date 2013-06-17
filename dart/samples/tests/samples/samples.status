@@ -59,6 +59,9 @@ swarm/swarm_test: Skip, Timeout, Fail # BUG(5633) # Added Skip because selenium 
 [ $compiler == dartanalyzer ]
 standalone/build_dart_test: Skip
 
+[ $compiler == dart2analyzer ]
+standalone/build_dart_test: Skip
+
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip

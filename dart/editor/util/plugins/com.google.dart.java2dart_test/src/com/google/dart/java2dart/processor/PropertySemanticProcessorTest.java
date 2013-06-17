@@ -17,7 +17,7 @@ package com.google.dart.java2dart.processor;
  * Test for {@link PropertySemanticProcessor}.
  */
 public class PropertySemanticProcessorTest extends SemanticProcessorTest {
-  public void test_makeProperty() throws Exception {
+  public void test_makeProperty_getSet() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
@@ -49,6 +49,42 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "    print(foo);",
         "    this.foo = 2;",
         "    print(this.foo);",
+        "  }",
+        "}");
+  }
+
+  public void test_makeProperty_isSet() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  private boolean foo;",
+        "  public boolean isFoo() {",
+        "    return foo;",
+        "  }",
+        "  public void setFoo(boolean v) {",
+        "    this.foo = v;",
+        "  }",
+        "  public void main() {",
+        "    setFoo(true);",
+        "    print(isFoo());",
+        "    this.setFoo(false);",
+        "    print(this.isFoo());",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  bool _foo = false;",
+        "  bool get isFoo => _foo;",
+        "  void set foo(bool v) {",
+        "    this._foo = v;",
+        "  }",
+        "  void main() {",
+        "    foo = true;",
+        "    print(isFoo);",
+        "    this.foo = false;",
+        "    print(this.isFoo);",
         "  }",
         "}");
   }

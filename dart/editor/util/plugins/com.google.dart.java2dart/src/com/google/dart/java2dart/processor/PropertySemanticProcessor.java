@@ -41,6 +41,21 @@ import java.util.List;
  * or setter.
  */
 public class PropertySemanticProcessor extends SemanticProcessor {
+  private static boolean hasPrefix(String name, String prefix) {
+    // should start with prefix
+    if (!name.startsWith(prefix)) {
+      return false;
+    }
+    // there should be one more character
+    int prefixLen = prefix.length();
+    if (name.length() < prefixLen + 1) {
+      return false;
+    }
+    // next character should be upper case (i.e. property name)
+    char nextChar = name.charAt(prefixLen);
+    return Character.isUpperCase(nextChar);
+  }
+
   private static boolean isValidSetterType(TypeName type) {
     return type.getName().getName().equals("void");
   }
@@ -70,8 +85,8 @@ public class PropertySemanticProcessor extends SemanticProcessor {
           String name = context.getIdentifierOriginalName(nameNode);
           List<FormalParameter> parameters = node.getParameters().getParameters();
           // getter
-          if (name.startsWith("get") && parameters.isEmpty()) {
-            String propertyName = StringUtils.uncapitalize(name.substring("get".length()));
+          if (parameters.isEmpty() && (hasPrefix(name, "get") || hasPrefix(name, "is"))) {
+            String propertyName = StringUtils.uncapitalize(StringUtils.removeStart(name, "get"));
             // rename references
             context.renameIdentifier(nameNode, propertyName);
             // replace MethodInvocation with PropertyAccess
@@ -97,9 +112,9 @@ public class PropertySemanticProcessor extends SemanticProcessor {
             node.setParameters(null);
           }
           // setter
-          if (name.startsWith("set") && parameters.size() == 1
+          if (hasPrefix(name, "set") && parameters.size() == 1
               && isValidSetterType(node.getReturnType())) {
-            String propertyName = StringUtils.uncapitalize(name.substring("set".length()));
+            String propertyName = StringUtils.uncapitalize(StringUtils.removeStart(name, "set"));
             // rename references
             context.renameIdentifier(nameNode, propertyName);
             // replace MethodInvocation with AssignmentExpression
