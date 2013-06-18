@@ -34,7 +34,6 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils;
-import com.google.dart.engine.services.internal.correction.SelectionAnalyzer;
 import com.google.dart.engine.services.internal.util.ExecutionUtils;
 import com.google.dart.engine.services.internal.util.RunnableEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
@@ -42,6 +41,7 @@ import com.google.dart.engine.services.refactoring.ExtractLocalRefactoring;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.dart.engine.services.util.SelectionAnalyzer;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;

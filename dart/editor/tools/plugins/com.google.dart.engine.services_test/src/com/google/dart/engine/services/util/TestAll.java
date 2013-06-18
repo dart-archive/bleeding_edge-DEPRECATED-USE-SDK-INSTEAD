@@ -21,6 +21,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(HierarchyUtilsTest.class);
     suite.addTestSuite(NameOccurrencesFinderTest.class);
+    suite.addTestSuite(SelectionAnalyzerTest.class);
     return suite;
   }
 }

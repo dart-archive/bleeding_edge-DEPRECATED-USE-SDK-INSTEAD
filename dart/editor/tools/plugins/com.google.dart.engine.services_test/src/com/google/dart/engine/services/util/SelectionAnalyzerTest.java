@@ -12,12 +12,13 @@
  * the License.
  */
 
-package com.google.dart.engine.services.internal.correction;
+package com.google.dart.engine.services.util;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
@@ -33,7 +34,7 @@ public class SelectionAnalyzerTest extends AbstractDartTest {
    * during running tests in OSGi.
    */
   public static class SelectionAnalyzer extends
-      com.google.dart.engine.services.internal.correction.SelectionAnalyzer {
+      com.google.dart.engine.services.util.SelectionAnalyzer {
     public SelectionAnalyzer(SourceRange selection) {
       super(selection);
     }

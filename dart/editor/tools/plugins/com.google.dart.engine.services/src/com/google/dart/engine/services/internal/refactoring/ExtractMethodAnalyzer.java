@@ -26,9 +26,9 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils;
-import com.google.dart.engine.services.internal.correction.SelectionAnalyzer;
 import com.google.dart.engine.services.internal.correction.StatementAnalyzer;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
+import com.google.dart.engine.services.util.SelectionAnalyzer;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 /**

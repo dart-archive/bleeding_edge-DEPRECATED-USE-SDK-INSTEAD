@@ -30,6 +30,7 @@ import com.google.dart.engine.services.internal.util.RunnableObjectEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
+import com.google.dart.engine.services.util.SelectionAnalyzer;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndEnd;

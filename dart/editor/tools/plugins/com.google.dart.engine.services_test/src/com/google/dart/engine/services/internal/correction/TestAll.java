@@ -20,7 +20,6 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(CorrectionUtilsTest.class);
-    suite.addTestSuite(SelectionAnalyzerTest.class);
     suite.addTestSuite(StatementAnalyzerTest.class);
     suite.addTestSuite(SourceBuilderTest.class);
     suite.addTestSuite(QuickAssistProcessorImplTest.class);
