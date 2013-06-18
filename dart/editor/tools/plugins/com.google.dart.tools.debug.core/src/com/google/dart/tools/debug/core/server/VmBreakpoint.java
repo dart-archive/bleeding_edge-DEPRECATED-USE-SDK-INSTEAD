@@ -18,10 +18,12 @@ package com.google.dart.tools.debug.core.server;
  * The representation of a VM breakpoint.
  */
 public class VmBreakpoint {
+  private VmIsolate isolate;
   private VmLocation location;
   private int breakpointId;
 
-  VmBreakpoint(VmLocation location, int breakpointId) {
+  VmBreakpoint(VmIsolate isolate, VmLocation location, int breakpointId) {
+    this.isolate = isolate;
     this.location = location;
     this.breakpointId = breakpointId;
   }
@@ -30,13 +32,17 @@ public class VmBreakpoint {
     return breakpointId;
   }
 
+  public VmIsolate getIsolate() {
+    return isolate;
+  }
+
   public VmLocation getLocation() {
     return location;
   }
 
   @Override
   public String toString() {
-    return "[breakpoint " + getBreakpointId() + "," + getLocation() + "]";
+    return "[breakpoint " + getBreakpointId() + "," + getLocation() + "," + isolate.getName() + "]";
   }
 
   protected void updateLocation(VmLocation location) {

@@ -104,6 +104,11 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   }
 
   @Override
+  public void breakpointResolved(VmIsolate isolate, VmBreakpoint breakpoint) {
+    breakpointManager.handleBreakpointResolved(isolate, breakpoint);
+  }
+
+  @Override
   public boolean canDisconnect() {
     return false;
   }

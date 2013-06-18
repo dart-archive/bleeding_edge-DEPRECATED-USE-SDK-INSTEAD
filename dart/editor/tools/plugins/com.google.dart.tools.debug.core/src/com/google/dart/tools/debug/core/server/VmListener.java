@@ -37,6 +37,15 @@ public interface VmListener {
   }
 
   /**
+   * Sent when the given breakpoint is resolved. The breakpoint can be returned with a new, updated
+   * location.
+   * 
+   * @param isolate
+   * @param breakpoint
+   */
+  public void breakpointResolved(VmIsolate isolate, VmBreakpoint breakpoint);
+
+  /**
    * Handle the connection closed event.
    * 
    * @param connection the VM connection

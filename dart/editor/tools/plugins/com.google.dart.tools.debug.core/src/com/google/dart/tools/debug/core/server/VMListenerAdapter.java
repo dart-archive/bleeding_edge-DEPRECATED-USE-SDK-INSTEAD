@@ -26,6 +26,11 @@ public abstract class VMListenerAdapter implements VmListener {
   }
 
   @Override
+  public void breakpointResolved(VmIsolate isolate, VmBreakpoint breakpoint) {
+
+  }
+
+  @Override
   public void connectionClosed(VmConnection connection) {
 
   }

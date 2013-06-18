@@ -94,8 +94,6 @@ public class VmConnection {
 
   private Map<String, VmLineNumberTable> lineNumberTableCache = new HashMap<String, VmLineNumberTable>();
 
-  protected Map<Integer, BreakpointResolvedCallback> breakpointCallbackMap = new HashMap<Integer, VmConnection.BreakpointResolvedCallback>();
-
   private Map<Integer, VmIsolate> isolateMap = new HashMap<Integer, VmIsolate>();
 
   private VmLocation currentLocation;
@@ -240,10 +238,6 @@ public class VmConnection {
 
     VmResult<VmValue> result = VmResult.createErrorResult("unimplemented");
     callback.handleResult(result);
-  }
-
-  public List<VmBreakpoint> getBreakpoints() {
-    return breakpoints;
   }
 
   public String getClassNameSync(VmObject obj) {
@@ -591,8 +585,43 @@ public class VmConnection {
     });
   }
 
+  /**
+   * Send an interrupt command to the given isolate.
+   * 
+   * @param isolate
+   * @throws IOException
+   */
   public void interrupt(VmIsolate isolate) throws IOException {
     sendSimpleCommand("interrupt", isolate.getId());
+  }
+
+  /**
+   * If the given isolate is running, send it a pause ('interrupt') command. Return an object that
+   * can be used to undo the operation. If the interrupt was already paused, no interrupt command
+   * will be sent and the returned VmInterruptResult object will represent a no-op.
+   * <p>
+   * Ex:
+   * 
+   * <pre>
+   *   VmInterruptResult interruptResult = connection.interruptConditionally(isolate);
+   *   ...do work to the now paused isolate...
+   *   interruptResult.resume();
+   * </pre>
+   * 
+   * @param isolate
+   * @return
+   * @throws IOException
+   */
+  public VmInterruptResult interruptConditionally(VmIsolate isolate) throws IOException {
+    if (!isIsolatePaused(isolate)) {
+      interrupt(isolate);
+
+      pausedIsolates.add(isolate);
+
+      return VmInterruptResult.createResumeResult(this, isolate);
+    } else {
+      return VmInterruptResult.createNoopResult(this);
+    }
   }
 
   /**
@@ -620,6 +649,8 @@ public class VmConnection {
           }
         }
       });
+
+      breakpoints.remove(breakpoint);
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
@@ -634,6 +665,8 @@ public class VmConnection {
   }
 
   /**
+   * Set a breakpoint in the given file and line.
+   * 
    * @param isolate
    * @param url
    * @param line
@@ -641,7 +674,11 @@ public class VmConnection {
    * @throws IOException
    */
   public void setBreakpoint(final VmIsolate isolate, final String url, final int line,
-      final BreakpointResolvedCallback callback) throws IOException {
+      final VmCallback<VmBreakpoint> callback) throws IOException {
+    if (!isIsolatePaused(isolate)) {
+      throw new IOException("attempt to set breakpoint on a running isolate");
+    }
+
     try {
       JSONObject request = new JSONObject();
 
@@ -653,12 +690,22 @@ public class VmConnection {
       sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject object) throws JSONException {
+          VmResult<VmBreakpoint> result = new VmResult<VmBreakpoint>();
+
           if (!object.has("error")) {
             int breakpointId = JsonUtils.getInt(object.getJSONObject("result"), "breakpointId");
 
-            if (callback != null) {
-              breakpointCallbackMap.put(breakpointId, callback);
-            }
+            VmBreakpoint breakpoint = new VmBreakpoint(isolate, null, breakpointId);
+
+            breakpoints.add(breakpoint);
+
+            result.setResult(breakpoint);
+          } else {
+            result.setError(object.getString("error"));
+          }
+
+          if (callback != null) {
+            callback.handleResult(result);
           }
         }
       });
@@ -1059,7 +1106,7 @@ public class VmConnection {
     return isolateMap.get(isolateId);
   }
 
-  private void handleBreakpointResolved(int breakpointId, VmLocation location) {
+  private void handleBreakpointResolved(VmIsolate isolate, int breakpointId, VmLocation location) {
     VmBreakpoint breakpoint = null;
 
     synchronized (breakpoints) {
@@ -1073,19 +1120,15 @@ public class VmConnection {
     }
 
     if (breakpoint == null) {
-      breakpoint = new VmBreakpoint(location, breakpointId);
+      breakpoint = new VmBreakpoint(isolate, location, breakpointId);
 
       breakpoints.add(breakpoint);
     } else {
       breakpoint.updateLocation(location);
     }
 
-    BreakpointResolvedCallback callback = breakpointCallbackMap.get(breakpointId);
-
-    if (callback != null) {
-      breakpointCallbackMap.remove(breakpointId);
-
-      callback.handleResolved(breakpoint);
+    for (VmListener listener : listeners) {
+      listener.breakpointResolved(isolate, breakpoint);
     }
   }
 
@@ -1151,7 +1194,7 @@ public class VmConnection {
         VmIsolate isolate = getCreateIsolate(isolateId);
         VmLocation location = VmLocation.createFrom(isolate, params.getJSONObject("location"));
 
-        handleBreakpointResolved(breakpointId, location);
+        handleBreakpointResolved(isolate, breakpointId, location);
       } else if (eventName.equals(EVENT_ISOLATE)) {
         // "{" event ":" isolate "," params ":" "{" reason ":" created "," id ":" Integer "}" "}"
         // "{" event ":" isolate "," params ":" "{" reason ":" shutdown "," id ":" Integer "}" "}"
