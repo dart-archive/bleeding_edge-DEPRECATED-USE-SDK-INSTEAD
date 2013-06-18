@@ -16,6 +16,13 @@ package com.google.dart.engine.internal.context;
 import com.google.dart.engine.EngineTestCase;
 
 public class AnalysisOptionsImplTest extends EngineTestCase {
+  public void test_getAudit() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    boolean value = !options.getAudit();
+    options.setAudit(value);
+    assertEquals(value, options.getAudit());
+  }
+
   public void test_getStrictMode() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     boolean value = !options.getStrictMode();

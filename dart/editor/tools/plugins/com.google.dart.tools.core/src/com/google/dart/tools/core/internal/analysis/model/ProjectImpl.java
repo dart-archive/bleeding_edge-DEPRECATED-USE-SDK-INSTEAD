@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.analysis.model;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
@@ -26,6 +27,7 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
@@ -558,7 +560,11 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       sourceFactory = new SourceFactory(dartResolver, fileResolver);
     }
 
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.setAudit(DartCoreDebug.ENABLE_AUDITS);
+
     context.setSourceFactory(sourceFactory);
+    context.setAnalysisOptions(options);
     return context;
   }
 

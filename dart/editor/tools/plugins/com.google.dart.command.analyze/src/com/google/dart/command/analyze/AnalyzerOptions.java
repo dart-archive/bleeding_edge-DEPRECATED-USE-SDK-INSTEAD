@@ -159,11 +159,23 @@ public class AnalyzerOptions {
   @Option(name = "--ignore-unrecognized-flags")
   private boolean ignoreUnrecognizedFlags;
 
+  @Option(name = "--audit",//
+  usage = "Show audit results")
+  private boolean audit = false;
+
   @Argument
   private final String sourceFile = null;
 
   public AnalyzerOptions() {
 
+  }
+
+  /**
+   * @return whether audit results (e.g. type inference based information and pub best practices)
+   *         should be reported.
+   */
+  public boolean getAudit() {
+    return audit;
   }
 
   /**

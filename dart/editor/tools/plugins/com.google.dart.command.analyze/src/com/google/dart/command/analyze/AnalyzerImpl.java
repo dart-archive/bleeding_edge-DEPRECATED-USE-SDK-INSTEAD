@@ -20,6 +20,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.ContentCache;
@@ -33,6 +34,7 @@ import com.google.dart.engine.source.UriKind;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -112,9 +114,16 @@ class AnalyzerImpl {
       sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     }
 
+    // create options for context
+    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
+    contextOptions.setAudit(options.getAudit());
+    //TODO (danrubel): Enable strict mode by default when it is ready
+    //contextOptions.setStrictMode(true);
+
     // prepare AnalysisContext
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
     context.setSourceFactory(sourceFactory);
+    context.setAnalysisOptions(contextOptions);
 
     // analyze the given file
     Source librarySource = new FileBasedSource(contentCache, sourceFile.getAbsoluteFile());
@@ -188,12 +197,7 @@ class AnalyzerImpl {
   private void getAllErrors(AnalysisContext context, Set<Source> sources, List<AnalysisError> errors) {
     for (Source source : sources) {
       AnalysisError[] sourceErrors = context.getErrors(source).getErrors();
-      for (AnalysisError error : sourceErrors) {
-        // TODO(brianwilkerson) Add an option to allow suggestions to also be displayed.
-        if (error.getErrorCode().getErrorSeverity() != ErrorSeverity.SUGGESTION) {
-          errors.add(error);
-        }
-      }
+      errors.addAll(Arrays.asList(sourceErrors));
     }
   }
 

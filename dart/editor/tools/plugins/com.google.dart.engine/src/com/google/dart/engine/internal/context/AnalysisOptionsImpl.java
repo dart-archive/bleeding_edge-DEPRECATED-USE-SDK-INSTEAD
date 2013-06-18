@@ -27,9 +27,20 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean strictMode = false;
 
   /**
+   * A flag indicating whether analysis is to generate audit results (e.g. type inference based
+   * information and pub best practices).
+   */
+  private boolean audit = false;
+
+  /**
    * Initialize a newly created set of analysis options to have their default values.
    */
   public AnalysisOptionsImpl() {
+  }
+
+  @Override
+  public boolean getAudit() {
+    return audit;
   }
 
   /**
@@ -41,6 +52,16 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   @Override
   public boolean getStrictMode() {
     return strictMode;
+  }
+
+  /**
+   * Set whether analysis is to generate audit results (e.g. type inference based information and
+   * pub best practices).
+   * 
+   * @param audit {@code true} if analysis is to generate audit results
+   */
+  public void setAudit(boolean audit) {
+    this.audit = audit;
   }
 
   /**

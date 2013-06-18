@@ -120,16 +120,20 @@ public class ErrorFormatter {
 
     int errorCount = 0;
     int warnCount = 0;
+    int suggestionCount = 0;
 
     for (AnalysisError error : errors) {
-      if (error.getErrorCode().getErrorSeverity().equals(ErrorSeverity.ERROR)) {
+      ErrorSeverity severity = error.getErrorCode().getErrorSeverity();
+      if (severity.equals(ErrorSeverity.ERROR)) {
         errorCount++;
-      } else if (error.getErrorCode().getErrorSeverity().equals(ErrorSeverity.WARNING)) {
+      } else if (severity.equals(ErrorSeverity.WARNING)) {
         if (options.getWarningsAreFatal()) {
           errorCount++;
         } else {
           warnCount++;
         }
+      } else if (severity.equals(ErrorSeverity.SUGGESTION)) {
+        suggestionCount++;
       }
 
       formatError(error);
@@ -147,6 +151,11 @@ public class ErrorFormatter {
         out.println(String.format("%d %s found.", errorCount, pluralize("error", errorCount)));
       } else if (warnCount != 0) {
         out.println(String.format("%d %s found.", warnCount, pluralize("warning", warnCount)));
+      } else if (suggestionCount != 0) {
+        out.println(String.format(
+            "%d %s found.",
+            suggestionCount,
+            pluralize("suggestion", suggestionCount)));
       } else {
         out.println("No issues found.");
       }

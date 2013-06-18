@@ -46,6 +46,7 @@ import com.google.dart.engine.internal.element.ShowElementCombinatorImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
+import com.google.dart.engine.internal.verifier.PubVerifier;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
@@ -86,6 +87,12 @@ public class LibraryResolver {
   private Library coreLibrary;
 
   /**
+   * A flag indicating whether analysis is to generate audit results (e.g. type inference based
+   * information and pub best practices).
+   */
+  private final boolean audit;
+
+  /**
    * The object used to access the types from the core library.
    */
   private TypeProvider typeProvider;
@@ -109,6 +116,7 @@ public class LibraryResolver {
     this.analysisContext = analysisContext;
     this.errorListener = new RecordingErrorListener();
     coreLibrarySource = analysisContext.getSourceFactory().forUri(DartSdk.DART_CORE);
+    audit = analysisContext.getAnalysisOptions().getAudit();
   }
 
   /**
@@ -785,9 +793,9 @@ public class LibraryResolver {
           library.getInheritanceManager());
       unit.accept(errorVerifier);
 
-      // TODO(brianwilkerson) Re-enable this once there are no more false positives and suggestions
-      // only show up where they are suppose to.
-//      unit.accept(new PubVerifier(analysisContext, errorReporter));
+      if (audit) {
+        unit.accept(new PubVerifier(analysisContext, errorReporter));
+      }
     }
   }
 }

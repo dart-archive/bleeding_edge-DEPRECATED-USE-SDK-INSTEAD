@@ -14,6 +14,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.AnalysisErrorInfoImpl;
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.internal.context.ChangeNoticeImpl;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
@@ -39,7 +40,6 @@ import java.util.Collection;
  * requested analysis.
  */
 public class MockContext implements AnalysisContext {
-
   private final class ChangedCall extends Call {
     private ChangedCall(AnalysisContext target, ChangeSet expected) {
       super(target, APPLY_CHANGES, expected);
@@ -92,6 +92,8 @@ public class MockContext implements AnalysisContext {
       return copy.isEmpty();
     }
   }
+
+  private AnalysisOptions options = new AnalysisOptionsImpl();
 
   private static final String APPLY_CHANGES = "applyChanges";
   private static final String EXTRACT_CONTEXT = "extractContext";
@@ -235,7 +237,7 @@ public class MockContext implements AnalysisContext {
 
   @Override
   public AnalysisOptions getAnalysisOptions() {
-    throw new UnsupportedOperationException();
+    return options;
   }
 
   @Override
@@ -367,7 +369,7 @@ public class MockContext implements AnalysisContext {
 
   @Override
   public void setAnalysisOptions(AnalysisOptions options) {
-    throw new UnsupportedOperationException();
+    this.options = options;
   }
 
   @Override
