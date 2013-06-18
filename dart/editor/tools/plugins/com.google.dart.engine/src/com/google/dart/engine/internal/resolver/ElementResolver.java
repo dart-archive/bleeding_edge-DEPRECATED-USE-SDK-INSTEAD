@@ -826,10 +826,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         ClassElement enclosingClass = resolver.getEnclosingClass();
         targetTypeName = enclosingClass.getDisplayName();
       } else {
-        Type targetType = getPropagatedType(target);
-        if (targetType == null) {
-          targetType = getStaticType(target);
-        }
+        Type targetType = getStaticType(target);
         targetTypeName = targetType == null ? null : targetType.getDisplayName();
       }
       resolver.reportError(
