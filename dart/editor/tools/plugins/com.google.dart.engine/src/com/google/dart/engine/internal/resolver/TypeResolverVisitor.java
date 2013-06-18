@@ -476,6 +476,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
         reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
       } else if (isTypeNameTargetInRedirectedConstructor(node)) {
         reportError(StaticWarningCode.REDIRECT_TO_NON_CLASS, typeName, typeName.getName());
+      } else if (isTypeNameInTypeArgumentList(node)) {
+        reportError(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, typeName.getName());
       } else {
         reportError(StaticWarningCode.UNDEFINED_CLASS, typeName, typeName.getName());
       }
@@ -516,6 +518,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
         reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
       } else if (isTypeNameInIsExpression(node)) {
         reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
+      } else if (isTypeNameInTypeArgumentList(node)) {
+        reportError(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, typeName.getName());
       } else {
         ASTNode parent = typeName.getParent();
         while (parent instanceof TypeName) {
@@ -837,6 +841,16 @@ public class TypeResolverVisitor extends ScopedVisitor {
       return isExpression.getType() == typeName;
     }
     return false;
+  }
+
+  /**
+   * Checks if the given type name used in a type argument list.
+   * 
+   * @param typeName the type name to analyzer
+   * @return {@code true} if the given type name is in a type argument list
+   */
+  private boolean isTypeNameInTypeArgumentList(TypeName typeName) {
+    return typeName.getParent() instanceof TypeArgumentList;
   }
 
   /**

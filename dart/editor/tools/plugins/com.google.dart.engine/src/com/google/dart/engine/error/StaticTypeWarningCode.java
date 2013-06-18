@@ -116,7 +116,8 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * 15.8 Parameterized Types: It is a static type warning if <i>A<sub>i</sub>, 1 &lt;= i &lt;=
    * n</i> does not denote a type in the enclosing lexical scope.
    */
-  NON_TYPE_AS_TYPE_ARGUMENT(""),
+  NON_TYPE_AS_TYPE_ARGUMENT(
+      "The name '%s' is not a type and cannot be used as a parameterized type"),
 
   /**
    * 7.6.2 Factories: It is a static type warning if any of the type arguments to <i>k'</i> are not

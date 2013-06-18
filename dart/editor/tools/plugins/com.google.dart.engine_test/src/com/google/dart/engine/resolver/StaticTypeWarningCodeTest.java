@@ -26,16 +26,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonTypeAsTypeArgument() throws Exception {
-    Source source = addSource(createSource(//
-        "int A;",
-        "class B<E> {}",
-        "f(B<A> b) {}"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT);
-    verify(source);
-  }
-
   public void fail_redirectWithInvalidTypeParameters() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -265,6 +255,25 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.NON_BOOL_EXPRESSION);
+    verify(source);
+  }
+
+  public void test_nonTypeAsTypeArgument_notAType() throws Exception {
+    Source source = addSource(createSource(//
+        "int A;",
+        "class B<E> {}",
+        "f(B<A> b) {}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT);
+    verify(source);
+  }
+
+  public void test_nonTypeAsTypeArgument_undefinedIdentifier() throws Exception {
+    Source source = addSource(createSource(//
+        "class B<E> {}",
+        "f(B<A> b) {}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT);
     verify(source);
   }
 
