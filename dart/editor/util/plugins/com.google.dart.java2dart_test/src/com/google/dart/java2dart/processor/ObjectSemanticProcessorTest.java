@@ -833,9 +833,40 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "class Test {",
         "  void main(String s) {",
         "    s.indexOf('1');",
-        "    s.indexOf('2', 42);",
+        "    JavaString.indexOf(s, '2', 42);",
         "    s.lastIndexOf('1');",
-        "    s.lastIndexOf('2', 42);",
+        "    JavaString.lastIndexOf(s, '2', 42);",
+        "  }",
+        "}");
+  }
+
+  /**
+   * In Java using invalid index given {@code -1}, but in Dart - exception.
+   */
+  public void test_String_indexOf_fromIndex() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public void main(String s) {",
+        "    s.indexOf(\"x\", -1);",
+        "    s.indexOf(\"x\", 10);",
+        "    s.indexOf('y', 10);",
+        "    s.lastIndexOf(\"x\", -1);",
+        "    s.lastIndexOf(\"x\", 10);",
+        "    s.lastIndexOf('y', 10);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  void main(String s) {",
+        "    JavaString.indexOf(s, \"x\", -1);",
+        "    JavaString.indexOf(s, \"x\", 10);",
+        "    JavaString.indexOf(s, 'y', 10);",
+        "    JavaString.lastIndexOf(s, \"x\", -1);",
+        "    JavaString.lastIndexOf(s, \"x\", 10);",
+        "    JavaString.lastIndexOf(s, 'y', 10);",
         "  }",
         "}");
   }

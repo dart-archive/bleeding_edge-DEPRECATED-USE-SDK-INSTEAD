@@ -266,10 +266,11 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         super.visitMethodInvocation(node);
         SimpleIdentifier nameNode = node.getMethodName();
         String name = nameNode.getName();
+        Expression target = node.getTarget();
         NodeList<Expression> args = node.getArgumentList().getArguments();
         // System -> JavaSystem
-        if (node.getTarget() instanceof SimpleIdentifier) {
-          SimpleIdentifier targetIdentifier = (SimpleIdentifier) node.getTarget();
+        if (target instanceof SimpleIdentifier) {
+          SimpleIdentifier targetIdentifier = (SimpleIdentifier) target;
           if (targetIdentifier.getName().equals("System")) {
             targetIdentifier.setToken(token("JavaSystem"));
           }
@@ -284,11 +285,11 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
               || isMethodInClass(node, "isEmpty", "java.lang.String")
               || isMethodInClass(node, "ordinal", "java.lang.Enum")
               || isMethodInClass(node, "values", "java.lang.Enum")) {
-            replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+            replaceNode(node, propertyAccess(target, nameNode));
             return null;
           }
           if ("getClass".equals(name)) {
-            replaceNode(node, propertyAccess(node.getTarget(), "runtimeType"));
+            replaceNode(node, propertyAccess(target, "runtimeType"));
             return null;
           }
           if (isMethodInClass(node, "getName", "java.lang.Class")
@@ -301,9 +302,9 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           ASTNode parent = node.getParent();
           if (parent instanceof PrefixExpression
               && ((PrefixExpression) parent).getOperator().getType() == TokenType.BANG) {
-            replaceNode(parent, binaryExpression(node.getTarget(), TokenType.BANG_EQ, args.get(0)));
+            replaceNode(parent, binaryExpression(target, TokenType.BANG_EQ, args.get(0)));
           } else {
-            replaceNode(node, binaryExpression(node.getTarget(), TokenType.EQ_EQ, args.get(0)));
+            replaceNode(node, binaryExpression(target, TokenType.EQ_EQ, args.get(0)));
           }
           return null;
         }
@@ -312,11 +313,11 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "printStackTrace", "java.lang.Throwable")) {
-          replaceNode(node, methodInvocation("print", node.getTarget()));
+          replaceNode(node, methodInvocation("print", target));
           return null;
         }
         if (isMethodInClass(node, "isInstance", "java.lang.Class")) {
-          replaceNode(node, methodInvocation("isInstanceOf", args.get(0), node.getTarget()));
+          replaceNode(node, methodInvocation("isInstanceOf", args.get(0), target));
           return null;
         }
         if (isMethodInClass(node, "charAt", "java.lang.String")) {
@@ -337,18 +338,21 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "equalsIgnoreCase", "java.lang.String")) {
-          replaceNode(
-              node,
-              methodInvocation("javaStringEqualsIgnoreCase", node.getTarget(), args.get(0)));
+          replaceNode(node, methodInvocation("javaStringEqualsIgnoreCase", target, args.get(0)));
           return null;
         }
         if (isMethodInClass(node, "indexOf", "java.lang.String")
             || isMethodInClass(node, "lastIndexOf", "java.lang.String")) {
           replaceCharWithString(args.get(0));
+          if (args.size() == 2) {
+            replaceNode(
+                node,
+                methodInvocation(identifier("JavaString"), name, target, args.get(0), args.get(1)));
+          }
           return null;
         }
         if (isMethodInClass2(node, "concat(java.lang.String)", "java.lang.String")) {
-          replaceNode(node, binaryExpression(node.getTarget(), TokenType.PLUS, args.get(0)));
+          replaceNode(node, binaryExpression(target, TokenType.PLUS, args.get(0)));
           return null;
         }
         if (isMethodInClass(node, "print", "java.io.PrintWriter")) {
@@ -374,17 +378,17 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
               methodInvocation(
                   identifier("JavaString"),
                   "startsWithBefore",
-                  node.getTarget(),
+                  target,
                   args.get(0),
                   args.get(1)));
           return null;
         }
         if (isMethodInClass(node, "format", "java.lang.String")) {
-          replaceNode(node.getTarget(), identifier("JavaString"));
+          replaceNode(target, identifier("JavaString"));
           return null;
         }
-        if (name.equals("longValue") && node.getTarget() instanceof MethodInvocation) {
-          MethodInvocation node2 = (MethodInvocation) node.getTarget();
+        if (name.equals("longValue") && target instanceof MethodInvocation) {
+          MethodInvocation node2 = (MethodInvocation) target;
           if (isMethodInClass(node2, "floor", "java.lang.Math")) {
             NodeList<Expression> args2 = node2.getArgumentList().getArguments();
             if (args2.size() == 1 && args2.get(0) instanceof BinaryExpression) {
@@ -432,7 +436,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             || isMethodInClass(node, "intValue", "java.lang.Integer")
             || isMethodInClass(node, "longValue", "java.lang.Long")
             || isMethodInClass(node, "intValue", "java.math.BigInteger")) {
-          replaceNode(node, node.getTarget());
+          replaceNode(node, target);
           return null;
         }
         if (isMethodInClass(node, "intValue", "java.lang.Number")) {
@@ -465,7 +469,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             tokenType = TokenType.GT_GT;
           }
           if (tokenType != null) {
-            replaceNode(node, binaryExpression(node.getTarget(), tokenType, args.get(0)));
+            replaceNode(node, binaryExpression(target, tokenType, args.get(0)));
             return null;
           }
         }
@@ -477,7 +481,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             tokenType = TokenType.MINUS;
           }
           if (tokenType != null) {
-            replaceNode(node, prefixExpression(tokenType, node.getTarget()));
+            replaceNode(node, prefixExpression(tokenType, target));
             return null;
           }
         }
@@ -486,17 +490,14 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "length", "java.lang.AbstractStringBuilder")) {
-          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+          replaceNode(node, propertyAccess(target, nameNode));
           return null;
         }
         if (isMethodInClass(node, "setLength", "java.lang.AbstractStringBuilder")) {
           nameNode.setToken(token("length"));
           replaceNode(
               node,
-              assignmentExpression(
-                  propertyAccess(node.getTarget(), nameNode),
-                  TokenType.EQ,
-                  args.get(0)));
+              assignmentExpression(propertyAccess(target, nameNode), TokenType.EQ, args.get(0)));
           return null;
         }
         return null;
