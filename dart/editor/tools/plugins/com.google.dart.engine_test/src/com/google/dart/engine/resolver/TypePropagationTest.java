@@ -30,6 +30,8 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.StaticTypeWarningCode;
@@ -156,9 +158,20 @@ public class TypePropagationTest extends ResolverTestCase {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
-    ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
-    SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(getTypeProvider().getIntType(), variableName.getPropagatedType());
+    NodeList<Statement> statements = body.getBlock().getStatements();
+    // Type of 'v' in declaration.
+    {
+      VariableDeclarationStatement statement = (VariableDeclarationStatement) statements.get(0);
+      SimpleIdentifier variableName = statement.getVariables().getVariables().get(0).getName();
+      assertSame(getTypeProvider().getDynamicType(), variableName.getStaticType());
+      assertSame(getTypeProvider().getIntType(), variableName.getPropagatedType());
+    }
+    // Type of 'v' in reference.
+    {
+      ReturnStatement statement = (ReturnStatement) statements.get(1);
+      SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
+      assertSame(getTypeProvider().getIntType(), variableName.getPropagatedType());
+    }
   }
 
   public void test_initializer_dereference() throws Exception {

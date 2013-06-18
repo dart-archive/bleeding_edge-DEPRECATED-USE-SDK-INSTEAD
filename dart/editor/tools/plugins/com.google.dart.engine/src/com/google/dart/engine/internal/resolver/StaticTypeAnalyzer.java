@@ -1243,7 +1243,9 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     Expression initializer = node.getInitializer();
     if (initializer != null) {
       Type rightType = getBestType(initializer);
-      VariableElement element = (VariableElement) node.getName().getElement();
+      SimpleIdentifier name = node.getName();
+      recordPropagatedType(name, rightType);
+      VariableElement element = (VariableElement) name.getElement();
       if (element != null) {
         resolver.override(element, rightType);
       }
