@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,24 +13,19 @@
  */
 package com.google.dart.tools.ui.internal.text.editor.selectionactions;
 
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.services.util.SelectionAnalyzer;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartX;
-import com.google.dart.tools.ui.internal.text.Selection;
-import com.google.dart.tools.ui.internal.text.SelectionAnalyzer;
-import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class StructureSelectionAction extends Action {
 
@@ -39,69 +34,48 @@ public abstract class StructureSelectionAction extends Action {
   public static final String ENCLOSING = "SelectEnclosingElement"; //$NON-NLS-1$
   public static final String HISTORY = "RestoreLastSelection"; //$NON-NLS-1$
 
-  protected static SourceRange getLastCoveringNodeRange(SourceRange oldSourceRange,
-      SourceReference sr, SelectionAnalyzer selAnalyzer) throws DartModelException {
-    if (selAnalyzer.getLastCoveringNode() == null) {
+  protected static SourceRange getLastCoveringNodeRange(SourceRange oldSourceRange, ASTNode sr,
+      SelectionAnalyzer selAnalyzer) {
+    if (selAnalyzer.getCoveringNode() == null) {
       return oldSourceRange;
     } else {
-      return getSelectedNodeSourceRange(sr, selAnalyzer.getLastCoveringNode());
+      return getSelectedNodeSourceRange(sr, selAnalyzer.getCoveringNode());
     }
   }
 
-  protected static SourceRange getSelectedNodeSourceRange(SourceReference sr, DartNode nodeToSelect)
-      throws DartModelException {
-    int offset = nodeToSelect.getSourceInfo().getOffset();
-    int end = Math.min(sr.getSourceRange().getLength(), nodeToSelect.getSourceInfo().getOffset()
-        + nodeToSelect.getSourceInfo().getLength() - 1);
+  protected static SourceRange getSelectedNodeSourceRange(ASTNode sr, ASTNode nodeToSelect) {
+    int offset = nodeToSelect.getOffset();
+    int end = Math.min(sr.getLength(), nodeToSelect.getOffset() + nodeToSelect.getLength());
     return createSourceRange(offset, end);
   }
 
   static SourceRange createSourceRange(int offset, int end) {
-    int length = end - offset + 1;
+    int length = end - offset;
     if (length == 0) {
       length = 1;
     }
-    return newSourceRange(Math.max(0, offset), length);
+    return new SourceRange(Math.max(0, offset), length);
   }
 
-  static int findIndex(Object[] array, Object o) {
-    for (int i = 0; i < array.length; i++) {
-      Object object = array[i];
-      if (object == o) {
-        return i;
-      }
+  static List<ASTNode> getSiblingNodes(ASTNode node) {
+    final List<ASTNode> children = new ArrayList<ASTNode>();
+    if (node.getParent() == null) {
+      children.add(node);
+      return children;
     }
-    return -1;
+    GeneralizingASTVisitor<Void> childVisitor = new GeneralizingASTVisitor<Void>() {
+      @Override
+      public Void visitNode(ASTNode node) {
+        children.add(node);
+        return null;
+      }
+    };
+    node.getParent().visitChildren(childVisitor);
+    return children;
   }
 
-  static DartNode[] getSiblingNodes(DartNode node) {
-    DartX.notYet();
-    // DartNode parent = node.getParent();
-    // StructuralPropertyDescriptor locationInParent =
-    // node.getLocationInParent();
-    // if (locationInParent.isChildListProperty()) {
-    // List siblings = (List) parent.getStructuralProperty(locationInParent);
-    // return (DartNode[]) siblings.toArray(new DartNode[siblings.size()]);
-    // }
-    return null;
-  }
-
-  static SourceRange newSourceRange(final int offset, final int length) {
-    DartX.todo();
-    return new SourceRange(offset, length);
-  }
-
-  private static SourceRange createSourceRange(ITextSelection ts) {
-    return newSourceRange(ts.getOffset(), ts.getLength());
-  }
-
-  private static DartUnit getAST(SourceReference sr) {
-    return ASTProvider.getASTProvider().getAST((DartElement) sr, ASTProvider.WAIT_YES, null);
-  }
-
-  private DartEditor fEditor;
-
-  private SelectionHistory fSelectionHistory;
+  private DartEditor editor;
+  private SelectionHistory selectionHistory;
 
   /*
    * This constructor is for testing purpose only.
@@ -114,26 +88,18 @@ public abstract class StructureSelectionAction extends Action {
     super(text);
     Assert.isNotNull(editor);
     Assert.isNotNull(history);
-    fEditor = editor;
-    fSelectionHistory = history;
+    this.editor = editor;
+    this.selectionHistory = history;
   }
 
-  public final SourceRange getNewSelectionRange(SourceRange oldSourceRange, SourceReference sr) {
-    try {
-      DartUnit root = getAST(sr);
-      if (root == null) {
-        return oldSourceRange;
-      }
-      Selection selection = Selection.createFromStartLength(
-          oldSourceRange.getOffset(),
-          oldSourceRange.getLength());
-      SelectionAnalyzer selAnalyzer = new SelectionAnalyzer(selection, true);
-      root.accept(selAnalyzer);
-      return internalGetNewSelectionRange(oldSourceRange, sr, selAnalyzer);
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e); // dialog would be too heavy here
-      return newSourceRange(oldSourceRange.getOffset(), oldSourceRange.getLength());
+  public final SourceRange getNewSelectionRange(SourceRange oldSourceRange, ASTNode node) {
+    CompilationUnit compilationUnit = editor.getInputUnit();
+    if (compilationUnit == null) {
+      return oldSourceRange;
     }
+    SelectionAnalyzer selAnalyzer = new SelectionAnalyzer(oldSourceRange);
+    compilationUnit.accept(selAnalyzer);
+    return internalGetNewSelectionRange(oldSourceRange, node, selAnalyzer);
   }
 
   /*
@@ -141,48 +107,38 @@ public abstract class StructureSelectionAction extends Action {
    */
   @Override
   public final void run() {
-    DartElement inputElement = EditorUtility.getEditorInputDartElement(fEditor, false);
-    if (!(inputElement instanceof SourceReference && inputElement.exists())) {
+    CompilationUnit compilationUnit = editor.getInputUnit();
+    if (compilationUnit == null) {
       return;
-    }
-
-    SourceReference source = (SourceReference) inputElement;
-    SourceRange sourceRange;
-    try {
-      sourceRange = source.getSourceRange();
-      if (sourceRange == null || sourceRange.getLength() == 0) {
-        MessageDialog.openInformation(
-            fEditor.getEditorSite().getShell(),
-            SelectionActionMessages.StructureSelect_error_title,
-            SelectionActionMessages.StructureSelect_error_message);
-        return;
-      }
-    } catch (DartModelException e) {
     }
     ITextSelection selection = getTextSelection();
-    SourceRange newRange = getNewSelectionRange(createSourceRange(selection), source);
+    SourceRange selectionRange = new SourceRange(selection.getOffset(), selection.getLength());
+    SourceRange newRange = getNewSelectionRange(selectionRange, compilationUnit);
     // Check if new selection differs from current selection
-    if (selection.getOffset() == newRange.getOffset()
-        && selection.getLength() == newRange.getLength()) {
+    if (selectionRange.equals(newRange)) {
       return;
     }
-    fSelectionHistory.remember(newSourceRange(selection.getOffset(), selection.getLength()));
+    selectionHistory.remember(new SourceRange(selection.getOffset(), selection.getLength()));
     try {
-      fSelectionHistory.ignoreSelectionChanges();
-      fEditor.selectAndReveal(newRange.getOffset(), newRange.getLength());
+      selectionHistory.ignoreSelectionChanges();
+      changeSelection(newRange.getOffset(), newRange.getLength());
     } finally {
-      fSelectionHistory.listenToSelectionChanges();
+      selectionHistory.listenToSelectionChanges();
     }
   }
 
+  protected void changeSelection(int offset, int len) {
+    editor.selectAndReveal(offset, len);
+  }
+
   protected final ITextSelection getTextSelection() {
-    return (ITextSelection) fEditor.getSelectionProvider().getSelection();
+    return (ITextSelection) editor.getSelectionProvider().getSelection();
   }
 
   /**
    * Subclasses determine the actual new selection.
    */
-  abstract SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, SourceReference sr,
-      SelectionAnalyzer selAnalyzer) throws DartModelException;
+  abstract SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, ASTNode node,
+      SelectionAnalyzer selAnalyzer);
 
 }

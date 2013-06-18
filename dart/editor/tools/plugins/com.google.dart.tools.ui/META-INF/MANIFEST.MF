@@ -59,6 +59,7 @@ Export-Package: com.google.dart.tools.internal.corext.codemanipulation;x-friends
    com.google.dart.tools.deploy,
    com.google.dart.tools.ui.web",
  com.google.dart.tools.ui.internal.text.editor.saveactions;x-friends:="com.google.dart.tools.ui.web",
+ com.google.dart.tools.ui.internal.text.editor.selectionactions;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.text.functions,
  com.google.dart.tools.ui.internal.util,
  com.google.dart.tools.ui.internal.viewsupport,

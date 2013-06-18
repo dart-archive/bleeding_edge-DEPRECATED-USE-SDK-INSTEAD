@@ -63,7 +63,7 @@ public class GoToNextPreviousMemberAction extends Action implements IUpdate {
   }
 
   private static SourceRange createNewSourceRange(Integer offset) {
-    return StructureSelectionAction.newSourceRange(offset.intValue(), 0);
+    return new SourceRange(offset.intValue(), 0);
   }
 
   private static Integer[] createOffsetArray(Type[] types) throws DartModelException {
@@ -81,7 +81,7 @@ public class GoToNextPreviousMemberAction extends Action implements IUpdate {
   }
 
   private static SourceRange createSourceRange(ITextSelection ts) {
-    return StructureSelectionAction.newSourceRange(ts.getOffset(), ts.getLength());
+    return new SourceRange(ts.getOffset(), ts.getLength());
   }
 
   // private static int firstOpeningBraceOffset(IInitializer iInitializer)

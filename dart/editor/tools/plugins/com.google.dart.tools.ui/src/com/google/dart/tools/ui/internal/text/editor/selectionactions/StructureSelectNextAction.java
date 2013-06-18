@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,111 +13,100 @@
  */
 package com.google.dart.tools.ui.internal.text.editor.selectionactions;
 
-import com.google.dart.compiler.ast.ASTVisitor;
-import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.services.util.SelectionAnalyzer;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
-import com.google.dart.tools.ui.internal.text.SelectionAnalyzer;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.ui.PlatformUI;
 
+import java.util.List;
+
 public class StructureSelectNextAction extends StructureSelectionAction {
 
-  private static class NextNodeAnalyzer extends ASTVisitor<Void> {
-    public static DartNode perform(int offset, DartNode lastCoveringNode) {
+  private static class NextNodeAnalyzer extends GeneralizingASTVisitor<Void> {
+
+    public static ASTNode perform(int offset, ASTNode lastCoveringNode) {
       NextNodeAnalyzer analyzer = new NextNodeAnalyzer(offset);
       lastCoveringNode.accept(analyzer);
-      return analyzer.fNextNode;
+      return analyzer.nextNode;
     }
 
-    private final int fOffset;
-
-    private DartNode fNextNode;
+    private int offset;
+    private ASTNode nextNode;
 
     private NextNodeAnalyzer(int offset) {
       super();
-      fOffset = offset;
+      this.offset = offset;
     }
 
     @Override
-    public Void visitNode(DartNode node) {
-      int start = node.getSourceInfo().getOffset();
-      int end = start + node.getSourceInfo().getLength();
-      if (start == fOffset) {
-        fNextNode = node;
+    public Void visitNode(ASTNode node) {
+      int start = node.getOffset();
+      int end = start + node.getLength();
+      if (start == offset) {
+        nextNode = node;
         super.visitNode(node);
-      } else if (start < fOffset && fOffset < end) {
+      } else if (start < offset && offset < end) {
         super.visitNode(node);
       }
       return null;
     }
   }
 
-  private static DartNode getNextNode(DartNode parent, DartNode node) {
-    DartNode[] siblingNodes = StructureSelectionAction.getSiblingNodes(node);
-    if (siblingNodes == null || siblingNodes.length == 0) {
+  private static ASTNode getNextNode(ASTNode parent, ASTNode node) {
+    List<ASTNode> siblingNodes = StructureSelectionAction.getSiblingNodes(node);
+    if (siblingNodes.size() == 0) {
       return parent;
     }
-    if (node == siblingNodes[siblingNodes.length - 1]) {
+    if (node == siblingNodes.get(siblingNodes.size() - 1)) {
       return parent;
     } else {
-      return siblingNodes[StructureSelectionAction.findIndex(siblingNodes, node) + 1];
+      return siblingNodes.get(siblingNodes.indexOf(node) + 1);
     }
-  }
-
-  /*
-   * This constructor is for testing purpose only.
-   */
-  public StructureSelectNextAction() {
   }
 
   public StructureSelectNextAction(DartEditor editor, SelectionHistory history) {
     super(SelectionActionMessages.StructureSelectNext_label, editor, history);
     setToolTipText(SelectionActionMessages.StructureSelectNext_tooltip);
     setDescription(SelectionActionMessages.StructureSelectNext_description);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(
-        this,
-        DartHelpContextIds.STRUCTURED_SELECT_NEXT_ACTION);
+    try {
+      PlatformUI.getWorkbench().getHelpSystem().setHelp(
+          this,
+          DartHelpContextIds.STRUCTURED_SELECT_ENCLOSING_ACTION);
+    } catch (IllegalStateException ex) {
+      // ignore workbench-not-created error thrown during testing
+    }
   }
 
-  /*
-   * non java doc
-   * 
-   * @see StructureSelectionAction#internalGetNewSelectionRange(SourceRange, CompilationUnit,
-   * SelectionAnalyzer)
-   */
   @Override
-  SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, SourceReference sr,
-      SelectionAnalyzer selAnalyzer) throws DartModelException {
-    if (oldSourceRange.getLength() == 0 && selAnalyzer.getLastCoveringNode() != null) {
-      DartNode previousNode = NextNodeAnalyzer.perform(
+  SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, ASTNode node,
+      SelectionAnalyzer selAnalyzer) {
+    if (oldSourceRange.getLength() == 0 && selAnalyzer.getCoveringNode() != null) {
+      ASTNode previousNode = NextNodeAnalyzer.perform(
           oldSourceRange.getOffset(),
-          selAnalyzer.getLastCoveringNode());
+          selAnalyzer.getCoveringNode());
       if (previousNode != null) {
-        return getSelectedNodeSourceRange(sr, previousNode);
+        return getSelectedNodeSourceRange(node, previousNode);
       }
     }
-    DartNode first = selAnalyzer.getFirstSelectedNode();
+    ASTNode first = selAnalyzer.getFirstSelectedNode();
     if (first == null) {
-      return getLastCoveringNodeRange(oldSourceRange, sr, selAnalyzer);
+      return getLastCoveringNodeRange(oldSourceRange, node, selAnalyzer);
     }
-
-    DartNode parent = first.getParent();
+    ASTNode parent = first.getParent();
     if (parent == null) {
-      return getLastCoveringNodeRange(oldSourceRange, sr, selAnalyzer);
+      return getLastCoveringNodeRange(oldSourceRange, node, selAnalyzer);
     }
-
-    DartNode lastSelectedNode = selAnalyzer.getSelectedNodes()[selAnalyzer.getSelectedNodes().length - 1];
-    DartNode nextNode = getNextNode(parent, lastSelectedNode);
+    ASTNode lastSelectedNode = selAnalyzer.getLastSelectedNode();
+    ASTNode nextNode = getNextNode(parent, lastSelectedNode);
     if (nextNode == parent) {
-      return getSelectedNodeSourceRange(sr, first.getParent());
+      return getSelectedNodeSourceRange(node, first.getParent());
     }
     int offset = oldSourceRange.getOffset();
-    int end = Math.min(sr.getSourceRange().getLength(), nextNode.getSourceInfo().getOffset()
-        + nextNode.getSourceInfo().getLength() - 1);
+    int end = Math.min(node.getLength(), nextNode.getOffset() + nextNode.getLength());
     return StructureSelectionAction.createSourceRange(offset, end);
   }
 }

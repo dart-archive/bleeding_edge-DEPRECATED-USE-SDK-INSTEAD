@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -25,6 +25,10 @@ import org.eclipse.ui.texteditor.IUpdate;
 public class StructureSelectHistoryAction extends Action implements IUpdate {
   private DartEditor fEditor;
   private SelectionHistory fHistory;
+
+  public StructureSelectHistoryAction() {
+    // for testing only
+  }
 
   public StructureSelectHistoryAction(DartEditor editor, SelectionHistory history) {
     super(SelectionActionMessages.StructureSelectHistory_label);

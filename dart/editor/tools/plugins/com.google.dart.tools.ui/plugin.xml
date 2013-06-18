@@ -2669,7 +2669,7 @@
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
       <key
             commandId="com.google.dart.tools.ui.edit.text.dart.quick.format"
-            sequence="M1+M2+F"
+            sequence="M1+M2+R"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
       <key
             platform="carbon"
@@ -3225,7 +3225,78 @@
             contextId="org.eclipse.ui.textEditorScope"
             sequence="M4+."
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
-            
+<!-- -->
+      <!--  win32:  M1=CTRL,    M2=SHIFT, M3=ALT, M4=-
+            carbon: M1=COMMAND, M2=SHIFT, M3=ALT, M4=CTRL -->
+      <key
+            sequence="M2+M3+ARROW_UP"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.select.enclosing"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="M2+M3+ARROW_UP"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId=""
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="CTRL+ALT+SHIFT+ARROW_UP"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.select.enclosing"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M2+M3+ARROW_RIGHT"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.select.next"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="M2+M3+ARROW_RIGHT"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId=""
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="CTRL+SHIFT+ARROW_RIGHT"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.select.next"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M2+M3+ARROW_LEFT"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.select.previous"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="M2+M3+ARROW_LEFT"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId=""
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="CTRL+SHIFT+ARROW_LEFT"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.select.previous"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="M2+M3+ARROW_DOWN"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.select.last"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="M2+M3+ARROW_DOWN"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId=""
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="CTRL+ALT+SHIFT+ARROW_DOWN"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.select.last"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+<!-- -->
    </extension>
 
    <!-- define a working copy owner for the editor -->

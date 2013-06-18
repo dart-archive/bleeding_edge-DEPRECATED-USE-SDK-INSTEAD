@@ -13,45 +13,36 @@
  */
 package com.google.dart.tools.ui.internal.text.editor.selectionactions;
 
-import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.services.util.SelectionAnalyzer;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
-import com.google.dart.tools.ui.internal.text.SelectionAnalyzer;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.ui.PlatformUI;
 
 public class StructureSelectEnclosingAction extends StructureSelectionAction {
 
-  /*
-   * This constructor is for testing purpose only.
-   */
-  public StructureSelectEnclosingAction() {
-  }
-
   public StructureSelectEnclosingAction(DartEditor editor, SelectionHistory history) {
     super(SelectionActionMessages.StructureSelectEnclosing_label, editor, history);
     setToolTipText(SelectionActionMessages.StructureSelectEnclosing_tooltip);
     setDescription(SelectionActionMessages.StructureSelectEnclosing_description);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(
-        this,
-        DartHelpContextIds.STRUCTURED_SELECT_ENCLOSING_ACTION);
+    try {
+      PlatformUI.getWorkbench().getHelpSystem().setHelp(
+          this,
+          DartHelpContextIds.STRUCTURED_SELECT_ENCLOSING_ACTION);
+    } catch (IllegalStateException ex) {
+      // ignore workbench-not-created error thrown during testing
+    }
   }
 
-  /*
-   * @see StructureSelectionAction#internalGetNewSelectionRange(SourceRange, CompilationUnit,
-   * SelectionAnalyzer)
-   */
   @Override
-  SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, SourceReference sr,
-      SelectionAnalyzer selAnalyzer) throws DartModelException {
-    DartNode first = selAnalyzer.getFirstSelectedNode();
+  SourceRange internalGetNewSelectionRange(SourceRange oldSourceRange, ASTNode node,
+      SelectionAnalyzer selAnalyzer) {
+    ASTNode first = selAnalyzer.getFirstSelectedNode();
     if (first == null || first.getParent() == null) {
-      return getLastCoveringNodeRange(oldSourceRange, sr, selAnalyzer);
+      return getLastCoveringNodeRange(oldSourceRange, node, selAnalyzer);
     }
-
-    return getSelectedNodeSourceRange(sr, first.getParent());
+    return getSelectedNodeSourceRange(node, first.getParent());
   }
 }
