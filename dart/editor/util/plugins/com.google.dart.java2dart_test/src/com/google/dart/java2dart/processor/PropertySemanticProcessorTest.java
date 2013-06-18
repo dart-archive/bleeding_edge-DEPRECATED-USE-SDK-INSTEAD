@@ -162,6 +162,44 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_makeProperty_veto() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  private boolean foo;",
+        "  public boolean isFoo() {",
+        "    return foo;",
+        "  }",
+        "  public void setFoo(boolean v) {",
+        "    this.foo = v;",
+        "  }",
+        "  public void main() {",
+        "    setFoo(true);",
+        "    print(isFoo());",
+        "    this.setFoo(false);",
+        "    print(this.isFoo());",
+        "  }",
+        "}");
+    context.addNotProperty("Ltest/Test;.isFoo()");
+    context.addNotProperty("Ltest/Test;.setFoo(Z)");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  bool _foo = false;",
+        "  bool isFoo() => _foo;",
+        "  void setFoo(bool v) {",
+        "    this._foo = v;",
+        "  }",
+        "  void main() {",
+        "    setFoo(true);",
+        "    print(isFoo());",
+        "    this.setFoo(false);",
+        "    print(this.isFoo());",
+        "  }",
+        "}");
+  }
+
   public void test_renamePrivateFields() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

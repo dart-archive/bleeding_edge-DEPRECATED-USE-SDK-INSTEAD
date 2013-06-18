@@ -86,6 +86,9 @@ public class PropertySemanticProcessor extends SemanticProcessor {
           List<FormalParameter> parameters = node.getParameters().getParameters();
           // getter
           if (parameters.isEmpty() && (hasPrefix(name, "get") || hasPrefix(name, "is"))) {
+            if (!context.canMakeProperty(nameNode)) {
+              return null;
+            }
             String propertyName = StringUtils.uncapitalize(StringUtils.removeStart(name, "get"));
             // rename references
             context.renameIdentifier(nameNode, propertyName);
@@ -114,6 +117,9 @@ public class PropertySemanticProcessor extends SemanticProcessor {
           // setter
           if (hasPrefix(name, "set") && parameters.size() == 1
               && isValidSetterType(node.getReturnType())) {
+            if (!context.canMakeProperty(nameNode)) {
+              return null;
+            }
             String propertyName = StringUtils.uncapitalize(StringUtils.removeStart(name, "set"));
             // rename references
             context.renameIdentifier(nameNode, propertyName);

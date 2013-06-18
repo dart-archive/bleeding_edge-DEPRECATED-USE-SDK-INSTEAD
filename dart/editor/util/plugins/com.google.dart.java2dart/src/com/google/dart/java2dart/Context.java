@@ -71,6 +71,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
+import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
@@ -109,6 +110,7 @@ public class Context {
   private final List<File> sourceFiles = Lists.newArrayList();
 
   private final Map<String, String> renameMap = Maps.newHashMap();
+  private final Set<String> notPropertySet = Sets.newHashSet();
 
   private final CompilationUnit dartUniverse = compilationUnit();
   private final Map<File, List<CompilationUnitMember>> fileToMembers = Maps.newHashMap();
@@ -120,7 +122,7 @@ public class Context {
   private final Map<SimpleIdentifier, String> identifierToName = Maps.newHashMap();
   private final Map<String, Object> signatureToBinding = Maps.newHashMap();
   private final Map<Object, List<SimpleIdentifier>> bindingToIdentifiers = Maps.newHashMap();
-  private final Map<ASTNode, Object> nodeToBinding = Maps.newHashMap();
+  private final Map<ASTNode, IBinding> nodeToBinding = Maps.newHashMap();
   private final Map<ASTNode, ITypeBinding> nodeToTypeBinding = Maps.newHashMap();
   private final Map<InstanceCreationExpression, ClassDeclaration> anonymousDeclarations = Maps.newHashMap();
   private final Set<SimpleIdentifier> innerClassNames = Sets.newHashSet();
@@ -151,7 +153,14 @@ public class Context {
   }
 
   /**
-   * Specifies that field with given signature should be renamed before normalizing member names.
+   * Specifies that the method with given signature should not be converted to getter/setter.
+   */
+  public void addNotProperty(String signature) {
+    notPropertySet.add(signature);
+  }
+
+  /**
+   * Specifies that method with given signature should be renamed before normalizing member names.
    */
   public void addRename(String signature, String newName) {
     renameMap.put(signature, newName);
@@ -186,6 +195,16 @@ public class Context {
     Assert.isLegal(folder.isDirectory(), "Folder '" + folder + "' is not a folder.");
     folder = folder.getAbsoluteFile();
     sourceFolders.add(folder);
+  }
+
+  /**
+   * @return {@code true} if the method with the given signature (which could be made getter or
+   *         setter) is allowed to be converted into getter/setter.
+   */
+  public boolean canMakeProperty(SimpleIdentifier identifier) {
+    IBinding binding = getNodeBinding(identifier);
+    String signature = JavaUtils.getJdtSignature(binding);
+    return !notPropertySet.contains(signature);
   }
 
   /**
@@ -549,7 +568,7 @@ public class Context {
   /**
    * @return some Java binding for the given Dart {@link ASTNode}.
    */
-  public Object getNodeBinding(ASTNode node) {
+  public IBinding getNodeBinding(ASTNode node) {
     return nodeToBinding.get(node);
   }
 
@@ -721,7 +740,7 @@ public class Context {
   /**
    * Remembers some Java binding for the given Dart {@link ASTNode}.
    */
-  void putNodeBinding(ASTNode node, Object binding) {
+  void putNodeBinding(ASTNode node, IBinding binding) {
     nodeToBinding.put(node, binding);
   }
 
@@ -742,7 +761,7 @@ public class Context {
   /**
    * Remembers that "identifier" is reference to the given Java binding.
    */
-  void putReference(SimpleIdentifier identifier, Object binding, String bindingSignature) {
+  void putReference(SimpleIdentifier identifier, IBinding binding, String bindingSignature) {
     if (binding != null) {
       signatureToBinding.put(bindingSignature, binding);
       identifierToName.put(identifier, identifier.getName());

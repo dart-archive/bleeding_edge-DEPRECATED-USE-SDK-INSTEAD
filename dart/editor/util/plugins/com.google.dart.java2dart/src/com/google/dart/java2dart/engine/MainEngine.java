@@ -171,6 +171,10 @@ public class MainEngine {
     context.addRename(
         "Lcom/google/dart/engine/html/ast/XmlTagNode;.becomeParentOf<T:Lcom/google/dart/engine/html/ast/XmlNode;>(Ljava/util/List<TT;>;Ljava/util/List<TT;>;)",
         "becomeParentOfEmpty");
+    // configure properties
+    context.addNotProperty("Lcom/google/dart/engine/parser/Parser;.isFunctionDeclaration()");
+    context.addNotProperty("Lcom/google/dart/engine/parser/Parser;.isInitializedVariableDeclaration()");
+    context.addNotProperty("Lcom/google/dart/engine/parser/Parser;.isSwitchMember()");
     // translate into single CompilationUnit
     dartUnit = context.translate();
     // run processors

@@ -24,7 +24,7 @@ class TestSource implements Source {
     throw new UnsupportedOperationException();
   }
   bool exists() => true;
-  bool isInSystemLibrary() {
+  bool get isInSystemLibrary {
     throw new UnsupportedOperationException();
   }
   Source resolve(String uri) {
