@@ -394,6 +394,48 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_convertToIsNot(initial, "is String", initial);
   }
 
+  public void test_convertToIsNotEmpty_BAD_noIsNotEmpty() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  bool get isEmpty => false;",
+        "}",
+        "f(A a) {",
+        "  !a.isEmpty;",
+        "}");
+    assert_convertToIsNotEmpty2(initial, "isEmpty;", initial);
+  }
+
+  public void test_convertToIsNotEmpty_BAD_notInPrefixExpression() throws Exception {
+    assert_convertToIsNotEmpty("str.isEmpty", "isEmpty", "str.isEmpty");
+  }
+
+  public void test_convertToIsNotEmpty_BAD_notIsEmpty() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f(int v) {",
+        "  !v.isEven;",
+        "}");
+    assert_convertToIsNotEmpty2(initial, "isEven", initial);
+  }
+
+  public void test_convertToIsNotEmpty_BAD_notNegation() throws Exception {
+    verifyNoTestUnitErrors = false;
+    assert_convertToIsNotEmpty("-str.isEmpty", "isEmpty", "-str.isEmpty");
+  }
+
+  public void test_convertToIsNotEmpty_OK_on_isEmpty() throws Exception {
+    assert_convertToIsNotEmpty("!str.isEmpty", "isEmpty", "str.isNotEmpty");
+  }
+
+  public void test_convertToIsNotEmpty_OK_on_str() throws Exception {
+    assert_convertToIsNotEmpty("!str.isEmpty", "tr.", "str.isNotEmpty");
+  }
+
+  public void test_convertToIsNotEmpty_OK_propertyAccess() throws Exception {
+    assert_convertToIsNotEmpty("!'text'.isEmpty", "isEmpty", "'text'.isNotEmpty");
+  }
+
   /**
    * We should go up only until we have same operator.
    */
@@ -1589,6 +1631,30 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     expectedSource = "var v;\nvar v2 = " + expectedSource + ";";
     assert_runProcessor(
         CorrectionKind.QA_CONVERT_INTO_IS_NOT,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_convertToIsNotEmpty(String initial, String offsetPattern, String expected)
+      throws Exception {
+    String initialSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(String str) {",
+        "  " + initial + ";",
+        "}");
+    String expectedSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(String str) {",
+        "  " + expected + ";",
+        "}");
+    assert_convertToIsNotEmpty2(initialSource, offsetPattern, expectedSource);
+  }
+
+  private void assert_convertToIsNotEmpty2(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionKind.QA_CONVERT_INTO_IS_NOT_EMPTY,
         initialSource,
         offsetPattern,
         expectedSource);

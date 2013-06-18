@@ -38,6 +38,8 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PrefixExpression;
+import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
@@ -83,6 +85,7 @@ import static com.google.dart.engine.services.correction.CorrectionKind.QA_ADD_T
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_BLOCK_BODY;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_EXPRESSION_BODY;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_IS_NOT;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_IS_NOT_EMPTY;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_EXCHANGE_OPERANDS;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_EXTRACT_CLASS;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_JOIN_VARIABLE_DECLARATION;
@@ -407,6 +410,59 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     addInsertEdit(isExpression.getIsOperator().getEnd(), "!");
     // add proposal
     addUnitCorrectionProposal(QA_CONVERT_INTO_IS_NOT);
+  }
+
+  /**
+   * Converts "!isEmpty" -> "isNotEmpty" if possible.
+   */
+  void addProposal_convertToIsNotEmpty() throws Exception {
+    // prepare "expr.isEmpty"
+    ASTNode isEmptyAccess = null;
+    SimpleIdentifier isEmptyIdentifier = null;
+    if (node instanceof SimpleIdentifier) {
+      SimpleIdentifier identifier = (SimpleIdentifier) node;
+      ASTNode parent = identifier.getParent();
+      // normal case (but rare)
+      if (parent instanceof PropertyAccess) {
+        PropertyAccess propertyAccess = (PropertyAccess) parent;
+        isEmptyIdentifier = propertyAccess.getPropertyName();
+        isEmptyAccess = propertyAccess;
+      }
+      // usual case
+      if (parent instanceof PrefixedIdentifier) {
+        PrefixedIdentifier prefixedIdentifier = (PrefixedIdentifier) parent;
+        isEmptyIdentifier = prefixedIdentifier.getIdentifier();
+        isEmptyAccess = prefixedIdentifier;
+      }
+    }
+    if (isEmptyIdentifier == null) {
+      return;
+    }
+    // should be "isEmpty"
+    Element propertyElement = isEmptyIdentifier.getElement();
+    if (propertyElement == null || !"isEmpty".equals(propertyElement.getName())) {
+      return;
+    }
+    // should have "isNotEmpty"
+    Element propertyTarget = propertyElement.getEnclosingElement();
+    if (propertyTarget == null
+        || CorrectionUtils.getChildren(propertyTarget, "isNotEmpty").isEmpty()) {
+      return;
+    }
+    // should be in PrefixExpression
+    if (!(isEmptyAccess.getParent() instanceof PrefixExpression)) {
+      return;
+    }
+    PrefixExpression prefixExpression = (PrefixExpression) isEmptyAccess.getParent();
+    // should be !
+    if (prefixExpression.getOperator().getType() != TokenType.BANG) {
+      return;
+    }
+    // do replace
+    addRemoveEdit(rangeStartStart(prefixExpression, prefixExpression.getOperand()));
+    addReplaceEdit(rangeNode(isEmptyIdentifier), "isNotEmpty");
+    // add proposal
+    addUnitCorrectionProposal(QA_CONVERT_INTO_IS_NOT_EMPTY);
   }
 
   void addProposal_exchangeOperands() throws Exception {
