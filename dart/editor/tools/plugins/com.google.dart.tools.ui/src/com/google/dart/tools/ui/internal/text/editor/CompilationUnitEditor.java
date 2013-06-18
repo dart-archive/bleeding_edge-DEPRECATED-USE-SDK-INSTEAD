@@ -484,10 +484,10 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         case '{':
           endCh = '}';
           break;
-        case '\'':
-        case '\"':
-          endCh = startCh;
-          break;
+//        case '\'':
+//        case '\"':
+//          endCh = startCh;
+//          break;
         default:
           return false;
       }
