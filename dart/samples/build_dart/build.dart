@@ -84,9 +84,10 @@ void handleCleanCommand() {
 void handleFullBuild() {
   var files = <String>[];
 
-  Directory.current.list(recursive: true).listen(
-      (FileSystemEntity entity) {
-        if (entity is File) files.add(entity.fullPathSync());
+  Directory.current.list(recursive: true).listen((entity) {
+        if (entity is File) {
+          files.add((entity as File).fullPathSync());
+        }
       },
       onDone: () => handleChangedFiles(files));
 }
