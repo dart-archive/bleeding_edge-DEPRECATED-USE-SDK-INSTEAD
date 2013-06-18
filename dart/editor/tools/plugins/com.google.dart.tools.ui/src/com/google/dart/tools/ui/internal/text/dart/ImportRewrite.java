@@ -19,10 +19,7 @@ import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.ui.ContextSensitiveImportRewriteContext;
-import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -61,18 +58,7 @@ public class ImportRewrite {
   public ImportRewrite(CompilationUnit compUnit, DartUnit dartUnit, boolean restoreExistingImports) {
 
     this.compUnit = compUnit;
-    if (dartUnit == null) {
-      try {
-        // TODO:(keertip) Get resolved ast to find and add imports
-        Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
-        this.dartUnit = DartCompilerUtilities.parseUnit(compUnit, parseErrors);
-      } catch (DartModelException e) {
-
-        DartToolsPlugin.log(e);
-      }
-    } else {
-      this.dartUnit = dartUnit;
-    }
+    this.dartUnit = dartUnit;
     this.restoreExistingImports = restoreExistingImports;
     initializeImports();
   }
@@ -117,11 +103,7 @@ public class ImportRewrite {
       DartUnit usedAstRoot = this.dartUnit;
       if (usedAstRoot == null && compUnit != null) {
         Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
-        try {
-          dartUnit = DartCompilerUtilities.parseUnit(compUnit, parseErrors);
-        } catch (DartModelException e) {
-          DartToolsPlugin.log(e);
-        }
+        dartUnit = null;
       }
 
       ImportRewriteAnalyzer computer = new ImportRewriteAnalyzer(

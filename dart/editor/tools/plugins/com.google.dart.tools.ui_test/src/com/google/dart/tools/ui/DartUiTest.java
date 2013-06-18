@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui;
@@ -25,7 +23,6 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceFileElement;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.problem.ProblemRequestor;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 import com.google.dart.tools.ui.internal.text.functions.DartHeuristicScanner;
 import com.google.dart.tools.ui.text.DartPartitions;
@@ -100,7 +97,7 @@ public class DartUiTest extends TestCase {
 
   public void testNodeFinder() throws DartModelException {
     CompilationUnit cu = getExampleCompUnit();
-    DartNode node = DartCompilerUtilities.parseUnit(cu);
+    DartNode node = null;
     // TODO stop decrementing length when parser starts including final brace
     DartNode block = NodeFinder.perform(node, BLOCK_START, BLOCK_LENGTH - 1);
     assertTrue(block instanceof DartBlock);

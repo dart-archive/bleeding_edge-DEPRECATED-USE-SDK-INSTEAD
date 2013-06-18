@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.common.collect.Lists;
-import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassTypeAlias;
@@ -54,7 +53,6 @@ import com.google.dart.tools.core.model.DartModelStatusConstants;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.problem.ProblemRequestor;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.resources.IFile;
@@ -1003,44 +1001,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       // info
       openBuffer(pm, unitInfo);
     }
-    //
-    // Generate the structure.
-    //
-    String source = getSource();
-    DartUnit unit = null;
-    try {
-      unit = DartCompilerUtilities.parseSource(
-          getElementName(),
-          source,
-          true,
-          Lists.<DartCompilationError> newArrayList());
-    } catch (Exception exception) {
-      return false;
-    }
-    if (unit == null) {
-      return false;
-    }
-    try {
-      unit.accept(new CompilationUnitStructureBuilder(this, newElements));
-    } catch (Exception exception) {
-      DartCore.logInformation("Failed to build the structure for the compilation unit "
-          + getCorrespondingResource().getLocation(), exception);
-      return false;
-    }
-    //
-    // Update the time stamp (might be IResource.NULL_STAMP if original does not
-    // exist).
-    //
-    if (underlyingResource == null) {
-      underlyingResource = getResource();
-    }
-    //
-    // The underlying resource should never be null.
-    //
-    if (underlyingResource != null) {
-      unitInfo.setTimestamp(underlyingResource.getModificationStamp());
-    }
-    return true;
+    return false;
   }
 
   @Override

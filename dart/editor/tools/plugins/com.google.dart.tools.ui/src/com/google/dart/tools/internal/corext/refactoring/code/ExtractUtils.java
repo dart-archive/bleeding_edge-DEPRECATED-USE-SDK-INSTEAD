@@ -28,17 +28,16 @@ import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.type.Type;
-import org.apache.commons.lang3.StringUtils;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
@@ -273,7 +272,7 @@ public class ExtractUtils {
   public ExtractUtils(CompilationUnit unit) throws DartModelException {
     this.unit = unit;
     this.buffer = unit.getBuffer();
-    this.unitNode = DartCompilerUtilities.resolveUnit(unit);
+    this.unitNode = null;
   }
 
   public ExtractUtils(CompilationUnit unit, DartUnit unitNode) throws DartModelException {

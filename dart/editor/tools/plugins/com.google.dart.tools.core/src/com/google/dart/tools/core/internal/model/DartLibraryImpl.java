@@ -47,10 +47,7 @@ import com.google.dart.tools.core.model.DartPart;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceUtilities;
-import com.google.dart.tools.core.utilities.io.FileUtilities;
-import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
@@ -66,7 +63,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -650,7 +646,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       return false;
     }
 
-    DartUnit unit = parseLibraryFile();
+    DartUnit unit = null;
 
     unit.accept(new SafeDartNodeTraverser<Void>() {
       @SuppressWarnings("deprecation")
@@ -1007,32 +1003,6 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
    * @return the result of parsing the file that defines this library
    */
   private DartUnit parseLibraryFile() {
-    String fileName = null;
-    try {
-      if (sourceFile != null) {
-        try {
-          fileName = sourceFile.getName();
-          return DartCompilerUtilities.parseSource(
-              fileName,
-              FileUtilities.getContents(sourceFile.getSourceReader()),
-              null);
-        } catch (FileNotFoundException exception) {
-          // Fall through to try to read from the library file. This is really ugly, but necessary
-          // because the sourceFile has already cached it's properties and therefore can't tell that
-          // it no longer exists (until a FileNotFoundException is thrown).
-        }
-      }
-      if (libraryFile != null && libraryFile.exists()) {
-        fileName = libraryFile.getName();
-        return DartCompilerUtilities.parseSource(
-            fileName,
-            IFileUtilities.getContents(libraryFile),
-            null);
-      }
-    } catch (Exception exception) {
-      DartCore.logInformation("Could not read and parse the file " + fileName, exception);
-      // Fall through to return null.
-    }
     return null;
   }
 }

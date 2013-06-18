@@ -40,7 +40,6 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
@@ -2260,28 +2259,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     DartUnit ast;
     synchronized (astCache) {
       ast = astCache.getAST();
-    }
-    if (ast == null) {
-      // There is a small chance that another thread could ask for the AST while we are computing
-      // the AST, in which case we would compute the AST twice when we don't need to.
-      try {
-        long creationTime = System.nanoTime();
-        DartElement dartElement = getInputDartElement();
-        if (dartElement != null) {
-          CompilationUnit input = dartElement.getAncestor(CompilationUnit.class);
-          if (input != null) {
-            ast = DartCompilerUtilities.resolveUnit(input);
-            if (ast != null) {
-              synchronized (astCache) {
-                astCache.setAST(creationTime, ast);
-              }
-            }
-          }
-        }
-      } catch (Throwable exception) {
-        // Catch all exceptions so that a failure to create an AST cannot stop other actions.
-        DartToolsPlugin.log(exception);
-      }
     }
     return ast;
   }

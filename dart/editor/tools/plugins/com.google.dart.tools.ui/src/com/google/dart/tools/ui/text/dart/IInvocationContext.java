@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui.text.dart;
 
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.model.CompilationUnit;
 
@@ -35,34 +33,9 @@ public interface IInvocationContext {
   AssistContext getContext();
 
   /**
-   * Returns an AST of the compilation unit, possibly only a partial AST focused on the selection
-   * offset (see {@link org.eclipse.wst.jsdt.core.dom.ASTParser#setFocalPosition(int)}). The
-   * returned AST is shared and therefore protected and cannot be modified. The client must check
-   * the AST API level and do nothing if they are given an AST they can't handle. (see
-   * {@link org.eclipse.wst.jsdt.core.dom.AST#apiLevel()}).
-   * 
-   * @return Returns the root of the AST corresponding to the current compilation unit.
-   */
-  DartUnit getOldASTRoot();
-
-  /**
    * @return Returns the current compilation unit.
    */
   CompilationUnit getOldCompilationUnit();
-
-  /**
-   * Convenience method to evaluate the AST node that is covered by the current selection.
-   * 
-   * @return Returns the node that is covered by the location of the problem
-   */
-  DartNode getOldCoveredNode();
-
-  /**
-   * Convenience method to evaluate the AST node covering the current selection.
-   * 
-   * @return Returns the node that covers the location of the problem
-   */
-  DartNode getOldCoveringNode();
 
   /**
    * @return Returns the length of the current selection

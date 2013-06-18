@@ -22,7 +22,6 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.core.search.SearchScopeFactory;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.internal.util.StringMatcher;
@@ -90,9 +89,11 @@ public class CallHierarchy {
     try {
       if (typeRoot.exists() && typeRoot.getBuffer() != null) {
         if (resolveBindings) {
-          return DartCompilerUtilities.resolveUnit(typeRoot);
+          //return DartCompilerUtilities.resolveUnit(typeRoot);
+          return null;
         } else {
-          return DartCompilerUtilities.parseUnit(typeRoot);
+          //return DartCompilerUtilities.parseUnit(typeRoot);
+          return null;
         }
       }
     } catch (DartModelException e) {

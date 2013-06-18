@@ -32,8 +32,6 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
-import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.core.utilities.resource.IResourceUtilities;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
@@ -977,17 +975,6 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
    * @return the result of parsing the file that defines this library
    */
   private DartUnit parseDartFile(IFile dartFile) {
-    String fileName = null;
-    try {
-      fileName = dartFile.getName();
-      return DartCompilerUtilities.parseSource(
-          fileName,
-          FileUtilities.getDartContents(dartFile.getLocation().toFile()),
-          null);
-    } catch (Exception exception) {
-      DartCore.logInformation("Could not read and parse the file " + fileName, exception);
-      // Fall through to return null.
-    }
     return null;
   }
 

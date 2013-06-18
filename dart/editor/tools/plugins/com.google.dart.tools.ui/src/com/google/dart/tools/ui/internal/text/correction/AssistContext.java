@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
-import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -97,14 +96,6 @@ public class AssistContext extends TextInvocationContext implements IInvocationC
     return fEditor;
   }
 
-  @Override
-  public DartUnit getOldASTRoot() {
-    if (fASTRoot == null) {
-      fASTRoot = ASTProvider.getASTProvider().getAST(fCompilationUnit, fWaitFlag, null);
-    }
-    return fASTRoot;
-  }
-
   /**
    * Returns the compilation unit.
    * 
@@ -113,22 +104,6 @@ public class AssistContext extends TextInvocationContext implements IInvocationC
   @Override
   public CompilationUnit getOldCompilationUnit() {
     return fCompilationUnit;
-  }
-
-  @Override
-  public DartNode getOldCoveredNode() {
-    if (fNodeFinder == null) {
-      fNodeFinder = NodeFinder.find(getOldASTRoot(), getOffset(), getLength());
-    }
-    return fNodeFinder.getCoveredNode();
-  }
-
-  @Override
-  public DartNode getOldCoveringNode() {
-    if (fNodeFinder == null) {
-      fNodeFinder = NodeFinder.find(getOldASTRoot(), getOffset(), getLength());
-    }
-    return fNodeFinder.getCoveringNode();
   }
 
   /**

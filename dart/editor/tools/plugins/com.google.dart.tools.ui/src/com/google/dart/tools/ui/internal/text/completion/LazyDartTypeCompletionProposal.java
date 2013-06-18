@@ -13,13 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.text.completion;
 
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.internal.corext.util.QualifiedTypeNameHistory;
 import com.google.dart.tools.ui.ContextSensitiveImportRewriteContext;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -367,33 +365,14 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
   private ImportRewrite createImportRewrite() {
     if (fCompilationUnit != null && allowAddingImports()) {
       try {
-        DartUnit cu = getASTRoot(fCompilationUnit);
-        if (cu == null) {
-          ImportRewrite rewrite = StubUtility.createImportRewrite(fCompilationUnit, true);
-          fImportContext = null;
-          return rewrite;
-        } else {
-          ImportRewrite rewrite = StubUtility.createImportRewrite(fCompilationUnit, cu, true);
-          fImportContext = new ContextSensitiveImportRewriteContext(
-              cu,
-              fInvocationContext.getInvocationOffset(),
-              rewrite);
-          return rewrite;
-        }
+        ImportRewrite rewrite = StubUtility.createImportRewrite(fCompilationUnit, true);
+        fImportContext = null;
+        return rewrite;
       } catch (CoreException x) {
         DartToolsPlugin.log(x);
       }
     }
     return null;
-  }
-
-  private DartUnit getASTRoot(CompilationUnit compilationUnit) {
-    try {
-      return DartCompilerUtilities.parseUnit(compilationUnit);
-    } catch (DartModelException ex) {
-      DartToolsPlugin.log(ex);
-      return null;
-    }
   }
 
   private boolean isDartdocProcessingEnabled() {

@@ -13,23 +13,17 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
-import com.google.dart.tools.ui.DartX;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbenchPart;
@@ -37,8 +31,6 @@ import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -376,23 +368,11 @@ public final class ASTProvider {
       aboutToBeReconciled(je);
     }
 
-    DartUnit ast = null;
+    final DartUnit ast = null;
     try {
-      ast = createAST(je, progressMonitor);
-      if (progressMonitor != null && progressMonitor.isCanceled()) {
-        ast = null;
-        if (DEBUG) {
-          System.out.println(getThreadName()
-              + " - " + DEBUG_PREFIX + "Ignore created AST for: " + je.getElementName() + " - operation has been cancelled"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        }
-      }
     } finally {
       if (isActiveElement) {
         if (fAST != null) {
-          if (DEBUG) {
-            System.out.println(getThreadName()
-                + " - " + DEBUG_PREFIX + "Ignore created AST for " + je.getElementName() + " - AST from reconciler is newer"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-          }
           reconciled(fAST, je, null);
         } else {
           reconciled(ast, je, null);
@@ -557,58 +537,6 @@ public final class ASTProvider {
     // Signal AST change
     synchronized (fWaitLock) {
       fWaitLock.notifyAll();
-    }
-  }
-
-  /**
-   * Creates a new compilation unit AST.
-   * 
-   * @param je the Java element for which to create the AST
-   * @param progressMonitor the progress monitor
-   * @return AST
-   */
-  private DartUnit createAST(final DartElement je, final IProgressMonitor progressMonitor) {
-
-    if (!hasSource(je)) {
-      return null;
-    }
-
-    if (progressMonitor != null && progressMonitor.isCanceled()) {
-      return null;
-    }
-
-    if (DEBUG) {
-      System.err.println(getThreadName()
-          + " - " + DEBUG_PREFIX + "creating AST for: " + je.getElementName()); //$NON-NLS-1$ //$NON-NLS-2$
-    }
-
-    DartX.todo();
-    try {
-
-      // TODO if we need to set these, then adjust the DartParserUtil
-      // parser.setResolveBindings(true);
-      // parser.setStatementsRecovery(SHARED_AST_STATEMENT_RECOVERY);
-      // parser.setBindingsRecovery(SHARED_BINDING_RECOVERY);
-
-      Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
-      DartUnit dartUnit = DartCompilerUtilities.resolveUnit((CompilationUnit) je, parseErrors);
-
-      // TODO Return null if there is a parse error?
-      // Or return a partially formed DartUnit?
-      //
-      // if (parseErrors.size() > 0) {
-      //  return null;
-      // }
-
-      return dartUnit;
-    } catch (DartModelException ex) {
-      IStatus status = new Status(
-          IStatus.ERROR,
-          DartUI.ID_PLUGIN,
-          IStatus.OK,
-          "Error during Dart AST creation", ex); //$NON-NLS-1$
-      DartToolsPlugin.getDefault().getLog().log(status);
-      return null;
     }
   }
 
