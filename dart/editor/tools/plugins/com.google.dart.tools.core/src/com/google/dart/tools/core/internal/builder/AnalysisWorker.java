@@ -21,9 +21,12 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.AnalysisEvent;
+import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.ContextManager;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IResource;
@@ -42,66 +45,40 @@ import java.util.ArrayList;
  */
 public class AnalysisWorker {
 
-  /**
-   * {@code Event} contains information about the compilation unit that has been resolved.
-   */
-  public class Event {
+  public class Event implements ResolvedEvent, AnalysisEvent {
     private final AnalysisContext context;
     CompilationUnit unit;
-    public Source source;
-    public IResource resource;
+    Source source;
+    IResource resource;
 
     public Event(AnalysisContext context) {
       this.context = context;
     }
 
-    /**
-     * Answer the context in which the compilation unit was resolved.
-     * 
-     * @return the context (not {@code null})
-     */
+    @Override
     public AnalysisContext getContext() {
       return context;
     }
 
-    /**
-     * Answer the resource of the compilation unit that was resolved.
-     * 
-     * @return the resource or {@code null} if the source is outside the workspace
-     */
+    @Override
+    public ContextManager getContextManager() {
+      return contextManager;
+    }
+
+    @Override
     public IResource getResource() {
       return resource;
     }
 
-    /**
-     * Answer the source of the compilation unit that was resolved.
-     * 
-     * @return the source (not {@code null})
-     */
+    @Override
     public Source getSource() {
       return source;
     }
 
-    /**
-     * Answer the compilation unit that was resolved.
-     * 
-     * @return the unit (not {@code null})
-     */
+    @Override
     public CompilationUnit getUnit() {
       return unit;
     }
-  }
-
-  /**
-   * {@code Listener} is used to notify others when a compilation unit has been resolved.
-   */
-  public interface Listener {
-    /**
-     * Called when a compilation unit has been resolved.
-     * 
-     * @param event contains information about the compilation unit that was resolved
-     */
-    void resolved(Event event);
   }
 
   /**
@@ -152,7 +129,7 @@ public class AnalysisWorker {
    * will not change, but the array itself may be replaced. Synchronize against
    * {@link #allListenersLock} before accessing this field.
    */
-  private static Listener[] allListeners = new Listener[] {};
+  private static AnalysisListener[] allListeners = new AnalysisListener[] {};
 
   /**
    * Synchronize against {@code #allListenersLock} before accessing {@link #allListeners}
@@ -164,18 +141,18 @@ public class AnalysisWorker {
    * 
    * @param listener the listener
    */
-  public static void addListener(Listener listener) {
+  public static void addListener(AnalysisListener listener) {
     if (listener == null) {
       return;
     }
     synchronized (allListenersLock) {
-      for (Listener each : allListeners) {
+      for (AnalysisListener each : allListeners) {
         if (listener == each) {
           return;
         }
       }
       int oldLen = allListeners.length;
-      Listener[] newListeners = new Listener[oldLen + 1];
+      AnalysisListener[] newListeners = new AnalysisListener[oldLen + 1];
       System.arraycopy(allListeners, 0, newListeners, 0, oldLen);
       newListeners[oldLen] = listener;
       allListeners = newListeners;
@@ -187,12 +164,12 @@ public class AnalysisWorker {
    * 
    * @param listener the listener to be removed
    */
-  public static void removeListener(Listener listener) {
+  public static void removeListener(AnalysisListener listener) {
     synchronized (allListenersLock) {
       for (int index = 0; index < allListeners.length; index++) {
         if (listener == allListeners[index]) {
           int oldLen = allListeners.length;
-          Listener[] newListeners = new Listener[oldLen - 1];
+          AnalysisListener[] newListeners = new AnalysisListener[oldLen - 1];
           System.arraycopy(allListeners, 0, newListeners, 0, index);
           System.arraycopy(allListeners, index + 1, newListeners, index, oldLen - index - 1);
           allListeners = newListeners;
@@ -257,6 +234,11 @@ public class AnalysisWorker {
    * Contains information about the compilation unit that was resolved.
    */
   private final Event event;
+
+  /**
+   * Flag to prevent log from being saturated with exceptions.
+   */
+  private static boolean exceptionLogged = false;
 
   /**
    * Construct a new instance for performing analysis which updates the
@@ -354,8 +336,8 @@ public class AnalysisWorker {
     markerManager.done();
 
     // Notify others that analysis is complete
-    if (analysisComplete && contextManager instanceof Project) {
-      projectManager.projectAnalyzed((Project) contextManager);
+    if (analysisComplete) {
+      notifyComplete();
     }
   }
 
@@ -395,6 +377,30 @@ public class AnalysisWorker {
   }
 
   /**
+   * Notify those interested that the analysis is complete.
+   */
+  private void notifyComplete() {
+    if (contextManager instanceof Project) {
+      projectManager.projectAnalyzed((Project) contextManager);
+    }
+    AnalysisListener[] currentListeners;
+    synchronized (allListenersLock) {
+      currentListeners = allListeners;
+    }
+    for (AnalysisListener listener : currentListeners) {
+      try {
+        listener.complete(event);
+      } catch (Exception e) {
+        if (!exceptionLogged) {
+          // Log at most one exception so as not to flood the log
+          exceptionLogged = true;
+          DartCore.logError("Exception notifying listener that analysis is complete", e);
+        }
+      }
+    }
+  }
+
+  /**
    * Notify those interested that a compilation unit has been resolved.
    * 
    * @param context the analysis context containing the unit that was resolved (not {@code null})
@@ -405,15 +411,23 @@ public class AnalysisWorker {
    */
   private void notifyResolved(AnalysisContext context, CompilationUnit unit, Source source,
       IResource resource) {
-    Listener[] currentListeners;
+    AnalysisListener[] currentListeners;
     synchronized (allListenersLock) {
       currentListeners = allListeners;
     }
     event.unit = unit;
     event.source = source;
     event.resource = resource;
-    for (Listener listener : currentListeners) {
-      listener.resolved(event);
+    for (AnalysisListener listener : currentListeners) {
+      try {
+        listener.resolved(event);
+      } catch (Exception e) {
+        if (!exceptionLogged) {
+          // Log at most one exception so as not to flood the log
+          exceptionLogged = true;
+          DartCore.logError("Exception notifying listener of resolved unit: " + source, e);
+        }
+      }
     }
   }
 

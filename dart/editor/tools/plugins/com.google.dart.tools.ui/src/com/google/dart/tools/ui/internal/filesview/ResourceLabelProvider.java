@@ -14,8 +14,10 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.model.ProjectEvent;
-import com.google.dart.tools.core.analysis.model.ProjectListener;
+import com.google.dart.tools.core.analysis.model.AnalysisEvent;
+import com.google.dart.tools.core.analysis.model.AnalysisListener;
+import com.google.dart.tools.core.analysis.model.ResolvedEvent;
+import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.filesystem.IFileStore;
@@ -38,7 +40,8 @@ import java.util.List;
 /**
  * Label provider for resources in the {@link FilesView}.
  */
-public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvider, ProjectListener {
+public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvider,
+    AnalysisListener {
 
   private static final String IGNORE_FILE_ICON = "icons/full/dart16/dart_excl.png"; //$NON-NLS-1$
 
@@ -68,8 +71,13 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
     listeners.add(listener);
 
     if (listeners.size() == 1) {
-      DartCore.getProjectManager().addProjectListener(this);
+      AnalysisWorker.addListener(this);
     }
+  }
+
+  @Override
+  public void complete(AnalysisEvent event) {
+    notifyListeners();
   }
 
   @Override
@@ -79,7 +87,7 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
     workbenchLabelProvider.dispose();
 
     if (listeners.size() > 0) {
-      DartCore.getProjectManager().removeProjectListener(this);
+      AnalysisWorker.removeListener(this);
     }
   }
 
@@ -224,17 +232,17 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
   }
 
   @Override
-  public void projectAnalyzed(ProjectEvent event) {
-    notifyListeners();
-  }
-
-  @Override
   public void removeListener(ILabelProviderListener listener) {
     listeners.remove(listener);
 
     if (listeners.isEmpty()) {
-      DartCore.getProjectManager().removeProjectListener(this);
+      AnalysisWorker.removeListener(this);
     }
+  }
+
+  @Override
+  public void resolved(ResolvedEvent event) {
+    // ignored
   }
 
   private void notifyListeners() {
@@ -266,5 +274,4 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
       // Ignore -- might occur if async events get dispatched after the WS is closed
     }
   }
-
 }

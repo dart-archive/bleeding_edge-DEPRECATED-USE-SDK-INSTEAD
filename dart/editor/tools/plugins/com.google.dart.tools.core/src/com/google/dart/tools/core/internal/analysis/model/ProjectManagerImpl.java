@@ -26,17 +26,19 @@ import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.AnalysisEvent;
+import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
-import com.google.dart.tools.core.internal.builder.AnalysisWorker.Event;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
@@ -73,9 +75,13 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   private final DartIgnoreManager ignoreManager;
   private final ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
 
-  private final AnalysisWorker.Listener indexNotifier = new AnalysisWorker.Listener() {
+  private final AnalysisListener indexNotifier = new AnalysisListener() {
     @Override
-    public void resolved(Event event) {
+    public void complete(AnalysisEvent event) {
+    }
+
+    @Override
+    public void resolved(ResolvedEvent event) {
       index.indexUnit(event.getContext(), event.getUnit());
     }
   };

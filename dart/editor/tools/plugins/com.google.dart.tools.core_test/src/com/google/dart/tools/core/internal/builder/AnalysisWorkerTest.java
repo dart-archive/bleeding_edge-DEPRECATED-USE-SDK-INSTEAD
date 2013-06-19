@@ -1,3 +1,16 @@
+/*
+ * Copyright 2013 Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
@@ -6,12 +19,14 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.AnalysisEvent;
+import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
-import com.google.dart.tools.core.internal.builder.AnalysisWorker.Event;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockProject;
@@ -25,6 +40,56 @@ import java.util.ArrayList;
 
 public class AnalysisWorkerTest extends TestCase {
 
+  private final class Listener implements AnalysisListener {
+    final Object lock = new Object();
+
+    @Override
+    public void complete(AnalysisEvent event) {
+      if (event.getContext() == context) {
+        synchronized (lock) {
+          completeCalled = true;
+          lock.notifyAll();
+        }
+      }
+    }
+
+    @Override
+    public void resolved(ResolvedEvent event) {
+      if (event.getContext() == context) {
+        synchronized (lock) {
+          if (!resolvedCalled) {
+            resolvedCalled = true;
+            resolvedCalledBeforeComplete = !completeCalled;
+          }
+        }
+      }
+    }
+
+    /**
+     * Wait up to the specified number of milliseconds for analysis to complete.
+     * 
+     * @param milliseconds the number of milliseconds to wait
+     * @return {@code true} if analysis was completed, else {@code false}
+     */
+    boolean waitForComplete(long milliseconds) {
+      synchronized (lock) {
+        long end = System.currentTimeMillis() + milliseconds;
+        while (!completeCalled) {
+          long delta = end - System.currentTimeMillis();
+          if (delta <= 0) {
+            return false;
+          }
+          try {
+            lock.wait(delta);
+          } catch (InterruptedException e) {
+            //$FALL-THROUGH$
+          }
+        }
+        return true;
+      }
+    }
+  }
+
   private MockWorkspace workspace;
   private MockWorkspaceRoot rootRes;
   private MockProject projectRes;
@@ -36,26 +101,25 @@ public class AnalysisWorkerTest extends TestCase {
   private AnalysisWorker worker;
   private final ArrayList<Project> analyzedProjects = new ArrayList<Project>();
 
-  private boolean resolveCalled;
-  private final AnalysisWorker.Listener listener = new AnalysisWorker.Listener() {
-    @Override
-    public void resolved(Event event) {
-      resolveCalled = true;
-    }
-  };
+  private boolean resolvedCalled = false;
+  private boolean completeCalled = false;
+  private boolean resolvedCalledBeforeComplete = false;
+  private final Listener listener = new Listener();
 
   public void test_performAnalysis() throws Exception {
     worker = new AnalysisWorker(project, context, manager, markerManager);
-    resolveCalled = false;
 
     // Perform the analysis and wait for the results to flow through the marker manager
     MockFile fileRes = addLibrary();
     worker.performAnalysis();
     markerManager.waitForMarkers(10000);
+    assertTrue(listener.waitForComplete(10000));
 
     fileRes.assertMarkersDeleted();
     assertTrue(fileRes.getMarkers().size() > 0);
-    assertTrue(resolveCalled);
+    assertTrue(resolvedCalled);
+    assertTrue(completeCalled);
+    assertTrue(resolvedCalledBeforeComplete);
     assertEquals(1, analyzedProjects.size());
     assertEquals(project, analyzedProjects.get(0));
     // TODO (danrubel): Assert no log entries once context only returns errors for added sources
@@ -63,7 +127,6 @@ public class AnalysisWorkerTest extends TestCase {
 
   public void test_performAnalysis_ignoredResource() throws Exception {
     worker = new AnalysisWorker(project, context, manager, markerManager);
-    resolveCalled = false;
 
     // Perform the analysis and wait for the results to flow through the marker manager
     MockFile fileRes = addLibrary();
@@ -71,9 +134,13 @@ public class AnalysisWorkerTest extends TestCase {
     try {
       worker.performAnalysis();
       markerManager.waitForMarkers(10000);
+      assertTrue(listener.waitForComplete(10000));
 
       fileRes.assertMarkersDeleted();
       assertTrue(fileRes.getMarkers().size() == 0);
+      assertTrue(resolvedCalled);
+      assertTrue(completeCalled);
+      assertTrue(resolvedCalledBeforeComplete);
     } finally {
       DartCore.removeFromIgnores(fileRes);
     }
@@ -81,24 +148,25 @@ public class AnalysisWorkerTest extends TestCase {
 
   public void test_performAnalysisInBackground() throws Exception {
     worker = new AnalysisWorker(project, context, manager, markerManager);
-    resolveCalled = false;
 
     // Perform the analysis and wait for the results to flow through the marker manager
     MockFile fileRes = addLibrary();
     worker.performAnalysisInBackground();
     AnalysisWorker.waitForBackgroundAnalysis(10000);
     markerManager.waitForMarkers(10000);
+    assertTrue(listener.waitForComplete(10000));
 
     fileRes.assertMarkersDeleted();
     assertTrue(fileRes.getMarkers().size() > 0);
-    assertTrue(resolveCalled);
+    assertTrue(resolvedCalled);
+    assertTrue(completeCalled);
+    assertTrue(resolvedCalledBeforeComplete);
     assertEquals(1, analyzedProjects.size());
     assertEquals(project, analyzedProjects.get(0));
   }
 
   public void test_stop() throws Exception {
     worker = new AnalysisWorker(project, context, manager, markerManager);
-    resolveCalled = false;
 
     // Perform the analysis and wait for the results to flow through the marker manager
     MockFile fileRes = addLibrary();
@@ -108,7 +176,9 @@ public class AnalysisWorkerTest extends TestCase {
 
     fileRes.assertMarkersNotDeleted();
     assertTrue(fileRes.getMarkers().size() == 0);
-    assertFalse(resolveCalled);
+    assertFalse(resolvedCalled);
+    assertFalse(completeCalled);
+    assertFalse(resolvedCalledBeforeComplete);
     assertEquals(0, analyzedProjects.size());
   }
 
