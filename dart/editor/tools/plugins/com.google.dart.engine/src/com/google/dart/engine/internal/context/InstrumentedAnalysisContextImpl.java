@@ -23,6 +23,7 @@ import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.LineInfo;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -585,6 +586,17 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
     try {
       instrumentation.metric("contextId", contextId);
       basis.setAnalysisOptions(options);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
+  public void setAnalysisPriorityOrder(List<Source> sources) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-setAnalysisPriorityOrder");
+    try {
+      instrumentation.metric("contextId", contextId);
+      basis.setAnalysisPriorityOrder(sources);
     } finally {
       instrumentation.log();
     }

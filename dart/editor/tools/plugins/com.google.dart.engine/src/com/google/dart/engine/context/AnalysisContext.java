@@ -26,6 +26,8 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.source.LineInfo;
 
+import java.util.List;
+
 /**
  * The interface {@code AnalysisContext} defines the behavior of objects that represent a context in
  * which a single analysis can be performed and incrementally maintained. The context includes such
@@ -444,6 +446,19 @@ public interface AnalysisContext {
    * @param options the set of analysis options that will control the behavior of this context
    */
   public void setAnalysisOptions(AnalysisOptions options);
+
+  /**
+   * Set the order in which sources will be analyzed by {@link #performAnalysisTask()} to match the
+   * order of the sources in the given list. If a source that needs to be analyzed is not contained
+   * in the list, then it will be treated as if it were at the end of the list. If the list is empty
+   * (or {@code null}) then no sources will be given priority over other sources.
+   * <p>
+   * Changes made to the list after this method returns will <b>not</b> be reflected in the priority
+   * order.
+   * 
+   * @param sources the sources to be given priority over other sources
+   */
+  public void setAnalysisPriorityOrder(List<Source> sources);
 
   /**
    * Set the contents of the given source to the given contents and mark the source as having

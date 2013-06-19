@@ -34,6 +34,7 @@ import org.eclipse.core.resources.IResource;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Mock {@link AnalysisContext} that validates calls and returns Mocks rather than performing the
@@ -370,6 +371,11 @@ public class MockContext implements AnalysisContext {
   @Override
   public void setAnalysisOptions(AnalysisOptions options) {
     this.options = options;
+  }
+
+  @Override
+  public void setAnalysisPriorityOrder(List<Source> sources) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
