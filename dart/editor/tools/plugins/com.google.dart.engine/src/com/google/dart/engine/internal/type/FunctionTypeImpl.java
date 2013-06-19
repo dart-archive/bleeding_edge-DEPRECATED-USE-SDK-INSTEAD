@@ -303,7 +303,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return false;
     }
 
-    // named parameter types
+    // named parameters case
     if (t.getNamedParameterTypes().size() > 0) {
       // check that the number of required parameters are equal, and check that every t_i is
       // assignable to every s_i
@@ -338,7 +338,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (s.getNamedParameterTypes().size() > 0) {
       return false;
     } else {
-      // optional parameter types
+      // positional parameter case
       int tArgLength = tTypes.length + tOpTypes.length;
       int sArgLength = sTypes.length + sOpTypes.length;
       // Check that the total number of parameters in t is greater than or equal to the number of
@@ -347,24 +347,34 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
         return false;
       }
-      // Create single arrays holding all the argument types, up to sArgLength
-      Type[] tAllTypes = new Type[sArgLength];
-      for (int i = 0; i < tTypes.length; i++) {
-        tAllTypes[i] = tTypes[i];
-      }
-      for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
-        tAllTypes[i] = tOpTypes[j];
-      }
-      Type[] sAllTypes = new Type[sArgLength];
-      for (int i = 0; i < sTypes.length; i++) {
-        sAllTypes[i] = sTypes[i];
-      }
-      for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
-        sAllTypes[i] = sOpTypes[j];
-      }
-      for (int i = 0; i < sAllTypes.length; i++) {
-        if (!sAllTypes[i].isAssignableTo(tAllTypes[i])) {
-          return false;
+      if (tOpTypes.length == 0 && sOpTypes.length == 0) {
+        // No positional arguments, don't copy contents to new array
+        for (int i = 0; i < sTypes.length; i++) {
+          if (!sTypes[i].isAssignableTo(tTypes[i])) {
+            return false;
+          }
+        }
+      } else {
+        // Else, we do have positional parameters, copy required and positional parameter types into
+        // arrays to do the compare (for loop below).
+        Type[] tAllTypes = new Type[sArgLength];
+        for (int i = 0; i < tTypes.length; i++) {
+          tAllTypes[i] = tTypes[i];
+        }
+        for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
+          tAllTypes[i] = tOpTypes[j];
+        }
+        Type[] sAllTypes = new Type[sArgLength];
+        for (int i = 0; i < sTypes.length; i++) {
+          sAllTypes[i] = sTypes[i];
+        }
+        for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
+          sAllTypes[i] = sOpTypes[j];
+        }
+        for (int i = 0; i < sAllTypes.length; i++) {
+          if (!sAllTypes[i].isAssignableTo(tAllTypes[i])) {
+            return false;
+          }
         }
       }
     }
