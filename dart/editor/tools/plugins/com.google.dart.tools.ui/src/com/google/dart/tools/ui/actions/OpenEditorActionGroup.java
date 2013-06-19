@@ -14,9 +14,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.ui.IContextMenuConstants;
-import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.DartElementSelection;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -114,17 +112,7 @@ public class OpenEditorActionGroup extends ActionGroup {
   @Override
   public void fillContextMenu(IMenuManager menu) {
     super.fillContextMenu(menu);
-    ISelection sel = getContext().getSelection();
-    if (sel instanceof DartElementSelection) {
-      DartElementSelection selection = (DartElementSelection) sel;
-      if (ActionUtil.isOpenDeclarationAvailable_OLD(selection)) {
-        fOpen.update(selection);
-        appendToGroup(menu, fOpen);
-      }
-    } else {
-      // TODO(messick): Remove this branch.
-      appendToGroup(menu, fOpen);
-    }
+    appendToGroup(menu, fOpen);
     if (!fIsEditorOwner) {
       addOpenWithMenu(menu);
     }

@@ -3,7 +3,6 @@ package com.google.dart.tools.ui.instrumentation;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.ITextSelection;
@@ -39,13 +38,6 @@ public interface UIInstrumentationBuilder extends InstrumentationBuilder {
    * @param collectionName the name of the collection of compilation units (may be {@code null})
    */
   void record(CompilationUnit[] cus, String collectionName);
-
-  /**
-   * Append information about the selection.
-   * 
-   * @param selection the selection (may be {@code null})
-   */
-  void record(DartTextSelection selection);
 
   /**
    * Append information about the resources.

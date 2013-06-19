@@ -14,16 +14,11 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
-import com.google.dart.tools.ui.internal.text.editor.DartElementSelection;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
 import org.eclipse.jface.action.Action;
 
 public class ShowSelectionLabelAction extends Action {
-
-  public void update(DartElementSelection selection) {
-    setText(ActionUtil.constructSelectionLabel(selection));
-  }
 
   public void update(DartSelection selection) {
     setText(ActionUtil.constructSelectionLabel(selection));

@@ -2109,10 +2109,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 
     ISelection selection = createElementSelection();
-    DartElementSelection elementSelection = null;
-    if (selection instanceof DartElementSelection) {
-      elementSelection = (DartElementSelection) selection;
-    }
 
     // Open Declaration action
     ActionContext context = new ActionContext(selection);

@@ -5,7 +5,6 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationLevel;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.ITextSelection;
@@ -138,23 +137,6 @@ public class UIInstrumentation {
     }
 
     @Override
-    public void record(DartTextSelection selection) {
-      if (selection == null) {
-        metric("Selection", "null");
-        return;
-      }
-
-      metric("Selection-Class", selection.getClass().toString());
-
-      metric("Selection-length", selection.getLength());
-      metric("Selection-startLine", selection.getStartLine());
-      metric("Selection-endLine", selection.getEndLine());
-      metric("Selection-offset", selection.getOffset());
-
-      data("Selection-text", selection.getText());
-    }
-
-    @Override
     public void record(IResource[] resources) {
       if (resources == null) {
         metric("resouces", "null");
@@ -175,9 +157,7 @@ public class UIInstrumentation {
         return;
       }
 
-      if (selection instanceof DartTextSelection) {
-        record((DartTextSelection) selection);
-      } else if (selection instanceof IStructuredSelection) {
+      if (selection instanceof IStructuredSelection) {
         record((IStructuredSelection) selection);
       } else if (selection instanceof ITextSelection) {
         record((ITextSelection) selection);

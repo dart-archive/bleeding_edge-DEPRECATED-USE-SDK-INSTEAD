@@ -3,7 +3,6 @@ package com.google.dart.tools.ui.actions;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
-import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.ITextSelection;
@@ -74,9 +73,6 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
     if (selection instanceof DartSelection) {
       instrumentation.record((DartSelection) selection);
       doRun((DartSelection) selection, event, instrumentation);
-    } else if (selection instanceof DartTextSelection) {
-      instrumentation.record((DartTextSelection) selection);
-      doRun((DartTextSelection) selection, event, instrumentation);
     } else if (selection instanceof IStructuredSelection) {
       instrumentation.record((IStructuredSelection) selection);
       doRun((IStructuredSelection) selection, event, instrumentation);
@@ -145,27 +141,6 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
     return fSite;
   }
 
-  public void run(DartTextSelection selection) {
-    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(this.getClass());
-    try {
-
-      if (selection != null) {
-        instrumentation.record(selection);
-      }
-
-      doRun(selection, null, instrumentation);
-      instrumentation.metric("Run", "Completed");
-
-    } catch (RuntimeException e) {
-      instrumentation.record(e);
-      throw e;
-    }
-
-    finally {
-      instrumentation.log();
-    }
-  }
-
   public void run(IStructuredSelection selection) {
     UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(this.getClass());
     try {
@@ -194,15 +169,6 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
    * @param selection the selection
    */
   public void selectionChanged(DartSelection selection) {
-    selectionChanged((ITextSelection) selection);
-  }
-
-  /**
-   * Note: This method is for internal use only. Clients should not call this method.
-   * 
-   * @param selection the selection
-   */
-  public void selectionChanged(DartTextSelection selection) {
     selectionChanged((ITextSelection) selection);
   }
 
@@ -274,11 +240,6 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
     doRun((ITextSelection) selection, event, instrumentation);
   }
 
-  protected void doRun(DartTextSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-    doRun((ITextSelection) selection, event, instrumentation);
-  }
-
   @Override
   protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     ISelection selection = getSelection();
@@ -314,8 +275,6 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
   private void dispatchSelectionChanged(ISelection selection) {
     if (selection instanceof DartSelection) {
       selectionChanged((DartSelection) selection);
-    } else if (selection instanceof DartTextSelection) {
-      selectionChanged((DartTextSelection) selection);
     } else if (selection instanceof IStructuredSelection) {
       selectionChanged((IStructuredSelection) selection);
     } else if (selection instanceof ITextSelection) {

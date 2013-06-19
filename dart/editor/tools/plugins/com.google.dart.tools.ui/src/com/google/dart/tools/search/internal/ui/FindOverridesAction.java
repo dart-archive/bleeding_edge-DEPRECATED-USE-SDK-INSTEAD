@@ -15,7 +15,6 @@ package com.google.dart.tools.search.internal.ui;
 
 import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.ui.IWorkbenchSite;
 
@@ -44,17 +43,6 @@ public class FindOverridesAction extends AbstractDartSelectionAction /* FindActi
    */
   public FindOverridesAction(IWorkbenchSite site) {
     super(site);
-  }
-
-  @Override
-  public void selectionChanged(DartTextSelection selection) {
-    // Update text of menu item to include name of element.
-//    String text = ActionUtil.constructMenuText(
-//        SearchMessages.Search_FindDeclarationsAction_template,
-//        false,
-//        selection);
-//    setText(text.toString());
-    setEnabled(true);
   }
 
   @Override

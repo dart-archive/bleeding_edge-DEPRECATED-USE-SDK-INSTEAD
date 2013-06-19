@@ -13,9 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.refactoring;
 
-import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.dom.NodeFinder;
@@ -33,7 +31,6 @@ import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
 import org.eclipse.core.resources.IResource;
@@ -400,16 +397,6 @@ public class RefactoringAvailabilityTester {
     return SourceRangeUtils.isAvailable(function.getNameRange());
   }
 
-  public static boolean isConvertGetterToMethodAvailable(DartTextSelection selection)
-      throws DartModelException {
-    DartElement[] elements = selection.resolveElementAtOffset();
-    if (elements.length != 1) {
-      return false;
-    }
-    return elements[0] instanceof DartFunction
-        && isConvertGetterToMethodAvailable((DartFunction) elements[0]);
-  }
-
   public static boolean isConvertGetterToMethodAvailable(IStructuredSelection selection)
       throws DartModelException {
     if (selection.isEmpty() || selection.size() != 1) {
@@ -526,16 +513,6 @@ public class RefactoringAvailabilityTester {
 //    }
 //    return isExtractSupertypeAvailable(new TypeMember[]{(TypeMember) element});
 //  }
-
-  public static boolean isConvertMethodToGetterAvailable(DartTextSelection selection)
-      throws DartModelException {
-    DartElement[] elements = selection.resolveElementAtOffset();
-    if (elements.length != 1) {
-      return false;
-    }
-    return elements[0] instanceof DartFunction
-        && isConvertMethodToGetterAvailable((DartFunction) elements[0]);
-  }
 
   public static boolean isConvertMethodToGetterAvailable(IStructuredSelection selection)
       throws DartModelException {
@@ -723,86 +700,6 @@ public class RefactoringAvailabilityTester {
     return unitSource.substring(optionalOpen.getOffset()).startsWith("[");
   }
 
-  public static boolean isExtractLocalAvailable(DartTextSelection selection) {
-    DartNode[] nodes = selection.resolveSelectedNodes();
-    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer())
-        && (Checks.isExtractableExpression(nodes, selection.resolveCoveringNode()) || nodes != null
-            && nodes.length == 1 && nodes[0] instanceof DartExprStmt);
-//    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer())
-//        && !selection.resolveInAnnotation()
-//        && (Checks.isExtractableExpression(nodes, selection.resolveCoveringNode()) || nodes != null
-//        && nodes.length == 1 && nodes[0] instanceof DartExprStmt);
-  }
-
-  public static boolean isExtractMethodAvailable(DartNode[] nodes) {
-    if (nodes != null && nodes.length != 0) {
-      if (nodes.length == 1) {
-        return nodes[0] instanceof DartStatement || Checks.isExtractableExpression(nodes[0]);
-      } else {
-        for (int index = 0; index < nodes.length; index++) {
-          if (!(nodes[index] instanceof DartStatement)) {
-            return false;
-          }
-        }
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public static boolean isExtractMethodAvailable(DartTextSelection selection) {
-    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer() || selection.resolveInVariableInitializer())
-        && isExtractMethodAvailable(selection.resolveSelectedNodes());
-  }
-
-  public static boolean isInlineMethodAvailable(DartTextSelection selection)
-      throws DartModelException {
-    DartElement[] elements = selection.resolveElementAtOffset();
-    if (elements.length != 1) {
-      return false;
-    }
-    return elements[0] instanceof Method && isInlineMethodAvailable((Method) elements[0]);
-    // TODO(scheglov)
-//    DartElement[] elements = selection.resolveElementAtOffset();
-//    if (elements.length != 1) {
-//      DartElement enclosingElement = selection.resolveEnclosingElement();
-//      if (!(enclosingElement instanceof TypeMember)) {
-//        return false;
-//      }
-//      CompilationUnit unit = enclosingElement.getAncestor(CompilationUnit.class);
-//      DartUnit unitNode = selection.resolvePartialAstAtOffset();
-//      if (unitNode == null) {
-//        return false;
-//      }
-//      return getInlineableMethodNode(unit, unitNode, selection.getOffset(), selection.getLength()) != null;
-//    }
-//    DartElement element = elements[0];
-//    if (!(element instanceof Method)) {
-//      return false;
-//    }
-//    Method method = (Method) element;
-//    if (!isInlineMethodAvailable(method)) {
-//      return false;
-//    }
-//
-//    // in binary class, only activate for method declarations
-//    DartElement enclosingElement = selection.resolveEnclosingElement();
-//    if (enclosingElement == null || enclosingElement.getAncestor(DartElement.CLASS_FILE) == null) {
-//      return true;
-//    }
-//    if (!(enclosingElement instanceof Method)) {
-//      return false;
-//    }
-//    Method enclosingMethod = (Method) enclosingElement;
-//    if (enclosingMethod.isConstructor()) {
-//      return false;
-//    }
-//    int nameOffset = enclosingMethod.getNameRange().getOffset();
-//    int nameLength = enclosingMethod.getNameRange().getLength();
-//    return nameOffset <= selection.getOffset()
-//        && selection.getOffset() + selection.getLength() <= nameOffset + nameLength;
-  }
-
   public static boolean isInlineMethodAvailable(IStructuredSelection selection)
       throws DartModelException {
     if (selection.isEmpty() || selection.size() != 1) {
@@ -820,16 +717,6 @@ public class RefactoringAvailabilityTester {
       return false;
     }
     return SourceRangeUtils.isAvailable(method.getNameRange());
-  }
-
-  public static boolean isInlineTempAvailable(DartTextSelection selection)
-      throws DartModelException {
-    DartElement[] elements = selection.resolveElementAtOffset();
-    if (elements.length != 1) {
-      return false;
-    }
-    return elements[0] instanceof DartVariableDeclaration
-        && isInlineTempAvailable((DartVariableDeclaration) elements[0]);
   }
 
   public static boolean isInlineTempAvailable(DartVariableDeclaration variable)

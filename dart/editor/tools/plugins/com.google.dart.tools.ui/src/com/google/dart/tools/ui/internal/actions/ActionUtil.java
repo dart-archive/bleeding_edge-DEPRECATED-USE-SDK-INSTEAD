@@ -13,10 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
-import com.google.dart.compiler.ast.DartMethodDefinition;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.visitor.ElementLocator;
@@ -36,9 +32,7 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.DartElementSelection;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
-import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
@@ -85,89 +79,6 @@ public class ActionUtil {
       }
     }
     return true;
-  }
-
-  // Unused; was needed to put selection in menu item titles.
-  public static String constructMenuText(String template, boolean isAdjectivePhrase,
-      DartTextSelection selection) {
-    StringBuffer text = new StringBuffer(template);
-    String sep = isAdjectivePhrase ? STRING_OF : STRING_SPACE;
-    try {
-      DartElement[] elements = selection.resolveElementAtOffset();
-      if (elements.length == 1) {
-        String name = elements[0].getElementName();
-        text.append(sep);
-        if (name == null) {
-          text.append(STRING_SELECTION);
-        } else if (name.length() > MAX_NAME_LENGTH) {
-          text.append(findGenericName(elements[0]));
-        } else {
-          text.append('\"');
-          text.append(name);
-          text.append('\"');
-        }
-      } else {
-        DartNode node = getResolvedNodeFromSelection(selection);
-        String src;
-        if ((node instanceof com.google.dart.compiler.ast.DartIdentifier)
-            && ((src = node.toSource()) != null)) {
-          // TODO(pquitslund): Searches that begin when this branch is taken always fail.
-          text.append(sep);
-          text.append('\"');
-          text.append(src);
-          text.append('\"');
-        } else {
-          text.append(sep);
-          text.append(STRING_SELECTION);
-        }
-      }
-    } catch (DartModelException ex) {
-      // should not happen
-      text.append(sep);
-      text.append(STRING_SELECTION);
-    }
-    return text.toString();
-  }
-
-  public static String constructSelectionLabel(DartElementSelection selection) {
-    StringBuffer text = new StringBuffer(STRING_FOR);
-    String sep = STRING_SPACE;
-    try {
-      DartElement[] elements = selection.resolveElementAtOffset();
-      if (elements.length == 1) {
-        String name = elements[0].getElementName();
-        text.append(sep);
-        if (name == null) {
-          text.append(STRING_SELECTION);
-        } else if (name.length() > MAX_NAME_LENGTH) {
-          text.append(findGenericName(elements[0]));
-        } else {
-          text.append('\"');
-          text.append(name);
-          text.append('\"');
-        }
-      } else {
-        DartNode node = getResolvedNodeFromSelection(selection);
-        String src;
-        if ((node instanceof com.google.dart.compiler.ast.DartIdentifier)
-            && ((src = node.toSource()) != null)) {
-          text.append(sep);
-          text.append('\"');
-          text.append(src);
-          text.append('\"');
-        } else {
-          text.append(sep);
-          text.append(STRING_SELECTION);
-        }
-      }
-    } catch (DartModelException ex) {
-      // should not happen
-      text.append(sep);
-      text.append(STRING_SELECTION);
-    }
-    text.append(STRING_SPACE);
-    text.append(STRING_DO);
-    return text.toString();
   }
 
   public static String constructSelectionLabel(DartSelection selection) {
@@ -371,36 +282,6 @@ public class ActionUtil {
     return true;
   }
 
-  public static boolean isFindOverridesAvailable(DartElementSelection selection) {
-    try {
-      DartNode node = null;
-      DartNode[] nodes = selection.resolveSelectedNodes();
-      if (nodes != null && nodes.length > 0) {
-        node = nodes[0];
-        if (node != null && node.getElement() != null) {
-          if (node.getParent() != null) {
-            DartNode parent = node.getParent();
-            if (parent instanceof com.google.dart.compiler.ast.DartMethodDefinition) {
-              return parent.getParent() instanceof com.google.dart.compiler.ast.DartClass;
-            }
-          }
-        }
-      }
-      if (node == null) {
-        node = selection.resolveCoveringNode();
-        if (node instanceof com.google.dart.compiler.ast.DartFunction) {
-          DartNode parent = node.getParent();
-          if (parent instanceof com.google.dart.compiler.ast.DartMethodDefinition) {
-            return parent.getParent() instanceof com.google.dart.compiler.ast.DartClass;
-          }
-        }
-      }
-    } catch (UnsupportedOperationException ex) {
-      // ignore it
-    }
-    return false;
-  }
-
   public static boolean isOnBuildPath(DartElement element) {
 
     return false;
@@ -409,49 +290,6 @@ public class ActionUtil {
   public static boolean isOnBuildPath(Element element) {
     //TODO (pquitslund): when is an element *not* on the build path?
     return true;
-  }
-
-  @Deprecated
-  public static boolean isOpenDeclarationAvailable_OLD(DartElementSelection selection) {
-    if (selection.toArray().length == 1) {
-      com.google.dart.compiler.type.Type type;
-      DartNode[] nodes = selection.resolveSelectedNodes();
-      if (nodes != null && nodes.length > 0) {
-        DartNode node = nodes[0];
-        type = node.getType();
-        if (type != null) {
-          return true;
-        }
-      }
-      DartNode node = selection.resolveCoveringNode();
-      if (node != null) {
-        type = node.getType();
-        if (type != null) {
-          return true;
-        }
-        try {
-          if (node.getElement() != null && node.getElement().getType() != null) {
-            if (node.getParent() != null) {
-              DartNode parent = node.getParent().getParent();
-              // No need to "Open" a declaration if that's what is selected.
-              if (parent == null || parent instanceof DartUnit) {
-                return false;
-              }
-              if (parent instanceof com.google.dart.compiler.ast.DartFieldDefinition) {
-                return false;
-              }
-              if (parent instanceof com.google.dart.compiler.ast.DartMethodDefinition) {
-                return false;
-              }
-            }
-            return true;
-          }
-        } catch (UnsupportedOperationException ex) {
-          // ignore it
-        }
-      }
-    }
-    return false;
   }
 
   public static boolean isOpenHierarchyAvailable(DartSelection selection) {
@@ -525,29 +363,6 @@ public class ActionUtil {
         ActionMessages.ActionUtil_not_possible,
         ActionMessages.ActionUtil_no_linked);
     return true;
-  }
-
-  private static DartNode getResolvedNodeFromSelection(DartTextSelection selection) {
-    DartNode node = null;
-    DartNode[] nodes = selection.resolveSelectedNodes();
-    if (nodes != null && nodes.length > 0) {
-      node = nodes[0];
-    }
-    if (node == null) {
-      node = selection.resolveCoveringNode();
-      if (node instanceof com.google.dart.compiler.ast.DartFunction) {
-        if (node.getParent() instanceof DartMethodDefinition) {
-          node = ((DartMethodDefinition) node.getParent()).getName();
-        }
-      }
-    } else if (node instanceof com.google.dart.compiler.ast.DartField) {
-      com.google.dart.compiler.ast.DartField field = (com.google.dart.compiler.ast.DartField) node;
-      SourceInfo info = field.getSourceInfo();
-      if (info.getOffset() == selection.getOffset() & info.getLength() == selection.getLength()) {
-        return field.getName();
-      }
-    }
-    return node;
   }
 
   private ActionUtil() {

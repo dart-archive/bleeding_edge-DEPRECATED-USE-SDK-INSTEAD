@@ -372,39 +372,6 @@ public class DartElementLabels {
   }
 
   /**
-   * Returns a label for Dart element name.
-   * 
-   * @param name the Dart element name.
-   * @return the label for the Dart element
-   */
-  public static String getDartElementName(String name) {
-    return Strings.markDartElementLabelLTR(name);
-  }
-
-//  /**
-//   * Returns the label of a classpath container
-//   * 
-//   * @param containerPath The path of the container.
-//   * @param project The project the container is resolved in.
-//   * @return Returns the label of the classpath container
-//   * @throws DartModelException Thrown when the resolving of the container
-//   *           failed.
-//   */
-//  public static String getContainerEntryLabel(IPath containerPath,
-//      DartProject project) throws DartModelException {
-//    IJsGlobalScopeContainer container = JavaScriptCore.getJsGlobalScopeContainer(
-//        containerPath, project);
-//    if (container != null) {
-//      return container.getDescription();
-//    }
-//    JsGlobalScopeContainerInitializer initializer = JavaScriptCore.getJsGlobalScopeContainerInitializer(containerPath.segment(0));
-//    if (initializer != null) {
-//      return initializer.getDescription(containerPath, project);
-//    }
-//    return containerPath.toString();
-//  }
-
-  /**
    * Appends the label for a import container, import or package declaration to a
    * {@link StringBuffer}. Considers the D_* flags.
    * 

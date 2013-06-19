@@ -14,9 +14,6 @@
 package com.google.dart.tools.internal.corext.refactoring;
 
 import com.google.common.collect.Sets;
-import com.google.dart.compiler.ast.DartExpression;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartConventions;
@@ -521,175 +518,12 @@ public class Checks {
     return true;
   }
 
-  // TODO(scheglov) write JavaDoc
-  public static boolean isExtractableExpression(DartNode node) {
-    if (!(node instanceof DartExpression)) {
-      return false;
-    }
-    if (node.getElement() instanceof VariableElement) {
-      return true;
-    }
-//    if (node instanceof Name) {
-//      IBinding binding= ((Name) node).resolveBinding();
-//      return binding == null || binding instanceof IVariableBinding;
-//    }
-    return true;
-  }
-
-//  /**
-//   * @param e
-//   * @return int Checks.IS_RVALUE if e is an rvalue Checks.IS_RVALUE_GUESSED if e is guessed as an
-//   *         rvalue Checks.NOT_RVALUE_VOID if e is not an rvalue because its type is void
-//   *         Checks.NOT_RVALUE_MISC if e is not an rvalue for some other reason
-//   */
-//  public static int checkExpressionIsRValue(Expression e) {
-//  	if (e instanceof Name) {
-//  		if(!(((Name) e).resolveBinding() instanceof IVariableBinding)) {
-//  			return NOT_RVALUE_MISC;
-//  		}
-//  	}
-//  	if (e instanceof Annotation)
-//  		return NOT_RVALUE_MISC;
-//  		
-//
-//  	ITypeBinding tb= e.resolveTypeBinding();
-//  	boolean guessingRequired= false;
-//  	if (tb == null) {
-//  		guessingRequired= true;
-//  		tb= ASTResolving.guessBindingForReference(e);
-//  	}
-//  	if (tb == null)
-//  		return NOT_RVALUE_MISC;
-//  	else if (tb.getName().equals("void")) //$NON-NLS-1$
-//  		return NOT_RVALUE_VOID;
-//
-//  	return guessingRequired ? IS_RVALUE_GUESSED : IS_RVALUE;
-//  }
-
-//  public static boolean isDeclaredIn(DartVariable tempDeclaration,
-//      Class<? extends DartNode> astNodeClass) {
-//    // TODO(scheglov) I think that this is bad function, because DartVariable is just local variable.
-//    DartNode parent = ASTNodes.getParent(tempDeclaration, astNodeClass);
-//    if (parent == null) {
-//      return false;
-//    }
-//    return true;
-//  }
-
-//  /**
-//   * Checks if the new method is already used in the given type.
-//   * 
-//   * @param type
-//   * @param methodName
-//   * @param parameters
-//   * @return the status
-//   */
-//  public static RefactoringStatus checkMethodInType(ITypeBinding type, String methodName, ITypeBinding[] parameters) {
-//  	RefactoringStatus result= new RefactoringStatus();
-//  	if (methodName.equals(type.getName()))
-//  		result.addWarning(RefactoringCoreMessages.Checks_methodName_constructor);
-//  	IMethodBinding method= org.eclipse.jdt.internal.corext.dom.Bindings.findMethodInType(type, methodName, parameters);
-//  	if (method != null)
-//  		result.addError(Messages.format(RefactoringCoreMessages.Checks_methodName_exists,
-//  			new Object[] {BasicElementLabels.getJavaElementName(methodName), BasicElementLabels.getJavaElementName(type.getName())}),
-//  			JavaStatusContext.create(method));
-//  	return result;
-//  }
-//
-//  public static boolean resourceExists(IPath resourcePath) {
-//    return ResourcesPlugin.getWorkspace().getRoot().findMember(resourcePath) != null;
-//  }
-//
-//  public static RefactoringStatus checkCompileErrorsInAffectedFiles(SearchResultGroup[] references, IResource declaring) throws DartModelException {
-//  	RefactoringStatus result= new RefactoringStatus();
-//  	for (int i= 0; i < references.length; i++){
-//  		IResource resource= references[i].getResource();
-//  		if (resource.equals(declaring))
-//  			declaring= null;
-//  		checkCompileErrorsInAffectedFile(result, resource);
-//  	}
-//  	if (declaring != null)
-//  		checkCompileErrorsInAffectedFile(result, declaring);
-//  	return result;
-//  }
-
-//  /**
-//   * Checks if the new method somehow conflicts with an already existing method in the hierarchy.
-//   * The following checks are done:
-//   * <ul>
-//   * <li>if the new method overrides a method defined in the given type or in one of its super
-//   * classes.</li>
-//   * </ul>
-//   * 
-//   * @param type
-//   * @param methodName
-//   * @param returnType
-//   * @param parameters
-//   * @return the status
-//   */
-//  public static RefactoringStatus checkMethodInHierarchy(ITypeBinding type, String methodName, ITypeBinding returnType, ITypeBinding[] parameters) {
-//  	RefactoringStatus result= new RefactoringStatus();
-//  	IMethodBinding method= Bindings.findMethodInHierarchy(type, methodName, parameters);
-//  	if (method != null) {
-//  		boolean returnTypeClash= false;
-//  		ITypeBinding methodReturnType= method.getReturnType();
-//  		if (returnType != null && methodReturnType != null) {
-//  			String returnTypeKey= returnType.getKey();
-//  			String methodReturnTypeKey= methodReturnType.getKey();
-//  			if (returnTypeKey == null && methodReturnTypeKey == null) {
-//  				returnTypeClash= returnType != methodReturnType;
-//  			} else if (returnTypeKey != null && methodReturnTypeKey != null) {
-//  				returnTypeClash= !returnTypeKey.equals(methodReturnTypeKey);
-//  			}
-//  		}
-//  		ITypeBinding dc= method.getDeclaringClass();
-//  		if (returnTypeClash) {
-//  			result.addError(Messages.format(RefactoringCoreMessages.Checks_methodName_returnTypeClash,
-//  				new Object[] {BasicElementLabels.getJavaElementName(methodName), BasicElementLabels.getJavaElementName(dc.getName())}),
-//  				JavaStatusContext.create(method));
-//  		} else {
-//  			result.addError(Messages.format(RefactoringCoreMessages.Checks_methodName_overrides,
-//  				new Object[] {BasicElementLabels.getJavaElementName(methodName), BasicElementLabels.getJavaElementName(dc.getName())}),
-//  				JavaStatusContext.create(method));
-//  		}
-//  	}
-//  	return result;
-//  }
-
   //---- Selection checks --------------------------------------------------------------------
-
-  // TODO(scheglov) write JavaDoc
-  public static boolean isExtractableExpression(DartNode[] selectedNodes, DartNode coveringNode) {
-    DartNode node = coveringNode;
-//    if (isEnumCase(node)) {
-//      return false;
-//    }
-    if (selectedNodes != null && selectedNodes.length == 1) {
-      node = selectedNodes[0];
-    }
-    return isExtractableExpression(node);
-  }
 
   public static boolean isInReadOnlyUnit(DartElement element) {
     CompilationUnit unit = element.getAncestor(CompilationUnit.class);
     return unit == null || unit.isReadOnly();
   }
-
-//  public static boolean isEnumCase(DartNode node) {
-//  	if (node instanceof SwitchCase) {
-//  		final SwitchCase caze= (SwitchCase) node;
-//  		final Expression expression= caze.getExpression();
-//  		if (expression instanceof Name) {
-//  			final Name name= (Name) expression;
-//  			final IBinding binding= name.resolveBinding();
-//  			if (binding instanceof IVariableBinding) {
-//  				IVariableBinding variableBinding= (IVariableBinding) binding;
-//  				return variableBinding.isEnumConstant();
-//  			}
-//  		}
-//  	}
-//  	return false;
-//  }
 
   /**
    * @param element the {@link DartElement}, not <code>null</code>.
@@ -699,15 +533,6 @@ public class Checks {
     DartLibrary library = element.getAncestor(DartLibrary.class);
     return library != null && library.isLocal();
   }
-
-//  public static boolean isInsideJavadoc(DartNode node) {
-//  	do {
-//  		if (node.getNodeType() == DartNode.JAVADOC)
-//  			return true;
-//  		node= node.getParent();
-//  	} while (node != null);
-//  	return false;
-//  }
 
   public static boolean startsWithLowerCase(String s) {
     if (s == null) {
