@@ -444,26 +444,14 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
    * 
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the first
-   *          member
-   * @param enclosingClass enclosing class of the first missing member
-   * @param name first member name
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the second
-   *          member
-   * @param enclosingClass enclosing class of the second missing member
-   * @param name second member name
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the third
-   *          member
-   * @param enclosingClass enclosing class of the third missing member
-   * @param name third member name
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the fourth
-   *          member
-   * @param enclosingClass enclosing class of the fourth missing member
-   * @param name fourth member name
+   * @param memberName the name of the first member
+   * @param memberName the name of the second member
+   * @param memberName the name of the third member
+   * @param memberName the name of the fourth member
    * @param additionalCount the number of additional missing members that aren't listed
    */
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS(
-      "Missing inherited members: %s'%s.%s', %s'%s.%s', %s'%s.%s', %s'%s.%s' and %d more"),
+      "Missing inherited members: '%s', '%s', '%s', '%s' and %d more"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -473,25 +461,13 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
    * 
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the first
-   *          member
-   * @param enclosingClass enclosing class of the first missing member
-   * @param name first member name
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the second
-   *          member
-   * @param enclosingClass enclosing class of the second missing member
-   * @param name second member name
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the third
-   *          member
-   * @param enclosingClass enclosing class of the third missing member
-   * @param name third member name
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the fourth
-   *          member
-   * @param enclosingClass enclosing class of the fourth missing member
-   * @param name fourth member name
+   * @param memberName the name of the first member
+   * @param memberName the name of the second member
+   * @param memberName the name of the third member
+   * @param memberName the name of the fourth member
    */
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR(
-      "Missing inherited members: %s'%s.%s', %s'%s.%s', %s'%s.%s' and %s'%s.%s'"),
+      "Missing inherited members: '%s', '%s', '%s' and '%s'"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -501,11 +477,9 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
    * 
-   * @param getterSetterOrMethod a string containing either "get ", "set " or ""
-   * @param enclosingClass enclosing class of the missing member
-   * @param name member name
+   * @param memberName the name of the member
    */
-  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE("Missing inherited member %s'%s.%s'"),
+  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE("Missing inherited member '%s'"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -515,21 +489,12 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
    * 
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the first
-   *          member
-   * @param enclosingClass enclosing class of the first missing member
-   * @param name first member name
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the second
-   *          member
-   * @param enclosingClass enclosing class of the second missing member
-   * @param name second member name
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the third
-   *          member
-   * @param enclosingClass enclosing class of the third missing member
-   * @param name third member name
+   * @param memberName the name of the first member
+   * @param memberName the name of the second member
+   * @param memberName the name of the third member
    */
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE(
-      "Missing inherited members: %s'%s.%s', %s'%s.%s' and %s'%s.%s'"),
+      "Missing inherited members: '%s', '%s' and '%s'"),
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -539,17 +504,10 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
    * 
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the first
-   *          member
-   * @param enclosingClass enclosing class of the first missing member
-   * @param name first member name
-   * @param getterSetterOrMethod a string containing either "get ", "set " or "" for the second
-   *          member
-   * @param enclosingClass enclosing class of the second missing member
-   * @param name second member name
+   * @param memberName the name of the first member
+   * @param memberName the name of the second member
    */
-  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO(
-      "Missing inherited members: %s'%s.%s' and %s'%s.%s'"),
+  NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO("Missing inherited members: '%s' and '%s'"),
 
   /**
    * 13.11 Try: An on-catch clause of the form <i>on T catch (p<sub>1</sub>, p<sub>2</sub>) s</i> or
