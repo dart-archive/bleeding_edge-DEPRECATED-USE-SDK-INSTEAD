@@ -1297,6 +1297,33 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
+  public void test_singleExpression_ignore_assignmentLeftHandSize() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  getButton().text = 'txt';",
+        "  print(getButton().text); // marker",
+        "}",
+        "getButton() {}",
+        "");
+    selectionStart = findOffset("getButton().text); // marker");
+    selectionEnd = findOffset("); // marker");
+    createRefactoring();
+    // check number of duplicates
+    assertEquals(0, refactoring.getNumberOfDuplicates());
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  getButton().text = 'txt';",
+        "  print(res()); // marker",
+        "}",
+        "",
+        "res() => getButton().text;",
+        "getButton() {}",
+        "");
+  }
+
   public void test_singleExpression_occurrences() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

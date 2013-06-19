@@ -22,14 +22,16 @@ import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.formatter.edit.Edit;
-import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.SourceChange;
@@ -41,9 +43,9 @@ import com.google.dart.engine.services.refactoring.ExtractLocalRefactoring;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
-import com.google.dart.engine.services.util.SelectionAnalyzer;
 import com.google.dart.engine.utilities.source.SourceRange;
 
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNode;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartLength;
 
@@ -66,7 +68,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
 
   private final CompilationUnit unitNode;
   private final CorrectionUtils utils;
-  private SelectionAnalyzer selectionAnalyzer;
+  private ExtractExpressionAnalyzer selectionAnalyzer;
   private Expression rootExpression;
   private Expression singleExpression;
   private String stringLiteralPart;
@@ -210,9 +212,16 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
    * location of this {@link DartExpression} in AST allows extracting.
    */
   private RefactoringStatus checkSelection() {
-    selectionAnalyzer = new SelectionAnalyzer(selectionRange);
+    selectionAnalyzer = new ExtractExpressionAnalyzer(selectionRange);
     unitNode.accept(selectionAnalyzer);
     ASTNode coveringNode = selectionAnalyzer.getCoveringNode();
+    // may be fatal error
+    {
+      RefactoringStatus status = selectionAnalyzer.getStatus();
+      if (status.hasFatalError()) {
+        return status;
+      }
+    }
     // we need enclosing block to add variable declaration statement
     if (coveringNode == null || coveringNode.getAncestor(Block.class) == null) {
       return RefactoringStatus.createFatalErrorStatus("Expression inside of function must be selected to activate this refactoring.");
@@ -317,75 +326,131 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
    *         <code>null</code>.
    */
   private List<SourceRange> getOccurrences() {
-    List<SourceRange> occurrences = Lists.newArrayList();
+    final List<SourceRange> occurrences = Lists.newArrayList();
     // prepare selection
-    String selectionSource = utils.getText(selectionRange);
-    List<com.google.dart.engine.scanner.Token> selectionTokens = TokenUtils.getTokens(selectionSource);
-    selectionSource = StringUtils.join(selectionTokens, TOKEN_SEPARATOR);
+    final String selectionSource;
+    {
+      String rawSelectionSoruce = utils.getText(selectionRange);
+      List<Token> selectionTokens = TokenUtils.getTokens(rawSelectionSoruce);
+      selectionSource = StringUtils.join(selectionTokens, TOKEN_SEPARATOR);
+    }
     // prepare enclosing function
     ASTNode enclosingFunction;
     {
       ASTNode selectionNode = new NodeLocator(selectionStart).searchWithin(unitNode);
       enclosingFunction = CorrectionUtils.getEnclosingExecutableNode(selectionNode);
     }
-    // ...we need function
-    if (enclosingFunction != null) {
-      int functionOffset = enclosingFunction.getOffset();
-      String functionSource = utils.getText(functionOffset, enclosingFunction.getLength());
-      // prepare function tokens
-      List<com.google.dart.engine.scanner.Token> functionTokens = TokenUtils.getTokens(functionSource);
-      functionSource = StringUtils.join(functionTokens, TOKEN_SEPARATOR);
-      // string part occurrences
-      if (stringLiteralPart != null) {
-        int occuLength = stringLiteralPart.length();
-        for (com.google.dart.engine.scanner.Token token : functionTokens) {
-          if (token.getType() == TokenType.STRING) {
-            String tokenValue = token.getLexeme();
-            int lastIndex = 0;
-            while (true) {
-              int index = tokenValue.indexOf(stringLiteralPart, lastIndex);
-              if (index == -1) {
-                break;
-              }
-              lastIndex = index + occuLength;
-              int occuStart = functionOffset + token.getOffset() + index;
-              SourceRange occuRange = rangeStartLength(occuStart, occuLength);
-              occurrences.add(occuRange);
+    // visit function
+    enclosingFunction.accept(new GeneralizingASTVisitor<Void>() {
+      @Override
+      public Void visitBinaryExpression(BinaryExpression node) {
+        if (!hasStatements(node)) {
+          tryToFindOccurrenceFragment(node);
+          return null;
+        }
+        return super.visitBinaryExpression(node);
+      }
+
+      @Override
+      public Void visitExpression(Expression node) {
+        if (isExtractable(rangeNode(node))) {
+          tryToFindOccurrence(node);
+        }
+        return super.visitExpression(node);
+      }
+
+      @Override
+      public Void visitSimpleStringLiteral(SimpleStringLiteral node) {
+        if (stringLiteralPart != null) {
+          int occuLength = stringLiteralPart.length();
+          String value = node.getValue();
+          int valueOffset = node.getOffset() + (node.isMultiline() ? 3 : 1);
+          int lastIndex = 0;
+          while (true) {
+            int index = value.indexOf(stringLiteralPart, lastIndex);
+            if (index == -1) {
+              break;
             }
+            lastIndex = index + occuLength;
+            int occuStart = valueOffset + index;
+            SourceRange occuRange = rangeStartLength(occuStart, occuLength);
+            occurrences.add(occuRange);
           }
         }
-        return occurrences;
+        return null;
       }
-      // find "selection" in "function" tokens
-      int lastIndex = 0;
-      while (true) {
-        // find next occurrence
-        int index = functionSource.indexOf(selectionSource, lastIndex);
-        if (index == -1) {
-          break;
-        }
-        lastIndex = index + selectionSource.length();
-        // find start/end tokens
-        int startTokenIndex = StringUtils.countMatches(
-            functionSource.substring(0, index),
-            TOKEN_SEPARATOR);
-        int endTokenIndex = StringUtils.countMatches(
-            functionSource.substring(0, lastIndex),
-            TOKEN_SEPARATOR);
-        com.google.dart.engine.scanner.Token startToken = functionTokens.get(startTokenIndex);
-        com.google.dart.engine.scanner.Token endToken = functionTokens.get(endTokenIndex);
-        // add occurrence range
-        int occuStart = functionOffset + startToken.getOffset();
-        int occuEnd = functionOffset + endToken.getOffset() + endToken.getLength();
-        SourceRange occuRange = rangeStartEnd(occuStart, occuEnd);
-        if (occuRange.intersects(selectionRange)) {
+
+      private void addOccurrence(SourceRange range) {
+        if (range.intersects(selectionRange)) {
           occurrences.add(selectionRange);
         } else {
-          occurrences.add(occuRange);
+          occurrences.add(range);
         }
       }
-    }
+
+      private boolean hasStatements(ASTNode root) {
+        final boolean result[] = {false};
+        root.accept(new GeneralizingASTVisitor<Void>() {
+          @Override
+          public Void visitStatement(Statement node) {
+            result[0] = true;
+            return null;
+          }
+        });
+        return result[0];
+      }
+
+      private void tryToFindOccurrence(Expression node) {
+        String nodeSource = utils.getText(node);
+        List<Token> nodeToken = TokenUtils.getTokens(nodeSource);
+        nodeSource = StringUtils.join(nodeToken, TOKEN_SEPARATOR);
+        if (nodeSource.equals(selectionSource)) {
+          SourceRange occuRange = rangeNode(node);
+          addOccurrence(occuRange);
+        }
+      }
+
+      private void tryToFindOccurrenceFragment(Expression node) {
+        int nodeOffset = node.getOffset();
+        String nodeSource = utils.getText(node);
+        List<Token> nodeTokens = TokenUtils.getTokens(nodeSource);
+        nodeSource = StringUtils.join(nodeTokens, TOKEN_SEPARATOR);
+        // find "selection" in "node" tokens
+        int lastIndex = 0;
+        while (true) {
+          // find next occurrence
+          int index = nodeSource.indexOf(selectionSource, lastIndex);
+          if (index == -1) {
+            break;
+          }
+          lastIndex = index + selectionSource.length();
+          // find start/end tokens
+          int startTokenIndex = StringUtils.countMatches(
+              nodeSource.substring(0, index),
+              TOKEN_SEPARATOR);
+          int endTokenIndex = StringUtils.countMatches(
+              nodeSource.substring(0, lastIndex),
+              TOKEN_SEPARATOR);
+          Token startToken = nodeTokens.get(startTokenIndex);
+          Token endToken = nodeTokens.get(endTokenIndex);
+          // add occurrence range
+          int occuStart = nodeOffset + startToken.getOffset();
+          int occuEnd = nodeOffset + endToken.getEnd();
+          SourceRange occuRange = rangeStartEnd(occuStart, occuEnd);
+          addOccurrence(occuRange);
+        }
+      }
+    });
     // done
     return occurrences;
+  }
+
+  /**
+   * @return {@code true} if it is OK to extract the node with the given {@link SourceRange}.
+   */
+  private boolean isExtractable(SourceRange range) {
+    ExtractExpressionAnalyzer analyzer = new ExtractExpressionAnalyzer(range);
+    utils.getUnit().accept(analyzer);
+    return analyzer.getStatus().isOK();
   }
 }

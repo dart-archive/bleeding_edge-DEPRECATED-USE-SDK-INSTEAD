@@ -32,6 +32,97 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
   private boolean replaceAllOccurences = true;
   private RefactoringStatus refactoringStatus;
 
+  public void test_bad_assignmentLeftHandSize() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f(p) {",
+        "  var v = 0;",
+        "  v = 1;",
+        "}");
+    // create refactoring
+    selectionStart = findOffset("v = 1");
+    selectionEnd = findOffset(" = 1;");
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Cannot extract the left-hand side of an assignment.");
+  }
+
+  public void test_bad_methodName_reference() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  main();",
+        "}",
+        "");
+    selectionStart = findOffset("main();");
+    selectionEnd = selectionStart + "main".length();
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Cannot extract a single method name.");
+  }
+
+  public void test_bad_nameOfProperty_prefixedIdentifier() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f(p) {",
+        "  p.value = 1;",
+        "  print(p.value); // marker",
+        "}",
+        "print(x) {}");
+    // create refactoring
+    selectionStart = findOffset("value);");
+    selectionEnd = findOffset("); // marker");
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Can not extract name part of a property access.");
+  }
+
+  public void test_bad_nameOfProperty_propertyAccess() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f(p) {",
+        "  foo().value = 1;",
+        "  print(foo().value); // marker",
+        "}",
+        "foo() {}",
+        "print(x) {}");
+    // create refactoring
+    selectionStart = findOffset("value);");
+    selectionEnd = findOffset("); // marker");
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Can not extract name part of a property access.");
+  }
+
+  public void test_bad_namePartOfDeclaration_variable() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int vvv = 0;",
+        "}",
+        "");
+    selectionStart = findOffset("vvv =");
+    selectionEnd = selectionStart + "vvv".length();
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Cannot extract the name part of a declaration.");
+  }
+
   public void test_checkFinalConditions_sameVariable_after() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -367,6 +458,58 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
         "  int a = 11 + res;",
         "  int b = 12 +  res; // marker",
         "}");
+  }
+
+  public void test_occurences_ignore_assignmentLeftHandSize() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = 1;",
+        "  v = 2;",
+        "  print(() {v = 2;});",
+        "  print(1 + (() {v = 2; return 3;})());",
+        "  print(v); // marker",
+        "}",
+        "print(x) {}");
+    // create refactoring
+    selectionStart = findOffset("v);");
+    selectionEnd = findOffset("); // marker");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = 1;",
+        "  v = 2;",
+        "  print(() {v = 2;});",
+        "  print(1 + (() {v = 2; return 3;})());",
+        "  var res = v;",
+        "  print(res); // marker",
+        "}",
+        "print(x) {}");
+  }
+
+  public void test_occurences_ignore_nameOfVariableDeclariton() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = 1;",
+        "  print(v); // marker",
+        "}",
+        "print(x) {}");
+    // create refactoring
+    selectionStart = findOffset("v);");
+    selectionEnd = findOffset("); // marker");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = 1;",
+        "  var res = v;",
+        "  print(res); // marker",
+        "}",
+        "print(x) {}");
   }
 
   public void test_occurences_singleExpression() throws Exception {

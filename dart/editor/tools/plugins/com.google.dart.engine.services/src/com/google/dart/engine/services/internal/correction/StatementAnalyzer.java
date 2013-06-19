@@ -241,14 +241,5 @@ public class StatementAnalyzer extends SelectionAnalyzer {
    */
   private boolean hasTokens(SourceRange range) {
     return !getTokens(range).isEmpty();
-//    return ExecutionUtils.runObjectIgnore(new RunnableObjectEx<Boolean>() {
-//      @Override
-//      public Boolean runObject() throws Exception {
-//        String text = utils.getText(start, end - start);
-//        StringScanner scanner = new StringScanner(null, text, null);
-//        com.google.dart.engine.scanner.Token token = scanner.tokenize();
-//        return token.getType() != TokenType.EOF;
-//      }
-//    }, false);
   }
 }

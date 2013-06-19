@@ -134,6 +134,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   private final AssistContext context;
+
   private final SourceRange selectionRange;
   private final CompilationUnit unitNode;
 
@@ -769,6 +770,10 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
        * Checks if given {@link SourceRange} matched selection source and adds {@link Occurrence}.
        */
       private boolean tryToFindOccurrence(SourceRange nodeRange) {
+        // check if can be extracted
+        if (!isExtractable(nodeRange)) {
+          return false;
+        }
         // prepare normalized node source
         SourcePattern nodePattern = getSourcePattern(nodeRange);
         String nodeSource = getNormalizedSource(nodePattern.patternSource);
@@ -875,6 +880,15 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
    */
   private boolean isDeclaredInSelection(VariableElement element) {
     return selectionRange.contains(element.getNameOffset());
+  }
+
+  /**
+   * @return {@code true} if it is OK to extract the node with the given {@link SourceRange}.
+   */
+  private boolean isExtractable(SourceRange range) {
+    ExtractMethodAnalyzer analyzer = new ExtractMethodAnalyzer(utils, range);
+    utils.getUnit().accept(analyzer);
+    return analyzer.getStatus().isOK();
   }
 
   /**
