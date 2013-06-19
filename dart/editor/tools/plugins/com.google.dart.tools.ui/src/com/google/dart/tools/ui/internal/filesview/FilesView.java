@@ -343,7 +343,12 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     dartIgnoreListener = new DartIgnoreListener() {
       @Override
       public void ignoresChanged(DartIgnoreEvent event) {
-        treeViewer.refresh();
+        Display.getDefault().asyncExec(new Runnable() {
+          @Override
+          public void run() {
+            treeViewer.refresh();
+          }
+        });
       }
     };
 
