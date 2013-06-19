@@ -1579,7 +1579,18 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors(StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR);
   }
 
-  public void test_redirectToNonClass() throws Exception {
+  public void test_redirectToNonClass_notAType() throws Exception {
+    Source source = addSource(createSource(//
+        "class B {",
+        "  int A;",
+        "  B() = A;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.REDIRECT_TO_NON_CLASS);
+    verify(source);
+  }
+
+  public void test_redirectToNonClass_undefinedIdentifier() throws Exception {
     Source source = addSource(createSource(//
         "class B {",
         "  B() = A;",

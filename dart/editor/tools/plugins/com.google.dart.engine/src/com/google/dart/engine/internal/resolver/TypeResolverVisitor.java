@@ -518,6 +518,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
         reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, typeName.getName());
       } else if (isTypeNameInIsExpression(node)) {
         reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, typeName.getName());
+      } else if (isTypeNameTargetInRedirectedConstructor(node)) {
+        reportError(StaticWarningCode.REDIRECT_TO_NON_CLASS, typeName, typeName.getName());
       } else if (isTypeNameInTypeArgumentList(node)) {
         reportError(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, typeName, typeName.getName());
       } else {
