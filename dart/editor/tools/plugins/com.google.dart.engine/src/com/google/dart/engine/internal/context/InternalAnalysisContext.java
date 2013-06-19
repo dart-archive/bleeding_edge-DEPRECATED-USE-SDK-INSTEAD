@@ -38,6 +38,28 @@ public interface InternalAnalysisContext extends AnalysisContext {
   public void addSourceInfo(Source source, SourceEntry info);
 
   /**
+   * Return an array containing the sources of the libraries that are exported by the library with
+   * the given source. The array will be empty if the given source is invalid, if the given source
+   * does not represent a library, or if the library does not export any other libraries.
+   * 
+   * @param source the source representing the library whose exports are to be returned
+   * @return the sources of the libraries that are exported by the given library
+   * @throws AnalysisException if the exported libraries could not be computed
+   */
+  public Source[] computeExportedLibraries(Source source) throws AnalysisException;
+
+  /**
+   * Return an array containing the sources of the libraries that are imported by the library with
+   * the given source. The array will be empty if the given source is invalid, if the given source
+   * does not represent a library, or if the library does not import any other libraries.
+   * 
+   * @param source the source representing the library whose imports are to be returned
+   * @return the sources of the libraries that are imported by the given library
+   * @throws AnalysisException if the imported libraries could not be computed
+   */
+  public Source[] computeImportedLibraries(Source source) throws AnalysisException;
+
+  /**
    * Return an AST structure corresponding to the given source, but ensure that the structure has
    * not already been resolved and will not be resolved by any other threads or in any other
    * library.

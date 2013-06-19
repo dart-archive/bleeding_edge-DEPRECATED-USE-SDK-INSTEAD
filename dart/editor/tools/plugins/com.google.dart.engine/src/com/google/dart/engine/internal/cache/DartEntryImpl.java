@@ -172,16 +172,26 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private Source[] includedParts = Source.EMPTY_ARRAY;
 
   /**
-   * The state of the cached list of referenced libraries.
+   * The state of the cached list of exported libraries.
    */
-  private CacheState referencedLibrariesState = CacheState.INVALID;
+  private CacheState exportedLibrariesState = CacheState.INVALID;
 
   /**
-   * The list of libraries referenced (imported or exported) by the library, or an empty array if
-   * the list is not currently cached. The list will be empty if the Dart file is a part rather than
-   * a library.
+   * The list of libraries exported by the library, or an empty array if the list is not currently
+   * cached. The list will be empty if the Dart file is a part rather than a library.
    */
-  private Source[] referencedLibraries = Source.EMPTY_ARRAY;
+  private Source[] exportedLibraries = Source.EMPTY_ARRAY;
+
+  /**
+   * The state of the cached list of imported libraries.
+   */
+  private CacheState importedLibrariesState = CacheState.INVALID;
+
+  /**
+   * The list of libraries imported by the library, or an empty array if the list is not currently
+   * cached. The list will be empty if the Dart file is a part rather than a library.
+   */
+  private Source[] importedLibraries = Source.EMPTY_ARRAY;
 
   /**
    * The information known as a result of resolving this compilation unit as part of the library
@@ -290,6 +300,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   public CacheState getState(DataDescriptor<?> descriptor) {
     if (descriptor == ELEMENT) {
       return elementState;
+    } else if (descriptor == EXPORTED_LIBRARIES) {
+      return exportedLibrariesState;
+    } else if (descriptor == IMPORTED_LIBRARIES) {
+      return importedLibrariesState;
     } else if (descriptor == INCLUDED_PARTS) {
       return includedPartsState;
     } else if (descriptor == IS_CLIENT) {
@@ -302,8 +316,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return parsedUnitState;
     } else if (descriptor == PUBLIC_NAMESPACE) {
       return publicNamespaceState;
-    } else if (descriptor == REFERENCED_LIBRARIES) {
-      return referencedLibrariesState;
     } else if (descriptor == SOURCE_KIND) {
       return sourceKindState;
     } else {
@@ -334,6 +346,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   public <E> E getValue(DataDescriptor<E> descriptor) {
     if (descriptor == ELEMENT) {
       return (E) element;
+    } else if (descriptor == EXPORTED_LIBRARIES) {
+      return (E) exportedLibraries;
+    } else if (descriptor == IMPORTED_LIBRARIES) {
+      return (E) importedLibraries;
     } else if (descriptor == INCLUDED_PARTS) {
       return (E) includedParts;
     } else if (descriptor == IS_CLIENT) {
@@ -346,8 +362,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return (E) parsedUnit;
     } else if (descriptor == PUBLIC_NAMESPACE) {
       return (E) publicNamespace;
-    } else if (descriptor == REFERENCED_LIBRARIES) {
-      return (E) referencedLibraries;
     } else if (descriptor == SOURCE_KIND) {
       return (E) sourceKind;
     }
@@ -414,8 +428,11 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     includedParts = Source.EMPTY_ARRAY;
     includedPartsState = CacheState.INVALID;
 
-    referencedLibraries = Source.EMPTY_ARRAY;
-    referencedLibrariesState = CacheState.INVALID;
+    exportedLibraries = Source.EMPTY_ARRAY;
+    exportedLibrariesState = CacheState.INVALID;
+
+    importedLibraries = Source.EMPTY_ARRAY;
+    importedLibrariesState = CacheState.INVALID;
 
     bitmask = 0;
     clientServerState = CacheState.INVALID;
@@ -478,8 +495,11 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     includedParts = Source.EMPTY_ARRAY;
     includedPartsState = CacheState.ERROR;
 
-    referencedLibraries = Source.EMPTY_ARRAY;
-    referencedLibrariesState = CacheState.ERROR;
+    exportedLibraries = Source.EMPTY_ARRAY;
+    exportedLibrariesState = CacheState.ERROR;
+
+    importedLibraries = Source.EMPTY_ARRAY;
+    importedLibrariesState = CacheState.ERROR;
 
     bitmask = 0;
     clientServerState = CacheState.ERROR;
@@ -548,6 +568,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (descriptor == ELEMENT) {
       element = updatedValue(state, element, null);
       elementState = state;
+    } else if (descriptor == EXPORTED_LIBRARIES) {
+      exportedLibraries = updatedValue(state, exportedLibraries, Source.EMPTY_ARRAY);
+      exportedLibrariesState = state;
+    } else if (descriptor == IMPORTED_LIBRARIES) {
+      importedLibraries = updatedValue(state, importedLibraries, Source.EMPTY_ARRAY);
+      importedLibrariesState = state;
     } else if (descriptor == INCLUDED_PARTS) {
       includedParts = updatedValue(state, includedParts, Source.EMPTY_ARRAY);
       includedPartsState = state;
@@ -566,9 +592,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (descriptor == PUBLIC_NAMESPACE) {
       publicNamespace = updatedValue(state, publicNamespace, null);
       publicNamespaceState = state;
-    } else if (descriptor == REFERENCED_LIBRARIES) {
-      referencedLibraries = updatedValue(state, referencedLibraries, Source.EMPTY_ARRAY);
-      referencedLibrariesState = state;
     } else if (descriptor == SOURCE_KIND) {
       sourceKind = updatedValue(state, sourceKind, SourceKind.UNKNOWN);
       sourceKindState = state;
@@ -607,6 +630,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (descriptor == ELEMENT) {
       element = (LibraryElement) value;
       elementState = CacheState.VALID;
+    } else if (descriptor == EXPORTED_LIBRARIES) {
+      exportedLibraries = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
+      exportedLibrariesState = CacheState.VALID;
+    } else if (descriptor == IMPORTED_LIBRARIES) {
+      importedLibraries = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
+      importedLibrariesState = CacheState.VALID;
     } else if (descriptor == INCLUDED_PARTS) {
       includedParts = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
       includedPartsState = CacheState.VALID;
@@ -633,9 +662,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (descriptor == PUBLIC_NAMESPACE) {
       publicNamespace = (Namespace) value;
       publicNamespaceState = CacheState.VALID;
-    } else if (descriptor == REFERENCED_LIBRARIES) {
-      referencedLibraries = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
-      referencedLibrariesState = CacheState.VALID;
     } else if (descriptor == SOURCE_KIND) {
       sourceKind = (SourceKind) value;
       sourceKindState = CacheState.VALID;
@@ -676,8 +702,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     parseErrors = other.parseErrors;
     includedPartsState = other.includedPartsState;
     includedParts = other.includedParts;
-    referencedLibrariesState = other.referencedLibrariesState;
-    referencedLibraries = other.referencedLibraries;
+    exportedLibrariesState = other.exportedLibrariesState;
+    exportedLibraries = other.exportedLibraries;
+    importedLibrariesState = other.importedLibrariesState;
+    importedLibraries = other.importedLibraries;
     resolutionState.copyFrom(other.resolutionState);
     elementState = other.elementState;
     element = other.element;

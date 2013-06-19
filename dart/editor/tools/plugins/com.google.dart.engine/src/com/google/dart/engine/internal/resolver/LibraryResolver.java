@@ -430,43 +430,69 @@ public class LibraryResolver {
       for (Directive directive : library.getDefiningCompilationUnit().getDirectives()) {
         if (directive instanceof ImportDirective) {
           ImportDirective importDirective = (ImportDirective) directive;
-          Library importedLibrary = library.getImport(importDirective);
-          if (importedLibrary != null) {
-            // The imported library will be null if the URI in the import directive was invalid.
-            ImportElementImpl importElement = new ImportElementImpl();
-            importElement.setUri(library.getUri(importDirective));
-            importElement.setCombinators(buildCombinators(importDirective));
-            LibraryElement importedLibraryElement = importedLibrary.getLibraryElement();
-            if (importedLibraryElement != null) {
-              importElement.setImportedLibrary(importedLibraryElement);
-            }
-            SimpleIdentifier prefixNode = ((ImportDirective) directive).getPrefix();
-            if (prefixNode != null) {
-              String prefixName = prefixNode.getName();
-              PrefixElementImpl prefix = nameToPrefixMap.get(prefixName);
-              if (prefix == null) {
-                prefix = new PrefixElementImpl(prefixNode);
-                nameToPrefixMap.put(prefixName, prefix);
+          Source importedSource = library.getSource(importDirective);
+          if (importedSource != null) {
+            // The imported source will be null if the URI in the import directive was invalid.
+            Library importedLibrary = libraryMap.get(importedSource);
+            if (importedLibrary != null) {
+              ImportElementImpl importElement = new ImportElementImpl();
+              importElement.setUri(library.getUri(importDirective));
+              importElement.setCombinators(buildCombinators(importDirective));
+              LibraryElement importedLibraryElement = importedLibrary.getLibraryElement();
+              if (importedLibraryElement != null) {
+                importElement.setImportedLibrary(importedLibraryElement);
               }
-              importElement.setPrefix(prefix);
+              SimpleIdentifier prefixNode = ((ImportDirective) directive).getPrefix();
+              if (prefixNode != null) {
+                String prefixName = prefixNode.getName();
+                PrefixElementImpl prefix = nameToPrefixMap.get(prefixName);
+                if (prefix == null) {
+                  prefix = new PrefixElementImpl(prefixNode);
+                  nameToPrefixMap.put(prefixName, prefix);
+                }
+                importElement.setPrefix(prefix);
+              }
+              directive.setElement(importElement);
+              imports.add(importElement);
+
+              if (doesCompilationUnitHavePartOfDirective(importedLibrary.getAST(importedSource))) {
+                StringLiteral uriLiteral = importDirective.getUri();
+                errorListener.onError(new AnalysisError(
+                    library.getLibrarySource(),
+                    uriLiteral.getOffset(),
+                    uriLiteral.getLength(),
+                    CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+                    uriLiteral.toSource()));
+              }
             }
-            directive.setElement(importElement);
-            imports.add(importElement);
           }
         } else if (directive instanceof ExportDirective) {
           ExportDirective exportDirective = (ExportDirective) directive;
-          ExportElementImpl exportElement = new ExportElementImpl();
-          exportElement.setUri(library.getUri(exportDirective));
-          exportElement.setCombinators(buildCombinators(exportDirective));
-          Library exportedLibrary = library.getExport(exportDirective);
-          if (exportedLibrary != null) {
-            // The exported library will be null if the URI in the export directive was invalid.
-            LibraryElement exportedLibraryElement = exportedLibrary.getLibraryElement();
-            if (exportedLibraryElement != null) {
-              exportElement.setExportedLibrary(exportedLibraryElement);
+          Source exportedSource = library.getSource(exportDirective);
+          if (exportedSource != null) {
+            // The exported source will be null if the URI in the export directive was invalid.
+            Library exportedLibrary = libraryMap.get(exportedSource);
+            if (exportedLibrary != null) {
+              ExportElementImpl exportElement = new ExportElementImpl();
+              exportElement.setUri(library.getUri(exportDirective));
+              exportElement.setCombinators(buildCombinators(exportDirective));
+              LibraryElement exportedLibraryElement = exportedLibrary.getLibraryElement();
+              if (exportedLibraryElement != null) {
+                exportElement.setExportedLibrary(exportedLibraryElement);
+              }
+              directive.setElement(exportElement);
+              exports.add(exportElement);
+
+              if (doesCompilationUnitHavePartOfDirective(exportedLibrary.getAST(exportedSource))) {
+                StringLiteral uriLiteral = exportDirective.getUri();
+                errorListener.onError(new AnalysisError(
+                    library.getLibrarySource(),
+                    uriLiteral.getOffset(),
+                    uriLiteral.getLength(),
+                    CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+                    uriLiteral.toSource()));
+              }
             }
-            directive.setElement(exportElement);
-            exports.add(exportElement);
           }
         }
       }
@@ -551,64 +577,41 @@ public class LibraryResolver {
    * @throws AnalysisException if some portion of the library graph could not be traversed
    */
   private void computeLibraryDependencies(Library library) throws AnalysisException {
+    Source librarySource = library.getLibrarySource();
+    ArrayList<Library> importedLibraries = new ArrayList<Library>();
     boolean explicitlyImportsCore = false;
-    CompilationUnit unit = library.getDefiningCompilationUnit();
-    for (Directive directive : unit.getDirectives()) {
-      if (directive instanceof ImportDirective) {
-        ImportDirective importDirective = (ImportDirective) directive;
-        Source importedSource = library.getSource(importDirective);
-        if (importedSource != null) {
-          // The imported source will be null if the URI in the import directive was invalid.
-          if (importedSource.equals(coreLibrarySource)) {
-            explicitlyImportsCore = true;
-          }
-          Library importedLibrary = libraryMap.get(importedSource);
-          if (importedLibrary == null) {
-            importedLibrary = createLibraryOrNull(importedSource);
-            if (importedLibrary != null) {
-              computeLibraryDependencies(importedLibrary);
-            }
-          }
-          if (importedLibrary != null) {
-            library.addImport(importDirective, importedLibrary);
-            if (doesCompilationUnitHavePartOfDirective(importedLibrary.getAST(importedSource))) {
-              StringLiteral uriLiteral = importDirective.getUri();
-              errorListener.onError(new AnalysisError(
-                  library.getLibrarySource(),
-                  uriLiteral.getOffset(),
-                  uriLiteral.getLength(),
-                  CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
-                  uriLiteral.toSource()));
-            }
-          }
-        }
-      } else if (directive instanceof ExportDirective) {
-        ExportDirective exportDirective = (ExportDirective) directive;
-        Source exportedSource = library.getSource(exportDirective);
-        if (exportedSource != null) {
-          // The exported source will be null if the URI in the export directive was invalid.
-          Library exportedLibrary = libraryMap.get(exportedSource);
-          if (exportedLibrary == null) {
-            exportedLibrary = createLibraryOrNull(exportedSource);
-            if (exportedLibrary != null) {
-              computeLibraryDependencies(exportedLibrary);
-            }
-          }
-          if (exportedLibrary != null) {
-            library.addExport(exportDirective, exportedLibrary);
-            if (doesCompilationUnitHavePartOfDirective(exportedLibrary.getAST(exportedSource))) {
-              StringLiteral uriLiteral = exportDirective.getUri();
-              errorListener.onError(new AnalysisError(
-                  library.getLibrarySource(),
-                  uriLiteral.getOffset(),
-                  uriLiteral.getLength(),
-                  CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-                  uriLiteral.toSource()));
-            }
-          }
+    for (Source importedSource : analysisContext.computeImportedLibraries(librarySource)) {
+      if (importedSource.equals(coreLibrarySource)) {
+        explicitlyImportsCore = true;
+      }
+      Library importedLibrary = libraryMap.get(importedSource);
+      if (importedLibrary == null) {
+        importedLibrary = createLibraryOrNull(importedSource);
+        if (importedLibrary != null) {
+          computeLibraryDependencies(importedLibrary);
         }
       }
+      if (importedLibrary != null) {
+        importedLibraries.add(importedLibrary);
+      }
     }
+    library.setImportedLibraries(importedLibraries.toArray(new Library[importedLibraries.size()]));
+
+    ArrayList<Library> exportedLibraries = new ArrayList<Library>();
+    for (Source exportedSource : analysisContext.computeExportedLibraries(librarySource)) {
+      Library exportedLibrary = libraryMap.get(exportedSource);
+      if (exportedLibrary == null) {
+        exportedLibrary = createLibraryOrNull(exportedSource);
+        if (exportedLibrary != null) {
+          computeLibraryDependencies(exportedLibrary);
+        }
+      }
+      if (exportedLibrary != null) {
+        exportedLibraries.add(exportedLibrary);
+      }
+    }
+    library.setExportedLibraries(exportedLibraries.toArray(new Library[exportedLibraries.size()]));
+
     library.setExplicitlyImportsCore(explicitlyImportsCore);
     if (!explicitlyImportsCore && !coreLibrarySource.equals(library.getLibrarySource())) {
       Library importedLibrary = libraryMap.get(coreLibrarySource);

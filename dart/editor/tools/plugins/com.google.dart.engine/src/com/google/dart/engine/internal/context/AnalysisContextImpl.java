@@ -20,8 +20,14 @@ import com.google.dart.engine.ast.AnnotatedNode;
 import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.LibraryDirective;
+import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
+import com.google.dart.engine.ast.StringInterpolation;
+import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
@@ -78,6 +84,7 @@ import com.google.dart.engine.utilities.ast.ASTCloner;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -310,6 +317,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public Source[] computeExportedLibraries(Source source) throws AnalysisException {
+    synchronized (cacheLock) {
+      accessed(source);
+      DartEntry dartEntry = getDartEntry(source);
+      if (dartEntry == null || dartEntry.getKind() != SourceKind.LIBRARY) {
+        return Source.EMPTY_ARRAY;
+      }
+      CacheState state = dartEntry.getState(DartEntry.EXPORTED_LIBRARIES);
+      if (state == CacheState.ERROR) {
+        return Source.EMPTY_ARRAY;
+      } else if (state == CacheState.VALID) {
+        return dartEntry.getValue(DartEntry.EXPORTED_LIBRARIES);
+      } else {
+        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+        internalParseCompilationUnit(dartCopy, source);
+        sourceMap.put(source, dartCopy);
+        return dartCopy.getValue(DartEntry.EXPORTED_LIBRARIES);
+      }
+    }
+  }
+
+  @Override
   public HtmlElement computeHtmlElement(Source source) throws AnalysisException {
     if (!AnalysisEngine.isHtmlFileName(source.getShortName())) {
       return null;
@@ -341,6 +370,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             htmlCopy.getValue(SourceEntry.LINE_INFO));
       }
       return element;
+    }
+  }
+
+  @Override
+  public Source[] computeImportedLibraries(Source source) throws AnalysisException {
+    synchronized (cacheLock) {
+      accessed(source);
+      DartEntry dartEntry = getDartEntry(source);
+      if (dartEntry == null || dartEntry.getKind() != SourceKind.LIBRARY) {
+        return Source.EMPTY_ARRAY;
+      }
+      CacheState state = dartEntry.getState(DartEntry.IMPORTED_LIBRARIES);
+      if (state == CacheState.ERROR) {
+        return Source.EMPTY_ARRAY;
+      } else if (state == CacheState.VALID) {
+        return dartEntry.getValue(DartEntry.IMPORTED_LIBRARIES);
+      } else {
+        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+        internalParseCompilationUnit(dartCopy, source);
+        sourceMap.put(source, dartCopy);
+        return dartCopy.getValue(DartEntry.IMPORTED_LIBRARIES);
+      }
     }
   }
 
@@ -629,7 +680,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
         if (entry.getValue().getKind() == SourceKind.LIBRARY) {
           if (contains(
-              ((DartEntry) entry.getValue()).getValue(DartEntry.REFERENCED_LIBRARIES),
+              ((DartEntry) entry.getValue()).getValue(DartEntry.EXPORTED_LIBRARIES),
+              librarySource)) {
+            dependentLibraries.add(entry.getKey());
+          }
+          if (contains(
+              ((DartEntry) entry.getValue()).getValue(DartEntry.IMPORTED_LIBRARIES),
               librarySource)) {
             dependentLibraries.add(entry.getKey());
           }
@@ -1427,10 +1483,37 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       CompilationUnit unit = parser.parseCompilationUnit(scanResult.token);
       LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
       AnalysisError[] errors = errorListener.getErrors(source);
+      boolean hasPartOfDirective = false;
+      boolean hasLibraryDirective = false;
+      HashSet<Source> exportedSources = new HashSet<Source>();
+      HashSet<Source> importedSources = new HashSet<Source>();
+      HashSet<Source> includedSources = new HashSet<Source>();
+      for (Directive directive : unit.getDirectives()) {
+        if (directive instanceof ExportDirective) {
+          Source exportSource = resolveSource(source, (ExportDirective) directive);
+          if (exportSource != null) {
+            exportedSources.add(exportSource);
+          }
+        } else if (directive instanceof ImportDirective) {
+          Source importSource = resolveSource(source, (ImportDirective) directive);
+          if (importSource != null) {
+            importedSources.add(importSource);
+          }
+        } else if (directive instanceof LibraryDirective) {
+          hasLibraryDirective = true;
+        } else if (directive instanceof PartDirective) {
+          Source partSource = resolveSource(source, (PartDirective) directive);
+          if (partSource != null) {
+            includedSources.add(partSource);
+          }
+        } else if (directive instanceof PartOfDirective) {
+          hasPartOfDirective = true;
+        }
+      }
       unit.setParsingErrors(errors);
       unit.setLineInfo(lineInfo);
       if (dartCopy.getState(DartEntry.SOURCE_KIND) == CacheState.INVALID) {
-        if (hasPartOfDirective(unit)) {
+        if (hasPartOfDirective && !hasLibraryDirective) {
           dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
         } else {
           dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
@@ -1439,6 +1522,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
       dartCopy.setValue(DartEntry.PARSED_UNIT, unit);
       dartCopy.setValue(DartEntry.PARSE_ERRORS, errors);
+      dartCopy.setValue(DartEntry.EXPORTED_LIBRARIES, toArray(exportedSources));
+      dartCopy.setValue(DartEntry.IMPORTED_LIBRARIES, toArray(importedSources));
+      dartCopy.setValue(DartEntry.INCLUDED_PARTS, toArray(includedSources));
       // TODO(brianwilkerson) Find out whether clients want notification when part of the errors are
       // available.
 //      ChangeNoticeImpl notice = getNotice(source);
@@ -1682,13 +1768,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     RecordingErrorListener errorListener = resolver.getErrorListener();
     for (Library library : resolver.getResolvedLibraries()) {
       Source librarySource = library.getLibrarySource();
-      HashSet<Source> referencedLibraries = new HashSet<Source>();
-      for (Library referencedLibrary : library.getExports()) {
-        referencedLibraries.add(referencedLibrary.getLibrarySource());
-      }
-      for (Library referencedLibrary : library.getImports()) {
-        referencedLibraries.add(referencedLibrary.getLibrarySource());
-      }
       for (Source source : library.getCompilationUnitSources()) {
         CompilationUnit unit = library.getAST(source);
         AnalysisError[] errors = errorListener.getErrors(source);
@@ -1704,13 +1783,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
             if (source == librarySource) {
               recordElementData(dartCopy, library.getLibraryElement(), htmlSource);
-              Source[] libraries;
-              if (referencedLibraries.isEmpty()) {
-                libraries = Source.EMPTY_ARRAY;
-              } else {
-                libraries = referencedLibraries.toArray(new Source[referencedLibraries.size()]);
-              }
-              dartCopy.setValue(DartEntry.REFERENCED_LIBRARIES, libraries);
             }
             sourceMap.put(source, dartCopy);
 
@@ -1720,6 +1792,31 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           }
         }
       }
+    }
+  }
+
+  /**
+   * Return the result of resolving the URI of the given URI-based directive against the URI of the
+   * given library, or {@code null} if the URI is not valid.
+   * 
+   * @param librarySource the source representing the library containing the directive
+   * @param directive the directive which URI should be resolved
+   * @return the result of resolving the URI against the URI of the library
+   */
+  private Source resolveSource(Source librarySource, UriBasedDirective directive) {
+    StringLiteral uriLiteral = directive.getUri();
+    if (uriLiteral instanceof StringInterpolation) {
+      return null;
+    }
+    String uriContent = uriLiteral.getStringValue().trim();
+    if (uriContent == null) {
+      return null;
+    }
+    try {
+      new URI(uriContent);
+      return sourceFactory.resolveUri(librarySource, uriContent);
+    } catch (URISyntaxException exception) {
+      return null;
     }
   }
 
@@ -1812,5 +1909,19 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     sourceMap.remove(source);
+  }
+
+  /**
+   * Efficiently convert the given set of sources to an array.
+   * 
+   * @param sources the set to be converted
+   * @return an array containing all of the sources in the given set
+   */
+  private Source[] toArray(HashSet<Source> sources) {
+    int size = sources.size();
+    if (size == 0) {
+      return Source.EMPTY_ARRAY;
+    }
+    return sources.toArray(new Source[size]);
   }
 }

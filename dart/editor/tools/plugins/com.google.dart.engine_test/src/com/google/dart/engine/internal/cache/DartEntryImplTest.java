@@ -27,6 +27,8 @@ public class DartEntryImplTest extends EngineTestCase {
   public void test_creation() throws Exception {
     DartEntryImpl info = new DartEntryImpl();
     assertSame(CacheState.INVALID, info.getState(DartEntry.ELEMENT));
+    assertSame(CacheState.INVALID, info.getState(DartEntry.EXPORTED_LIBRARIES));
+    assertSame(CacheState.INVALID, info.getState(DartEntry.IMPORTED_LIBRARIES));
     assertSame(CacheState.INVALID, info.getState(DartEntry.INCLUDED_PARTS));
     assertSame(CacheState.INVALID, info.getState(DartEntry.IS_CLIENT));
     assertSame(CacheState.INVALID, info.getState(DartEntry.IS_LAUNCHABLE));
@@ -34,7 +36,6 @@ public class DartEntryImplTest extends EngineTestCase {
     assertSame(CacheState.INVALID, info.getState(DartEntry.PARSE_ERRORS));
     assertSame(CacheState.INVALID, info.getState(DartEntry.PARSED_UNIT));
     assertSame(CacheState.INVALID, info.getState(DartEntry.PUBLIC_NAMESPACE));
-    assertSame(CacheState.INVALID, info.getState(DartEntry.REFERENCED_LIBRARIES));
   }
 
   public void test_isClient() throws Exception {

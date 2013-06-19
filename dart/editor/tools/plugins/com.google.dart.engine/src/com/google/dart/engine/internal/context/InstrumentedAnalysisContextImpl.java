@@ -114,6 +114,17 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public Source[] computeExportedLibraries(Source source) throws AnalysisException {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeExportedLibraries");
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.computeExportedLibraries(source);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  @Override
   public HtmlElement computeHtmlElement(Source source) throws AnalysisException {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeHtmlElement");
     try {
@@ -126,6 +137,17 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
       instrumentation.log();
     }
 
+  }
+
+  @Override
+  public Source[] computeImportedLibraries(Source source) throws AnalysisException {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeImportedLibraries");
+    try {
+      instrumentation.metric("contextId", contextId);
+      return basis.computeImportedLibraries(source);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override

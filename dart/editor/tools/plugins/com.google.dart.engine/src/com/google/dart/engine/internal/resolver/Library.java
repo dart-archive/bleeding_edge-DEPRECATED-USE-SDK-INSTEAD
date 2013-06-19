@@ -15,8 +15,6 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.ExportDirective;
-import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
@@ -71,7 +69,7 @@ public class Library {
   /**
    * A list containing all of the libraries that are imported into this library.
    */
-  private HashMap<ImportDirective, Library> importedLibraries = new HashMap<ImportDirective, Library>();
+  private Library[] importedLibraries = EMPTY_ARRAY;
 
   /**
    * A table mapping URI-based directive to the actual URI value.
@@ -86,7 +84,7 @@ public class Library {
   /**
    * A list containing all of the libraries that are exported from this library.
    */
-  private HashMap<ExportDirective, Library> exportedLibraries = new HashMap<ExportDirective, Library>();
+  private Library[] exportedLibraries = EMPTY_ARRAY;
 
   /**
    * A table mapping the sources for the compilation units in this library to their corresponding
@@ -98,6 +96,11 @@ public class Library {
    * The library scope used when resolving elements within this library's compilation units.
    */
   private LibraryScope libraryScope;
+
+  /**
+   * An empty array that can be used to initialize lists of libraries.
+   */
+  private static final Library[] EMPTY_ARRAY = new Library[0];
 
   /**
    * Initialize a newly created data holder that can maintain the data associated with a library.
@@ -112,24 +115,6 @@ public class Library {
     this.errorListener = errorListener;
     this.librarySource = librarySource;
     this.libraryElement = (LibraryElementImpl) analysisContext.getLibraryElement(librarySource);
-  }
-
-  /**
-   * Record that the given library is exported from this library.
-   * 
-   * @param importLibrary the library that is exported from this library
-   */
-  public void addExport(ExportDirective directive, Library exportLibrary) {
-    exportedLibraries.put(directive, exportLibrary);
-  }
-
-  /**
-   * Record that the given library is imported into this library.
-   * 
-   * @param importLibrary the library that is imported into this library
-   */
-  public void addImport(ImportDirective directive, Library importLibrary) {
-    importedLibraries.put(directive, importLibrary);
   }
 
   /**
@@ -179,34 +164,12 @@ public class Library {
   }
 
   /**
-   * Return the library exported by the given directive.
-   * 
-   * @param directive the directive that exports the library to be returned
-   * @return the library exported by the given directive
-   */
-  public Library getExport(ExportDirective directive) {
-    return exportedLibraries.get(directive);
-  }
-
-  /**
    * Return an array containing the libraries that are exported from this library.
    * 
    * @return an array containing the libraries that are exported from this library
    */
   public Library[] getExports() {
-    HashSet<Library> libraries = new HashSet<Library>();
-    libraries.addAll(exportedLibraries.values());
-    return libraries.toArray(new Library[libraries.size()]);
-  }
-
-  /**
-   * Return the library imported by the given directive.
-   * 
-   * @param directive the directive that imports the library to be returned
-   * @return the library imported by the given directive
-   */
-  public Library getImport(ImportDirective directive) {
-    return importedLibraries.get(directive);
+    return exportedLibraries;
   }
 
   /**
@@ -215,9 +178,7 @@ public class Library {
    * @return an array containing the libraries that are imported into this library
    */
   public Library[] getImports() {
-    HashSet<Library> libraries = new HashSet<Library>();
-    libraries.addAll(importedLibraries.values());
-    return libraries.toArray(new Library[libraries.size()]);
+    return importedLibraries;
   }
 
   /**
@@ -227,10 +188,14 @@ public class Library {
    * @return the libraries that are either imported or exported from this library
    */
   public Library[] getImportsAndExports() {
-    HashSet<Library> libraries = new HashSet<Library>(importedLibraries.size()
-        + exportedLibraries.size());
-    libraries.addAll(importedLibraries.values());
-    libraries.addAll(exportedLibraries.values());
+    HashSet<Library> libraries = new HashSet<Library>(importedLibraries.length
+        + exportedLibraries.length);
+    for (Library library : importedLibraries) {
+      libraries.add(library);
+    }
+    for (Library library : exportedLibraries) {
+      libraries.add(library);
+    }
     return libraries.toArray(new Library[libraries.size()]);
   }
 
@@ -351,6 +316,24 @@ public class Library {
    */
   public void setExplicitlyImportsCore(boolean explicitlyImportsCore) {
     this.explicitlyImportsCore = explicitlyImportsCore;
+  }
+
+  /**
+   * Set the libraries that are exported by this library to be those in the given array.
+   * 
+   * @param exportedLibraries the libraries that are exported by this library
+   */
+  public void setExportedLibraries(Library[] exportedLibraries) {
+    this.exportedLibraries = exportedLibraries;
+  }
+
+  /**
+   * Set the libraries that are imported into this library to be those in the given array.
+   * 
+   * @param importedLibraries the libraries that are imported into this library
+   */
+  public void setImportedLibraries(Library[] importedLibraries) {
+    this.importedLibraries = importedLibraries;
   }
 
   /**

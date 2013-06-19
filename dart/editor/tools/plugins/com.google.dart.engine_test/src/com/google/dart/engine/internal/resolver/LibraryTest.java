@@ -14,8 +14,6 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.ExportDirective;
-import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
@@ -24,8 +22,6 @@ import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.SourceFactory;
 
-import static com.google.dart.engine.ast.ASTFactory.exportDirective;
-import static com.google.dart.engine.ast.ASTFactory.importDirective;
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
@@ -64,47 +60,13 @@ public class LibraryTest extends EngineTestCase {
     library = library("/lib.dart");
   }
 
-  public void test_addExport() {
-    Library exportLibrary = library("/exported.dart");
-    library.addExport(exportDirective("exported.dart"), exportLibrary);
-    Library[] exports = library.getExports();
-    assertLength(1, exports);
-    assertSame(exportLibrary, exports[0]);
-    errorListener.assertNoErrors();
-  }
-
-  public void test_addImport() {
-    Library importLibrary = library("/imported.dart");
-    library.addImport(importDirective("imported.dart", null), importLibrary);
-    Library[] imports = library.getImports();
-    assertLength(1, imports);
-    assertSame(importLibrary, imports[0]);
-    errorListener.assertNoErrors();
-  }
-
   public void test_getExplicitlyImportsCore() {
     assertFalse(library.getExplicitlyImportsCore());
     errorListener.assertNoErrors();
   }
 
-  public void test_getExport() {
-    ExportDirective directive = exportDirective("exported.dart");
-    Library exportLibrary = library("/exported.dart");
-    library.addExport(directive, exportLibrary);
-    assertSame(exportLibrary, library.getExport(directive));
-    errorListener.assertNoErrors();
-  }
-
   public void test_getExports() {
     assertLength(0, library.getExports());
-    errorListener.assertNoErrors();
-  }
-
-  public void test_getImport() {
-    ImportDirective directive = importDirective("imported.dart", null);
-    Library importLibrary = library("/imported.dart");
-    library.addImport(directive, importLibrary);
-    assertSame(importLibrary, library.getImport(directive));
     errorListener.assertNoErrors();
   }
 
@@ -114,8 +76,8 @@ public class LibraryTest extends EngineTestCase {
   }
 
   public void test_getImportsAndExports() {
-    library.addImport(importDirective("imported.dart", null), library("/imported.dart"));
-    library.addExport(exportDirective("exported.dart"), library("/exported.dart"));
+    library.setImportedLibraries(new Library[] {library("/imported.dart")});
+    library.setExportedLibraries(new Library[] {library("/exported.dart")});
     assertLength(2, library.getImportsAndExports());
     errorListener.assertNoErrors();
   }
@@ -135,6 +97,24 @@ public class LibraryTest extends EngineTestCase {
   public void test_setExplicitlyImportsCore() {
     library.setExplicitlyImportsCore(true);
     assertTrue(library.getExplicitlyImportsCore());
+    errorListener.assertNoErrors();
+  }
+
+  public void test_setExportedLibraries() {
+    Library exportLibrary = library("/exported.dart");
+    library.setExportedLibraries(new Library[] {exportLibrary});
+    Library[] exports = library.getExports();
+    assertLength(1, exports);
+    assertSame(exportLibrary, exports[0]);
+    errorListener.assertNoErrors();
+  }
+
+  public void test_setImportedLibraries() {
+    Library importLibrary = library("/imported.dart");
+    library.setImportedLibraries(new Library[] {importLibrary});
+    Library[] imports = library.getImports();
+    assertLength(1, imports);
+    assertSame(importLibrary, imports[0]);
     errorListener.assertNoErrors();
   }
 

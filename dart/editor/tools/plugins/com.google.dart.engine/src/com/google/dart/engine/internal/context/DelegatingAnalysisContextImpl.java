@@ -77,11 +77,29 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   }
 
   @Override
+  public Source[] computeExportedLibraries(Source source) throws AnalysisException {
+    if (source.isInSystemLibrary()) {
+      return sdkAnalysisContext.computeExportedLibraries(source);
+    } else {
+      return super.computeExportedLibraries(source);
+    }
+  }
+
+  @Override
   public HtmlElement computeHtmlElement(Source source) throws AnalysisException {
     if (source.isInSystemLibrary()) {
       return sdkAnalysisContext.computeHtmlElement(source);
     } else {
       return super.computeHtmlElement(source);
+    }
+  }
+
+  @Override
+  public Source[] computeImportedLibraries(Source source) throws AnalysisException {
+    if (source.isInSystemLibrary()) {
+      return sdkAnalysisContext.computeImportedLibraries(source);
+    } else {
+      return super.computeImportedLibraries(source);
     }
   }
 
