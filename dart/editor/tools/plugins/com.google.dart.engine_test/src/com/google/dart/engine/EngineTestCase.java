@@ -14,6 +14,8 @@
 package com.google.dart.engine;
 
 import com.google.common.base.Objects;
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -339,6 +341,19 @@ public class EngineTestCase extends TestCase {
       writer.println(line);
     }
     return writer.toString();
+  }
+
+  /**
+   * @return the {@link ASTNode} with requested type at offset of the "prefix".
+   */
+  public static <T extends ASTNode> T findNode(ASTNode root, String code, String prefix,
+      Class<T> clazz) {
+    int offset = code.indexOf(prefix);
+    if (offset == -1) {
+      throw new IllegalArgumentException("Not found '" + prefix + "'.");
+    }
+    ASTNode node = new NodeLocator(offset).searchWithin(root);
+    return node.getAncestor(clazz);
   }
 
   private static void assertContains(Object[] array, boolean[] found, Object element) {

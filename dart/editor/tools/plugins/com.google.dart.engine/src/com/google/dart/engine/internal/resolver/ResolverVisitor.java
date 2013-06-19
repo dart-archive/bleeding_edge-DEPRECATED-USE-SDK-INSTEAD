@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -36,9 +37,11 @@ import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
+import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.IsExpression;
@@ -77,6 +80,7 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
@@ -448,6 +452,16 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   @Override
+  public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    safelyVisit(node.getFunction());
+    node.accept(elementResolver);
+    inferFunctionExpressionsParametersTypes(node.getArgumentList());
+    safelyVisit(node.getArgumentList());
+    node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @Override
   public Void visitHideCombinator(HideCombinator node) {
     //
     // Combinators aren't visited by this visitor, the LibraryResolver has already resolved the
@@ -540,8 +554,9 @@ public class ResolverVisitor extends ScopedVisitor {
     // be visited in the context of the invocation.
     //
     safelyVisit(node.getTarget());
-    safelyVisit(node.getArgumentList());
     node.accept(elementResolver);
+    inferFunctionExpressionsParametersTypes(node.getArgumentList());
+    safelyVisit(node.getArgumentList());
     node.accept(typeAnalyzer);
     return null;
   }
@@ -837,6 +852,54 @@ public class ResolverVisitor extends ScopedVisitor {
       }
     }
     return null;
+  }
+
+  /**
+   * If given "mayBeClosure" is {@link FunctionExpression} without explicit parameters types and its
+   * required type is {@link FunctionType}, then infer parameters types from {@link FunctionType}.
+   */
+  private void inferFunctionExpressionParametersTypes(Expression mayBeClosure,
+      Type mayByFunctionType) {
+    // prepare closure
+    if (!(mayBeClosure instanceof FunctionExpression)) {
+      return;
+    }
+    FunctionExpression closure = (FunctionExpression) mayBeClosure;
+    // prepare expected closure type
+    if (!(mayByFunctionType instanceof FunctionType)) {
+      return;
+    }
+    FunctionType expectedClosureType = (FunctionType) mayByFunctionType;
+    // set propagated type for the closure
+    closure.setPropagatedType(expectedClosureType);
+    // set inferred types for parameters
+    NodeList<FormalParameter> parameters = closure.getParameters().getParameters();
+    ParameterElement[] expectedParameters = expectedClosureType.getParameters();
+    for (int i = 0; i < parameters.size() && i < expectedParameters.length; i++) {
+      FormalParameter parameter = parameters.get(i);
+      ParameterElement element = parameter.getElement();
+      Type currentType = getBestType(element);
+      // may be override the type
+      Type expectedType = expectedParameters[i].getType();
+      if (currentType == null || expectedType.isMoreSpecificThan(currentType)) {
+        overrideManager.setType(element, expectedType);
+      }
+    }
+  }
+
+  /**
+   * Try to infer types of parameters of the {@link FunctionExpression} arguments.
+   */
+  private void inferFunctionExpressionsParametersTypes(ArgumentList argumentList) {
+    for (Expression argument : argumentList.getArguments()) {
+      ParameterElement parameter = argument.getParameterElement();
+      if (parameter == null) {
+        parameter = argument.getStaticParameterElement();
+      }
+      if (parameter != null) {
+        inferFunctionExpressionParametersTypes(argument, parameter.getType());
+      }
+    }
   }
 
   /**

@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.ForEachStatement;
+import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.IndexExpression;
@@ -40,6 +41,31 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 public class TypePropagationTest extends ResolverTestCase {
+  // TODO(scheglov) disabled because we don't record parameters for arguments in ElementResolver
+  public void fail_functionExpression_asInvocationArgument_functionExpressionInvocation()
+      throws Exception {
+    String code = createSource(//
+        "main() {",
+        "  (f(String value)) {} ((v) {",
+        "    v;",
+        "  });",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    // v
+    Type dynamicType = getTypeProvider().getDynamicType();
+    Type stringType = getTypeProvider().getStringType();
+    FormalParameter vParameter = findNode(unit, code, "v)", FormalParameter.class);
+    assertSame(stringType, vParameter.getIdentifier().getPropagatedType());
+    assertSame(dynamicType, vParameter.getIdentifier().getStaticType());
+    SimpleIdentifier vIdentifier = findNode(unit, code, "v;", SimpleIdentifier.class);
+    assertSame(stringType, vIdentifier.getPropagatedType());
+    assertSame(dynamicType, vIdentifier.getStaticType());
+  }
+
   public void test_as() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -144,6 +170,112 @@ public class TypePropagationTest extends ResolverTestCase {
         0);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
     assertSame(typeA, variableName.getPropagatedType());
+  }
+
+  public void test_functionExpression_asInvocationArgument() throws Exception {
+    String code = createSource(//
+        "class MyMap<K, V> {",
+        "  forEach(f(K key, V value)) {}",
+        "}",
+        "f(MyMap<int, String> m) {",
+        "  m.forEach((k, v) {",
+        "    k;",
+        "    v;",
+        "  });",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    // k
+    Type intType = getTypeProvider().getIntType();
+    FormalParameter kParameter = findNode(unit, code, "k, ", FormalParameter.class);
+    assertSame(intType, kParameter.getIdentifier().getPropagatedType());
+    SimpleIdentifier kIdentifier = findNode(unit, code, "k;", SimpleIdentifier.class);
+    assertSame(intType, kIdentifier.getPropagatedType());
+    assertSame(getTypeProvider().getDynamicType(), kIdentifier.getStaticType());
+    // v
+    Type stringType = getTypeProvider().getStringType();
+    FormalParameter vParameter = findNode(unit, code, "v)", FormalParameter.class);
+    assertSame(stringType, vParameter.getIdentifier().getPropagatedType());
+    SimpleIdentifier vIdentifier = findNode(unit, code, "v;", SimpleIdentifier.class);
+    assertSame(stringType, vIdentifier.getPropagatedType());
+    assertSame(getTypeProvider().getDynamicType(), vIdentifier.getStaticType());
+  }
+
+  public void test_functionExpression_asInvocationArgument_fromInferredInvocation()
+      throws Exception {
+    String code = createSource(//
+        "class MyMap<K, V> {",
+        "  forEach(f(K key, V value)) {}",
+        "}",
+        "f(MyMap<int, String> m) {",
+        "  var m2 = m;",
+        "  m2.forEach((k, v) {});",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    // k
+    Type intType = getTypeProvider().getIntType();
+    FormalParameter kParameter = findNode(unit, code, "k, ", FormalParameter.class);
+    assertSame(intType, kParameter.getIdentifier().getPropagatedType());
+    // v
+    Type stringType = getTypeProvider().getStringType();
+    FormalParameter vParameter = findNode(unit, code, "v)", FormalParameter.class);
+    assertSame(stringType, vParameter.getIdentifier().getPropagatedType());
+  }
+
+  public void test_functionExpression_asInvocationArgument_keepIfLessSpecific() throws Exception {
+    String code = createSource(//
+        "class MyList {",
+        "  forEach(f(Object value)) {}",
+        "}",
+        "f(MyList list) {",
+        "  list.forEach((int v) {",
+        "    v;",
+        "  });",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    // v
+    Type intType = getTypeProvider().getIntType();
+    FormalParameter vParameter = findNode(unit, code, "v)", FormalParameter.class);
+    assertSame(null, vParameter.getIdentifier().getPropagatedType());
+    assertSame(intType, vParameter.getIdentifier().getStaticType());
+    SimpleIdentifier vIdentifier = findNode(unit, code, "v;", SimpleIdentifier.class);
+    assertSame(intType, vIdentifier.getStaticType());
+    assertSame(null, vIdentifier.getPropagatedType());
+  }
+
+  public void test_functionExpression_asInvocationArgument_replaceIfMoreSpecific() throws Exception {
+    String code = createSource(//
+        "class MyList<E> {",
+        "  forEach(f(E value)) {}",
+        "}",
+        "f(MyList<String> list) {",
+        "  list.forEach((Object v) {",
+        "    v;",
+        "  });",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    // v
+    Type stringType = getTypeProvider().getStringType();
+    FormalParameter vParameter = findNode(unit, code, "v)", FormalParameter.class);
+    assertSame(stringType, vParameter.getIdentifier().getPropagatedType());
+    assertSame(getTypeProvider().getObjectType(), vParameter.getIdentifier().getStaticType());
+    SimpleIdentifier vIdentifier = findNode(unit, code, "v;", SimpleIdentifier.class);
+    assertSame(stringType, vIdentifier.getPropagatedType());
   }
 
   public void test_initializer() throws Exception {
