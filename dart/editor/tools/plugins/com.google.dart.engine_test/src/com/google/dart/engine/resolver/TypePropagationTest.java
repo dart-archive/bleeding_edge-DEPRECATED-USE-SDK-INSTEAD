@@ -41,7 +41,7 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 public class TypePropagationTest extends ResolverTestCase {
-  // TODO(scheglov) disabled because we don't record parameters for arguments in ElementResolver
+  // TODO(scheglov) disabled because we don't resolve function expression
   public void fail_functionExpression_asInvocationArgument_functionExpressionInvocation()
       throws Exception {
     String code = createSource(//
@@ -64,6 +64,18 @@ public class TypePropagationTest extends ResolverTestCase {
     SimpleIdentifier vIdentifier = findNode(unit, code, "v;", SimpleIdentifier.class);
     assertSame(stringType, vIdentifier.getPropagatedType());
     assertSame(dynamicType, vIdentifier.getStaticType());
+  }
+
+  // TODO(scheglov) disabled because we don't resolve function expression
+  public void fail_propagatedReturnType_functionExpression() throws Exception {
+    String code = createSource(//
+        "main() {",
+        "  var v = (() {return 42;})();",
+        "}");
+    check_propagatedReturnType(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getIntType());
   }
 
   public void test_as() throws Exception {
@@ -698,6 +710,98 @@ public class TypePropagationTest extends ResolverTestCase {
     assertSame(getTypeProvider().getIntType(), typeArguments[1]);
   }
 
+  public void test_propagatedReturnType_function_hasReturnType_returnsNull() throws Exception {
+    String code = createSource(//
+        "String f() => null;",
+        "main() {",
+        "  var v = f();",
+        "}");
+    check_propagatedReturnType(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getStringType());
+  }
+
+  public void test_propagatedReturnType_function_lessSpecificStaticReturnType() throws Exception {
+    String code = createSource(//
+        "Object f() => 42;",
+        "main() {",
+        "  var v = f();",
+        "}");
+    check_propagatedReturnType(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getIntType());
+  }
+
+  public void test_propagatedReturnType_function_moreSpecificStaticReturnType() throws Exception {
+    String code = createSource(//
+        "int f() => (42 as Object);",
+        "main() {",
+        "  var v = f();",
+        "}");
+    check_propagatedReturnType(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getIntType());
+  }
+
+  public void test_propagatedReturnType_function_noReturnTypeName_blockBody_multipleReturns()
+      throws Exception {
+    String code = createSource(//
+        "f() {",
+        "  if (true) return 0;",
+        "  return 1.0;",
+        "}",
+        "main() {",
+        "  var v = f();",
+        "}");
+    check_propagatedReturnType(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getNumType());
+  }
+
+  public void test_propagatedReturnType_function_noReturnTypeName_blockBody_oneReturn()
+      throws Exception {
+    String code = createSource(//
+        "f() {",
+        "  var z = 42;",
+        "  return z;",
+        "}",
+        "main() {",
+        "  var v = f();",
+        "}");
+    check_propagatedReturnType(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getIntType());
+  }
+
+  public void test_propagatedReturnType_function_noReturnTypeName_expressionBody() throws Exception {
+    String code = createSource(//
+        "f() => 42;",
+        "main() {",
+        "  var v = f();",
+        "}");
+    check_propagatedReturnType(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getIntType());
+  }
+
+  public void test_propagatedReturnType_localFunction() throws Exception {
+    String code = createSource(//
+        "main() {",
+        "  f() => 42;",
+        "  var v = f();",
+        "}");
+    check_propagatedReturnType(
+        code,
+        getTypeProvider().getDynamicType(),
+        getTypeProvider().getIntType());
+  }
+
   public void test_query() throws Exception {
     Source source = addSource(createSource(//
         "import 'dart:html';",
@@ -737,5 +841,22 @@ public class TypePropagationTest extends ResolverTestCase {
     assertEquals("Element", elements.get(8).getPropagatedType().getName());
     assertEquals("Element", elements.get(9).getPropagatedType().getName());
     assertEquals("Element", elements.get(10).getPropagatedType().getName());
+  }
+
+  /**
+   * @param code the code that assigns the value to the variable "v", no matter how. We check that
+   *          "v" has expected static and propagated type.
+   */
+  private void check_propagatedReturnType(String code, Type expectedStaticType,
+      Type expectedPropagatedType) throws Exception {
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    //
+    SimpleIdentifier identifier = findNode(unit, code, "v = ", SimpleIdentifier.class);
+    assertSame(expectedStaticType, identifier.getStaticType());
+    assertSame(expectedPropagatedType, identifier.getPropagatedType());
   }
 }
