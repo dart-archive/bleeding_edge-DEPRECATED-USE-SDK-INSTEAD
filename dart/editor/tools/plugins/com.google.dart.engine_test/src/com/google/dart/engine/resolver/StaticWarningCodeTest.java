@@ -1209,6 +1209,19 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_newWithNonType_fromLibrary() throws Exception {
+    Source source1 = addSource("lib.dart", "");
+    Source source2 = addSource("lib2.dart", createSource(//
+        "import 'lib.dart' as lib;",
+        "void f() {",
+        "  var a = new lib.A();",
+        "}"));
+    resolve(source1);
+    resolve(source2);
+    assertErrors(StaticWarningCode.NEW_WITH_NON_TYPE);
+    verify(source1);
+  }
+
   public void test_newWithUndefinedConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1716,6 +1729,19 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     "f() { boolean v; }"));
     resolve(source);
     assertErrors(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN);
+  }
+
+  public void test_undefinedGetter_fromLibrary() throws Exception {
+    Source source1 = addSource("lib.dart", "");
+    Source source2 = addSource("lib2.dart", createSource(//
+        "import 'lib.dart' as lib;",
+        "void f() {",
+        "  var g = lib.gg;",
+        "}"));
+    resolve(source1);
+    resolve(source2);
+    assertErrors(StaticWarningCode.UNDEFINED_GETTER);
+    verify(source1);
   }
 
   public void test_undefinedIdentifier_initializer() throws Exception {

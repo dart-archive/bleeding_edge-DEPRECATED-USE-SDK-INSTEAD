@@ -898,7 +898,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (prefixElement instanceof PrefixElement) {
       Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
       if (element == null) {
-        // TODO(brianwilkerson) Report this error.
+        resolver.reportError(
+            StaticWarningCode.UNDEFINED_GETTER,
+            identifier,
+            identifier.getName(),
+            prefixElement.getName());
         return null;
       }
       if (element instanceof PropertyAccessorElement && identifier.inSetterContext()) {

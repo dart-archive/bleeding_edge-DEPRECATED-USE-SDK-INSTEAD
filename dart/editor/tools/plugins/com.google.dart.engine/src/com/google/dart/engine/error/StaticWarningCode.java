@@ -644,6 +644,8 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>C.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
    * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. It is a static warning if <i>C</i> does not denote a
    * class in the current scope.
+   * 
+   * @param undefinedClassName the name of the undefined class
    */
   UNDEFINED_CLASS("Undefined class '%s'"),
 

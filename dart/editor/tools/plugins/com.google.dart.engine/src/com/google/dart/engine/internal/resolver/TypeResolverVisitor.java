@@ -419,11 +419,25 @@ public class TypeResolverVisitor extends ScopedVisitor {
           && argumentList == null) {
         ConstructorName name = (ConstructorName) parent;
         if (name.getName() == null) {
-          SimpleIdentifier prefix = ((PrefixedIdentifier) typeName).getPrefix();
+          PrefixedIdentifier prefixedIdentifier = (PrefixedIdentifier) typeName;
+          SimpleIdentifier prefix = prefixedIdentifier.getPrefix();
           element = getNameScope().lookup(prefix, getDefiningLibrary());
           if (element instanceof PrefixElement) {
-            // TODO(brianwilkerson) Report this error.
-//            resolver.reportError(ResolverErrorCode.UNDECLARED, ((PrefixedIdentifier) typeName).getIdentifier());
+            if (parent.getParent() instanceof InstanceCreationExpression
+                && ((InstanceCreationExpression) parent.getParent()).isConst()) {
+              // If, if this is a const expression, then generate a
+              // CompileTimeErrorCode.CONST_WITH_NON_TYPE error.
+              reportError(
+                  CompileTimeErrorCode.CONST_WITH_NON_TYPE,
+                  prefixedIdentifier.getIdentifier(),
+                  prefixedIdentifier.getIdentifier().getName());
+            } else {
+              // Else, if this expression is a new expression, report a NEW_WITH_NON_TYPE warning.
+              reportError(
+                  StaticWarningCode.NEW_WITH_NON_TYPE,
+                  prefixedIdentifier.getIdentifier(),
+                  prefixedIdentifier.getIdentifier().getName());
+            }
             return null;
           } else if (element != null) {
             //
@@ -432,8 +446,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
             // class name and "b" is a constructor name. It arbitrarily chooses the former, but
             // in this case was wrong.
             //
-            name.setName(((PrefixedIdentifier) typeName).getIdentifier());
-            name.setPeriod(((PrefixedIdentifier) typeName).getPeriod());
+            name.setName(prefixedIdentifier.getIdentifier());
+            name.setPeriod(prefixedIdentifier.getPeriod());
             node.setName(prefix);
             typeName = prefix;
           }

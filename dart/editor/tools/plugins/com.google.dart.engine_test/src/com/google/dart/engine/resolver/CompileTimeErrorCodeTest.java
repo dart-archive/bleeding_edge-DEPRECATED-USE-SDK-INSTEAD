@@ -790,6 +790,19 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constWithNonType_fromLibrary() throws Exception {
+    Source source1 = addSource("lib.dart", "");
+    Source source2 = addSource("lib2.dart", createSource(//
+        "import 'lib.dart' as lib;",
+        "void f() {",
+        "  const lib.A();",
+        "}"));
+    resolve(source1);
+    resolve(source2);
+    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_TYPE);
+    verify(source1);
+  }
+
   public void test_constWithTypeParameters_direct() throws Exception {
     Source source = addSource(createSource(//
         "class A<T> {",
