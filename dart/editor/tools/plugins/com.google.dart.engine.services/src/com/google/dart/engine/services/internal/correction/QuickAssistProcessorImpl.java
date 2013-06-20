@@ -88,6 +88,7 @@ import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVE
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_CONVERT_INTO_IS_NOT_EMPTY;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_EXCHANGE_OPERANDS;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_EXTRACT_CLASS;
+import static com.google.dart.engine.services.correction.CorrectionKind.QA_INVERT_IF_STATEMENT;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_JOIN_VARIABLE_DECLARATION;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_REMOVE_TYPE_ANNOTATION;
 import static com.google.dart.engine.services.correction.CorrectionKind.QA_REPLACE_CONDITIONAL_WITH_IF_ELSE;
@@ -178,6 +179,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
 
   private final List<CorrectionProposal> proposals = Lists.newArrayList();
   private final List<Edit> textEdits = Lists.newArrayList();
+
   private AnalysisContext analysisContext;
   private Source source;
   private CompilationUnit unit;
@@ -187,13 +189,16 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   private LibraryElement unitLibraryElement;
   private File unitLibraryFile;
   private File unitLibraryFolder;
-
   private int selectionOffset;
   private int selectionLength;
   private CorrectionUtils utils;
+
   private final Map<SourceRange, Edit> positionStopEdits = Maps.newHashMap();
+
   private final Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
+
   private final Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
+
   private SourceRange proposalEndRange = null;
 
   @Override
@@ -533,6 +538,30 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     // add proposal
     Change compositeChange = new CompositeChange("", unitChange, createFileChange, libraryChange);
     proposals.add(new ChangeCorrectionProposal(compositeChange, QA_EXTRACT_CLASS, fileName));
+  }
+
+  void addProposal_invertIf() throws Exception {
+    if (!(node instanceof IfStatement)) {
+      return;
+    }
+    IfStatement ifStatement = (IfStatement) node;
+    Expression condition = ifStatement.getCondition();
+    // should have both "then" and "else"
+    Statement thenStatement = ifStatement.getThenStatement();
+    Statement elseStatement = ifStatement.getElseStatement();
+    if (thenStatement == null || elseStatement == null) {
+      return;
+    }
+    // prepare source
+    String invertedCondition = utils.invertCondition(condition);
+    String thenSource = getSource(thenStatement);
+    String elseSource = getSource(elseStatement);
+    // do replacements
+    addReplaceEdit(rangeNode(condition), invertedCondition);
+    addReplaceEdit(rangeNode(thenStatement), elseSource);
+    addReplaceEdit(rangeNode(elseStatement), thenSource);
+    // add proposal
+    addUnitCorrectionProposal(QA_INVERT_IF_STATEMENT);
   }
 
   void addProposal_joinIfStatementInner() throws Exception {
@@ -1020,6 +1049,15 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     addUnitCorrectionProposal(QA_SPLIT_VARIABLE_DECLARATION);
   }
 
+//  private void addLinkedPositionProposal(String group, CorrectionImage icon, String text) {
+//    List<TrackedNodeProposal> nodeProposals = linkedPositionProposals.get(group);
+//    if (nodeProposals == null) {
+//      nodeProposals = Lists.newArrayList();
+//      linkedPositionProposals.put(group, nodeProposals);
+//    }
+//    nodeProposals.add(new TrackedNodeProposal(icon, text));
+//  }
+
   void addProposal_surroundWith() throws Exception {
     // prepare selected statements
     List<Statement> selectedStatements;
@@ -1298,15 +1336,6 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     textEdits.add(edit);
     addLinkedPositions(builder, edit);
   }
-
-//  private void addLinkedPositionProposal(String group, CorrectionImage icon, String text) {
-//    List<TrackedNodeProposal> nodeProposals = linkedPositionProposals.get(group);
-//    if (nodeProposals == null) {
-//      nodeProposals = Lists.newArrayList();
-//      linkedPositionProposals.put(group, nodeProposals);
-//    }
-//    nodeProposals.add(new TrackedNodeProposal(icon, text));
-//  }
 
   private void addLinkedPosition(String group, SourceRange range) {
     List<SourceRange> positions = linkedPositions.get(group);

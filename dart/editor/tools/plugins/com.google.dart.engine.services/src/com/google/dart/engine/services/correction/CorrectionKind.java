@@ -26,6 +26,7 @@ public enum CorrectionKind {
   QA_CONVERT_INTO_IS_NOT_EMPTY(30, "Convert into 'isNotEmpty'"),
   QA_EXCHANGE_OPERANDS(30, "Exchange operands"),
   QA_EXTRACT_CLASS(30, "Extract class into file '%s'"),
+  QA_INVERT_IF_STATEMENT(30, "Invert 'if' statement"),
   QA_JOIN_IF_WITH_INNER(30, "Join 'if' statement with inner 'if' statement"),
   QA_JOIN_IF_WITH_OUTER(30, "Join 'if' statement with outer 'if' statement"),
   QA_JOIN_VARIABLE_DECLARATION(30, "Join variable declaration"),

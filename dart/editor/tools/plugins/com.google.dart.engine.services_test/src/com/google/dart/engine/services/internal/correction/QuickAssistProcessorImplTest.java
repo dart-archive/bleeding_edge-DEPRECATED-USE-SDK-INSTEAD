@@ -565,6 +565,58 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     }
   }
 
+  // XXX
+  public void test_invertIfStatement_blocks() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "print(x) {}",
+        "main() {",
+        "  if (true) {",
+        "    0;",
+        "  } else {",
+        "    1;",
+        "  }",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "print(x) {}",
+        "main() {",
+        "  if (false) {",
+        "    1;",
+        "  } else {",
+        "    0;",
+        "  }",
+        "}",
+        "");
+    assert_invertIfStatement(initial, "if ", expected);
+  }
+
+  // XXX
+  public void test_invertIfStatement_statements() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "print(x) {}",
+        "main() {",
+        "  if (true)",
+        "    0;",
+        "  else",
+        "    1;",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "print(x) {}",
+        "main() {",
+        "  if (false)",
+        "    1;",
+        "  else",
+        "    0;",
+        "}",
+        "");
+    assert_invertIfStatement(initial, "if ", expected);
+  }
+
   public void test_joinIfStatementInner_OK_conditionAndOr() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1674,6 +1726,15 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   private void assert_exchangeBinaryExpressionArguments_wrong(String expression,
       String offsetPattern) throws Exception {
     assert_exchangeBinaryExpressionArguments_success(expression, offsetPattern, expression);
+  }
+
+  private void assert_invertIfStatement(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionKind.QA_INVERT_IF_STATEMENT,
+        initialSource,
+        offsetPattern,
+        expectedSource);
   }
 
   private void assert_joinIfStatementInner(String initialSource, String offsetPattern,

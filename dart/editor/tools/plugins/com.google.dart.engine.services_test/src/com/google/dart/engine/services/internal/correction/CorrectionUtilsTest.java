@@ -33,6 +33,7 @@ import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
@@ -988,7 +989,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         TokenType.PLUS_PLUS.getPrecedence(),
         CorrectionUtils.getPrecedence(postfixExpression(a, TokenType.PLUS_PLUS)));
     // no operator
-    assertEquals(-1, CorrectionUtils.getPrecedence(a));
+    assertEquals(Integer.MAX_VALUE, CorrectionUtils.getPrecedence(a));
   }
 
   public void test_getPropertyAccessorElement_accessor() throws Exception {
@@ -1526,6 +1527,46 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertThat(suggestions).containsExactly("name");
   }
 
+  public void test_invertCondition_compare() throws Exception {
+    assert_invertCondition("0 < 1", "0 >= 1");
+    assert_invertCondition("0 > 1", "0 <= 1");
+    assert_invertCondition("0 <= 1", "0 > 1");
+    assert_invertCondition("0 >= 1", "0 < 1");
+    assert_invertCondition("0 == 1", "0 != 1");
+    assert_invertCondition("0 != 1", "0 == 1");
+  }
+
+  public void test_invertCondition_complex() throws Exception {
+    assert_invertCondition("b1 && b2 || b3", "(!b1 || !b2) && !b3");
+    assert_invertCondition("b1 || b2 && b3", "!b1 && (!b2 || !b3)");
+    assert_invertCondition("(!b1 || !b2) && !b3", "b1 && b2 || b3");
+    assert_invertCondition("!b1 && (!b2 || !b3)", "b1 || b2 && b3");
+  }
+
+  public void test_invertCondition_is() throws Exception {
+    assert_invertCondition("v1 is int", "v1 is! int");
+    assert_invertCondition("v1 is! int", "v1 is int");
+  }
+
+  public void test_invertCondition_literals() throws Exception {
+    assert_invertCondition("true", "false");
+    assert_invertCondition("false", "true");
+  }
+
+  public void test_invertCondition_logical() throws Exception {
+    assert_invertCondition("b1 && b2", "!b1 || !b2");
+    assert_invertCondition("!b1 && !b2", "b1 || b2");
+    assert_invertCondition("b1 || b2", "!b1 && !b2");
+    assert_invertCondition("!b1 || !b2", "b1 && b2");
+  }
+
+  public void test_invertCondition_simple() throws Exception {
+    assert_invertCondition("b1", "!b1");
+    assert_invertCondition("!b1", "b1");
+    assert_invertCondition("!((b1))", "b1");
+    assert_invertCondition("(((b1)))", "!b1");
+  }
+
   public void test_isJustWhitespace() throws Exception {
     parseTestUnit("//  0123");
     CorrectionUtils utils = getTestCorrectionUtils();
@@ -1742,6 +1783,25 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     // assert prefix
     CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals(expectedPrefix, utils.getNodePrefix(node));
+  }
+
+  private void assert_invertCondition(String exprSource, String expected) throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v1, v2, v3, v4, v5;",
+        "  bool b1, b2, b3, b4, b5;",
+        "  if (" + exprSource + ") // marker",
+        "    0;",
+        "  else",
+        "    1;",
+        "}",
+        "");
+    parseTestUnit(initial);
+    IfStatement ifStatement = findNode("if (", IfStatement.class);
+    Expression condition = ifStatement.getCondition();
+    String resultSource = getTestCorrectionUtils().invertCondition(condition);
+    assertEquals(expected, resultSource);
   }
 
   @SuppressWarnings("unchecked")

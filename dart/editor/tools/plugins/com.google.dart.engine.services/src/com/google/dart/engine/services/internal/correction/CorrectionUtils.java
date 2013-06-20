@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
@@ -30,11 +31,13 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
+import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
@@ -99,6 +102,35 @@ public class CorrectionUtils {
     public int offset;
     public String prefix = "";
     public String suffix = "";
+  }
+
+  /**
+   * This class is used to hold the source and also its precedence during inverting logical
+   * expressions.
+   */
+  private static class InvertedCondition {
+    static InvertedCondition binary(int precedence, InvertedCondition left, String operation,
+        InvertedCondition right) {
+      return new InvertedCondition(precedence, parenthesizeIfRequired(left, precedence) + operation
+          + parenthesizeIfRequired(right, precedence));
+    }
+
+    static InvertedCondition binary(InvertedCondition left, String operation,
+        InvertedCondition right) {
+      return new InvertedCondition(Integer.MAX_VALUE, left.source + operation + right.source);
+    }
+
+    static InvertedCondition simple(String source) {
+      return new InvertedCondition(Integer.MAX_VALUE, source);
+    }
+
+    final int precedence;
+    final String source;
+
+    InvertedCondition(int precedence, String source) {
+      this.precedence = precedence;
+      this.source = source;
+    }
   }
 
   private static final String[] KNOWN_METHOD_NAME_PREFIXES = {"get", "is", "to"};
@@ -423,7 +455,8 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return the precedence of the given {@link Expression} operator. May be {@code -1} no operator.
+   * @return the precedence of the given {@link Expression} operator. May be
+   *         {@code Integer#MAX_VALUE} if not an operator.
    */
   public static int getPrecedence(Expression expression) {
     if (expression instanceof BinaryExpression) {
@@ -438,7 +471,7 @@ public class CorrectionUtils {
       PostfixExpression postfixExpression = (PostfixExpression) expression;
       return postfixExpression.getOperator().getType().getPrecedence();
     }
-    return -1;
+    return Integer.MAX_VALUE;
   }
 
   /**
@@ -674,6 +707,17 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return the most specific {@link Type} of the given {@link Expression}.
+   */
+  public static Type typeOf(Expression expr) {
+    Type type = expr.getPropagatedType();
+    if (type == null) {
+      type = expr.getStaticType();
+    }
+    return type;
+  }
+
+  /**
    * Adds "toAdd" items which are not excluded.
    */
   private static void addAll(Set<String> excluded, Set<String> result, Collection<String> toAdd) {
@@ -846,6 +890,17 @@ public class CorrectionUtils {
       result.add(suggestion);
     }
     return result;
+  }
+
+  /**
+   * Adds enclosing parenthesis if the precedence of the {@link InvertedCondition} if less than the
+   * precedence of the expression we are going it to use in.
+   */
+  private static String parenthesizeIfRequired(InvertedCondition expr, int newOperatorPrecedence) {
+    if (expr.precedence < newOperatorPrecedence) {
+      return "(" + expr.source + ")";
+    }
+    return expr.source;
   }
 
   private final CompilationUnit unit;
@@ -1101,6 +1156,13 @@ public class CorrectionUtils {
       desc.suffix = getEndOfLine();
     }
     return desc;
+  }
+
+  /**
+   * @return the source of the inverted condition for the given logical expression.
+   */
+  public String invertCondition(Expression expression) {
+    return invertCondition0(expression).source;
   }
 
   /**
@@ -1406,6 +1468,89 @@ public class CorrectionUtils {
       }
     }
     return null;
+  }
+
+  /**
+   * @return the {@link InvertedCondition} for the given logical expression.
+   */
+  private InvertedCondition invertCondition0(Expression expression) {
+    if (expression instanceof BooleanLiteral) {
+      BooleanLiteral literal = (BooleanLiteral) expression;
+      if (literal.getValue()) {
+        return InvertedCondition.simple("false");
+      } else {
+        return InvertedCondition.simple("true");
+      }
+    }
+    if (expression instanceof BinaryExpression) {
+      BinaryExpression binary = (BinaryExpression) expression;
+      TokenType operator = binary.getOperator().getType();
+      Expression le = binary.getLeftOperand();
+      Expression re = binary.getRightOperand();
+      InvertedCondition ls = invertCondition0(le);
+      InvertedCondition rs = invertCondition0(re);
+      if (operator == TokenType.LT) {
+        return InvertedCondition.binary(ls, " >= ", rs);
+      }
+      if (operator == TokenType.GT) {
+        return InvertedCondition.binary(ls, " <= ", rs);
+      }
+      if (operator == TokenType.LT_EQ) {
+        return InvertedCondition.binary(ls, " > ", rs);
+      }
+      if (operator == TokenType.GT_EQ) {
+        return InvertedCondition.binary(ls, " < ", rs);
+      }
+      if (operator == TokenType.EQ_EQ) {
+        return InvertedCondition.binary(ls, " != ", rs);
+      }
+      if (operator == TokenType.BANG_EQ) {
+        return InvertedCondition.binary(ls, " == ", rs);
+      }
+      if (operator == TokenType.AMPERSAND_AMPERSAND) {
+        int newPrecedence = TokenType.BAR_BAR.getPrecedence();
+        return InvertedCondition.binary(newPrecedence, ls, " || ", rs);
+      }
+      if (operator == TokenType.BAR_BAR) {
+        int newPrecedence = TokenType.AMPERSAND_AMPERSAND.getPrecedence();
+        return InvertedCondition.binary(newPrecedence, ls, " && ", rs);
+      }
+    }
+    if (expression instanceof IsExpression) {
+      IsExpression isExpression = (IsExpression) expression;
+      String expressionSource = getText(isExpression.getExpression());
+      String typeSource = getText(isExpression.getType());
+      if (isExpression.getNotOperator() == null) {
+        return InvertedCondition.simple(expressionSource + " is! " + typeSource);
+      } else {
+        return InvertedCondition.simple(expressionSource + " is " + typeSource);
+      }
+    }
+    if (expression instanceof PrefixExpression) {
+      PrefixExpression prefixExpression = (PrefixExpression) expression;
+      TokenType operator = prefixExpression.getOperator().getType();
+      if (operator == TokenType.BANG) {
+        Expression operand = prefixExpression.getOperand();
+        while (operand instanceof ParenthesizedExpression) {
+          ParenthesizedExpression pe = (ParenthesizedExpression) operand;
+          operand = pe.getExpression();
+        }
+        return InvertedCondition.simple(getText(operand));
+      }
+    }
+    if (expression instanceof ParenthesizedExpression) {
+      ParenthesizedExpression pe = (ParenthesizedExpression) expression;
+      Expression innerExpresion = pe.getExpression();
+      while (innerExpresion instanceof ParenthesizedExpression) {
+        innerExpresion = ((ParenthesizedExpression) innerExpresion).getExpression();
+      }
+      return invertCondition0(innerExpresion);
+    }
+    Type type = typeOf(expression);
+    if (type != null && type.getDisplayName().equals("bool")) {
+      return InvertedCondition.simple("!" + getText(expression));
+    }
+    return InvertedCondition.simple(getText(expression));
   }
 
   private boolean selectionIncludesNonWhitespaceOutsideOperands(SourceRange selection,
