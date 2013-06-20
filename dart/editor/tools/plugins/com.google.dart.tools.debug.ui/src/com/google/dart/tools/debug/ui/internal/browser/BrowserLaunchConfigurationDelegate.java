@@ -33,6 +33,7 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
@@ -61,18 +62,28 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
           "Default Browser",
           "Browser");
       if (browser != null) {
-        browser.openURL(new URL(url));
+        final IWebBrowser defaultBrowser = browser;
+        final URL urlToOpen = new URL(url);
+
+        Display.getDefault().asyncExec(new Runnable() {
+
+          @Override
+          public void run() {
+            try {
+              defaultBrowser.openURL(urlToOpen);
+            } catch (PartInitException e) {
+              DartDebugCorePlugin.logError(
+                  Messages.BrowserLaunchConfigurationDelegate_DefaultBrowserNotFound,
+                  e);
+            }
+          }
+        });
       } else {
         throw new CoreException(new Status(
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,
             Messages.BrowserLaunchConfigurationDelegate_DefaultBrowserNotFound));
       }
-    } catch (PartInitException e1) {
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartDebugCorePlugin.PLUGIN_ID,
-          Messages.BrowserLaunchConfigurationDelegate_DefaultBrowserNotFound));
     } catch (MalformedURLException e) {
       throw new CoreException(new Status(
           IStatus.ERROR,
