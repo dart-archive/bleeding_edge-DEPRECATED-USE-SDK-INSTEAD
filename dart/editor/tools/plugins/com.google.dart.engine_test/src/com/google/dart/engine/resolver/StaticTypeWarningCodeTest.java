@@ -536,4 +536,28 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
     verify(source);
   }
+
+  public void test_wrongNumberOfTypeArguments_typeTest_tooFew() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C<K, V> {}",
+        "f(p) {",
+        "  return p is C<A>;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    verify(source);
+  }
+
+  public void test_wrongNumberOfTypeArguments_typeTest_tooMany() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C<E> {}",
+        "f(p) {",
+        "  return p is C<A, A>;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    verify(source);
+  }
 }

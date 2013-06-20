@@ -226,78 +226,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_wrongNumberOfTypeArguments_creation_const_tooFew() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "class C<K, V> {}",
-        "f(p) {",
-        "  return const C<A>();",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
-    verify(source);
-  }
-
-  public void fail_wrongNumberOfTypeArguments_creation_const_tooMany() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "class C<E> {}",
-        "f(p) {",
-        "  return const C<A, A>();",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
-    verify(source);
-  }
-
-  public void fail_wrongNumberOfTypeArguments_creation_new_tooFew() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "class C<K, V> {}",
-        "f(p) {",
-        "  return new C<A>();",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
-    verify(source);
-  }
-
-  public void fail_wrongNumberOfTypeArguments_creation_new_tooMany() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "class C<E> {}",
-        "f(p) {",
-        "  return new C<A, A>();",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
-    verify(source);
-  }
-
-  public void fail_wrongNumberOfTypeArguments_typeTest_tooFew() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "class C<K, V> {}",
-        "f(p) {",
-        "  return p is C<A>;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
-    verify(source);
-  }
-
-  public void fail_wrongNumberOfTypeArguments_typeTest_tooMany() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "class C<E> {}",
-        "f(p) {",
-        "  return p is C<A, A>;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
-    verify(source);
-  }
-
   public void test_ambiguousExport() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
@@ -752,6 +680,34 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A();",
         "}",
         "f() { return const A<A>(); }"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS);
+    verify(source);
+  }
+
+  public void test_constWithInvalidTypeParameters_tooFew() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C<K, V> {",
+        "  const C();",
+        "}",
+        "f(p) {",
+        "  return const C<A>();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS);
+    verify(source);
+  }
+
+  public void test_constWithInvalidTypeParameters_tooMany() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C<E> {",
+        "  const C();",
+        "}",
+        "f(p) {",
+        "  return const C<A, A>();",
+        "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS);
     verify(source);
@@ -1991,6 +1947,30 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class A {}",
         "f() { return new A<A>(); }"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS);
+    verify(source);
+  }
+
+  public void test_newWithInvalidTypeParameters_tooFew() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C<K, V> {}",
+        "f(p) {",
+        "  return new C<A>();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS);
+    verify(source);
+  }
+
+  public void test_newWithInvalidTypeParameters_tooMany() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class C<E> {}",
+        "f(p) {",
+        "  return new C<A, A>();",
+        "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS);
     verify(source);

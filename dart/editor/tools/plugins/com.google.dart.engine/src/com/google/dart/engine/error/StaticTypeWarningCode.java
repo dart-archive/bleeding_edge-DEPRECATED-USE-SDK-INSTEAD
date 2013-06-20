@@ -226,12 +226,14 @@ public enum StaticTypeWarningCode implements ErrorCode {
   UNDEFINED_SUPER_METHOD("There is no such method '%s' in '%s'"),
 
   /**
-   * 15.8 Parameterized Types: It is a static type warning if <i>G</i> is not an accessible generic
-   * type declaration with <i>n</i> type parameters.
+   * 15.8 Parameterized Types: It is a static type warning if <i>G</i> is not a generic type with
+   * exactly <i>n</i> type parameters.
    * 
    * @param typeName the name of the type being referenced (<i>G</i>)
    * @param parameterCount the number of type parameters that were declared
    * @param argumentCount the number of type arguments provided
+   * @see CompileTimeErrorCode#CONST_WITH_INVALID_TYPE_PARAMETERS
+   * @see CompileTimeErrorCode#NEW_WITH_INVALID_TYPE_PARAMETERS
    */
   WRONG_NUMBER_OF_TYPE_ARGUMENTS(
       "The type '%s' is declared with %d type parameters, but %d type arguments were given");

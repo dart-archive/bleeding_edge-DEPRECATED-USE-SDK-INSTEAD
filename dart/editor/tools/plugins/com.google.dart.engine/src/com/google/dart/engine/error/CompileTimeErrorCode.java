@@ -203,6 +203,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * @param typeName the name of the type being referenced (<i>S</i>)
    * @param parameterCount the number of type parameters that were declared
    * @param argumentCount the number of type arguments provided
+   * @see CompileTimeErrorCode#NEW_WITH_INVALID_TYPE_PARAMETERS
+   * @see StaticTypeWarningCode#WRONG_NUMBER_OF_TYPE_ARGUMENTS
    */
   CONST_WITH_INVALID_TYPE_PARAMETERS(
       "The type '%s' is declared with %d type parameters, but %d type arguments were given"),
@@ -768,6 +770,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * @param typeName the name of the type being referenced (<i>S</i>)
    * @param parameterCount the number of type parameters that were declared
    * @param argumentCount the number of type arguments provided
+   * @see CompileTimeErrorCode#CONST_WITH_INVALID_TYPE_PARAMETERS
+   * @see StaticTypeWarningCode#WRONG_NUMBER_OF_TYPE_ARGUMENTS
    */
   NEW_WITH_INVALID_TYPE_PARAMETERS(
       "The type '%s' is declared with %d type parameters, but %d type arguments were given"),
@@ -1111,18 +1115,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 
    * @param numberOfParameters the number of parameters found in the setter
    */
-  WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER("Setters should declare exactly one parameter, %d found"),
-
-  /**
-   * 12.11 Instance Creation: It is a compile-time error if a constructor of a generic type with
-   * <i>n</i> type parameters invoked by a new expression or a constant object expression is passed
-   * <i>m</i> type arguments where <i>m != n</i>.
-   * <p>
-   * 12.31 Type Test: It is a compile-time error if <i>T</i> is a parameterized type of the form
-   * <i>G&lt;T<sub>1</sub>, &hellip;, T<sub>n</sub>&gt;</i> and <i>G</i> is not a generic type with
-   * <i>n</i> type parameters.
-   */
-  WRONG_NUMBER_OF_TYPE_ARGUMENTS("");
+  WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER("Setters should declare exactly one parameter, %d found");
 
   /**
    * The message template used to create the message to be displayed for this error.
