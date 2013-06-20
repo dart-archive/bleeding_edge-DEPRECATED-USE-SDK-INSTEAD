@@ -130,6 +130,7 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.ITextViewerExtension2;
 import org.eclipse.jface.text.ITextViewerExtension5;
+import org.eclipse.jface.text.MarkSelection;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextSelection;
@@ -1484,6 +1485,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     private ISelection newDartSelection(ISelection selection) {
       if (selection == null) {
         return new DartSelection(DartEditor.this, null, -1, 0);
+      }
+      if (selection instanceof MarkSelection) {
+        MarkSelection sel = (MarkSelection) selection;
+        IDocument doc = sel.getDocument();
+        return new DartSelection(DartEditor.this, doc, sel.getOffset(), sel.getLength());
       }
       ITextSelection textSelection = (ITextSelection) selection;
       // prepare document

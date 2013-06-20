@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+	<extension-point id="sources" name="sources" schema="schema/sources.exsd"/>
+	<extension-point id="excludedSources" name="excludedSources" schema="schema/excludedSources.exsd"/>
+	
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            commandId="com.xored.glance.commands.open"
+            class="com.xored.glance.internal.ui.OpenSearchPanelHandler">
+      </handler>
+   </extension>
+
+   <extension point="org.eclipse.ui.startup">
+      <startup class="com.xored.glance.internal.ui.GlanceStartup"/>
+   </extension>
+
+	<extension point="org.eclipse.ui.commands">
+		<command
+        categoryId="com.xored.glance.ui.commands"
+        description="Open Glance search panel"
+        id="com.xored.glance.commands.open"
+        name="Open Glance">
+  </command>
+  <command
+        categoryId="com.xored.glance.ui.commands"
+        description="Close Glance search panel"
+        id="com.xored.glance.commands.close"
+        name="Close Glance">
+  </command>
+  <command
+        categoryId="com.xored.glance.ui.commands"
+        description="Show next Glance match"
+        id="com.xored.glance.ui.nextResult"
+        name="Next Match">
+  </command>
+  <command
+        categoryId="com.xored.glance.ui.commands"
+        description="Show previous Glance match"
+        id="com.xored.glance.ui.prevResult"
+        name="Previous Match">
+  </command>
+  <command
+        categoryId="com.xored.glance.ui.commands"
+        description="Return focus back from Glance search panel to control"
+        id="com.xored.glance.commands.focus"
+        name="Return Focus Back">
+  </command>
+  <command
+        categoryId="com.xored.glance.ui.commands"
+        description="Clear Glance search history"
+        id="com.xored.glance.commands.clearHistory"
+        name="Clear History">
+  </command>
+  <category
+        description="Glance search commands"
+        id="com.xored.glance.ui.commands"
+        name="Glance">
+  </category>
+	</extension>
+	
+	<extension point="org.eclipse.ui.bindings">
+		<key
+			sequence="M1+F"
+			contextId="org.eclipse.ui.contexts.dialogAndWindow"
+			commandId="com.xored.glance.commands.open"
+			schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+  <key
+        commandId="com.xored.glance.commands.focus"
+        contextId="com.xored.glance.ui.context"
+        schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+        sequence="M1+F">
+  </key>
+  <key
+        commandId="com.xored.glance.commands.close"
+        contextId="com.xored.glance.ui.context"
+        schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+        sequence="ESC">
+  </key>
+  <key
+        commandId="com.xored.glance.ui.nextResult"
+        contextId="com.xored.glance.ui.context"
+        schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+        sequence="ENTER">
+  </key>
+  <key
+        commandId="com.xored.glance.ui.prevResult"
+        contextId="com.xored.glance.ui.context"
+        schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+        sequence="M2+ENTER">
+  </key>
+  <!--
+  <key
+  		commandId="com.xored.glance.commands.clearHistory"
+  		contextId="com.xored.glance.ui.context"
+  		schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+        sequence="M1+M2+BS">
+  </key>
+	<sequenceModifier find="M1+M3" replace="M1+M4" platforms="cocoa,carbon"/>
+  -->
+	</extension>
+
+<!---->
+	<extension point="org.eclipse.ui.preferencePages">
+		<page
+			class="com.xored.glance.internal.ui.preferences.GlancePreferencePage"
+			id="com.xored.glance.ui.preference"
+			category="org.eclipse.ui.preferencePages.Workbench"
+			name="Glance Search"/>
+	</extension>
+<!---->
+
+	<extension point="org.eclipse.core.runtime.preferences">
+		<initializer class="com.xored.glance.internal.ui.preferences.GlancePreferenceInitializer"/>
+	</extension>
+
+	<extension point="org.eclipse.core.resources.markers" id="marker" name="Glance Results">
+		<super type="org.eclipse.core.resources.textmarker"/>
+		<attribute name="line"/>
+	</extension>
+	
+	<extension point="org.eclipse.ui.ide.markerImageProviders">
+		<imageprovider 
+			id="com.xored.glance.ui.markerProvider"
+			markertype="com.xored.glance.ui.marker"
+			icon="icons/glance/marker.gif">
+		</imageprovider>
+	</extension>
+	
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+		<type
+			name="com.xored.glance.ui.highlight"
+			markerType="com.xored.glance.ui.marker">
+		</type>
+  <type
+        markerType="com.xored.glance.ui.marker"
+        name="com.xored.glance.ui.select">
+  </type>
+	</extension>
+	<extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+    <!-- colorPreferenceValue="255,255,128" -->
+		<specification
+			annotationType="com.xored.glance.ui.highlight"
+			label="Glance Results"
+			icon="icons/glance/marker.gif"
+			textPreferenceKey="glanceText"
+			textPreferenceValue="false"
+			highlightPreferenceKey="glanceHighlight"
+			highlightPreferenceValue="true"
+			overviewRulerPreferenceKey="glanceOverviewRuler"
+			overviewRulerPreferenceValue="true"
+			verticalRulerPreferenceKey="glanceVerticalRuler"
+			verticalRulerPreferenceValue="true"
+			colorPreferenceKey="glanceColorBackground"
+			colorPreferenceValue="255,255,128"
+			presentationLayer="5"
+			showInNextPrevDropdownToolbarActionKey="glanceShowNextPrev"
+			showInNextPrevDropdownToolbarAction="true"
+			isGoToNextNavigationTargetKey="glanceGoNext"
+			isGoToNextNavigationTarget="false"
+			isGoToPreviousNavigationTargetKey="glanceGoPrev"
+			isGoToPreviousNavigationTarget="false">
+		</specification>
+	<!-- colorPreferenceValue="255,128,0" -->
+  <specification
+        annotationType="com.xored.glance.ui.select"
+        colorPreferenceKey="glanceSelectedColorBackground"
+        colorPreferenceValue="255,128,0"
+        highlightPreferenceKey="glanceHighlight"
+        highlightPreferenceValue="true"
+        icon="icons/glance/marker.gif"
+        isGoToNextNavigationTarget="false"
+        isGoToNextNavigationTargetKey="glanceGoNext"
+        isGoToPreviousNavigationTarget="false"
+        isGoToPreviousNavigationTargetKey="glanceGoPrev"
+        label="Glance Selected Result"
+        overviewRulerPreferenceKey="glanceOverviewRuler"
+        overviewRulerPreferenceValue="true"
+        presentationLayer="6"
+        showInNextPrevDropdownToolbarAction="true"
+        showInNextPrevDropdownToolbarActionKey="glanceShowNextPrev"
+        textPreferenceKey="glanceText"
+        textPreferenceValue="false"
+        verticalRulerPreferenceKey="glanceVerticalRuler"
+        verticalRulerPreferenceValue="true">
+  </specification>
+	</extension>
+ <extension
+       point="org.eclipse.ui.contexts">
+    <context
+          id="com.xored.glance.ui.context"
+          name="Glance Search Context">
+    </context>
+ </extension>
+
+  <extension point="com.xored.glance.ui.sources">
+    <source
+      class="com.xored.glance.ui.controls.descriptors.StyledTextDescriptor"
+      priority="1"/>
+    <source
+      class="com.xored.glance.ui.controls.descriptors.ListeningStyledTextDescriptor"
+      priority="5"/>
+    <source
+      class="com.xored.glance.ui.controls.descriptors.TreeDescriptor"
+      priority="1"/>
+    <source
+      class="com.xored.glance.ui.controls.descriptors.TableDescriptor"
+      priority="1"/>
+    <source
+      class="com.xored.glance.ui.viewers.descriptors.SourceViewerDescriptor"
+      priority="3"/>
+    <source
+      class="com.xored.glance.ui.viewers.descriptors.TextViewerDescriptor"
+      priority="2"/>
+  </extension>
+</plugin>

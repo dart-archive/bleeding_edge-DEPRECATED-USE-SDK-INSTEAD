@@ -3,11 +3,13 @@
     <annotation color="#808080" />
     <background color="#1E1E1E" />
     <bracket color="#FFFFFF" />
+    <builtin color="#AAAAAA" />
     <class color="#CAE682" />
     <commentTaskTag color="#ACC1AC" />
     <constructor color="#CAE682" />
     <currentLine color="#505050" />
     <deprecatedMember color="#FFFFFF" />
+    <directive color="#A05080" bold="true" />
     <dynamicType color="#D4C4A9" />
     <field color="#B3B784" />
     <filteredSearchResultIndication color="#3F3F6A" />
@@ -29,6 +31,7 @@
     <number color="#EAB882" />
     <occurrenceIndication color="#616161" />
     <operator color="#F0EFD0" />
+    <parameterVariable color="#FFFFFF" />
     <searchResultIndication color="#464467" />
     <selectionBackground color="#364656" />
     <selectionForeground color="#FFFFFF" />

@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Glance Core
+Bundle-SymbolicName: com.xored.glance.ui;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: com.xored.glance.internal.ui.GlancePlugin
+Bundle-Vendor: xored software, Inc.
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.ui.editors,
+ org.eclipse.jface.text,
+ org.eclipse.ui.ide,
+ com.google.dart.tools.ui;bundle-version="0.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy
+Export-Package: com.xored.glance.ui.panels,
+ com.xored.glance.ui.sources,
+ com.xored.glance.ui.utils

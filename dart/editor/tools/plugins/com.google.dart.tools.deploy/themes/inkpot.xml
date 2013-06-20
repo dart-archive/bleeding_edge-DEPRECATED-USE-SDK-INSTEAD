@@ -2,15 +2,21 @@
 <colorTheme id="4" name="Inkpot" modified="2011-01-23 10:11:14" author="Ciaran McCreesh" website="http://www.vim.org/scripts/script.php?script_id=1143">
     <background color="#1F1F27" />
     <bracket color="#CFBFAD" />
+    <builtin color="#AAAAAA" />
     <class color="#87CEFA" />
     <commentTaskTag color="#FF8BFF" />
     <constructor color="#87CEFA" />
     <currentLine color="#2D2D44" />
+    <directive color="#A05080" bold="true" />
     <dynamicType color="#CFBFAD" />
     <enum color="#CFBFAD" />
     <foreground color="#CFBFAD" />
     <function color="#87CEFA" />
     <interface color="#87FAC4" />
+    <javadoc color="#666666" />
+    <javadocKeyword color="#800080" />
+    <javadocLink color="#666666" />
+    <javadocTag color="#800080" />
     <keyword color="#808BED" />
     <lineNumber color="#2B91AF" />
     <localVariable color="#CFBFAD" />
@@ -21,9 +27,10 @@
     <number color="#FFCD8B" />
     <occurrenceIndication color="#616161" />
     <operator color="#CFBFAD" />
+    <parameterVariable color="#FFFFFF" />
     <selectionBackground color="#8B8BFF" />
     <selectionForeground color="#404040" />
     <singleLineComment color="#CD8B00" />
-    <sourceHoverBackground color="#FFFFFF" />
+    <sourceHoverBackground color="#A19879" />
     <string color="#FFCD8B" />
 </colorTheme>

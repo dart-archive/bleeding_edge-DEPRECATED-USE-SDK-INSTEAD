@@ -88,6 +88,13 @@
          unpack="false"/>
 
    <plugin
+         id="com.xored.glance.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
          id="com.google.dart.thirdparty"
          download-size="0"
          install-size="0"

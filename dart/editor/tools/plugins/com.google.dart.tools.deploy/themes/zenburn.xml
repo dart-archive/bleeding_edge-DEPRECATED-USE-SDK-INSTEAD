@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <colorTheme id="2" name="Zenburn" modified="2011-02-09 14:16:09" author="Janni Nurminen" website="http://slinky.imukuppi.org/2006/10/31/just-some-alien-fruit-salad-to-keep-you-in-the-zone/">
+    <multiLineString color="#EC7600" /> <!--  new  -->
+    <getter color="#E8E2B7" /> <!--  new  -->
+    <setter color="#E8E2B7" /> <!--  new  -->
+    <keywordReturn color="#EFEFAF" /> <!--  new  -->
     <annotation color="#808080" />
     <background color="#404040" />
     <bracket color="#FFFFFF" />
+    <builtin color="#AAAAAA" /> <!--  new  -->
     <class color="#CAE682" />
     <commentTaskTag color="#ACC1AC" bold="false" />
     <constructor color="#CAE682" />
     <currentLine color="#505050" />
     <deprecatedMember color="#FFFFFF" bold="false" />
+    <directive color="#A05080" bold="true" /> <!--  new  -->
     <dynamicType color="#D4C4A9" />
     <field color="#B3B784" bold="false" />
     <filteredSearchResultIndication color="#3F3F6A" />
@@ -29,6 +35,7 @@
     <number color="#8ACCCF" />
     <occurrenceIndication color="#616161" />
     <operator color="#F0EFD0" />
+    <parameterVariable color="#FFFFFF" /> <!--  new  -->
     <searchResultIndication color="#464467" />
     <selectionBackground color="#898941" />
     <selectionForeground color="#000000" />

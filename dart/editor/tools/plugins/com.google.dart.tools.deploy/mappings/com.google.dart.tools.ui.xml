@@ -28,6 +28,8 @@
         <mapping pluginKey="content_assist_proposals_background" themeKey="background" />
         <mapping pluginKey="content_assist_completion_replacement_foreground" themeKey="foreground" />
         <mapping pluginKey="content_assist_completion_replacement_background" themeKey="background" />
+        <mapping pluginKey="glanceSelectedColorBackground" themeKey="selectionBackground" />
+        <mapping pluginKey="glanceColorBackground" themeKey="sourceHoverBackground" />
     </mappings> 
     <semanticHighlightingMappings> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.number" themeKey="number" /> 

@@ -33,7 +33,7 @@
     <occurrenceIndication color="#616161" />
     <operator color="#FFFFFF" />
     <parameterVariable color="#069609" />
-    <selectionBackground color="#333333" />
+    <selectionBackground color="#555555" />
     <selectionForeground color="#333333" />
     <singleLineComment color="#666666" />
     <staticField color="#FFFFFF" />

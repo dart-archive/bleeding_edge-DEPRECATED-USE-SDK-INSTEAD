@@ -337,6 +337,12 @@
             activityId="com.google.dart.development"
             pattern="org.eclipse.ui.browser/org.eclipse.ui.browser.edito.*">
       </activityPatternBinding>
+
+      <!-- incremental find -->
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="com\.xored\.glance\.ui\..*">
+      </activityPatternBinding>
    </extension>
    
    <!-- Launch and Debug contributions -->

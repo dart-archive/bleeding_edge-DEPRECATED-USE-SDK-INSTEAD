@@ -34,10 +34,10 @@
     <operator color="#D8D8D8" />
     <parameterVariable color="#79ABFF" />
     <searchResultIndication color="#eeeeec" />
-    <selectionBackground color="#888a85" />
+    <selectionBackground color="#AAAAAA" />
     <selectionForeground color="#eeeeec" />
     <singleLineComment color="#888a85" />
-    <sourceHoverBackground color="#000000" />
+    <sourceHoverBackground color="#444444" />
     <staticField color="#EFC090" />
     <staticFinalField color="#EFC090" />
     <staticMethod color="#BED6FF" />

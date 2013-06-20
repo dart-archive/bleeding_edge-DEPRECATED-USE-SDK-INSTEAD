@@ -32,14 +32,14 @@
     <methodDeclaration color="#BED6FF" />
     <multiLineComment color="#C7DD0C" />
     <number color="#7FB347" />
-    <occurrenceIndication color="#000000" />
+    <occurrenceIndication color="#444444" />
     <operator color="#D8D8D8" />
     <parameterVariable color="#79ABFF" />
     <searchResultIndication color="#000000" />
-    <selectionBackground color="#404040" />
+    <selectionBackground color="#606060" />
     <selectionForeground color="#D0D0D0" />
     <singleLineComment color="#C7DD0C" />
-    <sourceHoverBackground color="#000000" />
+    <sourceHoverBackground color="#404040" />
     <staticField color="#EFC090" />
     <staticFinalField color="#EFC090" />
     <staticMethod color="#BED6FF" />

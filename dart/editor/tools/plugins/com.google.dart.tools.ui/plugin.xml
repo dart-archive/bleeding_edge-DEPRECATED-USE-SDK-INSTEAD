@@ -2653,7 +2653,7 @@
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
       <key
             commandId="org.eclipse.ui.edit.findReplace"
-            sequence="M1+F"
+            sequence="M1+M2+F"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
       <key
             commandId="org.eclipse.ui.navigate.next"
