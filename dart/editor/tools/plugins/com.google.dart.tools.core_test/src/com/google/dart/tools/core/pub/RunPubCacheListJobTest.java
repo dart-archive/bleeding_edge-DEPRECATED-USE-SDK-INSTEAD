@@ -38,7 +38,7 @@ public class RunPubCacheListJobTest extends TestCase {
         return new Status(
             IStatus.OK,
             DartCore.PLUGIN_ID,
-            "{\"packages\":{\"analyzer_experimental\":" + "{\"version\":\"0.5.0+1\",\"location\":"
+            "{\"packages\":{\"analyzer_experimental\":" + "{\"0.5.0+1\":\"location\":"
                 + "\"/.pub-cache/hosted/pub.dartlang.org/analyzer_experimental-0.5.0+1\"}}}");
       }
     };

@@ -24,35 +24,41 @@ import junit.framework.TestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 public class PubCacheManagerTest extends TestCase {
 
-  private static String cacheString = "{\"packages\":{\"analyzer_experimental\":{\"version\":\"0.5.5\","
-      + "\"location\":\"/.pub-cache/hosted/pub.dartlang.org/analyzer_experimental-0.5.5\"},"
-      + "\"bot_io\":{\"version\":\"0.20.2\","
-      + "\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/bot_io-0.20.2\"},"
-      + "\"browser\":{\"version\":\"0.5.5\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/browser-0.5.5\"},"
-      + "\"csslib\":{\"version\":\"0.4.6+4\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/csslib-0.4.6+4\"},"
-      + "\"dartflash\":{\"version\":\"0.6.5\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/dartflash-0.6.5\"},"
-      + "\"dartlings\":{\"version\":\"0.1.0\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/dartlings-0.1.0\"},"
-      + "\"args\":{\"version\":\"0.5.5\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/args-0.5.5\"},"
-      + "\"bot\":{\"version\":\"0.20.1\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/bot-0.20.1\"},"
-      + "\"detester\":{\"version\":\"0.1.0\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/detester-0.1.0\"},"
-      + "\"hop\":{\"version\":\"0.21.0\",\"location\":\"/.pub-cache/hosted/pub.dartlang.org/hop-0.21.0\"}}}";
+  private static String CACHE_STRING = "{\"packages\":{\"analyzer_experimental\":"
+      + "{\"0.5.16\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/analyzer_experimental-0.5.16\"},"
+      + "\"0.5.17\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/analyzer_experimental-0.5.17\"},"
+      + "\"0.5.20\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/analyzer_experimental-0.5.20\"}},"
+      + "\"args\":{\"0.5.11+1\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/args-0.5.11+1\"},"
+      + "\"0.5.9\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/args-0.5.9\"}},"
+      + "\"benchmark_harness\":{\"1.0.2\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/benchmark_harness-1.0.2\"}},"
+      + "\"bot\":{\"0.16.1\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/bot-0.16.1\"},"
+      + "\"0.20.1\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/bot_web-0.20.1\"}},"
+      + "\"browser\":{\"0.5.16\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/browser-0.5.16\"},"
+      + "\"0.5.20\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/browser-0.5.20\"}},"
+      + "\"csslib\":{\"0.3.4+4\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/csslib-0.3.4+4\"}},"
+      + "\"darmatch\":{\"0.1.0\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/darmatch-0.1.0\"},"
+      + "\"0.2.0\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/darmatch-0.2.0\"}},"
+      + "\"dart_flex\":{\"0.2.3\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/dart_flex-0.2.3\"}},"
+      + "\"dartflash\":{\"0.6.5\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/dartflash-0.6.5\"}},"
+      + "\"dartlings\":{\"0.1.0\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/dartlings-0.1.0\"},"
+      + "\"0.2.0\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/dartlings-0.2.0\"}},"
+      + "\"widget\":{\"0.2.3\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/widget-0.2.3\"}},"
+      + "\"yaml\":{\"0.5.0+1\":{\"location\":\"/Users/keertip/.pub-cache/hosted/pub.dartlang.org/yaml-0.5.0+1\"}}}}";
 
-  private static String lockFileContents = "packages:\n" + "  bot_io:\n"
-      + "    description: bot_io\n " + "   source: hosted \n" + "    version: \"0.20.2\"\n"
-      + "  csslib:\n" + "    description: csslib\n" + "    source: hosted\n"
-      + "    version: \"0.4.6+4\"\n" + "  hop:\n" + "    description: hop\n"
-      + "    source: hosted\n" + "    version: \"0.21.0\"";
+  private static String lockFileContents = "packages:\n" + "  bot:\n" + "    description: bot\n "
+      + "   source: hosted \n" + "    version: \"0.20.1\"\n" + "  csslib:\n"
+      + "    description: csslib\n" + "    source: hosted\n" + "    version: \"0.3.4+4\"\n"
+      + "  hop:\n" + "    description: hop\n" + "    source: hosted\n" + "    version: \"0.21.0\"";
 
   PubCacheManager manager = new PubCacheManager() {
 
     @Override
-    public void updatePackagesList(int delay, Collection<String> packages) {
+    public void updatePackagesList(int delay, Map<String, String> packages) {
       new FillPubCacheList("PubCacheManager test", packages).run(new NullProgressMonitor());
     }
 
@@ -63,7 +69,7 @@ public class PubCacheManagerTest extends TestCase {
 
     @Override
     protected String getPubCacheList() {
-      return cacheString;
+      return CACHE_STRING;
     }
 
   };
@@ -80,18 +86,24 @@ public class PubCacheManagerTest extends TestCase {
     manager.updatePackagesList(0);
     Map<String, Object> p = manager.getLocalPackages();
     assertNotNull(p);
-    assertEquals(3, p.size());
-    assertTrue(p.keySet().contains("hop"));
+    assertEquals(2, p.size());
+    assertTrue(p.keySet().contains("bot"));
   }
 
   public void test_updatePackagesList2() {
-    manager.updatePackagesList(0, Arrays.asList("browser", "dartlings"));
+    Map<String, String> map = new HashMap<String, String>();
+    map.put("browser", "0.5.16");
+    map.put("dartlings", "0.1.0");
+    manager.updatePackagesList(0, map);
     Map<String, Object> p = manager.getLocalPackages();
     assertNotNull(p);
     assertEquals(2, p.size());
     assertTrue(p.keySet().contains("dartlings"));
 
-    manager.updatePackagesList(0, Arrays.asList("browser", "dartflash"));
+    map.clear();
+    map.put("browser", "0.5.16");
+    map.put("dartflash", "0.6.5");
+    manager.updatePackagesList(0, map);
     p = manager.getLocalPackages();
     assertEquals(3, p.size());
     assertTrue(p.keySet().contains("dartflash"));

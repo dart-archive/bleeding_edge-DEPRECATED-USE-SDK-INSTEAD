@@ -27,7 +27,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -39,9 +38,10 @@ public class PubCacheManager {
 
   protected class FillPubCacheList extends Job {
 
-    Collection<String> packages = null;
+    // Map of <packageName, version no> for packages added
+    Map<String, String> packages = null;
 
-    public FillPubCacheList(String name, Collection<String> packages) {
+    public FillPubCacheList(String name, Map<String, String> packages) {
       super(name);
       this.packages = packages;
     }
@@ -105,7 +105,7 @@ public class PubCacheManager {
     updatePackagesList(delay, null);
   }
 
-  public void updatePackagesList(int delay, Collection<String> packages) {
+  public void updatePackagesList(int delay, Map<String, String> packages) {
     new FillPubCacheList("update installed packages", packages).schedule(delay);
   }
 
@@ -119,35 +119,58 @@ public class PubCacheManager {
   }
 
   protected void processLockFileContents(IResource resource) {
+    // Map<packageName,versionNo>
     Map<String, String> versionMap = PubYamlUtils.getPackageVersionMap(resource);
     if (versionMap != null && !versionMap.isEmpty()) {
       synchronized (pubUsedPackages) {
-        for (String key : versionMap.keySet()) {
-          Object object = pubCachePackages.get(key);
-          if (object != null) {
-            pubUsedPackages.put(key, pubCachePackages.get(key));
+        for (String packageName : versionMap.keySet()) {
+          String version = versionMap.get(packageName);
+          Map<String, String> versionInfo = getVersionInfo(packageName, version);
+          if (versionInfo != null) {
+            versionInfo.put(PubspecConstants.VERSION, version);
+            pubUsedPackages.put(packageName, versionInfo);
           }
         }
       }
-
     }
   }
 
-  protected Map<String, Object> processPackages(Collection<String> packages) {
+  protected Map<String, Object> processPackages(Map<String, String> packages) {
+    // Map<packageName, {{"version",versionNo}{"location",locationPath}}>
     Map<String, Object> added = new HashMap<String, Object>();
     synchronized (pubUsedPackages) {
-      Set<String> keySet = pubUsedPackages.keySet();
-      for (String packageName : packages) {
-        if (!keySet.contains(packageName)) {
-          Object object = pubCachePackages.get(packageName);
-          if (object != null) {
-            pubUsedPackages.put(packageName, pubCachePackages.get(packageName));
-            added.put(packageName, pubCachePackages.get(packageName));
+      Set<String> usedKeySet = pubUsedPackages.keySet();
+      for (String packageName : packages.keySet()) {
+        if (!usedKeySet.contains(packageName)) {
+          String version = packages.get(packageName);
+          Map<String, String> versionInfo = getVersionInfo(packageName, version);
+          if (versionInfo != null) {
+            versionInfo.put(PubspecConstants.VERSION, version);
+            pubUsedPackages.put(packageName, versionInfo);
+            added.put(packageName, versionInfo);
           }
         }
       }
     }
     return added;
+  }
+
+  /**
+   * Checks for the location information in the pub cache information for the given package and
+   * version
+   * 
+   * @param packageName - the name of the pub package
+   * @param version - the version no of the package
+   * @return Map<"location",locationPath> for the package-version
+   */
+  @SuppressWarnings("unchecked")
+  private Map<String, String> getVersionInfo(String packageName, String version) {
+    Map<String, Map<String, String>> object = (Map<String, Map<String, String>>) pubCachePackages.get(packageName);
+    if (object != null) {
+      Map<String, String> versionInfo = object.get(version);
+      return versionInfo;
+    }
+    return null;
   }
 
   private void initializeList() {
