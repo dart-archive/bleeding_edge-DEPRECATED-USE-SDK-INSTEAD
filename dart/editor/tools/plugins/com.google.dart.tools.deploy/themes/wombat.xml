@@ -16,6 +16,7 @@
     <findScope color="#BCADAD" />
     <foreground color="#f6f3e8" />
     <function color="#f3f6ee" />
+    <importPrefix color="#f6f3e8" />
     <interface color="#CAE682" />
     <javadoc color="#b3b5af" />
     <javadocKeyword color="#f08080" />

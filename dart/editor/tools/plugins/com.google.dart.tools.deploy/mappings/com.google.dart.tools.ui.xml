@@ -43,6 +43,7 @@
         <semanticHighlightingMapping pluginKey="semanticHighlighting.staticMethod" themeKey="staticMethod" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.annotation" themeKey="annotation" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.localVariable" themeKey="localVariable" /> 
+        <semanticHighlightingMapping pluginKey="semanticHighlighting.importPrefix" themeKey="importPrefix" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.inheritedMethodInvocation" themeKey="inheritedMethod" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.localVariableDeclaration" themeKey="localVariableDeclaration" /> 
         <semanticHighlightingMapping pluginKey="semanticHighlighting.typeArgument" themeKey="typeArgument" /> 

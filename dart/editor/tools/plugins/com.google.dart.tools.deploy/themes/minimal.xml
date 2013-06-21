@@ -16,6 +16,7 @@
     <findScope color="#BCADff" />
     <foreground color="#000000" />
     <function color="#5c8198" />
+    <importPrefix color="#000000" />
     <inheritedMethod color="#5c8198" />
     <interface color="#000066" />
     <javadoc color="#05314d" />

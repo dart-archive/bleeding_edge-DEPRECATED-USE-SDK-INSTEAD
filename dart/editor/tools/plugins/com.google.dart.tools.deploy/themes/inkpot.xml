@@ -12,6 +12,7 @@
     <enum color="#CFBFAD" />
     <foreground color="#CFBFAD" />
     <function color="#87CEFA" />
+    <importPrefix color="#CFBFAD" />
     <interface color="#87FAC4" />
     <javadoc color="#666666" />
     <javadocKeyword color="#800080" />

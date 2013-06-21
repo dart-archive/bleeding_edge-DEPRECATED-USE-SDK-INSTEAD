@@ -50,6 +50,7 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
@@ -657,6 +658,30 @@ public class SemanticHighlightings {
     }
   }
 
+  private static class ImportPrefixHighlighting extends DefaultSemanticHighlighting {
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      SimpleIdentifier node = token.getNodeIdentifier();
+      Element element = node.getElement();
+      return element instanceof PrefixElement;
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_importPrefix;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return IMPORT_PREFIX;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
+
   private static class LocalVariableDeclarationHighlighting extends DefaultSemanticHighlighting {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
@@ -1144,6 +1169,11 @@ public class SemanticHighlightings {
   public static final String CLASS = "class"; //$NON-NLS-1$
 
   /**
+   * A named preference part that controls the highlighting of import prefix.
+   */
+  public static final String IMPORT_PREFIX = "importPrefix"; //$NON-NLS-1$
+
+  /**
    * A named preference part that controls the highlighting of interfaces.
    */
   public static final String INTERFACE = "interface"; //$NON-NLS-1$
@@ -1270,7 +1300,8 @@ public class SemanticHighlightings {
           new LocalVariableDeclarationHighlighting(), new LocalVariableHighlighting(),
           new ParameterHighlighting(), new StaticMethodDeclarationHighlighting(),
           new StaticMethodHighlighting(), new ConstructorHighlighting(),
-          new MethodDeclarationHighlighting(), new MethodHighlighting(), new FunctionHighlighting()};
+          new MethodDeclarationHighlighting(), new MethodHighlighting(),
+          new FunctionHighlighting(), new ImportPrefixHighlighting()};
     }
     return SEMANTIC_HIGHTLIGHTINGS;
   }

@@ -20,6 +20,7 @@
     <findScope color="#BCADAD" />
     <foreground color="#F6F3E8" />
     <function color="#DFBE95" />
+    <importPrefix color="#F6F3E8" />
     <interface color="#CAE682" />
     <javadoc color="#B3B5AF" />
     <javadocKeyword color="#CC9393" />

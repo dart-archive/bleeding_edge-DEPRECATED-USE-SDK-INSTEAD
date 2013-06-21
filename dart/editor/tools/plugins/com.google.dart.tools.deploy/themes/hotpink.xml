@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<colorTheme id="-3" name="Hot Pink" modified="2013-06-10 22:02" author="KS">
+<colorTheme id="-3" name="Hot Pink" modified="2013-06-21 9:37" author="KS">
     <abstractMethod color="#000000" />
     <annotation color="#808080" />
     <background color="#FFFFFF" />
@@ -21,6 +21,7 @@
     <foreground color="#000000" />
     <function color="#8000B0" />
     <getter color="#0200C0" />
+    <importPrefix color="#000000" bold="true" />
     <inheritedMethod color="#2c577c" />
     <interface color="#000000" />
     <javadoc color="#4162bc" />

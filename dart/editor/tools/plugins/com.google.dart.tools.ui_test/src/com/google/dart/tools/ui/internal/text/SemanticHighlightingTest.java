@@ -645,6 +645,18 @@ public class SemanticHighlightingTest extends
     assertHasWordPosition(SemanticHighlightings.FIELD, "prop );");
   }
 
+  public void test_importPrefix() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async' as asy ;",
+        "main() {",
+        "  asy .Future f = null;",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.IMPORT_PREFIX, "asy ;");
+    assertHasWordPosition(SemanticHighlightings.IMPORT_PREFIX, "asy .Future");
+  }
+
   public void test_localVariable() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",

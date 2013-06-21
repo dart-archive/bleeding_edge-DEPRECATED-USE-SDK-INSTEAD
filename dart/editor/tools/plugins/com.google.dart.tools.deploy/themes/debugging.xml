@@ -21,6 +21,7 @@
     <foreground color="#F00000" />
     <function color="#F00000" />
     <getter color="#F00000" />
+    <importPrefix color="#F00000" />
     <inheritedMethod color="#F00000" />
     <interface color="#F00000" />
     <javadoc color="#F00000" />
