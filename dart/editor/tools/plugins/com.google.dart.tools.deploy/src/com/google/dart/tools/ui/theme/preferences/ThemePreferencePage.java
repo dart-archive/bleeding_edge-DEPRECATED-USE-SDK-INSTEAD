@@ -224,6 +224,8 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
         }
         if (theme != null) {
           reloadThemeSelectionList();
+          themeSelectionList.setSelection(new String[] {theme.getName()});
+          updateDetails(theme);
         } else {
           MessageBox box = new MessageBox(getShell(), SWT.OK);
           box.setText("Theme not imported");
@@ -340,6 +342,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
       themeNames.add(theme.getName());
     }
     Collections.sort(themeNames, String.CASE_INSENSITIVE_ORDER);
+    themeNames.remove(ColorThemeManager.DEFAULT_THEME_NAME);
     themeNames.add(0, ColorThemeManager.DEFAULT_THEME_NAME);
     themeSelectionList.setItems(themeNames.toArray(new String[themeNames.size()]));
   }
