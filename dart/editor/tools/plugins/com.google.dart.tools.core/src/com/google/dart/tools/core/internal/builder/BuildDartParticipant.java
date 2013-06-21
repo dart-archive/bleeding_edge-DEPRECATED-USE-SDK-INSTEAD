@@ -108,6 +108,8 @@ public class BuildDartParticipant implements BuildParticipant {
 
   private IPackageRootProvider packageRootProvider;
 
+  private String genDirPath;
+
   public BuildDartParticipant() {
     this(IPackageRootProvider.DEFAULT);
   }
@@ -497,6 +499,12 @@ public class BuildDartParticipant implements BuildParticipant {
       if (fromFile.exists()) {
         DartCore.setResourceRemapping(fromFile, toFile);
       }
+    } else if (method.equals("out")) {
+      genDirPath = params.getString("file");
+
+    } else if (method.equals("generated")) {
+      // TODO(keertip): add processing for generated messages
+
     } else {
       DartCore.logError("builder command '" + method + "\' not understood.");
     }
