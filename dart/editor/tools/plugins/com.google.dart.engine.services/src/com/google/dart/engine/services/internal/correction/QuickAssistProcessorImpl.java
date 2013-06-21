@@ -16,6 +16,7 @@ package com.google.dart.engine.services.internal.correction;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -66,6 +67,7 @@ import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.CreateFileChange;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.ChangeCorrectionProposal;
+import com.google.dart.engine.services.correction.CorrectionImage;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.LinkedPositionProposal;
@@ -77,6 +79,7 @@ import com.google.dart.engine.services.internal.util.RunnableEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.ast.ScopedNameFinder;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -122,6 +125,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Implementation of {@link QuickAssistProcessor}.
@@ -175,6 +179,17 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       return precedence < TokenClass.LOGICAL_AND_OPERATOR.getPrecedence();
     }
     return false;
+  }
+
+  /**
+   * @return the most specific {@link Type} of the given Expression.
+   */
+  private static Type typeOf(Expression expr) {
+    Type type = expr.getPropagatedType();
+    if (type == null) {
+      type = expr.getStaticType();
+    }
+    return type;
   }
 
   private final List<CorrectionProposal> proposals = Lists.newArrayList();
@@ -325,6 +340,56 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     }
     // add proposal
     addUnitCorrectionProposal(QA_ADD_TYPE_ANNOTATION);
+  }
+
+  void addProposal_assignToLocalVariable() throws Exception {
+    // prepare enclosing ExpressionStatement
+    Statement statement = node.getAncestor(Statement.class);
+    if (!(statement instanceof ExpressionStatement)) {
+      return;
+    }
+    ExpressionStatement expressionStatement = (ExpressionStatement) statement;
+    // prepare expression
+    Expression expression = expressionStatement.getExpression();
+    int offset = expression.getOffset();
+    // prepare expression type
+    Type type = typeOf(expression);
+    if (type == null || type.isVoid()) {
+      return;
+    }
+    //
+    SourceBuilder builder = new SourceBuilder(offset);
+    // type
+    if (type.isDynamic()) {
+      builder.append("var ");
+    } else {
+      builder.append(utils.getTypeSource(type));
+      builder.append(" ");
+    }
+    // prepare excluded names
+    Set<String> excluded = Sets.newHashSet();
+    {
+      ScopedNameFinder scopedNameFinder = new ScopedNameFinder(offset);
+      expression.accept(scopedNameFinder);
+      excluded.addAll(scopedNameFinder.getLocals().keySet());
+    }
+    // name(s)
+    {
+      String[] suggestions = CorrectionUtils.getVariableNameSuggestions(type, expression, excluded);
+      builder.startPosition("NAME");
+      for (int i = 0; i < suggestions.length; i++) {
+        String name = suggestions[i];
+        if (i == 0) {
+          builder.append(name);
+        }
+        builder.addProposal(CorrectionImage.IMG_CORRECTION_CLASS, name);
+      }
+      builder.endPosition();
+    }
+    builder.append(" = ");
+    // add proposal
+    addInsertEdit(builder);
+    addUnitCorrectionProposal(CorrectionKind.QA_ASSIGN_TO_LOCAL_VARIABLE);
   }
 
   void addProposal_convertToBlockFunctionBody() throws Exception {
@@ -1346,6 +1411,15 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     positions.add(range);
   }
 
+  private void addLinkedPositionProposal(String group, LinkedPositionProposal proposal) {
+    List<LinkedPositionProposal> nodeProposals = linkedPositionProposals.get(group);
+    if (nodeProposals == null) {
+      nodeProposals = Lists.newArrayList();
+      linkedPositionProposals.put(group, nodeProposals);
+    }
+    nodeProposals.add(proposal);
+  }
+
   /**
    * Adds positions from the given {@link SourceBuilder} to the {@link #linkedPositions}.
    */
@@ -1368,13 +1442,12 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       }
     }
     // proposals for positions
-//    Map<String, List<TrackedNodeProposal>> builderProposals = builder.getTrackedProposals();
-//    for (Entry<String, List<TrackedNodeProposal>> entry : builderProposals.entrySet()) {
-//      String groupId = entry.getKey();
-//      for (TrackedNodeProposal nodeProposal : entry.getValue()) {
-//        addLinkedPositionProposal(groupId, nodeProposal.getIcon(), nodeProposal.getText());
-//      }
-//    }
+    for (Entry<String, List<LinkedPositionProposal>> entry : builder.getLinkedProposals().entrySet()) {
+      String group = entry.getKey();
+      for (LinkedPositionProposal proposal : entry.getValue()) {
+        addLinkedPositionProposal(group, proposal);
+      }
+    }
   }
 
   /**

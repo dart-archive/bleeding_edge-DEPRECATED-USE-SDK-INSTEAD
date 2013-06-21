@@ -14,6 +14,10 @@
 
 package com.google.dart.engine.services.internal.correction;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.assist.AssistContext;
@@ -24,17 +28,22 @@ import com.google.dart.engine.services.correction.ChangeCorrectionProposal;
 import com.google.dart.engine.services.correction.CorrectionKind;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
+import com.google.dart.engine.services.correction.LinkedPositionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
 import com.google.dart.engine.services.correction.SourceCorrectionProposal;
 import com.google.dart.engine.services.internal.refactoring.RefactoringImplTest;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class QuickAssistProcessorImplTest extends AbstractDartTest {
   private static final QuickAssistProcessor PROCESSOR = CorrectionProcessors.getQuickAssistProcessor();
+  private static CharMatcher NOT_IDENTIFIER_MATCHER = CharMatcher.JAVA_LETTER_OR_DIGIT.negate();
 
   /**
    * @return the result of applying {@link SourceCorrectionProposal} to the {@link #testCode}.
@@ -60,6 +69,9 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   private int selectionOffset = 0;
 
   private int selectionLength = 0;
+
+  private SourceCorrectionProposal resultProposal;
+  private String resultSource;
 
   public void test_addPartDirective() throws Exception {
     String libCode = makeSource(
@@ -160,6 +172,36 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   public void test_addTypeAnnotation_topLevelField_wrong_noValue() throws Exception {
     String source = "var v;";
     assert_addTypeAnnotation_topLevelField(source, "var ", source);
+  }
+
+  public void test_assignToLocalVariable() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "List<int> readBytes() => <int> [];",
+        "main() {",
+        "  List<int> bytes;",
+        "  readBytes();",
+        "}",
+        "");
+    assert_assignToLocalVariable(
+        initial,
+        "readBytes();",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "List<int> readBytes() => <int> [];",
+            "main() {",
+            "  List<int> bytes;",
+            "  List<int> readBytes = readBytes();",
+            "}",
+            ""));
+    // linked positions
+    {
+      Map<String, List<SourceRange>> expected = Maps.newHashMap();
+      expected.put("NAME", getResultRanges("readBytes ="));
+      assertEquals(expected, resultProposal.getLinkedPositions());
+    }
+    // linked proposals
+    assertLinkedProposals("NAME", "list", "bytes2", "readBytes");
   }
 
   public void test_convertToBlockBody_OK_closure() throws Exception {
@@ -1649,6 +1691,15 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
   }
 
+  private void assert_assignToLocalVariable(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionKind.QA_ASSIGN_TO_LOCAL_VARIABLE,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
   private void assert_convertToBlockBody(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
@@ -1829,12 +1880,13 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
    */
   private void assert_runProcessor(String initialSource, CorrectionProposal[] proposals,
       CorrectionKind kind, String expectedSource) {
-    String resultSource = initialSource;
+    resultSource = initialSource;
     // apply SourceCorrectionProposal 
     CorrectionProposal proposal = findProposal(proposals, kind);
     if (proposal != null) {
       assertThat(proposal).isInstanceOf(SourceCorrectionProposal.class);
-      resultSource = applyProposal(initialSource, (SourceCorrectionProposal) proposal);
+      resultProposal = (SourceCorrectionProposal) proposal;
+      resultSource = applyProposal(initialSource, resultProposal);
     }
     // assert result
     assertEquals(expectedSource, resultSource);
@@ -1875,9 +1927,40 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_runProcessor(kind, expectedSource);
   }
 
+  private void assertLinkedProposals(String positionName, String... expectedNames) {
+    List<LinkedPositionProposal> proposals = resultProposal.getLinkedPositionProposals().get(
+        positionName);
+    Set<String> actualNames = Sets.newHashSet();
+    for (LinkedPositionProposal proposal : proposals) {
+      actualNames.add(proposal.getText());
+    }
+    assertThat(actualNames).contains((Object[]) expectedNames);
+  }
+
   private CorrectionProposal[] getProposals() throws Exception {
     AssistContext context = new AssistContext(null, testUnit, selectionOffset, selectionLength);
     return PROCESSOR.getProposals(context);
+  }
+
+  /**
+   * @return the {@link SourceRange} of "identPattern" in {@link #resultCode}.
+   */
+  private SourceRange getResultRange(String identPattern) {
+    int offset = resultSource.indexOf(identPattern);
+    assertThat(offset).describedAs(identPattern + " in " + resultSource).isPositive();
+    String identifier = identPattern.substring(0, NOT_IDENTIFIER_MATCHER.indexIn(identPattern));
+    return new SourceRange(offset, identifier.length());
+  }
+
+  /**
+   * @return the {@link SourceRange}s of "wordPatterns" in {@link #resultCode}.
+   */
+  private List<SourceRange> getResultRanges(String... wordPatterns) {
+    List<SourceRange> ranges = Lists.newArrayList();
+    for (String wordPattern : wordPatterns) {
+      ranges.add(getResultRange(wordPattern));
+    }
+    return ranges;
   }
 
   private void setSelectionFromStartEndComments() throws Exception {

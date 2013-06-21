@@ -49,7 +49,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class QuickFixProcessorImplTest extends RefactoringImplTest {
-  private static final QuickFixProcessor PROCESSOR = CorrectionProcessors.getQuickFixProcessor();
+  protected static final QuickFixProcessor PROCESSOR = CorrectionProcessors.getQuickFixProcessor();
   private static CharMatcher NOT_IDENTIFIER_MATCHER = CharMatcher.JAVA_LETTER_OR_DIGIT.negate();
 
   private AnalysisError error;
