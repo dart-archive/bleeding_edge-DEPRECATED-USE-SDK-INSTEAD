@@ -580,14 +580,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   INVALID_FACTORY_NAME_NOT_A_CLASS("The name of the immediately enclosing class expected"),
 
   /**
-   * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
-   * instance member <i>m2</i>, the signature of <i>m2</i> explicitly specifies a default value for
-   * a formal parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value
-   * for <i>p</i>.
-   */
-  INVALID_OVERRIDE_DEFAULT_VALUE(""),
-
-  /**
    * 7.1 Instance Methods: It is a compile-time error if an instance method <i>m1</i> overrides an
    * instance member <i>m2</i> and <i>m1</i> does not declare all the named parameters declared by
    * <i>m2</i>.
