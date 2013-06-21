@@ -608,15 +608,13 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
           parametersBuffer.append(", ");
           argumentsBuffer.append(", ");
         }
-        // type
-        Type parameterType = parameter.getType();
-        appendType(parametersBuffer, parameterType);
         // name
         String parameterName = parameter.getDisplayName();
         if (parameterName.length() > 1 && parameterName.startsWith("_")) {
           parameterName = parameterName.substring(1);
         }
-        parametersBuffer.append(parameterName);
+        // parameter & argument
+        appendParameterSource(parametersBuffer, parameter.getType(), parameterName);
         argumentsBuffer.append(parameterName);
       }
       // add proposal
@@ -688,10 +686,13 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     boolean isGetter = elementKind == ElementKind.GETTER;
     boolean isSetter = elementKind == ElementKind.SETTER;
     boolean isMethod = elementKind == ElementKind.METHOD;
+    boolean isOperator = isMethod && ((MethodElement) missingOverride).isOperator();
     if (isGetter) {
       sb.append("get ");
     } else if (isSetter) {
       sb.append("set ");
+    } else if (isOperator) {
+      sb.append("operator ");
     }
     // name
     sb.append(missingOverride.getDisplayName());
@@ -1384,10 +1385,8 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
           sawPositional = true;
         }
       }
-      // parameter type
-      appendType(sb, parameter.getType());
-      // parameter name
-      sb.append(parameter.getName());
+      // parameter
+      appendParameterSource(sb, parameter.getType(), parameter.getName());
       // default value
       if (defaultValueMap != null) {
         String defaultSource = defaultValueMap.get(parameter);
@@ -1409,6 +1408,11 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       sb.append("]");
     }
     sb.append(")");
+  }
+
+  private void appendParameterSource(StringBuilder sb, Type type, String name) {
+    String parameterSource = utils.getParameterSource(type, name);
+    sb.append(parameterSource);
   }
 
   private void appendType(StringBuilder sb, Type type) {

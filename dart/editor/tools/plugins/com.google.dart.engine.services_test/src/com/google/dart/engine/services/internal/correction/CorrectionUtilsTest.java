@@ -932,6 +932,38 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     }
   }
 
+  public void test_getParameterSource() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async' as pref;",
+        "topLevel(double a, int b(double p1, pref.Future p2), dynamic c, d) {",
+        "}",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    // 'a'
+    {
+      ParameterElement p = findIdentifierElement("a, ");
+      assertEquals("double a", utils.getParameterSource(p.getType(), p.getName()));
+    }
+    // 'b'
+    {
+      ParameterElement p = findIdentifierElement("b(double ");
+      assertEquals(
+          "int b(double p1, pref.Future p2)",
+          utils.getParameterSource(p.getType(), p.getName()));
+    }
+    // 'c'
+    {
+      ParameterElement p = findIdentifierElement("c, ");
+      assertEquals("c", utils.getParameterSource(p.getType(), p.getName()));
+    }
+    // 'd'
+    {
+      ParameterElement p = findIdentifierElement("d) {");
+      assertEquals("d", utils.getParameterSource(p.getType(), p.getName()));
+    }
+  }
+
   public void test_getParentPrecedence() throws Exception {
     SimpleIdentifier a = identifier("a");
     SimpleIdentifier b = identifier("b");

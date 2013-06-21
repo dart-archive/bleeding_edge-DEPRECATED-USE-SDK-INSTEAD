@@ -68,6 +68,7 @@ import com.google.dart.engine.services.internal.util.ExecutionUtils;
 import com.google.dart.engine.services.internal.util.RunnableObjectEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
@@ -1159,13 +1160,6 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return the source of the inverted condition for the given logical expression.
-   */
-  public String invertCondition(Expression expression) {
-    return invertCondition0(expression).source;
-  }
-
-  /**
    * Skips whitespace characters and single EOL on the right from the given position. If from
    * statement or method end, then this is in the most cases start of the next line.
    */
@@ -1328,6 +1322,44 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return the source for the parameter with the given type and name.
+   */
+  public String getParameterSource(Type type, String name) {
+    // no type
+    if (type == null || type.isDynamic()) {
+      return name;
+    }
+    // function type
+    if (type instanceof FunctionType) {
+      FunctionType functionType = (FunctionType) type;
+      StringBuilder sb = new StringBuilder();
+      // return type
+      Type returnType = functionType.getReturnType();
+      if (returnType != null && !returnType.isDynamic()) {
+        sb.append(getTypeSource(returnType));
+        sb.append(' ');
+      }
+      // parameter name
+      sb.append(name);
+      // parameters
+      sb.append('(');
+      ParameterElement[] fParameters = functionType.getParameters();
+      for (int i = 0; i < fParameters.length; i++) {
+        ParameterElement fParameter = fParameters[i];
+        if (i != 0) {
+          sb.append(", ");
+        }
+        sb.append(getParameterSource(fParameter.getType(), fParameter.getName()));
+      }
+      sb.append(')');
+      // done
+      return sb.toString();
+    }
+    // simple type
+    return getTypeSource(type) + " " + name;
+  }
+
+  /**
    * @return the line prefix consisting of spaces and tabs on the left from the given offset.
    */
   public String getPrefix(int endIndex) {
@@ -1403,6 +1435,13 @@ public class CorrectionUtils {
    */
   public CompilationUnit getUnit() {
     return unit;
+  }
+
+  /**
+   * @return the source of the inverted condition for the given logical expression.
+   */
+  public String invertCondition(Expression expression) {
+    return invertCondition0(expression).source;
   }
 
   /**

@@ -322,6 +322,30 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     assertNoFix(CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER);
   }
 
+  public void test_createMissingOverrides_functionType() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  forEach(int f(double p1, String p2));",
+        "}",
+        "",
+        "class B extends A {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_MISSING_OVERRIDES,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "abstract class A {",
+            "  forEach(int f(double p1, String p2));",
+            "}",
+            "",
+            "class B extends A {",
+            "  forEach(int f(double p1, String p2)) {",
+            "    // TODO implement this method",
+            "  }",
+            "}"));
+  }
+
   public void test_createMissingOverrides_getter() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -397,6 +421,36 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  }",
             "",
             "  String m6(p1, {int p2: 2, int p3, p4: 4}) {",
+            "    // TODO implement this method",
+            "  }",
+            "}"));
+  }
+
+  public void test_createMissingOverrides_operator() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "  int operator [](int index);",
+        "  void operator []=(int index, String value);",
+        "}",
+        "",
+        "class B extends A {",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_MISSING_OVERRIDES,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "abstract class A {",
+            "  int operator [](int index);",
+            "  void operator []=(int index, String value);",
+            "}",
+            "",
+            "class B extends A {",
+            "  int operator [](int index) {",
+            "    // TODO implement this method",
+            "  }",
+            "",
+            "  void operator []=(int index, String value) {",
             "    // TODO implement this method",
             "  }",
             "}"));
