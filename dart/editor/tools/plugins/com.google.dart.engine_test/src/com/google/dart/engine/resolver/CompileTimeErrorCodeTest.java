@@ -113,19 +113,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invalidOverrideDefaultValue() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m([a = 0]) {}",
-        "}",
-        "class B extends A {",
-        "  m([a = 1]) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_DEFAULT_VALUE);
-    verify(source);
-  }
-
   public void fail_mixinDeclaresConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
