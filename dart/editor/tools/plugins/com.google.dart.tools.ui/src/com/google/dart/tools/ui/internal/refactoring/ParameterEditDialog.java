@@ -42,7 +42,7 @@ public class ParameterEditDialog extends StatusDialog {
   private final ParameterInfo fParameter;
   private final boolean fEditType;
   private final boolean fEditDefault;
-  private final StubTypeContext fContext;
+//  private final StubTypeContext fContext;
   private Text fType;
   private Text fName;
   private Text fDefaultValue;
@@ -61,7 +61,7 @@ public class ParameterEditDialog extends StatusDialog {
     fParameter = parameter;
     fEditType = canEditType;
     fEditDefault = canEditDefault;
-    fContext = context;
+//    fContext = context;
   }
 
   @Override

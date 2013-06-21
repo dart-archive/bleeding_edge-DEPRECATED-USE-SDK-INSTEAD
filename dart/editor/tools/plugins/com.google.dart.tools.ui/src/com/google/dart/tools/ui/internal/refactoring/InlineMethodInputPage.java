@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.engine.services.refactoring.InlineMethodRefactoring;
-import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring_I;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -36,7 +35,7 @@ public class InlineMethodInputPage extends UserInputWizardPage {
   public static final String PAGE_NAME = "InlineMethodInputPage";//$NON-NLS-1$
   private static final String DESCRIPTION = RefactoringMessages.InlineMethodInputPage_description;
 
-  private InlineMethodRefactoring_I fRefactoring;
+  private ServiceInlineMethodRefactoring fRefactoring;
   private Button fRemove;
 
   public InlineMethodInputPage() {
@@ -48,7 +47,7 @@ public class InlineMethodInputPage extends UserInputWizardPage {
   @Override
   public void createControl(Composite parent) {
     initializeDialogUnits(parent);
-    fRefactoring = (InlineMethodRefactoring_I) getRefactoring();
+    fRefactoring = (ServiceInlineMethodRefactoring) getRefactoring();
 
     Composite result = new Composite(parent, SWT.NONE);
     setControl(result);
