@@ -49,6 +49,7 @@
     <staticField color="#678CB1" />
     <staticFinalField color="#E0E2E4" />
     <staticMethod color="#E0E2E4" />
+    <staticMethodDeclaration color="#C0C0C0" bold="true" />
     <string color="#EC7600" />
     <typeArgument color="#E0E2E4" />
     <typeParameter color="#E0E2E4" />
