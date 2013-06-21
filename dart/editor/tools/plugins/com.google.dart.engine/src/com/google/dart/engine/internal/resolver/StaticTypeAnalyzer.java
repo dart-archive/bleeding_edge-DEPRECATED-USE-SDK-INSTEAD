@@ -77,6 +77,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
+import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
@@ -849,6 +850,36 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     }
 
     String methodName = methodNameNode.getName();
+
+    // Future.then(closure) return type is:
+    // 1) the returned Future type, if the closure returns a Future;
+    // 2) Future<valueType>, if the closure returns a value.
+    if (methodName.equals("then")) {
+      Expression target = node.getRealTarget();
+      Type targetType = getBestType(target);
+      if (isAsyncFutureType(targetType)) {
+        Expression closureArg = node.getArgumentList().getArguments().get(0);
+        if (closureArg instanceof FunctionExpression) {
+          FunctionExpression closureExpr = (FunctionExpression) closureArg;
+          Type returnType = computePropagatedReturnType(closureExpr.getElement());
+          if (returnType != null) {
+            // prepare the type of the returned Future
+            InterfaceTypeImpl newFutureType;
+            if (isAsyncFutureType(returnType)) {
+              newFutureType = (InterfaceTypeImpl) returnType;
+            } else {
+              InterfaceType futureType = (InterfaceType) targetType;
+              newFutureType = new InterfaceTypeImpl(futureType.getElement());
+              newFutureType.setTypeArguments(new Type[] {returnType});
+            }
+            // set the 'then' invocation type
+            recordPropagatedType(node, newFutureType);
+            return null;
+          }
+        }
+      }
+    }
+
     if (methodName.equals("$dom_createEvent")) {
       Expression target = node.getRealTarget();
       if (target != null) {
@@ -1670,6 +1701,25 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       return dynamicType;
     }
     return type;
+  }
+
+  /**
+   * Return {@code true} if the given {@link Type} is the {@code Future} form the 'dart:async'
+   * library.
+   */
+  private boolean isAsyncFutureType(Type type) {
+    return type instanceof InterfaceType && type.getName().equals("Future")
+        && isAsyncLibrary(type.getElement().getLibrary());
+  }
+
+  /**
+   * Return {@code true} if the given library is the 'dart:async' library.
+   * 
+   * @param library the library being tested
+   * @return {@code true} if the library is 'dart:async'
+   */
+  private boolean isAsyncLibrary(LibraryElement library) {
+    return library.getName().equals("dart.async");
   }
 
   /**

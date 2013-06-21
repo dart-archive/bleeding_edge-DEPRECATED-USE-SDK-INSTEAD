@@ -30,6 +30,7 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.ReturnStatement;
+import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
@@ -288,6 +289,33 @@ public class TypePropagationTest extends ResolverTestCase {
     assertSame(getTypeProvider().getObjectType(), vParameter.getIdentifier().getStaticType());
     SimpleIdentifier vIdentifier = findNode(unit, code, "v;", SimpleIdentifier.class);
     assertSame(stringType, vIdentifier.getPropagatedType());
+  }
+
+  public void test_Future_then() throws Exception {
+    String code = createSource(//
+        "import 'dart:async';",
+        "main(Future<int> firstFuture) {",
+        "  firstFuture.then((p1) {",
+        "    return 1.0;",
+        "  }).then((p2) {",
+        "    return new Future<String>.value('str');",
+        "  }).then((p3) {",
+        "  });",
+        "}");
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    // p1
+    FormalParameter p1 = findNode(unit, code, "p1) {", SimpleFormalParameter.class);
+    assertSame(getTypeProvider().getIntType(), p1.getIdentifier().getPropagatedType());
+    // p2
+    FormalParameter p2 = findNode(unit, code, "p2) {", SimpleFormalParameter.class);
+    assertSame(getTypeProvider().getDoubleType(), p2.getIdentifier().getPropagatedType());
+    // p3
+    FormalParameter p3 = findNode(unit, code, "p3) {", SimpleFormalParameter.class);
+    assertSame(getTypeProvider().getStringType(), p3.getIdentifier().getPropagatedType());
   }
 
   public void test_initializer() throws Exception {
