@@ -1,50 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <colorTheme id="2" name="Zenburn" modified="2011-02-09 14:16:09" author="Janni Nurminen" website="http://slinky.imukuppi.org/2006/10/31/just-some-alien-fruit-salad-to-keep-you-in-the-zone/">
-    <multiLineString color="#EC7600" /> <!--  new  -->
-    <getter color="#E8E2B7" /> <!--  new  -->
-    <setter color="#E8E2B7" /> <!--  new  -->
-    <keywordReturn color="#EFEFAF" /> <!--  new  -->
+    <abstractMethod color="#E0E2E4" />
     <annotation color="#808080" />
     <background color="#404040" />
     <bracket color="#FFFFFF" />
-    <builtin color="#AAAAAA" /> <!--  new  -->
+    <builtin color="#AAAAAA" />
     <class color="#CAE682" />
     <commentTaskTag color="#ACC1AC" bold="false" />
+    <constant color="#A082BD" />
     <constructor color="#CAE682" />
     <currentLine color="#505050" />
+    <deletionIndication color="#E0E2E4" />
     <deprecatedMember color="#FFFFFF" bold="false" />
-    <directive color="#A05080" bold="true" /> <!--  new  -->
+    <directive color="#A05080" bold="true" />
     <dynamicType color="#D4C4A9" />
+    <enum color="#E0E2E4" />
     <field color="#B3B784" bold="false" />
     <filteredSearchResultIndication color="#3F3F6A" />
     <findScope color="#BCADAD" />
     <foreground color="#F6F3E8" />
     <function color="#DFBE95" />
+    <getter color="#E8E2B7" />
     <importPrefix color="#F6F3E8" />
+    <inheritedMethod color="#E0E2E4" />
     <interface color="#CAE682" />
     <javadoc color="#B3B5AF" />
     <javadocKeyword color="#CC9393" />
     <javadocLink color="#A893CC" />
     <javadocTag color="#9393CC" />
     <keyword color="#EFEFAF" />
+    <keywordReturn color="#EFEFAF" />
     <lineNumber color="#C0C0C0" />
     <localVariable color="#D4C4A9" />
     <localVariableDeclaration color="#D4C4A9" bold="false" />
     <method color="#DFBE95" />
     <methodDeclaration color="#DFBE95" />
     <multiLineComment color="#7F9F7F" />
+    <multiLineString color="#EC7600" />
     <number color="#8ACCCF" />
     <occurrenceIndication color="#616161" />
     <operator color="#F0EFD0" />
-    <parameterVariable color="#FFFFFF" /> <!--  new  -->
+    <parameterVariable color="#FFFFFF" />
     <searchResultIndication color="#464467" />
     <selectionBackground color="#898941" />
     <selectionForeground color="#000000" />
+    <setter color="#E8E2B7" />
     <singleLineComment color="#7F9F7F" bold="false" />
     <sourceHoverBackground color="#A19879" />
     <staticField color="#93A2CC" bold="false" />
     <staticFinalField color="#53DCCD" bold="false" />
     <staticMethod color="#C4C4B7" />
+    <staticMethodDeclaration color="#C0C0C0" bold="true" />
     <string color="#CC9393" />
+    <typeArgument color="#E0E2E4" />
+    <typeParameter color="#E0E2E4" />
     <writeOccurrenceIndication color="#948567" />
 </colorTheme>

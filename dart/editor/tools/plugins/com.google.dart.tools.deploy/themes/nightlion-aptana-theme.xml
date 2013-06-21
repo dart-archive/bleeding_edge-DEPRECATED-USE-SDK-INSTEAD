@@ -1,34 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <colorTheme id="47" name="NightLion Aptana Theme" modified="2011-01-27 21:46:18" author="NightLion" website="http://www.nightlion.net/themes/2009/aptana-dark-color-theme/">
+    <abstractMethod color="#E0E2E4" />
     <annotation color="#808080" />
     <background color="#1E1E1E" />
     <bracket color="#FFFFFF" />
     <builtin color="#AAAAAA" />
     <class color="#CAE682" />
     <commentTaskTag color="#ACC1AC" />
+    <constant color="#A082BD" />
     <constructor color="#CAE682" />
     <currentLine color="#505050" />
+    <deletionIndication color="#E0E2E4" />
     <deprecatedMember color="#FFFFFF" />
     <directive color="#A05080" bold="true" />
     <dynamicType color="#D4C4A9" />
+    <enum color="#E0E2E4" />
     <field color="#B3B784" />
     <filteredSearchResultIndication color="#3F3F6A" />
     <findScope color="#BCADAD" />
     <foreground color="#E2E2E2" />
     <function color="#DFBE95" />
+    <getter color="#E8E2B7" />
     <importPrefix color="#E2E2E2" />
+    <inheritedMethod color="#E0E2E4" />
     <interface color="#CAE682" />
     <javadoc color="#B3B5AF" />
     <javadocKeyword color="#CC9393" />
     <javadocLink color="#A893CC" />
     <javadocTag color="#9393CC" />
     <keyword color="#8DCBE2" />
+    <keywordReturn color="#8DCBE2" />
     <lineNumber color="#C0C0C0" />
     <localVariable color="#D4C4A9" />
     <localVariableDeclaration color="#D4C4A9" />
     <method color="#DFBE95" />
     <methodDeclaration color="#DFBE95" />
     <multiLineComment color="#73879B" />
+    <multiLineString color="#CC9393" />
     <number color="#EAB882" />
     <occurrenceIndication color="#616161" />
     <operator color="#F0EFD0" />
@@ -36,11 +44,15 @@
     <searchResultIndication color="#464467" />
     <selectionBackground color="#364656" />
     <selectionForeground color="#FFFFFF" />
+    <setter color="#E8E2B7" />
     <singleLineComment color="#7F9F7F" />
     <sourceHoverBackground color="#A19879" />
     <staticField color="#93A2CC" />
     <staticFinalField color="#53DCCD" />
     <staticMethod color="#C4C4B7" />
+    <staticMethodDeclaration color="#C0C0C0" bold="true" />
     <string color="#CC9393" />
+    <typeArgument color="#E0E2E4" />
+    <typeParameter color="#E0E2E4" />
     <writeOccurrenceIndication color="#948567" />
 </colorTheme>

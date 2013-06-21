@@ -20,6 +20,7 @@
     <findScope color="#FFFF00" />
     <foreground color="#F8E1AA" />
     <function color="#A4B0C0" bold="false" />
+    <getter color="#E8E2B7" />
     <importPrefix color="#F8E1AA" />
     <inheritedMethod color="#A4B0C0" bold="false" />
     <interface color="#527D5D" bold="true" />
@@ -28,12 +29,14 @@
     <javadocLink color="#83786E" bold="false" />
     <javadocTag color="#A19387" bold="false" />
     <keyword color="#E79E3C" bold="true" />
+    <keywordReturn color="#E79E3C" />
     <lineNumber color="#C97138" />
     <localVariable color="#F8E1AA" bold="false" />
     <localVariableDeclaration color="#F8E1AA" bold="false" />
     <method color="#A4B0C0" bold="false" />
     <methodDeclaration color="#A4B0C0" bold="false" />
     <multiLineComment color="#83786E" bold="false" />
+    <multiLineString color="#D6C248" />
     <number color="#D6C248" bold="false" />
     <occurrenceIndication color="#5E5C56" />
     <operator color="#D6C248" bold="false" />
@@ -41,11 +44,13 @@
     <searchResultIndication color="#395EB1" />
     <selectionBackground color="#527D5D" />
     <selectionForeground color="#F8E1AA" />
+    <setter color="#E8E2B7" />
     <singleLineComment color="#83786E" bold="false" />
     <sourceHoverBackground color="#FF00FF" />
     <staticField color="#F8E1A3" bold="false" />
     <staticFinalField color="#F8E1A3" bold="false" />
     <staticMethod color="#A4B0C0" bold="false" />
+    <staticMethodDeclaration color="#C0C0C0" bold="true" />
     <string color="#D6C248" bold="false" />
     <typeArgument color="#BFA4A4" bold="false" />
     <typeParameter color="#BFA4A4" bold="false" />

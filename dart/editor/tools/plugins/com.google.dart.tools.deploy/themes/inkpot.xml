@@ -1,37 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <colorTheme id="4" name="Inkpot" modified="2011-01-23 10:11:14" author="Ciaran McCreesh" website="http://www.vim.org/scripts/script.php?script_id=1143">
+    <abstractMethod color="#E0E2E4" />
+    <annotation color="#A082BD" />
     <background color="#1F1F27" />
     <bracket color="#CFBFAD" />
     <builtin color="#AAAAAA" />
     <class color="#87CEFA" />
     <commentTaskTag color="#FF8BFF" />
+    <constant color="#A082BD" />
     <constructor color="#87CEFA" />
     <currentLine color="#2D2D44" />
+    <deletionIndication color="#E0E2E4" />
+    <deprecatedMember color="#E0E2E4" />
     <directive color="#A05080" bold="true" />
     <dynamicType color="#CFBFAD" />
     <enum color="#CFBFAD" />
+    <field color="#678CB1" />
+    <filteredSearchResultIndication color="#616161" />
+    <findScope color="#E0E2E4" />
     <foreground color="#CFBFAD" />
     <function color="#87CEFA" />
+    <getter color="#E8E2B7" />
     <importPrefix color="#CFBFAD" />
+    <inheritedMethod color="#E0E2E4" />
     <interface color="#87FAC4" />
     <javadoc color="#666666" />
     <javadocKeyword color="#800080" />
     <javadocLink color="#666666" />
     <javadocTag color="#800080" />
     <keyword color="#808BED" />
+    <keywordReturn color="#808BED" />
     <lineNumber color="#2B91AF" />
     <localVariable color="#CFBFAD" />
     <localVariableDeclaration color="#CFBFAD" />
     <method color="#87CEFA" />
     <methodDeclaration color="#CFBFAD" />
     <multiLineComment color="#CD8B00" />
+    <multiLineString color="#FFCD8B" />
     <number color="#FFCD8B" />
     <occurrenceIndication color="#616161" />
     <operator color="#CFBFAD" />
     <parameterVariable color="#FFFFFF" />
+    <searchResultIndication color="#616161" />
     <selectionBackground color="#8B8BFF" />
     <selectionForeground color="#404040" />
+    <setter color="#E8E2B7" />
     <singleLineComment color="#CD8B00" />
     <sourceHoverBackground color="#A19879" />
+    <staticField color="#678CB1" />
+    <staticFinalField color="#E0E2E4" />
+    <staticMethod color="#E0E2E4" />
+    <staticMethodDeclaration color="#C0C0C0" bold="true" />
     <string color="#FFCD8B" />
+    <typeArgument color="#E0E2E4" />
+    <typeParameter color="#E0E2E4" />
+    <writeOccurrenceIndication color="#616161" />
 </colorTheme>

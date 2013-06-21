@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <colorTheme id="3" name="Vibrant Ink" modified="2011-01-23 10:03:53" author="indiehead" website="http://code.google.com/p/vibrant-ink-textmate/">
     <abstractMethod color="#F1C436" />
+    <annotation color="#A082BD" />
     <background color="#191919" />
     <bracket color="#FFFFFF" />
     <builtin color="#AAAAAA" />
     <class color="#9CF828" />
     <commentTaskTag color="#800080" />
+    <constant color="#A082BD" />
     <constructor color="#9CF828" />
     <currentLine color="#222220" />
     <deletionIndication color="#FF0000" />
@@ -14,9 +16,11 @@
     <dynamicType color="#3C758D" />
     <enum color="#408000" />
     <field color="#357A8F" />
+    <filteredSearchResultIndication color="#616161" />
     <findScope color="#191919" />
     <foreground color="#FFFFFF" />
     <function color="#F7C527" />
+    <getter color="#E8E2B7" />
     <importPrefix color="#FFFFFF" />
     <inheritedMethod color="#E3B735" />
     <interface color="#87F025" />
@@ -25,23 +29,30 @@
     <javadocLink color="#814582" />
     <javadocTag color="#800080" />
     <keyword color="#EC691E" />
+    <keywordReturn color="#EC691E" />
     <lineNumber color="#666666" />
     <localVariable color="#3C758D" />
     <localVariableDeclaration color="#357A92" />
     <method color="#F7C527" />
     <methodDeclaration color="#F1C438" />
     <multiLineComment color="#8C3FC8" />
+    <multiLineString color="#477488" />
     <number color="#477488" />
     <occurrenceIndication color="#616161" />
     <operator color="#FFFFFF" />
     <parameterVariable color="#408000" />
+    <searchResultIndication color="#616161" />
     <selectionBackground color="#414C3B" />
     <selectionForeground color="#FFFFFF" />
+    <setter color="#E8E2B7" />
     <singleLineComment color="#8146A2" />
+    <sourceHoverBackground color="#FFFFFF" />
     <staticField color="#FFFFFF" />
     <staticFinalField color="#80FF00" />
     <staticMethod color="#FFFFFF" />
+    <staticMethodDeclaration color="#C0C0C0" bold="true" />
     <string color="#477488" />
     <typeArgument color="#D9B0AC" />
     <typeParameter color="#CDB1AD" />
+    <writeOccurrenceIndication color="#616161" />
 </colorTheme>

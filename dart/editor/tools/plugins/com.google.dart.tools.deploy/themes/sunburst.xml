@@ -20,6 +20,7 @@
     <findScope color="#DDF0FF" />
     <foreground color="#F9F9F9" />
     <function color="#F9F9F9" italic="false" />
+    <getter color="#E8E2B7" />
     <importPrefix color="#F9F9F9" />
     <inheritedMethod color="#F9F9F9" italic="false" underline="false" strikethrough="false" />
     <interface color="#F9F9F9" italic="false" />
@@ -28,12 +29,14 @@
     <javadocLink color="#548FA0" italic="false" />
     <javadocTag color="#A8A8A8" italic="false" />
     <keyword color="#EA9C77" bold="false" italic="false" />
+    <keywordReturn color="#EA9C77" />
     <lineNumber color="#F9F9F9" />
     <localVariable color="#4B9CE9" bold="false" italic="false" underline="false" strikethrough="false" />
     <localVariableDeclaration color="#4B9CE9" italic="false" underline="false" strikethrough="false" />
     <method color="#F9F9F9" italic="false" />
     <methodDeclaration color="#F9F9F9" italic="false" />
     <multiLineComment color="#A8A8A8" italic="true" />
+    <multiLineString color="#76BA53" />
     <number color="#F9F9F9" italic="false" />
     <occurrenceIndication color="#5A5A5A" />
     <operator color="#F9F9F9" italic="false" />
@@ -41,11 +44,13 @@
     <searchResultIndication color="#5A5A5A" />
     <selectionBackground color="#DDF0FF" />
     <selectionForeground color="#000000" />
+    <setter color="#E8E2B7" />
     <singleLineComment color="#A8A8A8" italic="true" />
     <sourceHoverBackground color="#000000" />
     <staticField color="#4B9CE9" italic="false" underline="false" strikethrough="false" />
     <staticFinalField color="#4B9CE9" italic="false" underline="false" strikethrough="false" />
     <staticMethod color="#F9F9F9" bold="false" italic="false" underline="false" strikethrough="false" />
+    <staticMethodDeclaration color="#C0C0C0" bold="true" />
     <string color="#76BA53" italic="false" />
     <typeArgument color="#4B9CE9" italic="false" underline="false" strikethrough="false" />
     <typeParameter color="#4B9CE9" italic="false" underline="false" strikethrough="false" />

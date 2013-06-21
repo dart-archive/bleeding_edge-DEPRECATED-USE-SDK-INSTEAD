@@ -4,18 +4,23 @@
     <annotation color="#999999" />
     <background color="#000000" />
     <bracket color="#FFFFFF" />
+    <builtin color="#AAAAAA" />
     <class color="#9CF828" />
     <commentTaskTag color="#666666" />
+    <constant color="#A082BD" />
     <constructor color="#9CF828" />
     <currentLine color="#222220" />
     <deletionIndication color="#FF0000" />
     <deprecatedMember color="#FFFFFF" />
+    <directive color="#A05080" bold="true" />
     <dynamicType color="#F7C527" />
     <enum color="#408000" />
     <field color="#c38705" />
+    <filteredSearchResultIndication color="#616161" />
     <findScope color="#191919" />
     <foreground color="#FFFFFF" />
     <function color="#F7C527" />
+    <getter color="#E8E2B7" />
     <importPrefix color="#FFFFFF" />
     <inheritedMethod color="#E3B735" />
     <interface color="#87F025" />
@@ -24,23 +29,30 @@
     <javadocLink color="#666666" />
     <javadocTag color="#800080" />
     <keyword color="#999999" />
+    <keywordReturn color="#999999" />
     <lineNumber color="#999999" />
     <localVariable color="#F7C527" />
     <localVariableDeclaration color="#F7C527" />
     <method color="#F7C527" />
     <methodDeclaration color="#F1C438" />
     <multiLineComment color="#666666" />
+    <multiLineString color="#00a40f" />
     <number color="#FF0000" />
     <occurrenceIndication color="#616161" />
     <operator color="#FFFFFF" />
     <parameterVariable color="#069609" />
+    <searchResultIndication color="#616161" />
     <selectionBackground color="#555555" />
     <selectionForeground color="#333333" />
+    <setter color="#E8E2B7" />
     <singleLineComment color="#666666" />
+    <sourceHoverBackground color="#FFFFFF" />
     <staticField color="#FFFFFF" />
     <staticFinalField color="#80FF00" />
     <staticMethod color="#FFFFFF" />
+    <staticMethodDeclaration color="#C0C0C0" bold="true" />
     <string color="#00a40f" />
     <typeArgument color="#D9B0AC" />
     <typeParameter color="#CDB1AD" />
+    <writeOccurrenceIndication color="#616161" />
 </colorTheme>

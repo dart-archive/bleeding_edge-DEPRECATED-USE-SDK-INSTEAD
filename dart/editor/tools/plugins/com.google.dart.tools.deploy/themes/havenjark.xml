@@ -4,18 +4,23 @@
     <annotation color="#808080" />
     <background color="#2D3639" />
     <bracket color="#FFFFFF" />
+    <builtin color="#AAAAAA" />
     <class color="#B8ADA0" />
     <commentTaskTag color="#ACC1AC" />
     <constant color="#93A2CC" />
     <constructor color="#B8ADA0" />
     <currentLine color="#00001F" />
+    <deletionIndication color="#E0E2E4" />
     <deprecatedMember color="#F3D651" />
+    <directive color="#A05080" bold="true" />
     <dynamicType color="#A19A83" />
+    <enum color="#E0E2E4" />
     <field color="#B3B784" />
     <filteredSearchResultIndication color="#3F3F6A" />
     <findScope color="#B9A185" />
     <foreground color="#C0B6A8" />
     <function color="#DFBE95" />
+    <getter color="#E8E2B7" />
     <importPrefix color="#C0B6A8" />
     <inheritedMethod color="#C0B6A8" />
     <interface color="#B8ADA0" />
@@ -24,6 +29,7 @@
     <javadocLink color="#A893CC" />
     <javadocTag color="#9393CC" />
     <keyword color="#A38474" />
+    <keywordReturn color="#A38474" />
     <lineNumber color="#C0C0C0" />
     <localVariable color="#A19A83" />
     <localVariableDeclaration color="#A19A83" />
@@ -38,11 +44,13 @@
     <searchResultIndication color="#464467" />
     <selectionBackground color="#2F4B55" />
     <selectionForeground color="#C0B6A8" />
+    <setter color="#E8E2B7" />
     <singleLineComment color="#AEAEAE" />
     <sourceHoverBackground color="#A19879" />
     <staticField color="#93A2CC" />
     <staticFinalField color="#93A2CC" />
     <staticMethod color="#C4C4B7" />
+    <staticMethodDeclaration color="#C0C0C0" bold="true" />
     <string color="#CC9393" />
     <typeArgument color="#C0B6A8" />
     <typeParameter color="#C0B6A8" />
