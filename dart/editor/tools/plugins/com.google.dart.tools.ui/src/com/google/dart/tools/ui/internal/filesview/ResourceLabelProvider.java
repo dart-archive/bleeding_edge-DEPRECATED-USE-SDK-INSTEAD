@@ -155,32 +155,38 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
       StyledString string = new StyledString(resource.getName());
 
       try {
-
         if (resource instanceof IFolder) {
           if (DartCore.isPackagesDirectory((IFolder) resource)) {
             string.append(" [package:]", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
           }
+
           String version = resource.getPersistentProperty(DartCore.PUB_PACKAGE_VERSION);
+
           if (version != null) {
             string.append(" [" + version + "]", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$ //$NON-NLS-2$
             return string;
           }
         }
 
-        // TODO(scheglov) disable for now, even "get" operation gets blocked currently.
-        // TODO(scheglov) restore once AnalysisContext is fixed.
-//        if (resource instanceof IFile) {
-//          // Append the library name to library units.
-//
+        if (resource instanceof IFile) {
+          IFile file = (IFile) resource;
+
+          // If it's a build.dart file, and auto-building is disabled, render the text in grey.
+          if (DartCore.isBuildDart(file)
+              && DartCore.getPlugin().getDisableDartBasedBuilder(file.getProject())) {
+            return new StyledString(file.getName(), StyledString.QUALIFIER_STYLER);
+          }
+
+          // Append the library name to library units.
+          // TODO(scheglov) disable for now, even "get" operation gets blocked currently.
+          // TODO(scheglov) restore once AnalysisContext is fixed.
 //          ProjectManager projectManager = DartCore.getProjectManager();
 //          SourceKind kind = projectManager.getSourceKind((IFile) resource);
 //
 //          if (kind == SourceKind.LIBRARY) {
-//
 //            LibraryElement libraryElement = projectManager.getLibraryElementOrNull((IFile) resource);
 //
 //            if (libraryElement != null) {
-//
 //              String name = libraryElement.getName();
 //
 //              if (name == null || name.length() == 0) {
@@ -188,15 +194,12 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
 //                if (libraryElement.getEntryPoint() != null) {
 //                  name = FilenameUtils.removeExtension(resource.getName());
 //                }
-//
 //              }
 //
 //              string.append(" [" + name + "]", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$ //$NON-NLS-2$
 //            }
-//
 //          }
-//
-//        }
+        }
       } catch (Throwable th) {
         DartToolsPlugin.log(th);
       }
@@ -218,6 +221,7 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
           StyledString.QUALIFIER_STYLER);
       return string;
     }
+
     return workbenchLabelProvider.getStyledText(element);
   }
 
