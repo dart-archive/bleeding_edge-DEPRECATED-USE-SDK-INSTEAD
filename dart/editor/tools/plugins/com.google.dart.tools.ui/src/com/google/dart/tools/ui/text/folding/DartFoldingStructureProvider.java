@@ -244,11 +244,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
       return model;
     }
 
-    private TokenStream getScanner() {
-      return getScanner(0);
-    }
-
-    private TokenStream getScanner(int start) {
+    private TokenStream getScanner(int start) throws InvalidSourceException {
       tokenStream.begin(start);
       return tokenStream;
     }
@@ -565,7 +561,7 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
       }
     }
 
-    void begin(int start) {
+    void begin(int start) throws InvalidSourceException {
       if (start == begin) {
         return;
       }
@@ -573,8 +569,13 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
         begin = 0;
         currentToken = firstToken;
       }
+      Token prev = currentToken;
       while (begin < start) {
         currentToken = currentToken.getNext();
+        if (currentToken == prev) {
+          throw new InvalidSourceException();
+        }
+        prev = currentToken;
         begin = currentToken.getOffset();
       }
     }
@@ -819,7 +820,12 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
       }
     }
     int shift = range.getOffset();
-    TokenStream scanner = ctx.getScanner(shift);
+    TokenStream scanner;
+    try {
+      scanner = ctx.getScanner(shift);
+    } catch (InvalidSourceException ex) {
+      return new IRegion[0];
+    }
     int start = shift;
     Token token = scanner.next();
     start = token.getOffset();
@@ -974,7 +980,12 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
 
   private IRegion computeHeaderComment(FoldingStructureComputationContext ctx) {
     // search at most up to the first element
-    TokenStream scanner = ctx.getScanner();
+    TokenStream scanner;
+    try {
+      scanner = ctx.getScanner(0);
+    } catch (InvalidSourceException ex) {
+      return null;
+    }
     int headerStart = -1;
     int headerEnd = -1;
     boolean foundComment = false;
