@@ -967,8 +967,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_instanceMethodNameCollidesWithSuperclassStatic_setter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  int i = 0;",
-        "  static set n(int x) {i = x;}",
+        "  static set n(int x) {}",
         "}",
         "class B extends A {",
         "  void n() {}",
@@ -981,8 +980,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_instanceMethodNameCollidesWithSuperclassStatic_setter2() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  int i = 0;",
-        "  static set n(int x) {i = x;}",
+        "  static set n(int x) {}",
         "}",
         "class B extends A {",
         "}",

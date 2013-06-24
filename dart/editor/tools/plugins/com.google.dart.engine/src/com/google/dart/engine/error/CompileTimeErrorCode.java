@@ -562,6 +562,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "'%s' is a static variable in the enclosing class, variables initialized in a constructor cannot be static"),
 
   /**
+   * 12.30 Identifier Reference: Otherwise, e is equivalent to the property extraction
+   * <b>this</b>.<i>id</i>.
+   */
+  INSTANCE_MEMBER_ACCESS_FROM_STATIC("Instance member cannot be accessed from static method"),
+
+  /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time
    * constants. Until then, this acts as a placeholder for more informative errors.
    */

@@ -944,6 +944,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_instanceMemberAccessFromStatic_fromComment() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "  /// [m]",
+        "  static foo() {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invalidAssignment() throws Exception {
     Source source = addSource(createSource(//
         "f() {",

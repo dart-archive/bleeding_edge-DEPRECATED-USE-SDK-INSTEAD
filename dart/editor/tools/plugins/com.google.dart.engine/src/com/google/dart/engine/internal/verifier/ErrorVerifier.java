@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.ClassTypeAlias;
+import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
@@ -228,6 +229,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * {@link ConstructorInitializer}.
    */
   private boolean isInConstructorInitializer;
+
+  /**
+   * This is set to {@code true} iff the visitor is currently visiting a static method.
+   */
+  private boolean isInStaticMethod;
 
   /**
    * This is set to {@code true} iff the visitor is currently visiting code in the SDK.
@@ -634,6 +640,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement previousFunction = enclosingFunction;
     try {
+      isInStaticMethod = node.isStatic();
       enclosingFunction = node.getElement();
       SimpleIdentifier identifier = node.getName();
       String methoName = "";
@@ -660,6 +667,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return super.visitMethodDeclaration(node);
     } finally {
       enclosingFunction = previousFunction;
+      isInStaticMethod = false;
     }
   }
 
@@ -2516,11 +2524,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param node the simple identifier to test
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+   * @see CompileTimeErrorCode#INSTANCE_MEMBER_ACCESS_FROM_STATIC TODO(scheglov) rename thid method
    */
   private boolean checkForImplicitThisReferenceInInitializer(SimpleIdentifier node) {
-    if (!isInConstructorInitializer) {
+    if (!isInConstructorInitializer && !isInStaticMethod) {
       return false;
     }
+    // TODO(scheglov) check also "this" reference from the static field
     // prepare element
     Element element = node.getElement();
     if (!(element instanceof MethodElement || element instanceof PropertyAccessorElement)) {
@@ -2536,8 +2546,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (!(enclosingElement instanceof ClassElement)) {
       return false;
     }
-    // qualified method invocation
+    // comment
     ASTNode parent = node.getParent();
+    if (parent instanceof CommentReference) {
+      return false;
+    }
+    // qualified method invocation
     if (parent instanceof MethodInvocation) {
       MethodInvocation invocation = (MethodInvocation) parent;
       if (invocation.getMethodName() == node && invocation.getRealTarget() != null) {
@@ -2560,7 +2574,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     // report problem
-    errorReporter.reportError(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, node);
+    if (isInConstructorInitializer) {
+      errorReporter.reportError(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, node);
+    } else if (isInStaticMethod) {
+      errorReporter.reportError(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, node);
+    }
     return true;
   }
 

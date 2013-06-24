@@ -1486,6 +1486,45 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_instanceMemberAccessFromStatic_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int f;",
+        "  static foo() {",
+        "    f;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC);
+    verify(source);
+  }
+
+  public void test_instanceMemberAccessFromStatic_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  get g => null;",
+        "  static foo() {",
+        "    g;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC);
+    verify(source);
+  }
+
+  public void test_instanceMemberAccessFromStatic_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "  static foo() {",
+        "    m();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC);
+    verify(source);
+  }
+
   public void test_invalidConstructorName_notEnclosingClassName() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
