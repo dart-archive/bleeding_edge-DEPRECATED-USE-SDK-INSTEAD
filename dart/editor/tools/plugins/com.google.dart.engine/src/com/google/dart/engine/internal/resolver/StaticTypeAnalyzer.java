@@ -858,23 +858,27 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       Expression target = node.getRealTarget();
       Type targetType = getBestType(target);
       if (isAsyncFutureType(targetType)) {
-        Expression closureArg = node.getArgumentList().getArguments().get(0);
-        if (closureArg instanceof FunctionExpression) {
-          FunctionExpression closureExpr = (FunctionExpression) closureArg;
-          Type returnType = computePropagatedReturnType(closureExpr.getElement());
-          if (returnType != null) {
-            // prepare the type of the returned Future
-            InterfaceTypeImpl newFutureType;
-            if (isAsyncFutureType(returnType)) {
-              newFutureType = (InterfaceTypeImpl) returnType;
-            } else {
-              InterfaceType futureType = (InterfaceType) targetType;
-              newFutureType = new InterfaceTypeImpl(futureType.getElement());
-              newFutureType.setTypeArguments(new Type[] {returnType});
+        NodeList<Expression> arguments = node.getArgumentList().getArguments();
+        if (arguments.size() == 1) {
+          // TODO(brianwilkerson) Handle the case where both arguments are provided.
+          Expression closureArg = arguments.get(0);
+          if (closureArg instanceof FunctionExpression) {
+            FunctionExpression closureExpr = (FunctionExpression) closureArg;
+            Type returnType = computePropagatedReturnType(closureExpr.getElement());
+            if (returnType != null) {
+              // prepare the type of the returned Future
+              InterfaceTypeImpl newFutureType;
+              if (isAsyncFutureType(returnType)) {
+                newFutureType = (InterfaceTypeImpl) returnType;
+              } else {
+                InterfaceType futureType = (InterfaceType) targetType;
+                newFutureType = new InterfaceTypeImpl(futureType.getElement());
+                newFutureType.setTypeArguments(new Type[] {returnType});
+              }
+              // set the 'then' invocation type
+              recordPropagatedType(node, newFutureType);
+              return null;
             }
-            // set the 'then' invocation type
-            recordPropagatedType(node, newFutureType);
-            return null;
           }
         }
       }
