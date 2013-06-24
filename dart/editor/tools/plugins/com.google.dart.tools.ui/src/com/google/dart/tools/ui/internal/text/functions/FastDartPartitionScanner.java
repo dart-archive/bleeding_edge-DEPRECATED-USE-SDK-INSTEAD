@@ -642,7 +642,11 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
               return ScannerState.CODE.token;
             } else if (nextChar == '/') {
               if (scanner.peek(2) == '/') {
-                scannerState = ScannerState.SINGLE_LINE_DOC_COMMENT_PREFIX;
+                if (scanner.peek(3) == '/') {
+                  scannerState = ScannerState.SINGLE_LINE_COMMENT_PREFIX;
+                } else {
+                  scannerState = ScannerState.SINGLE_LINE_DOC_COMMENT_PREFIX;
+                }
               } else {
                 scannerState = ScannerState.SINGLE_LINE_COMMENT_PREFIX;
               }
@@ -650,7 +654,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
             } else {
               advance();
             }
-          } else if (currentChar == '@' || currentChar == 'r') {
+          } else if (currentChar == 'r') {
             int secondChar = scanner.peek(1);
             if (secondChar == '\'' || secondChar == '"') {
               int thirdChar = scanner.peek(2);

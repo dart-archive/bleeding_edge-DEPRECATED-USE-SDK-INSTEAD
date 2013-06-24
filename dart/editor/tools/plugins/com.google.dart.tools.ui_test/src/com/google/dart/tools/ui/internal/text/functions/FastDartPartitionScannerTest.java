@@ -33,54 +33,72 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
   public void test_FastDartPartitionScanner_blockComment() {
     // class X { /* comment */ } 
     assertPartitions( //
-        "class X {\n", DEFAULT_TYPE, //
-        "/* comment */", DART_MULTI_LINE_COMMENT, //
-        "\n}\n", DEFAULT_TYPE //
+        "class X {\n",
+        DEFAULT_TYPE, //
+        "/* comment */",
+        DART_MULTI_LINE_COMMENT, //
+        "\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_blockComment_inInterpolation() {
     // class X { var s="xxx ${yyy /* comment */ + zzz} xxx"; }
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "\"xxx ", DART_STRING, //
-        "${yyy ", DEFAULT_TYPE, //
-        "/* comment */", DART_MULTI_LINE_COMMENT, //
-        " + zzz}", DEFAULT_TYPE, //
-        " xxx\"", DART_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "\"xxx ",
+        DART_STRING, //
+        "${yyy ",
+        DEFAULT_TYPE, //
+        "/* comment */",
+        DART_MULTI_LINE_COMMENT, //
+        " + zzz}",
+        DEFAULT_TYPE, //
+        " xxx\"",
+        DART_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_blockComment_nested() {
     // class X { /* a/one /* comment /* nested */ inside */ another */ }
     assertPartitions( //
-        "class X {\n", DEFAULT_TYPE, //
-        "/* a/one /* comment /* nested */ inside */ another */", DART_MULTI_LINE_COMMENT, //
-        "\n}\n", DEFAULT_TYPE //
+        "class X {\n",
+        DEFAULT_TYPE, //
+        "/* a/one /* comment /* nested */ inside */ another */",
+        DART_MULTI_LINE_COMMENT, //
+        "\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_blockComment_nested_unclosed() {
     // class X { /* a/one /* comment /* nested */ inside */ }
     assertPartitions( //
-        "class X {\n", DEFAULT_TYPE, //
-        "/* a/one /* comment /* nested */ inside */\n}\n", DART_MULTI_LINE_COMMENT //
+        "class X {\n",
+        DEFAULT_TYPE, //
+        "/* a/one /* comment /* nested */ inside */\n}\n",
+        DART_MULTI_LINE_COMMENT //
     );
   }
 
   public void test_FastDartPartitionScanner_blockComment_unclosed() {
     // class X { /* comment
     assertPartitions( //
-        "class X {\n", DEFAULT_TYPE, //
-        "/* comment", DART_MULTI_LINE_COMMENT //
+        "class X {\n",
+        DEFAULT_TYPE, //
+        "/* comment",
+        DART_MULTI_LINE_COMMENT //
     );
   }
 
   public void test_FastDartPartitionScanner_defaultType() {
     // class X {}
     assertPartitions( //
-        "class X {}", DEFAULT_TYPE //
+        "class X {}",
+        DEFAULT_TYPE //
     );
   }
 
@@ -88,235 +106,347 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
     // class X {}
     assertPartitionsAfter( //
         "class X {}", //
-        "class X {\n  }", DEFAULT_TYPE //
+        "class X {\n  }",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_docComment() {
     // class X { /** comment */ var s=null; } 
     assertPartitions( //
-        "class X {\n", DEFAULT_TYPE, //
-        "/** comment */", DART_DOC, //
-        "\nvar s = null;}\n", DEFAULT_TYPE //
+        "class X {\n",
+        DEFAULT_TYPE, //
+        "/** comment */",
+        DART_DOC, //
+        "\nvar s = null;}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_docComment_unfinishedToFinished() {
     assertPartitionsAfter("/** *\nvoid main() {}", //
-        "/** */", DART_DOC, //
-        "void main() {}", DEFAULT_TYPE //
+        "/** */",
+        DART_DOC, //
+        "void main() {}",
+        DEFAULT_TYPE //
+    );
+  }
+
+  public void test_FastDartPartitionScanner_doubleLineComment() {
+    // ////
+    assertPartitions( //
+        "////",
+        DART_SINGLE_LINE_COMMENT //
     );
   }
 
   public void test_FastDartPartitionScanner_endOfLineComment() {
     // class X { // comment } 
     assertPartitions( //
-        "class X {\n", DEFAULT_TYPE, //
-        "// comment\n", DART_SINGLE_LINE_COMMENT, //
-        "}\n", DEFAULT_TYPE //
+        "class X {\n",
+        DEFAULT_TYPE, //
+        "// comment\n",
+        DART_SINGLE_LINE_COMMENT, //
+        "}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_endOfLineComment_inInterpolation() {
     // class X { var s="xxx ${yyy // comment + zzz} xxx"; }
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "\"xxx ", DART_STRING, //
-        "${yyy ", DEFAULT_TYPE, //
-        "// comment\n", DART_SINGLE_LINE_COMMENT, //
-        " + zzz}", DEFAULT_TYPE, //
-        " xxx\"", DART_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "\"xxx ",
+        DART_STRING, //
+        "${yyy ",
+        DEFAULT_TYPE, //
+        "// comment\n",
+        DART_SINGLE_LINE_COMMENT, //
+        " + zzz}",
+        DEFAULT_TYPE, //
+        " xxx\"",
+        DART_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_endOfLineDocComment() {
     // class X { /// comment } 
     assertPartitions( //
-        "class X {\n", DEFAULT_TYPE, //
-        "/// comment\n", DART_SINGLE_LINE_DOC, //
-        "}\n", DEFAULT_TYPE //
+        "class X {\n",
+        DEFAULT_TYPE, //
+        "/// comment\n",
+        DART_SINGLE_LINE_DOC, //
+        "}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_endOfLineDocComment_inInterpolation() {
     // class X { var s="xxx ${yyy /// comment + zzz} xxx"; }
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "\"xxx ", DART_STRING, //
-        "${yyy ", DEFAULT_TYPE, //
-        "/// comment\n", DART_SINGLE_LINE_DOC, //
-        " + zzz}", DEFAULT_TYPE, //
-        " xxx\"", DART_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "\"xxx ",
+        DART_STRING, //
+        "${yyy ",
+        DEFAULT_TYPE, //
+        "/// comment\n",
+        DART_SINGLE_LINE_DOC, //
+        " + zzz}",
+        DEFAULT_TYPE, //
+        " xxx\"",
+        DART_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_multilineString_double() {
     // class X { var s="""test"""; } 
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "\"\"\"test\"\"\"", DART_MULTI_LINE_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "\"\"\"test\"\"\"",
+        DART_MULTI_LINE_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_multilineString_insertion() {
     assertPartitionsAfter(
         "void main() {\n  var s = '''<tr>\n    <td><div class=\"${getBox(message.selected)}\"></div></td>\n    <td><div class=\"${getBox(message.starred)}\"></div></td>\n  </tr>'''\n}", //
-        "void main() {\n  var s = ", DEFAULT_TYPE, //
-        "'''<tr>\n    <td><div class=\"", DART_MULTI_LINE_STRING, //
-        "${getBox(message.selected)}", DEFAULT_TYPE, //
-        "\"></div></td>\n\n    <td><div class=\"", DART_MULTI_LINE_STRING, //
-        "${getBox(message.starred)}", DEFAULT_TYPE, //
-        "\"></div></td>\n  </tr>'''", DART_MULTI_LINE_STRING, //
-        "\n}", DEFAULT_TYPE //
+        "void main() {\n  var s = ",
+        DEFAULT_TYPE, //
+        "'''<tr>\n    <td><div class=\"",
+        DART_MULTI_LINE_STRING, //
+        "${getBox(message.selected)}",
+        DEFAULT_TYPE, //
+        "\"></div></td>\n\n    <td><div class=\"",
+        DART_MULTI_LINE_STRING, //
+        "${getBox(message.starred)}",
+        DEFAULT_TYPE, //
+        "\"></div></td>\n  </tr>'''",
+        DART_MULTI_LINE_STRING, //
+        "\n}",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_multilineString_single() {
     // class X { var s='''test'''; } 
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "'''test'''", DART_MULTI_LINE_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "'''test'''",
+        DART_MULTI_LINE_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_nestedBraces() {
     // class X { var s="xxx ${f((v) {return v;})} xxx"; } 
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "\"xxx ", DART_STRING, //
-        "${f((v) {return v;})}", DEFAULT_TYPE, //
-        " xxx\"", DART_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "\"xxx ",
+        DART_STRING, //
+        "${f((v) {return v;})}",
+        DEFAULT_TYPE, //
+        " xxx\"",
+        DART_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_nestedStrings() {
     // class X { var s="xxx ${yyy 'zzz' """aaa ${bbb '''ccc''' bbb} aaa""" yyy} xxx"; } 
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "\"xxx ", DART_STRING, //
-        "${yyy ", DEFAULT_TYPE, //
-        "'zzz'", DART_STRING, //
-        " ", DEFAULT_TYPE, //
-        "\"\"\"aaa ", DART_MULTI_LINE_STRING, //
-        "${bbb ", DEFAULT_TYPE, //
-        "'''ccc'''", DART_MULTI_LINE_STRING, //
-        " bbb}", DEFAULT_TYPE, //
-        " aaa\"\"\"", DART_MULTI_LINE_STRING, //
-        " yyy}", DEFAULT_TYPE, //
-        " xxx\"", DART_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "\"xxx ",
+        DART_STRING, //
+        "${yyy ",
+        DEFAULT_TYPE, //
+        "'zzz'",
+        DART_STRING, //
+        " ",
+        DEFAULT_TYPE, //
+        "\"\"\"aaa ",
+        DART_MULTI_LINE_STRING, //
+        "${bbb ",
+        DEFAULT_TYPE, //
+        "'''ccc'''",
+        DART_MULTI_LINE_STRING, //
+        " bbb}",
+        DEFAULT_TYPE, //
+        " aaa\"\"\"",
+        DART_MULTI_LINE_STRING, //
+        " yyy}",
+        DEFAULT_TYPE, //
+        " xxx\"",
+        DART_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_nestedStrings_with_comments() {
     // class X { var s="xxx ${yyy 'zzz' /* comment */ """aaa ${bbb '''ccc'''/* comment/*nested*/*/ bbb} aaa""" yyy} xxx"; } 
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "\"xxx ", DART_STRING, //
-        "${yyy ", DEFAULT_TYPE, //
-        "'zzz'", DART_STRING, //
-        " ", DEFAULT_TYPE, //
-        "/* comment */", DART_MULTI_LINE_COMMENT, //
-        " ", DEFAULT_TYPE, //
-        "\"\"\"aaa ", DART_MULTI_LINE_STRING, //
-        "${bbb ", DEFAULT_TYPE, //
-        "'''ccc'''", DART_MULTI_LINE_STRING, //
-        "/* comment/*nested*/*/", DART_MULTI_LINE_COMMENT, //
-        " bbb}", DEFAULT_TYPE, //
-        " aaa\"\"\"", DART_MULTI_LINE_STRING, //
-        " yyy}", DEFAULT_TYPE, //
-        " xxx\"", DART_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "\"xxx ",
+        DART_STRING, //
+        "${yyy ",
+        DEFAULT_TYPE, //
+        "'zzz'",
+        DART_STRING, //
+        " ",
+        DEFAULT_TYPE, //
+        "/* comment */",
+        DART_MULTI_LINE_COMMENT, //
+        " ",
+        DEFAULT_TYPE, //
+        "\"\"\"aaa ",
+        DART_MULTI_LINE_STRING, //
+        "${bbb ",
+        DEFAULT_TYPE, //
+        "'''ccc'''",
+        DART_MULTI_LINE_STRING, //
+        "/* comment/*nested*/*/",
+        DART_MULTI_LINE_COMMENT, //
+        " bbb}",
+        DEFAULT_TYPE, //
+        " aaa\"\"\"",
+        DART_MULTI_LINE_STRING, //
+        " yyy}",
+        DEFAULT_TYPE, //
+        " xxx\"",
+        DART_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_normalString_atEOF() {
     // class X { var s='
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "'", DART_STRING //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "'",
+        DART_STRING //
     );
   }
 
   public void test_FastDartPartitionScanner_normalString_backToBackInterpolations() {
     // class X { return newName(id, '${prefix}${prefixes[prefix]++}'); } 
     assertPartitions( //
-        "class X {\nreturn newName(id, ", DEFAULT_TYPE, //
-        "'", DART_STRING, //
-        "${prefix}${prefixes[prefix]++}", DEFAULT_TYPE, //
-        "'", DART_STRING, //
-        ");\n}\n", DEFAULT_TYPE //
+        "class X {\nreturn newName(id, ",
+        DEFAULT_TYPE, //
+        "'",
+        DART_STRING, //
+        "${prefix}${prefixes[prefix]++}",
+        DEFAULT_TYPE, //
+        "'",
+        DART_STRING, //
+        ");\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_normalString_double() {
     // class X { var s="test"; } 
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "\"test\"", DART_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "\"test\"",
+        DART_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_normalString_single() {
     // class X { var s='test'; } 
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "'test'", DART_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "'test'",
+        DART_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_normalString_unclosed() {
     // class X { var s='xxxyyy; } 
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "'xxxyyy;", DART_STRING, //
-        "\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "'xxxyyy;",
+        DART_STRING, //
+        "\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_normalString_withEscapes() {
     // class X { var s=' \$$foo '; } 
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "' \\$", DART_STRING, //
-        "$foo", DEFAULT_TYPE, //
-        " '", DART_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "' \\$",
+        DART_STRING, //
+        "$foo",
+        DEFAULT_TYPE, //
+        " '",
+        DART_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_rawString_double() {
     // class X { var s=@"test"; } 
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "@\"test\"", DART_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "r\"test\"",
+        DART_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_rawString_single() {
     // class X { var s=@'test'; } 
     assertPartitions( //
-        "class X {\nvar s=", DEFAULT_TYPE, //
-        "@'test'", DART_STRING, //
-        ";\n}\n", DEFAULT_TYPE //
+        "class X {\nvar s=",
+        DEFAULT_TYPE, //
+        "r'test'",
+        DART_STRING, //
+        ";\n}\n",
+        DEFAULT_TYPE //
     );
   }
 
   public void test_FastDartPartitionScanner_rawString_withEscape() {
     // final str = @'\'; // comment
     assertPartitions( //
-        "final str = ", DEFAULT_TYPE, //
-        "@'\\'", DART_STRING, //
-        "; ", DEFAULT_TYPE, //
-        "// comment", DART_SINGLE_LINE_COMMENT //
+        "final str = ",
+        DEFAULT_TYPE, //
+        "r'\\'",
+        DART_STRING, //
+        "; ",
+        DEFAULT_TYPE, //
+        "// comment",
+        DART_SINGLE_LINE_COMMENT //
     );
   }
 
@@ -356,7 +486,7 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
     int start = 0;
     for (int i = 0; i < expectedCount; i++) {
       int length = strings[i * 2].length();
-      assertRegion(regions[i], strings[(i * 2) + 1], start, length);
+      assertRegion(regions[i], strings[i * 2 + 1], start, length);
       start += length;
     }
   }
@@ -419,13 +549,13 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
     int nextRegionIndex = firstRegionIndex;
     if (range != null) {
       int length = strings[firstRegionIndex * 2].length() - range[0] + start;
-      assertRegion(regions[0], strings[(firstRegionIndex * 2) + 1], range[0], length);
+      assertRegion(regions[0], strings[firstRegionIndex * 2 + 1], range[0], length);
       start = range[0] + length;
       nextRegionIndex++;
     }
     for (int i = nextRegionIndex; i < expectedCount; i++) {
       int length = strings[i * 2].length();
-      assertRegion(regions[i - firstRegionIndex], strings[(i * 2) + 1], start, length);
+      assertRegion(regions[i - firstRegionIndex], strings[i * 2 + 1], start, length);
       start += length;
     }
   }
