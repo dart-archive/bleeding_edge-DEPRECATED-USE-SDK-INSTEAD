@@ -743,6 +743,22 @@ public class ErrorParserTest extends ParserTestCase {
     assertNotNull(unit);
   }
 
+  public void test_localFunctionDeclarationModifier_abstract() throws Exception {
+    parseStatement("abstract f() {}", ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER);
+  }
+
+  public void test_localFunctionDeclarationModifier_external() throws Exception {
+    parseStatement("external f() {}", ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER);
+  }
+
+  public void test_localFunctionDeclarationModifier_factory() throws Exception {
+    parseStatement("factory f() {}", ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER);
+  }
+
+  public void test_localFunctionDeclarationModifier_static() throws Exception {
+    parseStatement("static f() {}", ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER);
+  }
+
   public void test_missingAssignableSelector_identifiersAssigned() throws Exception {
     parseExpression("x.y = y;");
   }
@@ -1081,6 +1097,10 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_staticTopLevelDeclaration_class() throws Exception {
     parseCompilationUnit("static class C {}", ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
+  }
+
+  public void test_staticTopLevelDeclaration_function() throws Exception {
+    parseCompilationUnit("static f() {}", ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
   }
 
   public void test_staticTopLevelDeclaration_typedef() throws Exception {

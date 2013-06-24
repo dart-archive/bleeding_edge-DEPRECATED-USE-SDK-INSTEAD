@@ -94,6 +94,7 @@ public enum ParserErrorCode implements ErrorCode {
   INVALID_UNICODE_ESCAPE(
       "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'"),
   LIBRARY_DIRECTIVE_NOT_FIRST("The library directive must appear before all other directives"),
+  LOCAL_FUNCTION_DECLARATION_MODIFIER("Local function declarations cannot specify any modifier"),
   // TODO(brianwilkerson) Improve this message. We probably need to know the context in which we are
   // parsing the assignable selector in order to get decent messages.
   MISSING_ASSIGNABLE_SELECTOR("Missing selector such as \".<identifier>\" or \"[0]\""),

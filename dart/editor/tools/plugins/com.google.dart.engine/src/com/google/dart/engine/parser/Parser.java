@@ -3132,6 +3132,8 @@ public class Parser {
    * @return the function declaration statement that was parsed
    */
   private Statement parseFunctionDeclarationStatement() {
+    Modifiers modifiers = parseModifiers();
+    validateModifiersForFunctionDeclarationStatement(modifiers);
     return parseFunctionDeclarationStatement(parseCommentAndMetadata(), parseOptionalReturnType());
   }
 
@@ -6082,6 +6084,20 @@ public class Parser {
       reportError(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword);
     }
     return lexicallyFirst(constKeyword, finalKeyword, varKeyword);
+  }
+
+  /**
+   * Validate that the given set of modifiers is appropriate for a local function.
+   * 
+   * @param modifiers the modifiers being validated
+   */
+  private void validateModifiersForFunctionDeclarationStatement(Modifiers modifiers) {
+    if (modifiers.getAbstractKeyword() != null || modifiers.getConstKeyword() != null
+        || modifiers.getExternalKeyword() != null || modifiers.getFactoryKeyword() != null
+        || modifiers.getFinalKeyword() != null || modifiers.getStaticKeyword() != null
+        || modifiers.getVarKeyword() != null) {
+      reportError(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER);
+    }
   }
 
   /**
