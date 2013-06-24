@@ -559,6 +559,13 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     check_constEvalTypeBool_withParameter_binary("p || ''");
   }
 
+  public void test_constEvalTypeBool_binary_leftTrue() throws Exception {
+    Source source = addSource("const C = (true || 0);");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    verify(source);
+  }
+
   public void test_constEvalTypeBoolNumString_equal() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

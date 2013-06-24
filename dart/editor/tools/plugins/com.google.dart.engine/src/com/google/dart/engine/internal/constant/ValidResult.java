@@ -699,11 +699,11 @@ public class ValidResult extends EvaluationResultImpl {
 
   @Override
   protected EvaluationResultImpl logicalOrValid(BinaryExpression node, ValidResult leftOperand) {
-    if (isSomeBool() || leftOperand.isSomeBool()) {
-      if (isAnyBool() && leftOperand.isAnyBool()) {
-        return RESULT_BOOL;
-      }
+    if (!isAnyBool() || !leftOperand.isAnyBool()) {
       return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    }
+    if (isSomeBool() || leftOperand.isSomeBool()) {
+      return RESULT_BOOL;
     }
     Object leftValue = leftOperand.getValue();
     if (leftValue instanceof Boolean && ((Boolean) leftValue).booleanValue()) {
