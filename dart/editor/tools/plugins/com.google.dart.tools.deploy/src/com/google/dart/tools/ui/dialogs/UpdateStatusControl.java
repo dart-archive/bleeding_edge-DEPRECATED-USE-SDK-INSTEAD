@@ -375,6 +375,10 @@ public class UpdateStatusControl extends UpdateAdapter implements DisposeListene
   }
 
   private void setStatus(String text, Font font) {
+    // Guard against null values during initialization
+    if (text == null) {
+      text = "";
+    }
     updateStatusLabel.setText(text);
     updateStatusLabel.setFont(font);
     updateStatusLabel.update();
