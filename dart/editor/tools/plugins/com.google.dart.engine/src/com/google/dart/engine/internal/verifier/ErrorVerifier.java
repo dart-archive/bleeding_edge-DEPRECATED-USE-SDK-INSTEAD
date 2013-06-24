@@ -405,6 +405,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         }
       }
       checkForFinalNotInitialized(node);
+      checkForInstanceStaticMembers();
       return super.visitClassDeclaration(node);
     } finally {
       initialFieldElementsMap = null;
@@ -660,12 +661,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       isInStaticMethod = node.isStatic();
       enclosingFunction = node.getElement();
       SimpleIdentifier identifier = node.getName();
-      String methoName = "";
+      String methodName = "";
       if (identifier != null) {
-        methoName = identifier.getName();
+        methodName = identifier.getName();
       }
       if (node.isSetter() || node.isGetter()) {
-        checkForMismatchedAccessorTypes(node, methoName);
+        checkForMismatchedAccessorTypes(node, methodName);
         checkForConflictingInstanceGetterAndSuperclassMember(node);
       }
       if (node.isGetter()) {
@@ -2732,6 +2733,61 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This verifies that the enclosing class does not have an instance member with the given name of
+   * the static member.
+   * 
+   * @param staticMember the static member to check conflict for
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#INSTANCE_STATIC_MEMBER
+   */
+  private boolean checkForInstanceStaticMember(ExecutableElement staticMember) {
+    // prepare name
+    String name = staticMember.getName();
+    if (name == null) {
+      return false;
+    }
+    // try to find member
+    ExecutableElement inheritedMember = inheritanceManager.lookupInheritance(enclosingClass, name);
+    if (inheritedMember == null) {
+      return false;
+    }
+    // OK, also static
+    if (inheritedMember.isStatic()) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(
+        CompileTimeErrorCode.INSTANCE_STATIC_MEMBER,
+        staticMember.getNameOffset(),
+        name.length(),
+        enclosingClass.getName(),
+        name);
+    return true;
+  }
+
+  /**
+   * This verifies that the enclosing class does not have an instance member with the given name of
+   * the static member.
+   * 
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#INSTANCE_STATIC_MEMBER
+   */
+  private boolean checkForInstanceStaticMembers() {
+    boolean hasProblem = false;
+    for (MethodElement method : enclosingClass.getMethods()) {
+      if (method.isStatic()) {
+        hasProblem |= checkForInstanceStaticMember(method);
+      }
+    }
+    for (PropertyAccessorElement accessor : enclosingClass.getAccessors()) {
+      if (accessor.isStatic()) {
+        hasProblem |= checkForInstanceStaticMember(accessor);
+      }
+    }
+    return hasProblem;
+  }
+
+  /**
    * Given an assignment using a compound assignment operator, this verifies that the given
    * assignment is valid.
    * 
@@ -3631,7 +3687,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   /**
    * This checks if the passed constructor declaration has redirected constructor and references
-   * itself directly or indirectly. TODO(scheglov)
+   * itself directly or indirectly.
    * 
    * @param node the constructor declaration to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node

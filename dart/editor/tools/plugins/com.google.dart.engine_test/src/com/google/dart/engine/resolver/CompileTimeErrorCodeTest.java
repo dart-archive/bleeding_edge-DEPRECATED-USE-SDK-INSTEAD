@@ -1547,6 +1547,58 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_instanceStaticMember_instanceMethod_staticField() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  x() {}",
+        "}",
+        "class B extends A {",
+        "  static int x;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INSTANCE_STATIC_MEMBER);
+    verify(source);
+  }
+
+  public void test_instanceStaticMember_instanceMethod_staticMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  x() {}",
+        "}",
+        "class B extends A {",
+        "  static x() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INSTANCE_STATIC_MEMBER);
+    verify(source);
+  }
+
+  public void test_instanceStaticMember_instanceMethodAbstract_staticField() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  x();",
+        "}",
+        "abstract class B extends A {",
+        "  static int x;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INSTANCE_STATIC_MEMBER);
+    verify(source);
+  }
+
+  public void test_instanceStaticMember_instanceMethodAbstract_staticMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  x();",
+        "}",
+        "abstract class B extends A {",
+        "  static x() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INSTANCE_STATIC_MEMBER);
+    verify(source);
+  }
+
   public void test_invalidConstructorName_notEnclosingClassName() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

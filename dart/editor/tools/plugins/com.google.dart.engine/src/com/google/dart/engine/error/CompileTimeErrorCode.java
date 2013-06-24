@@ -359,25 +359,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   EXTRA_POSITIONAL_ARGUMENTS("%d positional arguments expected, but %d found"),
 
   /**
-   * 12.2 Null: It is a compile-time error for a class to attempt to extend or implement Null.
-   * <p>
-   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement int.
-   * <p>
-   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement double.
-   * <p>
-   * 12.3 Numbers: It is a compile-time error for any type other than the types int and double to
-   * attempt to extend or implement num.
-   * <p>
-   * 12.4 Booleans: It is a compile-time error for a class to attempt to extend or implement bool.
-   * <p>
-   * 12.5 Strings: It is a compile-time error for a class to attempt to extend or implement String.
-   * 
-   * @param typeName the name of the type that cannot be implemented
-   * @see #EXTENDS_DISALLOWED_CLASS
-   */
-  IMPLEMENTS_DISALLOWED_CLASS("Classes cannot implement '%s'"),
-
-  /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time
    * error if more than one initializer corresponding to a given instance variable appears in
    * <i>k</i>'s list.
@@ -453,6 +434,25 @@ public enum CompileTimeErrorCode implements ErrorCode {
    */
   GETTER_AND_METHOD_WITH_SAME_NAME(
       "'%s' cannot be used to name a getter, there is already a method with the same name"),
+
+  /**
+   * 12.2 Null: It is a compile-time error for a class to attempt to extend or implement Null.
+   * <p>
+   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement int.
+   * <p>
+   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement double.
+   * <p>
+   * 12.3 Numbers: It is a compile-time error for any type other than the types int and double to
+   * attempt to extend or implement num.
+   * <p>
+   * 12.4 Booleans: It is a compile-time error for a class to attempt to extend or implement bool.
+   * <p>
+   * 12.5 Strings: It is a compile-time error for a class to attempt to extend or implement String.
+   * 
+   * @param typeName the name of the type that cannot be implemented
+   * @see #EXTENDS_DISALLOWED_CLASS
+   */
+  IMPLEMENTS_DISALLOWED_CLASS("Classes cannot implement '%s'"),
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause of a class includes
@@ -566,6 +566,16 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * <b>this</b>.<i>id</i>.
    */
   INSTANCE_MEMBER_ACCESS_FROM_STATIC("Instance member cannot be accessed from static method"),
+
+  /**
+   * 7. Classes: It is a compile-time error if a class has an instance member and a static member
+   * with the same name.
+   * 
+   * @param className the name of the class that has conflicting instance/static members
+   * @param name the name of the conflicting members
+   */
+  INSTANCE_STATIC_MEMBER(
+      "'%s' cannot have both instance and static members with the same name '%s'"),
 
   /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time
