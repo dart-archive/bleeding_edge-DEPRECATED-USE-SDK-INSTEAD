@@ -1171,13 +1171,7 @@ public class VmConnection {
       JSONObject params = result.optJSONObject("params");
 
       if (eventName.equals(EVENT_PAUSED)) {
-        int isolateId;
-        if (params.has("isolateId")) {
-          isolateId = params.optInt("isolateId", -1);
-        } else {
-          isolateId = params.optInt("id", -1);
-        }
-
+        int isolateId = params.optInt("isolateId", -1);
         String reason = params.optString("reason", null);
         VmIsolate isolate = getCreateIsolate(isolateId);
         VmValue exception = VmValue.createFrom(isolate, params.optJSONObject("exception"));
@@ -1196,8 +1190,8 @@ public class VmConnection {
 
         handleBreakpointResolved(isolate, breakpointId, location);
       } else if (eventName.equals(EVENT_ISOLATE)) {
-        // "{" event ":" isolate "," params ":" "{" reason ":" created "," id ":" Integer "}" "}"
-        // "{" event ":" isolate "," params ":" "{" reason ":" shutdown "," id ":" Integer "}" "}"
+        // { "event": "isolate", "params": { "reason": "created", "id": 7114 }}]
+        // { "event": "isolate", "params": { "reason": "shutdown", "id": 7114 }}]
 
         String reason = params.optString("reason", null);
         int isolateId = params.optInt("id", -1);

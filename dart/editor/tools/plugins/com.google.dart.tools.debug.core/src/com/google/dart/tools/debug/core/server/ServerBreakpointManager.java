@@ -133,7 +133,7 @@ class ServerBreakpointManager implements IBreakpointListener {
     // Update the corresponding editor breakpoint if the location has changed.
     DartBreakpoint dartBreakpoint = getDartBreakpointFor(bp);
 
-    if (bp != null) {
+    if (dartBreakpoint != null) {
       if (bp.getLocation().getLineNumber(getConnection()) != dartBreakpoint.getLine()) {
         ignoredBreakpoints.add(dartBreakpoint);
 
