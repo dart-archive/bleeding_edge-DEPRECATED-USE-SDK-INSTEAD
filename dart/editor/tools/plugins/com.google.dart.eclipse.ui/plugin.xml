@@ -156,12 +156,14 @@
             class="com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage"
             id="com.google.dart.tools.ui.preferences.DartBasePreferencePage">
       </page>
+      <!--
       <page
             category="com.google.dart.tools.ui.preferences.DartBasePreferencePage"
             class="com.google.dart.tools.ui.internal.preferences.DartAnalysisPreferencePage"
             id="com.google.dart.tools.ui.preferences.DartAnalysisPreferencePage"
             name="%analysisPrefName">
       </page>
+      -->
       <page
             category="com.google.dart.tools.ui.preferences.DartBasePreferencePage"
             class="com.google.dart.tools.debug.ui.internal.preferences.DebugPreferencePage"
