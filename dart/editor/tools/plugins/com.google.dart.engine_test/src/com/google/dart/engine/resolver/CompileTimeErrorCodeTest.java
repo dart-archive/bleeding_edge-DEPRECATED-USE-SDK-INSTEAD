@@ -936,7 +936,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-        StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
   }
 
@@ -946,7 +946,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-        StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
   }
 
@@ -956,7 +956,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-        StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
   }
 
@@ -966,7 +966,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-        StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
   }
 
@@ -976,7 +976,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-        StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
   }
 
@@ -1970,6 +1970,40 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_noDefaultSuperConstructorExplicit() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A(p);",
+        "}",
+        "class B extends A {",
+        "  B() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT);
+    verify(source);
+  }
+
+  public void test_noDefaultSuperConstructorImplicit_superHasParameters() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A(p);",
+        "}",
+        "class B extends A {",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
+    verify(source);
+  }
+
+  public void test_noDefaultSuperConstructorImplicit_superOnlyNamed() throws Exception {
+    Source source = addSource(createSource(//
+        "class A { A.named() {} }",
+        "class B extends A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
+    verify(source);
+  }
+
   public void test_nonConstantDefaultValue_function_named() throws Exception {
     Source source = addSource(createSource(//
         "int y;",
@@ -2201,6 +2235,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "class B extends A {",
         "  B();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_nonGenerativeConstructor_implicit2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  factory A() {}",
+        "}",
+        "class B extends A {",
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR);

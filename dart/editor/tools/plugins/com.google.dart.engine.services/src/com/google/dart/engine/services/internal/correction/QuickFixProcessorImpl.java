@@ -369,6 +369,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     final InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
     try {
       ErrorCode errorCode = problem.getErrorCode();
+      if (errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT) {
+        addFix_createConstructorSuperExplicit();
+      }
+      if (errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT) {
+        addFix_createConstructorSuperImplicit();
+      }
       if (errorCode == CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
         addFix_createConstructorSuperExplicit();
       }
@@ -380,12 +386,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
       if (errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS) {
         addFix_removeParameters_inGetterDeclaration();
-      }
-      if (errorCode == StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT) {
-        addFix_createConstructorSuperExplicit();
-      }
-      if (errorCode == StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT) {
-        addFix_createConstructorSuperImplicit();
       }
       if (errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER) {
         addFix_makeEnclosingClassAbstract();
@@ -447,12 +447,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   public boolean hasFix(AnalysisError problem) {
     ErrorCode errorCode = problem.getErrorCode();
 //    System.out.println(errorCode.getClass() + " " + errorCode);
-    return errorCode == CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
+    return errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
+        || errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+        || errorCode == CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
         || errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST
         || errorCode == ParserErrorCode.EXPECTED_TOKEN
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
-        || errorCode == StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
-        || errorCode == StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
         || errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
         || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
         || errorCode == StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO

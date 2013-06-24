@@ -1248,40 +1248,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_noDefaultSuperConstructorExplicit() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  A(p);",
-        "}",
-        "class B extends A {",
-        "  B() {}",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT);
-    verify(source);
-  }
-
-  public void test_noDefaultSuperConstructorImplicit_superHasParameters() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  A(p);",
-        "}",
-        "class B extends A {",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
-    verify(source);
-  }
-
-  public void test_noDefaultSuperConstructorImplicit_superOnlyNamed() throws Exception {
-    Source source = addSource(createSource(//
-        "class A { A.named() {} }",
-        "class B extends A {}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
-    verify(source);
-  }
-
   public void test_nonAbstractClassInheritsAbstractMemberFivePlus() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",

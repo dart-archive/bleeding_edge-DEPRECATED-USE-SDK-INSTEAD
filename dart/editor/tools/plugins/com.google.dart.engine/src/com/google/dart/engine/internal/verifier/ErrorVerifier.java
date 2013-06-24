@@ -3044,12 +3044,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This checks that passed if the passed class declaration implicitly calls default constructor of
-   * its superclass, there should be such default constructor - implicit or explicit.
+   * This checks that if the passed class declaration implicitly calls default constructor of its
+   * superclass, there should be such default constructor - implicit or explicit.
    * 
    * @param node the {@link ClassDeclaration} to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+   * @see CompileTimeErrorCode#NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
    */
   private boolean checkForNoDefaultSuperConstructorImplicit(ClassDeclaration node) {
     // do nothing if there is explicit constructor
@@ -3062,14 +3062,24 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (superType == null) {
       return false;
     }
-    ClassElement superClass = superType.getElement();
-    // check if super has default constructor
-    if (superClass.hasDefaultConstructor()) {
-      return false;
+    ClassElement superElement = superType.getElement();
+    // try to find default generative super constructor
+    ConstructorElement superUnnamedConstructor = superElement.getUnnamedConstructor();
+    if (superUnnamedConstructor != null) {
+      if (superUnnamedConstructor.isFactory()) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
+            node.getName(),
+            superUnnamedConstructor);
+        return true;
+      }
+      if (superUnnamedConstructor.isDefaultConstructor()) {
+        return true;
+      }
     }
     // report problem
     errorReporter.reportError(
-        StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
         node.getName(),
         superType.getDisplayName());
     return true;
@@ -3917,7 +3927,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           length = (name != null ? name.getEnd() : returnType.getEnd()) - offset;
         }
         errorReporter.reportError(
-            StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
+            CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
             offset,
             length,
             superType.getDisplayName());

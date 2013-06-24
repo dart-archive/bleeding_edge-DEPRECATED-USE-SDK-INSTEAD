@@ -769,6 +769,25 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "The type '%s' is declared with %d type parameters, but %d type arguments were given"),
 
   /**
+   * 7.6.1 Generative Constructors: If no superinitializer is provided, an implicit superinitializer
+   * of the form <b>super</b>() is added at the end of <i>k</i>'s initializer list, unless the
+   * enclosing class is class <i>Object</i>.
+   * <p>
+   * 7.6.1 Generative constructors. It is a compile-time error if class <i>S</i> does not declare a
+   * generative constructor named <i>S</i> (respectively <i>S.id</i>)
+   */
+  NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT("The class '%s' does not have a default constructor"),
+
+  /**
+   * 7.6 Constructors: Iff no constructor is specified for a class <i>C</i>, it implicitly has a
+   * default constructor C() : <b>super<b>() {}, unless <i>C</i> is class <i>Object</i>.
+   * <p>
+   * 7.6.1 Generative constructors. It is a compile-time error if class <i>S</i> does not declare a
+   * generative constructor named <i>S</i> (respectively <i>S.id</i>)
+   */
+  NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT("The class '%s' does not have a default constructor"),
+
+  /**
    * 13.2 Expression Statements: It is a compile-time error if a non-constant map literal that has
    * no explicit type arguments appears in a place where a statement is expected.
    */

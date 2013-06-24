@@ -123,11 +123,6 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
-  public boolean hasDefaultConstructor() {
-    return getActualElement().hasDefaultConstructor();
-  }
-
-  @Override
   public boolean hasNonFinalField() {
     return getActualElement().hasNonFinalField();
   }

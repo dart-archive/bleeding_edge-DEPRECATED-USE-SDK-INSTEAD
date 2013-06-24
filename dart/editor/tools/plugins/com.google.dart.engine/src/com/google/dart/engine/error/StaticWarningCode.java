@@ -424,19 +424,6 @@ public enum StaticWarningCode implements ErrorCode {
   NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT("The class '%s' does not have a default constructor"),
 
   /**
-   * 7.6.1 Generative Constructors: If no superinitializer is provided, an implicit superinitializer
-   * of the form <b>super</b>() is added at the end of <i>k</i>'s initializer list, unless the
-   * enclosing class is class <i>Object</i>.
-   */
-  NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT("The class '%s' does not have a default constructor"),
-
-  /**
-   * 7.6 Constructors: Iff no constructor is specified for a class <i>C</i>, it implicitly has a
-   * default constructor C() : <b>super<b>() {}, unless <i>C</i> is class <i>Object</i>.
-   */
-  NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT("The class '%s' does not have a default constructor"),
-
-  /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
    * abstract method.
    * <p>
