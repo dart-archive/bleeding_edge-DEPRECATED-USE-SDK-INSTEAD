@@ -175,6 +175,10 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
 
   @Override
   public EvaluationResultImpl visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (!node.isConst()) {
+      // TODO(brianwilkerson) Figure out which error to report.
+      return error(node, null);
+    }
     ConstructorElement constructor = node.getElement();
     if (constructor != null && constructor.isConst()) {
       node.getArgumentList().accept(this);

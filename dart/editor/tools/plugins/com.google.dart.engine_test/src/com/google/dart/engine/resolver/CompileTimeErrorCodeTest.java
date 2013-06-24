@@ -519,6 +519,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constEval_newInstance_constConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "}",
+        "const a = new A();"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+    verify(source);
+  }
+
   public void test_constEvalThrowsException_binaryMinus_null() throws Exception {
     check_constEvalThrowsException_binary_null("null - 5", false);
     check_constEvalThrowsException_binary_null("5 - null", true);
