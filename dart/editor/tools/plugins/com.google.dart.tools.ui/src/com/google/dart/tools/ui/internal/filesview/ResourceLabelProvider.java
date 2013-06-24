@@ -177,6 +177,17 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
             return new StyledString(file.getName(), StyledString.QUALIFIER_STYLER);
           }
 
+          // If we resource has been remapped by build.dart, display that info as a decoration.
+          String remappingPath = DartCore.getResourceRemapping(file);
+
+          if (remappingPath != null) {
+            StyledString str = new StyledString(file.getName());
+            str.append(
+                " [" + getRelativePath(file, remappingPath) + "]",
+                StyledString.QUALIFIER_STYLER);
+            return str;
+          }
+
           // Append the library name to library units.
           // TODO(scheglov) disable for now, even "get" operation gets blocked currently.
           // TODO(scheglov) restore once AnalysisContext is fixed.
@@ -247,6 +258,20 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
   @Override
   public void resolved(ResolvedEvent event) {
     // ignored
+  }
+
+  private String getRelativePath(IFile file, String mappingPath) {
+    String parentPath = file.getParent().getFullPath().toPortableString();
+
+    if (mappingPath.startsWith(parentPath)) {
+      mappingPath = mappingPath.substring(parentPath.length());
+    }
+
+    if (mappingPath.startsWith("/")) {
+      mappingPath = mappingPath.substring(1);
+    }
+
+    return mappingPath;
   }
 
   private void notifyListeners() {
