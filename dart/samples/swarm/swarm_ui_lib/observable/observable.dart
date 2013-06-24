@@ -213,11 +213,11 @@ class ObservableList<T>
     return result;
   }
 
-  int indexOf(T element, [int start = 0]) {
+  int indexOf(Object element, [int start = 0]) {
     return _internal.indexOf(element, start);
   }
 
-  int lastIndexOf(T element, [int start = null]) {
+  int lastIndexOf(Object element, [int start = null]) {
     if (start == null) start = length - 1;
     return _internal.lastIndexOf(element, start);
   }
@@ -282,7 +282,7 @@ class ObservableList<T>
     throw new UnimplementedError();
   }
 
-  bool contains(T element) {
+  bool contains(Object element) {
     throw new UnimplementedError();
   }
 
@@ -308,10 +308,10 @@ class ObservableList<T>
   bool any(bool f(T element)) => _internal.any(f);
   void forEach(void f(T element)) { _internal.forEach(f); }
   String join([String separator = ""]) => _internal.join(separator);
-  T firstWhere(bool test(T value), {T orElse()}) {
+  dynamic firstWhere(bool test(T value), {Object orElse()}) {
     return _internal.firstWhere(test, orElse: orElse);
   }
-  T lastWhere(bool test(T value), {T orElse()}) {
+  dynamic lastWhere(bool test(T value), {Object orElse()}) {
     return _internal.lastWhere(test, orElse: orElse);
   }
   T singleWhere(bool test(T value)) {
