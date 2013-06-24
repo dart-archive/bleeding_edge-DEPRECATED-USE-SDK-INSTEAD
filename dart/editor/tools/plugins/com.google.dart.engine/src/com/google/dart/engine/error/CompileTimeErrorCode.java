@@ -98,6 +98,22 @@ public enum CompileTimeErrorCode implements ErrorCode {
   COMPILE_TIME_CONSTANT_RAISES_EXCEPTION(""),
 
   /**
+   * 7.2 Getters: It is a compile-time error if a class has both a getter and a method with the same
+   * name. This restriction holds regardless of whether the getter is defined explicitly or
+   * implicitly, or whether the getter or the method are inherited or not.
+   */
+  CONFLICTING_GETTER_AND_METHOD(
+      "Class '%s' cannot have both getter '%s.%s' and method with the same name"),
+
+  /**
+   * 7.2 Getters: It is a compile-time error if a class has both a getter and a method with the same
+   * name. This restriction holds regardless of whether the getter is defined explicitly or
+   * implicitly, or whether the getter or the method are inherited or not.
+   */
+  CONFLICTING_METHOD_AND_GETTER(
+      "Class '%s' cannot have both method '%s.%s' and getter with the same name"),
+
+  /**
    * 7.6 Constructors: A constructor name always begins with the name of its immediately enclosing
    * class, and may optionally be followed by a dot and an identifier <i>id</i>. It is a
    * compile-time error if <i>id</i> is the name of a member declared in the immediately enclosing

@@ -482,6 +482,58 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_conflictingGetterAndMethod_field_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int m;",
+        "}",
+        "class B extends A {",
+        "  m() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD);
+    verify(source);
+  }
+
+  public void test_conflictingGetterAndMethod_getter_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  get m => 0;",
+        "}",
+        "class B extends A {",
+        "  m() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD);
+    verify(source);
+  }
+
+  public void test_conflictingGetterAndMethod_method_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "}",
+        "class B extends A {",
+        "  int m;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER);
+    verify(source);
+  }
+
+  public void test_conflictingGetterAndMethod_method_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "}",
+        "class B extends A {",
+        "  get m => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER);
+    verify(source);
+  }
+
   public void test_constConstructorWithNonFinalField_mixin() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1547,19 +1599,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_instanceStaticMember_instanceMethod_staticField() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  x() {}",
-        "}",
-        "class B extends A {",
-        "  static int x;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INSTANCE_STATIC_MEMBER);
-    verify(source);
-  }
-
   public void test_instanceStaticMember_instanceMethod_staticMethod() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1567,19 +1606,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "class B extends A {",
         "  static x() {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INSTANCE_STATIC_MEMBER);
-    verify(source);
-  }
-
-  public void test_instanceStaticMember_instanceMethodAbstract_staticField() throws Exception {
-    Source source = addSource(createSource(//
-        "abstract class A {",
-        "  x();",
-        "}",
-        "abstract class B extends A {",
-        "  static int x;",
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INSTANCE_STATIC_MEMBER);

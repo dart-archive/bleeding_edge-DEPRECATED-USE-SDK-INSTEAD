@@ -406,6 +406,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
       checkForFinalNotInitialized(node);
       checkForInstanceStaticMembers();
+      checkForConflictingGetterAndMethod();
       return super.visitClassDeclaration(node);
     } finally {
       initialFieldElementsMap = null;
@@ -1860,6 +1861,62 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This verifies that the {@link #enclosingClass} does not have method and getter with the same
+   * names.
+   * 
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONFLICTING_GETTER_AND_METHOD
+   * @see CompileTimeErrorCode#CONFLICTING_METHOD_AND_GETTER
+   */
+  private boolean checkForConflictingGetterAndMethod() {
+    if (enclosingClass == null) {
+      return false;
+    }
+    boolean hasProblem = false;
+    // method declared in the enclosing class vs. inherited getter
+    for (MethodElement method : enclosingClass.getMethods()) {
+      String name = method.getName();
+      // find inherited property accessor (and can be only getter)
+      ExecutableElement inherited = inheritanceManager.lookupInheritance(enclosingClass, name);
+      if (!(inherited instanceof PropertyAccessorElement)) {
+        continue;
+      }
+      // report problem
+      hasProblem = true;
+      errorReporter.reportError(
+          CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD,
+          method.getNameOffset(),
+          name.length(),
+          enclosingClass.getDisplayName(),
+          inherited.getEnclosingElement().getDisplayName(),
+          name);
+    }
+    // getter declared in the enclosing class vs. inherited method
+    for (PropertyAccessorElement accessor : enclosingClass.getAccessors()) {
+      if (!accessor.isGetter()) {
+        continue;
+      }
+      String name = accessor.getName();
+      // find inherited method
+      ExecutableElement inherited = inheritanceManager.lookupInheritance(enclosingClass, name);
+      if (!(inherited instanceof MethodElement)) {
+        continue;
+      }
+      // report problem
+      hasProblem = true;
+      errorReporter.reportError(
+          CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER,
+          accessor.getNameOffset(),
+          name.length(),
+          enclosingClass.getDisplayName(),
+          inherited.getEnclosingElement().getDisplayName(),
+          name);
+    }
+    // done
+    return hasProblem;
+  }
+
+  /**
    * This verifies that the superclass of the enclosing class does not declare accessible static
    * member with the same name as the passed instance getter/setter method declaration.
    * 
@@ -2773,16 +2830,15 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#INSTANCE_STATIC_MEMBER
    */
   private boolean checkForInstanceStaticMembers() {
+    if (enclosingClass == null) {
+      return false;
+    }
     boolean hasProblem = false;
     for (MethodElement method : enclosingClass.getMethods()) {
-      if (method.isStatic()) {
-        hasProblem |= checkForInstanceStaticMember(method);
+      if (!method.isStatic()) {
+        continue;
       }
-    }
-    for (PropertyAccessorElement accessor : enclosingClass.getAccessors()) {
-      if (accessor.isStatic()) {
-        hasProblem |= checkForInstanceStaticMember(accessor);
-      }
+      hasProblem |= checkForInstanceStaticMember(method);
     }
     return hasProblem;
   }
