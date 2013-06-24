@@ -478,8 +478,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
   IMPLEMENTS_REPEATED("'%s' can only be implemented once"),
 
   /**
-   * 7.6.1 Generative Constructors: Note that this is not in scope on the right hand side of an
-   * initializer.
+   * 7.6.1 Generative Constructors: Note that <b>this</b> is not in scope on the right hand side of
+   * an initializer.
    * <p>
    * 12.10 This: It is a compile-time error if this appears in a top-level function or variable
    * initializer, in a factory constructor, or in a static method or variable initializer, or in the

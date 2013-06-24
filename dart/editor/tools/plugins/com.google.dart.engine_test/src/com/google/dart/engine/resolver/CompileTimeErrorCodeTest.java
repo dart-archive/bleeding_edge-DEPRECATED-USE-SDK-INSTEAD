@@ -1322,6 +1322,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_implicitThisReferenceInInitializer_field2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final x = 0;",
+        "  final y = x;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
+    verify(source);
+  }
+
   public void test_implicitThisReferenceInInitializer_invocation() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

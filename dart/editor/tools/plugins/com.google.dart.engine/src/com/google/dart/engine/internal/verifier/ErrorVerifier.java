@@ -225,6 +225,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean isInCatchClause;
 
   /**
+   * This is set to {@code true} iff the visitor is currently visiting an instance variable
+   * declaration.
+   */
+  private boolean isInInstanceVariableDeclaration;
+
+  /**
+   * This is set to {@code true} iff the visitor is currently visiting an instance variable
+   * initializer.
+   */
+  private boolean isInInstanceVariableInitializer;
+
+  /**
    * This is set to {@code true} iff the visitor is currently visiting a
    * {@link ConstructorInitializer}.
    */
@@ -493,7 +505,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         errorReporter.reportError(CompileTimeErrorCode.CONST_INSTANCE_FIELD, variables.getKeyword());
       }
     }
-    return super.visitFieldDeclaration(node);
+    isInInstanceVariableDeclaration = !node.isStatic();
+    try {
+      return super.visitFieldDeclaration(node);
+    } finally {
+      isInInstanceVariableDeclaration = false;
+    }
   }
 
   @Override
@@ -800,11 +817,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     // visit initializer
     String name = nameNode.getName();
     namesForReferenceToDeclaredVariableInInitializer.add(name);
+    isInInstanceVariableInitializer = isInInstanceVariableDeclaration;
     try {
       if (initializerNode != null) {
         initializerNode.accept(this);
       }
     } finally {
+      isInInstanceVariableInitializer = false;
       namesForReferenceToDeclaredVariableInInitializer.remove(name);
     }
     // done
@@ -2527,10 +2546,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#INSTANCE_MEMBER_ACCESS_FROM_STATIC TODO(scheglov) rename thid method
    */
   private boolean checkForImplicitThisReferenceInInitializer(SimpleIdentifier node) {
-    if (!isInConstructorInitializer && !isInStaticMethod) {
+    if (!isInConstructorInitializer && !isInStaticMethod && !isInInstanceVariableInitializer) {
       return false;
     }
-    // TODO(scheglov) check also "this" reference from the static field
+    // TODO(scheglov) check if we need to test references from static fields
     // prepare element
     Element element = node.getElement();
     if (!(element instanceof MethodElement || element instanceof PropertyAccessorElement)) {
@@ -2574,7 +2593,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     // report problem
-    if (isInConstructorInitializer) {
+    if (isInConstructorInitializer || isInInstanceVariableInitializer) {
       errorReporter.reportError(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, node);
     } else if (isInStaticMethod) {
       errorReporter.reportError(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, node);
