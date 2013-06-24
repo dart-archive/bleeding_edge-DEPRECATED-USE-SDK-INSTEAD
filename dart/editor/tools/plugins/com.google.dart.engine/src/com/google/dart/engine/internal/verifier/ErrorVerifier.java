@@ -4016,7 +4016,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This verifies if the passed setter parameter list have only one parameter.
+   * This verifies if the passed setter parameter list have only one required parameter.
    * <p>
    * This method assumes that the method declaration was tested to be a setter before being called.
    * 
@@ -4033,12 +4033,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (parameterList == null) {
       return false;
     }
-    int numberOfParameters = parameterList.getParameters().size();
-    if (numberOfParameters != 1) {
+    NodeList<FormalParameter> parameters = parameterList.getParameters();
+    if (parameters.size() != 1 || parameters.get(0).getKind() != ParameterKind.REQUIRED) {
       errorReporter.reportError(
           CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
-          setterName,
-          numberOfParameters);
+          setterName);
       return true;
     }
     return false;

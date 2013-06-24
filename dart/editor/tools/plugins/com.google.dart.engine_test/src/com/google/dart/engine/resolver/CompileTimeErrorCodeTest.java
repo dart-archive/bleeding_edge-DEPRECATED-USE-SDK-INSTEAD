@@ -2925,6 +2925,20 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     check_wrongNumberOfParametersForOperator1("[]");
   }
 
+  public void test_wrongNumberOfParametersForSetter_function_named() throws Exception {
+    Source source = addSource("set x({p}) {}");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    verify(source);
+  }
+
+  public void test_wrongNumberOfParametersForSetter_function_optional() throws Exception {
+    Source source = addSource("set x([p]) {}");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    verify(source);
+  }
+
   public void test_wrongNumberOfParametersForSetter_function_tooFew() throws Exception {
     Source source = addSource("set x() {}");
     resolve(source);
@@ -2934,6 +2948,26 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_wrongNumberOfParametersForSetter_function_tooMany() throws Exception {
     Source source = addSource("set x(a, b) {}");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    verify(source);
+  }
+
+  public void test_wrongNumberOfParametersForSetter_method_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set x({p}) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    verify(source);
+  }
+
+  public void test_wrongNumberOfParametersForSetter_method_optional() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set x([p]) {}",
+        "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
