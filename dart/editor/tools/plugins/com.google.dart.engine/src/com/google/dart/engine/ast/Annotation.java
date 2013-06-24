@@ -61,6 +61,12 @@ public class Annotation extends ASTNode {
   private ArgumentList arguments;
 
   /**
+   * The element associated with this annotation, or {@code null} if the AST structure has not been
+   * resolved or if this annotation could not be resolved.
+   */
+  private Element element;
+
+  /**
    * Initialize a newly created annotation.
    * 
    * @param atSign the at sign that introduced the annotation
@@ -128,9 +134,10 @@ public class Annotation extends ASTNode {
    * @return the element associated with this annotation
    */
   public Element getElement() {
-    if (constructorName != null) {
-      return constructorName.getElement();
-    } else if (name != null) {
+    if (element != null) {
+      return element;
+    }
+    if (name != null) {
       return name.getElement();
     }
     return null;
@@ -191,6 +198,15 @@ public class Annotation extends ASTNode {
    */
   public void setConstructorName(SimpleIdentifier constructorName) {
     this.constructorName = becomeParentOf(constructorName);
+  }
+
+  /**
+   * Set the element associated with this annotation based.
+   * 
+   * @param element the element to be associated with this identifier
+   */
+  public void setElement(Element element) {
+    this.element = element;
   }
 
   /**

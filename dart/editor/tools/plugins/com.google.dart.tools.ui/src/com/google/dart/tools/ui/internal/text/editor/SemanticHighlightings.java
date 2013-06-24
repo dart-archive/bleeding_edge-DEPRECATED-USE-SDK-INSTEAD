@@ -33,6 +33,7 @@ import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
+import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.TryStatement;
@@ -83,12 +84,27 @@ public class SemanticHighlightings {
    */
   private static class AnnotationHighlighting extends DefaultSemanticHighlighting {
     @Override
-    public boolean consumesIdentifier(SemanticToken token) {
-      SimpleIdentifier node = token.getNodeIdentifier();
-      if (node.getParent() instanceof Annotation) {
-        Annotation ann = (Annotation) node.getParent();
-        return ann.getName() == node;
+    public boolean consumes(SemanticToken token) {
+      ASTNode node = token.getNode();
+      // annotation itself
+      if (node instanceof Annotation) {
+        return true;
       }
+      // 'Type' or 'Type.name'
+      ASTNode parent = node.getParent();
+      if (parent instanceof Annotation) {
+        Annotation annotation = (Annotation) parent;
+        return annotation.getName() == node;
+      }
+      // 'name' part of 'Type.name'
+      if (parent instanceof PrefixedIdentifier) {
+        ASTNode parent2 = parent.getParent();
+        if (parent2 instanceof Annotation) {
+          Annotation annotation = (Annotation) parent2;
+          return annotation.getName() == parent;
+        }
+      }
+      // not an annotation
       return false;
     }
 

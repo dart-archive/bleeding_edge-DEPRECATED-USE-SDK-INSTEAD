@@ -259,6 +259,32 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT);
   }
 
+  public void test_argumentTypeNotAssignable_annotation_namedConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.fromInt(int p) {}",
+        "}",
+        "@A.fromInt('0')",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_argumentTypeNotAssignable_annotation_unnamedConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A(int p) {}",
+        "}",
+        "@A('0')",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_argumentTypeNotAssignable_binary() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

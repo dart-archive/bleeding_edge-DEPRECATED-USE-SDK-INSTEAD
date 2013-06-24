@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.verifier;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssertStatement;
@@ -710,7 +711,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    checkForStaticAccessToInstanceMember(node.getPrefix(), node.getIdentifier());
+    if (!(node.getParent() instanceof Annotation)) {
+      checkForStaticAccessToInstanceMember(node.getPrefix(), node.getIdentifier());
+    }
     return super.visitPrefixedIdentifier(node);
   }
 

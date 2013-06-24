@@ -102,6 +102,7 @@ import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.scope.Scope;
+import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
@@ -919,6 +920,28 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       recordResolution(identifier, element);
       return null;
     }
+
+    //
+    // May be annotation, 'const' constructor invocation.
+    //
+    if (node.getParent() instanceof Annotation && prefixElement instanceof ClassElement) {
+      Annotation annotation = (Annotation) node.getParent();
+      // look up ConstructorElement
+      ConstructorElement constructor;
+      {
+        InterfaceType interfaceType = (InterfaceType) prefix.getStaticType();
+        LibraryElement definingLibrary = resolver.getDefiningLibrary();
+        constructor = interfaceType.lookUpConstructor(identifier.getName(), definingLibrary);
+      }
+      // record elements
+      recordResolution(identifier, constructor);
+      annotation.setElement(constructor);
+      // resolve arguments
+      resolveAnnotationConstructorInvocationArguments(annotation, constructor);
+      // done
+      return null;
+    }
+
     //
     // Otherwise, the prefix is really an expression that happens to be a simple identifier and this
     // is really equivalent to a property access node.
@@ -1023,7 +1046,28 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, node.getName());
       }
     }
+
     recordResolution(node, element);
+
+    //
+    // May be annotation, 'const' constructor invocation.
+    //
+    if (node.getParent() instanceof Annotation && element instanceof ClassElement) {
+      Annotation annotation = (Annotation) node.getParent();
+      // look up ConstructorElement
+      ConstructorElement constructor;
+      {
+        InterfaceType interfaceType = new InterfaceTypeImpl((ClassElement) element);
+        LibraryElement definingLibrary = resolver.getDefiningLibrary();
+        constructor = interfaceType.lookUpConstructor(null, definingLibrary);
+      }
+      // record element
+      annotation.setElement(constructor);
+      // resolve arguments
+      resolveAnnotationConstructorInvocationArguments(annotation, constructor);
+      // done
+      return null;
+    }
     return null;
   }
 
@@ -1951,6 +1995,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       Element propagatedElement) {
     node.setStaticElement(staticElement);
     node.setElement(propagatedElement == null ? staticElement : propagatedElement);
+  }
+
+  private void resolveAnnotationConstructorInvocationArguments(Annotation annotation,
+      ConstructorElement constructor) {
+    // TODO(scheglov) check that the constructor is 'const' (in ErrorVerifier)
+    // resolve arguments to parameters
+    ArgumentList argumentList = annotation.getArguments();
+    if (argumentList == null) {
+      // TODO(scheglov) report problem (in ErrorVerifier), no arguments for constructor invocation
+    } else {
+      ParameterElement[] parameters = resolveArgumentsToParameters(true, argumentList, constructor);
+      if (parameters != null) {
+        argumentList.setCorrespondingStaticParameters(parameters);
+      }
+    }
   }
 
   /**

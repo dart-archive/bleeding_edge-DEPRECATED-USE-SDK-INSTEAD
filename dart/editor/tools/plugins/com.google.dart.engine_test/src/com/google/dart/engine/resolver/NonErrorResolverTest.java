@@ -2034,6 +2034,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_staticAccessToInstanceMember_annotation() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.name() {}",
+        "}",
+        "@A.name()",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_staticAccessToInstanceMember_method() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
