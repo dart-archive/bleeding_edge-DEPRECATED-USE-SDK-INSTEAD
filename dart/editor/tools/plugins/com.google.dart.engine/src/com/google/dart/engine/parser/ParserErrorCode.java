@@ -135,6 +135,7 @@ public enum ParserErrorCode implements ErrorCode {
   NON_IDENTIFIER_LIBRARY_NAME("The name of a library must be an identifier"),
   NON_PART_OF_DIRECTIVE_IN_PART("The part-of directive must be the only directive in a part"),
   NON_USER_DEFINABLE_OPERATOR("The operator '%s' is not user definable"),
+  NORMAL_BEFORE_OPTIONAL_PARAMETERS("Normal parameters must occur before optional parameters"),
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional arguments must occur before named arguments"),
   POSITIONAL_PARAMETER_OUTSIDE_GROUP(
       "Positional parameters must be enclosed in square brackets ('[' and ']')"),

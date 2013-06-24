@@ -2778,6 +2778,7 @@ public class Parser {
     boolean reportedMuliplePositionalGroups = false;
     boolean reportedMulipleNamedGroups = false;
     boolean reportedMixedGroups = false;
+    boolean wasOptionalParameter = false;
     Token initialToken = null;
     do {
       if (firstParameter) {
@@ -2796,6 +2797,7 @@ public class Parser {
       // Handle the beginning of parameter groups.
       //
       if (matches(TokenType.OPEN_SQUARE_BRACKET)) {
+        wasOptionalParameter = true;
         if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
           reportError(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS);
           reportedMuliplePositionalGroups = true;
@@ -2808,6 +2810,7 @@ public class Parser {
         currentParameters = positionalParameters;
         kind = ParameterKind.POSITIONAL;
       } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
+        wasOptionalParameter = true;
         if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
           reportError(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS);
           reportedMulipleNamedGroups = true;
@@ -2826,6 +2829,9 @@ public class Parser {
       FormalParameter parameter = parseFormalParameter(kind);
       parameters.add(parameter);
       currentParameters.add(parameter);
+      if (kind == ParameterKind.REQUIRED && wasOptionalParameter) {
+        reportError(ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter);
+      }
       //
       // Handle the end of parameter groups.
       //

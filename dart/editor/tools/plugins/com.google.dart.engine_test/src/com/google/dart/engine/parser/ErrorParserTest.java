@@ -1000,6 +1000,14 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.NON_USER_DEFINABLE_OPERATOR);
   }
 
+  public void test_optionalAfterNormalParameters_named() throws Exception {
+    parseCompilationUnit("f({a}, b) {}", ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS);
+  }
+
+  public void test_optionalAfterNormalParameters_positional() throws Exception {
+    parseCompilationUnit("f([a], b) {}", ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS);
+  }
+
   public void test_positionalAfterNamedArgument() throws Exception {
     parse("parseArgumentList", "(x: 1, 2)", ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
   }
