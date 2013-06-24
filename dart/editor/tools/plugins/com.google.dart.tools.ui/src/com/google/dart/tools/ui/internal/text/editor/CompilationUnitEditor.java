@@ -389,8 +389,14 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
           case '\'':
           case '"':
-            if (!fCloseStrings || nextToken == Symbols.TokenIDENT
-                || prevToken == Symbols.TokenIDENT || next != null && next.length() > 1
+            if (!fCloseStrings) {
+              return;
+            }
+            if (prevToken == Symbols.TokenIDENT && "r".equals(previous)) {
+              break; // handle raw strings
+            }
+            if (nextToken == Symbols.TokenIDENT || prevToken == Symbols.TokenIDENT || next != null
+                && next.length() > 1
                 || (previous != null && previous.length() > 1 && !previous.equals("import"))) {
               return;
             }
