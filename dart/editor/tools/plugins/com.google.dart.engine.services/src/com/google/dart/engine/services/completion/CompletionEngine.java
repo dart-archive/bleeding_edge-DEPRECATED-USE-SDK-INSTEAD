@@ -758,7 +758,7 @@ public class CompletionEngine {
           }
           int offset = methodName.getOffset();
           int len = node.getRightParenthesis().getEnd() - offset;
-          for (CompletionProposal proposal : ((ProposalCollector) requestor).getProposals()) {
+          for (CompletionProposal proposal : proposalRequestor.getProposals()) {
             pArgumentList(proposal, offset, len);
           }
         }
@@ -1556,6 +1556,9 @@ public class CompletionEngine {
       }
       if (rcvrTypeElem instanceof ClassElement) {
         prefixedAccess((ClassElement) rcvrTypeElem, completionNode);
+      } else if (rcvrTypeElem instanceof TypeVariableElement) {
+        TypeVariableElement typeVarElem = (TypeVariableElement) rcvrTypeElem;
+        analyzePrefixedAccess(typeVarElem.getBound(), completionNode);
       }
     }
   }

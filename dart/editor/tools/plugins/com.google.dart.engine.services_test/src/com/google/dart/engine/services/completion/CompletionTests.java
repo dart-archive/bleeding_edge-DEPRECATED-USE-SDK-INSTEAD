@@ -551,6 +551,24 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+HttpServer", "1-HttpClient");
   }
 
+  public void test038() throws Exception {
+    test(src(//
+        "class X {",
+        "  x(){}",
+        "}",
+        "class Y {",
+        "  y(){}",
+        "}",
+        "class A<Z extends X> {",
+        "  Y ay;",
+        "  Z az;",
+        "  A(this.ay, this.az) {",
+        "    ay.!1y;",
+        "    az.!2x;",
+        "  }",
+        "}"), "1+y", "1-x", "2+x", "2-y");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
