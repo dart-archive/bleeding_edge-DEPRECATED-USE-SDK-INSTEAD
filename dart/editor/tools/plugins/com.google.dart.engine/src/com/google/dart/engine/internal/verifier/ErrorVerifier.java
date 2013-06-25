@@ -614,10 +614,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       } else {
         checkForNewWithUndefinedConstructor(node);
       }
-      // TODO(jwren) Email Luke to make this determination: Should we always call all checks, if not,
-      // which order should they be called in?
-      // (Should we provide as many errors as possible, or try to be as concise as possible?)
-      checkForTypeArgumentNotMatchingBounds(node, constructorName.getElement(), typeName);
     }
     return super.visitInstanceCreationExpression(node);
   }
@@ -800,6 +796,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     checkForFinalNotInitialized(node.getVariables());
     return super.visitTopLevelVariableDeclaration(node);
+  }
+
+  @Override
+  public Void visitTypeName(TypeName node) {
+    checkForTypeArgumentNotMatchingBounds(node);
+    return super.visitTypeName(node);
   }
 
   @Override
@@ -3988,42 +3990,46 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This verifies that the type arguments in the passed instance creation expression are all within
-   * their bounds as specified by the class element where the constructor [that is being invoked] is
-   * declared.
+   * This verifies that the type arguments in the passed type name are all within their bounds.
    * 
-   * @param node the instance creation expression to evaluate
-   * @param typeName the {@link TypeName} of the {@link ConstructorName} from the
-   *          {@link InstanceCreationExpression}, this is the AST node that the error is attached to
-   * @param constructorElement the {@link ConstructorElement} from the instance creation expression
+   * @param node the {@link TypeName} to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticTypeWarningCode#TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
    */
-  private boolean checkForTypeArgumentNotMatchingBounds(InstanceCreationExpression node,
-      ConstructorElement constructorElement, TypeName typeName) {
-    if (typeName.getTypeArguments() != null && constructorElement != null) {
-      NodeList<TypeName> typeNameArgList = typeName.getTypeArguments().getArguments();
-      TypeVariableElement[] boundingElts = constructorElement.getEnclosingElement().getTypeVariables();
-      // Loop through only all of the elements of the shorter of our two arrays. (Note: This
-      // will only happen these tokens have the WRONG_NUMBER_OF_TYPE_ARGUMENTS error code too.)
-      int loopThroughIndex = Math.min(typeNameArgList.size(), boundingElts.length);
-      for (int i = 0; i < loopThroughIndex; i++) {
-        TypeName argTypeName = typeNameArgList.get(i);
-        Type argType = argTypeName.getType();
-        Type boundType = boundingElts[i].getBound();
-        if (argType != null && boundType != null) {
-          if (!argType.isSubtypeOf(boundType)) {
-            errorReporter.reportError(
-                StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-                argTypeName,
-                argTypeName.getName(),
-                boundingElts[i].getDisplayName());
-            return true;
-          }
+  private boolean checkForTypeArgumentNotMatchingBounds(TypeName node) {
+    if (node.getTypeArguments() == null) {
+      return false;
+    }
+    TypeVariableElement[] boundingElts = null;
+    Type type = node.getType();
+    if (type == null) {
+      return false;
+    }
+    Element element = type.getElement();
+    if (element instanceof ClassElement) {
+      boundingElts = ((ClassElement) element).getTypeVariables();
+    } else {
+      return false;
+    }
+    NodeList<TypeName> typeNameArgList = node.getTypeArguments().getArguments();
+    int loopThroughIndex = Math.min(typeNameArgList.size(), boundingElts.length);
+    boolean foundError = false;
+    for (int i = 0; i < loopThroughIndex; i++) {
+      TypeName argTypeName = typeNameArgList.get(i);
+      Type argType = argTypeName.getType();
+      Type boundType = boundingElts[i].getBound();
+      if (argType != null && boundType != null) {
+        if (!argType.isSubtypeOf(boundType)) {
+          errorReporter.reportError(
+              StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+              argTypeName,
+              argTypeName.getName(),
+              boundingElts[i].getBound().getDisplayName());
+          foundError = true;
         }
       }
     }
-    return false;
+    return foundError;
   }
 
   /**

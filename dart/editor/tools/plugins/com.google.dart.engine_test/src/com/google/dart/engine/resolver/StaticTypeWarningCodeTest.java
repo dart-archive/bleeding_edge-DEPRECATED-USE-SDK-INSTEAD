@@ -35,15 +35,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_typeArgumentViolatesBounds() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_VIOLATES_BOUNDS);
-    verify(source);
-  }
-
   public void test_inconsistentMethodInheritance_paramCount() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
@@ -369,6 +360,18 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typeArgumentNotMatchingBounds_classTypeAlias() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class C {}",
+        "class G<E extends A> {}",
+        "typedef D = G<B> with C;"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
   public void test_typeArgumentNotMatchingBounds_const() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
@@ -382,12 +385,174 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typeArgumentNotMatchingBounds_extends() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {}",
+        "class C extends G<B>{}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_fieldFormalParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {}",
+        "class C {",
+        "  var f;",
+        "  C(G<B> this.f) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_functionReturnType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {}",
+        "G<B> f() {}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_functionTypeAlias() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {}",
+        "typedef G<B> f();"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_functionTypedFormalParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {}",
+        "f(G<B> h()) {}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_implements() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {}",
+        "class C implements G<B>{}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_is() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {}",
+        "var b = 1 is G<B>;"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_methodReturnType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {}",
+        "class C {",
+        "  G<B> m() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
   public void test_typeArgumentNotMatchingBounds_new() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
         "class B {}",
         "class G<E extends A> {}",
         "f() { return new G<B>(); }"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_new_superTypeOfUpperBound() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {}",
+        "class C extends B {}",
+        "class G<E extends B> {}",
+        "f() { return new G<A>(); }"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_parameter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {}",
+        "f(G<B> g) {}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_typeArgumentList() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class C<E> {}",
+        "class D<E extends A> {}",
+        "C<D<B>> Var;"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_typeParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class C {}",
+        "class G<E extends A> {}",
+        "class D<F extends G<B>> {}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_variableDeclaration() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {}",
+        "G<B> g;"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_with() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {}",
+        "class C extends Object with G<B>{}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);

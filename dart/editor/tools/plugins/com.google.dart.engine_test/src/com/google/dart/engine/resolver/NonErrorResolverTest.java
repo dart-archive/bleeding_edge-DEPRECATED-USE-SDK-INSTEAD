@@ -2192,6 +2192,30 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typeArgumentNotMatchingBounds_typeArgumentList_0() throws Exception {
+    Source source = addSource(createSource(//
+    "abstract class A<T extends A>{}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_typeArgumentList_1() throws Exception {
+    Source source = addSource(createSource(//
+    "abstract class A<T extends A<A>>{}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_typeArgumentList_20() throws Exception {
+    Source source = addSource(createSource(//
+    "abstract class A<T extends A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A>>>>>>>>>>>>>>>>>>>>>{}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_undefinedConstructorInInitializer_explicit_named() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
