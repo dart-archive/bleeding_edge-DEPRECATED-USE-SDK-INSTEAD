@@ -36,6 +36,7 @@ import org.yaml.snakeyaml.representer.Representer;
 import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -97,8 +98,166 @@ public class PubYamlUtils {
     }
   }
 
+  /**
+   * Represents a pub package semantic version. A version is of the form major.minor.patch and can
+   * be followed by a prerelease or build string eg. 0.4.8+2, 2.34.56-hotfix.issue, 0.54.9+build.2,
+   * 1.23.5
+   */
+  private static class Version implements Comparable<Version> {
+
+    int major;
+    int minor;
+    int patch;
+    String preRelease;
+    String build;
+
+    public Version(String string) {
+
+      String[] strings = string.split("\\.");
+      major = Integer.parseInt(strings[0]);
+      minor = Integer.parseInt(strings[1]);
+      if (strings[2].contains("-")) {
+        String[] s = strings[2].split("-");
+        patch = Integer.parseInt(s[0]);
+        preRelease = s[1];
+        if (strings.length > 3) {
+          for (int i = 3; i < strings.length; i++) {
+            preRelease += "." + strings[i];
+          }
+        }
+      } else if (strings[2].contains("+")) {
+        String[] s = strings[2].split("\\+");
+        patch = Integer.parseInt(s[0]);
+        build = s[1];
+        if (strings.length > 3) {
+          for (int i = 3; i <= strings.length; i++) {
+            build += "." + strings[i];
+          }
+        }
+      } else {
+        patch = Integer.parseInt(strings[2]);
+      }
+    }
+
+    @Override
+    public int compareTo(Version other) {
+      if (major != other.major) {
+        return new Integer(major).compareTo(new Integer(other.major));
+      }
+      if (minor != other.minor) {
+        return new Integer(minor).compareTo(new Integer(other.minor));
+      }
+      if (patch != other.patch) {
+        return new Integer(patch).compareTo(new Integer(other.patch));
+      }
+
+      if (preRelease != other.preRelease) {
+        // Pre-releases always come before no pre-release string.
+        if (preRelease == null) {
+          return 1;
+        }
+        if (other.preRelease == null) {
+          return -1;
+        }
+
+        return compareStrings(preRelease, other.preRelease);
+      }
+
+      if (build != other.build) {
+        // Builds always come after no build string.
+        if (build == null) {
+          return -1;
+        }
+        if (other.build == null) {
+          return 1;
+        }
+
+        return compareStrings(build, other.build);
+
+      }
+      return 0;
+
+    }
+
+    @Override
+    public String toString() {
+      StringBuffer buffer = new StringBuffer();
+      buffer.append(major).append(".");
+      buffer.append(minor).append(".");
+      buffer.append(patch);
+      if (preRelease != null) {
+        buffer.append("-").append(preRelease);
+      }
+      if (build != null) {
+        buffer.append("+").append(build);
+      }
+      return buffer.toString();
+    }
+
+    /// Compares the string part of two versions. This is used for the pre-release
+    /// and build version parts. This follows Rule 12. of the Semantic Versioning
+    /// spec.
+    int compareStrings(String a, String b) {
+
+      Object[] aParts = splitParts(a);
+      Object[] bParts = splitParts(b);
+
+      for (int i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+        Object aPart = (i < aParts.length) ? aParts[i] : null;
+        Object bPart = (i < bParts.length) ? bParts[i] : null;
+
+        if (aPart != bPart) {
+          // Missing parts come before present ones.
+          if (aPart == null) {
+            return -1;
+          }
+          if (bPart == null) {
+            return 1;
+          }
+
+          if (aPart instanceof Integer) {
+            if (bPart instanceof Integer) {
+              // Compare two numbers.
+              return ((Integer) aPart).compareTo((Integer) bPart);
+            } else {
+              // Numbers come before strings.
+              return -1;
+            }
+          } else {
+            if (bPart instanceof Integer) {
+              // Strings come after numbers.
+              return 1;
+            } else {
+              // Compare two strings.
+              return ((String) aPart).compareTo((String) bPart);
+            }
+          }
+        }
+      }
+      return 0;
+    }
+
+    /// Splits a string of dot-delimited identifiers into their component parts.
+    /// Identifiers that are numeric are converted to numbers.
+    Object[] splitParts(String text) {
+      List<Object> list = new ArrayList<Object>();
+      String[] objects = text.split("\\.");
+      for (String o : objects) {
+        try {
+          Integer i = Integer.parseInt(o);
+          list.add(i);
+        } catch (NumberFormatException e) {
+          list.add(o);
+        }
+      }
+      return list.toArray(new Object[list.size()]);
+    }
+
+  }
+
   public static String PACKAGE_VERSION_EXPRESSION = "(\\d+\\.){2}\\d+([\\+-]([\\.a-zA-Z0-9-])*)?";
   public static String PATTERN_PUBSPEC_NAME_LINE = "(?m)^(?:(?!--|').|'(?:''|[^'])*')*(name:.*)$";
+
   public static String VERSION_CONTSTRAINTS_EXPRESSION = "([=]{0,1}[<>]?)|([<>]?[=]{0,1})(\\d+\\.){2}\\d+([\\+-]([\\.a-zA-Z0-9-])*)?";
 
   /**
@@ -250,6 +409,21 @@ public class PubYamlUtils {
     }
   }
 
+  public static String[] sortVersionArray(String[] versionList) {
+
+    List<Version> versions = new ArrayList<PubYamlUtils.Version>();
+    for (Object o : versionList) {
+      versions.add(new Version(o.toString()));
+    }
+    Collections.sort(versions);
+    List<String> strings = new ArrayList<String>();
+    for (Version version : versions) {
+      strings.add(version.toString());
+    }
+
+    return strings.toArray(new String[strings.size()]);
+  }
+
   private static boolean isValidVersionConstraint(String string) {
 
     int index = 0;
@@ -280,5 +454,4 @@ public class PubYamlUtils {
     }
     return false;
   }
-
 }

@@ -162,6 +162,17 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     assertTrue(PubYamlUtils.isValidVersionConstraintString("any"));
   }
 
+  public void test_sortVersions() {
+    String[] versions = new String[] {"0.4.9", "0.4.8+3", "0.4.12+1", "0.4.8+4", "0.4.11+1",};
+    versions = PubYamlUtils.sortVersionArray(versions);
+    assertEquals("0.4.8+3", versions[0]);
+    assertEquals("0.4.12+1", versions[4]);
+    versions = new String[] {"5.2.9-hotfix.issue", "0.5.7", "0.5.7+build", "2.8.90-alpha.12"};
+    versions = PubYamlUtils.sortVersionArray(versions);
+    assertEquals("0.5.7", versions[0]);
+    assertEquals("5.2.9-hotfix.issue", versions[3]);
+  }
+
   private void checkPubSpecsEqual(PubYamlObject object1, PubYamlObject object2) {
     assertEquals(object1.name, object2.name);
     assertEquals(object1.author, object2.author);
