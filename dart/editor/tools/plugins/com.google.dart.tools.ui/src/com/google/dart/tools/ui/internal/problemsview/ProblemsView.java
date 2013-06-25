@@ -508,8 +508,10 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
       setImageDescriptor(DartToolsPlugin.getBundledImageDescriptor("icons/full/eview16/tasks_tsk.gif"));
 
-      // restore state
-      setChecked(getMementoBoolean("showInfos", true));
+      // TODO(keertip): do a restore state after a few builds to make sure all users have 
+      // default set to false;
+      setChecked(false);
+      //setChecked(getMementoBoolean("showInfos", false));
     }
 
     @Override
