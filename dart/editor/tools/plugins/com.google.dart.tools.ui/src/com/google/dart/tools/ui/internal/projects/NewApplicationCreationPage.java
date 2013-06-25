@@ -230,8 +230,8 @@ public class NewApplicationCreationPage extends WizardPage {
    * 
    * @return the new project resource handle
    */
-  public IProject getProjectHandle() {
-    return ResourcesPlugin.getWorkspace().getRoot().getProject(getProjectName());
+  public IProject getProjectHandle(String name) {
+    return ResourcesPlugin.getWorkspace().getRoot().getProject(name);
   }
 
   /**

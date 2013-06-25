@@ -51,6 +51,7 @@ import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
+import java.text.MessageFormat;
 
 /**
  * Project-related utilities.
@@ -145,6 +146,29 @@ public class ProjectUtils {
     return newProjectHandle;
   }
 
+  public static String generateUniqueNameFrom(String baseName) {
+    int index = 1;
+    int copyIndex = baseName.lastIndexOf("-"); //$NON-NLS-1$
+    if (copyIndex > -1) {
+      String trailer = baseName.substring(copyIndex + 1);
+      if (isNumber(trailer)) {
+        try {
+          index = Integer.parseInt(trailer);
+          baseName = baseName.substring(0, copyIndex);
+        } catch (NumberFormatException nfe) {
+        }
+      }
+    }
+    String newName = baseName;
+    while (ResourcesPlugin.getWorkspace().getRoot().getProject(newName).exists()) {
+      newName = MessageFormat.format(
+          ProjectMessages.CreateAndRevealProjectAction_projectName,
+          new Object[] {baseName, Integer.toString(index)});
+      index++;
+    }
+    return newName;
+  }
+
   /**
    * Selects and reveals the newly added resource in all parts of the active workbench window's
    * active page.
@@ -179,6 +203,19 @@ public class ProjectUtils {
     command.setBuilderName(DartCore.DART_BUILDER_ID);
     description.setBuildSpec(new ICommand[] {command});
     return description;
+  }
+
+  private static boolean isNumber(String string) {
+    int numChars = string.length();
+    if (numChars == 0) {
+      return false;
+    }
+    for (int i = 0; i < numChars; i++) {
+      if (!Character.isDigit(string.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
   }
 
 }

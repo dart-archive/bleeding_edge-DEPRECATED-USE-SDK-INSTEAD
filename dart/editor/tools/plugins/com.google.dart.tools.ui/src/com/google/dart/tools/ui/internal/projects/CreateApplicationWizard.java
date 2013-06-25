@@ -194,9 +194,14 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
     }
 
     // get a project handle
-    final IProject newProjectHandle = page.getProjectHandle();
+    final String projectName = page.getProjectName();
+    IProject projectHandle = page.getProjectHandle(projectName);
+    if (projectHandle.exists()) {
+      String newProjectName = ProjectUtils.generateUniqueNameFrom(projectName);
+      projectHandle = page.getProjectHandle(newProjectName);
+    }
     final AbstractSample sampleContent = page.getCurrentSample();
-
+    final IProject newProjectHandle = projectHandle;
     // get a project descriptor
     URI location = page.getLocationURI();
 
@@ -213,11 +218,7 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
           IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
 
           if (status.isOK()) {
-            createdFile = createProjectContent(
-                newProjectHandle,
-                null,
-                newProjectHandle.getName(),
-                sampleContent);
+            createdFile = createProjectContent(newProjectHandle, null, projectName, sampleContent);
           }
         } catch (ExecutionException e) {
           throw new InvocationTargetException(e);
