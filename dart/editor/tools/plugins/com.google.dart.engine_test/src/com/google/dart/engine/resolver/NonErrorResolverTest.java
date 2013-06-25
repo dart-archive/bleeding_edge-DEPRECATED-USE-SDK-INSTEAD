@@ -402,6 +402,30 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constEval_propertyExtraction_fieldStatic_targetType() throws Exception {
+    addSource("/math.dart", createSource(//
+        "library math;",
+        "const PI = 3.14;"));
+    Source source = addSource(createSource(//
+        "import 'math.dart' as math;",
+        "const C = math.PI;"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_constEval_propertyExtraction_methodStatic_targetType() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "  static m() {}",
+        "}",
+        "const C = A.m;"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_constEvalTypeBoolNumString_equal() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

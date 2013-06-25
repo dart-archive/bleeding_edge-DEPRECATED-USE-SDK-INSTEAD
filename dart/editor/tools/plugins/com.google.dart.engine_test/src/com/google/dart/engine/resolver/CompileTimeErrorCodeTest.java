@@ -582,6 +582,32 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constEval_propertyExtraction_methodInstance() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "  m() {}",
+        "}",
+        "final a = const A();",
+        "const C = a.m;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+    verify(source);
+  }
+
+  public void test_constEval_propertyExtraction_methodStatic_targetInstance() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "  static m() {}",
+        "}",
+        "final a = const A();",
+        "const C = a.m;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+    verify(source);
+  }
+
   public void test_constEvalThrowsException_binaryMinus_null() throws Exception {
     check_constEvalThrowsException_binary_null("null - 5", false);
     check_constEvalThrowsException_binary_null("5 - null", true);

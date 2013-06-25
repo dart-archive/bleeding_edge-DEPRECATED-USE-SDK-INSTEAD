@@ -46,6 +46,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
@@ -277,6 +278,16 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
 
   @Override
   public EvaluationResultImpl visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // validate prefix
+    SimpleIdentifier prefixNode = node.getPrefix();
+    Element prefixElement = prefixNode.getElement();
+    if (!(prefixElement instanceof PrefixElement)) {
+      EvaluationResultImpl prefixResult = prefixNode.accept(this);
+      if (!(prefixResult instanceof ValidResult)) {
+        return error(node, null);
+      }
+    }
+    // validate prefixed identifier
     return getConstantValue(node, node.getElement());
   }
 
@@ -354,7 +365,9 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
         return value;
       }
     } else if (element instanceof ExecutableElement) {
-      return new ValidResult(element);
+      if (((ExecutableElement) element).isStatic()) {
+        return new ValidResult(element);
+      }
     } else if (element instanceof ClassElement) {
       return ValidResult.RESULT_OBJECT;
     }
