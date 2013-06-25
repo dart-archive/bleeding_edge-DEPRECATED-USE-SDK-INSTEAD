@@ -73,7 +73,13 @@ public class DynamicTypeImpl extends TypeImpl {
   }
 
   @Override
-  public DynamicTypeImpl substitute(Type[] argumentTypes, Type[] parameterTypes) {
+  public Type substitute(Type[] argumentTypes, Type[] parameterTypes) {
+    int length = parameterTypes.length;
+    for (int i = 0; i < length; i++) {
+      if (parameterTypes[i].equals(this)) {
+        return argumentTypes[i];
+      }
+    }
     return this;
   }
 }

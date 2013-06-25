@@ -515,7 +515,10 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (this.equals(type)) {
       return true;
     }
-    return isSubtypeOf((InterfaceType) type, new HashSet<ClassElement>());
+    InterfaceTypeImpl thisType = substitute(
+        new Type[] {BottomTypeImpl.getInstance()},
+        new Type[] {DynamicTypeImpl.getInstance()});
+    return thisType.isSubtypeOf((InterfaceType) type, new HashSet<ClassElement>());
   }
 
   @Override
