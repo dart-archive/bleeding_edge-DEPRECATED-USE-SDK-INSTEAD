@@ -839,6 +839,42 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "}");
   }
 
+  public void test_javadoc_multiLine() throws Exception {
+    parseJava(//
+        "/**",
+        " * foo bar",
+        " * {@link Source}",
+        " * bar baz",
+        " */",
+        "public class A {",
+        "}");
+    assertDartSource(//
+        "",
+        "/**",
+        " * foo bar",
+        " * [Source]",
+        " * bar baz",
+        " */",
+        "class A {",
+        "}");
+  }
+
+  public void test_javadoc_namedLink() throws Exception {
+    parseJava(//
+        "/**",
+        " * {@link Source source}",
+        " */",
+        "public class A {",
+        "}");
+    assertDartSource(//
+        "",
+        "/**",
+        " * [Source]",
+        " */",
+        "class A {",
+        "}");
+  }
+
   public void test_javadoc_para() throws Exception {
     parseJava(//
         "/**",

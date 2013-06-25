@@ -150,6 +150,7 @@ import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.TagElement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
@@ -1081,7 +1082,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     {
       buffer.append("/**");
       for (Object javaTag : node.tags()) {
-        String javaTagString = javaTag.toString();
+        String javaTagString = tagElementToString((TagElement) javaTag);
         String dartDocString = StringUtils.replace(javaTagString, "[", "\\[");;
         dartDocString = StringUtils.replace(dartDocString, "]", "\\]");;
         // TODO(scheglov) improve JavaDoc translation
@@ -1840,10 +1841,16 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
    * Convert #getPrefixes() to getPrefixes.
    */
   private String extractLinkReference(String ref) {
+    // convert #fooBar() ==> fooBar
     if (ref.startsWith("#")) {
       ref = ref.substring(1);
     }
     int index = ref.indexOf('(');
+    if (index != -1) {
+      ref = ref.substring(0, index);
+    }
+    // convert 'Source source' ==> 'source'
+    index = ref.indexOf(' ');
     if (index != -1) {
       ref = ref.substring(0, index);
     }
@@ -1870,6 +1877,27 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       binding = JavaUtils.getOriginalBinding(binding);
       context.putReference(identifier, binding, JavaUtils.getJdtSignature(binding));
     }
+  }
+
+  private String tagElementToString(TagElement tag) {
+    StringBuilder builder = new StringBuilder();
+
+    List<?> fragments = tag.fragments();
+
+    for (int i = 0; i < fragments.size(); i++) {
+      Object fragment = fragments.get(i);
+
+      builder.append("\n * ");
+
+      if (i == 0 && tag.getTagName() != null) {
+        builder.append(tag.getTagName());
+        builder.append(" ");
+      }
+
+      builder.append(fragment.toString());
+    }
+
+    return builder.toString();
   }
 
   /**
