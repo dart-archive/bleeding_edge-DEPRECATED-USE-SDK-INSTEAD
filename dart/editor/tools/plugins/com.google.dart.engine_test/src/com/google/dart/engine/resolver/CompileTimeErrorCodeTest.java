@@ -592,6 +592,13 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     check_constEvalThrowsException_binary_null("5 + null", true);
   }
 
+  public void test_constEvalThrowsException_divisionByZero() throws Exception {
+    Source source = addSource("const C = 1 ~/ 0;");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
+    verify(source);
+  }
+
   public void test_constEvalThrowsException_unaryBitNot_null() throws Exception {
     Source source = addSource("const C = ~null;");
     resolve(source);

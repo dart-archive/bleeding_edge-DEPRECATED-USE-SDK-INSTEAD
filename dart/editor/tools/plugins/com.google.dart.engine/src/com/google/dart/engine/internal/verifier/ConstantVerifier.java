@@ -237,6 +237,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
       for (ErrorResult.ErrorData data : ((ErrorResult) result).getErrorData()) {
         ErrorCode dataErrorCode = data.getErrorCode();
         if (dataErrorCode == CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION
+            || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE
             || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING
             || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL
             || dataErrorCode == CompileTimeErrorCode.CONST_EVAL_TYPE_INT

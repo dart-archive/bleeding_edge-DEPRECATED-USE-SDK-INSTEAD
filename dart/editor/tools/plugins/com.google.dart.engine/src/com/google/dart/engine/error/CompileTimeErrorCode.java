@@ -212,6 +212,13 @@ public enum CompileTimeErrorCode implements ErrorCode {
   CONST_EVAL_THROWS_EXCEPTION("Evaluation of this constant expression causes exception"),
 
   /**
+   * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
+   * uncaught exception being thrown.
+   */
+  CONST_EVAL_THROWS_IDBZE(
+      "Evaluation of this constant expression throws IntegerDivisionByZeroException"),
+
+  /**
    * 12.11.2 Const: If <i>T</i> is a parameterized type <i>S&lt;U<sub>1</sub>, &hellip;,
    * U<sub>m</sub>&gt;</i>, let <i>R = S</i>; It is a compile time error if <i>S</i> is not a
    * generic type with <i>m</i> type parameters.

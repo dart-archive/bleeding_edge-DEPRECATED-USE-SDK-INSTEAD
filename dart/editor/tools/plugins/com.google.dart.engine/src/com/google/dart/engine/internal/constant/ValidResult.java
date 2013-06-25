@@ -581,8 +581,7 @@ public class ValidResult extends EvaluationResultImpl {
     } else if (leftValue instanceof BigInteger) {
       if (value instanceof BigInteger) {
         if (((BigInteger) value).equals(BigInteger.ZERO)) {
-          return valueOf(Double.valueOf(((BigInteger) leftValue).doubleValue()
-              / ((BigInteger) value).doubleValue()));
+          return error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
         }
         return valueOf(((BigInteger) leftValue).divide((BigInteger) value));
       } else if (value instanceof Double) {
