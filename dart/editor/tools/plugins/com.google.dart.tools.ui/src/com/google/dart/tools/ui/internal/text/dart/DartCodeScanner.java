@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.tools.ui.DartUiDebug;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -253,10 +252,6 @@ public class DartCodeScanner extends AbstractDartScanner {
       if (token.isBinaryOperator() || token.isUnaryOperator()) {
         operators.add(token.getSyntax());
       }
-    }
-
-    for (String kw : DartParser.PSEUDO_KEYWORDS) {
-      pseudoKeywords.add(kw);
     }
 
     DIRECTIVES = directives.toArray(new String[directives.size()]);

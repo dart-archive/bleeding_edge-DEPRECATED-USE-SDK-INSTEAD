@@ -25,7 +25,7 @@ import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
-import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedNamesAssistProposal.DeleteBlockingExitPolicy;
+import com.google.dart.tools.ui.internal.text.correction.proposals.DeleteBlockingExitPolicy;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorHighlightingSynchronizer;
 

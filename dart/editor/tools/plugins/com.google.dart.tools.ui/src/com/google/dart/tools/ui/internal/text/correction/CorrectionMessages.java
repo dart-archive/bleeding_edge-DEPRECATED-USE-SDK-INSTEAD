@@ -292,8 +292,6 @@ public final class CorrectionMessages extends NLS {
   public static String QuickAssistProcessor_invertequals_description;
   public static String QuickAssistProcessor_typetoarrayInitializer_description;
   public static String QuickAssistProcessor_createmethodinsuper_description;
-  public static String LinkedNamesAssistProposal_proposalinfo;
-  public static String LinkedNamesAssistProposal_description;
   public static String QuickTemplateProcessor_surround_label;
   public static String NewCUCompletionUsingWizardProposal_dialogtitle;
   public static String NewCUCompletionUsingWizardProposal_tooltip_enclosingtype;

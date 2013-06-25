@@ -14,9 +14,7 @@
 package com.google.dart.tools.internal.corext.refactoring;
 
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartClassTypeAlias;
@@ -371,20 +369,6 @@ public class RefactoringAvailabilityTester {
 //      throws DartModelException {
 //    return isExtractInterfaceAvailable(RefactoringActions.getEnclosingOrPrimaryType(selection));
 //  }
-
-  public static DartNode getInlineableMethodNode(CompilationUnit unit, DartUnit unitNode,
-      int offset, int length) {
-    DartNode node = null;
-    try {
-      node = getInlineableMethodNode(NodeFinder.perform(unitNode, offset, length, unit), unit);
-    } catch (DartModelException e) {
-      // Do nothing
-    }
-    if (node != null) {
-      return node;
-    }
-    return getInlineableMethodNode(NodeFinder.perform(unitNode, offset, length), unit);
-  }
 
   public static boolean isConvertGetterToMethodAvailable(DartFunction function)
       throws DartModelException {
