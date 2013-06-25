@@ -778,7 +778,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitSwitchStatement(SwitchStatement node) {
-    checkForCaseExpressionTypeImplementsEquals(node);
     checkForInconsistentCaseExpressionTypes(node);
     checkForSwitchExpressionNotAssignable(node);
     checkForCaseBlocksNotTerminated(node);
@@ -1757,30 +1756,33 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * operator '==' overridden.
    * 
    * @param node the switch statement to evaluate
+   * @param type the common type of all 'case' expressions
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
    */
-  private boolean checkForCaseExpressionTypeImplementsEquals(SwitchStatement node) {
-    Expression expression = node.getExpression();
-    Type type = getStaticType(expression);
+  private boolean checkForCaseExpressionTypeImplementsEquals(SwitchStatement node, Type type) {
     // if the type is int or String, exit this check quickly
-    if (type != null && !type.equals(typeProvider.getIntType())
-        && !type.equals(typeProvider.getStringType())) {
-      Element element = type.getElement();
-      if (element instanceof ClassElement) {
-        ClassElement classElement = (ClassElement) element;
-        MethodElement method = classElement.lookUpMethod("==", currentLibrary);
-        if (method != null
-            && !method.getEnclosingElement().getType().equals(typeProvider.getObjectType())) {
-          errorReporter.reportError(
-              CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-              expression,
-              element.getDisplayName());
-          return true;
-        }
-      }
+    if (type == null || type.equals(typeProvider.getIntType())
+        || type.equals(typeProvider.getStringType())) {
+      return false;
     }
-    return false;
+    // prepare ClassElement
+    Element element = type.getElement();
+    if (!(element instanceof ClassElement)) {
+      return false;
+    }
+    ClassElement classElement = (ClassElement) element;
+    // OK, no ==
+    MethodElement method = classElement.lookUpMethod("==", currentLibrary);
+    if (method == null || method.getEnclosingElement().getType().isObject()) {
+      return false;
+    }
+    // report error
+    errorReporter.reportError(
+        CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+        node.getKeyword(),
+        element.getDisplayName());
+    return true;
   }
 
   /**
@@ -2767,6 +2769,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           }
         }
       }
+    }
+    if (!foundError) {
+      checkForCaseExpressionTypeImplementsEquals(node, firstType);
     }
     return foundError;
   }

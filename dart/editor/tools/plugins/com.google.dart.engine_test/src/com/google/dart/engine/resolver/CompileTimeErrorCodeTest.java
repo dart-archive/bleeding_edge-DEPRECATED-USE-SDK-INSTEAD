@@ -449,7 +449,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}",
         "",
-        "f(IntWrapper a) {",
+        "f(var a) {",
         "  switch(a) {",
         "    case(const IntWrapper(1)) : return 1;",
         "    default: return 0;",
