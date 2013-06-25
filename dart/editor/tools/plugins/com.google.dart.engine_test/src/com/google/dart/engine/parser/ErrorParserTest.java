@@ -763,6 +763,22 @@ public class ErrorParserTest extends ParserTestCase {
     parseExpression("x.y = y;");
   }
 
+  public void test_missingAssignableSelector_postfix_minusMinus_literal() throws Exception {
+    parseExpression("0--", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
+  }
+
+  public void test_missingAssignableSelector_postfix_plusPlus_literal() throws Exception {
+    parseExpression("0++", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
+  }
+
+  public void test_missingAssignableSelector_prefix_minusMinus_literal() throws Exception {
+    parseExpression("--0", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
+  }
+
+  public void test_missingAssignableSelector_prefix_plusPlus_literal() throws Exception {
+    parseExpression("++0", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
+  }
+
   public void test_missingAssignableSelector_primarySelectorPostfix() throws Exception {
     parseExpression("x(y)(z)++", ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
   }

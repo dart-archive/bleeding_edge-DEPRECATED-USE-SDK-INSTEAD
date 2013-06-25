@@ -4264,7 +4264,7 @@ public class Parser {
     if (!currentToken.getType().isIncrementOperator()) {
       return operand;
     }
-    if (operand instanceof FunctionExpressionInvocation) {
+    if (operand instanceof Literal || operand instanceof FunctionExpressionInvocation) {
       reportError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR);
     }
     Token operator = getAndAdvance();
