@@ -2161,7 +2161,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         //
         // If there's no method, then it's possible that 'm' is a getter that returns a function.
         //
-        element = classType.getGetter(methodName.getName());
+        element = lookUpGetter(target, classType, methodName.getName());
       }
       return element;
     } else if (target instanceof SimpleIdentifier) {

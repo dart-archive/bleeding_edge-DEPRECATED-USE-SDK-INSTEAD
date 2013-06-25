@@ -2345,6 +2345,36 @@ public class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
   }
 
+  public void test_undefinedSuperMethod_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var m;",
+        "}",
+        "class B extends A {",
+        "  f() {",
+        "    super.m();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_undefinedSuperMethod_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "}",
+        "class B extends A {",
+        "  f() {",
+        "    super.m();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_wrongNumberOfParametersForOperator_index() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
