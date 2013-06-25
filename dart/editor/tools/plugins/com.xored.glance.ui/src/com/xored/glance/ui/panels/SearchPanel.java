@@ -191,7 +191,7 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
     final Composite container = createContainer(parent);
     final GridLayout layout = new GridLayout(3, false);
     layout.verticalSpacing = 0;
-    layout.marginHeight = 2;
+    layout.marginHeight = 0;
     layout.marginWidth = 0;
     container.setLayout(layout);
     createIcon(container);
