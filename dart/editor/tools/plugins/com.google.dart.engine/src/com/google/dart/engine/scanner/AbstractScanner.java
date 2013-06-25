@@ -484,10 +484,6 @@ public abstract class AbstractScanner {
       return -1;
     }
 
-    if (Character.isLetter(next)) {
-      return tokenizeIdentifier(next, getOffset(), true);
-    }
-
     // The following are non-ASCII characters.
 
     if (next == $NBSP) {
@@ -743,8 +739,7 @@ public abstract class AbstractScanner {
 
   private int tokenizeIdentifier(int next, int start, boolean allowDollar) {
     while (('a' <= next && next <= 'z') || ('A' <= next && next <= 'Z')
-        || ('0' <= next && next <= '9') || next == '_' || (next == '$' && allowDollar)
-        || Character.isLetterOrDigit(next)) {
+        || ('0' <= next && next <= '9') || next == '_' || (next == '$' && allowDollar)) {
       next = advance();
     }
     appendStringToken(TokenType.IDENTIFIER, getString(start, next < 0 ? 0 : -1));

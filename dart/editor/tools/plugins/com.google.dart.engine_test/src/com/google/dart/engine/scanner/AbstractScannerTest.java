@@ -229,7 +229,15 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.IDENTIFIER, "result");
   }
 
-  public void test_illegalChar() throws Exception {
+  public void test_illegalChar_cyrillicLetter_middle() throws Exception {
+    assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "Shche\u0433lov");
+  }
+
+  public void test_illegalChar_cyrillicLetter_start() throws Exception {
+    assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "\u0429");
+  }
+
+  public void test_illegalChar_notLetter() throws Exception {
     assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "\u0312");
   }
 
