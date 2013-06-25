@@ -1268,6 +1268,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invocationOfNonFunction_Object() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  Object v = null;",
+        "  v();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_memberWithClassName_setter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
