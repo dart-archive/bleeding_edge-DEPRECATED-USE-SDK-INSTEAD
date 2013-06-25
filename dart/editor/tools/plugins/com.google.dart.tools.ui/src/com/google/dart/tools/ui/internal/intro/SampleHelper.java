@@ -90,9 +90,8 @@ public class SampleHelper {
    * @param monitor a progress monitor
    * @param window the current active workbench window
    */
-  public static void openSample(final File sampleFile, final IProgressMonitor monitor,
-      final IWorkbenchWindow window) {
-
+  public static void openSample(SampleDescription description, final File sampleFile,
+      final IProgressMonitor monitor, final IWorkbenchWindow window) {
     String sampleName = getDirectory(sampleFile).getName();
     // user.home/dart/clock
     File potentialDir = new File(DartCore.getUserDefaultDartFolder(), sampleName);
@@ -102,12 +101,11 @@ public class SampleHelper {
     final IProject newProjectHandle = ResourcesPlugin.getWorkspace().getRoot().getProject(
         newProjectName);
     final URI location = newProjectDir.toURI();
-    final File fileToOpen = new File(newProjectDir, getFilePath(sampleFile));
+    final File fileToOpen = new File(newProjectDir, description.file);
 
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
-
         // Copy sample to new directory before creating project
         // so that builder will have the resources to analyze first time through
         try {
@@ -130,13 +128,11 @@ public class SampleHelper {
               project.getDefaultContext().getSourceFactory().getContentCache(),
               fileToOpen));
           EditorUtility.openInTextEditor(resource, true);
-
         } catch (CoreException e) {
           DartToolsPlugin.log(e);
         }
       }
     });
-
   }
 
   /**
@@ -161,7 +157,11 @@ public class SampleHelper {
         @Override
         public void run(IProgressMonitor monitor) throws InvocationTargetException,
             InterruptedException {
-          openSample(new File(description.directory, description.file), monitor, window);
+          openSample(
+              description,
+              new File(description.directory, description.file),
+              monitor,
+              window);
         }
       });
     } catch (InvocationTargetException e) {
@@ -178,15 +178,6 @@ public class SampleHelper {
     int index = i;
     Path p = (Path) path.removeLastSegments((path.segmentCount() - index) - 2);
     return new File(p.toString());
-  }
-
-  // get path in samples/sampleName to samples file that should be opened in editor
-  private static String getFilePath(File file) {
-    IPath path = new Path(file.getAbsolutePath());
-    int i = getPathIndexForSamplesDir(path);
-    int index = i;
-    Path p = (Path) path.removeFirstSegments(index + 2);
-    return p.toPortableString();
   }
 
   private static int getPathIndexForSamplesDir(IPath path) {
