@@ -2321,6 +2321,26 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_undefinedMethod_functionExpression_callMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  (() => null).call();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    // A call to verify(source) fails as '.call()' isn't resolved.
+  }
+
+  public void test_undefinedMethod_functionExpression_directCall() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  (() => null)();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    // A call to verify(source) fails as '(() => null)()' isn't resolved.
+  }
+
   public void test_undefinedMethod_noSuchMethod() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

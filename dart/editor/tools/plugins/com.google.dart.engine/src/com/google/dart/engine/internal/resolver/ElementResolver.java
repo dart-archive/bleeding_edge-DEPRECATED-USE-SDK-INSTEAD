@@ -828,6 +828,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         targetTypeName = enclosingClass.getDisplayName();
       } else {
         Type targetType = getStaticType(target);
+        // ignore Function "call"
+        if (targetType != null && targetType.isDartCoreFunction()
+            && methodName.getName().equals(CALL_METHOD_NAME)) {
+          // TODO(brianwilkerson) Can we ever resolve the function being invoked?
+          //resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
+          return null;
+        }
         targetTypeName = targetType == null ? null : targetType.getDisplayName();
       }
       resolver.reportError(
