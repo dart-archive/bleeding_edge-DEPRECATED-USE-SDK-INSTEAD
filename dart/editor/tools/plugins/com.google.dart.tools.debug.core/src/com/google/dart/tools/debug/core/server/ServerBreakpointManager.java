@@ -190,28 +190,28 @@ class ServerBreakpointManager implements IBreakpointListener {
   private String getPubUrlForResource(IFile file) {
     String locationUrl = file.getLocation().toFile().toURI().toString();
 
-    int index = locationUrl.indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
+    int index = locationUrl.indexOf(DartCore.PACKAGES_DIRECTORY_URL);
 
     if (index != -1) {
       locationUrl = DartCore.PACKAGE_SCHEME_SPEC
-          + locationUrl.substring(index + DartCore.PACKAGES_DIRECTORY_PATH.length());
+          + locationUrl.substring(index + DartCore.PACKAGES_DIRECTORY_URL.length());
 
       return locationUrl;
     }
 
-    index = locationUrl.lastIndexOf(DartCore.LIB_DIRECTORY_PATH);
+    index = locationUrl.lastIndexOf(DartCore.LIB_URL_PATH);
 
     if (index != -1) {
       String path = file.getLocation().toString();
-      path = path.substring(0, path.lastIndexOf(DartCore.LIB_DIRECTORY_PATH));
+      path = path.substring(0, path.lastIndexOf(DartCore.LIB_URL_PATH));
       File packagesDir = new File(path, DartCore.PACKAGES_DIRECTORY_NAME);
 
       if (packagesDir.exists()) {
         String packageName = DartCore.getSelfLinkedPackageName(file);
 
         if (packageName != null) {
-          locationUrl = DartCore.PACKAGE_SCHEME_SPEC + packageName + File.separator
-              + locationUrl.substring(index + DartCore.LIB_DIRECTORY_PATH.length());
+          locationUrl = DartCore.PACKAGE_SCHEME_SPEC + packageName + "/"
+              + locationUrl.substring(index + DartCore.LIB_URL_PATH.length());
 
           return locationUrl;
         }
