@@ -1292,6 +1292,31 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invocationOfNonFunction_localVariable_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {}",
+        "main() {",
+        "  var v = f;",
+        "  v();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invocationOfNonFunction_localVariable_dynamic2() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {}",
+        "main() {",
+        "  var v = f;",
+        "  v = 1;",
+        "  v();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invocationOfNonFunction_Object() throws Exception {
     Source source = addSource(createSource(//
         "main() {",

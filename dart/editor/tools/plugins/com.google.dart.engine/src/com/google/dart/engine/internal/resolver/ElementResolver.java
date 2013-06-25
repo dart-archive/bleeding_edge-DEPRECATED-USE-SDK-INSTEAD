@@ -1216,10 +1216,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           }
         }
       } else if (element instanceof VariableElement) {
-        Type variableType = resolver.getOverrideManager().getType(element);
-        if (variableType == null) {
-          variableType = ((VariableElement) element).getType();
-        }
+        Type variableType = ((VariableElement) element).getType();
         if (!isExecutableType(variableType)) {
           return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
         }
