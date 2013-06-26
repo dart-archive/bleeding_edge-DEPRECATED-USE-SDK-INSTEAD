@@ -92,6 +92,11 @@ public class TypeProviderImpl implements TypeProvider {
   private InterfaceType stringType;
 
   /**
+   * The type representing the built-in type 'Symbol'.
+   */
+  private InterfaceType symbolType;
+
+  /**
    * The type representing the built-in type 'Type'.
    */
   private InterfaceType typeType;
@@ -166,6 +171,11 @@ public class TypeProviderImpl implements TypeProvider {
   }
 
   @Override
+  public InterfaceType getSymbolType() {
+    return symbolType;
+  }
+
+  @Override
   public InterfaceType getTypeType() {
     return typeType;
   }
@@ -206,6 +216,7 @@ public class TypeProviderImpl implements TypeProvider {
     objectType = getType(namespace, "Object");
     stackTraceType = getType(namespace, "StackTrace");
     stringType = getType(namespace, "String");
+    symbolType = getType(namespace, "Symbol");
     typeType = getType(namespace, "Type");
   }
 }

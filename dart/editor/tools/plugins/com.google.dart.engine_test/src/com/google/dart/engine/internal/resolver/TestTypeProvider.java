@@ -109,6 +109,11 @@ public class TestTypeProvider implements TypeProvider {
   private InterfaceType stringType;
 
   /**
+   * The type representing the built-in type 'Symbol'.
+   */
+  private InterfaceType symbolType;
+
+  /**
    * The type representing the built-in type 'Type'.
    */
   private InterfaceType typeType;
@@ -280,6 +285,14 @@ public class TestTypeProvider implements TypeProvider {
       methodElement("toLowerCase", stringType), methodElement("toUpperCase", stringType)});
     }
     return stringType;
+  }
+
+  @Override
+  public InterfaceType getSymbolType() {
+    if (symbolType == null) {
+      symbolType = classElement("Symbol").getType();
+    }
+    return symbolType;
   }
 
   @Override

@@ -108,6 +108,13 @@ public interface TypeProvider {
   public InterfaceType getStringType();
 
   /**
+   * Return the type representing the built-in type 'Symbol'.
+   * 
+   * @return the type representing the built-in type 'Symbol'
+   */
+  public InterfaceType getSymbolType();
+
+  /**
    * Return the type representing the built-in type 'Type'.
    * 
    * @return the type representing the built-in type 'Type'

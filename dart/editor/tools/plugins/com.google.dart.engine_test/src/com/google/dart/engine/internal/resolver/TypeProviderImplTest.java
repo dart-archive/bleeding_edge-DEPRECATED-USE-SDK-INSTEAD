@@ -44,12 +44,14 @@ public class TypeProviderImplTest extends EngineTestCase {
     InterfaceType mapType = classElement("Map", objectType, "K", "V").getType();
     InterfaceType stackTraceType = classElement("StackTrace", objectType).getType();
     InterfaceType stringType = classElement("String", objectType).getType();
+    InterfaceType symbolType = classElement("Symbol", objectType).getType();
     InterfaceType typeType = classElement("Type", objectType).getType();
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl("lib.dart");
     unit.setTypes(new ClassElement[] {
         boolType.getElement(), doubleType.getElement(), functionType.getElement(),
         intType.getElement(), listType.getElement(), mapType.getElement(), objectType.getElement(),
-        stackTraceType.getElement(), stringType.getElement(), typeType.getElement(),});
+        stackTraceType.getElement(), stringType.getElement(), symbolType.getElement(),
+        typeType.getElement(),});
     LibraryElementImpl library = new LibraryElementImpl(
         new AnalysisContextImpl(),
         libraryIdentifier("lib"));
@@ -69,6 +71,7 @@ public class TypeProviderImplTest extends EngineTestCase {
     assertSame(objectType, provider.getObjectType());
     assertSame(stackTraceType, provider.getStackTraceType());
     assertSame(stringType, provider.getStringType());
+    assertSame(symbolType, provider.getSymbolType());
     assertSame(typeType, provider.getTypeType());
   }
 
