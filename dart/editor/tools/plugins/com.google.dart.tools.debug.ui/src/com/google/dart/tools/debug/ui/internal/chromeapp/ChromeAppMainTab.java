@@ -60,6 +60,8 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
 
   private Text fileText;
 
+  protected Text argumentText;
+
   protected ModifyListener textModifyListener = new ModifyListener() {
     @Override
     public void modifyText(ModifyEvent e) {
@@ -76,7 +78,7 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
     Composite composite = new Composite(parent, SWT.NONE);
     GridLayoutFactory.swtDefaults().spacing(1, 3).applyTo(composite);
 
-    // Project group
+    // main group
     Group group = new Group(composite, SWT.NONE);
     group.setText(DartiumLaunchMessages.DartiumMainTab_LaunchTarget);
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
@@ -102,6 +104,16 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
         handleBrowseButton();
       }
     });
+
+    // additional browser arguments
+    group = new Group(composite, SWT.NONE);
+    group.setText("Browser arguments");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+    GridLayoutFactory.swtDefaults().applyTo(group);
+
+    argumentText = new Text(group, SWT.BORDER | SWT.SINGLE);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
+        argumentText);
 
     setControl(composite);
   }
@@ -134,6 +146,8 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
 
     fileText.setText(dartLauncher.getApplicationName());
+
+    argumentText.setText(dartLauncher.getArguments());
   }
 
   @Override
@@ -145,6 +159,7 @@ public class ChromeAppMainTab extends AbstractLaunchConfigurationTab {
   public void performApply(ILaunchConfigurationWorkingCopy configuration) {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
     dartLauncher.setApplicationName(fileText.getText());
+    dartLauncher.setArguments(argumentText.getText().trim());
   }
 
   @Override

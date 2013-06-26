@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.configs;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -111,6 +112,7 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
     }
 
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(configuration);
+
     wrapper.markAsLaunched();
 
     IResource jsonResource = wrapper.getApplicationResource();
@@ -133,9 +135,18 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
     commandsList.add("--no-default-browser-check");
     commandsList.add("--enable-extension-activity-logging");
     commandsList.add("--enable-extension-activity-ui");
-    commandsList.add("--no-startup-window");
+
+    // This is currently only supported on the mac.
+    if (DartCore.isMac()) {
+      commandsList.add("--no-startup-window");
+    }
+
     commandsList.add("--load-and-launch-app=" + extensionPath);
     //commandsList.add("--remote-debugging-port=1234");
+
+    for (String arg : wrapper.getArgumentsAsArray()) {
+      commandsList.add(arg);
+    }
 
     if (enableDebugging) {
       // TODO(devoncarew):
