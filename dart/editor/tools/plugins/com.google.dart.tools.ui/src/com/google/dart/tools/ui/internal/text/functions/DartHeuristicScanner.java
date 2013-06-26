@@ -541,6 +541,17 @@ public final class DartHeuristicScanner implements Symbols {
     return false;
   }
 
+  public boolean isCurrentTokenCascade() {
+    if (fChar != '.') {
+      return false;
+    }
+    try {
+      return fDocument.getChar(fPos) == '.';
+    } catch (BadLocationException ex) {
+      return false;
+    }
+  }
+
   /**
    * Checks whether <code>position</code> resides in a default (Dart) partition of
    * <code>fDocument</code>.

@@ -405,6 +405,7 @@ public class DartIndenter {
    * The Dart Core preferences.
    */
   private final CorePrefs fPrefs;
+  private int extraIndent = 0;
 
   /**
    * Creates a new instance.
@@ -512,6 +513,7 @@ public class DartIndenter {
    */
   public int findReferencePosition(int offset, boolean danglingElse, boolean matchBrace,
       boolean matchParen, boolean matchCase) {
+    extraIndent = 0;
     fIndent = 0; // the indentation modification
     fAlign = DartHeuristicScanner.NOT_FOUND;
     fPosition = offset;
@@ -715,6 +717,8 @@ public class DartIndenter {
    *         {@link DartHeuristicScanner#NOT_FOUND}
    */
   public int findReferencePosition(int offset, int nextToken) {
+    extraIndent = 0;
+    int cascadeIndent = 0;
     boolean danglingElse = false;
     boolean unindent = false;
     boolean indent = false;
@@ -767,6 +771,11 @@ public class DartIndenter {
               matchParen = true;
             }
             break;
+          case Symbols.TokenOTHER:
+            if (fScanner.isCurrentTokenCascade()) {
+              cascadeIndent = 1;
+            }
+            break;
         }
       } catch (BadLocationException e) {
       }
@@ -782,6 +791,7 @@ public class DartIndenter {
     if (indent) {
       fIndent++;
     }
+    extraIndent = cascadeIndent;
     return ref;
   }
 
@@ -805,21 +815,17 @@ public class DartIndenter {
    *         <code>offset</code> resides, or <code>null</code> if it cannot be determined
    */
   public StringBuffer getReferenceIndentation(int offset, boolean assumeOpeningBrace) {
-
     int unit;
     if (assumeOpeningBrace) {
       unit = findReferencePosition(offset, Symbols.TokenLBRACE);
     } else {
       unit = findReferencePosition(offset, peekChar(offset));
     }
-
     // if we were unable to find anything, return null
     if (unit == DartHeuristicScanner.NOT_FOUND) {
       return null;
     }
-
     return getLeadingWhitespace(unit);
-
   }
 
   /**
@@ -871,7 +877,7 @@ public class DartIndenter {
     final int tabLen = fPrefs.prefTabSize;
     final StringBuffer ret = new StringBuffer();
     try {
-      int spaces = 0;
+      int spaces = extraIndent * tabLen;
       while (start < indent) {
 
         char ch = fDocument.getChar(start);
