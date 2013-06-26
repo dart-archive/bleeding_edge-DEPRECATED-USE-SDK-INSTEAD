@@ -37,7 +37,8 @@ public class CompletionProposalImpl implements CompletionProposal {
   private boolean named = false;
   private boolean positional = false;
   private boolean deprecated = false;
-  private int relevance = 0;
+  private boolean potential = false;
+  private int relevance = 1;
 
   @Override
   public String getCompletion() {
@@ -105,6 +106,11 @@ public class CompletionProposalImpl implements CompletionProposal {
   }
 
   @Override
+  public boolean isPotentialMatch() {
+    return potential;
+  }
+
+  @Override
   public CompletionProposal setCompletion(String x) {
     completion = x;
     if (replacementLength == 0) {
@@ -158,6 +164,12 @@ public class CompletionProposalImpl implements CompletionProposal {
   }
 
   @Override
+  public CompletionProposal setPotentialMatch(boolean isPotentialMatch) {
+    potential = isPotentialMatch;
+    return this;
+  }
+
+  @Override
   public CompletionProposal setRelevance(int n) {
     relevance = n;
     return this;
@@ -174,5 +186,4 @@ public class CompletionProposalImpl implements CompletionProposal {
     returnType = name;
     return this;
   }
-
 }

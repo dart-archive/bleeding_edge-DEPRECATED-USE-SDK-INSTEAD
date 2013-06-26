@@ -170,6 +170,7 @@ public class CompletionEngine {
 
   class NameCollector {
     private Map<String, List<Element>> uniqueNames = new HashMap<String, List<Element>>();
+    private Set<Element> potentialMatches;
 
     public void addAll(Collection<SimpleIdentifier> values) {
       for (SimpleIdentifier id : values) {
@@ -195,6 +196,20 @@ public class CompletionEngine {
       mergeNames(execElement.getParameters());
       mergeNames(execElement.getLocalVariables());
       mergeNames(execElement.getFunctions());
+    }
+
+    void addNamesDefinedByHierarchy(ClassElement classElement) {
+      addNamesDefinedByTypes(allSuperTypes(classElement));
+      // Collect names defined by subtypes separately so they can be identified later.
+      NameCollector potentialMatchCollector = new NameCollector();
+      potentialMatchCollector.addNamesDefinedByTypes(allSubtypes(classElement));
+      potentialMatches = new HashSet<Element>(potentialMatchCollector.uniqueNames.size());
+      for (List<Element> matches : potentialMatchCollector.uniqueNames.values()) {
+        for (Element match : matches) {
+          mergeName(match);
+          potentialMatches.add(match);
+        }
+      }
     }
 
     void addNamesDefinedByType(InterfaceType type) {
@@ -229,6 +244,10 @@ public class CompletionEngine {
 
     Collection<List<Element>> getNames() {
       return uniqueNames.values();
+    }
+
+    boolean isPotentialMatch(Element element) {
+      return potentialMatches.contains(element);
     }
 
     void remove(Element element) {
@@ -1491,8 +1510,8 @@ public class CompletionEngine {
     // Completion x!
     filter = new Filter(identifier);
     // TODO Filter out types that have no static members.
-    Collection<List<Element>> uniqueNames = collectIdentifiersVisibleAt(identifier);
-    for (List<Element> uniques : uniqueNames) {
+    NameCollector names = collectIdentifiersVisibleAt(identifier);
+    for (List<Element> uniques : names.getNames()) {
       Element candidate = uniques.get(0);
       if (state.isSourceDeclarationStatic) {
         if (candidate instanceof FieldElement) {
@@ -1514,7 +1533,7 @@ public class CompletionEngine {
           continue;
         }
       }
-      proposeName(candidate, identifier);
+      proposeName(candidate, identifier, names);
     }
     if (state.areLiteralsAllowed) {
       pNull();
@@ -1566,10 +1585,10 @@ public class CompletionEngine {
   void analyzeReceiver(SimpleIdentifier identifier) {
     // Completion x!.y
     filter = new Filter(identifier);
-    Collection<List<Element>> uniqueNames = collectIdentifiersVisibleAt(identifier);
-    for (List<Element> uniques : uniqueNames) {
+    NameCollector names = collectIdentifiersVisibleAt(identifier);
+    for (List<Element> uniques : names.getNames()) {
       Element candidate = uniques.get(0);
-      proposeName(candidate, identifier);
+      proposeName(candidate, identifier, names);
     }
   }
 
@@ -1621,7 +1640,7 @@ public class CompletionEngine {
     filter = new Filter(identifier);
     for (ConstructorElement cons : classElement.getConstructors()) {
       if (state.isCompileTimeConstantRequired == cons.isConst() && filterAllows(cons)) {
-        pExecutable(cons, identifier);
+        pExecutable(cons, identifier, false);
       }
     }
   }
@@ -1630,8 +1649,7 @@ public class CompletionEngine {
     filter = new Filter(identifier);
     NameCollector names = new NameCollector();
     names.addLocalNames(identifier);
-    names.addNamesDefinedByTypes(allSuperTypes(classElement));
-    names.addNamesDefinedByTypes(allSubtypes(classElement));
+    names.addNamesDefinedByHierarchy(classElement);
     names.addTopLevelNames();
     proposeNames(names, identifier);
   }
@@ -1819,8 +1837,7 @@ public class CompletionEngine {
     // Complete identifier when it refers to field or method in classElement.
     filter = new Filter(identifier);
     NameCollector names = new NameCollector();
-    names.addNamesDefinedByTypes(allSuperTypes(classElement));
-    names.addNamesDefinedByTypes(allSubtypes(classElement));
+    names.addNamesDefinedByHierarchy(classElement);
     proposeNames(names, identifier);
   }
 
@@ -1877,7 +1894,7 @@ public class CompletionEngine {
     return allTypes;
   }
 
-  private Collection<List<Element>> collectIdentifiersVisibleAt(ASTNode ident) {
+  private NameCollector collectIdentifiersVisibleAt(ASTNode ident) {
     NameCollector names = new NameCollector();
     ScopedNameFinder finder = new ScopedNameFinder(completionLocation());
     ident.accept(finder);
@@ -1885,11 +1902,10 @@ public class CompletionEngine {
     Declaration decl = finder.getDeclaration();
     if (decl != null && decl.getParent() instanceof ClassDeclaration) {
       ClassElement classElement = ((ClassDeclaration) decl.getParent()).getElement();
-      names.addNamesDefinedByTypes(allSuperTypes(classElement));
-      names.addNamesDefinedByTypes(allSubtypes(classElement)); // to complete subtypes of HTML elements
+      names.addNamesDefinedByHierarchy(classElement);
     }
     names.addTopLevelNames();
-    return names.getNames();
+    return names;
   }
 
   private int completionLocation() {
@@ -2144,7 +2160,7 @@ public class CompletionEngine {
         proposal.hasNamed(),
         proposal.hasPositional());
     prop.setReplacementLength(0).setLocation(completionLocation());
-    prop.setRelevance(proposal.getRelevance() + 10);
+    prop.setRelevance(10);
     requestor.accept(prop);
   }
 
@@ -2152,7 +2168,8 @@ public class CompletionEngine {
     pWord(C_DYNAMIC, ProposalKind.VARIABLE);
   }
 
-  private void pExecutable(ExecutableElement element, SimpleIdentifier identifier) {
+  private void pExecutable(ExecutableElement element, SimpleIdentifier identifier,
+      boolean isPotentialMatch) {
     // Create a completion proposal for the element: function, method, getter, setter, constructor.
     String name = element.getDisplayName();
     if (name.isEmpty() || filterDisallows(element)) {
@@ -2160,7 +2177,10 @@ public class CompletionEngine {
     }
     ProposalKind kind = proposalKindOf(element);
     CompletionProposal prop = createProposal(kind);
-    prop.setDeprecated(isDeprecated(element));
+    prop.setDeprecated(isDeprecated(element)).setPotentialMatch(isPotentialMatch);
+    if (isPotentialMatch) {
+      prop.setRelevance(0);
+    }
     setParameterInfo(element, prop);
     prop.setCompletion(name).setReturnType(element.getType().getReturnType().getName());
     Element container = element.getEnclosingElement();
@@ -2337,14 +2357,14 @@ public class CompletionEngine {
     return kind;
   }
 
-  private void proposeName(Element element, SimpleIdentifier identifier) {
+  private void proposeName(Element element, SimpleIdentifier identifier, NameCollector names) {
     switch (element.getKind()) {
       case FUNCTION:
       case GETTER:
       case METHOD:
       case SETTER:
         ExecutableElement candidate = (ExecutableElement) element;
-        pExecutable(candidate, identifier);
+        pExecutable(candidate, identifier, names.isPotentialMatch(candidate));
         break;
       case LOCAL_VARIABLE:
       case PARAMETER:
@@ -2363,7 +2383,7 @@ public class CompletionEngine {
   private void proposeNames(NameCollector names, SimpleIdentifier identifier) {
     for (List<Element> uniques : names.getNames()) {
       Element element = uniques.get(0);
-      proposeName(element, identifier);
+      proposeName(element, identifier, names);
     }
   }
 

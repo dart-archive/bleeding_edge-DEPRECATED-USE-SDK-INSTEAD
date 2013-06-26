@@ -782,10 +782,6 @@ public class CompletionProposal {
     return null; // default overridden by concrete implementation
   }
 
-  public boolean isDeprecated() {
-    return false;
-  }
-
   /**
    * Return the modifier flags relevant in the context, or <code>Flags.AccDefault</code> if none.
    * <p>
@@ -1158,11 +1154,19 @@ public class CompletionProposal {
     return false; // default overridden by concrete implementation
   }
 
+  public boolean isDeprecated() {
+    return false;
+  }
+
   public boolean isGetOrSet() {
     return false;
   }
 
   public boolean isInterface() {
+    return false;
+  }
+
+  public boolean isPotentialMatch() {
     return false;
   }
 

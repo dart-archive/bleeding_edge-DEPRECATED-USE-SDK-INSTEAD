@@ -41,6 +41,8 @@ public interface CompletionProposal {
 
   boolean isDeprecated();
 
+  boolean isPotentialMatch();
+
   CompletionProposal setCompletion(String x);
 
   CompletionProposal setDeclaringType(String name);
@@ -56,6 +58,8 @@ public interface CompletionProposal {
   CompletionProposal setParameterStyle(int count, boolean named, boolean positional);
 
   CompletionProposal setParameterTypes(String[] paramTypes);
+
+  CompletionProposal setPotentialMatch(boolean isPotentialMatch);
 
   CompletionProposal setRelevance(int n);
 

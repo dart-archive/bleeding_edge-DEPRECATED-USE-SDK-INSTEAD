@@ -325,6 +325,9 @@ public class CompletionProposalLabelProvider {
         TypeLabelUtil.insertTypeLabel(typeName, buf);
       }
     }
+    if (proposal.isPotentialMatch()) {
+      potentialize(buf, proposal);
+    }
     return buf;
   }
 
@@ -422,13 +425,9 @@ public class CompletionProposalLabelProvider {
         }
       }
     }
-
-    // declaring type
-//    String declaringType = extractDeclaringTypeFQN(methodProposal);
-//    if (!declaringType.isEmpty()) {
-//      label.append(" - "); //$NON-NLS-1$
-//      TypeLabelUtil.insertTypeLabel(declaringType, label);
-//    }
+    if (methodProposal.isPotentialMatch()) {
+      potentialize(label, methodProposal);
+    }
     return label;
   }
 
@@ -524,6 +523,16 @@ public class CompletionProposalLabelProvider {
     // signature= typeProposal.getSignature();
     // char[] fullName= Signature.toCharArray(signature);
     // return createTypeProposalLabel(fullName);
+  }
+
+  void potentialize(StyledString label, CompletionProposal proposal) {
+    label.setStyle(0, label.length(), StyledString.QUALIFIER_STYLER);
+    // declaring type
+    String declaringType = extractDeclaringTypeFQN(proposal);
+    if (!declaringType.isEmpty()) {
+      label.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
+      label.append(declaringType, StyledString.QUALIFIER_STYLER);
+    }
   }
 
   /**
