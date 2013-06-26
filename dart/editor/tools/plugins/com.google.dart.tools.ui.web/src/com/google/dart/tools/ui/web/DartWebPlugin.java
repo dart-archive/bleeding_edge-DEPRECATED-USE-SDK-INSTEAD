@@ -13,9 +13,13 @@
  */
 package com.google.dart.tools.ui.web;
 
+import com.google.dart.tools.ui.DartToolsPlugin;
+
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.StringConverter;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.swt.SWT;
@@ -25,11 +29,8 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.FormColors;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.ui.themes.ITheme;
-import org.eclipse.ui.themes.IThemeManager;
 import org.osgi.framework.BundleContext;
 
 import java.util.HashMap;
@@ -45,8 +46,6 @@ public class DartWebPlugin extends AbstractUIPlugin {
 
   // The shared instance
   private static DartWebPlugin plugin;
-
-  public static final String COLOR_ALT_COMMENTS = "org.eclipse.wst.jsdt.ui.annotationHighlighting";
 
   /**
    * Get a image from this plugin's icons directory.
@@ -96,14 +95,15 @@ public class DartWebPlugin extends AbstractUIPlugin {
 
   private Font italicFont = null;
   private FormColors formColors;
-  private Map<String, Color> colors = new HashMap<String, Color>();
+  private Map<RGB, Color> colors = new HashMap<RGB, Color>();
 
-  public static final String COLOR_COMMENTS = "org.eclipse.wst.jsdt.ui.java_multi_line_comment";
-  public static final String COLOR_SINGLE_COMMENTS = "org.eclipse.wst.jsdt.ui.java_single_line_comment";
-  public static final String COLOR_DOC_COMMENTS = "org.eclipse.wst.jsdt.ui.java_doc_default";
-  public static final String COLOR_STRING = "org.eclipse.wst.jsdt.ui.java_string";
-  public static final String COLOR_KEYWORD = "org.eclipse.wst.jsdt.ui.java_keyword";
-  public static final String COLOR_STATIC_FIELD = "org.eclipse.wst.jsdt.ui.fieldHighlighting";
+  public static final String COLOR_COMMENTS = "dart_multi_line_comment";
+  public static final String COLOR_SINGLE_COMMENTS = "dart_single_line_comment";
+  public static final String COLOR_DOC_COMMENTS = "dart_doc_default";
+  public static final String COLOR_STRING = "dart_string";
+  public static final String COLOR_KEYWORD = "dart_keyword";
+  public static final String COLOR_STATIC_FIELD = "dart_keyword_return";
+  public static final String COLOR_ALT_COMMENTS = "dart_single_line_comment";
 
   private Map<String, Image> imageMap = new HashMap<String, Image>();
 
@@ -112,16 +112,16 @@ public class DartWebPlugin extends AbstractUIPlugin {
   }
 
   public Color getEditorColor(String id) {
-    if (colors.get(id) == null) {
-      IThemeManager themeManager = PlatformUI.getWorkbench().getThemeManager();
-      ITheme theme = themeManager.getCurrentTheme();
+    IPreferenceStore store = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
 
-      RGB rgb = theme.getColorRegistry().getRGB(id);
+    String value = store.getString(id);
+    RGB rgb = StringConverter.asRGB(value);
 
-      colors.put(id, new Color(Display.getDefault(), rgb));
+    if (colors.get(rgb) == null) {
+      colors.put(rgb, new Color(Display.getDefault(), rgb));
     }
 
-    return colors.get(id);
+    return colors.get(rgb);
   }
 
   public FormColors getFormColors(Display display) {

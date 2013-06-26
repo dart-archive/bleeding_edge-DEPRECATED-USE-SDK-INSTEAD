@@ -23,7 +23,6 @@ import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WordRule;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Display;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,8 +43,8 @@ class JsonStringScanner extends RuleBasedScanner {
   }
 
   public JsonStringScanner(JsonEditor editor) {
-    Token stringToken = new Token(new TextAttribute(Display.getDefault().getSystemColor(
-        SWT.COLOR_BLUE)));
+    Token stringToken = new Token(new TextAttribute(DartWebPlugin.getPlugin().getEditorColor(
+        DartWebPlugin.COLOR_STRING)));
     Token keywordToken = new Token(new TextAttribute(DartWebPlugin.getPlugin().getEditorColor(
         DartWebPlugin.COLOR_KEYWORD), null, SWT.BOLD));
 
