@@ -247,7 +247,7 @@ public class CompletionEngine {
     }
 
     boolean isPotentialMatch(Element element) {
-      return potentialMatches.contains(element);
+      return potentialMatches != null && potentialMatches.contains(element);
     }
 
     void remove(Element element) {
