@@ -406,7 +406,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         }
       }
       checkForFinalNotInitialized(node);
-      checkForInstanceStaticMembers();
+      checkForDuplicateDefinitionInheritance();
       checkForConflictingGetterAndMethod();
       return super.visitClassDeclaration(node);
     } finally {
@@ -2295,6 +2295,60 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This verifies that the enclosing class does not have an instance member with the given name of
+   * the static member.
+   * 
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#DUPLICATE_DEFINITION_INHERITANCE
+   */
+  private boolean checkForDuplicateDefinitionInheritance() {
+    if (enclosingClass == null) {
+      return false;
+    }
+    boolean hasProblem = false;
+    for (MethodElement method : enclosingClass.getMethods()) {
+      if (!method.isStatic()) {
+        continue;
+      }
+      hasProblem |= checkForDuplicateDefinitionInheritance(method);
+    }
+    return hasProblem;
+  }
+
+  /**
+   * This verifies that the enclosing class does not have an instance member with the given name of
+   * the static member.
+   * 
+   * @param staticMember the static member to check conflict for
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#DUPLICATE_DEFINITION_INHERITANCE
+   */
+  private boolean checkForDuplicateDefinitionInheritance(ExecutableElement staticMember) {
+    // prepare name
+    String name = staticMember.getName();
+    if (name == null) {
+      return false;
+    }
+    // try to find member
+    ExecutableElement inheritedMember = inheritanceManager.lookupInheritance(enclosingClass, name);
+    if (inheritedMember == null) {
+      return false;
+    }
+    // OK, also static
+    if (inheritedMember.isStatic()) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(
+        CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE,
+        staticMember.getNameOffset(),
+        name.length(),
+        name,
+        inheritedMember.getEnclosingElement().getDisplayName());
+    return true;
+  }
+
+  /**
    * This verifies the passed import has unique name among other exported libraries.
    * 
    * @param node the export directive to evaluate
@@ -2797,60 +2851,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       errorReporter.reportError(error);
     }
     return true;
-  }
-
-  /**
-   * This verifies that the enclosing class does not have an instance member with the given name of
-   * the static member.
-   * 
-   * @param staticMember the static member to check conflict for
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#INSTANCE_STATIC_MEMBER
-   */
-  private boolean checkForInstanceStaticMember(ExecutableElement staticMember) {
-    // prepare name
-    String name = staticMember.getName();
-    if (name == null) {
-      return false;
-    }
-    // try to find member
-    ExecutableElement inheritedMember = inheritanceManager.lookupInheritance(enclosingClass, name);
-    if (inheritedMember == null) {
-      return false;
-    }
-    // OK, also static
-    if (inheritedMember.isStatic()) {
-      return false;
-    }
-    // report problem
-    errorReporter.reportError(
-        CompileTimeErrorCode.INSTANCE_STATIC_MEMBER,
-        staticMember.getNameOffset(),
-        name.length(),
-        enclosingClass.getName(),
-        name);
-    return true;
-  }
-
-  /**
-   * This verifies that the enclosing class does not have an instance member with the given name of
-   * the static member.
-   * 
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#INSTANCE_STATIC_MEMBER
-   */
-  private boolean checkForInstanceStaticMembers() {
-    if (enclosingClass == null) {
-      return false;
-    }
-    boolean hasProblem = false;
-    for (MethodElement method : enclosingClass.getMethods()) {
-      if (!method.isStatic()) {
-        continue;
-      }
-      hasProblem |= checkForInstanceStaticMember(method);
-    }
-    return hasProblem;
   }
 
   /**

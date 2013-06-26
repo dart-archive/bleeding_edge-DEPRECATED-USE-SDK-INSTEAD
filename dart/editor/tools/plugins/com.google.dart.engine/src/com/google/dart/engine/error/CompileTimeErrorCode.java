@@ -305,21 +305,27 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name
    * declared in the same scope.
+   * <p>
+   * 7 Classes: It is a compile-time error if a class declares two members of the same name.
+   * <p>
+   * 7 Classes: It is a compile-time error if a class has an instance member and a static member
+   * with the same name.
    * 
    * @param duplicateName the name of the duplicate entity
    */
   DUPLICATE_DEFINITION("The name '%s' is already defined"),
 
   /**
-   * 7 Classes: It is a compile-time error if a class declares two members of the same name.
-   */
-  DUPLICATE_MEMBER_NAME(""),
-
-  /**
-   * 7 Classes: It is a compile-time error if a class has an instance member and a static member
+   * 7. Classes: It is a compile-time error if a class has an instance member and a static member
    * with the same name.
+   * <p>
+   * This covers the additional duplicate definition cases where inheritance has to be considered.
+   * 
+   * @param className the name of the class that has conflicting instance/static members
+   * @param name the name of the conflicting members
+   * @see #DUPLICATE_DEFINITION
    */
-  DUPLICATE_MEMBER_NAME_INSTANCE_STATIC(""),
+  DUPLICATE_DEFINITION_INHERITANCE("The name '%s' is already defined in '%s'"),
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a compile-time error if <i>q<sub>i</sub> =
@@ -589,16 +595,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * <b>this</b>.<i>id</i>.
    */
   INSTANCE_MEMBER_ACCESS_FROM_STATIC("Instance member cannot be accessed from static method"),
-
-  /**
-   * 7. Classes: It is a compile-time error if a class has an instance member and a static member
-   * with the same name.
-   * 
-   * @param className the name of the class that has conflicting instance/static members
-   * @param name the name of the conflicting members
-   */
-  INSTANCE_STATIC_MEMBER(
-      "'%s' cannot have both instance and static members with the same name '%s'"),
 
   /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time
