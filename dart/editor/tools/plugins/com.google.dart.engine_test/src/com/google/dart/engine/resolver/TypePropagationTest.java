@@ -20,7 +20,6 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionStatement;
-import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.IfStatement;
@@ -163,26 +162,28 @@ public class TypePropagationTest extends ResolverTestCase {
   }
 
   public void test_forEach() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "A f(List<A> p) {",
+    String code = createSource(//
+        "f(List<String> p) {",
         "  for (var e in p) {",
-        "    return e;",
+        "    e;",
         "  }",
-        "}"));
+        "}");
+    Source source = addSource(code);
     LibraryElement library = resolve(source);
     assertNoErrors();
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
-    ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
-    InterfaceType typeA = classA.getElement().getType();
-    FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(1);
-    BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
-    ForEachStatement forStatement = (ForEachStatement) body.getBlock().getStatements().get(0);
-    ReturnStatement statement = (ReturnStatement) ((Block) forStatement.getBody()).getStatements().get(
-        0);
-    SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
-    assertSame(typeA, variableName.getPropagatedType());
+    InterfaceType stringType = getTypeProvider().getStringType();
+    // in the declaration
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "e in", SimpleIdentifier.class);
+      assertSame(stringType, identifier.getPropagatedType());
+    }
+    // in the loop body
+    {
+      SimpleIdentifier identifier = findNode(unit, code, "e;", SimpleIdentifier.class);
+      assertSame(stringType, identifier.getPropagatedType());
+    }
   }
 
   public void test_functionExpression_asInvocationArgument() throws Exception {

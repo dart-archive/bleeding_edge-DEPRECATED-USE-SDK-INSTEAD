@@ -969,10 +969,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             //
             // Resolve the rest of the structure
             //
+            InheritanceManager inheritanceManager = new InheritanceManager(libraryElement);
             ResolverVisitor resolverVisitor = new ResolverVisitor(
                 libraryElement,
                 unitSource,
                 typeProvider,
+                inheritanceManager,
                 errorListener);
             unitAST.accept(resolverVisitor);
             //
@@ -983,7 +985,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 errorReporter,
                 libraryElement,
                 typeProvider,
-                new InheritanceManager(libraryElement));
+                inheritanceManager);
             unitAST.accept(errorVerifier);
 
             ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, typeProvider);

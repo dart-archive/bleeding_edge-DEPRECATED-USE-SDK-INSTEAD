@@ -73,7 +73,6 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -94,6 +93,11 @@ import java.util.HashMap;
  * @coverage dart.engine.resolver
  */
 public class ResolverVisitor extends ScopedVisitor {
+  /**
+   * The manager for the inheritance mappings.
+   */
+  private final InheritanceManager inheritanceManager;
+
   /**
    * The object used to resolve the element associated with the current node.
    */
@@ -130,6 +134,7 @@ public class ResolverVisitor extends ScopedVisitor {
    */
   public ResolverVisitor(Library library, Source source, TypeProvider typeProvider) {
     super(library, source, typeProvider);
+    this.inheritanceManager = library.getInheritanceManager();
     this.elementResolver = new ElementResolver(this);
     this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
@@ -145,8 +150,9 @@ public class ResolverVisitor extends ScopedVisitor {
    *          during resolution
    */
   public ResolverVisitor(LibraryElement definingLibrary, Source source, TypeProvider typeProvider,
-      AnalysisErrorListener errorListener) {
+      InheritanceManager inheritanceManager, AnalysisErrorListener errorListener) {
     super(definingLibrary, source, typeProvider, errorListener);
+    this.inheritanceManager = inheritanceManager;
     this.elementResolver = new ElementResolver(this);
     this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
@@ -773,7 +779,9 @@ public class ResolverVisitor extends ScopedVisitor {
         if (loopVariable != null && iterator != null) {
           LocalVariableElement loopElement = loopVariable.getElement();
           if (loopElement != null) {
-            override(loopElement, getIteratorElementType(iterator));
+            Type iteratorElementType = getIteratorElementType(iterator);
+            override(loopElement, iteratorElementType);
+            recordPropagatedType(loopVariable.getIdentifier(), iteratorElementType);
           }
         }
         body.accept(this);
@@ -832,23 +840,23 @@ public class ResolverVisitor extends ScopedVisitor {
   private Type getIteratorElementType(Expression iteratorExpression) {
     Type expressionType = iteratorExpression.getStaticType();
     if (expressionType instanceof InterfaceType) {
-      PropertyAccessorElement iterator = ((InterfaceType) expressionType).lookUpGetter(
-          "iterator",
-          getDefiningLibrary());
-      if (iterator == null) {
+      InterfaceType interfaceType = (InterfaceType) expressionType;
+      FunctionType iteratorFunction = inheritanceManager.lookupMemberType(interfaceType, "iterator");
+      if (iteratorFunction == null) {
         // TODO(brianwilkerson) Should we report this error?
         return null;
       }
-      Type iteratorType = iterator.getType().getReturnType();
+      Type iteratorType = iteratorFunction.getReturnType();
       if (iteratorType instanceof InterfaceType) {
-        PropertyAccessorElement current = ((InterfaceType) iteratorType).lookUpGetter(
-            "current",
-            getDefiningLibrary());
-        if (current == null) {
+        InterfaceType iteratorInterfaceType = (InterfaceType) iteratorType;
+        FunctionType currentFunction = inheritanceManager.lookupMemberType(
+            iteratorInterfaceType,
+            "current");
+        if (currentFunction == null) {
           // TODO(brianwilkerson) Should we report this error?
           return null;
         }
-        return current.getType().getReturnType();
+        return currentFunction.getReturnType();
       }
     }
     return null;
@@ -1015,6 +1023,18 @@ public class ResolverVisitor extends ScopedVisitor {
       }
     } else if (condition instanceof ParenthesizedExpression) {
       propagateTrueState(((ParenthesizedExpression) condition).getExpression());
+    }
+  }
+
+  /**
+   * Record that the propagated type of the given node is the given type.
+   * 
+   * @param expression the node whose type is to be recorded
+   * @param type the propagated type of the node
+   */
+  private void recordPropagatedType(Expression expression, Type type) {
+    if (type != null && !type.isDynamic()) {
+      expression.setPropagatedType(type);
     }
   }
 }

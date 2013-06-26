@@ -155,6 +155,28 @@ public class InheritanceManager {
   }
 
   /**
+   * Given some {@link InterfaceType interface type} and some member name, this returns the
+   * {@link FunctionType function type} of the {@link ExecutableElement executable element} that the
+   * class either declares itself, or inherits, that has the member name, if no member is inherited
+   * {@code null} is returned. The returned {@link FunctionType function type} has all type
+   * parameters substituted with corresponding type arguments from the given {@link InterfaceType}.
+   * 
+   * @param interfaceType the interface type to query
+   * @param memberName the name of the executable element to find and return
+   * @return the member's function type, or {@code null} if no such member exists
+   */
+  public FunctionType lookupMemberType(InterfaceType interfaceType, String memberName) {
+    ExecutableElement iteratorMember = lookupMember(interfaceType.getElement(), memberName);
+    if (iteratorMember == null) {
+      return null;
+    }
+    return substituteTypeArgumentsInMemberFromInheritance(
+        iteratorMember.getType(),
+        memberName,
+        interfaceType);
+  }
+
+  /**
    * Set the new library element context.
    * 
    * @param library the new library element
@@ -185,18 +207,17 @@ public class InheritanceManager {
     LinkedList<InterfaceType> inheritancePath = new LinkedList<InterfaceType>();
     computeInheritancePath(inheritancePath, definingType, memberName);
 
-    if (inheritancePath == null || inheritancePath.size() < 2) {
+    if (inheritancePath == null || inheritancePath.isEmpty()) {
       // TODO(jwren) log analysis engine error
       return baseFunctionType;
     }
     FunctionType functionTypeToReturn = baseFunctionType;
     // loop backward through the list substituting as we go:
-    InterfaceType lastType = inheritancePath.removeLast();
-    while (inheritancePath.size() > 0) {
+    while (!inheritancePath.isEmpty()) {
+      InterfaceType lastType = inheritancePath.removeLast();
       Type[] parameterTypes = lastType.getElement().getType().getTypeArguments();
       Type[] argumentTypes = lastType.getTypeArguments();
       functionTypeToReturn = functionTypeToReturn.substitute(argumentTypes, parameterTypes);
-      lastType = inheritancePath.removeLast();
     }
     return functionTypeToReturn;
   }
