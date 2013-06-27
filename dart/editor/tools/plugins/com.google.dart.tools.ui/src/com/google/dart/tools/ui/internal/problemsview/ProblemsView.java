@@ -895,7 +895,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     startUpdateJob(swtDisplay);
 
     MarkersChangeService.getService().addListener(this);
-
+    getPreferences().addPropertyChangeListener(propertyChangeListener);
     focusOnActiveEditor();
   }
 
