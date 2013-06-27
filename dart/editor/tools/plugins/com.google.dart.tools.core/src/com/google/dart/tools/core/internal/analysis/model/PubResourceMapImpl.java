@@ -85,11 +85,13 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
             return packagesFolder.getFile(new Path(pkgName).append(relPath));
           }
         } else {
-          String relPath = sourcePath.substring(packagesLocation.toString().length());
-          String pkgNamePath = "/" + pkgName + "/";
-          if (pkgPath.startsWith(canonicalContainerPath) && relPath.startsWith(pkgNamePath)) {
-            return getResource().getFile(
-                new Path(pkgPath.substring(canonicalContainerPath.length())).append(relPath.substring(pkgNamePath.length())));
+          if (sourcePath.length() > packagesLocation.toString().length()) {
+            String relPath = sourcePath.substring(packagesLocation.toString().length());
+            String pkgNamePath = "/" + pkgName + "/";
+            if (pkgPath.startsWith(canonicalContainerPath) && relPath.startsWith(pkgNamePath)) {
+              return getResource().getFile(
+                  new Path(pkgPath.substring(canonicalContainerPath.length())).append(relPath.substring(pkgNamePath.length())));
+            }
           }
         }
       }
