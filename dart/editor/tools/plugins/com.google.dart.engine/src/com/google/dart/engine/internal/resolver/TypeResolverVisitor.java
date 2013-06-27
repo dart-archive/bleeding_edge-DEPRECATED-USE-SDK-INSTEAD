@@ -82,6 +82,7 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 /**
  * Instances of the class {@code TypeResolverVisitor} are used to resolve the types associated with
@@ -213,6 +214,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     element.setReturnType(definingClass.getType());
     FunctionTypeImpl type = new FunctionTypeImpl(element);
     type.setTypeArguments(definingClass.getType().getTypeArguments());
+    setTypeInformation(type, element.getParameters());
     element.setType(type);
     return null;
   }
@@ -280,6 +282,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     if (definingClass != null) {
       type.setTypeArguments(definingClass.getType().getTypeArguments());
     }
+    setTypeInformation(type, element.getParameters());
     element.setType(type);
     return null;
   }
@@ -289,6 +292,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
     super.visitFunctionTypeAlias(node);
     FunctionTypeAliasElementImpl element = (FunctionTypeAliasElementImpl) node.getElement();
     element.setReturnType(computeReturnType(node.getReturnType()));
+    FunctionTypeImpl type = (FunctionTypeImpl) element.getType();
+    setTypeInformation(type, element.getParameters());
     return null;
   }
 
@@ -315,6 +320,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
         type.setTypeArguments(TypeVariableTypeImpl.EMPTY_ARRAY);
       }
     }
+    setTypeInformation(type, parameters);
     element.setType(type);
     return null;
   }
@@ -329,6 +335,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     if (definingClass != null) {
       type.setTypeArguments(definingClass.getType().getTypeArguments());
     }
+    setTypeInformation(type, element.getParameters());
     element.setType(type);
     if (element instanceof PropertyAccessorElement) {
       PropertyAccessorElement accessor = (PropertyAccessorElement) element;
@@ -633,15 +640,12 @@ public class TypeResolverVisitor extends ScopedVisitor {
 
         PropertyAccessorElementImpl setter = (PropertyAccessorElementImpl) variableElement.getSetter();
         if (setter != null) {
-          ParameterElement[] parameters = setter.getParameters();
-          if (parameters.length > 0) {
-            ((ParameterElementImpl) parameters[0]).setType(declaredType);
-          }
           setter.setReturnType(VoidTypeImpl.getInstance());
           FunctionTypeImpl setterType = new FunctionTypeImpl(setter);
           if (definingClass != null) {
             setterType.setTypeArguments(definingClass.getType().getTypeArguments());
           }
+          setterType.setNormalParameterTypes(new Type[] {declaredType});
           setter.setType(setterType);
         }
       }
@@ -1011,6 +1015,41 @@ public class TypeResolverVisitor extends ScopedVisitor {
           prefix.setElement(prefixElement);
         }
       }
+    }
+  }
+
+  /**
+   * Set the return type and parameter type information for the given function type based on the
+   * given return type and parameter elements.
+   * 
+   * @param functionType the function type to be filled in
+   * @param parameters the elements representing the parameters to the function
+   */
+  private void setTypeInformation(FunctionTypeImpl functionType, ParameterElement[] parameters) {
+    ArrayList<Type> normalParameterTypes = new ArrayList<Type>();
+    ArrayList<Type> optionalParameterTypes = new ArrayList<Type>();
+    LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
+    for (ParameterElement parameter : parameters) {
+      switch (parameter.getParameterKind()) {
+        case REQUIRED:
+          normalParameterTypes.add(parameter.getType());
+          break;
+        case POSITIONAL:
+          optionalParameterTypes.add(parameter.getType());
+          break;
+        case NAMED:
+          namedParameterTypes.put(parameter.getName(), parameter.getType());
+          break;
+      }
+    }
+    if (!normalParameterTypes.isEmpty()) {
+      functionType.setNormalParameterTypes(normalParameterTypes.toArray(new Type[normalParameterTypes.size()]));
+    }
+    if (!optionalParameterTypes.isEmpty()) {
+      functionType.setOptionalParameterTypes(optionalParameterTypes.toArray(new Type[optionalParameterTypes.size()]));
+    }
+    if (!namedParameterTypes.isEmpty()) {
+      functionType.setNamedParameterTypes(namedParameterTypes);
     }
   }
 }

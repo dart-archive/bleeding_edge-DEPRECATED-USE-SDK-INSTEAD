@@ -108,7 +108,6 @@ import static com.google.dart.engine.element.ElementFactory.localVariableElement
 import static com.google.dart.engine.element.ElementFactory.methodElement;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -1066,17 +1065,14 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   private FunctionExpression resolvedFunctionExpression(FormalParameterList parameters,
       FunctionBody body) {
-    ArrayList<ParameterElement> parameterElements = new ArrayList<ParameterElement>();
     for (FormalParameter parameter : parameters.getParameters()) {
       ParameterElementImpl element = new ParameterElementImpl(parameter.getIdentifier());
       element.setParameterKind(parameter.getKind());
       element.setType(typeProvider.getDynamicType());
       parameter.getIdentifier().setElement(element);
-      parameterElements.add(element);
     }
     FunctionExpression node = functionExpression(parameters, body);
     FunctionElementImpl element = new FunctionElementImpl(null);
-    element.setParameters(parameterElements.toArray(new ParameterElement[parameterElements.size()]));
     element.setType(new FunctionTypeImpl(element));
     node.setElement(element);
     return node;

@@ -27,6 +27,7 @@ import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
+import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
@@ -75,6 +76,7 @@ import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
+import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
@@ -83,7 +85,9 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeVariableType;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * Instances of the class {@code StaticTypeAnalyzer} perform two type-related tasks. First, they
@@ -470,7 +474,10 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     ExecutableElementImpl functionElement = (ExecutableElementImpl) node.getElement();
     functionElement.setReturnType(computeStaticReturnType(node));
     recordPropagatedType(functionElement, function.getBody());
-    recordStaticType(function, functionElement.getType());
+    // Set function type.
+    FunctionTypeImpl functionType = (FunctionTypeImpl) functionElement.getType();
+    setTypeInformation(functionType, function.getParameters());
+    recordStaticType(function, functionType);
     return null;
   }
 
@@ -513,7 +520,10 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     ExecutableElementImpl functionElement = (ExecutableElementImpl) node.getElement();
     functionElement.setReturnType(computeStaticReturnType(node));
     recordPropagatedType(functionElement, node.getBody());
-    recordStaticType(node, node.getElement().getType());
+    // Set function type.
+    FunctionTypeImpl functionType = (FunctionTypeImpl) node.getElement().getType();
+    setTypeInformation(functionType, node.getParameters());
+    recordStaticType(node, functionType);
     return null;
   }
 
@@ -1827,5 +1837,36 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     }
     // default
     return staticType;
+  }
+
+  /**
+   * Set the return type and parameter type information for the given function type based on the
+   * given return type and parameter elements.
+   * 
+   * @param functionType the function type to be filled in
+   * @param parameters the elements representing the parameters to the function
+   */
+  private void setTypeInformation(FunctionTypeImpl functionType, FormalParameterList parameterList) {
+    ArrayList<Type> normalParameterTypes = new ArrayList<Type>();
+    ArrayList<Type> optionalParameterTypes = new ArrayList<Type>();
+    LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
+    if (parameterList != null) {
+      for (ParameterElement parameter : parameterList.getElements()) {
+        switch (parameter.getParameterKind()) {
+          case REQUIRED:
+            normalParameterTypes.add(parameter.getType());
+            break;
+          case POSITIONAL:
+            optionalParameterTypes.add(parameter.getType());
+            break;
+          case NAMED:
+            namedParameterTypes.put(parameter.getName(), parameter.getType());
+            break;
+        }
+      }
+    }
+    functionType.setNormalParameterTypes(normalParameterTypes.toArray(new Type[normalParameterTypes.size()]));
+    functionType.setOptionalParameterTypes(optionalParameterTypes.toArray(new Type[optionalParameterTypes.size()]));
+    functionType.setNamedParameterTypes(namedParameterTypes);
   }
 }
