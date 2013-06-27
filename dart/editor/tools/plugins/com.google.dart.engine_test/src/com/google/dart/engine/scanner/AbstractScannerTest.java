@@ -640,6 +640,10 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.STRING, "'''string'''");
   }
 
+  public void test_string_multi_slashEnter() throws Exception {
+    assertError(ScannerErrorCode.CHARACTER_EXPECTED_AFTER_SLASH, 0, "'''\\\n'''");
+  }
+
   public void test_string_multi_unterminated() throws Exception {
     assertError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''string");
   }

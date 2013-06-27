@@ -933,6 +933,13 @@ public abstract class AbstractScanner {
         if (next == -1) {
           break;
         }
+        if (next == '\r' || next == '\n') {
+          errorListener.onError(new AnalysisError(
+              getSource(),
+              getOffset() - 1,
+              1,
+              ScannerErrorCode.CHARACTER_EXPECTED_AFTER_SLASH));
+        }
       }
       next = advance();
     }

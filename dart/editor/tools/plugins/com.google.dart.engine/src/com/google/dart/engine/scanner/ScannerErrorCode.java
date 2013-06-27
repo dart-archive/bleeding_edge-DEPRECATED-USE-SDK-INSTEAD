@@ -24,11 +24,12 @@ import com.google.dart.engine.error.ErrorType;
  * @coverage dart.engine.parser
  */
 public enum ScannerErrorCode implements ErrorCode {
-  ILLEGAL_CHARACTER("Illegal character %x"), //
-  MISSING_DIGIT("Decimal digit expected"), //
-  MISSING_HEX_DIGIT("Hexidecimal digit expected"), //
-  MISSING_QUOTE("Expected quote (' or \")"), //
-  UNTERMINATED_MULTI_LINE_COMMENT("Unterminated multi-line comment"), //
+  CHARACTER_EXPECTED_AFTER_SLASH("Character expected after slash"),
+  ILLEGAL_CHARACTER("Illegal character %x"),
+  MISSING_DIGIT("Decimal digit expected"),
+  MISSING_HEX_DIGIT("Hexidecimal digit expected"),
+  MISSING_QUOTE("Expected quote (' or \")"),
+  UNTERMINATED_MULTI_LINE_COMMENT("Unterminated multi-line comment"),
   UNTERMINATED_STRING_LITERAL("Unterminated string literal");
 
   /**
