@@ -633,6 +633,18 @@ public class ErrorParserTest extends ParserTestCase {
     parseCompilationUnit("final typedef F();", ParserErrorCode.FINAL_TYPEDEF);
   }
 
+  public void test_functionTypedParameter_const() throws Exception {
+    parseCompilationUnit("void f(const x()) {}", ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR);
+  }
+
+  public void test_functionTypedParameter_final() throws Exception {
+    parseCompilationUnit("void f(final x()) {}", ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR);
+  }
+
+  public void test_functionTypedParameter_var() throws Exception {
+    parseCompilationUnit("void f(var x()) {}", ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR);
+  }
+
   public void test_getterWithParameters() throws Exception {
     parse(
         "parseClassMember",

@@ -78,6 +78,8 @@ public enum ParserErrorCode implements ErrorCode {
   FINAL_CONSTRUCTOR("A constructor cannot be declared to be 'final'"),
   FINAL_METHOD("Getters, setters and methods cannot be declared to be 'final'"),
   FINAL_TYPEDEF("Type aliases cannot be declared to be 'final'"),
+  FUNCTION_TYPED_PARAMETER_VAR(
+      "Function typed parameters cannot specify 'const', 'final' or 'var' instead of return type"),
   GETTER_WITH_PARAMETERS("Getter should be declared without a parameter list"),
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
   IMPLEMENTS_BEFORE_EXTENDS("The extends clause must be before the implements clause"),

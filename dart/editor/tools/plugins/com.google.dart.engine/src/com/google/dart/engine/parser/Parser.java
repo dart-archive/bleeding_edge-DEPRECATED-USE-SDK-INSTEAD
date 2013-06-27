@@ -4067,6 +4067,9 @@ public class Parser {
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
     if (matches(TokenType.OPEN_PAREN)) {
+      if (holder.getKeyword() != null) {
+        reportError(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.getKeyword());
+      }
       if (thisKeyword != null) {
         // TODO(brianwilkerson) Report this error (we have found "this.id(").
         // TODO(brianwilkerson) Decide how to recover from this error.
