@@ -44,8 +44,6 @@ import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
-import java.util.LinkedHashMap;
-
 /**
  * The class {@code ElementFactory} defines utility methods used to create elements for testing
  * purposes. The elements that are created are complete in the sense that as much of the element
@@ -131,12 +129,10 @@ public final class ElementFactory {
       setter.setStatic(isStatic);
       setter.setSynthetic(true);
       setter.setVariable(field);
+      setter.setParameters(new ParameterElement[] {requiredParameter("_" + name, type)});
       setter.setReturnType(VoidTypeImpl.getInstance());
+      setter.setType(new FunctionTypeImpl(setter));
       field.setSetter(setter);
-
-      FunctionTypeImpl setterType = new FunctionTypeImpl(getter);
-      setterType.setNormalParameterTypes(new Type[] {type});
-      setter.setType(setterType);
     }
 
     return field;
@@ -166,25 +162,9 @@ public final class ElementFactory {
     } else {
       functionElement.setReturnType(returnElement.getType());
     }
-    // normal parameters
-    int normalCount = normalParameters == null ? 0 : normalParameters.length;
-    if (normalCount > 0) {
-      InterfaceType[] normalParameterTypes = new InterfaceType[normalCount];
-      for (int i = 0; i < normalCount; i++) {
-        normalParameterTypes[i] = normalParameters[i].getType();
-      }
-      functionType.setNormalParameterTypes(normalParameterTypes);
-    }
-    // optional parameters
-    int optionalCount = optionalParameters == null ? 0 : optionalParameters.length;
-    if (optionalCount > 0) {
-      InterfaceType[] optionalParameterTypes = new InterfaceType[optionalCount];
-      for (int i = 0; i < optionalCount; i++) {
-        optionalParameterTypes[i] = optionalParameters[i].getType();
-      }
-      functionType.setOptionalParameterTypes(optionalParameterTypes);
-    }
     // parameters
+    int normalCount = normalParameters == null ? 0 : normalParameters.length;
+    int optionalCount = optionalParameters == null ? 0 : optionalParameters.length;
     int totalCount = normalCount + optionalCount;
     ParameterElement[] parameters = new ParameterElement[totalCount];
     for (int i = 0; i < totalCount; i++) {
@@ -206,35 +186,39 @@ public final class ElementFactory {
   public static FunctionElementImpl functionElement(String functionName,
       ClassElement returnElement, ClassElement[] normalParameters, String[] names,
       ClassElement[] namedParameters) {
-    // We don't create parameter elements because we don't have parameter names for non-named parameters
     FunctionElementImpl functionElement = new FunctionElementImpl(identifier(functionName));
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionElement.setType(functionType);
+    // parameters
+    int normalCount = normalParameters == null ? 0 : normalParameters.length;
+    int nameCount = names == null ? 0 : names.length;
+    int typeCount = namedParameters == null ? 0 : namedParameters.length;
+    if (names != null && nameCount != typeCount) {
+      throw new IllegalStateException(
+          "The passed String[] and ClassElement[] arrays had different lengths.");
+    }
+    int totalCount = normalCount + nameCount;
+    ParameterElement[] parameters = new ParameterElement[totalCount];
+    for (int i = 0; i < totalCount; i++) {
+      if (i < normalCount) {
+        ParameterElementImpl parameter = new ParameterElementImpl(identifier("a" + i));
+        parameter.setType(normalParameters[i].getType());
+        parameter.setParameterKind(ParameterKind.REQUIRED);
+        parameters[i] = parameter;
+      } else {
+        ParameterElementImpl parameter = new ParameterElementImpl(
+            identifier(names[i - normalCount]));
+        parameter.setType(namedParameters[i - normalCount].getType());
+        parameter.setParameterKind(ParameterKind.NAMED);
+        parameters[i] = parameter;
+      }
+    }
+    functionElement.setParameters(parameters);
     // return type
     if (returnElement == null) {
       functionElement.setReturnType(VoidTypeImpl.getInstance());
     } else {
       functionElement.setReturnType(returnElement.getType());
-    }
-    // normal parameters
-    int count = normalParameters == null ? 0 : normalParameters.length;
-    if (count > 0) {
-      InterfaceType[] normalParameterTypes = new InterfaceType[count];
-      for (int i = 0; i < count; i++) {
-        normalParameterTypes[i] = normalParameters[i].getType();
-      }
-      functionType.setNormalParameterTypes(normalParameterTypes);
-    }
-    // named parameters
-    if (names != null && names.length > 0 && names.length == namedParameters.length) {
-      LinkedHashMap<String, Type> map = new LinkedHashMap<String, Type>();
-      for (int i = 0; i < names.length; i++) {
-        map.put(names[i], namedParameters[i].getType());
-      }
-      functionType.setNamedParameterTypes(map);
-    } else if (names != null) {
-      throw new IllegalStateException(
-          "The passed String[] and ClassElement[] arrays had different lengths.");
     }
     return functionElement;
   }
@@ -325,7 +309,6 @@ public final class ElementFactory {
     method.setReturnType(returnType);
 
     FunctionTypeImpl methodType = new FunctionTypeImpl(method);
-    methodType.setNormalParameterTypes(argumentTypes);
     method.setType(methodType);
     return method;
   }
@@ -336,9 +319,23 @@ public final class ElementFactory {
     return parameter;
   }
 
+  public static ParameterElementImpl namedParameter(String name, Type type) {
+    ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
+    parameter.setParameterKind(ParameterKind.NAMED);
+    parameter.setType(type);
+    return parameter;
+  }
+
   public static ParameterElementImpl positionalParameter(String name) {
     ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
     parameter.setParameterKind(ParameterKind.POSITIONAL);
+    return parameter;
+  }
+
+  public static ParameterElementImpl positionalParameter(String name, Type type) {
+    ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
+    parameter.setParameterKind(ParameterKind.POSITIONAL);
+    parameter.setType(type);
     return parameter;
   }
 
@@ -349,6 +346,13 @@ public final class ElementFactory {
   public static ParameterElementImpl requiredParameter(String name) {
     ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
     parameter.setParameterKind(ParameterKind.REQUIRED);
+    return parameter;
+  }
+
+  public static ParameterElementImpl requiredParameter(String name, Type type) {
+    ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
+    parameter.setParameterKind(ParameterKind.REQUIRED);
+    parameter.setType(type);
     return parameter;
   }
 
@@ -368,17 +372,16 @@ public final class ElementFactory {
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
     getter.setType(getterType);
 
+    ParameterElementImpl parameter = requiredParameter("a", type);
     PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
     setter.setSetter(true);
     setter.setStatic(isStatic);
     setter.setSynthetic(true);
     setter.setVariable(field);
+    setter.setParameters(new ParameterElement[] {parameter});
     setter.setReturnType(VoidTypeImpl.getInstance());
+    setter.setType(new FunctionTypeImpl(setter));
     field.setSetter(setter);
-
-    FunctionTypeImpl setterType = new FunctionTypeImpl(setter);
-    setterType.setNormalParameterTypes(new Type[] {type});
-    setter.setType(setterType);
 
     return setter;
   }
@@ -413,12 +416,10 @@ public final class ElementFactory {
       setter.setStatic(true);
       setter.setSynthetic(true);
       setter.setVariable(variable);
+      setter.setParameters(new ParameterElement[] {requiredParameter("_" + name, type)});
       setter.setReturnType(VoidTypeImpl.getInstance());
+      setter.setType(new FunctionTypeImpl(setter));
       variable.setSetter(setter);
-
-      FunctionTypeImpl setterType = new FunctionTypeImpl(getter);
-      setterType.setNormalParameterTypes(new Type[] {type});
-      setter.setType(setterType);
     }
 
     return variable;

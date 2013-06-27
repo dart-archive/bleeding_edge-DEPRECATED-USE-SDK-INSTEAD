@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.type;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
@@ -24,8 +23,10 @@ import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.element.member.ParameterMember;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -67,51 +68,9 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   /**
-   * Return a map containing the results of using the given argument types and parameter types to
-   * perform a substitution on all of the values in the given map. The order of the entries will be
-   * preserved.
-   * 
-   * @param types the types on which a substitution is to be performed
-   * @param argumentTypes the argument types for the substitution
-   * @param parameterTypes the parameter types for the substitution
-   * @return the result of performing the substitution on each of the types
-   */
-  private static Map<String, Type> substitute(Map<String, Type> types, Type[] argumentTypes,
-      Type[] parameterTypes) {
-    if (types.isEmpty()) {
-      return types;
-    }
-    LinkedHashMap<String, Type> newTypes = new LinkedHashMap<String, Type>();
-    for (Map.Entry<String, Type> entry : types.entrySet()) {
-      newTypes.put(entry.getKey(), entry.getValue().substitute(argumentTypes, parameterTypes));
-    }
-    return newTypes;
-  }
-
-  /**
    * An array containing the actual types of the type arguments.
    */
   private Type[] typeArguments = TypeImpl.EMPTY_ARRAY;
-
-  /**
-   * An array containing the types of the normal parameters of this type of function. The parameter
-   * types are in the same order as they appear in the declaration of the function.
-   * 
-   * @return the types of the normal parameters of this type of function
-   */
-  private Type[] normalParameterTypes = TypeImpl.EMPTY_ARRAY;
-
-  /**
-   * A table mapping the names of optional (positional) parameters to the types of the optional
-   * parameters of this type of function.
-   */
-  private Type[] optionalParameterTypes = TypeImpl.EMPTY_ARRAY;
-
-  /**
-   * A table mapping the names of named parameters to the types of the named parameters of this type
-   * of function.
-   */
-  private Map<String, Type> namedParameterTypes = ImmutableMap.of();
 
   /**
    * Initialize a newly created function type to be declared by the given element and to have the
@@ -140,9 +99,9 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     FunctionTypeImpl otherType = (FunctionTypeImpl) object;
     return ObjectUtilities.equals(getElement(), otherType.getElement())
-        && Arrays.equals(normalParameterTypes, otherType.normalParameterTypes)
-        && Arrays.equals(optionalParameterTypes, otherType.optionalParameterTypes)
-        && equals(namedParameterTypes, otherType.namedParameterTypes)
+        && Arrays.equals(getNormalParameterTypes(), otherType.getNormalParameterTypes())
+        && Arrays.equals(getOptionalParameterTypes(), otherType.getOptionalParameterTypes())
+        && equals(getNamedParameterTypes(), otherType.getNamedParameterTypes())
         && ObjectUtilities.equals(getReturnType(), otherType.getReturnType());
   }
 
@@ -150,6 +109,9 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   public String getDisplayName() {
     String name = getName();
     if (name == null) {
+      Type[] normalParameterTypes = getNormalParameterTypes();
+      Type[] optionalParameterTypes = getOptionalParameterTypes();
+      Map<String, Type> namedParameterTypes = getNamedParameterTypes();
       Type returnType = getReturnType();
       StringBuilder builder = new StringBuilder();
       builder.append("(");
@@ -213,17 +175,52 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @Override
   public Map<String, Type> getNamedParameterTypes() {
+    LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
+    ParameterElement[] parameters = getBaseParameters();
+    if (parameters.length == 0) {
+      return namedParameterTypes;
+    }
+    Type[] typeParameters = TypeVariableTypeImpl.getTypes(getTypeVariables());
+    for (ParameterElement parameter : parameters) {
+      if (parameter.getParameterKind() == ParameterKind.NAMED) {
+        namedParameterTypes.put(
+            parameter.getName(),
+            parameter.getType().substitute(typeArguments, typeParameters));
+      }
+    }
     return namedParameterTypes;
   }
 
   @Override
   public Type[] getNormalParameterTypes() {
-    return normalParameterTypes;
+    ParameterElement[] parameters = getBaseParameters();
+    if (parameters.length == 0) {
+      return TypeImpl.EMPTY_ARRAY;
+    }
+    Type[] typeParameters = TypeVariableTypeImpl.getTypes(getTypeVariables());
+    ArrayList<Type> types = new ArrayList<Type>();
+    for (ParameterElement parameter : parameters) {
+      if (parameter.getParameterKind() == ParameterKind.REQUIRED) {
+        types.add(parameter.getType().substitute(typeArguments, typeParameters));
+      }
+    }
+    return types.toArray(new Type[types.size()]);
   }
 
   @Override
   public Type[] getOptionalParameterTypes() {
-    return optionalParameterTypes;
+    ParameterElement[] parameters = getBaseParameters();
+    if (parameters.length == 0) {
+      return TypeImpl.EMPTY_ARRAY;
+    }
+    Type[] typeParameters = TypeVariableTypeImpl.getTypes(getTypeVariables());
+    ArrayList<Type> types = new ArrayList<Type>();
+    for (ParameterElement parameter : parameters) {
+      if (parameter.getParameterKind() == ParameterKind.POSITIONAL) {
+        types.add(parameter.getType().substitute(typeArguments, typeParameters));
+      }
+    }
+    return types.toArray(new Type[types.size()]);
   }
 
   @Override
@@ -383,37 +380,6 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   /**
-   * Set the mapping of the names of named parameters to the types of the named parameters of this
-   * type of function to the given mapping.
-   * 
-   * @param namedParameterTypes the mapping of the names of named parameters to the types of the
-   *          named parameters of this type of function
-   */
-  public void setNamedParameterTypes(LinkedHashMap<String, Type> namedParameterTypes) {
-    this.namedParameterTypes = namedParameterTypes;
-  }
-
-  /**
-   * Set the types of the normal parameters of this type of function to the types in the given
-   * array.
-   * 
-   * @param normalParameterTypes the types of the normal parameters of this type of function
-   */
-  public void setNormalParameterTypes(Type[] normalParameterTypes) {
-    this.normalParameterTypes = normalParameterTypes;
-  }
-
-  /**
-   * Set the types of the optional parameters of this type of function to the types in the given
-   * array.
-   * 
-   * @param optionalParameterTypes the types of the optional parameters of this type of function
-   */
-  public void setOptionalParameterTypes(Type[] optionalParameterTypes) {
-    this.optionalParameterTypes = optionalParameterTypes;
-  }
-
-  /**
    * Set the actual types of the type arguments to the given types.
    * 
    * @param typeArguments the actual types of the type arguments
@@ -439,18 +405,15 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     Element element = getElement();
     FunctionTypeImpl newType = (element instanceof ExecutableElement) ? new FunctionTypeImpl(
         (ExecutableElement) element) : new FunctionTypeImpl((FunctionTypeAliasElement) element);
-    newType.setNormalParameterTypes(substitute(normalParameterTypes, argumentTypes, parameterTypes));
-    newType.setOptionalParameterTypes(substitute(
-        optionalParameterTypes,
-        argumentTypes,
-        parameterTypes));
-    newType.namedParameterTypes = substitute(namedParameterTypes, argumentTypes, parameterTypes);
     newType.setTypeArguments(substitute(typeArguments, argumentTypes, parameterTypes));
     return newType;
   }
 
   @Override
   protected void appendTo(StringBuilder builder) {
+    Type[] normalParameterTypes = getNormalParameterTypes();
+    Type[] optionalParameterTypes = getOptionalParameterTypes();
+    Map<String, Type> namedParameterTypes = getNamedParameterTypes();
     Type returnType = getReturnType();
     builder.append("(");
     boolean needsComma = false;
