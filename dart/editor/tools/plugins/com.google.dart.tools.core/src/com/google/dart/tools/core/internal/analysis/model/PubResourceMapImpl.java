@@ -40,42 +40,32 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
   private IPath packagesLocation;
 
   /**
-   * The root "lib" folder (not {@code null}).
-   */
-  private final IContainer libFolder;
-
-  /**
-   * The path to the root "lib" folder (not {@code null}).
-   */
-  private final String libPath;
-
-  /**
    * The path of the package that maps to the "lib" folder.
    */
   private String selfPackagePath;
+
+  /**
+   * The canonical path of the container or {@code null} if the path could not be determined
+   */
+  private String canonicalContainerPath;
 
   public PubResourceMapImpl(IContainer container, AnalysisContext context) {
     super(container, context);
     packagesFolder = container.getFolder(new Path(DartCore.PACKAGES_DIRECTORY_NAME));
     packagesLocation = container.getLocation().append(DartCore.PACKAGES_DIRECTORY_NAME);
-    libFolder = container.getFolder(new Path(DartCore.LIB_DIRECTORY_NAME));
-    libPath = libFolder.getLocation().toOSString() + File.separator;
+    try {
+      canonicalContainerPath = getResource().getLocation().toFile().getCanonicalPath();
+    } catch (IOException e) {
+      DartCore.logError("Failed to determine canonical location of " + getResource(), e);
+    }
   }
 
   @Override
   public IFile getResource(Source source) {
     String sourcePath = source.getFullName();
-    // may be self-reference
-    if (sourcePath.startsWith(libPath)) {
-      return super.getResource(source);
-    }
-    if (selfPackagePath != null && sourcePath.startsWith(selfPackagePath)) {
-      String relPath = sourcePath.substring(selfPackagePath.length());
-      return libFolder.getFile(new Path(relPath));
-    }
     // analyze installed packages from "packages" folder
     String[] pkgNames = packagesLocation.toFile().list();
-    if (pkgNames != null) {
+    if (pkgNames != null && canonicalContainerPath != null) {
       for (String pkgName : pkgNames) {
         File pkgDir = packagesLocation.append(pkgName).toFile();
         String pkgPath;
@@ -88,7 +78,19 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
         pkgPath += File.separator;
         if (sourcePath.startsWith(pkgPath)) {
           String relPath = sourcePath.substring(pkgPath.length());
-          return packagesFolder.getFile(new Path(pkgName).append(relPath));
+          if (pkgPath.startsWith(canonicalContainerPath)) {
+            return getResource().getFile(
+                new Path(pkgPath.substring(canonicalContainerPath.length())).append(relPath));
+          } else {
+            return packagesFolder.getFile(new Path(pkgName).append(relPath));
+          }
+        } else {
+          String relPath = sourcePath.substring(packagesLocation.toString().length());
+          String pkgNamePath = "/" + pkgName + "/";
+          if (pkgPath.startsWith(canonicalContainerPath) && relPath.startsWith(pkgNamePath)) {
+            return getResource().getFile(
+                new Path(pkgPath.substring(canonicalContainerPath.length())).append(relPath.substring(pkgNamePath.length())));
+          }
         }
       }
     }

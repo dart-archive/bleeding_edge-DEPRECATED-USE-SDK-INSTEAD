@@ -131,6 +131,8 @@ public class TestProjects {
     MockFolder appLib = app.addFolder("lib");
     appLib.addFile("stuff.dart");
 
+    app.addFolder("mylib");
+
     MockFolder subApp = app.addFolder("subApp");
     subApp.addFile(PUBSPEC_FILE_NAME);
     subApp.addFile("sub_stuff.dart");

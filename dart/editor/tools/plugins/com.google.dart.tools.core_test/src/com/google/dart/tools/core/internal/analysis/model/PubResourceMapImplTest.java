@@ -32,6 +32,8 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
   private MockFolder pkg1Container;
   private MockFolder pkg2Container;
   private MockFolder libContainer;
+  private MockFolder mylibContainer;
+  private File mylibCanonicalDir;
 
   public void test_getResource_fromSourceInLib() throws Exception {
     MockFile res = libContainer.addFile("file.dart");
@@ -43,9 +45,27 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
     if (!setupSymlinks()) {
       return;
     }
+
     File myAppPackagesDir = new File(packagesDir, "myapp");
     source = new FileBasedSource(contentCache, new File(myAppPackagesDir, "file.dart"));
     assertSame(res, map.getResource(source));
+  }
+
+  public void test_getResource_fromSourceInMylib() throws Exception {
+    MockFile res = mylibContainer.addFile("mylib.dart");
+    FileBasedSource source = new FileBasedSource(contentCache, res.getLocation().toFile());
+
+    PubResourceMapImpl map = newTarget();
+    assertSame(res, map.getResource(source));
+
+    if (!setupSymlinks()) {
+      return;
+    }
+
+    File myLibPackagesDir = new File(packagesDir, "mylib");
+    source = new FileBasedSource(contentCache, new File(myLibPackagesDir, "mylib.dart"));
+    assertSame(res, map.getResource(source));
+
   }
 
   public void test_getResource_fromSourceInPackage() throws Exception {
@@ -109,7 +129,9 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
     pkg1Container = packagesContainer.addFolder("pkg1");
     pkg2Container = packagesContainer.addFolder("pkg2");
     libContainer = pubContainer.getMockFolder(DartCore.LIB_DIRECTORY_NAME);
+    mylibContainer = pubContainer.getMockFolder("mylib");
     libCanonicalDir = libContainer.getLocation().toFile().getCanonicalFile();
+    mylibCanonicalDir = mylibContainer.getLocation().toFile().getCanonicalFile();
   }
 
   protected boolean setupSymlinks() throws IOException {
@@ -123,6 +145,8 @@ public class PubResourceMapImplTest extends SimpleResourceMapImplTest {
     FileUtilities2.createSymLink(pkg2CanonicalDir, new File(packagesDir, "pkg2"));
     assertTrue(libCanonicalDir.mkdirs());
     FileUtilities2.createSymLink(libCanonicalDir, new File(packagesDir, "myapp"));
+    assertTrue(mylibCanonicalDir.mkdirs());
+    FileUtilities2.createSymLink(mylibCanonicalDir, new File(packagesDir, "mylib"));
     return true;
   }
 }
