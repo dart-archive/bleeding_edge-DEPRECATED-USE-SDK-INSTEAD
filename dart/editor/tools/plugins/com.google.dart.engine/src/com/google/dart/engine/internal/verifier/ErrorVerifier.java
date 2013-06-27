@@ -472,12 +472,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    checkForPrivateOptionalParameter(node);
-    return super.visitDefaultFormalParameter(node);
-  }
-
-  @Override
   public Void visitDoStatement(DoStatement node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitDoStatement(node);
@@ -519,6 +513,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     checkForConstFormalParameter(node);
+    checkForPrivateOptionalParameter(node);
     checkForFieldInitializingFormalRedirectingConstructor(node);
     return super.visitFieldFormalParameter(node);
   }
@@ -752,6 +747,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
     checkForConstFormalParameter(node);
+    checkForPrivateOptionalParameter(node);
     return super.visitSimpleFormalParameter(node);
   }
 
@@ -3551,17 +3547,19 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#PRIVATE_OPTIONAL_PARAMETER
    */
-  private boolean checkForPrivateOptionalParameter(DefaultFormalParameter node) {
-    Token separator = node.getSeparator();
-    if (separator != null && separator.getLexeme().equals(":")) {
-      NormalFormalParameter parameter = node.getParameter();
-      SimpleIdentifier name = parameter.getIdentifier();
-      if (!name.isSynthetic() && name.getName().startsWith("_")) {
-        errorReporter.reportError(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, node);
-        return true;
-      }
+  private boolean checkForPrivateOptionalParameter(FormalParameter node) {
+    // should be named parameter
+    if (node.getKind() != ParameterKind.NAMED) {
+      return false;
     }
-    return false;
+    // name should start with '_'
+    SimpleIdentifier name = node.getIdentifier();
+    if (name.isSynthetic() || !name.getName().startsWith("_")) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, node);
+    return true;
   }
 
   /**

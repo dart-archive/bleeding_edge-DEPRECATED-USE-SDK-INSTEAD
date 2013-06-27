@@ -2655,6 +2655,25 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void test_privateOptionalParameter() throws Exception {
     Source source = addSource(createSource(//
+    "f({var _p}) {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
+    verify(source);
+  }
+
+  public void test_privateOptionalParameter_fieldFormal() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  var _p;",
+        "  A({this._p: 0});",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
+    verify(source);
+  }
+
+  public void test_privateOptionalParameter_withDefaultValue() throws Exception {
+    Source source = addSource(createSource(//
     "f({_p : 0}) {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
