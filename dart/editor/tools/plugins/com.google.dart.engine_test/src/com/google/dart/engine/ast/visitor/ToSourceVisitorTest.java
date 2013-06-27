@@ -1346,6 +1346,14 @@ public class ToSourceVisitorTest extends EngineTestCase {
         switchStatement(identifier("a"), switchCase(string("b"), block()), switchDefault(block())));
   }
 
+  public void test_visitSymbolLiteral_multiple() {
+    assertSource("#a.b.c", symbolLiteral("a", "b", "c"));
+  }
+
+  public void test_visitSymbolLiteral_single() {
+    assertSource("#a", symbolLiteral("a"));
+  }
+
   public void test_visitThisExpression() {
     assertSource("this", thisExpression());
   }

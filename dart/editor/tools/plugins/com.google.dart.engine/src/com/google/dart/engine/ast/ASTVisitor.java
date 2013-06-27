@@ -196,6 +196,8 @@ public interface ASTVisitor<R> {
 
   public R visitSwitchStatement(SwitchStatement node);
 
+  public R visitSymbolLiteral(SymbolLiteral node);
+
   public R visitThisExpression(ThisExpression node);
 
   public R visitThrowExpression(ThrowExpression node);

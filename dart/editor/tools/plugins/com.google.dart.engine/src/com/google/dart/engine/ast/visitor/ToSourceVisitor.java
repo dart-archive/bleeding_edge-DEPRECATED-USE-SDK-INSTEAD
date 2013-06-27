@@ -837,6 +837,13 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitSymbolLiteral(SymbolLiteral node) {
+    writer.print("#");
+    visitList(node.getComponents(), ".");
+    return null;
+  }
+
+  @Override
   public Void visitThisExpression(ThisExpression node) {
     writer.print("this");
     return null;

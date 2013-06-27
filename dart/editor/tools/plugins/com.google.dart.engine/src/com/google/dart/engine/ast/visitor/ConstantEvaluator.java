@@ -36,6 +36,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.SymbolLiteral;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 
@@ -426,6 +427,19 @@ public class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         return value;
       }
       builder.append(value);
+    }
+    return builder.toString();
+  }
+
+  @Override
+  public Object visitSymbolLiteral(SymbolLiteral node) {
+    // TODO(brianwilkerson) This isn't optimal because a Symbol is not a String.
+    StringBuilder builder = new StringBuilder();
+    for (SimpleIdentifier component : node.getComponents()) {
+      if (builder.length() > 0) {
+        builder.append('.');
+      }
+      builder.append(component.getName());
     }
     return builder.toString();
   }

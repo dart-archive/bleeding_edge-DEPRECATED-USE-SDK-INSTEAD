@@ -556,6 +556,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitSymbolLiteral(SymbolLiteral node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitThisExpression(ThisExpression node) {
     node.visitChildren(this);
     return null;

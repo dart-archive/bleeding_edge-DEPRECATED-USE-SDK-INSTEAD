@@ -552,6 +552,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitSymbolLiteral(SymbolLiteral node) {
+    return visitLiteral(node);
+  }
+
+  @Override
   public R visitThisExpression(ThisExpression node) {
     return visitExpression(node);
   }

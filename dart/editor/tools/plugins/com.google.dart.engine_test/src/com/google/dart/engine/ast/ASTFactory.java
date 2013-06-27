@@ -962,6 +962,14 @@ public final class ASTFactory {
         token(TokenType.CLOSE_CURLY_BRACKET));
   }
 
+  public static SymbolLiteral symbolLiteral(String... components) {
+    ArrayList<SimpleIdentifier> identifierList = new ArrayList<SimpleIdentifier>();
+    for (String component : components) {
+      identifierList.add(identifier(component));
+    }
+    return new SymbolLiteral(token(TokenType.HASH), identifierList);
+  }
+
   public static ThisExpression thisExpression() {
     return new ThisExpression(token(Keyword.THIS));
   }

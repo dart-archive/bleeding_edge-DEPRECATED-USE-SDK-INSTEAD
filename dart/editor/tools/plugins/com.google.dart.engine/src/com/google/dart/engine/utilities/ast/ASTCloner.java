@@ -762,6 +762,11 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
   }
 
   @Override
+  public ASTNode visitSymbolLiteral(SymbolLiteral node) {
+    return new SymbolLiteral(node.getPoundSign(), clone(node.getComponents()));
+  }
+
+  @Override
   public ThisExpression visitThisExpression(ThisExpression node) {
     return new ThisExpression(node.getKeyword());
   }

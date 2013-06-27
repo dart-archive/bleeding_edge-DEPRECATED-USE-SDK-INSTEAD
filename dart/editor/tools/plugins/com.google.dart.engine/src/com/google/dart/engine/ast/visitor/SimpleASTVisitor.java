@@ -465,6 +465,11 @@ public class SimpleASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitSymbolLiteral(SymbolLiteral node) {
+    return null;
+  }
+
+  @Override
   public R visitThisExpression(ThisExpression node) {
     return null;
   }
