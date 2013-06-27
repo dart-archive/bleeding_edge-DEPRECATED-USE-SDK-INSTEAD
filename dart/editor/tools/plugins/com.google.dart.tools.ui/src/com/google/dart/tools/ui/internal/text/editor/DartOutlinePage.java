@@ -93,14 +93,14 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
       tree.addListener(SWT.EraseItem, new Listener() {
         @Override
         public void handleEvent(Event event) {
-          SWTUtil.eraseSelection(event, tree, editor.getPreferences());
+          SWTUtil.eraseSelection(event, tree, preferences);
         }
       });
       updateColors();
     }
 
     private void updateColors() {
-      SWTUtil.setColors(getTree(), DartOutlinePage.this.editor.getPreferences());
+      SWTUtil.setColors(getTree(), preferences);
     }
   }
 
@@ -170,11 +170,13 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
   private CompositeActionGroup actionGroups;
 
   private CompilationUnit input;
+  private IPreferenceStore preferences;
 
   public DartOutlinePage(String contextMenuID, DartEditor editor) {
     Assert.isNotNull(editor);
     this.contextMenuID = contextMenuID;
     this.editor = editor;
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     // listen for property changes
     propertyChangeListener = new IPropertyChangeListener() {
       @Override
