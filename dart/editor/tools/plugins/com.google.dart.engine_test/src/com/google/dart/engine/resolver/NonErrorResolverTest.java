@@ -981,6 +981,47 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAnnotation_constantVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "const C = 0;",
+        "@C",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_importWithPrefix_constantVariable() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "const C = 0;"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as p;",
+        "@p.C",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_importWithPrefix_constConstructor() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class A {",
+        "  const A.named(int p);",
+        "}"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as p;",
+        "@p.A.named(42)",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invalidAssignment() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -2097,7 +2138,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_staticAccessToInstanceMember_annotation() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  A.name() {}",
+        "  const A.name();",
         "}",
         "@A.name()",
         "main() {",

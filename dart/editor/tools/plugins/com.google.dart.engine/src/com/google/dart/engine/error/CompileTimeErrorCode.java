@@ -597,6 +597,13 @@ public enum CompileTimeErrorCode implements ErrorCode {
   INSTANCE_MEMBER_ACCESS_FROM_STATIC("Instance member cannot be accessed from static method"),
 
   /**
+   * 11 Metadata: Metadata consists of a series of annotations, each of which begin with the
+   * character @, followed by a constant expression that must be either a reference to a
+   * compile-time constant variable, or a call to a constant constructor.
+   */
+  INVALID_ANNOTATION("Annotation can be only constant variable or constant constructor invocation"),
+
+  /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time
    * constants. Until then, this acts as a placeholder for more informative errors.
    */
@@ -804,6 +811,13 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "The type '%s' is declared with %d type parameters, but %d type arguments were given"),
 
   /**
+   * 11 Metadata: Metadata consists of a series of annotations, each of which begin with the
+   * character @, followed by a constant expression that must be either a reference to a
+   * compile-time constant variable, or a call to a constant constructor.
+   */
+  NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS("Annotation creation must have arguments"),
+
+  /**
    * 7.6.1 Generative Constructors: If no superinitializer is provided, an implicit superinitializer
    * of the form <b>super</b>() is added at the end of <i>k</i>'s initializer list, unless the
    * enclosing class is class <i>Object</i>.
@@ -863,6 +877,13 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * literal is not a compile-time constant.
    */
   NON_CONSTANT_MAP_VALUE("The values in a 'const' map must be constant"),
+
+  /**
+   * 11 Metadata: Metadata consists of a series of annotations, each of which begin with the
+   * character @, followed by a constant expression that must be either a reference to a
+   * compile-time constant variable, or a call to a constant constructor.
+   */
+  NON_CONSTANT_ANNOTATION_CONSTRUCTOR("Annotation creation can use only 'const' constructor"),
 
   /**
    * 7.6.3 Constant Constructors: Any expression that appears within the initializer list of a

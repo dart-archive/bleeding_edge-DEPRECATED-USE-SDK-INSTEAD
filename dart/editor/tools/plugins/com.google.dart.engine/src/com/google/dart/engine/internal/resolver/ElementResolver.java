@@ -925,28 +925,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // TODO(brianwilkerson) The prefix needs to be resolved to the element for the import that
       // defines the prefix, not the prefix's element.
       recordResolution(identifier, element);
+      // Validate annotation element.
+      if (node.getParent() instanceof Annotation) {
+        Annotation annotation = (Annotation) node.getParent();
+        resolveAnnotationElement(annotation, element, null);
+        return null;
+      }
       return null;
     }
 
-    //
-    // May be annotation, 'const' constructor invocation.
-    //
-    if (node.getParent() instanceof Annotation && prefixElement instanceof ClassElement) {
+    // May be annotation, resolve invocation of "const" constructor.
+    if (node.getParent() instanceof Annotation) {
       Annotation annotation = (Annotation) node.getParent();
-      // look up ConstructorElement
-      ConstructorElement constructor;
-      {
-        InterfaceType interfaceType = (InterfaceType) prefix.getStaticType();
-        LibraryElement definingLibrary = resolver.getDefiningLibrary();
-        constructor = interfaceType.lookUpConstructor(identifier.getName(), definingLibrary);
-      }
-      // record elements
-      recordResolution(identifier, constructor);
-      annotation.setElement(constructor);
-      // resolve arguments
-      resolveAnnotationConstructorInvocationArguments(annotation, constructor);
-      // done
-      return null;
+      resolveAnnotationElement(annotation, prefixElement, node.getIdentifier());
     }
 
     //
@@ -1057,23 +1048,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     recordResolution(node, element);
 
     //
-    // May be annotation, 'const' constructor invocation.
+    // Validate annotation element.
     //
-    if (node.getParent() instanceof Annotation && element instanceof ClassElement) {
+    if (node.getParent() instanceof Annotation) {
       Annotation annotation = (Annotation) node.getParent();
-      // look up ConstructorElement
-      ConstructorElement constructor;
-      {
-        InterfaceType interfaceType = new InterfaceTypeImpl((ClassElement) element);
-        LibraryElement definingLibrary = resolver.getDefiningLibrary();
-        constructor = interfaceType.lookUpConstructor(null, definingLibrary);
-      }
-      // record element
-      annotation.setElement(constructor);
-      // resolve arguments
-      resolveAnnotationConstructorInvocationArguments(annotation, constructor);
-      // done
-      return null;
+      resolveAnnotationElement(annotation, element, null);
     }
     return null;
   }
@@ -2004,16 +1983,77 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   private void resolveAnnotationConstructorInvocationArguments(Annotation annotation,
       ConstructorElement constructor) {
-    // TODO(scheglov) check that the constructor is 'const' (in ErrorVerifier)
-    // resolve arguments to parameters
     ArgumentList argumentList = annotation.getArguments();
+    // error will be reported in ConstantVerifier
     if (argumentList == null) {
-      // TODO(scheglov) report problem (in ErrorVerifier), no arguments for constructor invocation
-    } else {
-      ParameterElement[] parameters = resolveArgumentsToParameters(true, argumentList, constructor);
-      if (parameters != null) {
-        argumentList.setCorrespondingStaticParameters(parameters);
+      return;
+    }
+    // resolve arguments to parameters
+    ParameterElement[] parameters = resolveArgumentsToParameters(true, argumentList, constructor);
+    if (parameters != null) {
+      argumentList.setCorrespondingStaticParameters(parameters);
+    }
+  }
+
+  /**
+   * Validates that the given {@link Element} is the constant variable; or resolves it as a
+   * constructor invocation.
+   * 
+   * @param annotation the {@link Annotation} to resolve
+   * @param element the current known {@link Element} of the annotation, or {@link ClassElement}
+   * @param nameNode the name of the invoked constructor, may be {@code null} if unnamed constructor
+   *          or not a constructor invocation
+   */
+  private void resolveAnnotationElement(Annotation annotation, Element element,
+      SimpleIdentifier nameNode) {
+    // constant variable
+    if (element instanceof PropertyAccessorElement) {
+      PropertyAccessorElement accessorElement = (PropertyAccessorElement) element;
+      // accessor should be synthetic
+      if (!accessorElement.isSynthetic()) {
+        resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+        return;
       }
+      // variable should be constant
+      VariableElement variableElement = accessorElement.getVariable();
+      if (!variableElement.isConst()) {
+        resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      }
+      // OK
+      return;
+    }
+    // const constructor invocation
+    if (element instanceof ClassElement) {
+      // prepare constructor name
+      if (nameNode == null) {
+        nameNode = annotation.getConstructorName();
+      }
+      String name = nameNode != null ? nameNode.getName() : null;
+      // look up ConstructorElement
+      ConstructorElement constructor;
+      {
+        InterfaceType interfaceType = new InterfaceTypeImpl((ClassElement) element);
+        LibraryElement definingLibrary = resolver.getDefiningLibrary();
+        constructor = interfaceType.lookUpConstructor(name, definingLibrary);
+      }
+      // not a constructor
+      if (constructor == null) {
+        resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+        return;
+      }
+      // record element
+      annotation.setElement(constructor);
+      if (nameNode != null) {
+        recordResolution(nameNode, constructor);
+      }
+      // resolve arguments
+      resolveAnnotationConstructorInvocationArguments(annotation, constructor);
+      // OK
+      return;
+    }
+    // something unknown
+    if (element != null) {
+      resolver.reportError(CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
     }
   }
 
@@ -2253,6 +2293,15 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private void resolvePropertyAccess(Expression target, SimpleIdentifier propertyName) {
     Type staticType = getStaticType(target);
     ExecutableElement staticElement = resolveProperty(target, staticType, propertyName);
+
+    // May be part of annotation, record property element only if exists.
+    // Error was already reported in validateAnnotationElement().
+    if (target.getParent().getParent() instanceof Annotation) {
+      if (staticElement != null) {
+        recordResolution(propertyName, staticElement);
+      }
+      return;
+    }
     propertyName.setStaticElement(staticElement);
 
     Type propagatedType = getPropagatedType(target);

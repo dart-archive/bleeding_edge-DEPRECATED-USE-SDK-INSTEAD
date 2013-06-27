@@ -757,7 +757,21 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_constWithNonConstantArgument() throws Exception {
+  public void test_constWithNonConstantArgument_annotation() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A(int p);",
+        "}",
+        "var v = 42;",
+        "@A(v)",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
+    verify(source);
+  }
+
+  public void test_constWithNonConstantArgument_instanceCreation() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  const A(a);",
@@ -1660,6 +1674,95 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAnnotation_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "get V => 0;",
+        "@V",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_importWithPrefix_getter() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "get V => 0;"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as p;",
+        "@p.V",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_importWithPrefix_notConstantVariable() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "final V = 0;"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as p;",
+        "@p.V",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation()
+      throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "typedef V();"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as p;",
+        "@p.V",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_notConstantVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "final V = 0;",
+        "@V",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_notVariableOrConstructorInvocation() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef V();",
+        "@V",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    verify(source);
+  }
+
+  public void test_invalidAnnotation_staticMethodReference() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static f() {}",
+        "}",
+        "@A.f",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    verify(source);
+  }
+
   public void test_invalidConstructorName_notEnclosingClassName() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2144,6 +2247,19 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_noAnnotationConstructorArguments() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "}",
+        "@A",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS);
+    verify(source);
+  }
+
   public void test_noDefaultSuperConstructorExplicit() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2175,6 +2291,32 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends A {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
+    verify(source);
+  }
+
+  public void test_nonConstantAnnotationConstructor_named() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A.fromInt() {}",
+        "}",
+        "@A.fromInt()",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_nonConstantAnnotationConstructor_unnamed() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() {}",
+        "}",
+        "@A()",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR);
     verify(source);
   }
 

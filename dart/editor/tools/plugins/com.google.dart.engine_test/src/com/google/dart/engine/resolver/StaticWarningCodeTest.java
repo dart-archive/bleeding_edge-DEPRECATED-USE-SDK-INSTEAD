@@ -262,7 +262,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_argumentTypeNotAssignable_annotation_namedConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  A.fromInt(int p) {}",
+        "  const A.fromInt(int p);",
         "}",
         "@A.fromInt('0')",
         "main() {",
@@ -275,7 +275,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_argumentTypeNotAssignable_annotation_unnamedConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
-        "  A(int p) {}",
+        "  const A(int p);",
         "}",
         "@A('0')",
         "main() {",

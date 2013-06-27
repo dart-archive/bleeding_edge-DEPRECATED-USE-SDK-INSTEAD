@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.verifier;
 
+import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
@@ -35,6 +36,7 @@ import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -97,6 +99,30 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     this.intType = typeProvider.getIntType();
     this.numType = typeProvider.getNumType();
     this.stringType = typeProvider.getStringType();
+  }
+
+  @Override
+  public Void visitAnnotation(Annotation node) {
+    super.visitAnnotation(node);
+    // check annotation creation
+    Element element = node.getElement();
+    if (element instanceof ConstructorElement) {
+      ConstructorElement constructorElement = (ConstructorElement) element;
+      // should 'const' constructor
+      if (!constructorElement.isConst()) {
+        errorReporter.reportError(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR, node);
+        return null;
+      }
+      // should have arguments
+      ArgumentList argumentList = node.getArguments();
+      if (argumentList == null) {
+        errorReporter.reportError(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, node);
+        return null;
+      }
+      // arguments should be constants
+      validateConstantArguments(argumentList);
+    }
+    return null;
   }
 
   @Override
@@ -265,6 +291,20 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * Validate that if the passed arguments are constant expressions.
+   * 
+   * @param argumentList the argument list to evaluate
+   */
+  private void validateConstantArguments(ArgumentList argumentList) {
+    for (Expression argument : argumentList.getArguments()) {
+      if (argument instanceof NamedExpression) {
+        argument = ((NamedExpression) argument).getExpression();
+      }
+      validate(argument, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
+    }
+  }
+
+  /**
    * Validate that if the passed instance creation is 'const' then all its arguments are constant
    * expressions.
    * 
@@ -278,12 +318,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     if (argumentList == null) {
       return;
     }
-    for (Expression argument : argumentList.getArguments()) {
-      if (argument instanceof NamedExpression) {
-        argument = ((NamedExpression) argument).getExpression();
-      }
-      validate(argument, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
-    }
+    validateConstantArguments(argumentList);
   }
 
   /**
