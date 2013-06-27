@@ -88,11 +88,6 @@ public abstract class AbstractScanner {
   private boolean hasUnmatchedGroups = false;
 
   /**
-   * A non-breaking space, which is allowed by this scanner as a white-space character.
-   */
-  private static final int $NBSP = 160;
-
-  /**
    * Initialize a newly created scanner.
    * 
    * @param source the source being scanned
@@ -482,13 +477,6 @@ public abstract class AbstractScanner {
 
     if (next == -1) {
       return -1;
-    }
-
-    // The following are non-ASCII characters.
-
-    if (next == $NBSP) {
-      //appendWhiteSpace(next);
-      return advance();
     }
 
     reportError(ScannerErrorCode.ILLEGAL_CHARACTER, Integer.valueOf(next));

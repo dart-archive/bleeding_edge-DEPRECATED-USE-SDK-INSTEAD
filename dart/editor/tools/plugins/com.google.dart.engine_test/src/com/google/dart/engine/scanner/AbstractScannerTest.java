@@ -237,6 +237,10 @@ public abstract class AbstractScannerTest extends TestCase {
     assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "\u0429");
   }
 
+  public void test_illegalChar_nbsp() throws Exception {
+    assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "\u00A0");
+  }
+
   public void test_illegalChar_notLetter() throws Exception {
     assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "\u0312");
   }
