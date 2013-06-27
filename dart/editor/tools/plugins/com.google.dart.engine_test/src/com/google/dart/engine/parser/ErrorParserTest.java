@@ -379,6 +379,18 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT);
   }
 
+  public void test_equalityCannotBeEqualityOperand_eq_eq() throws Exception {
+    parseExpression("1 == 2 == 3", ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND);
+  }
+
+  public void test_equalityCannotBeEqualityOperand_eq_neq() throws Exception {
+    parseExpression("1 == 2 != 3", ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND);
+  }
+
+  public void test_equalityCannotBeEqualityOperand_neq_eq() throws Exception {
+    parseExpression("1 != 2 == 3", ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND);
+  }
+
   public void test_expectedCaseOrDefault() throws Exception {
     parse("parseSwitchStatement", "switch (e) {break;}", ParserErrorCode.EXPECTED_CASE_OR_DEFAULT);
   }

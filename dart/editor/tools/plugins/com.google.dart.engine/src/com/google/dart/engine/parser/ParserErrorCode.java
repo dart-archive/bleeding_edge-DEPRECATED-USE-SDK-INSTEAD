@@ -49,6 +49,8 @@ public enum ParserErrorCode implements ErrorCode {
   DIRECTIVE_AFTER_DECLARATION("Directives must appear before any declarations"),
   DUPLICATE_LABEL_IN_SWITCH_STATEMENT("The label %s was already used in this switch statement"),
   DUPLICATED_MODIFIER("The modifier '%s' was already specified."),
+  EQUALITY_CANNOT_BE_EQUALITY_OPERAND(
+      "Equality expression cannot be operand of another equality expression."),
   EXPECTED_CASE_OR_DEFAULT("Expected 'case' or 'default'"),
   EXPECTED_CLASS_MEMBER("Expected a class member"),
   EXPECTED_EXECUTABLE("Expected a method, getter, setter or operator declaration"),

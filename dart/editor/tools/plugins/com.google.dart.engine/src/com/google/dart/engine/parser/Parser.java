@@ -2483,9 +2483,14 @@ public class Parser {
     } else {
       expression = parseRelationalExpression();
     }
+    boolean leftEqualityExpression = false;
     while (currentToken.getType().isEqualityOperator()) {
       Token operator = getAndAdvance();
+      if (leftEqualityExpression) {
+        reportError(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, expression);
+      }
       expression = new BinaryExpression(expression, operator, parseRelationalExpression());
+      leftEqualityExpression = true;
     }
     return expression;
   }

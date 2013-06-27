@@ -221,7 +221,9 @@ public class ComplexParserTest extends ParserTestCase {
   }
 
   public void test_equalityExpression_normal() throws Exception {
-    BinaryExpression expression = parseExpression("x == y != z");
+    BinaryExpression expression = parseExpression(
+        "x == y != z",
+        ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND);
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
@@ -236,7 +238,9 @@ public class ComplexParserTest extends ParserTestCase {
   }
 
   public void test_equalityExpression_super() throws Exception {
-    BinaryExpression expression = parseExpression("super == y != z");
+    BinaryExpression expression = parseExpression(
+        "super == y != z",
+        ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND);
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 

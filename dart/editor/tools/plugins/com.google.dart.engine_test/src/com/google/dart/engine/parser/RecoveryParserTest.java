@@ -379,7 +379,8 @@ public class RecoveryParserTest extends ParserTestCase {
     BinaryExpression expression = parseExpression(
         "super ==  ==",
         ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.MISSING_IDENTIFIER);
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND);
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
@@ -561,7 +562,8 @@ public class RecoveryParserTest extends ParserTestCase {
     BinaryExpression expression = parseExpression(
         "super ==  ==",
         ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.MISSING_IDENTIFIER);
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND);
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
 
