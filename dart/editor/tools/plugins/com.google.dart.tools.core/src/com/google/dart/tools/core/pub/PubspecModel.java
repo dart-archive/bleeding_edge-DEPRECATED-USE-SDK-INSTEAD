@@ -206,7 +206,11 @@ public class PubspecModel {
     }
     if (!author.isEmpty()) {
       if (author.indexOf(',') != -1) { // comma separated list
-        pubYamlObject.authors = Arrays.asList(author.split(","));
+        String[] strings = author.split(",");
+        for (int i = 0; i < strings.length; i++) {
+          strings[i] = strings[i].trim();
+        }
+        pubYamlObject.authors = Arrays.asList(strings);
       } else {
         pubYamlObject.author = author;
       }

@@ -30,6 +30,15 @@ public class PubspecModelTest extends TestCase {
     assertTrue(!Arrays.asList(pubspecModel.getDependecies()).contains(dependency));
   }
 
+  public void test_authors() {
+    PubspecModel pubspecModel = new PubspecModel(null);
+    pubspecModel.initialize(PubYamlUtilsTest.pubspecYamlString2);
+    assertEquals("GS <s@gmail.com>, AS <f@gmail.com>, KM <k@tpl.com>", pubspecModel.getAuthor());
+    String string = pubspecModel.getContents();
+    PubspecModel model2 = new PubspecModel(string);
+    assertEquals("GS <s@gmail.com>, AS <f@gmail.com>, KM <k@tpl.com>", model2.getAuthor());
+  }
+
   // Assert that model creation initializes all fields
   public void test_create() {
     PubspecModel pubspecModel = new PubspecModel(null);

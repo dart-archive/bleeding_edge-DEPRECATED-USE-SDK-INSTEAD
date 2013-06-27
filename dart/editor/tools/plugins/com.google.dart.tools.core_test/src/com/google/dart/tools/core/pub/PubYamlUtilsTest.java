@@ -39,8 +39,9 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
       + "homepage: http://pub.dartlang.org\n" + "dev_dependencies:\n  browser: any";
 
   public static String pubspecYamlString2 = "name: web_components\n"
-      + "description: an easy way to build web apps in Dart\n" + "author: dart team\n"
-      + "environment: \n" + "  sdk: \">=1.2.3 <2.0.0\"\n" + "version: 0.0.1\n" + "dependencies: \n"
+      + "description: an easy way to build web apps in Dart\n" + "authors: \n"
+      + "- GS <s@gmail.com>\n- AS <f@gmail.com>\n- KM <k@tpl.com>\n" + "environment: \n"
+      + "  sdk: \">=1.2.3 <2.0.0\"\n" + "version: 0.0.1\n" + "dependencies: \n"
       + "  unittest: any\n" + "  args: any\n";
 
   private static String yamlStringWithErrors = "name: web_components\n"
