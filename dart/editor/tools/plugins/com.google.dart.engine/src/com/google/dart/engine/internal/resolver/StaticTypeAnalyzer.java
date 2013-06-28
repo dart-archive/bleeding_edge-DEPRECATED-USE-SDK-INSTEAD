@@ -615,16 +615,29 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     recordStaticType(node, node.getConstructorName().getType().getType());
 
     ConstructorElement element = node.getElement();
-    if (element != null && "Element".equals(element.getEnclosingElement().getName())
-        && "tag".equals(element.getName())) {
-      LibraryElement library = element.getLibrary();
-      if (isHtmlLibrary(library)) {
-        Type returnType = getFirstArgumentAsType(
-            library,
-            node.getArgumentList(),
-            HTML_ELEMENT_TO_CLASS_MAP);
-        if (returnType != null) {
-          recordPropagatedType(node, returnType);
+    if (element != null && "Element".equals(element.getEnclosingElement().getName())) {
+      String constructorName = element.getName();
+      if ("tag".equals(constructorName)) {
+        LibraryElement library = element.getLibrary();
+        if (isHtmlLibrary(library)) {
+          Type returnType = getFirstArgumentAsType(
+              library,
+              node.getArgumentList(),
+              HTML_ELEMENT_TO_CLASS_MAP);
+          if (returnType != null) {
+            recordPropagatedType(node, returnType);
+          }
+        }
+      } else {
+        LibraryElement library = element.getLibrary();
+        if (isHtmlLibrary(library)) {
+          Type returnType = getElementNameAsType(
+              library,
+              constructorName,
+              HTML_ELEMENT_TO_CLASS_MAP);
+          if (returnType != null) {
+            recordPropagatedType(node, returnType);
+          }
         }
       }
     }
@@ -1510,6 +1523,29 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   }
 
   /**
+   * If the given element name can be mapped to the name of a class defined within the given
+   * library, return the type specified by the argument.
+   * 
+   * @param library the library in which the specified type would be defined
+   * @param elementName the name of the element for which a type is being sought
+   * @param nameMap an optional map used to map the element name to a type name
+   * @return the type specified by the first argument in the argument list
+   */
+  private Type getElementNameAsType(LibraryElement library, String elementName,
+      HashMap<String, String> nameMap) {
+    if (elementName != null) {
+      if (nameMap != null) {
+        elementName = nameMap.get(elementName.toLowerCase());
+      }
+      ClassElement returnType = library.getType(elementName);
+      if (returnType != null) {
+        return returnType.getType();
+      }
+    }
+    return null;
+  }
+
+  /**
    * If the given argument list contains at least one argument, and if the argument is a simple
    * string literal, then parse that argument as a query string and return the type specified by the
    * argument.
@@ -1584,21 +1620,12 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * 
    * @param library the library in which the specified type would be defined
    * @param argumentList the list of arguments from which a type is to be extracted
+   * @param nameMap an optional map used to map the element name to a type name
    * @return the type specified by the first argument in the argument list
    */
   private Type getFirstArgumentAsType(LibraryElement library, ArgumentList argumentList,
       HashMap<String, String> nameMap) {
-    String argumentValue = getFirstArgumentAsString(argumentList);
-    if (argumentValue != null) {
-      if (nameMap != null) {
-        argumentValue = nameMap.get(argumentValue.toLowerCase());
-      }
-      ClassElement returnType = library.getType(argumentValue);
-      if (returnType != null) {
-        return returnType.getType();
-      }
-    }
-    return null;
+    return getElementNameAsType(library, getFirstArgumentAsString(argumentList), nameMap);
   }
 
   /**
