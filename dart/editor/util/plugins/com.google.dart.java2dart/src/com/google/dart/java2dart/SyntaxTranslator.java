@@ -150,7 +150,6 @@ import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.SimpleName;
-import org.eclipse.jdt.core.dom.TagElement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
@@ -260,8 +259,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
    * Translates given Java AST into Dart AST.
    */
   public static CompilationUnit translate(Context context,
-      org.eclipse.jdt.core.dom.CompilationUnit javaUnit) {
-    SyntaxTranslator translator = new SyntaxTranslator(context);
+      org.eclipse.jdt.core.dom.CompilationUnit javaUnit, String javaSource) {
+    SyntaxTranslator translator = new SyntaxTranslator(context, javaSource);
     javaUnit.accept(translator);
     return (CompilationUnit) translator.result;
   }
@@ -396,6 +395,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   }
 
   private final Context context;
+  private final String javaSource;
 
   private ASTNode result;
 
@@ -403,8 +403,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   private MethodDeclaration constructorImpl;
 
-  private SyntaxTranslator(Context context) {
+  private SyntaxTranslator(Context context, String javaSource) {
     this.context = context;
+    this.javaSource = javaSource;
   }
 
   @Override
@@ -1078,21 +1079,13 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.Javadoc node) {
-    StringBuilder buffer = new StringBuilder();
-    {
-      buffer.append("/**");
-      for (Object javaTag : node.tags()) {
-        String javaTagString = tagElementToString((TagElement) javaTag);
-        String dartDocString = StringUtils.replace(javaTagString, "[", "\\[");;
-        dartDocString = StringUtils.replace(dartDocString, "]", "\\]");;
-        // TODO(scheglov) improve JavaDoc translation
-//        String dartDocString = escapeDartDoc(javaTagString);
-        dartDocString = convertJavaDoc(dartDocString);
-        buffer.append(dartDocString);
-      }
-      buffer.append("\n */\n");
+    String javaDocString = getJavaSource(node);
+    // there is some one-off sometimes, probably bug in JDT
+    if (!javaDocString.startsWith("/**") && javaDocString.startsWith("**")) {
+      javaDocString = "/" + javaDocString;
     }
-    StringToken commentToken = new StringToken(TokenType.STRING, buffer.toString(), 0);
+    String dartDocString = convertJavaDoc(javaDocString);
+    StringToken commentToken = new StringToken(TokenType.STRING, dartDocString, 0);
     return done(Comment.createDocumentationComment(new Token[] {commentToken}));
   }
 
@@ -1857,6 +1850,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     return ref;
   }
 
+  private String getJavaSource(org.eclipse.jdt.core.dom.ASTNode node) {
+    int offset = node.getStartPosition();
+    return javaSource.substring(offset, offset + node.getLength());
+  }
+
   private boolean isNumberOrNull(Expression expression) {
     if (expression instanceof IntegerLiteral || expression instanceof DoubleLiteral
         || expression instanceof NullLiteral) {
@@ -1877,27 +1875,6 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       binding = JavaUtils.getOriginalBinding(binding);
       context.putReference(identifier, binding, JavaUtils.getJdtSignature(binding));
     }
-  }
-
-  private String tagElementToString(TagElement tag) {
-    StringBuilder builder = new StringBuilder();
-
-    List<?> fragments = tag.fragments();
-
-    for (int i = 0; i < fragments.size(); i++) {
-      Object fragment = fragments.get(i);
-
-      builder.append("\n * ");
-
-      if (i == 0 && tag.getTagName() != null) {
-        builder.append(tag.getTagName());
-        builder.append(" ");
-      }
-
-      builder.append(fragment.toString());
-    }
-
-    return builder.toString();
   }
 
   /**

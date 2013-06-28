@@ -204,14 +204,14 @@ public class TypePropagationTest extends ResolverTestCase {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // k
     Type intType = getTypeProvider().getIntType();
-    FormalParameter kParameter = findNode(unit, code, "k, ", FormalParameter.class);
+    FormalParameter kParameter = findNode(unit, code, "k, ", SimpleFormalParameter.class);
     assertSame(intType, kParameter.getIdentifier().getPropagatedType());
     SimpleIdentifier kIdentifier = findNode(unit, code, "k;", SimpleIdentifier.class);
     assertSame(intType, kIdentifier.getPropagatedType());
     assertSame(getTypeProvider().getDynamicType(), kIdentifier.getStaticType());
     // v
     Type stringType = getTypeProvider().getStringType();
-    FormalParameter vParameter = findNode(unit, code, "v)", FormalParameter.class);
+    FormalParameter vParameter = findNode(unit, code, "v)", SimpleFormalParameter.class);
     assertSame(stringType, vParameter.getIdentifier().getPropagatedType());
     SimpleIdentifier vIdentifier = findNode(unit, code, "v;", SimpleIdentifier.class);
     assertSame(stringType, vIdentifier.getPropagatedType());
@@ -235,11 +235,11 @@ public class TypePropagationTest extends ResolverTestCase {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // k
     Type intType = getTypeProvider().getIntType();
-    FormalParameter kParameter = findNode(unit, code, "k, ", FormalParameter.class);
+    FormalParameter kParameter = findNode(unit, code, "k, ", SimpleFormalParameter.class);
     assertSame(intType, kParameter.getIdentifier().getPropagatedType());
     // v
     Type stringType = getTypeProvider().getStringType();
-    FormalParameter vParameter = findNode(unit, code, "v)", FormalParameter.class);
+    FormalParameter vParameter = findNode(unit, code, "v)", SimpleFormalParameter.class);
     assertSame(stringType, vParameter.getIdentifier().getPropagatedType());
   }
 
@@ -260,7 +260,7 @@ public class TypePropagationTest extends ResolverTestCase {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
     Type intType = getTypeProvider().getIntType();
-    FormalParameter vParameter = findNode(unit, code, "v)", FormalParameter.class);
+    FormalParameter vParameter = findNode(unit, code, "v)", SimpleFormalParameter.class);
     assertSame(null, vParameter.getIdentifier().getPropagatedType());
     assertSame(intType, vParameter.getIdentifier().getStaticType());
     SimpleIdentifier vIdentifier = findNode(unit, code, "v;", SimpleIdentifier.class);
@@ -285,7 +285,7 @@ public class TypePropagationTest extends ResolverTestCase {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
     Type stringType = getTypeProvider().getStringType();
-    FormalParameter vParameter = findNode(unit, code, "v)", FormalParameter.class);
+    FormalParameter vParameter = findNode(unit, code, "v)", SimpleFormalParameter.class);
     assertSame(stringType, vParameter.getIdentifier().getPropagatedType());
     assertSame(getTypeProvider().getObjectType(), vParameter.getIdentifier().getStaticType());
     SimpleIdentifier vIdentifier = findNode(unit, code, "v;", SimpleIdentifier.class);

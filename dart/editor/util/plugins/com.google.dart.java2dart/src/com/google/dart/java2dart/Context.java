@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.Block;
@@ -64,6 +65,7 @@ import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.ASTFactory.thisExpression;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.core.runtime.Assert;
@@ -953,9 +955,14 @@ public class Context {
     parser.createASTs(paths, null, ArrayUtils.EMPTY_STRING_ARRAY, new FileASTRequestor() {
       @Override
       public void acceptAST(String sourceFilePath, org.eclipse.jdt.core.dom.CompilationUnit javaUnit) {
-        File astFile = pathToFile.get(sourceFilePath);
-        CompilationUnit dartUnit = SyntaxTranslator.translate(Context.this, javaUnit);
-        units.put(astFile, dartUnit);
+        try {
+          File astFile = pathToFile.get(sourceFilePath);
+          String javaSource = Files.toString(astFile, Charsets.UTF_8);
+          CompilationUnit dartUnit = SyntaxTranslator.translate(Context.this, javaUnit, javaSource);
+          units.put(astFile, dartUnit);
+        } catch (Throwable e) {
+          throw new Error(e);
+        }
       }
     },
         null);

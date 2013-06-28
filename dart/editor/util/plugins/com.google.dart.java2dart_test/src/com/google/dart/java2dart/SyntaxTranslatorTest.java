@@ -44,6 +44,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
 
   private Context context = new Context();
 
+  private String javaSource;
   private org.eclipse.jdt.core.dom.CompilationUnit javaUnit;
   private com.google.dart.engine.ast.CompilationUnit dartUnit;
 
@@ -790,14 +791,14 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
   public void test_javadoc_code() throws Exception {
     parseJava(//
         "/**",
-        " * {@code fooBar}",
+        " * aaa {@code fooBar} bbb",
         " */",
         "public class A {",
         "}");
     assertDartSource(//
         "",
         "/**",
-        " * `fooBar`",
+        " * aaa `fooBar` bbb",
         " */",
         "class A {",
         "}");
@@ -842,18 +843,18 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
   public void test_javadoc_multiLine() throws Exception {
     parseJava(//
         "/**",
-        " * foo bar",
-        " * {@link Source}",
-        " * bar baz",
+        " * aaa bbb",
+        " * {@link Source} ccc",
+        " * ddd",
         " */",
         "public class A {",
         "}");
     assertDartSource(//
         "",
         "/**",
-        " * foo bar",
-        " * [Source]",
-        " * bar baz",
+        " * aaa bbb",
+        " * [Source] ccc",
+        " * ddd",
         " */",
         "class A {",
         "}");
@@ -1818,19 +1819,19 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
    * Parse Java source lines into {@link #javaUnit}.
    */
   private void parseJava(String... lines) {
-    String source = Joiner.on("\n").join(lines);
+    javaSource = Joiner.on("\n").join(lines);
     ASTParser parser = ASTParser.newParser(AST.JLS4);
     parser.setCompilerOptions(ImmutableMap.of(
         JavaCore.COMPILER_SOURCE,
         JavaCore.VERSION_1_5,
         JavaCore.COMPILER_DOC_COMMENT_SUPPORT,
         JavaCore.ENABLED));
-    parser.setSource(source.toCharArray());
+    parser.setSource(javaSource.toCharArray());
     javaUnit = (org.eclipse.jdt.core.dom.CompilationUnit) parser.createAST(null);
     assertThat(javaUnit.getProblems()).isEmpty();
   }
 
   private void translate() {
-    dartUnit = SyntaxTranslator.translate(context, javaUnit);
+    dartUnit = SyntaxTranslator.translate(context, javaUnit, javaSource);
   }
 }

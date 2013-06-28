@@ -986,6 +986,11 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
     unit.getDirectives().add(
         importDirective(
+            src_package + "ast.dart",
+            null,
+            importShowCombinator("ASTNode", "NodeLocator")));
+    unit.getDirectives().add(
+        importDirective(
             src_package + "element.dart",
             null,
             importShowCombinator("InterfaceType", "MethodElement", "PropertyAccessorElement")));
