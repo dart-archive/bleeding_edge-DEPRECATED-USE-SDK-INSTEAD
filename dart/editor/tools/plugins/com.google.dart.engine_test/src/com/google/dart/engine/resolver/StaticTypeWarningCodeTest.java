@@ -372,19 +372,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_typeArgumentNotMatchingBounds_const() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "class B {}",
-        "class G<E extends A> {",
-        "  const G();",
-        "}",
-        "f() { return const G<B>(); }"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
-    verify(source);
-  }
-
   public void test_typeArgumentNotMatchingBounds_extends() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",

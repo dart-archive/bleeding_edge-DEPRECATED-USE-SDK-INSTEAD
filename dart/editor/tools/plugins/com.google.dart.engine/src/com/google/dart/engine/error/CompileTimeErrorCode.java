@@ -1079,6 +1079,26 @@ public enum CompileTimeErrorCode implements ErrorCode {
   SUPER_INITIALIZER_IN_OBJECT(""),
 
   /**
+   * 12.11 Instance Creation: It is a static type warning if any of the type arguments to a
+   * constructor of a generic type <i>G</i> invoked by a new expression or a constant object
+   * expression are not subtypes of the bounds of the corresponding formal type parameters of
+   * <i>G</i>.
+   * <p>
+   * 12.11.1 New: If T is malformed a dynamic error occurs. In checked mode, if T is mal-bounded a
+   * dynamic error occurs.
+   * <p>
+   * 12.1 Constants: It is a compile-time error if evaluation of a compile-time constant would raise
+   * an exception.
+   * <p>
+   * 
+   * @see StaticTypeWarningCode#TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+   * @param boundedTypeName the name of the type used in the instance creation that should be
+   *          limited by the bound as specified in the class declaration
+   * @param boundingTypeName the name of the bounding type
+   */
+  TYPE_ARGUMENT_NOT_MATCHING_BOUNDS("'%s' does not extend '%s'"),
+
+  /**
    * 12.11.2 Const: It is a compile-time error if <i>T</i> is not a class accessible in the current
    * scope, optionally followed by type arguments.
    */

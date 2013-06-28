@@ -3087,6 +3087,20 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  // TODO(scheglov)
+  public void test_typeArgumentNotMatchingBounds_const() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {",
+        "  const G();",
+        "}",
+        "f() { return const G<B>(); }"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
   public void test_undefinedClass_const() throws Exception {
     Source source = addSource(createSource(//
         "f() {",

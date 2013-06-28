@@ -4018,11 +4018,17 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       Type boundType = boundingElts[i].getBound();
       if (argType != null && boundType != null) {
         if (!argType.isSubtypeOf(boundType)) {
+          ErrorCode errorCode;
+          if (isInConstConstructorInvocation(node)) {
+            errorCode = CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
+          } else {
+            errorCode = StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
+          }
           errorReporter.reportError(
-              StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+              errorCode,
               argTypeName,
               argTypeName.getName(),
-              boundingElts[i].getBound().getDisplayName());
+              boundType.getDisplayName());
           foundError = true;
         }
       }
@@ -4292,6 +4298,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * @return {@code true} if the given {@link ASTNode} is the part of constant constructor
+   *         invocation.
+   */
+  private boolean isInConstConstructorInvocation(ASTNode node) {
+    InstanceCreationExpression creation = node.getAncestor(InstanceCreationExpression.class);
+    if (creation == null) {
+      return false;
+    }
+    return creation.isConst();
   }
 
   /**
