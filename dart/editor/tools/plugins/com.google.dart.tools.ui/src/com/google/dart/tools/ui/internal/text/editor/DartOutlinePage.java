@@ -96,7 +96,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
           SWTUtil.eraseSelection(event, tree, preferences);
         }
       });
-      updateColors();
     }
 
     private void updateColors() {
@@ -165,27 +164,23 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
   private DartEditor editor;
   private DartOutlineViewer viewer;
   private boolean ignoreSelectionChangedEvent = false;
-  private IPropertyChangeListener propertyChangeListener;
   private Menu contextMenu;
   private CompositeActionGroup actionGroups;
 
   private CompilationUnit input;
+
   private IPreferenceStore preferences;
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      doPropertyChange(event);
+    }
+  };
 
   public DartOutlinePage(String contextMenuID, DartEditor editor) {
     Assert.isNotNull(editor);
     this.contextMenuID = contextMenuID;
     this.editor = editor;
-    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
-    // listen for property changes
-    propertyChangeListener = new IPropertyChangeListener() {
-      @Override
-      public void propertyChange(PropertyChangeEvent event) {
-        doPropertyChange(event);
-      }
-    };
-    DartToolsPlugin.getDefault().getPreferenceStore().addPropertyChangeListener(
-        propertyChangeListener);
   }
 
   @Override
@@ -199,6 +194,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
 
   @Override
   public void createControl(Composite parent) {
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     Tree tree = new Tree(parent, SWT.MULTI | SWT.FULL_SELECTION);
     // create "viewer"
     viewer = new DartOutlineViewer(tree);
@@ -259,6 +255,9 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
         toggleExpansion(event.getSelection());
       }
     });
+    // update colors
+    preferences.addPropertyChangeListener(propertyChangeListener);
+    viewer.updateColors();
     // schedule update in 100ms from now, to make impression that editor opens instantaneously
     new UIJob("Update Outline") {
       @Override
@@ -282,8 +281,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage {
     editor = null;
     // remove property listeners
     if (propertyChangeListener != null) {
-      IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
-      preferenceStore.removePropertyChangeListener(propertyChangeListener);
+      preferences.removePropertyChangeListener(propertyChangeListener);
       propertyChangeListener = null;
     }
     // dispose "contextMenu"
