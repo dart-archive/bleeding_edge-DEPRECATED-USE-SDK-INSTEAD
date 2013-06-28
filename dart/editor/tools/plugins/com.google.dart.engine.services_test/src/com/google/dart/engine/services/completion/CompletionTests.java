@@ -569,6 +569,11 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+y", "1-x", "2+x", "2-y");
   }
 
+  public void test039() throws Exception {
+    // test analysis of untyped fields and top-level vars
+    test("class X{}var x = null as !1X;", "1+X", "1-void");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",

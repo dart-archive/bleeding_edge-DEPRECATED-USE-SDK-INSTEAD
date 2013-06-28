@@ -16,6 +16,7 @@ package com.google.dart.engine.services.completion;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -787,6 +788,16 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitAsExpression(AsExpression node) {
+      if (isCompletionAfter(node.getAsOperator().getEnd())) {
+        state.isDynamicAllowed = false;
+        state.isVoidAllowed = false;
+        analyzeTypeName(new Ident(node), null);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitAssertStatement(AssertStatement node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
@@ -1270,6 +1281,16 @@ public class CompletionEngine {
     TypeNameCompleter(SimpleIdentifier identifier, TypeName typeName) {
       this.identifier = identifier;
       this.typeName = typeName;
+    }
+
+    @Override
+    public Void visitAsExpression(AsExpression node) {
+      if (node.getType() == typeName) {
+        state.isDynamicAllowed = false;
+        state.isVoidAllowed = false;
+        analyzeTypeName(identifier, null);
+      }
+      return null;
     }
 
     @Override
