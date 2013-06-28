@@ -62,8 +62,8 @@ public class DynamicTypeImpl extends TypeImpl {
 
   @Override
   public boolean isSubtypeOf(Type type) {
-    // dynamic is a supertype of all types
-    return this == type;
+    // dynamic is a subtype of all types
+    return true;
   }
 
   @Override

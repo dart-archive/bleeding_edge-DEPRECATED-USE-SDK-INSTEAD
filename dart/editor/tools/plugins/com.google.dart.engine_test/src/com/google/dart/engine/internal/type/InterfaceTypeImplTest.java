@@ -968,7 +968,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeA = classA.getType();
     Type dynamicType = DynamicTypeImpl.getInstance();
 
-    assertFalse(dynamicType.isSubtypeOf(typeA));
+    assertTrue(dynamicType.isSubtypeOf(typeA));
     assertTrue(typeA.isSubtypeOf(dynamicType));
   }
 
@@ -1120,7 +1120,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     Type dynamicType = DynamicTypeImpl.getInstance();
 
     assertTrue(dynamicType.isSupertypeOf(typeA));
-    assertFalse(typeA.isSupertypeOf(dynamicType));
+    assertTrue(typeA.isSupertypeOf(dynamicType));
   }
 
   public void test_isSupertypeOf_indirectSupertype() {

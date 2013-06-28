@@ -2085,6 +2085,18 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_returnOfInvalidType_dynamicAsTypeArgument() throws Exception {
+    Source source = addSource(createSource(//
+        "class I<T> {",
+        "  factory I() => new A<T>();",
+        "}",
+        "class A<T> implements I {",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_returnOfInvalidType_subtype() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
