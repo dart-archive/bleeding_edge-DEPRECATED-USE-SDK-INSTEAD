@@ -27,6 +27,7 @@ import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
@@ -144,6 +145,9 @@ public class AbstractDartTest extends TestCase {
     if (analysisContext == null) {
       analysisContext = AnalysisEngine.getInstance().createAnalysisContext();
       analysisContext.setSourceFactory(sourceFactory);
+      AnalysisOptionsImpl analysisOptionsImpl = new AnalysisOptionsImpl();
+      analysisOptionsImpl.setAudit(false);
+      analysisContext.setAnalysisOptions(analysisOptionsImpl);
     }
   }
 

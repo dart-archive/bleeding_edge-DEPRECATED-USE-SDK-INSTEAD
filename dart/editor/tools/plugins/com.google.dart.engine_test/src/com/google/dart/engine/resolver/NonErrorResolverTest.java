@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.error.AuditCode;
 import com.google.dart.engine.source.Source;
 
 public class NonErrorResolverTest extends ResolverTestCase {
@@ -1678,7 +1679,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const A.b2(bool p) : v = true || p;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertErrors(AuditCode.DEAD_CODE);
     verify(source);
   }
 

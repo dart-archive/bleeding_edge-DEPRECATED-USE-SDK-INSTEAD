@@ -360,8 +360,9 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
       element = ((PropertyAccessorElement) element).getVariable();
     }
     if (element instanceof VariableElementImpl) {
-      EvaluationResultImpl value = ((VariableElementImpl) element).getEvaluationResult();
-      if (value != null) {
+      VariableElementImpl variableElementImpl = (VariableElementImpl) element;
+      EvaluationResultImpl value = variableElementImpl.getEvaluationResult();
+      if (variableElementImpl.isConst() && value != null) {
         return value;
       }
     } else if (element instanceof ExecutableElement) {

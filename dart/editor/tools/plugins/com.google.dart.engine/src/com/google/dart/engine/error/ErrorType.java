@@ -20,6 +20,12 @@ package com.google.dart.engine.error;
  */
 public enum ErrorType {
   /**
+   * Extra audits run over the code to follow best practices, which are not in the Dart Language
+   * Specification.
+   */
+  AUDIT(ErrorSeverity.SUGGESTION),
+
+  /**
    * Compile-time errors are errors that preclude execution. A compile time error must be reported
    * by a Dart compiler before the erroneous code is executed.
    */

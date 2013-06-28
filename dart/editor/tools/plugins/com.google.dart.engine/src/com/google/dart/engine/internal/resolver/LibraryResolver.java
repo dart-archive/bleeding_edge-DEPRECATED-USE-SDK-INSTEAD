@@ -44,9 +44,9 @@ import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.ShowElementCombinatorImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.verifier.AuditVerifier;
 import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
-import com.google.dart.engine.internal.verifier.PubVerifier;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
@@ -70,6 +70,12 @@ public class LibraryResolver {
   private InternalAnalysisContext analysisContext;
 
   /**
+   * A flag indicating whether analysis is to generate audit results (e.g. type inference based
+   * information and pub best practices).
+   */
+  private final boolean audit;
+
+  /**
    * The listener to which analysis errors will be reported, this error listener is either
    * references {@link #recordingErrorListener}, or it unions the passed
    * {@link AnalysisErrorListener} with the {@link #recordingErrorListener}.
@@ -85,12 +91,6 @@ public class LibraryResolver {
    * The object representing the core library.
    */
   private Library coreLibrary;
-
-  /**
-   * A flag indicating whether analysis is to generate audit results (e.g. type inference based
-   * information and pub best practices).
-   */
-  private final boolean audit;
 
   /**
    * The object used to access the types from the core library.
@@ -797,7 +797,7 @@ public class LibraryResolver {
       unit.accept(errorVerifier);
 
       if (audit) {
-        unit.accept(new PubVerifier(analysisContext, errorReporter));
+        new AuditVerifier(analysisContext, errorReporter).visitCompilationUnit(unit);
       }
     }
   }

@@ -30,7 +30,7 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    * A flag indicating whether analysis is to generate audit results (e.g. type inference based
    * information and pub best practices).
    */
-  private boolean audit = false;
+  private boolean audit = true;
 
   /**
    * Initialize a newly created set of analysis options to have their default values.
