@@ -79,8 +79,16 @@ public class NamingConventionsTest extends AbstractDartTest {
     assertRefactoringStatusOK(validateClassName("NewName"));
   }
 
+  public void test_validateClassName_OK_leadingDollar() throws Exception {
+    assertRefactoringStatusOK(validateClassName("$NewName"));
+  }
+
   public void test_validateClassName_OK_leadingUnderscore() throws Exception {
     assertRefactoringStatusOK(validateClassName("_NewName"));
+  }
+
+  public void test_validateClassName_OK_middleDollar() throws Exception {
+    assertRefactoringStatusOK(validateClassName("New$Name"));
   }
 
   public void test_validateClassName_trailingBlanks() throws Exception {
@@ -312,8 +320,16 @@ public class NamingConventionsTest extends AbstractDartTest {
     assertRefactoringStatusOK(validateFunctionName("newName"));
   }
 
+  public void test_validateFunctionName_OK_leadingDollar() throws Exception {
+    assertRefactoringStatusOK(validateFunctionName("$newName"));
+  }
+
   public void test_validateFunctionName_OK_leadingUnderscore() throws Exception {
     assertRefactoringStatusOK(validateFunctionName("_newName"));
+  }
+
+  public void test_validateFunctionName_OK_middleDollar() throws Exception {
+    assertRefactoringStatusOK(validateFunctionName("new$Name"));
   }
 
   public void test_validateFunctionName_trailingBlanks() throws Exception {

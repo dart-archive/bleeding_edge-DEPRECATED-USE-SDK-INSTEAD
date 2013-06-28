@@ -186,7 +186,7 @@ public final class NamingConventions {
       return RefactoringStatus.createErrorStatus(message);
     }
     char currentChar = identifier.charAt(0);
-    if (!Character.isLetter(currentChar) && currentChar != '_') {
+    if (!Character.isLetter(currentChar) && currentChar != '_' && currentChar != '$') {
       String message = MessageFormat.format(
           "{0} must not start with ''{1}''.",
           identifierName,
@@ -195,7 +195,7 @@ public final class NamingConventions {
     }
     for (int i = 1; i < length; i++) {
       currentChar = identifier.charAt(i);
-      if (!Character.isLetterOrDigit(currentChar) && currentChar != '_') {
+      if (!Character.isLetterOrDigit(currentChar) && currentChar != '_' && currentChar != '$') {
         String message = MessageFormat.format(
             "{0} must not contain ''{1}''.",
             identifierName,
@@ -222,6 +222,10 @@ public final class NamingConventions {
     }
     // is private, OK
     if (identifier.charAt(0) == '_') {
+      return new RefactoringStatus();
+    }
+    // leading $, OK
+    if (identifier.charAt(0) == '$') {
       return new RefactoringStatus();
     }
     // does not start with lower case
@@ -251,6 +255,10 @@ public final class NamingConventions {
     }
     // is private, OK
     if (identifier.charAt(0) == '_') {
+      return new RefactoringStatus();
+    }
+    // leading $, OK
+    if (identifier.charAt(0) == '$') {
       return new RefactoringStatus();
     }
     // does not start with upper case
