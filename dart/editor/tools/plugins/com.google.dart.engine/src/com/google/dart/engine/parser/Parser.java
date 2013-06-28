@@ -4319,6 +4319,7 @@ public class Parser {
    *   | booleanLiteral
    *   | numericLiteral
    *   | stringLiteral
+   *   | symbolLiteral
    *   | mapLiteral
    *   | listLiteral
    * </pre>
@@ -4405,6 +4406,8 @@ public class Parser {
       reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken.getLexeme());
       advance();
       return parsePrimaryExpression();
+    } else if (matches(TokenType.HASH)) {
+      return parseSymbolLiteral();
     } else {
       reportError(ParserErrorCode.MISSING_IDENTIFIER);
       return createSyntheticIdentifier();
@@ -4850,6 +4853,38 @@ public class Parser {
     } finally {
       inSwitch = wasInSwitch;
     }
+  }
+
+  /**
+   * Parse a symbol literal.
+   * 
+   * <pre>
+   * symbolLiteral ::=
+   *     '#' identifier ('.' identifier)*
+   * </pre>
+   * 
+   * @return the symbol literal that was parsed
+   */
+  private SymbolLiteral parseSymbolLiteral() {
+    Token poundSign = getAndAdvance();
+    List<SimpleIdentifier> components = new ArrayList<SimpleIdentifier>();
+    if (matches(TokenType.IDENTIFIER)) {
+      components.add(parseSimpleIdentifier());
+      while (matches(TokenType.PERIOD)) {
+        advance();
+        if (matches(TokenType.IDENTIFIER)) {
+          components.add(parseSimpleIdentifier());
+        } else {
+          reportError(ParserErrorCode.MISSING_IDENTIFIER);
+          components.add(createSyntheticIdentifier());
+          break;
+        }
+      }
+    } else {
+      reportError(ParserErrorCode.MISSING_IDENTIFIER);
+      components.add(createSyntheticIdentifier());
+    }
+    return new SymbolLiteral(poundSign, components);
   }
 
   /**

@@ -906,6 +906,14 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseFunctionDeclarationStatement", "A<T> () {}", ParserErrorCode.MISSING_IDENTIFIER);
   }
 
+  public void test_missingIdentifier_inSymbol_afterPeriod() throws Exception {
+    parse("parseSymbolLiteral", "#a.", ParserErrorCode.MISSING_IDENTIFIER);
+  }
+
+  public void test_missingIdentifier_inSymbol_first() throws Exception {
+    parse("parseSymbolLiteral", "#", ParserErrorCode.MISSING_IDENTIFIER);
+  }
+
   public void test_missingIdentifier_number() throws Exception {
     SimpleIdentifier expression = parse(
         "parseSimpleIdentifier",

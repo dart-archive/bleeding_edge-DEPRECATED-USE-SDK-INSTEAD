@@ -3923,6 +3923,24 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getRightBracket());
   }
 
+  public void test_parseSymbolLiteral_multiple() throws Exception {
+    SymbolLiteral literal = parse("parseSymbolLiteral", "#a.b.c");
+    assertNotNull(literal.getPoundSign());
+    NodeList<SimpleIdentifier> components = literal.getComponents();
+    assertSize(3, components);
+    assertEquals("a", components.get(0).getName());
+    assertEquals("b", components.get(1).getName());
+    assertEquals("c", components.get(2).getName());
+  }
+
+  public void test_parseSymbolLiteral_single() throws Exception {
+    SymbolLiteral literal = parse("parseSymbolLiteral", "#a");
+    assertNotNull(literal.getPoundSign());
+    NodeList<SimpleIdentifier> components = literal.getComponents();
+    assertSize(1, components);
+    assertEquals("a", components.get(0).getName());
+  }
+
   public void test_parseThrowExpression() throws Exception {
     ThrowExpression expression = parse("parseThrowExpression", "throw x;");
     assertNotNull(expression.getKeyword());
