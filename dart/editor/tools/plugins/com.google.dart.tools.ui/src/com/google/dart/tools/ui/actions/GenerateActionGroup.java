@@ -70,7 +70,7 @@ public class GenerateActionGroup extends ActionGroup {
   }
 
   /**
-   * Pop-up menu: id of the source sub menu (value <code>org.eclipse.wst.jsdt.ui.source.menu</code>
+   * Pop-up menu: id of the source sub menu (value <code>com.google.dart.tools.ui.source.menu</code>
    * ).
    */
   public static final String MENU_ID = "com.google.dart.tools.ui.source.menu"; //$NON-NLS-1$
