@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.verifier;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
@@ -94,6 +96,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
@@ -572,6 +575,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     checkForDefaultValueInFunctionTypeAlias(node);
+    checkForTypeAliasCannotReferenceItself(node);
     return super.visitFunctionTypeAlias(node);
   }
 
@@ -3988,6 +3992,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This verifies that the passed function type alias does not reference itself directly.
+   * 
+   * @param node the function type alias to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+   */
+  private boolean checkForTypeAliasCannotReferenceItself(FunctionTypeAlias node) {
+    FunctionTypeAliasElement element = node.getElement();
+    if (!hasFunctionTypeAliasSelfReference(element)) {
+      return false;
+    }
+    errorReporter.reportError(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node);
+    return true;
+  }
+
+  /**
    * This verifies that the type arguments in the passed type name are all within their bounds.
    * 
    * @param node the {@link TypeName} to evaluate
@@ -4279,6 +4299,70 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * Checks if "target" is referenced by "current".
+   */
+  private boolean hasFunctionTypeAliasReference(Set<FunctionTypeAliasElement> visited,
+      FunctionTypeAliasElement target, Element currentElement) {
+    // only if "current" in function type alias
+    if (!(currentElement instanceof FunctionTypeAliasElement)) {
+      return false;
+    }
+    FunctionTypeAliasElement current = (FunctionTypeAliasElement) currentElement;
+    // found "target"
+    if (Objects.equal(target, current)) {
+      return true;
+    }
+    // prevent recursion
+    if (visited.contains(current)) {
+      return false;
+    }
+    visited.add(current);
+    // check type of "current" function type alias
+    return hasFunctionTypeAliasReference(visited, target, current);
+  }
+
+  /**
+   * Checks if "target" is referenced by "current".
+   */
+  private boolean hasFunctionTypeAliasReference(Set<FunctionTypeAliasElement> visited,
+      FunctionTypeAliasElement target, FunctionTypeAliasElement current) {
+    FunctionType type = current.getType();
+    // prepare Types directly referenced by "current"
+    Set<Type> referencedTypes = Sets.newHashSet();
+    if (type != null) {
+      // type parameters
+      for (TypeVariableElement typeVariable : current.getTypeVariables()) {
+        Type bound = typeVariable.getBound();
+        referencedTypes.add(bound);
+      }
+      // return type
+      referencedTypes.add(type.getReturnType());
+      // parameters
+      for (ParameterElement parameter : type.getParameters()) {
+        referencedTypes.add(parameter.getType());
+      }
+    }
+    // check that referenced types do not have references on "target"
+    for (Type referencedType : referencedTypes) {
+      if (referencedType != null
+          && hasFunctionTypeAliasReference(visited, target, referencedType.getElement())) {
+        return true;
+      }
+    }
+    // no
+    return false;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link FunctionTypeAliasElement} has direct or indirect
+   *         reference to itself using other {@link FunctionTypeAliasElement}s.
+   */
+  private boolean hasFunctionTypeAliasSelfReference(FunctionTypeAliasElement target) {
+    Set<FunctionTypeAliasElement> visited = Sets.newHashSet();
+    return hasFunctionTypeAliasReference(visited, target, target);
   }
 
   /**

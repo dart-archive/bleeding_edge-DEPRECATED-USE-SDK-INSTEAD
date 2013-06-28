@@ -2209,6 +2209,17 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typeAliasCannotReferenceItself_returnClass_withTypeAlias() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef B A();",
+        "class B {",
+        "  A a;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_typeArgumentNotMatchingBounds_const() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",

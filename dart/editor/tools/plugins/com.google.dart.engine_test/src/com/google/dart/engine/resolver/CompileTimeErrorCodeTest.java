@@ -3087,7 +3087,57 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  // TODO(scheglov)
+  public void test_typeAliasCannotReferenceItself_parameterType_named() throws Exception {
+    Source source = addSource(createSource(//
+    "typedef A({A a});"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    verify(source);
+  }
+
+  public void test_typeAliasCannotReferenceItself_parameterType_positional() throws Exception {
+    Source source = addSource(createSource(//
+    "typedef A([A a]);"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    verify(source);
+  }
+
+  public void test_typeAliasCannotReferenceItself_parameterType_required() throws Exception {
+    Source source = addSource(createSource(//
+    "typedef A(A a);"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    verify(source);
+  }
+
+  public void test_typeAliasCannotReferenceItself_returnType() throws Exception {
+    Source source = addSource(createSource(//
+    "typedef A A();"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    verify(source);
+  }
+
+  public void test_typeAliasCannotReferenceItself_returnType_indirect() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef B A();",
+        "typedef A B();"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    verify(source);
+  }
+
+  public void test_typeAliasCannotReferenceItself_typeVariableBounds() throws Exception {
+    Source source = addSource(createSource(//
+    "typedef A<T extends A>();"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    verify(source);
+  }
+
   public void test_typeArgumentNotMatchingBounds_const() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
