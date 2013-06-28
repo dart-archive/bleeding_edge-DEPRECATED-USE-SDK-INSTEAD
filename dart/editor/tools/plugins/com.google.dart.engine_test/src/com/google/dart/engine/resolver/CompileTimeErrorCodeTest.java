@@ -333,7 +333,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         " return ?v;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER);
+    assertErrors(
+        ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST,
+        CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER);
     verify(source);
   }
 

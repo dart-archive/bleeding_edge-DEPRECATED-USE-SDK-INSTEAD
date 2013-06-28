@@ -14,6 +14,7 @@
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.AuditCode;
+import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class NonErrorResolverTest extends ResolverTestCase {
@@ -75,7 +76,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  return ?v;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertErrors(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
     verify(source);
   }
 
@@ -85,7 +86,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  return ?v;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertErrors(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
     verify(source);
   }
 
@@ -95,7 +96,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  return ?v;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertErrors(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
     verify(source);
   }
 

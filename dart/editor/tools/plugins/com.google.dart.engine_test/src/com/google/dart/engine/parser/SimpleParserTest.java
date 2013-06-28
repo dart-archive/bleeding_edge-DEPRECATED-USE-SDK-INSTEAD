@@ -372,8 +372,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseArgumentDefinitionTest() throws Exception {
-    ArgumentDefinitionTest test = parse("parseArgumentDefinitionTest", "?x"/*,
-                                                                           ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST*/);
+    ArgumentDefinitionTest test = parse(
+        "parseArgumentDefinitionTest",
+        "?x",
+        ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
     assertNotNull(test.getQuestion());
     assertNotNull(test.getIdentifier());
   }

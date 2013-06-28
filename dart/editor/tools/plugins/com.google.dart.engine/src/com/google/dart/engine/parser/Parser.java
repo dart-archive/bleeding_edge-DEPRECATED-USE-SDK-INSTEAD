@@ -943,8 +943,7 @@ public class Parser {
   private ArgumentDefinitionTest parseArgumentDefinitionTest() {
     Token question = expect(TokenType.QUESTION);
     SimpleIdentifier identifier = parseSimpleIdentifier();
-    // TODO(brianwilkerson) Enable this warning when the use of this operator has been removed
-    // reportError(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question);
+    reportError(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question);
     return new ArgumentDefinitionTest(question, identifier);
   }
 
