@@ -73,6 +73,17 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
     super(name);
   }
 
+  /**
+   * Initialize a newly created parameter element to have the given name.
+   * 
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public ParameterElementImpl(String name, int nameOffset) {
+    super(name, nameOffset);
+  }
+
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
     return visitor.visitParameterElement(this);

@@ -77,6 +77,7 @@ import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
 
@@ -745,6 +746,12 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(variable);
         setter.setSetter(true);
         setter.setStatic(variable.isStatic());
+        ParameterElementImpl parameter = new ParameterElementImpl(
+            "_" + variable.getName(),
+            variable.getNameOffset());
+        parameter.setSynthetic(true);
+        parameter.setParameterKind(ParameterKind.REQUIRED);
+        setter.setParameters(new ParameterElement[] {parameter});
 
         currentHolder.addAccessor(setter);
         variable.setSetter(setter);

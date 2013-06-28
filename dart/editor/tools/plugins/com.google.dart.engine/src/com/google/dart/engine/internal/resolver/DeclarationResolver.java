@@ -26,6 +26,7 @@ import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldFormalParameter;
+import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
@@ -191,24 +192,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
     SimpleIdentifier parameterName = node.getParameter().getIdentifier();
-
-    ParameterElement element = null;
-    if (enclosingExecutable != null) {
-      element = find(enclosingExecutable.getParameters(), parameterName);
-    } else {
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.println("Invalid state found in the Analysis Engine:");
-      writer.println("DeclarationResolver.visitDefaultFormalParameter() is visiting a parameter that "
-          + "does not appear to be in a method or function.");
-      writer.println("Ancestors:");
-      ASTNode parent = node.getParent();
-      while (parent != null) {
-        writer.println(parent.getClass().getName());
-        writer.println("---------");
-        parent = parent.getParent();
-      }
-      AnalysisEngine.getInstance().getLogger().logError(writer.toString(), new AnalysisException());
-    }
+    ParameterElement element = getElementForParameter(node, parameterName);
     Expression defaultValue = node.getDefaultValue();
     if (defaultValue != null) {
       ExecutableElement outerExecutable = enclosingExecutable;
@@ -249,7 +233,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     if (!(node.getParent() instanceof DefaultFormalParameter)) {
       SimpleIdentifier parameterName = node.getIdentifier();
-      ParameterElement element = find(enclosingExecutable.getParameters(), parameterName);
+      ParameterElement element = getElementForParameter(node, parameterName);
       ParameterElement outerParameter = enclosingParameter;
       try {
         enclosingParameter = element;
@@ -322,7 +306,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     if (!(node.getParent() instanceof DefaultFormalParameter)) {
       SimpleIdentifier parameterName = node.getIdentifier();
-      ParameterElement element = find(enclosingExecutable.getParameters(), parameterName);
+      ParameterElement element = getElementForParameter(node, parameterName);
       ParameterElement outerParameter = enclosingParameter;
       try {
         enclosingParameter = element;
@@ -417,16 +401,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (!(node.getParent() instanceof DefaultFormalParameter)) {
       SimpleIdentifier parameterName = node.getIdentifier();
-      ParameterElement element = null;
-      if (enclosingParameter != null) {
-        element = find(enclosingParameter.getParameters(), parameterName);
-      } else if (enclosingExecutable != null) {
-        element = find(enclosingExecutable.getParameters(), parameterName);
-      } else if (enclosingAlias != null) {
-        element = find(enclosingAlias.getParameters(), parameterName);
-      } else {
-        // Report this internal error.
-      }
+      ParameterElement element = getElementForParameter(node, parameterName);
       ParameterElement outerParameter = enclosingParameter;
       try {
         enclosingParameter = element;
@@ -624,6 +599,43 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * Search the most closely enclosing list of parameters for a parameter with the given name.
+   * 
+   * @param node the node defining the parameter with the given name
+   * @param parameterName the name of the parameter being searched for
+   * @return the element representing the parameter with that name
+   */
+  private ParameterElement getElementForParameter(FormalParameter node,
+      SimpleIdentifier parameterName) {
+    ParameterElement[] parameters = null;
+    if (enclosingParameter != null) {
+      parameters = enclosingParameter.getParameters();
+    }
+    if (parameters == null && enclosingExecutable != null) {
+      parameters = enclosingExecutable.getParameters();
+    }
+    if (parameters == null && enclosingAlias != null) {
+      parameters = enclosingAlias.getParameters();
+    }
+    ParameterElement element = parameters == null ? null : find(parameters, parameterName);
+    if (element == null) {
+      PrintStringWriter writer = new PrintStringWriter();
+      writer.println("Invalid state found in the Analysis Engine:");
+      writer.println("DeclarationResolver.getElementForParameter() is visiting a parameter that "
+          + "does not appear to be in a method or function.");
+      writer.println("Ancestors:");
+      ASTNode parent = node.getParent();
+      while (parent != null) {
+        writer.println(parent.getClass().getName());
+        writer.println("---------");
+        parent = parent.getParent();
+      }
+      AnalysisEngine.getInstance().getLogger().logError(writer.toString(), new AnalysisException());
+    }
+    return element;
   }
 
   /**
