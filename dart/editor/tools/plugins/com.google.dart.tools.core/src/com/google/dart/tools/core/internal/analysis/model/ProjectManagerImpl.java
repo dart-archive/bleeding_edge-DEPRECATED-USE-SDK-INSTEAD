@@ -329,6 +329,13 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
+  public void setAuditOption(boolean enableAudit) {
+    for (Project project : getProjects()) {
+      project.setAuditOption(enableAudit);
+    }
+  }
+
+  @Override
   public void start() {
     new Thread() {
       @Override

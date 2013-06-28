@@ -53,6 +53,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Button enableFolding;
   private Button enableAutoCompletion;
   private Button runPubAutoCheck;
+  private Button enableAudits;
 
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
@@ -105,6 +106,12 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
       prefs.putBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, runPubAutoCheck.getSelection());
+      boolean audits = DartCore.getPlugin().isAuditsEnabled();
+      prefs.putBoolean(DartCore.ENABLE_AUDITS_PREFERENCE, enableAudits.getSelection());
+      if (audits != enableAudits.getSelection()) {
+        // trigger processing for audits
+        DartCore.getProjectManager().setAuditOption(enableAudits.getSelection());
+      }
     }
 
     return true;
@@ -157,6 +164,12 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_enable_code_folding,
         PreferencesMessages.DartBasePreferencePage_enable_code_folding_tooltip);
     GridDataFactory.fillDefaults().span(2, 1).applyTo(enableFolding);
+
+    enableAudits = createCheckBox(
+        generalGroup,
+        PreferencesMessages.DartBasePreferencePage_enable_audits,
+        PreferencesMessages.DartBasePreferencePage_enable_audits_tooltip);
+    GridDataFactory.fillDefaults().span(2, 1).applyTo(enableAudits);
 
     Group saveGroup = new Group(composite, SWT.NONE);
     saveGroup.setText(PreferencesMessages.DartBasePreferencePage_save);
@@ -221,6 +234,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
+      enableAudits.setSelection(prefs.getBoolean(DartCore.ENABLE_AUDITS_PREFERENCE, true));
       runPubAutoCheck.setSelection(prefs.getBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, true));
     }
 

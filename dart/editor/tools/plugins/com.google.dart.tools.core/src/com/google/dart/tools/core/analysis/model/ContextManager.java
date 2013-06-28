@@ -164,6 +164,14 @@ public interface ContextManager {
   void removeWorker(AnalysisWorker analysisWorker);
 
   /**
+   * Set the audit option for all the analysis context, based on changes to the audit preference
+   * DartCore.ENABLE_AUDIT_PREFERENCE
+   * 
+   * @param enableAudit
+   */
+  void setAuditOption(boolean enableAudit);
+
+  /**
    * Stop workers for the specified context.
    * 
    * @param context the context

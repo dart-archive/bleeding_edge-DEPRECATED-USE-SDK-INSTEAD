@@ -152,6 +152,11 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static final String PUB_AUTO_RUN_PREFERENCE = "pubAutoRun";
 
+  /**
+   * Preference for enabling audits
+   */
+  public static final String ENABLE_AUDITS_PREFERENCE = "enableAudits";
+
   public static final String PROJECT_PREF_PACKAGE_ROOT = "projectPackageRoot";
 
   /**
@@ -1373,6 +1378,10 @@ public class DartCore extends Plugin implements DartSdkListener {
     ProjectScope projectScope = new ProjectScope(project);
 
     return projectScope.getNode(PLUGIN_ID);
+  }
+
+  public boolean isAuditsEnabled() {
+    return DartCore.getPlugin().getPrefs().getBoolean(ENABLE_AUDITS_PREFERENCE, true);
   }
 
   public boolean isAutoRunPubEnabled() {

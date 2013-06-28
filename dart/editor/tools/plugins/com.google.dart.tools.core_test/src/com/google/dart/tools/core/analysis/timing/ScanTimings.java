@@ -312,6 +312,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public void setAuditOption(boolean enableAudit) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void start() {
       throw new UnsupportedOperationException();
     }

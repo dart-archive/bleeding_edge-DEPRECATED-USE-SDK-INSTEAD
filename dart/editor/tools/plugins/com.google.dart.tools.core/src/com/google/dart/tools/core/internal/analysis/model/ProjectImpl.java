@@ -27,7 +27,6 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
@@ -392,6 +391,14 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   @Override
+  public void setAuditOption(boolean enableAudit) {
+    for (AnalysisContext context : getAnalysisContexts()) {
+      AnalysisOptionsImpl options = (AnalysisOptionsImpl) context.getAnalysisOptions();
+      options.setAudit(enableAudit);
+    }
+  }
+
+  @Override
   public String toString() {
     String name;
     try {
@@ -561,7 +568,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     }
 
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.setAudit(DartCoreDebug.ENABLE_AUDITS);
+    options.setAudit(DartCore.getPlugin().isAuditsEnabled());
 
     context.setSourceFactory(sourceFactory);
     context.setAnalysisOptions(options);
