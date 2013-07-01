@@ -22,15 +22,10 @@ import org.eclipse.ui.dialogs.ISelectionStatusValidator;
  * <p>
  * The class should be subclassed by clients wishing to extend the type selection dialog.
  * </p>
- * 
- * @see org.eclipse.wst.jsdt.ui.JavaScriptUI#createTypeDialog(org.eclipse.swt.widgets.Shell,
- *      org.eclipse.jface.operation.IRunnableContext,
- *      org.eclipse.wst.jsdt.core.search.IJavaScriptSearchScope, int, boolean, String,
- *      TypeSelectionExtension) Provisional API: This class/interface is part of an interim API that
- *      is still under development and expected to change significantly before reaching stability.
- *      It is being made available at this early stage to solicit feedback from pioneering adopters
- *      on the understanding that any code that uses this API will almost certainly be broken
- *      (repeatedly) as the API evolves.
+ * Provisional API: This class/interface is part of an interim API that is still under development
+ * and expected to change significantly before reaching stability. It is being made available at
+ * this early stage to solicit feedback from pioneering adopters on the understanding that any code
+ * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
 public abstract class TypeSelectionExtension {
 
@@ -69,8 +64,6 @@ public abstract class TypeSelectionExtension {
 
   /**
    * Returns the selection validator or <code>null</code> if selection validation is not required.
-   * The elements passed to the selection validator are of type
-   * {@link org.eclipse.wst.jsdt.core.IType}.
    * 
    * @return the selection validator or <code>null</code>
    */

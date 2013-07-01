@@ -14,13 +14,13 @@
 package com.google.dart.tools.ui.internal.text;
 
 /**
- * Defines status codes relevant to the Java UI plug-in. When a Core exception is thrown, it contain
+ * Defines status codes relevant to the Dart UI plug-in. When a Core exception is thrown, it contain
  * a status object describing the cause of the exception. The status objects originating from the
- * Java UI plug-in use the codes defined in this interface.
+ * Dart UI plug-in use the codes defined in this interface.
  */
 public interface DartStatusConstants {
 
-  // Java UI status constants start at 10000 to make sure that we don't
+  // Dart UI status constants start at 10000 to make sure that we don't
   // collide with resource and java model constants.
 
   public static final int INTERNAL_ERROR = 10001;
@@ -47,8 +47,6 @@ public interface DartStatusConstants {
 
   /**
    * Status constant indicating that a problem occurred while notifying a post save listener.
-   * 
-   * @see org.eclipse.wst.jsdt.internal.ui.javaeditor.saveparticipant.IPostSaveListener
    */
   public static final int EDITOR_POST_SAVE_NOTIFICATION = 10006;
 

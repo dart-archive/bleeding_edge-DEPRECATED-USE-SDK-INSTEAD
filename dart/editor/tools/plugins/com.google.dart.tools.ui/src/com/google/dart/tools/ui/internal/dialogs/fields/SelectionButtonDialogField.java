@@ -140,11 +140,6 @@ public class SelectionButtonDialogField extends DialogField {
     return fIsSelected;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.wst.jsdt.internal.ui.wizards.dialogfields.DialogField#refresh()
-   */
   @Override
   public void refresh() {
     super.refresh();
@@ -153,12 +148,6 @@ public class SelectionButtonDialogField extends DialogField {
     }
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.wst.jsdt.internal.ui.wizards.dialogfields.DialogField#setLabelText
-   * (java.lang.String)
-   */
   @Override
   public void setLabelText(String labeltext) {
     fLabelText = labeltext;

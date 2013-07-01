@@ -117,10 +117,6 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
       }
     }
 
-    /*
-     * @see org.eclipse.wst.jsdt.internal.ui.text.ISourceVersionDependent#
-     * setSourceVersion(java.lang.String)
-     */
     @Override
     public void setSourceVersion(String version) {
       if (JavaScriptCore.VERSION_1_5.compareTo(version) <= 0) {
@@ -334,10 +330,6 @@ public class DartDoubleClickSelector implements ITextDoubleClickStrategy, ISourc
     }
   }
 
-  /*
-   * @see org.eclipse.wst.jsdt.internal.ui.text.ISourceVersionDependent#setSourceVersion
-   * (java.lang.String)
-   */
   @Override
   public void setSourceVersion(String version) {
     fPairMatcher.setSourceVersion(version);

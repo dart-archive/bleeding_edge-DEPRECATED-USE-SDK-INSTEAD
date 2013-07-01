@@ -28,10 +28,7 @@ import org.eclipse.swt.widgets.Label;
  * specify their own.
  */
 class EmptyJavaFoldingPreferenceBlock implements IDartFoldingPreferenceBlock {
-  /*
-   * @see com.google.dart.tools.ui.internal.text.folding.IJavaFoldingPreferences#
-   * createControl(org.eclipse.swt.widgets.Group)
-   */
+
   @Override
   public Control createControl(Composite composite) {
     Composite inner = new Composite(composite, SWT.NONE);

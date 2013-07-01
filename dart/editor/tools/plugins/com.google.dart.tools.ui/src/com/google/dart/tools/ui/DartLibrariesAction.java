@@ -39,15 +39,6 @@ public class DartLibrariesAction implements IObjectActionDelegate {
 
   {
     DartX.todo();
-//    PROPS_TO_IDS.put(
-//        "org.eclipse.wst.jsdt.internal.ui.configure.scope", BuildPathsPropertyPage.PROP_ID); //$NON-NLS-1$
-//    PROPS_TO_IDS.put(
-//        "org.eclipse.wst.jsdt.internal.ui.configure.javascript.properties", CodeStylePreferencePage.PROP_ID); //$NON-NLS-1$
-//    PROPS_TO_IDS.put(
-//        "org.eclipse.wst.jsdt.internal.ui.configure.source.folders", BuildPathsPropertyPage.PROP_ID); //$NON-NLS-1$
-    // PROPS_TO_IDS.put("", BuildPathsPropertyPage.PROP_ID);
-    // PROPS_TO_IDS.put("", BuildPathsPropertyPage.PROP_ID);
-
   }
 
   @Override

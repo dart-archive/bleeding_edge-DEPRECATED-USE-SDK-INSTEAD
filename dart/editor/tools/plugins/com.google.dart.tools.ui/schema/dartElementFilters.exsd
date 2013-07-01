@@ -1,16 +1,21 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="com.google.dart.tools.ui">
+<schema targetNamespace="com.google.dart.tools.ui" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
-      <appInfo>
+      <appinfo>
          <meta.schema plugin="com.google.dart.tools.ui" id="dartElementFilters" name="Dart Element Filter Extensions"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          This extension point is used to extend Dart UI views with filters.
       </documentation>
    </annotation>
 
    <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
       <complexType>
          <sequence>
             <element ref="filter" minOccurs="1" maxOccurs="unbounded"/>
@@ -34,9 +39,9 @@
                <documentation>
                   an optional name of the extension instance
                </documentation>
-               <appInfo>
+               <appinfo>
                   <meta.attribute translatable="true"/>
-               </appInfo>
+               </appinfo>
             </annotation>
          </attribute>
       </complexType>
@@ -44,9 +49,9 @@
 
    <element name="filter">
       <annotation>
-         <appInfo>
+         <appinfo>
             <meta.element labelAttribute="name"/>
-         </appInfo>
+         </appinfo>
       </annotation>
       <complexType>
          <attribute name="id" type="string">
@@ -61,9 +66,9 @@
                <documentation>
                   a unique name that allows to identify this filter in the UI. This attribute should be a translated string. Though this attribute is not required for pattern filters (i.e. those using the &lt;samp&gt;pattern&lt;/samp&gt; attribute) we suggest to provide a name anyway, otherwise the pattern string itself would be used to represent the filter in the UI.
                </documentation>
-               <appInfo>
+               <appinfo>
                   <meta.attribute translatable="true"/>
-               </appInfo>
+               </appinfo>
             </annotation>
          </attribute>
          <attribute name="description" type="string">
@@ -71,9 +76,9 @@
                <documentation>
                   a short description for this filter
                </documentation>
-               <appInfo>
+               <appinfo>
                   <meta.attribute translatable="true"/>
-               </appInfo>
+               </appinfo>
             </annotation>
          </attribute>
          <attribute name="targetId" type="string">
@@ -105,18 +110,18 @@ replaces the deprecated attributed &quot;viewId&quot;.
                   the name of the class used to filter the view.  The class must extend &lt;code&gt;org.eclipse.jface.viewers.ViewerFilter&lt;/code&gt;. If this attribute is here
 then the pattern attribute must not provided.
                </documentation>
-               <appInfo>
+               <appinfo>
                   <meta.attribute kind="java" basedOn="org.eclipse.jface.viewers.ViewerFilter"/>
-               </appInfo>
+               </appinfo>
             </annotation>
          </attribute>
       </complexType>
    </element>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="examples"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          The following is an example of Dart element filter definition.  It filters out inner classes and is initially selected.
 
@@ -128,7 +133,7 @@ then the pattern attribute must not provided.
    name=&quot;%HideReferencedLibraries.label&quot;
    description=&quot;%HideReferencedLibraries.description&quot;
    targetId=&quot;com.google.dart.tools.ui.PackageExplorer&quot;
-   class=&quot;org.eclipse.wst.jsdt.internal.ui.filters.LibraryFilter&quot;
+   class=&quot;com.google.dart.tools.internal.ui.filters.LibraryFilter&quot;
    enabled=&quot;false&quot;&gt;
   &lt;/filter&gt;
  &lt;/extension&gt;
@@ -137,28 +142,13 @@ then the pattern attribute must not provided.
       </documentation>
    </annotation>
 
-   <annotation>
-      <appInfo>
-         <meta.section type="apiInfo"/>
-      </appInfo>
-      <documentation>
-         
-      </documentation>
-   </annotation>
+
+
 
    <annotation>
-      <appInfo>
-         <meta.section type="implementation"/>
-      </appInfo>
-      <documentation>
-         
-      </documentation>
-   </annotation>
-
-   <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="copyright"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          Copyright (c) 2007 IBM Corporation and others.&lt;br&gt;
 All rights reserved. This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution, and is available at &lt;a href=&quot;http://www.eclipse.org/legal/epl-v10.html&quot;&gt;http://www.eclipse.org/legal/epl-v10.html&lt;/a&gt;

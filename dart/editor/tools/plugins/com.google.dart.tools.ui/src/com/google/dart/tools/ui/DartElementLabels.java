@@ -1232,7 +1232,7 @@ public class DartElementLabels {
 //        String baseType = Signature.toString(typeSig);
 //
 //        // @GINO: Anonymous UI Label
-//        org.eclipse.wst.jsdt.internal.core.util.Util.insertTypeLabel(
+//        Util.insertTypeLabel(
 //            Signature.getSimpleName(baseType), buf);
 //
 //        getTypeArgumentSignaturesLabel(new String[0], flags, buf);

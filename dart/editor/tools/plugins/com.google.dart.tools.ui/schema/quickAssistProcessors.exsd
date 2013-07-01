@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="com.google.dart.tools.ui">
+<schema targetNamespace="com.google.dart.tools.ui" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
-      <appInfo>
+      <appinfo>
          <meta.schema plugin="com.google.dart.tools.ui" id="quickAssistProcessors" name="Quick Assist Processor"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          This extension point allows to add a Quick Assist processor to offer new Quick Assists in the Dart editor.
 This extension point supports the &lt;code&gt;enablement&lt;/code&gt; tag. Properties to test on are:
@@ -20,6 +20,11 @@ This extension point supports the &lt;code&gt;enablement&lt;/code&gt; tag. Prope
    <include schemaLocation="schema://org.eclipse.core.expressions/schema/expressionLanguage.exsd"/>
 
    <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
       <complexType>
          <sequence>
             <element ref="quickAssistProcessor" minOccurs="1" maxOccurs="unbounded"/>
@@ -43,9 +48,9 @@ This extension point supports the &lt;code&gt;enablement&lt;/code&gt; tag. Prope
                <documentation>
                   an optional name of the extension instance
                </documentation>
-               <appInfo>
+               <appinfo>
                   <meta.attribute translatable="true"/>
-               </appInfo>
+               </appinfo>
             </annotation>
          </attribute>
       </complexType>
@@ -68,9 +73,9 @@ This extension point supports the &lt;code&gt;enablement&lt;/code&gt; tag. Prope
                <documentation>
                   a localized name of the Quick Assist processor
                </documentation>
-               <appInfo>
+               <appinfo>
                   <meta.attribute translatable="true"/>
-               </appInfo>
+               </appinfo>
             </annotation>
          </attribute>
          <attribute name="class" type="string">
@@ -81,9 +86,9 @@ class must be public and implement
 &lt;samp&gt;com.google.dart.tools.ui.config.java.IQuickAssistProcessor&lt;/samp&gt;
 with a public 0-argument constructor.
                </documentation>
-               <appInfo>
+               <appinfo>
                   <meta.attribute kind="java" basedOn="com.google.dart.tools.ui.config.java.IQuickAssistProcessor"/>
-               </appInfo>
+               </appinfo>
             </annotation>
          </attribute>
          <attribute name="requiredSourceLevel" type="string">
@@ -97,9 +102,18 @@ with a public 0-argument constructor.
    </element>
 
    <annotation>
-      <appInfo>
+      <appinfo>
+         <meta.section type="since"/>
+      </appinfo>
+      <documentation>
+         3.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
          <meta.section type="examples"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          The following is an example of a Quick Assist processor contribution:
 
@@ -115,7 +129,7 @@ with a public 0-argument constructor.
    &lt;enablement&gt;
       &lt;with variable=&quot;projectNatures&quot;&gt;
          &lt;iterate operator=&quot;or&quot;&gt;
-            &lt;equals value=&quot;org.eclipse.wst.jsdt.core.javanature&quot;/&gt;
+            &lt;equals value=&quot;com.google.dart.tools.core.dartNature&quot;/&gt;
          &lt;/iterate&gt;
       &lt;/with&gt;
    &lt;/enablement&gt;
@@ -126,36 +140,19 @@ with a public 0-argument constructor.
    </annotation>
 
    <annotation>
-      <appInfo>
-         <meta.section type="since"/>
-      </appInfo>
-      <documentation>
-         3.0
-      </documentation>
-   </annotation>
-
-   <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="apiInfo"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          The contributed class must implement &lt;code&gt;com.google.dart.tools.ui.config.java.IQuickAssistProcessor&lt;/code&gt;
       </documentation>
    </annotation>
 
-   <annotation>
-      <appInfo>
-         <meta.section type="implementation"/>
-      </appInfo>
-      <documentation>
-         
-      </documentation>
-   </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="copyright"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          Copyright (c) 2007 IBM Corporation and others.&lt;br&gt;
 All rights reserved. This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution, and is available at &lt;a href=&quot;http://www.eclipse.org/legal/epl-v10.html&quot;&gt;http://www.eclipse.org/legal/epl-v10.html&lt;/a&gt;

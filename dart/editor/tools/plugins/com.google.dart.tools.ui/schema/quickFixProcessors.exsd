@@ -9,7 +9,7 @@
          This extension point allows to add a Quick Fix processor to offer new Quick Fixes on Dart problems.
 &lt;p&gt;
 Since 3.2 an extension can specify which problem marker types it can handle. It will only get problems of these types to process.
-If no handled marker type are specified, the processor will only get problems of types org.eclipse.wst.jsdt.core.problem, org.eclipse.wst.jsdt.core.buildpath_problem and org.eclipse.wst.jsdt.core.task (compatible to the behaviour prior to 3.2).
+If no handled marker type are specified, the processor will only get problems of type com.google.dart.tools.core.problem.
 &lt;/p&gt;
 &lt;p&gt;
 This extension point supports the &lt;code&gt;enablement&lt;/code&gt; tag. Properties to test on are:
@@ -107,7 +107,7 @@ with a public 0-argument constructor.
       <annotation>
          <documentation>
             Specifies the marker types of the problems this quick fix processor can handle.
-If no handled marker type are specified, the processor will get problems of types org.eclipse.wst.jsdt.core.problem, org.eclipse.wst.jsdt.core.buildpath_problem and org.eclipse.wst.jsdt.core.task.
+If no handled marker type are specified, the processor will get problems of type com.google.dart.tools.core.problem.
          </documentation>
       </annotation>
       <complexType>

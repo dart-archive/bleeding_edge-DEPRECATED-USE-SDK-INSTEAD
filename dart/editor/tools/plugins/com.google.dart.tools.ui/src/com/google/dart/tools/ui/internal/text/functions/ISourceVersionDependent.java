@@ -23,7 +23,6 @@ public interface ISourceVersionDependent {
    * values.
    * 
    * @param version the new java source version
-   * @see org.eclipse.wst.jsdt.core.JavaScriptCore
    */
   void setSourceVersion(String version);
 }

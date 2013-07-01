@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.tools.core.internal.problem.CategorizedProblem;
 import com.google.dart.tools.core.model.CompilationUnit;
 
 import java.util.Iterator;
@@ -54,7 +55,7 @@ public interface IJavaAnnotation {
 
   /**
    * Returns the marker type associated to this problem or <code>null<code> if no marker type
-   * can be evaluated. See also {@link org.eclipse.wst.jsdt.core.compiler.CategorizedProblem#getMarkerType()}.
+   * can be evaluated. See also {@link CategorizedProblem#getMarkerType()}.
    * 
    * @return the type of the marker which would be associated to the problem or <code>null<code> if
    *         no marker type can be evaluated.

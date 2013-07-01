@@ -119,11 +119,6 @@ public class StringDialogField extends DialogField {
 
   // ------- ui creation
 
-  /*
-   * (non-Javadoc)
-   *
-   * @see org.eclipse.wst.jsdt.internal.ui.wizards.dialogfields.DialogField#refresh()
-   */
   @Override
   public void refresh() {
     super.refresh();

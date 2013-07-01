@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.dialogs;
 
+import com.google.dart.tools.ui.Flags;
+
 /**
  * An interfaces to give access to the type presented in type selection dialogs like the open type
  * dialog.
@@ -40,8 +42,7 @@ public interface ITypeInfoRequestor {
   public String getEnclosingName();
 
   /**
-   * Returns the type's modifiers. The modifiers can be inspected using the class
-   * {@link org.eclipse.wst.jsdt.core.Flags}.
+   * Returns the type's modifiers. The modifiers can be inspected using the class {@link Flags}.
    * 
    * @return the type's modifiers
    */

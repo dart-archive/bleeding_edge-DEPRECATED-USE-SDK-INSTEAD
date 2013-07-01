@@ -442,10 +442,6 @@ public final class ASTProvider {
     }
   }
 
-  /*
-   * @see com.google.dart.tools.ui.functions.java.IJavaReconcilingListener#reconciled
-   * (org.eclipse.wst.jsdt.core.dom.JavaScriptUnit)
-   */
   void reconciled(DartUnit ast, DartElement javaElement, IProgressMonitor progressMonitor) {
 
     if (DEBUG) {
