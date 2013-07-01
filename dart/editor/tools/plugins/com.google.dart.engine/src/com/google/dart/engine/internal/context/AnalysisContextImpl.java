@@ -366,24 +366,32 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       if (htmlEntry == null) {
         return null;
       }
-      HtmlElement element = htmlEntry.getValue(HtmlEntry.ELEMENT);
-      if (element == null) {
-        HtmlUnit unit = htmlEntry.getValue(HtmlEntry.PARSED_UNIT);
-        if (unit == null) {
-          unit = parseHtmlUnit(source);
+      try {
+        HtmlElement element = htmlEntry.getValue(HtmlEntry.ELEMENT);
+        if (element == null) {
+          HtmlUnit unit = htmlEntry.getValue(HtmlEntry.PARSED_UNIT);
+          if (unit == null) {
+            unit = parseHtmlUnit(source);
+          }
+          HtmlUnitBuilder builder = new HtmlUnitBuilder(this);
+          element = builder.buildHtmlElement(source, unit);
+          AnalysisError[] resolutionErrors = builder.getErrorListener().getErrors(source);
+          HtmlEntryImpl htmlCopy = getHtmlEntry(source).getWritableCopy();
+          htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, resolutionErrors);
+          htmlCopy.setValue(HtmlEntry.ELEMENT, element);
+          sourceMap.put(source, htmlCopy);
+          getNotice(source).setErrors(
+              htmlCopy.getAllErrors(),
+              htmlCopy.getValue(SourceEntry.LINE_INFO));
         }
-        HtmlUnitBuilder builder = new HtmlUnitBuilder(this);
-        element = builder.buildHtmlElement(source, unit);
-        AnalysisError[] resolutionErrors = builder.getErrorListener().getErrors(source);
+        return element;
+      } catch (AnalysisException exception) {
         HtmlEntryImpl htmlCopy = getHtmlEntry(source).getWritableCopy();
-        htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, resolutionErrors);
-        htmlCopy.setValue(HtmlEntry.ELEMENT, element);
+        htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.ERROR);
+        htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.ERROR);
         sourceMap.put(source, htmlCopy);
-        getNotice(source).setErrors(
-            htmlCopy.getAllErrors(),
-            htmlCopy.getValue(SourceEntry.LINE_INFO));
+        throw exception;
       }
-      return element;
     }
   }
 
@@ -1941,7 +1949,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private void safelyResolveHtmlUnit(Source source) {
     try {
-      resolveHtmlUnit(source);
+      computeHtmlElement(source);
     } catch (AnalysisException exception) {
       AnalysisEngine.getInstance().getLogger().logError(
           "Could not resolve " + source.getFullName(),
