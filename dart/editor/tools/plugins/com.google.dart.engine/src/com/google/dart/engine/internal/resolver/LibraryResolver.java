@@ -44,9 +44,9 @@ import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.ShowElementCombinatorImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
-import com.google.dart.engine.internal.verifier.AuditVerifier;
 import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
+import com.google.dart.engine.internal.verifier.HintVerifier;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
@@ -70,10 +70,10 @@ public class LibraryResolver {
   private InternalAnalysisContext analysisContext;
 
   /**
-   * A flag indicating whether analysis is to generate audit results (e.g. type inference based
+   * A flag indicating whether analysis is to generate hint results (e.g. type inference based
    * information and pub best practices).
    */
-  private final boolean audit;
+  private final boolean enableHints;
 
   /**
    * The listener to which analysis errors will be reported, this error listener is either
@@ -116,7 +116,7 @@ public class LibraryResolver {
     this.analysisContext = analysisContext;
     this.errorListener = new RecordingErrorListener();
     coreLibrarySource = analysisContext.getSourceFactory().forUri(DartSdk.DART_CORE);
-    audit = analysisContext.getAnalysisOptions().getAudit();
+    enableHints = analysisContext.getAnalysisOptions().getHint();
   }
 
   /**
@@ -796,8 +796,8 @@ public class LibraryResolver {
           library.getInheritanceManager());
       unit.accept(errorVerifier);
 
-      if (audit) {
-        new AuditVerifier(analysisContext, errorReporter).visitCompilationUnit(unit);
+      if (enableHints) {
+        new HintVerifier(analysisContext, errorReporter).visitCompilationUnit(unit);
       }
     }
   }

@@ -13,11 +13,11 @@
  */
 package com.google.dart.engine.resolver;
 
-import com.google.dart.engine.error.AuditCode;
+import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.source.Source;
 
 // TODO (jwren) Add missing '_nested' tests
-public class AuditCodeTest extends ResolverTestCase {
+public class HintCodeTest extends ResolverTestCase {
 
   public void test_deadCode_deadBlock_conditionalElse() throws Exception {
     Source source = addSource(createSource(//
@@ -25,7 +25,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  true ? 1 : 2;",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE);
+    assertErrors(HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -35,7 +35,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  false ? 1 : 2;",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE);
+    assertErrors(HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -47,7 +47,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE);
+    assertErrors(HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -57,7 +57,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  if(false) {}",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE);
+    assertErrors(HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -68,7 +68,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  if(false) {if(false) {}}",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE);
+    assertErrors(HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -78,7 +78,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  while(false) {}",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE);
+    assertErrors(HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -89,7 +89,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  try {} catch (e) {} catch (e) {}",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
+    assertErrors(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
     verify(source);
   }
 
@@ -99,7 +99,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  try {} on Object catch (e) {} catch (e) {}",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
+    assertErrors(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
     verify(source);
   }
 
@@ -111,7 +111,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  try {} on A catch (e) {} on B catch (e) {}",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE_ON_CATCH_SUBTYPE);
+    assertErrors(HintCode.DEAD_CODE_ON_CATCH_SUBTYPE);
     verify(source);
   }
 
@@ -121,7 +121,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  bool c = false && b;",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE);
+    assertErrors(HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -131,7 +131,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  bool c = true || b;",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE);
+    assertErrors(HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -143,7 +143,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  var two = 2;",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE);
+    assertErrors(HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -157,7 +157,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE);
+    assertErrors(HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -171,7 +171,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE);
+    assertErrors(HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -185,7 +185,7 @@ public class AuditCodeTest extends ResolverTestCase {
         "  var three = 3;",
         "}"));
     resolve(source);
-    assertErrors(AuditCode.DEAD_CODE);
+    assertErrors(HintCode.DEAD_CODE);
     verify(source);
   }
 }

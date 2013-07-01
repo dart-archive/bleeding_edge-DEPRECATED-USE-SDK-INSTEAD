@@ -19,12 +19,12 @@ package com.google.dart.engine.context;
  */
 public interface AnalysisOptions {
   /**
-   * Return {@code true} if analysis is to generate audit results (e.g. type inference based
+   * Return {@code true} if analysis is to generate hint results (e.g. type inference based
    * information and pub best practices).
    * 
-   * @return {@code true} if analysis is to generate audit results
+   * @return {@code true} if analysis is to generate hint results
    */
-  public boolean getAudit();
+  public boolean getHint();
 
   /**
    * Return {@code true} if analysis is to use strict mode. In strict mode, error reporting is based

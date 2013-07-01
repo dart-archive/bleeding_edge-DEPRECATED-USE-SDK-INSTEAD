@@ -15,7 +15,7 @@ package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.source.Source;
 
-public class NonAuditCodeTest extends ResolverTestCase {
+public class NonHintCodeTest extends ResolverTestCase {
 
   public void test_deadCode_deadCatch_onCatchSubtype() throws Exception {
     Source source = addSource(createSource(//

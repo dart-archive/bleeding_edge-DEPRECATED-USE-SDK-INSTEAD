@@ -18,18 +18,18 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.error.ErrorReporter;
 
 /**
- * Instances of the class {@code AuditVerifier} traverse an AST structure looking for additional
+ * Instances of the class {@code HintVerifier} traverse an AST structure looking for additional
  * additional suggestions not mentioned in the Dart Language Specification.
  * 
  * @coverage dart.engine.resolver
  */
-public class AuditVerifier {
+public class HintVerifier {
 
 //  private final PubVerifier pubVerifier;
 
   private final DeadCodeVerifier deadCodeVerifier;
 
-  public AuditVerifier(AnalysisContext context, ErrorReporter errorReporter) {
+  public HintVerifier(AnalysisContext context, ErrorReporter errorReporter) {
 //    pubVerifier = new PubVerifier(context, errorReporter);
     deadCodeVerifier = new DeadCodeVerifier(errorReporter);
   }
@@ -38,4 +38,5 @@ public class AuditVerifier {
 //    node.accept(pubVerifier);
     node.accept(deadCodeVerifier);
   }
+
 }

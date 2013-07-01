@@ -159,9 +159,9 @@ public class AnalyzerOptions {
   @Option(name = "--ignore-unrecognized-flags")
   private boolean ignoreUnrecognizedFlags;
 
-  @Option(name = "--audit",//
-  usage = "Show audit results")
-  private boolean audit = false;
+  @Option(name = "--hints",//
+  usage = "Show hint results")
+  private boolean hint = false;
 
   @Argument
   private final String sourceFile = null;
@@ -171,18 +171,18 @@ public class AnalyzerOptions {
   }
 
   /**
-   * @return whether audit results (e.g. type inference based information and pub best practices)
-   *         should be reported.
-   */
-  public boolean getAudit() {
-    return audit;
-  }
-
-  /**
    * Return the path to the dart SDK.
    */
   public File getDartSdkPath() {
     return dartSdkPath;
+  }
+
+  /**
+   * @return whether hint results (e.g. type inference based information and pub best practices)
+   *         should be reported.
+   */
+  public boolean getHint() {
+    return hint;
   }
 
   public boolean getMachineFormat() {

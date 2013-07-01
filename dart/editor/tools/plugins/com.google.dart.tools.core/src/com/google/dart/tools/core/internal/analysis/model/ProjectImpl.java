@@ -391,10 +391,10 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   @Override
-  public void setAuditOption(boolean enableAudit) {
+  public void setHintOption(boolean enableHint) {
     for (AnalysisContext context : getAnalysisContexts()) {
       AnalysisOptionsImpl options = (AnalysisOptionsImpl) context.getAnalysisOptions();
-      options.setAudit(enableAudit);
+      options.setHint(enableHint);
     }
   }
 
@@ -568,7 +568,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     }
 
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.setAudit(DartCore.getPlugin().isAuditsEnabled());
+    options.setHint(DartCore.getPlugin().isHintsEnabled());
 
     context.setSourceFactory(sourceFactory);
     context.setAnalysisOptions(options);

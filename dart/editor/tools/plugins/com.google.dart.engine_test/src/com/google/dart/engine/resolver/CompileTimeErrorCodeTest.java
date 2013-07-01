@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
-import com.google.dart.engine.error.AuditCode;
+import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
@@ -604,7 +604,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_constEvalTypeBool_binary_leftTrue() throws Exception {
     Source source = addSource("const C = (true || 0);");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, AuditCode.DEAD_CODE);
+    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, HintCode.DEAD_CODE);
     verify(source);
   }
 

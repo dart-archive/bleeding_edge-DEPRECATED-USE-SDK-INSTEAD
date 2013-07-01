@@ -53,7 +53,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Button enableFolding;
   private Button enableAutoCompletion;
   private Button runPubAutoCheck;
-  private Button enableAudits;
+  private Button enableHints;
 
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
@@ -106,11 +106,11 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
       prefs.putBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, runPubAutoCheck.getSelection());
-      boolean audits = DartCore.getPlugin().isAuditsEnabled();
-      prefs.putBoolean(DartCore.ENABLE_AUDITS_PREFERENCE, enableAudits.getSelection());
-      if (audits != enableAudits.getSelection()) {
-        // trigger processing for audits
-        DartCore.getProjectManager().setAuditOption(enableAudits.getSelection());
+      boolean hints = DartCore.getPlugin().isHintsEnabled();
+      prefs.putBoolean(DartCore.ENABLE_HINTS_PREFERENCE, enableHints.getSelection());
+      if (hints != enableHints.getSelection()) {
+        // trigger processing for hints
+        DartCore.getProjectManager().setHintOption(enableHints.getSelection());
       }
     }
 
@@ -165,11 +165,11 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_enable_code_folding_tooltip);
     GridDataFactory.fillDefaults().span(2, 1).applyTo(enableFolding);
 
-    enableAudits = createCheckBox(
+    enableHints = createCheckBox(
         generalGroup,
-        PreferencesMessages.DartBasePreferencePage_enable_audits,
-        PreferencesMessages.DartBasePreferencePage_enable_audits_tooltip);
-    GridDataFactory.fillDefaults().span(2, 1).applyTo(enableAudits);
+        PreferencesMessages.DartBasePreferencePage_enable_hints,
+        PreferencesMessages.DartBasePreferencePage_enable_hints_tooltip);
+    GridDataFactory.fillDefaults().span(2, 1).applyTo(enableHints);
 
     Group saveGroup = new Group(composite, SWT.NONE);
     saveGroup.setText(PreferencesMessages.DartBasePreferencePage_save);
@@ -234,7 +234,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
-      enableAudits.setSelection(prefs.getBoolean(DartCore.ENABLE_AUDITS_PREFERENCE, true));
+      enableHints.setSelection(prefs.getBoolean(DartCore.ENABLE_HINTS_PREFERENCE, true));
       runPubAutoCheck.setSelection(prefs.getBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, true));
     }
 

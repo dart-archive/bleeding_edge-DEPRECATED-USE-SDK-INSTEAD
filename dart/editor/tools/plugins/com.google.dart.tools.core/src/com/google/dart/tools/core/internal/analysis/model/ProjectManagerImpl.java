@@ -336,9 +336,9 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
-  public void setAuditOption(boolean enableAudit) {
+  public void setHintOption(boolean enableHint) {
     for (Project project : getProjects()) {
-      project.setAuditOption(enableAudit);
+      project.setHintOption(enableHint);
     }
   }
 

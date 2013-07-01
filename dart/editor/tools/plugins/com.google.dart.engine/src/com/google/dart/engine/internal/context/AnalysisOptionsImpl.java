@@ -27,10 +27,10 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean strictMode = false;
 
   /**
-   * A flag indicating whether analysis is to generate audit results (e.g. type inference based
+   * A flag indicating whether analysis is to generate hint results (e.g. type inference based
    * information and pub best practices).
    */
-  private boolean audit = true;
+  private boolean hint = true;
 
   /**
    * Initialize a newly created set of analysis options to have their default values.
@@ -39,8 +39,8 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   @Override
-  public boolean getAudit() {
-    return audit;
+  public boolean getHint() {
+    return hint;
   }
 
   /**
@@ -55,13 +55,13 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   /**
-   * Set whether analysis is to generate audit results (e.g. type inference based information and
-   * pub best practices).
+   * Set whether analysis is to generate hint results (e.g. type inference based information and pub
+   * best practices).
    * 
-   * @param audit {@code true} if analysis is to generate audit results
+   * @param hint {@code true} if analysis is to generate hint results
    */
-  public void setAudit(boolean audit) {
-    this.audit = audit;
+  public void setHint(boolean hint) {
+    this.hint = hint;
   }
 
   /**

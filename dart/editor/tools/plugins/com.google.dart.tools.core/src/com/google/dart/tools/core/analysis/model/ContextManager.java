@@ -164,12 +164,12 @@ public interface ContextManager {
   void removeWorker(AnalysisWorker analysisWorker);
 
   /**
-   * Set the audit option for all the analysis context, based on changes to the audit preference
-   * DartCore.ENABLE_AUDIT_PREFERENCE
+   * Set the hint option for all the analysis context, based on changes to the hint preference
+   * DartCore.ENABLE_HINT_PREFERENCE
    * 
-   * @param enableAudit
+   * @param enableHint
    */
-  void setAuditOption(boolean enableAudit);
+  void setHintOption(boolean enableHint);
 
   /**
    * Stop workers for the specified context.

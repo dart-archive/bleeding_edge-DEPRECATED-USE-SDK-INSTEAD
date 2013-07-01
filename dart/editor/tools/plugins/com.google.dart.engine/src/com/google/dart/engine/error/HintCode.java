@@ -14,10 +14,10 @@
 package com.google.dart.engine.error;
 
 /**
- * The enumeration {@code AuditCode} defines the audits and coding recommendations for best
- * practices which are not mentioned in the Dart Language Specification.
+ * The enumeration {@code HintCode} defines the hints and coding recommendations for best practices
+ * which are not mentioned in the Dart Language Specification.
  */
-public enum AuditCode implements ErrorCode {
+public enum HintCode implements ErrorCode {
   /**
    * Dead code is code that is never reached, this can happen for instance if a statement follows a
    * return statement.
@@ -51,13 +51,13 @@ public enum AuditCode implements ErrorCode {
    * 
    * @param message the message template used to create the message to be displayed for the error
    */
-  private AuditCode(String message) {
+  private HintCode(String message) {
     this.message = message;
   }
 
   @Override
   public ErrorSeverity getErrorSeverity() {
-    return ErrorType.AUDIT.getSeverity();
+    return ErrorType.HINT.getSeverity();
   }
 
   @Override
@@ -67,6 +67,6 @@ public enum AuditCode implements ErrorCode {
 
   @Override
   public ErrorType getType() {
-    return ErrorType.AUDIT;
+    return ErrorType.HINT;
   }
 }

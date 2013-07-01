@@ -116,7 +116,7 @@ class AnalyzerImpl {
 
     // create options for context
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
-    contextOptions.setAudit(options.getAudit());
+    contextOptions.setHint(options.getHint());
     //TODO (danrubel): Enable strict mode by default when it is ready
     //contextOptions.setStrictMode(true);
 

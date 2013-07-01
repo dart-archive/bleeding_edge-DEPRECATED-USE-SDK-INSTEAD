@@ -28,7 +28,7 @@ import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
-import com.google.dart.engine.error.AuditCode;
+import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.internal.constant.ConstantVisitor;
 import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.internal.constant.ValidResult;
@@ -41,7 +41,7 @@ import java.util.ArrayList;
 
 /**
  * Instances of the class {@code DeadCodeVerifier} traverse an AST structure looking for cases of
- * {@link AuditCode#DEAD_CODE}.
+ * {@link HintCode#DEAD_CODE}.
  * 
  * @coverage dart.engine.resolver
  */
@@ -72,13 +72,13 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
       if (lhsResult != null) {
         if (lhsResult == ValidResult.RESULT_TRUE && isBarBar) {
           // report error on else block: true || !e!
-          errorReporter.reportError(AuditCode.DEAD_CODE, node.getRightOperand());
+          errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
           // only visit the LHS:
           safelyVisit(lhsCondition);
           return null;
         } else if (lhsResult == ValidResult.RESULT_FALSE && isAmpAmp) {
           // report error on if block: false && !e!
-          errorReporter.reportError(AuditCode.DEAD_CODE, node.getRightOperand());
+          errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
           // only visit the LHS:
           safelyVisit(lhsCondition);
           return null;
@@ -90,13 +90,13 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
 //      if (rhsResult != null) {
 //        if (rhsResult == ValidResult.RESULT_TRUE && isBarBar) {
 //          // report error on else block: !e! || true
-//          errorReporter.reportError(AuditCode.DEAD_CODE, node.getRightOperand());
+//          errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
 //          // only visit the RHS:
 //          safelyVisit(rhsCondition);
 //          return null;
 //        } else if (rhsResult == ValidResult.RESULT_FALSE && isAmpAmp) {
 //          // report error on if block: !e! && false
-//          errorReporter.reportError(AuditCode.DEAD_CODE, node.getRightOperand());
+//          errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
 //          // only visit the RHS:
 //          safelyVisit(rhsCondition);
 //          return null;
@@ -122,12 +122,12 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
     if (result != null) {
       if (result == ValidResult.RESULT_TRUE) {
         // report error on else block: true ? 1 : !2!
-        errorReporter.reportError(AuditCode.DEAD_CODE, node.getElseExpression());
+        errorReporter.reportError(HintCode.DEAD_CODE, node.getElseExpression());
         safelyVisit(node.getThenExpression());
         return null;
       } else {
         // report error on if block: false ? !1! : 2
-        errorReporter.reportError(AuditCode.DEAD_CODE, node.getThenExpression());
+        errorReporter.reportError(HintCode.DEAD_CODE, node.getThenExpression());
         safelyVisit(node.getElseExpression());
         return null;
       }
@@ -146,7 +146,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
 //      int whileOffset = node.getWhileKeyword().getOffset();
 //      int semiColonOffset = node.getSemicolon().getOffset() + 1;
 //      int length = semiColonOffset - whileOffset;
-//      errorReporter.reportError(AuditCode.DEAD_CODE, whileOffset, length);
+//      errorReporter.reportError(HintCode.DEAD_CODE, whileOffset, length);
 //    }
 //  }
 //  return super.visitDoStatement(node);
@@ -161,13 +161,13 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
         // report error on else block: if(true) {} else {!}
         Statement elseStatement = node.getElseStatement();
         if (elseStatement != null) {
-          errorReporter.reportError(AuditCode.DEAD_CODE, elseStatement);
+          errorReporter.reportError(HintCode.DEAD_CODE, elseStatement);
           safelyVisit(node.getThenStatement());
           return null;
         }
       } else {
         // report error on if block: if (false) {!} else {}
-        errorReporter.reportError(AuditCode.DEAD_CODE, node.getThenStatement());
+        errorReporter.reportError(HintCode.DEAD_CODE, node.getThenStatement());
         safelyVisit(node.getElseStatement());
         return null;
       }
@@ -204,14 +204,14 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
               CatchClause lastCatchClause = catchClauses.get(numOfCatchClauses - 1);
               int offset = nextCatchClause.getOffset();
               int length = lastCatchClause.getEnd() - offset;
-              errorReporter.reportError(AuditCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
+              errorReporter.reportError(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
               break;
             }
           }
           for (Type type : visitedTypes) {
             if (currentType.isSubtypeOf(type)) {
               errorReporter.reportError(
-                  AuditCode.DEAD_CODE_ON_CATCH_SUBTYPE,
+                  HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
                   catchClause,
                   currentType.getDisplayName(),
                   type.getDisplayName());
@@ -231,7 +231,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
           CatchClause lastCatchClause = catchClauses.get(numOfCatchClauses - 1);
           int offset = nextCatchClause.getOffset();
           int length = lastCatchClause.getEnd() - offset;
-          errorReporter.reportError(AuditCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
+          errorReporter.reportError(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
           break;
         }
       }
@@ -247,7 +247,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
     if (result != null) {
       if (result == ValidResult.RESULT_FALSE) {
         // report error on if block: while (false) {!}
-        errorReporter.reportError(AuditCode.DEAD_CODE, node.getBody());
+        errorReporter.reportError(HintCode.DEAD_CODE, node.getBody());
         safelyVisit(conditionExpression);
         return null;
       }
@@ -275,7 +275,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
         Statement lastStatement = statements.get(size - 1);
         int offset = nextStatement.getOffset();
         int length = lastStatement.getEnd() - offset;
-        errorReporter.reportError(AuditCode.DEAD_CODE, offset, length);
+        errorReporter.reportError(HintCode.DEAD_CODE, offset, length);
         return true;
       }
     }
