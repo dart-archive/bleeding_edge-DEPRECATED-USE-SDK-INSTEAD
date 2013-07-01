@@ -30,7 +30,9 @@ import junit.framework.TestCase;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 /**
  * The abstract class {@code LibraryAnalysisTest} defines utility methods useful for integration
@@ -123,26 +125,46 @@ public abstract class LibraryAnalysisTest extends TestCase {
    * Assert that the errors that were reported match the expected behavior of the test.
    */
   private void assertErrors() {
-    if (errorList.size() > 0) {
+    int size = errorList.size();
+    if (size > 0) {
       PrintStringWriter writer = new PrintStringWriter();
       writer.print("Expected 0 errors, found ");
       writer.print(errorList.size());
       writer.print(":");
-//      Collections.sort(errorList, AnalysisError.FILE_COMPARATOR);
-      Collections.sort(errorList, AnalysisError.ERROR_CODE_COMPARATOR);
-      for (AnalysisError error : errorList) {
-        Source source = error.getSource();
-        ErrorCode code = error.getErrorCode();
-        int offset = error.getOffset();
-        writer.println();
-        writer.printf(
-            "%s %s (%d..%d) \"%s\"%s",
-            source == null ? "null" : source.getShortName(),
-            code.getClass().getSimpleName() + "." + code,
-            offset,
-            offset + error.getLength(),
-            error.getMessage(),
-            source == null ? "" : " (" + source.getFullName() + ")");
+      if (size > 128) {
+        HashMap<String, Integer> counts = new HashMap<String, Integer>();
+        int maxCount = 0;
+        for (AnalysisError error : errorList) {
+          ErrorCode code = error.getErrorCode();
+          String codeName = code.getClass().getSimpleName() + "." + code;
+          Integer oldCount = counts.get(codeName);
+          int newCount = (oldCount == null) ? 1 : oldCount.intValue() + 1;
+          counts.put(codeName, Integer.valueOf(newCount));
+          maxCount = Math.max(maxCount, newCount);
+        }
+        int countWidth = Integer.toString(maxCount).length();
+        String format = "%d" + countWidth + " %s";
+        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+          writer.println();
+          writer.printf(format, entry.getValue(), entry.getKey());
+        }
+      } else {
+//        Collections.sort(errorList, AnalysisError.FILE_COMPARATOR);
+        Collections.sort(errorList, AnalysisError.ERROR_CODE_COMPARATOR);
+        for (AnalysisError error : errorList) {
+          Source source = error.getSource();
+          ErrorCode code = error.getErrorCode();
+          int offset = error.getOffset();
+          writer.println();
+          writer.printf(
+              "%s %s (%d..%d) \"%s\"%s",
+              source == null ? "null" : source.getShortName(),
+              code.getClass().getSimpleName() + "." + code,
+              offset,
+              offset + error.getLength(),
+              error.getMessage(),
+              source == null ? "" : " (" + source.getFullName() + ")");
+        }
       }
       Assert.fail(writer.toString());
     }
