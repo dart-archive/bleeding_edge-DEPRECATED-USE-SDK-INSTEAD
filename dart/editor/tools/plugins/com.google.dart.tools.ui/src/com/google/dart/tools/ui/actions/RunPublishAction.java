@@ -25,15 +25,22 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -43,6 +50,51 @@ import java.util.regex.Pattern;
  * Action that runs the pub lish command for the selected package
  */
 public class RunPublishAction extends RunPubAction {
+
+  private class MissingReqsDialog extends MessageDialog {
+
+    public MissingReqsDialog(Shell parentShell) {
+      super(
+          parentShell,
+          ActionMessages.RunPubAction_publish_dialog_title,
+          null,
+          ActionMessages.RunPubAction_publish_missing_requirements,
+          MessageDialog.INFORMATION,
+          new String[] {IDialogConstants.OK_LABEL},
+          0);
+    }
+
+    @Override
+    protected Control createCustomArea(Composite parent) {
+      Composite composite = new Composite(parent, SWT.NONE);
+      Link link = new Link(composite, SWT.NONE);
+      String message = "\nMore information at <a href=\"http://pub.dartlang.org/doc/pub-lish.html\">"
+          + "http://pub.dartlang.org/doc/pub-lish.html</a>.";
+      link.setText(message);
+      link.setSize(400, 100);
+      link.addSelectionListener(new SelectionAdapter() {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+          try {
+            PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(
+                new URL(e.text));
+          } catch (PartInitException ex) {
+
+          } catch (MalformedURLException ex) {
+
+          }
+        }
+      });
+      composite.pack();
+      return composite;
+    }
+
+    @Override
+    protected boolean customShouldTakeFocus() {
+      return false;
+    }
+
+  }
 
   private class PubMessageDialog extends MessageDialog {
 
@@ -131,10 +183,7 @@ public class RunPublishAction extends RunPubAction {
 
   private boolean confirmPackageUpload(String output) {
     if (output.indexOf(ERRORS_STRING) != -1) { // missing requirements, cannot publish
-      MessageDialog.openInformation(
-          getShell(),
-          "Publish package",
-          ActionMessages.RunPubAction_publish_missing_requirements);
+      new MissingReqsDialog(getShell()).open();
       return false;
     }
     Pattern warningsPattern = Pattern.compile(WARNINGS_REGEX);
