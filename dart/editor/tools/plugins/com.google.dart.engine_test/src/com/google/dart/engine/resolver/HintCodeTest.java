@@ -29,6 +29,17 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_deadCode_deadBlock_conditionalElse_nested() throws Exception {
+    // test that a dead else-statement can't generate additional violations
+    Source source = addSource(createSource(//
+        "f() {",
+        "  true ? true : false && false;",
+        "}"));
+    resolve(source);
+    assertErrors(HintCode.DEAD_CODE);
+    verify(source);
+  }
+
   public void test_deadCode_deadBlock_conditionalIf() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -39,12 +50,32 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_deadCode_deadBlock_conditionalIf_nested() throws Exception {
+    // test that a dead then-statement can't generate additional violations
+    Source source = addSource(createSource(//
+        "f() {",
+        "  false ? false && false : true;",
+        "}"));
+    resolve(source);
+    assertErrors(HintCode.DEAD_CODE);
+    verify(source);
+  }
+
   public void test_deadCode_deadBlock_else() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
-        "  if(true) {",
-        "  } else {",
-        "  }",
+        "  if(true) {} else {}",
+        "}"));
+    resolve(source);
+    assertErrors(HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deadCode_deadBlock_else_nested() throws Exception {
+    // test that a dead else-statement can't generate additional violations
+    Source source = addSource(createSource(//
+        "f() {",
+        "  if(true) {} else {if (false) {}}",
         "}"));
     resolve(source);
     assertErrors(HintCode.DEAD_CODE);
@@ -82,6 +113,17 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_deadCode_deadBlock_while_nested() throws Exception {
+    // test that a dead while body can't generate additional violations
+    Source source = addSource(createSource(//
+        "f() {",
+        "  while(false) {if(false) {}}",
+        "}"));
+    resolve(source);
+    assertErrors(HintCode.DEAD_CODE);
+    verify(source);
+  }
+
   public void test_deadCode_deadCatch_catchFollowingCatch() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
@@ -93,10 +135,33 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_deadCode_deadCatch_catchFollowingCatch_nested() throws Exception {
+    // test that a dead catch clause can't generate additional violations
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f() {",
+        "  try {} catch (e) {} catch (e) {if(false) {}}",
+        "}"));
+    resolve(source);
+    assertErrors(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
+    verify(source);
+  }
+
   public void test_deadCode_deadCatch_catchFollowingCatch_object() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
         "  try {} on Object catch (e) {} catch (e) {}",
+        "}"));
+    resolve(source);
+    assertErrors(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
+    verify(source);
+  }
+
+  public void test_deadCode_deadCatch_catchFollowingCatch_object_nested() throws Exception {
+    // test that a dead catch clause can't generate additional violations
+    Source source = addSource(createSource(//
+        "f() {",
+        "  try {} on Object catch (e) {} catch (e) {if(false) {}}",
         "}"));
     resolve(source);
     assertErrors(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
@@ -115,10 +180,33 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_deadCode_deadCatch_onCatchSubtype_nested() throws Exception {
+    // test that a dead catch clause can't generate additional violations
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {}",
+        "f() {",
+        "  try {} on A catch (e) {} on B catch (e) {if(false) {}}",
+        "}"));
+    resolve(source);
+    assertErrors(HintCode.DEAD_CODE_ON_CATCH_SUBTYPE);
+    verify(source);
+  }
+
   public void test_deadCode_deadOperandLHS_and() throws Exception {
     Source source = addSource(createSource(//
-        "f(bool b) {",
-        "  bool c = false && b;",
+        "f() {",
+        "  bool b = false && false;",
+        "}"));
+    resolve(source);
+    assertErrors(HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deadCode_deadOperandLHS_and_nested() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  bool b = false && (false && false);",
         "}"));
     resolve(source);
     assertErrors(HintCode.DEAD_CODE);
@@ -127,8 +215,18 @@ public class HintCodeTest extends ResolverTestCase {
 
   public void test_deadCode_deadOperandLHS_or() throws Exception {
     Source source = addSource(createSource(//
-        "f(bool b) {",
-        "  bool c = true || b;",
+        "f() {",
+        "  bool b = true || true;",
+        "}"));
+    resolve(source);
+    assertErrors(HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deadCode_deadOperandLHS_or_nested() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  bool b = true || (false && false);",
         "}"));
     resolve(source);
     assertErrors(HintCode.DEAD_CODE);
@@ -169,6 +267,18 @@ public class HintCodeTest extends ResolverTestCase {
         "    return;",
         "    var two = 2;",
         "  }",
+        "}"));
+    resolve(source);
+    assertErrors(HintCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deadCode_statementAfterReturn_nested() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  var one = 1;",
+        "  return;",
+        "  if(false) {}",
         "}"));
     resolve(source);
     assertErrors(HintCode.DEAD_CODE);

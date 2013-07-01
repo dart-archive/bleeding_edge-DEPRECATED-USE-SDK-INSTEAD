@@ -106,13 +106,29 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
     return super.visitBinaryExpression(node);
   }
 
+  /**
+   * For each {@link Block}, this method reports and error on all statements between the end of the
+   * block and the first return statement (assuming there it is not at the end of the block.)
+   * 
+   * @param node the block to evaluate
+   */
   @Override
   public Void visitBlock(Block node) {
-    // TODO(jwren) Bring the contents of the following method into this method to make it more
-    // consistent with the rest of this visitor and fix the bug where all discovered dead code is
-    // still being visited by this visitor.
-    checkForDeadCodeStatementsAfterReturn(node);
-    return super.visitBlock(node);
+    NodeList<Statement> statements = node.getStatements();
+    int size = statements.size();
+    for (int i = 0; i < size; i++) {
+      Statement currentStatement = statements.get(i);
+      safelyVisit(currentStatement);
+      if (currentStatement instanceof ReturnStatement && i != size - 1) {
+        Statement nextStatement = statements.get(i + 1);
+        Statement lastStatement = statements.get(size - 1);
+        int offset = nextStatement.getOffset();
+        int length = lastStatement.getEnd() - offset;
+        errorReporter.reportError(HintCode.DEAD_CODE, offset, length);
+        return null;
+      }
+    }
+    return null;
   }
 
   @Override
@@ -178,12 +194,9 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitTryStatement(TryStatement node) {
     safelyVisit(node.getBody());
+    safelyVisit(node.getFinallyClause());
     NodeList<CatchClause> catchClauses = node.getCatchClauses();
     int numOfCatchClauses = catchClauses.size();
-    if (numOfCatchClauses == 0) {
-      safelyVisit(node.getFinallyClause());
-      return null;
-    }
     ArrayList<Type> visitedTypes = new ArrayList<Type>(numOfCatchClauses);
     for (int i = 0; i < numOfCatchClauses; i++) {
       CatchClause catchClause = catchClauses.get(i);
@@ -205,17 +218,21 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
               int offset = nextCatchClause.getOffset();
               int length = lastCatchClause.getEnd() - offset;
               errorReporter.reportError(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
-              break;
+              return null;
             }
           }
           for (Type type : visitedTypes) {
             if (currentType.isSubtypeOf(type)) {
+              CatchClause lastCatchClause = catchClauses.get(numOfCatchClauses - 1);
+              int offset = catchClause.getOffset();
+              int length = lastCatchClause.getEnd() - offset;
               errorReporter.reportError(
                   HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
-                  catchClause,
+                  offset,
+                  length,
                   currentType.getDisplayName(),
                   type.getDisplayName());
-              continue;
+              return null;
             }
           }
           visitedTypes.add(currentType);
@@ -232,54 +249,27 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
           int offset = nextCatchClause.getOffset();
           int length = lastCatchClause.getEnd() - offset;
           errorReporter.reportError(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
-          break;
+          return null;
         }
       }
     }
-    safelyVisit(node.getFinallyClause());
     return null;
   }
 
   @Override
   public Void visitWhileStatement(WhileStatement node) {
     Expression conditionExpression = node.getCondition();
+    safelyVisit(conditionExpression);
     ValidResult result = getConstantBooleanValue(conditionExpression);
     if (result != null) {
       if (result == ValidResult.RESULT_FALSE) {
         // report error on if block: while (false) {!}
         errorReporter.reportError(HintCode.DEAD_CODE, node.getBody());
-        safelyVisit(conditionExpression);
         return null;
       }
     }
-    return super.visitWhileStatement(node);
-  }
-
-  /**
-   * Given some {@link Block}, this method reports and error on all statements between the end of
-   * the block and the first return statement (assuming there it is not at the end of the block.)
-   * 
-   * @param node the block to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   */
-  private boolean checkForDeadCodeStatementsAfterReturn(Block node) {
-    NodeList<Statement> statements = node.getStatements();
-    int size = statements.size();
-    if (size == 0) {
-      return false;
-    }
-    for (int i = 0; i < size; i++) {
-      Statement currentStatement = statements.get(i);
-      if (currentStatement instanceof ReturnStatement && i != size - 1) {
-        Statement nextStatement = statements.get(i + 1);
-        Statement lastStatement = statements.get(size - 1);
-        int offset = nextStatement.getOffset();
-        int length = lastStatement.getEnd() - offset;
-        errorReporter.reportError(HintCode.DEAD_CODE, offset, length);
-        return true;
-      }
-    }
-    return false;
+    safelyVisit(node.getBody());
+    return null;
   }
 
   /**
