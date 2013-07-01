@@ -1,5 +1,6 @@
 package com.google.dart.tools.core.internal.builder;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.mock.MockContainer;
 import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
@@ -9,6 +10,10 @@ import static com.google.dart.tools.core.DartCore.BUILD_DART_FILE_NAME;
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 /**
@@ -125,6 +130,14 @@ public class TestProjects {
    */
   public static MockProject newPubProject3(MockWorkspaceRoot rootContainer) {
     MockProject project = newPubProject2(rootContainer);
+    IWorkspace workspace = ResourcesPlugin.getWorkspace();
+    IProjectDescription description = workspace.newProjectDescription(project.getName());
+    description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
+    try {
+      project.setDescription(description, null);
+    } catch (CoreException e) {
+
+    }
 
     MockFolder app = project.getMockFolder("myapp");
 

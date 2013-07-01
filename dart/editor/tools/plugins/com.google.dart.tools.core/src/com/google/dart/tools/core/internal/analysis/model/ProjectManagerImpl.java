@@ -211,11 +211,18 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   @Override
   public Project[] getProjects() {
     IProject[] childResources = resource.getProjects();
-    Project[] result = new Project[childResources.length];
-    for (int index = 0; index < result.length; index++) {
-      result[index] = getProject(childResources[index]);
+    List<Project> result = new ArrayList<Project>();
+    for (int index = 0; index < childResources.length; index++) {
+      IProject prj = childResources[index];
+      try {
+        if (prj.hasNature(DartCore.DART_PROJECT_NATURE)) {
+          result.add(getProject(childResources[index]));
+        }
+      } catch (CoreException e) {
+        // do nothing, just continue
+      }
     }
-    return result;
+    return result.toArray(new Project[result.size()]);
   }
 
   @Override

@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.mock;
 
+import com.google.dart.tools.core.DartCore;
+
 import org.eclipse.core.resources.IBuildConfiguration;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -190,7 +192,7 @@ public class MockProject extends MockContainer implements IProject {
 
   @Override
   public boolean hasNature(String natureId) throws CoreException {
-    return false;
+    return natureId.equals(DartCore.DART_PROJECT_NATURE);
   }
 
   @Override
