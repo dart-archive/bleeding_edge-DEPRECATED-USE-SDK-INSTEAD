@@ -127,7 +127,7 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     StringBuffer buf = new StringBuffer();
     buf.append("<form>");
     buf.append("<p>");
-    buf.append("<a href=\"http://pub.dartlang.org/doc/pubspec.html#version-constraints\">what are version constraints?</a>");
+    buf.append("<a href=\"http://pub.dartlang.org/doc/pubspec.html#version\">what are version constraints?</a>");
     buf.append("</p>");
     buf.append("</form>");
 
