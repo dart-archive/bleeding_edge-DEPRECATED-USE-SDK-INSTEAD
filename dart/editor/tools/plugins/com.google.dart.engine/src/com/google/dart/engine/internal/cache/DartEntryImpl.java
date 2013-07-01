@@ -64,10 +64,21 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     private CacheState resolutionErrorsState = CacheState.INVALID;
 
     /**
-     * The errors produced while resolving the compilation unit, or {@code null} if the errors are
+     * The errors produced while resolving the compilation unit, or an empty array if the errors are
      * not currently cached.
      */
     private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
+
+    /**
+     * The state of the cached hints.
+     */
+    private CacheState hintsState = CacheState.INVALID;
+
+    /**
+     * The hints produced while auditing the compilation unit, or an empty array if the hints are
+     * not currently cached.
+     */
+    private AnalysisError[] hints = AnalysisError.NO_ERRORS;
 
     /**
      * Initialize a newly created resolution state.
@@ -91,6 +102,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       resolutionErrorsState = other.resolutionErrorsState;
       resolutionErrors = other.resolutionErrors;
 
+      hintsState = other.hintsState;
+      hints = other.hints;
+
       if (other.nextState != null) {
         nextState = new ResolutionState();
         nextState.copyFrom(other.nextState);
@@ -109,6 +123,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
       resolutionErrorsState = CacheState.INVALID;
       resolutionErrors = AnalysisError.NO_ERRORS;
+
+      hintsState = CacheState.INVALID;
+      hints = AnalysisError.NO_ERRORS;
     }
 
     /**
@@ -125,6 +142,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
       resolutionErrorsState = CacheState.ERROR;
       resolutionErrors = AnalysisError.NO_ERRORS;
+
+      hintsState = CacheState.ERROR;
+      hints = AnalysisError.NO_ERRORS;
     }
   }
 
@@ -263,6 +283,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       for (AnalysisError error : state.resolutionErrors) {
         errors.add(error);
       }
+      for (AnalysisError error : state.hints) {
+        errors.add(error);
+      }
       state = state.nextState;
     };
     if (errors.size() == 0) {
@@ -332,6 +355,8 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
           return resolutionState.resolutionErrorsState;
         } else if (descriptor == RESOLVED_UNIT) {
           return resolutionState.resolvedUnitState;
+        } else if (descriptor == HINTS) {
+          return resolutionState.hintsState;
         } else {
           throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
         }
@@ -378,13 +403,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
           return (E) state.resolutionErrors;
         } else if (descriptor == RESOLVED_UNIT) {
           return (E) state.resolvedUnit;
+        } else if (descriptor == HINTS) {
+          return (E) state.hints;
         } else {
           throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
         }
       }
       state = state.nextState;
     };
-    if (descriptor == RESOLUTION_ERRORS) {
+    if (descriptor == RESOLUTION_ERRORS || descriptor == HINTS) {
       return (E) AnalysisError.NO_ERRORS;
     } else if (descriptor == RESOLVED_UNIT) {
       return null;
@@ -461,6 +488,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     parsedUnit = null;
     parsedUnitState = CacheState.ERROR;
 
+    exportedLibraries = Source.EMPTY_ARRAY;
+    exportedLibrariesState = CacheState.ERROR;
+
+    importedLibraries = Source.EMPTY_ARRAY;
+    importedLibrariesState = CacheState.ERROR;
+
+    includedParts = Source.EMPTY_ARRAY;
+    includedPartsState = CacheState.ERROR;
+
     recordResolutionError();
   }
 
@@ -481,6 +517,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (parsedUnitState != CacheState.VALID) {
       parsedUnitState = CacheState.IN_PROCESS;
     }
+    if (exportedLibrariesState != CacheState.VALID) {
+      exportedLibrariesState = CacheState.IN_PROCESS;
+    }
+    if (importedLibrariesState != CacheState.VALID) {
+      importedLibrariesState = CacheState.IN_PROCESS;
+    }
+    if (includedPartsState != CacheState.VALID) {
+      includedPartsState = CacheState.IN_PROCESS;
+    }
   }
 
   /**
@@ -491,15 +536,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   public void recordResolutionError() {
     element = null;
     elementState = CacheState.ERROR;
-
-    includedParts = Source.EMPTY_ARRAY;
-    includedPartsState = CacheState.ERROR;
-
-    exportedLibraries = Source.EMPTY_ARRAY;
-    exportedLibrariesState = CacheState.ERROR;
-
-    importedLibraries = Source.EMPTY_ARRAY;
-    importedLibrariesState = CacheState.ERROR;
 
     bitmask = 0;
     clientServerState = CacheState.ERROR;
@@ -620,6 +656,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (descriptor == RESOLVED_UNIT) {
       state.resolvedUnit = updatedValue(cacheState, state.resolvedUnit, null);
       state.resolvedUnitState = cacheState;
+    } else if (descriptor == HINTS) {
+      state.hints = updatedValue(cacheState, state.hints, AnalysisError.NO_ERRORS);
+      state.hintsState = cacheState;
     } else {
       throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
     }
@@ -687,6 +726,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (descriptor == RESOLVED_UNIT) {
       state.resolvedUnit = (CompilationUnit) value;
       state.resolvedUnitState = CacheState.VALID;
+    } else if (descriptor == HINTS) {
+      state.hints = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
+      state.hintsState = CacheState.VALID;
     }
   }
 

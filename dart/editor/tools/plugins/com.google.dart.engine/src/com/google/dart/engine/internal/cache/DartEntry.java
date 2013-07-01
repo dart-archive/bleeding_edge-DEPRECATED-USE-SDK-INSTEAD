@@ -43,6 +43,12 @@ public interface DartEntry extends SourceEntry {
       "DartEntry.EXPORTED_LIBRARIES");
 
   /**
+   * The data descriptor representing the hints resulting from auditing the source.
+   */
+  public static final DataDescriptor<AnalysisError[]> HINTS = new DataDescriptor<AnalysisError[]>(
+      "DartEntry.HINTS");
+
+  /**
    * The data descriptor representing the list of imported libraries. This data is only available
    * for Dart files that are the defining compilation unit of a library.
    */
