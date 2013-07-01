@@ -63,12 +63,6 @@
             <adapter type="com.google.dart.tools.core.model.DartElement"/>
       </factory>
       
-      <factory 
-            class="com.google.dart.tools.ui.internal.text.editor.NewEditorInputAdapterFactory" 
-            adaptableType="org.eclipse.ui.IEditorInput">
-            <adapter type="com.google.dart.engine.element.Element"/>
-      </factory>
-      
       
       <factory 
             class="com.google.dart.tools.ui.internal.filesview.FileStoreAdapterFactory" 
@@ -736,23 +730,12 @@
 <!-- End Dart Action Set (Adding the source, refactor and navigate menu -->
 
    <extension
-         point="org.eclipse.ui.actionSetPartAssociations">
-      <actionSetPartAssociation
-            targetID="com.google.dart.tools.ui.config.java.actionSet.presentation">
-         <part
-               id="org.eclipse.wst.jsdt.ui.CompilationUnitEditor">
-         </part>
-      </actionSetPartAssociation>
-   </extension>
-
-   <extension
          point="org.eclipse.ui.popupMenus">
       <viewerContribution
             targetID="#DartRulerContext"
             id="com.google.dart.tools.ui.internal.text.editor.QuickFixRulerMenuAction">
          <action
                label="%action.label.0"
-               helpContextId="org.eclipse.wst.jsdt.ui.quick_fix_action"
                class="com.google.dart.tools.ui.internal.text.editor.DartSelectRulerAction"
                menubarPath="additions"
                definitionId="org.eclipse.jdt.ui.edit.text.java.correction.assist.proposals"
@@ -2429,15 +2412,6 @@
       <startup class="com.google.dart.tools.ui.DartUIStartup"/>
    </extension>
    
-   <extension
-       id="DartSearchResultPage"
-        point="com.google.dart.tools.search.searchResultViewPages">
-      <viewPage
-         id="com.google.dart.tools.ui.DartSearchResultPage"
-         searchResultClass="com.google.dart.tools.ui.internal.search.DartSearchResult"
-         class="com.google.dart.tools.ui.internal.search.DartSearchResultPage">
-      </viewPage>
-   </extension>
    <extension
       id="FileSearchPage"
         point="com.google.dart.tools.search.searchResultViewPages">
