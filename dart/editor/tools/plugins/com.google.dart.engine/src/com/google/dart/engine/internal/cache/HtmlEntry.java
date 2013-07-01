@@ -50,12 +50,6 @@ public interface HtmlEntry extends SourceEntry {
       "HtmlEntry.RESOLUTION_ERRORS");
 
   /**
-   * The data descriptor representing the resolved AST structure.
-   */
-  public static final DataDescriptor<HtmlUnit> RESOLVED_UNIT = new DataDescriptor<HtmlUnit>(
-      "HtmlEntry.RESOLVED_UNIT");
-
-  /**
    * Return all of the errors associated with the compilation unit that are currently cached.
    * 
    * @return all of the errors associated with the compilation unit

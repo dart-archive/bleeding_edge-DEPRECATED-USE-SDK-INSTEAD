@@ -151,7 +151,7 @@ public class Library {
    *           unit
    */
   public CompilationUnit getDefiningCompilationUnit() throws AnalysisException {
-    return getAST(getLibrarySource());
+    return getAST(librarySource);
   }
 
   /**
@@ -306,7 +306,7 @@ public class Library {
    * @param unit the AST structure associated with the defining compilation unit for this library
    */
   public void setDefiningCompilationUnit(CompilationUnit unit) {
-    astMap.put(getLibrarySource(), unit);
+    astMap.put(librarySource, unit);
   }
 
   /**
