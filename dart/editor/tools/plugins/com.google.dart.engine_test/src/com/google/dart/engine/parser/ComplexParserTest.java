@@ -324,4 +324,8 @@ public class ComplexParserTest extends ParserTestCase {
     BinaryExpression expression = parseExpression("super >> 4 << 3");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
   }
+
+  public void test_topLevelVariable_withMetadata() throws Exception {
+    parseCompilationUnit("String @A string;");
+  }
 }

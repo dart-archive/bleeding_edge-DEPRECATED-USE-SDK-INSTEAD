@@ -2134,9 +2134,30 @@ public class Parser {
           commentAndMetadata,
           modifiers.getExternalKeyword(),
           returnType));
+    } else if (matches(TokenType.AT)) {
+      return new TopLevelVariableDeclaration(
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
+          parseVariableDeclarationList(
+              null,
+              validateModifiersForTopLevelVariable(modifiers),
+              returnType), expect(TokenType.SEMICOLON));
     } else if (!matchesIdentifier()) {
+      // TODO(brianwilkerson) Generalize this error. We could also be parsing a top-level variable at this point.
       reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
-      return null;
+      Token semicolon;
+      if (matches(TokenType.SEMICOLON)) {
+        semicolon = getAndAdvance();
+      } else {
+        semicolon = createSyntheticToken(TokenType.SEMICOLON);
+      }
+      List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
+      variables.add(new VariableDeclaration(null, null, createSyntheticIdentifier(), null, null));
+      return new TopLevelVariableDeclaration(
+          commentAndMetadata.getComment(),
+          commentAndMetadata.getMetadata(),
+          new VariableDeclarationList(null, null, null, returnType, variables),
+          semicolon);
     }
     if (matchesAny(peek(), TokenType.OPEN_PAREN, TokenType.FUNCTION, TokenType.OPEN_CURLY_BRACKET)) {
       validateModifiersForTopLevelFunction(modifiers);

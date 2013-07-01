@@ -29,7 +29,9 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.scanner.TokenType;
 
 import java.util.List;
@@ -39,7 +41,7 @@ import java.util.List;
  * sequences to ensure that the correct recovery steps are taken in the parser.
  */
 public class RecoveryParserTest extends ParserTestCase {
-  public void fail_incompleteReturnType() throws Exception {
+  public void fail_incomplete_returnType() throws Exception {
     parseCompilationUnit(createSource(
         "Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {",
         "  if (map == null) return null;",
@@ -415,6 +417,18 @@ public class RecoveryParserTest extends ParserTestCase {
     Expression syntheticExpression = result.get(3);
     assertInstanceOf(SimpleIdentifier.class, syntheticExpression);
     assertTrue(syntheticExpression.isSynthetic());
+  }
+
+  public void test_incomplete_topLevelVariable() throws Exception {
+    CompilationUnit unit = parseCompilationUnit("String", ParserErrorCode.EXPECTED_EXECUTABLE);
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSize(1, declarations);
+    CompilationUnitMember member = declarations.get(0);
+    assertInstanceOf(TopLevelVariableDeclaration.class, member);
+    NodeList<VariableDeclaration> variables = ((TopLevelVariableDeclaration) member).getVariables().getVariables();
+    assertSize(1, variables);
+    SimpleIdentifier name = variables.get(0).getName();
+    assertTrue(name.isSynthetic());
   }
 
   public void test_isExpression_noType() throws Exception {
