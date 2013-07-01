@@ -22,7 +22,24 @@ public enum AuditCode implements ErrorCode {
    * Dead code is code that is never reached, this can happen for instance if a statement follows a
    * return statement.
    */
-  DEAD_CODE("Dead code");
+  DEAD_CODE("Dead code"),
+
+  /**
+   * Dead code is code that is never reached. This case covers cases where the user has catch
+   * clauses after {@code catch (e)} or {@code on Object catch (e)}.
+   */
+  DEAD_CODE_CATCH_FOLLOWING_CATCH(
+      "Dead code, catch clauses after a 'catch (e)' or an 'on Object catch (e)' are never reached"),
+
+  /**
+   * Dead code is code that is never reached. This case covers cases where the user has an on-catch
+   * clause such as {@code on A catch (e)}, where a supertype of {@code A} was already caught.
+   * 
+   * @param subtypeName name of the subtype
+   * @param supertypeName name of the supertype
+   */
+  DEAD_CODE_ON_CATCH_SUBTYPE(
+      "Dead code, this on-catch block will never be executed since '%s' is a subtype of '%s'");
 
   /**
    * The message template used to create the message to be displayed for this error.

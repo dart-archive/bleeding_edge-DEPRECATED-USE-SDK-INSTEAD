@@ -16,6 +16,7 @@ package com.google.dart.engine.resolver;
 import com.google.dart.engine.error.AuditCode;
 import com.google.dart.engine.source.Source;
 
+// TODO (jwren) Add missing '_nested' tests
 public class AuditCodeTest extends ResolverTestCase {
 
   public void test_deadCode_deadBlock_conditionalElse() throws Exception {
@@ -60,6 +61,17 @@ public class AuditCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_deadCode_deadBlock_if_nested() throws Exception {
+    // test that a dead then-statement can't generate additional violations
+    Source source = addSource(createSource(//
+        "f() {",
+        "  if(false) {if(false) {}}",
+        "}"));
+    resolve(source);
+    assertErrors(AuditCode.DEAD_CODE);
+    verify(source);
+  }
+
   public void test_deadCode_deadBlock_while() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -67,6 +79,39 @@ public class AuditCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(AuditCode.DEAD_CODE);
+    verify(source);
+  }
+
+  public void test_deadCode_deadCatch_catchFollowingCatch() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "f() {",
+        "  try {} catch (e) {} catch (e) {}",
+        "}"));
+    resolve(source);
+    assertErrors(AuditCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
+    verify(source);
+  }
+
+  public void test_deadCode_deadCatch_catchFollowingCatch_object() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  try {} on Object catch (e) {} catch (e) {}",
+        "}"));
+    resolve(source);
+    assertErrors(AuditCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
+    verify(source);
+  }
+
+  public void test_deadCode_deadCatch_onCatchSubtype() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A {}",
+        "f() {",
+        "  try {} on A catch (e) {} on B catch (e) {}",
+        "}"));
+    resolve(source);
+    assertErrors(AuditCode.DEAD_CODE_ON_CATCH_SUBTYPE);
     verify(source);
   }
 

@@ -13,15 +13,19 @@
  */
 package com.google.dart.engine.internal.verifier;
 
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BooleanLiteral;
+import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.TryStatement;
+import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.error.AuditCode;
@@ -31,6 +35,9 @@ import com.google.dart.engine.internal.constant.ValidResult;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.type.Type;
+
+import java.util.ArrayList;
 
 /**
  * Instances of the class {@code DeadCodeVerifier} traverse an AST structure looking for cases of
@@ -59,7 +66,6 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
     Token operator = node.getOperator();
     boolean isAmpAmp = operator.getType() == TokenType.AMPERSAND_AMPERSAND;
     boolean isBarBar = operator.getType() == TokenType.BAR_BAR;
-    boolean foundError = false;
     if (isAmpAmp || isBarBar) {
       Expression lhsCondition = node.getLeftOperand();
       ValidResult lhsResult = getConstantBooleanValue(lhsCondition);
@@ -67,11 +73,15 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
         if (lhsResult == ValidResult.RESULT_TRUE && isBarBar) {
           // report error on else block: true || !e!
           errorReporter.reportError(AuditCode.DEAD_CODE, node.getRightOperand());
-          foundError = true;
+          // only visit the LHS:
+          safelyVisit(lhsCondition);
+          return null;
         } else if (lhsResult == ValidResult.RESULT_FALSE && isAmpAmp) {
           // report error on if block: false && !e!
           errorReporter.reportError(AuditCode.DEAD_CODE, node.getRightOperand());
-          foundError = true;
+          // only visit the LHS:
+          safelyVisit(lhsCondition);
+          return null;
         }
       }
       // How do we want to handle the RHS? It isn't dead code, but "pointless" or "obscure"...
@@ -81,22 +91,26 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
 //        if (rhsResult == ValidResult.RESULT_TRUE && isBarBar) {
 //          // report error on else block: !e! || true
 //          errorReporter.reportError(AuditCode.DEAD_CODE, node.getRightOperand());
-//          foundError = false;
+//          // only visit the RHS:
+//          safelyVisit(rhsCondition);
+//          return null;
 //        } else if (rhsResult == ValidResult.RESULT_FALSE && isAmpAmp) {
 //          // report error on if block: !e! && false
 //          errorReporter.reportError(AuditCode.DEAD_CODE, node.getRightOperand());
-//          foundError = false;
+//          // only visit the RHS:
+//          safelyVisit(rhsCondition);
+//          return null;
 //        }
 //      }
-    }
-    if (foundError) {
-      return null;
     }
     return super.visitBinaryExpression(node);
   }
 
   @Override
   public Void visitBlock(Block node) {
+    // TODO(jwren) Bring the contents of the following method into this method to make it more
+    // consistent with the rest of this visitor and fix the bug where all discovered dead code is
+    // still being visited by this visitor.
     checkForDeadCodeStatementsAfterReturn(node);
     return super.visitBlock(node);
   }
@@ -109,30 +123,34 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
       if (result == ValidResult.RESULT_TRUE) {
         // report error on else block: true ? 1 : !2!
         errorReporter.reportError(AuditCode.DEAD_CODE, node.getElseExpression());
+        safelyVisit(node.getThenExpression());
+        return null;
       } else {
         // report error on if block: false ? !1! : 2
         errorReporter.reportError(AuditCode.DEAD_CODE, node.getThenExpression());
+        safelyVisit(node.getElseExpression());
+        return null;
       }
     }
     return super.visitConditionalExpression(node);
   }
 
   // Do we want to report "pointless" or "obscure" code such as do {} !while (false);!
-//  @Override
-//  public Void visitDoStatement(DoStatement node) {
-//    Expression conditionExpression = node.getCondition();
-//    ValidResult result = getConstantBooleanValue(conditionExpression);
-//    if (result != null) {
-//      if (result == ValidResult.RESULT_FALSE) {
-//        // report error on if block: do {} !while (false);!
-//        int whileOffset = node.getWhileKeyword().getOffset();
-//        int semiColonOffset = node.getSemicolon().getOffset() + 1;
-//        int length = semiColonOffset - whileOffset;
-//        errorReporter.reportError(AuditCode.DEAD_CODE, whileOffset, length);
-//      }
+//@Override
+//public Void visitDoStatement(DoStatement node) {
+//  Expression conditionExpression = node.getCondition();
+//  ValidResult result = getConstantBooleanValue(conditionExpression);
+//  if (result != null) {
+//    if (result == ValidResult.RESULT_FALSE) {
+//      // report error on if block: do {} !while (false);!
+//      int whileOffset = node.getWhileKeyword().getOffset();
+//      int semiColonOffset = node.getSemicolon().getOffset() + 1;
+//      int length = semiColonOffset - whileOffset;
+//      errorReporter.reportError(AuditCode.DEAD_CODE, whileOffset, length);
 //    }
-//    return super.visitDoStatement(node);
 //  }
+//  return super.visitDoStatement(node);
+//}
 
   @Override
   public Void visitIfStatement(IfStatement node) {
@@ -144,13 +162,82 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
         Statement elseStatement = node.getElseStatement();
         if (elseStatement != null) {
           errorReporter.reportError(AuditCode.DEAD_CODE, elseStatement);
+          safelyVisit(node.getThenStatement());
+          return null;
         }
       } else {
         // report error on if block: if (false) {!} else {}
         errorReporter.reportError(AuditCode.DEAD_CODE, node.getThenStatement());
+        safelyVisit(node.getElseStatement());
+        return null;
       }
     }
     return super.visitIfStatement(node);
+  }
+
+  @Override
+  public Void visitTryStatement(TryStatement node) {
+    safelyVisit(node.getBody());
+    NodeList<CatchClause> catchClauses = node.getCatchClauses();
+    int numOfCatchClauses = catchClauses.size();
+    if (numOfCatchClauses == 0) {
+      safelyVisit(node.getFinallyClause());
+      return null;
+    }
+    ArrayList<Type> visitedTypes = new ArrayList<Type>(numOfCatchClauses);
+    for (int i = 0; i < numOfCatchClauses; i++) {
+      CatchClause catchClause = catchClauses.get(i);
+      if (catchClause.getOnKeyword() != null) {
+        // on-catch clause found, verify that the exception type is not a subtype of a previous
+        // on-catch exception type
+        TypeName typeName = catchClause.getExceptionType();
+        if (typeName != null && typeName.getType() != null) {
+          Type currentType = typeName.getType();
+          if (currentType.isObject()) {
+            // Found catch clause clause that has Object as an exception type, this is equivalent to
+            // having a catch clause that doesn't have an exception type, visit the block, but
+            // generate an error on any following catch clauses (and don't visit them).
+            safelyVisit(catchClause);
+            if (i + 1 != numOfCatchClauses) {
+              // this catch clause is not the last in the try statement
+              CatchClause nextCatchClause = catchClauses.get(i + 1);
+              CatchClause lastCatchClause = catchClauses.get(numOfCatchClauses - 1);
+              int offset = nextCatchClause.getOffset();
+              int length = lastCatchClause.getEnd() - offset;
+              errorReporter.reportError(AuditCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
+              break;
+            }
+          }
+          for (Type type : visitedTypes) {
+            if (currentType.isSubtypeOf(type)) {
+              errorReporter.reportError(
+                  AuditCode.DEAD_CODE_ON_CATCH_SUBTYPE,
+                  catchClause,
+                  currentType.getDisplayName(),
+                  type.getDisplayName());
+              continue;
+            }
+          }
+          visitedTypes.add(currentType);
+        }
+        safelyVisit(catchClause);
+      } else {
+        // Found catch clause clause that doesn't have an exception type, visit the block, but
+        // generate an error on any following catch clauses (and don't visit them).
+        safelyVisit(catchClause);
+        if (i + 1 != numOfCatchClauses) {
+          // this catch clause is not the last in the try statement
+          CatchClause nextCatchClause = catchClauses.get(i + 1);
+          CatchClause lastCatchClause = catchClauses.get(numOfCatchClauses - 1);
+          int offset = nextCatchClause.getOffset();
+          int length = lastCatchClause.getEnd() - offset;
+          errorReporter.reportError(AuditCode.DEAD_CODE_CATCH_FOLLOWING_CATCH, offset, length);
+          break;
+        }
+      }
+    }
+    safelyVisit(node.getFinallyClause());
+    return null;
   }
 
   @Override
@@ -161,6 +248,8 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
       if (result == ValidResult.RESULT_FALSE) {
         // report error on if block: while (false) {!}
         errorReporter.reportError(AuditCode.DEAD_CODE, node.getBody());
+        safelyVisit(conditionExpression);
+        return null;
       }
     }
     return super.visitWhileStatement(node);
@@ -218,6 +307,17 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
         return ValidResult.RESULT_FALSE;
       }
       return null;
+    }
+  }
+
+  /**
+   * If the given node is not {@code null}, visit this instance of the dead code verifier.
+   * 
+   * @param node the node to be visited
+   */
+  private void safelyVisit(ASTNode node) {
+    if (node != null) {
+      node.accept(this);
     }
   }
 

@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(AuditCodeTest.class);
     suite.addTestSuite(CompileTimeErrorCodeTest.class);
     suite.addTestSuite(ErrorResolverTest.class);
+    suite.addTestSuite(NonAuditCodeTest.class);
     suite.addTestSuite(NonErrorResolverTest.class);
     //suite.addTestSuite(PubSuggestionCodeTest.class);
     suite.addTestSuite(SimpleResolverTest.class);
