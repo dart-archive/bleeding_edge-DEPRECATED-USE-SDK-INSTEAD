@@ -51,7 +51,6 @@ import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
-import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
@@ -82,7 +81,6 @@ import static com.google.dart.java2dart.util.ASTFactory.asExpression;
 import static com.google.dart.java2dart.util.ASTFactory.assertStatement;
 import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
 import static com.google.dart.java2dart.util.ASTFactory.block;
-import static com.google.dart.java2dart.util.ASTFactory.blockFunctionBody;
 import static com.google.dart.java2dart.util.ASTFactory.booleanLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.breakStatement;
 import static com.google.dart.java2dart.util.ASTFactory.catchClause;
@@ -143,8 +141,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
-import org.eclipse.jdt.core.dom.ConstructorInvocation;
-import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
@@ -226,35 +222,6 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     throw new UnsupportedOperationException("" + parentClass);
   }
 
-  //TODO(scheglov) improve JavaDoc translation
-//  /**
-//   * Escapes characters in the JavaDoc to make it valid DartDoc.
-//   */
-//  private static String escapeDartDoc(String javaTagString) {
-//    // remove (and remember) leading spaces and "*"
-//    String leadingSpaces = StringUtils.substringBefore(javaTagString, "*");
-//    javaTagString = javaTagString.substring(leadingSpaces.length() + 1);
-//    // translate characters, do escaping
-//    StringBuilder sb = new StringBuilder();
-//    int length = javaTagString.length();
-//    for (int i = 0; i < length; i++) {
-//      char c = javaTagString.charAt(i);
-//      // don't escape * if there are spaces befor and after it
-//      if (c == '*' && i > 0 && javaTagString.charAt(i - 1) == ' ' && i < length - 1
-//          && javaTagString.charAt(i + 1) == ' ') {
-//        sb.append(c);
-//        continue;
-//      }
-//      // Complete set: "\\`*_{}[]()#+-.!"
-//      if ("\\`*_{}[]()#+-!".indexOf(c) != -1) {
-//        sb.append('\\');
-//      }
-//      sb.append(c);
-//    }
-//    // return with spaces and "*"
-//    return leadingSpaces + "*" + sb.toString();
-//  }
-
   /**
    * Translates given Java AST into Dart AST.
    */
@@ -325,32 +292,6 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     return resultMethod;
   }
 
-  private static boolean hasConstructorInvocation(org.eclipse.jdt.core.dom.ASTNode node) {
-    final AtomicBoolean result = new AtomicBoolean();
-    node.accept(new ASTVisitor() {
-      @Override
-      public boolean visit(ConstructorInvocation node) {
-        result.set(true);
-        return false;
-      }
-    });
-    return result.get();
-  }
-
-  private static boolean isInEnumConstructor(org.eclipse.jdt.core.dom.ASTNode node) {
-    boolean inConstructor = false;
-    while (node != null) {
-      if (node instanceof org.eclipse.jdt.core.dom.MethodDeclaration) {
-        inConstructor = ((org.eclipse.jdt.core.dom.MethodDeclaration) node).isConstructor();
-      }
-      if (node instanceof org.eclipse.jdt.core.dom.EnumDeclaration) {
-        return inConstructor;
-      }
-      node = node.getParent();
-    }
-    return false;
-  }
-
   private static boolean isIntegerType(org.eclipse.jdt.core.dom.Expression expression) {
     ITypeBinding typeBinding = expression.resolveTypeBinding();
     return JavaUtils.isTypeNamed(typeBinding, "int") || JavaUtils.isTypeNamed(typeBinding, "long")
@@ -366,32 +307,6 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     String superString = superConstructor.toString();
     String subString = subConstructor.toString();
     return superString.endsWith(subString);
-  }
-
-  private static int numberOfConstructors(org.eclipse.jdt.core.dom.ASTNode node) {
-    int count = 0;
-    if (node instanceof org.eclipse.jdt.core.dom.TypeDeclaration) {
-      org.eclipse.jdt.core.dom.TypeDeclaration typeDecl = (org.eclipse.jdt.core.dom.TypeDeclaration) node;
-      for (org.eclipse.jdt.core.dom.MethodDeclaration methodDecl : typeDecl.getMethods()) {
-        if (methodDecl.isConstructor()) {
-          count++;
-        }
-      }
-      return count;
-    }
-    if (node instanceof EnumDeclaration) {
-      EnumDeclaration enumDecl = (EnumDeclaration) node;
-      for (Object child : (List<?>) enumDecl.bodyDeclarations()) {
-        if (child instanceof org.eclipse.jdt.core.dom.MethodDeclaration) {
-          org.eclipse.jdt.core.dom.MethodDeclaration methodDecl = (org.eclipse.jdt.core.dom.MethodDeclaration) child;
-          if (methodDecl.isConstructor()) {
-            count++;
-          }
-        }
-      }
-      return count;
-    }
-    throw new UnsupportedOperationException("not implemented: " + node.getClass());
   }
 
   private final Context context;
@@ -615,7 +530,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
             enclosingTypeRef = null;
           }
         }
-        // declare referenced final variables XXX
+        // declare referenced final variables
         final String finalName = name;
         anoDeclaration.accept(new ASTVisitor() {
           final Set<org.eclipse.jdt.core.dom.IVariableBinding> addedParameters = Sets.newHashSet();
@@ -625,7 +540,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           @Override
           public void endVisit(AnonymousClassDeclaration node) {
             if (!constructorParameters.isEmpty()) {
-              // add parameters to the existing "inner" constructor XXX
+              // add parameters to the existing "inner" constructor
               for (ClassMember classMember : innerClass.getMembers()) {
                 if (classMember instanceof ConstructorDeclaration) {
                   ConstructorDeclaration innerConstructor = (ConstructorDeclaration) classMember;
@@ -731,8 +646,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.ConstructorInvocation node) {
     IMethodBinding binding = node.resolveConstructorBinding();
-    SimpleIdentifier nameNode = identifier("jtdTmp");
-    context.getConstructorDescription(binding).implInvocations.add(nameNode);
+    SimpleIdentifier nameNode = identifier("thisConstructorRedirection");
+//    context.getConstructorDescription(binding).implInvocations.add(nameNode);
     // invoke "impl"
     List<Expression> arguments = translateArguments(binding, node.arguments());
     MethodInvocation invocation = methodInvocation(nameNode, arguments);
@@ -1081,8 +996,12 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   public boolean visit(org.eclipse.jdt.core.dom.Javadoc node) {
     String javaDocString = getJavaSource(node);
     // there is some one-off sometimes, probably bug in JDT
-    if (!javaDocString.startsWith("/**") && javaDocString.startsWith("**")) {
-      javaDocString = "/" + javaDocString;
+    if (!javaDocString.startsWith("/**")) {
+      if (javaDocString.startsWith("**")) {
+        javaDocString = "/" + javaDocString.trim();
+      } else {
+        javaDocString = "/**\n" + javaDocString.trim();
+      }
     }
     String dartDocString = convertJavaDoc(javaDocString);
     StringToken commentToken = new StringToken(TokenType.STRING, dartDocString, 0);
@@ -1106,21 +1025,10 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.MethodDeclaration node) {
-    boolean isNotPublic = !org.eclipse.jdt.core.dom.Modifier.isPublic(node.getModifiers());
+    boolean isPublic = org.eclipse.jdt.core.dom.Modifier.isPublic(node.getModifiers());
     IMethodBinding binding = node.resolveBinding();
-    boolean isEnumConstructor = node.isConstructor()
-        && node.getParent() instanceof org.eclipse.jdt.core.dom.EnumDeclaration;
     // parameters
-    FormalParameterList parameterList;
-    {
-      List<FormalParameter> parameters = Lists.newArrayList();
-      for (Iterator<?> I = node.parameters().iterator(); I.hasNext();) {
-        org.eclipse.jdt.core.dom.SingleVariableDeclaration javaParameter = (org.eclipse.jdt.core.dom.SingleVariableDeclaration) I.next();
-        SimpleFormalParameter parameter = translate(javaParameter);
-        parameters.add(parameter);
-      }
-      parameterList = formalParameterList(parameters);
-    }
+    FormalParameterList parameterList = translateMethodDeclarationParameters(node);
     // body
     FunctionBody body;
     SuperConstructorInvocation superConstructorInvocation = null;
@@ -1134,7 +1042,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         }
         Block bodyBlock = (Block) translate(javaBlock);
         body = new BlockFunctionBody(bodyBlock);
-        NodeList<Statement> statements = bodyBlock.getStatements();
+        List<Statement> statements = bodyBlock.getStatements();
         // convert "{ return foo; }" to "=> foo;"
         if (statements.size() == 1 && statements.get(0) instanceof ReturnStatement) {
           body = expressionFunctionBody(((ReturnStatement) statements.get(0)).getExpression());
@@ -1145,52 +1053,12 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
     // constructor
     if (node.isConstructor()) {
-      boolean multipleConstructors = numberOfConstructors(node.getParent()) > 1;
-      List<ConstructorInitializer> initializers = Lists.newArrayList();
-      if (superConstructorInvocation != null) {
-        initializers.add(superConstructorInvocation);
-      }
-      String technicalConstructorName = context.generateTechnicalConstructorName();
-      String constructorDeclName = technicalConstructorName + "_decl";
-      String constructorImplName = "_" + technicalConstructorName + "_impl";
-      if (multipleConstructors) {
-        constructorImpl = methodDeclaration(
-            null,
-            identifier(constructorImplName),
-            parameterList,
-            body);
-      }
-      //
-      List<Expression> implInvArgs = Lists.newArrayList();
-      for (FormalParameter parameter : parameterList.getParameters()) {
-        implInvArgs.add(parameter.getIdentifier());
-      }
-      Expression implInvocation = methodInvocation(constructorImplName, implInvArgs);
-      Statement conStatement = expressionStatement(implInvocation);
-      Block constructorBody = block(conStatement);
-      SimpleIdentifier nameNode = identifier(constructorDeclName);
-      context.getConstructorDescription(binding).declName = constructorDeclName;
-      context.getConstructorDescription(binding).implName = multipleConstructors
-          ? constructorImplName : constructorDeclName;
-      if (multipleConstructors) {
-        body = blockFunctionBody(constructorBody);
-      }
-      if (isEnumConstructor) {
-        List<FormalParameter> parameters = Lists.newArrayList();
-        parameters.add(fieldFormalParameter(null, null, ENUM_NAME_FIELD_NAME));
-        parameters.add(fieldFormalParameter(null, null, ENUM_ORDINAL_FIELD_NAME));
-        parameters.addAll(parameterList.getParameters());
-        parameterList = formalParameterList(parameters);
-      }
-      ConstructorDeclaration constructor = constructorDeclaration(
-          translateJavadoc(node),
-          identifier(node.getName().getIdentifier()),
-          nameNode,
+      return translateMethodDeclarationConstructor(
+          node,
+          binding,
           parameterList,
-          initializers,
-          body);
-      context.putConstructorBinding(constructor, binding);
-      return done(constructor);
+          body,
+          superConstructorInvocation);
     } else {
       boolean isStatic = org.eclipse.jdt.core.dom.Modifier.isStatic(node.getModifiers());
       SimpleIdentifier dartMethodName = translateSimpleName(node.getName());
@@ -1202,7 +1070,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           parameterList,
           body);
       context.putNodeBinding(methodDeclaration, binding);
-      if (isNotPublic) {
+      if (!isPublic) {
         context.putPrivateClassMember(methodDeclaration);
       }
       return done(methodDeclaration);
@@ -1973,6 +1841,62 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   private Comment translateJavadoc(org.eclipse.jdt.core.dom.BodyDeclaration node) {
     return (Comment) translate(node.getJavadoc());
+  }
+
+  /**
+   * Translates the JDT method declaration which is the constructor.
+   */
+  private boolean translateMethodDeclarationConstructor(
+      org.eclipse.jdt.core.dom.MethodDeclaration node, IMethodBinding binding,
+      FormalParameterList parameterList, FunctionBody body,
+      SuperConstructorInvocation superConstructorInvocation) {
+    boolean isEnumConstructor = node.getParent() instanceof org.eclipse.jdt.core.dom.EnumDeclaration;
+    // prepare initializers
+    List<ConstructorInitializer> initializers = Lists.newArrayList();
+    if (superConstructorInvocation != null) {
+      initializers.add(superConstructorInvocation);
+    }
+    // prepare names
+    String technicalConstructorName = context.generateTechnicalConstructorName();
+    String constructorDeclName = technicalConstructorName + "_decl";
+    context.getConstructorDescription(binding).declName = constructorDeclName;
+    SimpleIdentifier nameNode = identifier(constructorDeclName);
+    // if enum, include implicit "name" and "ordinal" parameters
+    if (isEnumConstructor) {
+      context.getConstructorDescription(binding).isEnum = true;
+      List<FormalParameter> parameters = Lists.newArrayList();
+      parameters.add(fieldFormalParameter(null, null, ENUM_NAME_FIELD_NAME));
+      parameters.add(fieldFormalParameter(null, null, ENUM_ORDINAL_FIELD_NAME));
+      parameters.addAll(parameterList.getParameters());
+      parameterList = formalParameterList(parameters);
+    }
+    // done
+    ConstructorDeclaration constructor = constructorDeclaration(
+        translateJavadoc(node),
+        identifier(node.getName().getIdentifier()),
+        nameNode,
+        parameterList,
+        initializers,
+        body);
+    context.putConstructorBinding(constructor, binding);
+    return done(constructor);
+  }
+
+  /**
+   * Translates the parameters of the JDT method declaration into the Dart
+   * {@link FormalParameterList}.
+   */
+  private FormalParameterList translateMethodDeclarationParameters(
+      org.eclipse.jdt.core.dom.MethodDeclaration node) {
+    FormalParameterList parameterList;
+    List<FormalParameter> parameters = Lists.newArrayList();
+    for (Iterator<?> I = node.parameters().iterator(); I.hasNext();) {
+      org.eclipse.jdt.core.dom.SingleVariableDeclaration javaParameter = (org.eclipse.jdt.core.dom.SingleVariableDeclaration) I.next();
+      SimpleFormalParameter parameter = translate(javaParameter);
+      parameters.add(parameter);
+    }
+    parameterList = formalParameterList(parameters);
+    return parameterList;
   }
 
   private SimpleIdentifier translateSimpleName(org.eclipse.jdt.core.dom.SimpleName name) {

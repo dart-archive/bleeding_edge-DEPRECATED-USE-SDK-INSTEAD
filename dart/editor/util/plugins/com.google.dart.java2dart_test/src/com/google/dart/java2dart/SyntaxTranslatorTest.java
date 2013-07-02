@@ -162,7 +162,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
     assertDartSource(
         "",
         "/**",
-        " * Some \\[ident\\] ignored.",
+        " * Some [ident] ignored.",
         " * Second line.",
         " */",
         "class A {",
@@ -222,15 +222,9 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
     assertDartSource(
         "class A {",
         "  A.jtd_constructor_0_decl() {",
-        "    _jtd_constructor_0_impl();",
-        "  }",
-        "  _jtd_constructor_0_impl() {",
         "    print(0);",
         "  }",
         "  A.jtd_constructor_1_decl(int p) {",
-        "    _jtd_constructor_1_impl(p);",
-        "  }",
-        "  _jtd_constructor_1_impl(int p) {",
         "    print(1);",
         "  }",
         "}");
@@ -1215,21 +1209,17 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
         "    this(42);",
         "  }",
         "  public A(int p) {",
+        "    print(p);",
         "  }",
         "}",
         "");
     assertDartSource(//
         "class A {",
         "  A.jtd_constructor_0_decl() {",
-        "    _jtd_constructor_0_impl();",
-        "  }",
-        "  _jtd_constructor_0_impl() {",
-        "    jtdTmp(42);",
+        "    thisConstructorRedirection(42);",
         "  }",
         "  A.jtd_constructor_1_decl(int p) {",
-        "    _jtd_constructor_1_impl(p);",
-        "  }",
-        "  _jtd_constructor_1_impl(int p) {",
+        "    print(p);",
         "  }",
         "}");
   }

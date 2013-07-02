@@ -18,28 +18,10 @@ package com.google.dart.java2dart.processor;
  */
 public class ConstructorSemanticProcessorTest extends SemanticProcessorTest {
 
-  public void test_constructor_with_statements() throws Exception {
+  public void test_empty() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
-        "import java.util.Map;",
-        "public class Test extends Foo {",
-        "  Test(String boo) {this.boo = boo;}",
-        "}");
-    runProcessor();
-    assertFormattedSource(//
-        "class Test extends Foo {",
-        "  Test(String boo) {",
-        "    this.boo = boo;",
-        "  }",
-        "}");
-  }
-
-  public void test_empty_constructor() throws Exception {
-    translateSingleFile(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "package test;",
-        "import java.util.Map;",
         "public class Test extends Foo {",
         "  Test() {}",
         "}");
@@ -49,13 +31,32 @@ public class ConstructorSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  public void test_super_only() throws Exception {
+  public void test_hasStatements() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
-        "import java.util.Map;",
         "public class Test extends Foo {",
-        "  Test() {super();}",
+        "  Test(String p) {",
+        "    print(p);",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test extends Foo {",
+        "  Test(String p) {",
+        "    print(p);",
+        "  }",
+        "}");
+  }
+
+  public void test_super_default() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test extends Foo {",
+        "  Test() {",
+        "    super();",
+        "  }",
         "}");
     runProcessor();
     assertFormattedSource(//
@@ -63,18 +64,40 @@ public class ConstructorSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  public void test_super_with_arguments() throws Exception {
+  public void test_super_withArguments() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
-        "import java.util.Map;",
         "public class Test extends Foo {",
-        "  Test(String boo) {super(boo);}",
+        "  Test(String boo) {",
+        "    super(boo);",
+        "  }",
         "}");
     runProcessor();
     assertFormattedSource(//
         "class Test extends Foo {",
-        "  Test(String boo) : super(boo) {",
+        "  Test(String boo) : super(boo);",
+        "}");
+  }
+
+  public void test_this_noOtherStatements() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  Test() {",
+        "    this(42);",
+        "  }",
+        "  Test(int p) {",
+        "    print(p);",
+        "  }",
+        "}");
+//    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  Test() : this.con1(42);",
+        "  Test.con1(int p) {",
+        "    print(p);",
         "  }",
         "}");
   }

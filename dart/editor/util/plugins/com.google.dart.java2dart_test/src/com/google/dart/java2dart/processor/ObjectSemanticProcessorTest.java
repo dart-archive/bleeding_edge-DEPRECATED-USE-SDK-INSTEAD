@@ -236,26 +236,10 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
     runProcessor();
     assertFormattedSource(
         "class Test extends JavaException {",
-        "  Test() {",
-        "    _jtd_constructor_0_impl();",
-        "  }",
-        "  _jtd_constructor_0_impl() {",
-        "  }",
-        "  Test.con1(String msg) : super(msg) {",
-        "    _jtd_constructor_1_impl(msg);",
-        "  }",
-        "  _jtd_constructor_1_impl(String msg) {",
-        "  }",
-        "  Test.con2(String msg, Exception e) : super(msg, e) {",
-        "    _jtd_constructor_2_impl(msg, e);",
-        "  }",
-        "  _jtd_constructor_2_impl(String msg, Exception e) {",
-        "  }",
-        "  Test.con3(Exception e) : super.withCause(e) {",
-        "    _jtd_constructor_3_impl(e);",
-        "  }",
-        "  _jtd_constructor_3_impl(Exception e) {",
-        "  }",
+        "  Test();",
+        "  Test.con1(String msg) : super(msg);",
+        "  Test.con2(String msg, Exception e) : super(msg, e);",
+        "  Test.con3(Exception e) : super.withCause(e);",
         "}");
   }
 

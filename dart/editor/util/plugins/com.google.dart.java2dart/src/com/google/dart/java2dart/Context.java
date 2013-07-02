@@ -40,6 +40,7 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PropertyAccess;
+import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.ThisExpression;
@@ -50,6 +51,7 @@ import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.java2dart.processor.ConstructorSemanticProcessor;
 import com.google.dart.java2dart.util.Bindings;
 import com.google.dart.java2dart.util.JavaUtils;
 
@@ -93,13 +95,13 @@ public class Context {
   /**
    * Information about constructor and its usages.
    */
-  class ConstructorDescription {
+  public static class ConstructorDescription {
     final IMethodBinding binding;
-    final List<SuperConstructorInvocation> superInvocations = Lists.newArrayList();
-    final List<InstanceCreationExpression> instanceCreations = Lists.newArrayList();
-    final List<SimpleIdentifier> implInvocations = Lists.newArrayList();
+    public final List<RedirectingConstructorInvocation> redirectingInvocations = Lists.newArrayList();
+    public final List<SuperConstructorInvocation> superInvocations = Lists.newArrayList();
+    public final List<InstanceCreationExpression> instanceCreations = Lists.newArrayList();
+    public boolean isEnum;
     String declName;
-    String implName;
 
     public ConstructorDescription(IMethodBinding binding) {
       this.binding = binding;
@@ -548,6 +550,18 @@ public class Context {
     return anonymousDeclarations.get(creation);
   }
 
+  /**
+   * @return the not <code>null</code> {@link ConstructorDescription}, may be just added.
+   */
+  public ConstructorDescription getConstructorDescription(IMethodBinding binding) {
+    ConstructorDescription description = bindingToConstructor.get(binding);
+    if (description == null) {
+      description = new ConstructorDescription(binding);
+      bindingToConstructor.put(binding, description);
+    }
+    return description;
+  }
+
   public Map<File, List<CompilationUnitMember>> getFileToMembers() {
     return fileToMembers;
   }
@@ -611,11 +625,11 @@ public class Context {
     // update references
     ConstructorDescription constructorDescription = bindingToConstructor.get(binding);
     if (constructorDescription != null) {
-      // set name in InstanceCreationExpression
+      // set name in RedirectingConstructorInvocation
       {
-        List<InstanceCreationExpression> creations = constructorDescription.instanceCreations;
-        for (InstanceCreationExpression creation : creations) {
-          creation.getConstructorName().setName(newIdentifier);
+        List<RedirectingConstructorInvocation> invocations = constructorDescription.redirectingInvocations;
+        for (RedirectingConstructorInvocation invocation : invocations) {
+          invocation.setConstructorName(newIdentifier);
         }
       }
       // set name in SuperConstructorInvocation
@@ -625,11 +639,11 @@ public class Context {
           invocation.setConstructorName(newIdentifier);
         }
       }
-      // set name in invocation of implementation
+      // set name in InstanceCreationExpression
       {
-        List<SimpleIdentifier> invocations = constructorDescription.implInvocations;
-        for (SimpleIdentifier identifier : invocations) {
-          identifier.setToken(token(TokenType.IDENTIFIER, constructorDescription.implName));
+        List<InstanceCreationExpression> creations = constructorDescription.instanceCreations;
+        for (InstanceCreationExpression creation : creations) {
+          creation.getConstructorName().setName(newIdentifier);
         }
       }
     }
@@ -674,6 +688,7 @@ public class Context {
       ensureUniqueClassMemberNames(dartUniverse);
       ensureNoVariableNameReferenceFromInitializer(dartUniverse);
       ensureMethodParameterDoesNotHide(dartUniverse);
+      new ConstructorSemanticProcessor(this).process(dartUniverse);
       renameConstructors(dartUniverse);
     }
     // done
@@ -699,18 +714,6 @@ public class Context {
    */
   String generateTechnicalInnerClassName() {
     return "JtdClass_" + technicalInnerClassIndex++;
-  }
-
-  /**
-   * @return the not <code>null</code> {@link ConstructorDescription}, may be just added.
-   */
-  ConstructorDescription getConstructorDescription(IMethodBinding binding) {
-    ConstructorDescription description = bindingToConstructor.get(binding);
-    if (description == null) {
-      description = new ConstructorDescription(binding);
-      bindingToConstructor.put(binding, description);
-    }
-    return description;
   }
 
   /**
@@ -832,29 +835,17 @@ public class Context {
         if (thisInitializers.isEmpty()) {
           return;
         }
-        ConstructorDeclaration singleConstructor = null;
-        boolean hasImpl = false;
+        boolean hasConstructor = false;
         for (ClassMember classMember : classDeclaration.getMembers()) {
           if (classMember instanceof ConstructorDeclaration) {
-            singleConstructor = (ConstructorDeclaration) classMember;
-          }
-          if (classMember instanceof MethodDeclaration) {
-            MethodDeclaration method = (MethodDeclaration) classMember;
-            String methodName = method.getName().getName();
-            if (methodName.startsWith("_jtd_constructor_") && methodName.endsWith("_impl")) {
-              hasImpl = true;
-              Block block = ((BlockFunctionBody) method.getBody()).getBlock();
-              addAssignmentsToBlock(block, thisInitializers);
-            }
+            ConstructorDeclaration constructor = (ConstructorDeclaration) classMember;
+            hasConstructor = true;
+            Block block = ((BlockFunctionBody) constructor.getBody()).getBlock();
+            addAssignmentsToBlock(block, thisInitializers);
           }
         }
-        // no "_impl", add assignments to the single constructor
-        if (!hasImpl && singleConstructor != null) {
-          Block block = ((BlockFunctionBody) singleConstructor.getBody()).getBlock();
-          addAssignmentsToBlock(block, thisInitializers);
-        }
-        // no "_impl", generate default constructor
-        if (singleConstructor == null) {
+        // no constructors, generate default constructor
+        if (!hasConstructor) {
           Block block = block();
           addAssignmentsToBlock(block, thisInitializers);
           ConstructorDeclaration constructor = constructorDeclaration(
