@@ -27,7 +27,7 @@ import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
-import com.google.dart.tools.ui.internal.refactoring.reorg.RenameLinkedMode;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
@@ -113,36 +113,19 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    RenameLinkedMode activeLinkedMode = RenameLinkedMode.getActiveLinkedMode();
-    if (activeLinkedMode != null) {
-      activeLinkedMode.startFullDialog();
-    } else {
-      AssistContext context = selection.getContext();
-      if (context == null) {
-        return;
-      }
-      // prepare environment
-      Element element = getElementToRename(selection);
-      if (element == null) {
-        return;
-      }
-      // Always rename using dialog. Eclipse implementation of the linked mode is very slow
-      // in case of the many occurrences in the single file. It is also done using asynchronous
-      // execution, in these 1-2-3 seconds user can type anything and damage source.
-      renameUsingDialog(element);
-//      // Unnamed constructor are special case - we don't have name to start linked mode.
-//      // Named constructors may become unnamed, this looks ugly because of analysis as you type.
-//      if (element instanceof ConstructorElement) {
-//        renameUsingDialog(element);
-//        return;
-//      }
-//      if (element instanceof LibraryElement) {
-//        renameUsingDialog(element);
-//        return;
-//      }
-//      // start linked mode rename
-//      new RenameLinkedMode(editor, context).start();
+    AssistContext context = getContextAfterBuild(selection);
+    if (context == null) {
+      return;
     }
+    // prepare element
+    Element element = getElementToRename(selection);
+    if (element == null) {
+      return;
+    }
+    // Always rename using dialog. Eclipse implementation of the linked mode is very slow
+    // in case of the many occurrences in the single file. It is also done using asynchronous
+    // execution, in these 1-2-3 seconds user can type anything and damage source.
+    renameUsingDialog(element);
   }
 
   @Override
@@ -158,6 +141,9 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
 
   private void renameUsingDialog(Element element) {
     if (element == null) {
+      return;
+    }
+    if (!RefactoringUtils.waitReadyForRefactoring()) {
       return;
     }
     try {
