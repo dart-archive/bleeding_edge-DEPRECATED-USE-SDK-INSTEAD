@@ -71,6 +71,17 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   private HtmlElement element;
 
   /**
+   * The state of the cached hints.
+   */
+  private CacheState hintsState = CacheState.INVALID;
+
+  /**
+   * The hints produced while auditing the compilation unit, or an empty array if the hints are not
+   * currently cached.
+   */
+  private AnalysisError[] hints = AnalysisError.NO_ERRORS;
+
+  /**
    * Initialize a newly created cache entry to be empty.
    */
   public HtmlEntryImpl() {
@@ -84,6 +95,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 //      errors.add(error);
 //    }
     for (AnalysisError error : resolutionErrors) {
+      errors.add(error);
+    }
+    for (AnalysisError error : hints) {
       errors.add(error);
     }
     if (errors.size() == 0) {
@@ -107,6 +121,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       return referencedLibrariesState;
     } else if (descriptor == RESOLUTION_ERRORS) {
       return resolutionErrorsState;
+    } else if (descriptor == HINTS) {
+      return hintsState;
     }
     return super.getState(descriptor);
   }
@@ -122,6 +138,8 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
       return (E) referencedLibraries;
     } else if (descriptor == RESOLUTION_ERRORS) {
       return (E) resolutionErrors;
+    } else if (descriptor == HINTS) {
+      return (E) hints;
     }
     return super.getValue(descriptor);
   }
@@ -142,6 +160,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
     resolutionErrors = AnalysisError.NO_ERRORS;
     resolutionErrorsState = CacheState.INVALID;
+
+    hints = AnalysisError.NO_ERRORS;
+    hintsState = CacheState.INVALID;
   }
 
   @Override
@@ -158,6 +179,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     } else if (descriptor == RESOLUTION_ERRORS) {
       resolutionErrors = updatedValue(state, resolutionErrors, AnalysisError.NO_ERRORS);
       resolutionErrorsState = state;
+    } else if (descriptor == HINTS) {
+      hints = updatedValue(state, hints, AnalysisError.NO_ERRORS);
+      hintsState = state;
     } else {
       super.setState(descriptor, state);
     }
@@ -177,6 +201,9 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     } else if (descriptor == RESOLUTION_ERRORS) {
       resolutionErrors = (AnalysisError[]) value;
       resolutionErrorsState = CacheState.VALID;
+    } else if (descriptor == HINTS) {
+      hints = (AnalysisError[]) value;
+      hintsState = CacheState.VALID;
     } else {
       super.setValue(descriptor, value);
     }
@@ -194,5 +221,7 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     resolutionErrorsState = other.resolutionErrorsState;
     elementState = other.elementState;
     element = other.element;
+    hints = other.hints;
+    hintsState = other.hintsState;
   }
 }

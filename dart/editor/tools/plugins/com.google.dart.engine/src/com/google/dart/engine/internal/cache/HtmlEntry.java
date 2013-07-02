@@ -32,6 +32,12 @@ public interface HtmlEntry extends SourceEntry {
       "HtmlEntry.ELEMENT");
 
   /**
+   * The data descriptor representing the hints resulting from auditing the source.
+   */
+  public static final DataDescriptor<AnalysisError[]> HINTS = new DataDescriptor<AnalysisError[]>(
+      "DartEntry.HINTS");
+
+  /**
    * The data descriptor representing the parsed AST structure.
    */
   public static final DataDescriptor<HtmlUnit> PARSED_UNIT = new DataDescriptor<HtmlUnit>(
