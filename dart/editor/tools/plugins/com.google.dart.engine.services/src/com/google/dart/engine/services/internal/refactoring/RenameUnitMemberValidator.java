@@ -19,10 +19,12 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
@@ -120,6 +122,9 @@ class RenameUnitMemberValidator {
                 Element referenceElement = memberReference.getElement();
                 ClassElement referenceClass = referenceElement.getAncestor(ClassElement.class);
                 if (!Objects.equal(referenceClass, declarationClass)) {
+                  if (!isVisibleAt(element, memberReference)) {
+                    continue;
+                  }
                   String message = MessageFormat.format(
                       isRename ? "Renamed {0} will shadow {1} ''{2}''."
                           : "Created {0} will shadow {1} ''{2}''.",
@@ -139,5 +144,29 @@ class RenameUnitMemberValidator {
     } finally {
       pm.done();
     }
+  }
+
+  /**
+   * @return {@code true} if the given {@link Element} is visible at the given {@link SearchMatch}.
+   */
+  private boolean isVisibleAt(Element element, SearchMatch at) {
+    LibraryElement library = at.getElement().getLibrary();
+    // may be the same library
+    if (element.getLibrary().equals(library)) {
+      return true;
+    }
+    // check imports
+    for (ImportElement importElement : library.getImports()) {
+      // ignore if imported with prefix
+      if (importElement.getPrefix() != null) {
+        continue;
+      }
+      // check imported elements
+      if (CorrectionUtils.getImportNamespace(importElement).containsValue(element)) {
+        return true;
+      }
+    }
+    // no, it is not visible
+    return false;
   }
 }

@@ -72,7 +72,59 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         findRangeIdentifier("NewName() {}"));
   }
 
-  public void test_checkFinalConditions_shadows_MethodElement() throws Exception {
+  public void test_checkFinalConditions_shadowsInSubClass_importedLib() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library test;",
+        "class Test {}");
+    String libCode = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library my.lib;",
+        "import 'Test.dart';",
+        "class A {",
+        "  NewName() {}",
+        "}",
+        "class B extends A {",
+        "  main() {",
+        "    NewName(); // super-ref",
+        "  }",
+        "}");
+    indexUnit("/lib.dart", libCode);
+    createRenameRefactoring("Test {}");
+    // check status
+    refactoring.setNewName("NewName");
+    assertRefactoringStatus(
+        refactoring.checkFinalConditions(pm),
+        RefactoringStatusSeverity.ERROR,
+        "Renamed class will shadow method 'A.NewName'.",
+        findRangeIdentifier(libCode, "NewName(); // super-ref"));
+  }
+
+  public void test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator()
+      throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {}");
+    indexUnit(
+        "/lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'Test.dart' hide Test;",
+            "class A {",
+            "  NewName() {}",
+            "}",
+            "class B extends A {",
+            "  main() {",
+            "    NewName(); // super-ref",
+            "  }",
+            "}"));
+    createRenameRefactoring("Test {}");
+    // check status
+    refactoring.setNewName("NewName");
+    assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
+  }
+
+  public void test_checkFinalConditions_shadowsInSubClass_MethodElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Test {}",
@@ -92,6 +144,46 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         RefactoringStatusSeverity.ERROR,
         "Renamed class will shadow method 'A.NewName'.",
         findRangeIdentifier("NewName(); // super-ref"));
+  }
+
+  public void test_checkFinalConditions_shadowsInSubClass_notImportedLib() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {}");
+    indexUnit(
+        "/lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  NewName() {}",
+            "}",
+            "class B extends A {",
+            "  main() {",
+            "    NewName(); // super-ref",
+            "  }",
+            "}"));
+    createRenameRefactoring("Test {}");
+    // check status
+    refactoring.setNewName("NewName");
+    assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
+  }
+
+  public void test_checkFinalConditions_shadowsInSubClass_notSubClass() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {}",
+        "class A {",
+        "  NewName() {}",
+        "}",
+        "class B {",
+        "  main(A a) {",
+        "    a.NewName();",
+        "  }",
+        "}");
+    createRenameRefactoring("Test {}");
+    // check status
+    refactoring.setNewName("NewName");
+    assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
   }
 
   public void test_checkFinalConditionsOK_qualifiedSuper_MethodElement() throws Exception {

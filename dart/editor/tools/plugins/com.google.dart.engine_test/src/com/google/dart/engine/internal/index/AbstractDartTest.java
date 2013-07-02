@@ -151,6 +151,25 @@ public class AbstractDartTest extends TestCase {
     }
   }
 
+  /**
+   * @return the offset of given <code>search</code> string in the given code. Fails test if not
+   *         found.
+   */
+  protected static int findOffset(String code, String search) {
+    int offset = code.indexOf(search);
+    assertThat(offset).describedAs(code).isNotEqualTo(-1);
+    return offset;
+  }
+
+  /**
+   * @return the {@link SourceRange} for given start/end search strings. Fails test if not found.
+   */
+  protected static SourceRange findRangeIdentifier(String code, String search) {
+    int start = findOffset(code, search);
+    int end = CharMatcher.JAVA_LETTER_OR_DIGIT.negate().indexIn(code, start);
+    return SourceRangeFactory.rangeStartEnd(start, end);
+  }
+
   protected static String makeSource(String... lines) {
     return Joiner.on(EOL).join(lines);
   }
@@ -181,11 +200,12 @@ public class AbstractDartTest extends TestCase {
   }
 
   private final Set<Source> sourceWithSetContent = Sets.newHashSet();
-
   protected boolean verifyNoTestUnitErrors = true;
   protected String testCode;
   protected Source testSource;
+
   protected CompilationUnit testUnit;
+
   protected CompilationUnitElement testUnitElement;
 
   protected LibraryElement testLibraryElement;
