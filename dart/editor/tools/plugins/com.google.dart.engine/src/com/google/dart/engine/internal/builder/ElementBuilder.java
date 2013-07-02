@@ -374,6 +374,15 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         element.setLocalVariables(holder.getLocalVariables());
         element.setParameters(holder.getParameters());
 
+        if (inFunction) {
+          Block enclosingBlock = node.getAncestor(Block.class);
+          if (enclosingBlock != null) {
+            int functionEnd = node.getOffset() + node.getLength();
+            int blockEnd = enclosingBlock.getOffset() + enclosingBlock.getLength();
+            element.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
+          }
+        }
+
         currentHolder.addFunction(element);
         expression.setElement(element);
         functionName.setElement(element);

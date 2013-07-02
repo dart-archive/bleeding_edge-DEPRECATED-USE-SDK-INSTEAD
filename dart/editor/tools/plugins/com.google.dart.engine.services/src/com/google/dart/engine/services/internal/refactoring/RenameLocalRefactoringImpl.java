@@ -108,13 +108,12 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     pm.beginTask("Analyze possible conflicts", 1);
     try {
       RefactoringStatus result = new RefactoringStatus();
-      Element elementParent = element.getEnclosingElement();
       // find all references to the "newName"
       List<SearchMatch> nameDeclarations = searchEngine.searchDeclarations(newName, null, null);
       for (SearchMatch nameDeclaration : nameDeclarations) {
         Element nameElement = nameDeclaration.getElement();
         // duplicate declaration
-        if (nameElement.getEnclosingElement() == elementParent) {
+        if (haveIntersectingRanges(element, nameElement)) {
           String message = MessageFormat.format(
               "Duplicate local {0} ''{1}''.",
               getElementKindName(nameElement),

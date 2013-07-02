@@ -71,6 +71,23 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         findRangeIdentifier("newName = 1"));
   }
 
+  public void test_checkFinalConditions_hasLocalVariable_otherBlock() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  {",
+        "    var test = 1;",
+        "  }",
+        "  {",
+        "    var newName = 2;",
+        "  }",
+        "}");
+    createRenameRefactoring("test = 1");
+    // check status
+    refactoring.setNewName("newName");
+    assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
+  }
+
   public void test_checkFinalConditions_hasLocalVariable_otherFunction() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

@@ -40,6 +40,23 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   }
 
   /**
+   * @return {@code true} if two given {@link Element}s are {@link LocalElement}s and have
+   *         intersecting with visibility ranges.
+   */
+  protected static boolean haveIntersectingRanges(LocalElement localElement, Element element) {
+    if (!(element instanceof LocalElement)) {
+      return false;
+    }
+    LocalElement localElement2 = (LocalElement) element;
+    Source localSource = localElement.getSource();
+    Source localSource2 = localElement2.getSource();
+    SourceRange localRange = localElement.getVisibleRange();
+    SourceRange localRange2 = localElement2.getVisibleRange();
+    return Objects.equal(localSource2, localSource) && localRange != null && localRange2 != null
+        && localRange2.intersects(localRange);
+  }
+
+  /**
    * @return if given unqualified {@link SearchMatch} intersects with visibility range of
    *         {@link LocalElement}.
    */
