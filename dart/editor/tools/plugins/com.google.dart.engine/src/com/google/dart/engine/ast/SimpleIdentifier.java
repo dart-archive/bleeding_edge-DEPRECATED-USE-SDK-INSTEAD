@@ -114,6 +114,8 @@ public class SimpleIdentifier extends Identifier {
       return this == ((ClassTypeAlias) parent).getName();
     } else if (parent instanceof ConstructorDeclaration) {
       return this == ((ConstructorDeclaration) parent).getName();
+    } else if (parent instanceof DeclaredIdentifier) {
+      return this == ((DeclaredIdentifier) parent).getIdentifier();
     } else if (parent instanceof FunctionDeclaration) {
       return this == ((FunctionDeclaration) parent).getName();
     } else if (parent instanceof FunctionTypeAlias) {

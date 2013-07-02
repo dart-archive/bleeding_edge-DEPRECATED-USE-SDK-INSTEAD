@@ -444,6 +444,27 @@ public class IndexContributorTest extends AbstractDartTest {
     }
   }
 
+  public void test_forIn() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  for (var v in []) {",
+        "  }",
+        "}");
+    // prepare elements
+    Element mainElement = findElement("main(");
+    VariableElement variableElement = findElement("v in []");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertNoRecordedRelation(
+        relations,
+        variableElement,
+        IndexConstants.IS_READ_BY,
+        new ExpectedLocation(mainElement, findOffset("v in []"), "v"));
+  }
+
   public void test_isDefinedBy_ConstructorElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

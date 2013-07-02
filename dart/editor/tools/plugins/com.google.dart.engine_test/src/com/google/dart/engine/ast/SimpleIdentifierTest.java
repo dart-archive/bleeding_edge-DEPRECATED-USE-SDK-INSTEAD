@@ -23,6 +23,7 @@ import static com.google.dart.engine.ast.ASTFactory.catchClause;
 import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.classTypeAlias;
 import static com.google.dart.engine.ast.ASTFactory.constructorDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.declaredIdentifier;
 import static com.google.dart.engine.ast.ASTFactory.emptyStatement;
 import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
 import static com.google.dart.engine.ast.ASTFactory.functionDeclaration;
@@ -91,6 +92,12 @@ public class SimpleIdentifierTest extends ParserTestCase {
 
   public void test_inDeclarationContext_constructorDeclaration() {
     SimpleIdentifier identifier = constructorDeclaration(identifier("C"), "c", null, null).getName();
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_declaredIdentifier() {
+    DeclaredIdentifier declaredIdentifier = declaredIdentifier("v");
+    SimpleIdentifier identifier = declaredIdentifier.getIdentifier();
     assertTrue(identifier.inDeclarationContext());
   }
 
