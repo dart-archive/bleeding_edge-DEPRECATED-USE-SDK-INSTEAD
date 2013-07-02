@@ -187,10 +187,12 @@ public enum StaticWarningCode implements ErrorCode {
       "The exported libraries '%s' and '%s' should not have the same name '%s'"),
 
   /**
-   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;
+   * n</i>.
    * 
    * @param requiredCount the maximum number of positional arguments
    * @param argumentCount the actual number of positional arguments given
+   * @see #NOT_ENOUGH_REQUIRED_ARGUMENTS
    */
   EXTRA_POSITIONAL_ARGUMENTS("%d positional arguments expected, but %d found"),
 
@@ -254,12 +256,6 @@ public enum StaticWarningCode implements ErrorCode {
    */
   INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD(
       "'%s' is inherited as a getter and also a method"),
-
-  /**
-   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;
-   * n</i>.
-   */
-  INCORRECT_NUMBER_OF_ARGUMENTS(""),
 
   /**
    * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares an instance method
@@ -532,10 +528,12 @@ public enum StaticWarningCode implements ErrorCode {
   NOT_A_TYPE("%s is not a type"),
 
   /**
-   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;
+   * n</i>.
    * 
    * @param requiredCount the expected number of required arguments
    * @param argumentCount the actual number of positional arguments given
+   * @see #EXTRA_POSITIONAL_ARGUMENTS
    */
   NOT_ENOUGH_REQUIRED_ARGUMENTS("%d required argument(s) expected, but %d found"),
 

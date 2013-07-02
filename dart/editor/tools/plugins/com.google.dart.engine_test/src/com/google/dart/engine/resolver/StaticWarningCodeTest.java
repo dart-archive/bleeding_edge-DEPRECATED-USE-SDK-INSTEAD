@@ -87,28 +87,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_incorrectNumberOfArguments_tooFew() throws Exception {
-    Source source = addSource(createSource(//
-        "f(a, b) => 0;",
-        "g() {",
-        "  f(2);",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.INCORRECT_NUMBER_OF_ARGUMENTS);
-    verify(source);
-  }
-
-  public void fail_incorrectNumberOfArguments_tooMany() throws Exception {
-    Source source = addSource(createSource(//
-        "f(a, b) => 0;",
-        "g() {",
-        "  f(2, 3, 4);",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.INCORRECT_NUMBER_OF_ARGUMENTS);
-    verify(source);
-  }
-
   public void fail_invalidFactoryName() throws Exception {
     Source source = addSource(createSource(//
     // TODO
