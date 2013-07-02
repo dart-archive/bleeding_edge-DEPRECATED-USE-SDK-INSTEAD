@@ -41,7 +41,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Helper for creating, manipulating and disposing temporary {@link DartProject}.
@@ -61,19 +60,8 @@ public class TestProject {
         jobManager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
         break;
       } catch (Throwable e) {
+
       }
-    }
-    try {
-      final CountDownLatch latch = new CountDownLatch(1);
-      //TODO (pquitslund): remove
-//      InMemoryIndex.getInstance().notify(new NotifyCallback() {
-//        @Override
-//        public void done() {
-//          latch.countDown();
-//        }
-//      });
-      latch.await();
-    } catch (Throwable e) {
     }
   }
 

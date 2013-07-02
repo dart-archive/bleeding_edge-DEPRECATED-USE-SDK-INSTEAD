@@ -33,6 +33,19 @@ import org.eclipse.osgi.util.NLS;
  */
 public class DartBreakpoint extends LineBreakpoint {
 
+  public static IMarker createBreakpointMarker(IResource file, int line) throws CoreException {
+    IMarker marker = file.createMarker(DartDebugCorePlugin.DEBUG_MARKER_ID);
+
+    marker.setAttribute(IMarker.LINE_NUMBER, line);
+    marker.setAttribute(IBreakpoint.ID, DartDebugCorePlugin.DEBUG_MODEL_ID);
+    marker.setAttribute(
+        IMarker.MESSAGE,
+        NLS.bind("Line Breakpoint: {0} [line: {1}]", file.getName(), line));
+    marker.setAttribute(ENABLED, true);
+
+    return marker;
+  }
+
   /**
    * A default constructor is required for the breakpoint manager to re-create persisted
    * breakpoints. After instantiating a breakpoint, the setMarker method is called to restore this
@@ -53,17 +66,9 @@ public class DartBreakpoint extends LineBreakpoint {
     IWorkspaceRunnable runnable = new IWorkspaceRunnable() {
       @Override
       public void run(IProgressMonitor monitor) throws CoreException {
-        IMarker marker = resource.createMarker(DartDebugCorePlugin.DEBUG_MARKER_ID);
+        IMarker marker = createBreakpointMarker(resource, line);
 
         setMarker(marker);
-
-        marker.setAttribute(IMarker.LINE_NUMBER, line);
-        marker.setAttribute(IBreakpoint.ID, getModelIdentifier());
-        marker.setAttribute(
-            IMarker.MESSAGE,
-            NLS.bind("Line Breakpoint: {0} [line: {1}]", resource.getName(), line));
-
-        setEnabled(true);
       }
     };
 

@@ -13,95 +13,116 @@
  */
 package com.google.dart.tools.debug.core.configs;
 
-import com.google.dart.tools.core.dart2js.ProcessRunner;
+import com.google.common.base.Charsets;
 import com.google.dart.tools.core.model.DartSdkManager;
-import com.google.dart.tools.core.utilities.net.NetUtils;
-import com.google.dart.tools.debug.core.DartDebugCoreTestPlugin;
 
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.model.IDebugTarget;
 
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.InputStreamReader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Encapsulate a VM debug instance.
  */
 public class VMDebugger {
-  private static final int DEFAULT_PORT = 5859;
-
-  private String scriptPath;
   private int serverSocketPort;
+  private Process process;
+  private BufferedReader stdout;
+  private BufferedReader stderr;
 
-  private ProcessRunner processRunner;
+  private IDebugTarget debugTarget;
 
   public VMDebugger() {
-    this("data/scripts/test.dart");
+
   }
 
-  public VMDebugger(String scriptPath) {
-    this.scriptPath = scriptPath;
+  public void connect(String scriptPath) throws IOException, CoreException {
+    ProcessBuilder builder = new ProcessBuilder(
+        DartSdkManager.getManager().getSdk().getVmExecutable().getPath(),
+        "--debug:0",
+        scriptPath);
 
-    serverSocketPort = NetUtils.findUnusedPort(DEFAULT_PORT);
+    process = builder.start();
+    stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), Charsets.UTF_8));
+    stderr = new BufferedReader(new InputStreamReader(process.getErrorStream(), Charsets.UTF_8));
 
-    try {
-      // Give the temporary server socket (from NetUtils.findUnusedPort()) time to close.
-      Thread.sleep(1);
-    } catch (InterruptedException e) {
+    // read debug server port
+    // "Debugger listening on port xxx"
+    final Pattern portPattern = Pattern.compile("\\d+");
 
+    String data = readLine();
+    Matcher matcher = portPattern.matcher(data);
+
+    if (matcher.find()) {
+      String portValue = matcher.group();
+
+      try {
+        serverSocketPort = Integer.parseInt(portValue);
+
+        DartServerLaunchConfigurationDelegate delegate = new DartServerLaunchConfigurationDelegate();
+
+        debugTarget = delegate.performRemoteConnection(null, getConnectionPort(), null);
+
+        return;
+      } catch (NumberFormatException nfe) {
+        throw new IOException("bad port value for debugger port: " + portValue);
+      }
+    } else {
+      throw new IOException("no debugger port found");
     }
   }
 
   public void dispose() {
-    processRunner.dispose();
+    if (process != null) {
+      process.destroy();
+      process = null;
+    }
   }
 
   public int getConnectionPort() {
     return serverSocketPort;
   }
 
-  public String getOutput() {
-    return processRunner.getStdOut();
+  public IDebugTarget getDebugTarget() {
+    return debugTarget;
   }
 
-  public void start() throws IOException {
-    ProcessBuilder builder = new ProcessBuilder(
-        DartSdkManager.getManager().getSdk().getVmExecutable().getPath(),
-        "--debug:" + getConnectionPort(),
-        getScriptFilePath());
-
-    processRunner = new ProcessRunner(builder);
-    processRunner.runAsync();
-
-    try {
-      // Give the VM time to start up.
-      Thread.sleep(100);
-    } catch (InterruptedException e) {
-
-    }
+  public int getExitValue() throws IllegalThreadStateException {
+    return process.exitValue();
   }
 
-  private String getScriptFilePath() throws IOException {
-    try {
-      URL bundleURL = FileLocator.find(DartDebugCoreTestPlugin.getPlugin().getBundle(), new Path(
-          scriptPath), null);
+  public BufferedReader getStderr() {
+    return stderr;
+  }
 
-      if (bundleURL != null) {
-        URL fileURL = FileLocator.toFileURL(bundleURL);
+  public BufferedReader getStdout() {
+    return stdout;
+  }
 
-        if (fileURL != null) {
-          File file = new File(fileURL.toURI());
+  public String readLine() throws IOException {
+    return getStdout().readLine();
+  }
 
-          return file.getAbsolutePath();
+  public int waitForExit(long millis) {
+    long startTime = System.currentTimeMillis();
+
+    while ((System.currentTimeMillis() - startTime) < millis) {
+      try {
+        return getExitValue();
+      } catch (IllegalThreadStateException e) {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e1) {
+
         }
       }
-    } catch (URISyntaxException e) {
-      throw new IOException(e);
     }
 
-    return null;
+    return getExitValue();
   }
 
 }
