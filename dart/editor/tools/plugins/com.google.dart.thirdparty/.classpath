@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/snakeyaml/1.10/snakeyaml-1.10.jar" sourcepath="lib/snakeyaml/1.10/snakeyaml-1.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/json/r2_20080312/json.jar" sourcepath="lib/json/r2_20080312/json-src.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/args4j/2.0.12/args4j-2.0.12.jar" sourcepath="lib/args4j/2.0.12/args4j-2.0.12-src.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-lang/3.1/commons-lang3-3.1.jar" sourcepath="lib/commons-lang/3.1/commons-lang3-3.1-sources.jar"/>

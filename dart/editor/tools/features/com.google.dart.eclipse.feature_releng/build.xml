@@ -89,6 +89,7 @@
               <include name="commons-lang/**" />
               <include name="guava/**" />
               <include name="json/**" />
+              <include name="snakeyaml/**" />
           </fileset>
       </copy>
 

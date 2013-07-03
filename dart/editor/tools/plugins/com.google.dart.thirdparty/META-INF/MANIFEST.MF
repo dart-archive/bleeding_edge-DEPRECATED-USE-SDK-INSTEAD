@@ -11,7 +11,8 @@ Bundle-ClassPath: .,
  lib/guava/r13/guava-13.0.1.jar,
  lib/commons-lang/3.1/commons-lang3-3.1.jar,
  lib/args4j/2.0.12/args4j-2.0.12.jar,
- lib/json/r2_20080312/json.jar
+ lib/json/r2_20080312/json.jar,
+ lib/snakeyaml/1.10/snakeyaml-1.10.jar
 Export-Package: com.google.common.annotations,
  com.google.common.base,
  com.google.common.base.internal,
@@ -38,4 +39,11 @@ Export-Package: com.google.common.annotations,
  org.apache.commons.lang3.time,
  org.apache.commons.lang3.tuple,
  org.json,
- org.kohsuke.args4j
+ org.kohsuke.args4j,
+ org.yaml.snakeyaml,
+ org.yaml.snakeyaml.constructor,
+ org.yaml.snakeyaml.introspector,
+ org.yaml.snakeyaml.nodes,
+ org.yaml.snakeyaml.parser,
+ org.yaml.snakeyaml.representer,
+ org.yaml.snakeyaml.scanner

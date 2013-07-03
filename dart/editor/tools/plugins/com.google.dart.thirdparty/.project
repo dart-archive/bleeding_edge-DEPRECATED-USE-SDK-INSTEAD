@@ -46,5 +46,10 @@
 			<type>2</type>
 			<locationURI>DART_TRUNK/third_party/json</locationURI>
 		</link>
+		<link>
+			<name>lib/snakeyaml</name>
+			<type>2</type>
+			<locationURI>DART_TRUNK/third_party/snakeyaml</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>
