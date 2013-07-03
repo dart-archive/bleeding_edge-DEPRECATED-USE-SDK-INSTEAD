@@ -33,6 +33,7 @@ import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
+import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
@@ -133,8 +134,10 @@ public class ServiceUtils {
    */
   public static org.eclipse.ltk.core.refactoring.RefactoringStatusContext toLTK(
       RefactoringStatusContext context) {
-    // TODO(scheglov) not implemented yet
-    return null;
+    if (context == null) {
+      return null;
+    }
+    return new DartStatusContext(context.getSource(), context.getRange());
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,287 +13,80 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.base;
 
-import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.CompilationUnitElement;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.search.SearchMatch;
-import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
-import com.google.dart.tools.ui.internal.text.Selection;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
+import com.google.dart.tools.ui.internal.refactoring.WorkbenchSourceAdapter;
 
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
-import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
+import org.eclipse.ui.model.IWorkbenchAdapter;
+
+import java.nio.CharBuffer;
 
 /**
- * {@link DartStatusContext} that can be used to annotate a {@link RefactoringStatusEntry} with
- * detailed information about an error detected in an {@link DartElement}.
+ * {@link DartStatusContext} is the wrapper of the {@link Source} and {@link SourceRange} in it
+ * where some problem was detected.
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public abstract class DartStatusContext extends RefactoringStatusContext {
+public class DartStatusContext extends RefactoringStatusContext implements IAdaptable {
+  /**
+   * @return the {@link String} content of the given {@link Source}.
+   */
+  private static String getSourceContent(final Source source) {
+    final String result[] = {""};
+    ExecutionUtils.runIgnore(new RunnableEx() {
+      @Override
+      public void run() throws Exception {
+        source.getContents(new Source.ContentReceiver() {
+          @Override
+          public void accept(CharBuffer contents, long modificationTime) {
+            result[0] = contents.toString();
+          }
 
-//  private static class CompilationUnitSourceContext extends JavaStatusContext {
-//    private final CompilationUnit fCUnit;
-//    private SourceRange fSourceRange;
-//
-//    private CompilationUnitSourceContext(CompilationUnit cunit, SourceRange range) {
-//      fCUnit = cunit;
-//      fSourceRange = range;
-//      if (fSourceRange == null) {
-//        fSourceRange = new SourceRangeImpl(0, 0);
-//      }
-//    }
-//
-//    @Override
-//    public CompilationUnit getCompilationUnit() {
-//      return fCUnit;
-//    }
-//
-//    @Override
-//    public SourceRange getSourceRange() {
-//      return fSourceRange;
-//    }
-//
-//    @Override
-//    public String toString() {
-//      return getSourceRange() + " in " + super.toString(); //$NON-NLS-1$
-//    }
-//  }
-
-//  private static class ImportDeclarationSourceContext extends JavaStatusContext {
-//    private final IImportDeclaration fImportDeclartion;
-//
-//    private ImportDeclarationSourceContext(IImportDeclaration declaration) {
-//      fImportDeclartion = declaration;
-//    }
-//
-//    @Override
-//    public IClassFile getClassFile() {
-//      return null;
-//    }
-//
-//    @Override
-//    public CompilationUnit getCompilationUnit() {
-//      return (CompilationUnit) fImportDeclartion.getParent().getParent();
-//    }
-//
-//    @Override
-//    public SourceRange getSourceRange() {
-//      try {
-//        return fImportDeclartion.getSourceRange();
-//      } catch (JavaModelException e) {
-//        return new SourceRange(0, 0);
-//      }
-//    }
-//
-//    @Override
-//    public boolean isBinary() {
-//      return false;
-//    }
-//  }
-
-  private static class DartElementContext extends DartStatusContext {
-    private final CompilationUnitElement element;
-
-    private DartElementContext(CompilationUnitElement element) {
-      this.element = element;
-    }
-
-    @Override
-    public CompilationUnit getCompilationUnit() {
-      return element.getCompilationUnit();
-    }
-
-    @Override
-    public SourceRange getSourceRange() {
-      if (element instanceof SourceReference) {
-        try {
-          return ((SourceReference) element).getSourceRange();
-        } catch (DartModelException e) {
-        }
+          @Override
+          public void accept(String contents, long modificationTime) {
+            result[0] = contents;
+          }
+        });
       }
-      return new SourceRange(0, 0);
-    }
+    });
+    return result[0];
   }
 
-  private static class DartSourceRangeContext extends DartStatusContext {
-    private final CompilationUnit unit;
-    private final SourceRange sourceRange;
+  private final Source source;
+  private final String content;
+  private final SourceRange sourceRange;
 
-    private DartSourceRangeContext(CompilationUnit unit, SourceRange sourceRange) {
-      this.unit = unit;
-      this.sourceRange = sourceRange;
-    }
-
-    @Override
-    public CompilationUnit getCompilationUnit() {
-      return unit;
-    }
-
-    @Override
-    public SourceRange getSourceRange() {
-      return sourceRange;
-    }
+  public DartStatusContext(Source source, SourceRange range) {
+    this.source = source;
+    Assert.isNotNull(source);
+    this.content = getSourceContent(source);
+    this.sourceRange = range;
   }
 
-//  /**
-//   * Creates an status entry context for the given import declaration
-//   * 
-//   * @param declaration the import declaration for which the context is supposed to be created
-//   * @return the status entry context or <code>null</code> if the context cannot be created
-//   */
-//  public static RefactoringStatusContext create(IImportDeclaration declaration) {
-//    if (declaration == null || !declaration.exists()) {
-//      return null;
-//    }
-//    return new ImportDeclarationSourceContext(declaration);
-//  }
-
-  /**
-   * @return the {@link RefactoringStatusContext} for given {@link CompilationUnit} and
-   *         {@link HasSourceInfo}, may be <code>null</code> if the context cannot be created.
-   */
-  public static RefactoringStatusContext create(CompilationUnit unit, HasSourceInfo hasSourceInfo) {
-    return create(unit, SourceRangeFactory.create(hasSourceInfo));
-  }
-
-  /**
-   * @return the {@link RefactoringStatusContext} for given {@link CompilationUnit} and
-   *         {@link Selection}, may be <code>null</code> if the context cannot be created.
-   */
-  public static RefactoringStatusContext create(CompilationUnit unit, Selection selection) {
-    SourceRange range = SourceRangeFactory.forStartLength(
-        selection.getOffset(),
-        selection.getLength());
-    return create(unit, range);
-  }
-
-  /**
-   * @return the {@link RefactoringStatusContext} for given {@link CompilationUnit} and
-   *         {@link SourceRange}, may be <code>null</code> if the context cannot be created.
-   */
-  public static RefactoringStatusContext create(CompilationUnit unit, SourceRange sourceRange) {
-    if (unit == null || sourceRange == null) {
-      return null;
+  @Override
+  @SuppressWarnings("rawtypes")
+  public Object getAdapter(Class adapter) {
+    if (adapter == IWorkbenchAdapter.class) {
+      return new WorkbenchSourceAdapter(source);
     }
-    return new DartSourceRangeContext(unit, sourceRange);
+    return null;
   }
 
-  /**
-   * @return the {@link RefactoringStatusContext} for given {@link CompilationUnitElement}, may be
-   *         <code>null</code> if the context cannot be created.
-   */
-  public static RefactoringStatusContext create(CompilationUnitElement element) {
-    if (element == null || !element.exists()) {
-      return null;
-    }
-    return new DartElementContext(element);
+  public String getContent() {
+    return content;
   }
-
-  /**
-   * @return the {@link RefactoringStatusContext} for given {@link SearchMatch}, may be
-   *         <code>null</code> if the context cannot be created.
-   */
-  public static RefactoringStatusContext create(SearchMatch match) {
-    if (match == null || match.getElement() == null) {
-      return null;
-    }
-    CompilationUnit unit = match.getElement().getAncestor(CompilationUnit.class);
-    return new DartSourceRangeContext(unit, match.getSourceRange());
-  }
-
-//  /**
-//   * Creates an status entry context for the given method binding
-//   * 
-//   * @param method the method binding for which the context is supposed to be created
-//   * @return the status entry context or <code>Context.NULL_CONTEXT</code> if the context cannot be
-//   *         created
-//   */
-//  public static RefactoringStatusContext create(IMethodBinding method) {
-//    return create((IMethod) method.getJavaElement());
-//  }
-//
-//  /**
-//   * Creates an status entry context for the given type root.
-//   * 
-//   * @param typeRoot the type root containing the error
-//   * @return the status entry context or <code>Context.NULL_CONTEXT</code> if the context cannot be
-//   *         created
-//   */
-//  public static RefactoringStatusContext create(ITypeRoot typeRoot) {
-//    return create(typeRoot, (SourceRange) null);
-//  }
-//
-//  /**
-//   * Creates an status entry context for the given type root and AST node.
-//   * 
-//   * @param typeRoot the type root containing the error
-//   * @param node an astNode denoting the source range that has caused the error
-//   * @return the status entry context or <code>Context.NULL_CONTEXT</code> if the context cannot be
-//   *         created
-//   */
-//  public static RefactoringStatusContext create(ITypeRoot typeRoot, ASTNode node) {
-//    SourceRange range = null;
-//    if (node != null) {
-//      range = new SourceRange(node.getStartPosition(), node.getLength());
-//    }
-//    return create(typeRoot, range);
-//  }
-//
-//  /**
-//   * Creates an status entry context for the given type root and source range.
-//   * 
-//   * @param typeRoot the type root containing the error
-//   * @param range the source range that has caused the error or <code>null</code> if the source
-//   *          range is unknown
-//   * @return the status entry context or <code>null</code> if the context cannot be created
-//   */
-//  public static RefactoringStatusContext create(ITypeRoot typeRoot, SourceRange range) {
-//    if (typeRoot instanceof CompilationUnit) {
-//      return new CompilationUnitSourceContext((CompilationUnit) typeRoot, range);
-//    } else if (typeRoot instanceof IClassFile) {
-//      return new ClassFileSourceContext((IClassFile) typeRoot, range);
-//    } else {
-//      return null;
-//    }
-//  }
-//
-//  /**
-//   * Creates an status entry context for the given type root and selection.
-//   * 
-//   * @param typeRoot the type root containing the error
-//   * @param selection a selection denoting the source range that has caused the error
-//   * @return the status entry context or <code>Context.NULL_CONTEXT</code> if the context cannot be
-//   *         created
-//   */
-//  public static RefactoringStatusContext create(ITypeRoot typeRoot, Selection selection) {
-//    SourceRange range = null;
-//    if (selection != null) {
-//      range = new SourceRange(selection.getOffset(), selection.getLength());
-//    }
-//    return create(typeRoot, range);
-//  }
-
-  /**
-   * Returns the compilation unit this context is working on. Returns <code>null</code> if the
-   * context is a binary context.
-   * 
-   * @return the compilation unit
-   */
-  public abstract CompilationUnit getCompilationUnit();
 
   @Override
   public Object getCorrespondingElement() {
-    return getCompilationUnit();
+    return null;
   }
 
-  /**
-   * Returns the source range associated with this element.
-   * 
-   * @return the source range
-   */
-  public abstract SourceRange getSourceRange();
+  public SourceRange getSourceRange() {
+    return sourceRange;
+  }
 }

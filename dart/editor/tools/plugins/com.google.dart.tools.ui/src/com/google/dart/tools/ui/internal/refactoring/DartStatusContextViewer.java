@@ -14,19 +14,13 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
-import com.google.dart.tools.internal.corext.refactoring.base.DartStringStatusContext;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.editor.DartSourceViewer;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 import com.google.dart.tools.ui.text.DartTextTools;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.Document;
@@ -38,9 +32,6 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
 import org.eclipse.ltk.ui.refactoring.TextStatusContextViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.part.FileEditorInput;
-import org.eclipse.ui.texteditor.IDocumentProvider;
 
 public class DartStatusContextViewer extends TextStatusContextViewer {
 
@@ -65,35 +56,9 @@ public class DartStatusContextViewer extends TextStatusContextViewer {
   @Override
   public void setInput(RefactoringStatusContext context) {
     if (context instanceof DartStatusContext) {
-      DartStatusContext jsc = (DartStatusContext) context;
-      IDocument document = null;
-      {
-        CompilationUnit cunit = jsc.getCompilationUnit();
-        if (cunit.isWorkingCopy()) {
-          try {
-            document = newDocument(cunit.getSource());
-          } catch (DartModelException e) {
-            // document is null which is a valid input.
-          }
-        } else {
-          IResource resource = cunit.getResource();
-          if (resource instanceof IFile) {
-            IEditorInput editorInput = new FileEditorInput((IFile) resource);
-            document = getDocument(
-                DartToolsPlugin.getDefault().getCompilationUnitDocumentProvider(),
-                editorInput);
-          }
-        }
-        if (document == null) {
-          document = new Document(RefactoringMessages.DartStatusContextViewer_no_source_available);
-        }
-        updateTitle(cunit);
-      }
-      setInput(document, createRegion(jsc.getSourceRange()));
-    } else if (context instanceof DartStringStatusContext) {
-      updateTitle(null);
-      DartStringStatusContext sc = (DartStringStatusContext) context;
-      setInput(newDocument(sc.getSource()), createRegion(sc.getSourceRange()));
+      DartStatusContext sc = (DartStatusContext) context;
+      setInput(newDocument(sc.getContent()), createRegion(sc.getSourceRange()));
+      updateTitle(sc);
     }
   }
 
@@ -102,21 +67,6 @@ public class DartStatusContextViewer extends TextStatusContextViewer {
     IPreferenceStore store = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     return new DartSourceViewer(parent, null, null, false, SWT.LEFT_TO_RIGHT | SWT.V_SCROLL
         | SWT.H_SCROLL | SWT.MULTI | SWT.FULL_SELECTION, store);
-  }
-
-  private IDocument getDocument(IDocumentProvider provider, IEditorInput input) {
-    if (input == null) {
-      return null;
-    }
-    IDocument result = null;
-    try {
-      provider.connect(input);
-      result = provider.getDocument(input);
-    } catch (CoreException e) {
-    } finally {
-      provider.disconnect(input);
-    }
-    return result;
   }
 
   private IDocument newDocument(String source) {

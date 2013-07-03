@@ -248,7 +248,6 @@
             <enablement>
                 <or>
                     <instanceof value="com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext"/>
-                    <instanceof value="com.google.dart.tools.internal.corext.refactoring.base.DartStringStatusContext"/>
                 </or>
             </enablement>
         </statusContextViewer>
