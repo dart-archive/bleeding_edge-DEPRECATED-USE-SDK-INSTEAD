@@ -543,12 +543,26 @@ public final class ASTFactory {
         type,
         token(Keyword.THIS),
         token(TokenType.PERIOD),
-        identifier);
+        identifier,
+        null);
   }
 
   public static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type,
       String identifier) {
     return fieldFormalParameter(keyword, type, identifier(identifier));
+  }
+
+  public static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type,
+      String identifier, FormalParameterList parameterList) {
+    return new FieldFormalParameter(
+        null,
+        null,
+        keyword == null ? null : token(keyword),
+        type,
+        token(Keyword.THIS),
+        token(TokenType.PERIOD),
+        identifier(identifier),
+        parameterList);
   }
 
   public static ForEachStatement forEachStatement(DeclaredIdentifier loopParameter,

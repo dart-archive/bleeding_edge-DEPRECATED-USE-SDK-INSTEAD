@@ -395,6 +395,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
     visit(node.getType(), " ");
     writer.print("this.");
     visit(node.getIdentifier());
+    visit(node.getParameters());
     return null;
   }
 
