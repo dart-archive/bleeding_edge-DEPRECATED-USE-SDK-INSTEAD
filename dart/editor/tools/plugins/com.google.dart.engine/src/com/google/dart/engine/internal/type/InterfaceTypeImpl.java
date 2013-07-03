@@ -265,6 +265,27 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
+  public String getDisplayName() {
+    String name = getName();
+    Type[] typeArguments = getTypeArguments();
+    if (typeArguments.length > 0) {
+      StringBuilder builder = new StringBuilder();
+      builder.append(name);
+      builder.append("<");
+      for (int i = 0; i < typeArguments.length; i++) {
+        builder.append(typeArguments[i].getDisplayName());
+        if (i + 1 != typeArguments.length) {
+          builder.append(", ");
+        }
+      }
+      builder.append(">");
+      name = builder.toString();
+    }
+    return name;
+
+  }
+
+  @Override
   public ClassElement getElement() {
     return (ClassElement) super.getElement();
   }
