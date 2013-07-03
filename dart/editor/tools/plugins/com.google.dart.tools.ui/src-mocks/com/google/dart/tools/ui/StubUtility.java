@@ -74,18 +74,4 @@ public class StubUtility {
     return null;
   }
 
-  private static String getProjectLineDelimiter(DartProject javaProject) {
-    IProject project = null;
-    if (javaProject != null) {
-      project = javaProject.getProject();
-    }
-
-    String lineDelimiter = getLineDelimiterPreference(project);
-    if (lineDelimiter != null) {
-      return lineDelimiter;
-    }
-
-    return System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-  }
-
 }

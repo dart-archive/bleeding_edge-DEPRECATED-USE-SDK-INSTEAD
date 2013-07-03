@@ -565,19 +565,6 @@ public final class ASTProvider {
   }
 
   /**
-   * Checks whether the given Java element has accessible source.
-   * 
-   * @param je the Java element to test
-   * @return <code>true</code> if the element has source
-   */
-  private boolean hasSource(DartElement element) {
-    if (element == null || !element.exists()) {
-      return false;
-    }
-    return element.getElementType() == DartElement.COMPILATION_UNIT;
-  }
-
-  /**
    * Tells whether the given Java element is the one reported as currently being reconciled.
    * 
    * @param javaElement the Java element

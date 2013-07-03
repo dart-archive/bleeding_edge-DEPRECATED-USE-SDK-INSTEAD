@@ -56,7 +56,6 @@ public class ActionUtil {
   private static final String STRING_GETTER = "getter";
   private static final String STRING_IMPORT = "import";
   private static final String STRING_METHOD = "method";
-  private static final String STRING_OF = " of ";
   private static final String STRING_SELECTION = "selection";
   private static final String STRING_SETTER = "setter";
   private static final String STRING_SPACE = " ";

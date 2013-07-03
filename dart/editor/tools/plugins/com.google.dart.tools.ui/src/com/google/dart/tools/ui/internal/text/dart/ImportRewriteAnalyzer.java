@@ -49,8 +49,8 @@ public class ImportRewriteAnalyzer {
     private IRegion sourceRange;
     private int containerNameLength;
 
-    public DirectiveDeclEntry(
-        int containerNameLength, String elementName, String prefix, IRegion sourceRange) {
+    public DirectiveDeclEntry(int containerNameLength, String elementName, String prefix,
+        IRegion sourceRange) {
       this.elementName = elementName;
       this.prefix = prefix;
       this.sourceRange = sourceRange;
@@ -632,8 +632,8 @@ public class ImportRewriteAnalyzer {
       PackageEntry curr = this.packageEntries.get(i);
       if (!curr.isComment()) {
         if (groupId == null || groupId.equals(curr.getGroupID())) {
-          boolean preferrCurr = (bestMatch == null) || (curr.getNumberOfImports()
-              > bestMatch.getNumberOfImports());
+          boolean preferrCurr = (bestMatch == null)
+              || (curr.getNumberOfImports() > bestMatch.getNumberOfImports());
           if (matcher.isBetterMatch(curr.getName(), preferrCurr)) {
             bestMatch = curr;
           }
@@ -708,7 +708,6 @@ public class ImportRewriteAnalyzer {
     return buf.toString();
   }
 
-  @SuppressWarnings("deprecation")
   private String getPrefix(DartImportDirective directive) {
     if (directive.getPrefix() != null) {
       return directive.getPrefix().getName();

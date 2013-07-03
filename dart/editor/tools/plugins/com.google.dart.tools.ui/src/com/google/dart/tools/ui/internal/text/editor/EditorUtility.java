@@ -20,7 +20,6 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -307,23 +306,9 @@ public class EditorUtility {
    * @return the given editor's input as Dart element or <code>null</code> if none
    */
   public static DartElement getEditorInputDartElement(IEditorPart editor, boolean primaryOnly) {
-    Assert.isNotNull(editor);
+    // Legacy method (unsupported)
+    return null;
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return null;
-    }
-
-    IEditorInput editorInput = editor.getEditorInput();
-    if (editorInput == null) {
-      return null;
-    }
-
-    DartElement je = DartUI.getEditorInputDartElement(editorInput);
-    if (je != null || primaryOnly) {
-      return je;
-    }
-
-    return DartToolsPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(editorInput, false);
   }
 
   /**

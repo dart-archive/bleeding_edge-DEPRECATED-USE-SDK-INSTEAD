@@ -19,7 +19,6 @@ import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 
-@SuppressWarnings("restriction")
 public class FileTableContentProvider implements IStructuredContentProvider,
     IFileSearchContentProvider {
 
