@@ -3329,6 +3329,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(parameter.getKeyword());
     assertNull(parameter.getType());
     assertNotNull(parameter.getIdentifier());
+    assertNull(parameter.getParameters());
   }
 
   public void test_parseNormalFormalParameter_field_const_type() throws Exception {
@@ -3336,6 +3337,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(parameter.getKeyword());
     assertNotNull(parameter.getType());
     assertNotNull(parameter.getIdentifier());
+    assertNull(parameter.getParameters());
   }
 
   public void test_parseNormalFormalParameter_field_final_noType() throws Exception {
@@ -3343,6 +3345,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(parameter.getKeyword());
     assertNull(parameter.getType());
     assertNotNull(parameter.getIdentifier());
+    assertNull(parameter.getParameters());
   }
 
   public void test_parseNormalFormalParameter_field_final_type() throws Exception {
@@ -3350,6 +3353,27 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(parameter.getKeyword());
     assertNotNull(parameter.getType());
     assertNotNull(parameter.getIdentifier());
+    assertNull(parameter.getParameters());
+  }
+
+  public void test_parseNormalFormalParameter_field_function_nested() throws Exception {
+    FieldFormalParameter parameter = parse("parseNormalFormalParameter", "this.a(B b))");
+    assertNull(parameter.getKeyword());
+    assertNull(parameter.getType());
+    assertNotNull(parameter.getIdentifier());
+    FormalParameterList parameterList = parameter.getParameters();
+    assertNotNull(parameterList);
+    assertSize(1, parameterList.getParameters());
+  }
+
+  public void test_parseNormalFormalParameter_field_function_noNested() throws Exception {
+    FieldFormalParameter parameter = parse("parseNormalFormalParameter", "this.a())");
+    assertNull(parameter.getKeyword());
+    assertNull(parameter.getType());
+    assertNotNull(parameter.getIdentifier());
+    FormalParameterList parameterList = parameter.getParameters();
+    assertNotNull(parameterList);
+    assertSize(0, parameterList.getParameters());
   }
 
   public void test_parseNormalFormalParameter_field_noType() throws Exception {
@@ -3357,6 +3381,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(parameter.getKeyword());
     assertNull(parameter.getType());
     assertNotNull(parameter.getIdentifier());
+    assertNull(parameter.getParameters());
   }
 
   public void test_parseNormalFormalParameter_field_type() throws Exception {
@@ -3364,6 +3389,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(parameter.getKeyword());
     assertNotNull(parameter.getType());
     assertNotNull(parameter.getIdentifier());
+    assertNull(parameter.getParameters());
   }
 
   public void test_parseNormalFormalParameter_field_var() throws Exception {
@@ -3371,6 +3397,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(parameter.getKeyword());
     assertNull(parameter.getType());
     assertNotNull(parameter.getIdentifier());
+    assertNull(parameter.getParameters());
   }
 
   public void test_parseNormalFormalParameter_function_noType() throws Exception {

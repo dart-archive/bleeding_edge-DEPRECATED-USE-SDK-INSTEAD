@@ -4092,21 +4092,28 @@ public class Parser {
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
     if (matches(TokenType.OPEN_PAREN)) {
-      if (holder.getKeyword() != null) {
-        reportError(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.getKeyword());
-      }
-      if (thisKeyword != null) {
-        // TODO(brianwilkerson) Report this error (we have found "this.id(").
-        // TODO(brianwilkerson) Decide how to recover from this error.
-        // reportError(ParserErrorCode.?);
-      }
       FormalParameterList parameters = parseFormalParameterList();
-      return new FunctionTypedFormalParameter(
-          commentAndMetadata.getComment(),
-          commentAndMetadata.getMetadata(),
-          holder.getType(),
-          identifier,
-          parameters);
+      if (thisKeyword == null) {
+        if (holder.getKeyword() != null) {
+          reportError(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.getKeyword());
+        }
+        return new FunctionTypedFormalParameter(
+            commentAndMetadata.getComment(),
+            commentAndMetadata.getMetadata(),
+            holder.getType(),
+            identifier,
+            parameters);
+      } else {
+        return new FieldFormalParameter(
+            commentAndMetadata.getComment(),
+            commentAndMetadata.getMetadata(),
+            holder.getKeyword(),
+            holder.getType(),
+            thisKeyword,
+            period,
+            identifier,
+            parameters);
+      }
     }
     TypeName type = holder.getType();
     if (type != null && matches(type.getName().getBeginToken(), Keyword.VOID)) {
@@ -4120,7 +4127,8 @@ public class Parser {
           holder.getType(),
           thisKeyword,
           period,
-          identifier);
+          identifier,
+          null);
     }
     return new SimpleFormalParameter(
         commentAndMetadata.getComment(),

@@ -621,6 +621,16 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("static var a;", fieldDeclaration(true, Keyword.VAR, variableDeclaration("a")));
   }
 
+  public void test_visitFieldFormalParameter_functionTyped() {
+    assertSource(
+        "A this.a(b)",
+        fieldFormalParameter(
+            null,
+            typeName("A"),
+            "a",
+            formalParameterList(simpleFormalParameter("b"))));
+  }
+
   public void test_visitFieldFormalParameter_keyword() {
     assertSource("var this.a", fieldFormalParameter(Keyword.VAR, null, "a"));
   }

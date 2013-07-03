@@ -331,7 +331,8 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
         clone(node.getType()),
         node.getThisToken(),
         node.getPeriod(),
-        clone(node.getIdentifier()));
+        clone(node.getIdentifier()),
+        clone(node.getParameters()));
   }
 
   @Override

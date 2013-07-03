@@ -24,7 +24,7 @@ import java.util.List;
  * 
  * <pre>
  * fieldFormalParameter ::=
- *     ('final' {@link TypeName type} | 'const' {@link TypeName type} | 'var' | {@link TypeName type})? 'this' '.' {@link SimpleIdentifier identifier}
+ *     ('final' {@link TypeName type} | 'const' {@link TypeName type} | 'var' | {@link TypeName type})? 'this' '.' {@link SimpleIdentifier identifier} {@link FormalParameterList parameters}?
  * </pre>
  * 
  * @coverage dart.engine.ast
@@ -53,6 +53,11 @@ public class FieldFormalParameter extends NormalFormalParameter {
   private Token period;
 
   /**
+   * The parameters of the function-typed parameter.
+   */
+  private FormalParameterList parameters;
+
+  /**
    * Initialize a newly created formal parameter.
    * 
    * @param comment the documentation comment associated with this parameter
@@ -62,14 +67,18 @@ public class FieldFormalParameter extends NormalFormalParameter {
    * @param thisToken the token representing the 'this' keyword
    * @param period the token representing the period
    * @param identifier the name of the parameter being declared
+   * @param parameters the parameters of the function-typed parameter, or {@code null} if this is
+   *          not a function-typed field formal parameter
    */
   public FieldFormalParameter(Comment comment, List<Annotation> metadata, Token keyword,
-      TypeName type, Token thisToken, Token period, SimpleIdentifier identifier) {
+      TypeName type, Token thisToken, Token period, SimpleIdentifier identifier,
+      FormalParameterList parameters) {
     super(comment, metadata, identifier);
     this.keyword = keyword;
     this.type = becomeParentOf(type);
     this.thisToken = thisToken;
     this.period = period;
+    this.parameters = becomeParentOf(parameters);
   }
 
   @Override
@@ -102,6 +111,16 @@ public class FieldFormalParameter extends NormalFormalParameter {
   }
 
   /**
+   * Return the parameters of the function-typed parameter, or {@code null} if this is not a
+   * function-typed field formal parameter.
+   * 
+   * @return the parameters of the function-typed parameter
+   */
+  public FormalParameterList getParameters() {
+    return parameters;
+  }
+
+  /**
    * Return the token representing the period.
    * 
    * @return the token representing the period
@@ -121,7 +140,8 @@ public class FieldFormalParameter extends NormalFormalParameter {
 
   /**
    * Return the name of the declared type of the parameter, or {@code null} if the parameter does
-   * not have a declared type.
+   * not have a declared type. Note that if this is a function-typed field formal parameter this is
+   * the return type of the function.
    * 
    * @return the name of the declared type of the parameter
    */
@@ -148,6 +168,15 @@ public class FieldFormalParameter extends NormalFormalParameter {
    */
   public void setKeyword(Token keyword) {
     this.keyword = keyword;
+  }
+
+  /**
+   * Set the parameters of the function-typed parameter to the given parameters.
+   * 
+   * @param parameters the parameters of the function-typed parameter
+   */
+  public void setParameters(FormalParameterList parameters) {
+    this.parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -182,5 +211,6 @@ public class FieldFormalParameter extends NormalFormalParameter {
     super.visitChildren(visitor);
     safelyVisitChild(type, visitor);
     safelyVisitChild(getIdentifier(), visitor);
+    safelyVisitChild(getParameters(), visitor);
   }
 }
