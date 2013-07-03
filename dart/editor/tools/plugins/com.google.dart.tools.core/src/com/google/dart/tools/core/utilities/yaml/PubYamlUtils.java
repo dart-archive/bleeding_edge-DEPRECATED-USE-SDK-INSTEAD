@@ -21,7 +21,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.introspector.PropertyUtils;
@@ -32,6 +31,7 @@ import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.SequenceNode;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
+import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.beans.IntrospectionException;
 import java.io.IOException;
@@ -289,7 +289,12 @@ public class PubYamlUtils {
    */
   @SuppressWarnings("unchecked")
   public static List<String> getNamesOfDependencies(String contents) {
-    Map<String, Object> map = parsePubspecYamlToMap(contents);
+    Map<String, Object> map = null;
+    try {
+      map = parsePubspecYamlToMap(contents);
+    } catch (ScannerException e) {
+      // do nothing
+    }
     if (map != null) {
       Map<String, Object> dependecies = (Map<String, Object>) map.get(PubspecConstants.DEPENDENCIES);
       if (dependecies != null && !dependecies.isEmpty()) {
@@ -324,8 +329,14 @@ public class PubYamlUtils {
    */
   @SuppressWarnings("unchecked")
   public static Map<String, String> getPackageVersionMap(String lockFileContents) {
+
     Map<String, String> versionMap = new HashMap<String, String>();
-    Map<String, Object> map = PubYamlUtils.parsePubspecYamlToMap(lockFileContents);
+    Map<String, Object> map = null;
+    try {
+      map = PubYamlUtils.parsePubspecYamlToMap(lockFileContents);
+    } catch (ScannerException e) {
+
+    }
     if (map != null) {
       Map<String, Object> packagesMap = (Map<String, Object>) map.get("packages");
       if (packagesMap != null) {
@@ -386,27 +397,10 @@ public class PubYamlUtils {
     try {
       Map<String, Object> map = (Map<String, Object>) yaml.load(contents);
       return map;
-    } catch (Exception e) {
-      DartCore.logError(e);
-      return null;
+    } catch (ScannerException e) {
+      throw e;
     }
 
-  }
-
-  /**
-   * Parse the pubspec.yaml string contents to an {@link PubYamlObject}
-   */
-  public static PubYamlObject parsePubspecYamlToObject(String contents) {
-    PubYamlObject pubYamlObject = null;
-    Constructor constructor = new Constructor(PubYamlObject.class);
-    Yaml yaml = new Yaml(constructor);
-    try {
-      pubYamlObject = (PubYamlObject) yaml.load(contents);
-      return pubYamlObject;
-    } catch (Exception e) {
-      DartCore.logError(e);
-      return null;
-    }
   }
 
   public static String[] sortVersionArray(String[] versionList) {

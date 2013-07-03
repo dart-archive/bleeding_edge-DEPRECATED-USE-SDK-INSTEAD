@@ -17,8 +17,6 @@ import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.utilities.yaml.PubYamlObject;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
-import org.eclipse.core.runtime.IStatus;
-
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -51,17 +49,6 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
       + "{\"vector_math\":{\"version\":\"0.9.1\",\"source\":\"hosted\",\"description\":\"vector_math\"},"
       + "\"unittest\":{\"version\":\"0.0.0-r.15157\",\"source\":\"sdk\",\"description\":\"unittest\"}}}";
 
-  // Assert yaml string can be constructed from PubYamlObject
-  public void test_buildYamlString() {
-    PubYamlObject object1 = PubYamlUtils.parsePubspecYamlToObject(pubspecYamlString);
-    assertNotNull(object1);
-    String yamlString = PubYamlUtils.buildYamlString(object1);
-    assertNotNull(yamlString);
-    PubYamlObject object2 = PubYamlUtils.parsePubspecYamlToObject(yamlString);
-    checkPubSpecsEqual(object1, object2);
-
-  }
-
   // Assert names of dependencies can be extracted from pubspec.yaml string
   public void test_getNamesOfDependencies() {
     List<String> dependencies = PubYamlUtils.getNamesOfDependencies(pubspecYamlString);
@@ -92,33 +79,6 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     assertEquals("web_components", name);
     name = PubYamlUtils.getPubspecName(yamlLockFile);
     assertNull(name);
-  }
-
-  public void test_parseYaml2ToObject() {
-    PubYamlObject object = PubYamlUtils.parsePubspecYamlToObject(pubspecYamlString2);
-    assertNotNull(object);
-    assertEquals("web_components", object.name);
-    assertNotNull(object.environment);
-  }
-
-  // Assert pubspec file contents can be loaded into PubYamlObject
-  public void test_parseYamlToObject() {
-    PubYamlObject object = PubYamlUtils.parsePubspecYamlToObject(pubspecYamlString);
-    assertNotNull(object);
-    assertEquals("web_components", object.name);
-    assertEquals("an easy way to build web apps in Dart", object.description);
-    assertEquals("0.0.1", object.version);
-    assertEquals("dart team", object.author);
-    assertNotNull(object.dependencies);
-    assertNotNull(object.dev_dependencies);
-    assertNull(object.environment);
-  }
-
-  // Assert  method returns for yaml with errors 
-  public void test_parseYamlToObjectWithErrors() {
-    Map<String, Object> map = PubYamlUtils.parsePubspecYamlToMap(yamlStringWithErrors);
-    assertTrue(map == null);
-    LOG.assertEntries(IStatus.ERROR);
   }
 
   public void test_patternForPackageVersion() {
