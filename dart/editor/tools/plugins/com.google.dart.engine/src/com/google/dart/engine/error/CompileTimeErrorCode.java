@@ -606,8 +606,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time
    * constants. Until then, this acts as a placeholder for more informative errors.
+   * <p>
+   * See TODOs in ConstantVisitor
    */
-  INVALID_CONSTANT(""),
+  INVALID_CONSTANT("Invalid constant value"),
 
   /**
    * 7.6 Constructors: It is a compile-time error if the name of a constructor is not a constructor
