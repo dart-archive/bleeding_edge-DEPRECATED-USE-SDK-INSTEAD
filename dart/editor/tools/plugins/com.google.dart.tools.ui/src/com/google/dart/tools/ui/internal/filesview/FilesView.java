@@ -21,6 +21,7 @@ import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.pub.IPubUpdateListener;
 import com.google.dart.tools.core.pub.PubManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
 import com.google.dart.tools.ui.actions.DeleteAction;
@@ -47,6 +48,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -80,14 +82,17 @@ import org.eclipse.ui.IMemento;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchCommandConstants;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.MoveResourceAction;
 import org.eclipse.ui.actions.RenameResourceAction;
 import org.eclipse.ui.dialogs.PropertyDialogAction;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.operations.UndoRedoActionGroup;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.PluginTransfer;
 import org.eclipse.ui.part.ResourceTransfer;
@@ -577,7 +582,19 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     if (element instanceof IFile) {
       try {
-        IDE.openEditor(getViewSite().getPage(), (IFile) element);
+        IFile file = (IFile) element;
+        String editorId = IDE.getEditorDescriptor(file).getId();
+        if (DartUI.ID_CU_EDITOR.equals(editorId)) {
+          IPath fileLoc = file.getLocation();
+          if (fileLoc != null) {
+            long fileLen = fileLoc.toFile().length();
+            // Gracefully degrade by opening a simpler text editor on very large files
+            if (fileLen > 60000) {
+              editorId = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
+            }
+          }
+        }
+        getViewSite().getPage().openEditor(new FileEditorInput(file), editorId);
       } catch (PartInitException e) {
         DartToolsPlugin.log(e);
       }
