@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.ImplementsClause;
+import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
@@ -41,6 +42,7 @@ import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
@@ -49,6 +51,7 @@ import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.classTypeAlias;
 import static com.google.dart.engine.ast.ASTFactory.extendsClause;
 import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
+import static com.google.dart.engine.ast.ASTFactory.formalParameterList;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.implementsClause;
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
@@ -58,6 +61,7 @@ import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.variableDeclarationList;
 import static com.google.dart.engine.ast.ASTFactory.withClause;
 import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.requiredParameter;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class TypeResolverVisitorTest extends EngineTestCase {
@@ -84,20 +88,6 @@ public class TypeResolverVisitorTest extends EngineTestCase {
 
   public void fail_visitConstructorDeclaration() throws Exception {
     fail("Not yet tested");
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitFieldFormalParameter_noType() throws Exception {
-    // This fails because this visit method is not yet implemented.
-    FormalParameter node = fieldFormalParameter(Keyword.VAR, null, "p");
-    assertSame(typeProvider.getDynamicType(), resolve(node));
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitFieldFormalParameter_type() throws Exception {
-    // This fails because this visit method is not yet implemented.
-    FormalParameter node = fieldFormalParameter(null, typeName("int"), "p");
-    assertSame(typeProvider.getIntType(), resolve(node));
     listener.assertNoErrors();
   }
 
@@ -245,6 +235,45 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     InterfaceType[] interfaces = elementA.getInterfaces();
     assertLength(1, interfaces);
     assertSame(elementD.getType(), interfaces[0]);
+    listener.assertNoErrors();
+  }
+
+  public void test_visitFieldFormalParameter_functionType() throws Exception {
+    InterfaceType intType = typeProvider.getIntType();
+    TypeName intTypeName = typeName("int");
+    String innerParameterName = "a";
+    SimpleFormalParameter parameter = simpleFormalParameter(innerParameterName);
+    parameter.getIdentifier().setElement(requiredParameter(innerParameterName));
+    String outerParameterName = "p";
+    FormalParameter node = fieldFormalParameter(
+        null,
+        intTypeName,
+        outerParameterName,
+        formalParameterList(parameter));
+    node.getIdentifier().setElement(requiredParameter(outerParameterName));
+    Type parameterType = resolve(node, intType.getElement());
+    assertInstanceOf(FunctionType.class, parameterType);
+    FunctionType functionType = (FunctionType) parameterType;
+    assertSame(intType, functionType.getReturnType());
+    assertLength(1, functionType.getParameters());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitFieldFormalParameter_noType() throws Exception {
+    String parameterName = "p";
+    FormalParameter node = fieldFormalParameter(Keyword.VAR, null, parameterName);
+    node.getIdentifier().setElement(requiredParameter(parameterName));
+    assertSame(typeProvider.getDynamicType(), resolve(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitFieldFormalParameter_type() throws Exception {
+    InterfaceType intType = typeProvider.getIntType();
+    TypeName intTypeName = typeName("int");
+    String parameterName = "p";
+    FormalParameter node = fieldFormalParameter(null, intTypeName, parameterName);
+    node.getIdentifier().setElement(requiredParameter(parameterName));
+    assertSame(intType, resolve(node, intType.getElement()));
     listener.assertNoErrors();
   }
 

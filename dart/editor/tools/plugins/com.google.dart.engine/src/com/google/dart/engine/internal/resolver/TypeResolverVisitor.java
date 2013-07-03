@@ -255,15 +255,20 @@ public class TypeResolverVisitor extends ScopedVisitor {
     Element element = node.getIdentifier().getElement();
     if (element instanceof ParameterElementImpl) {
       ParameterElementImpl parameter = (ParameterElementImpl) element;
-      Type type;
-      TypeName typeName = node.getType();
-      if (typeName == null) {
-        // TODO(brianwilkerson) Find the field's declaration and use it's type.
-        type = dynamicType;
+      FormalParameterList parameterList = node.getParameters();
+      if (parameterList == null) {
+        Type type;
+        TypeName typeName = node.getType();
+        if (typeName == null) {
+          // TODO(brianwilkerson) Find the field's declaration and use it's type.
+          type = dynamicType;
+        } else {
+          type = getType(typeName);
+        }
+        parameter.setType(type);
       } else {
-        type = getType(typeName);
+        setFunctionTypedParameterType(parameter, node.getType(), node.getParameters());
       }
-      parameter.setType(type);
     } else {
       // TODO(brianwilkerson) Report this internal error
     }
@@ -295,30 +300,15 @@ public class TypeResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     super.visitFunctionTypedFormalParameter(node);
-    ParameterElementImpl element = (ParameterElementImpl) node.getIdentifier().getElement();
-    ParameterElement[] parameters = getElements(node.getParameters());
-    FunctionTypeAliasElementImpl aliasElement = new FunctionTypeAliasElementImpl(null);
-    aliasElement.setSynthetic(true);
-    aliasElement.setParameters(parameters);
-    aliasElement.setReturnType(computeReturnType(node.getReturnType()));
-    FunctionTypeImpl type = new FunctionTypeImpl(aliasElement);
-    ClassElement definingClass = element.getAncestor(ClassElement.class);
-    if (definingClass != null) {
-      aliasElement.setTypeVariables(definingClass.getTypeVariables());
-      type.setTypeArguments(definingClass.getType().getTypeArguments());
+    Element element = node.getIdentifier().getElement();
+    if (element instanceof ParameterElementImpl) {
+      setFunctionTypedParameterType(
+          (ParameterElementImpl) element,
+          node.getReturnType(),
+          node.getParameters());
     } else {
-      FunctionTypeAliasElement alias = element.getAncestor(FunctionTypeAliasElement.class);
-      while (alias != null && alias.isSynthetic()) {
-        alias = alias.getAncestor(FunctionTypeAliasElement.class);
-      }
-      if (alias != null) {
-        aliasElement.setTypeVariables(alias.getTypeVariables());
-        type.setTypeArguments(alias.getType().getTypeArguments());
-      } else {
-        type.setTypeArguments(TypeVariableTypeImpl.EMPTY_ARRAY);
-      }
+      // TODO(brianwilkerson) Report this internal error
     }
-    element.setType(type);
     return null;
   }
 
@@ -1015,5 +1005,40 @@ public class TypeResolverVisitor extends ScopedVisitor {
         }
       }
     }
+  }
+
+  /**
+   * Given a parameter element, create a function type based on the given return type and parameter
+   * list and associate the created type with the element.
+   * 
+   * @param element the parameter element whose type is to be set
+   * @param returnType the (possibly {@code null}) return type of the function
+   * @param parameterList the list of parameters to the function
+   */
+  private void setFunctionTypedParameterType(ParameterElementImpl element, TypeName returnType,
+      FormalParameterList parameterList) {
+    ParameterElement[] parameters = getElements(parameterList);
+    FunctionTypeAliasElementImpl aliasElement = new FunctionTypeAliasElementImpl(null);
+    aliasElement.setSynthetic(true);
+    aliasElement.setParameters(parameters);
+    aliasElement.setReturnType(computeReturnType(returnType));
+    FunctionTypeImpl type = new FunctionTypeImpl(aliasElement);
+    ClassElement definingClass = element.getAncestor(ClassElement.class);
+    if (definingClass != null) {
+      aliasElement.setTypeVariables(definingClass.getTypeVariables());
+      type.setTypeArguments(definingClass.getType().getTypeArguments());
+    } else {
+      FunctionTypeAliasElement alias = element.getAncestor(FunctionTypeAliasElement.class);
+      while (alias != null && alias.isSynthetic()) {
+        alias = alias.getAncestor(FunctionTypeAliasElement.class);
+      }
+      if (alias != null) {
+        aliasElement.setTypeVariables(alias.getTypeVariables());
+        type.setTypeArguments(alias.getType().getTypeArguments());
+      } else {
+        type.setTypeArguments(TypeVariableTypeImpl.EMPTY_ARRAY);
+      }
+    }
+    element.setType(type);
   }
 }

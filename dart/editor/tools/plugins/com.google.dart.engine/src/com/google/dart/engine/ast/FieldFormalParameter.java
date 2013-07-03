@@ -211,6 +211,6 @@ public class FieldFormalParameter extends NormalFormalParameter {
     super.visitChildren(visitor);
     safelyVisitChild(type, visitor);
     safelyVisitChild(getIdentifier(), visitor);
-    safelyVisitChild(getParameters(), visitor);
+    safelyVisitChild(parameters, visitor);
   }
 }

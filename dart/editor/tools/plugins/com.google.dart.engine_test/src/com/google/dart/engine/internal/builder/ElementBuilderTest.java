@@ -384,6 +384,31 @@ public class ElementBuilderTest extends EngineTestCase {
     assertFalse(parameter.isFinal());
     assertFalse(parameter.isSynthetic());
     assertEquals(ParameterKind.REQUIRED, parameter.getParameterKind());
+    assertLength(0, parameter.getParameters());
+  }
+
+  public void test_visitFieldFormalParameter_funtionTyped() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String parameterName = "p";
+    FieldFormalParameter formalParameter = fieldFormalParameter(
+        null,
+        null,
+        parameterName,
+        formalParameterList(simpleFormalParameter("a")));
+    formalParameter.accept(builder);
+    ParameterElement[] parameters = holder.getParameters();
+    assertLength(1, parameters);
+
+    ParameterElement parameter = parameters[0];
+    assertNotNull(parameter);
+    assertEquals(parameterName, parameter.getName());
+    assertNull(parameter.getInitializer());
+    assertFalse(parameter.isConst());
+    assertFalse(parameter.isFinal());
+    assertFalse(parameter.isSynthetic());
+    assertEquals(ParameterKind.REQUIRED, parameter.getParameterKind());
+    assertLength(1, parameter.getParameters());
   }
 
   public void test_visitFormalParameterList() {

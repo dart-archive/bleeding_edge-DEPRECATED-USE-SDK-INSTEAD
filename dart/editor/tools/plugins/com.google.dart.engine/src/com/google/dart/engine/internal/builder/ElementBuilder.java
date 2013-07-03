@@ -349,7 +349,14 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       currentHolder.addParameter(parameter);
       parameterName.setElement(parameter);
     }
-    return super.visitFieldFormalParameter(node);
+    //
+    // The children of this parameter include any parameters defined on the type of this parameter.
+    //
+    ElementHolder holder = new ElementHolder();
+    visitChildren(holder, node);
+    ((ParameterElementImpl) node.getElement()).setParameters(holder.getParameters());
+    holder.validate();
+    return null;
   }
 
   @Override
