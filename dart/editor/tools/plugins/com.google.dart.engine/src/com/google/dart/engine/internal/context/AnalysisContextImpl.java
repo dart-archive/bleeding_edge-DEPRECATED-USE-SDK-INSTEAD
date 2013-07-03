@@ -450,8 +450,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           recordResolutionResults(resolver);
         } catch (AnalysisException exception) {
           DartEntryImpl dartCopy = getDartEntry(source).getWritableCopy();
-          dartCopy.setState(DartEntry.RESOLVED_UNIT, CacheState.ERROR);
-          dartCopy.setState(DartEntry.ELEMENT, CacheState.ERROR);
+          dartCopy.recordResolutionError();
           sourceMap.put(source, dartCopy);
           AnalysisEngine.getInstance().getLogger().logError(
               "Could not resolve the library " + source.getFullName(),
@@ -1558,8 +1557,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   private CompilationUnit internalParseCompilationUnit(DartEntryImpl dartCopy, Source source)
       throws AnalysisException {
-    accessed(source);
     try {
+      accessed(source);
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ScanResult scanResult = internalScan(source, errorListener);
       Parser parser = new Parser(source, errorListener);
@@ -1619,6 +1618,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       dartCopy.setState(SourceEntry.LINE_INFO, CacheState.ERROR);
       dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.ERROR);
       dartCopy.setState(DartEntry.PARSE_ERRORS, CacheState.ERROR);
+      dartCopy.setState(DartEntry.EXPORTED_LIBRARIES, CacheState.ERROR);
+      dartCopy.setState(DartEntry.IMPORTED_LIBRARIES, CacheState.ERROR);
+      dartCopy.setState(DartEntry.INCLUDED_PARTS, CacheState.ERROR);
       throw exception;
     }
   }
