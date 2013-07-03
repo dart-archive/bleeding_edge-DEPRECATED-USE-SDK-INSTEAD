@@ -86,6 +86,7 @@ import static com.google.dart.engine.ast.ASTFactory.isExpression;
 import static com.google.dart.engine.ast.ASTFactory.listLiteral;
 import static com.google.dart.engine.ast.ASTFactory.mapLiteral;
 import static com.google.dart.engine.ast.ASTFactory.mapLiteralEntry;
+import static com.google.dart.engine.ast.ASTFactory.methodInvocation;
 import static com.google.dart.engine.ast.ASTFactory.namedExpression;
 import static com.google.dart.engine.ast.ASTFactory.namedFormalParameter;
 import static com.google.dart.engine.ast.ASTFactory.nullLiteral;
@@ -713,6 +714,13 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
         typeProvider.getMapType().substitute(
             new Type[] {typeProvider.getDynamicType(), typeProvider.getDynamicType()}),
         resultType);
+    listener.assertNoErrors();
+  }
+
+  public void test_visitMethodInvocation_then() throws Exception {
+    // then()
+    Expression node = methodInvocation(null, "then");
+    analyze(node);
     listener.assertNoErrors();
   }
 

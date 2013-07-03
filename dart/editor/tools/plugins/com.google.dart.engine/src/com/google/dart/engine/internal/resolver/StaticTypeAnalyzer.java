@@ -859,7 +859,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     // 2) Future<valueType>, if the closure returns a value.
     if (methodName.equals("then")) {
       Expression target = node.getRealTarget();
-      Type targetType = getBestType(target);
+      Type targetType = target == null ? null : getBestType(target);
       if (isAsyncFutureType(targetType)) {
         NodeList<Expression> arguments = node.getArgumentList().getArguments();
         if (arguments.size() == 1) {
