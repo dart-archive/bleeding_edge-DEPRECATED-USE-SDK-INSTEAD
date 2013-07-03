@@ -160,6 +160,21 @@ public class AnalysisWorker {
   }
 
   /**
+   * Ensure that a worker is at the front of the queue to update the analysis for the context.
+   * 
+   * @param project the project containing the context to be analyzed (not {@code null})
+   * @param context the context to be analyzed (not {@code null})
+   * @see #performAnalysis()
+   */
+  public static void performAnalysisInBackground(Project project, AnalysisContext context) {
+    synchronized (backgroundQueue) {
+      if (backgroundQueue.size() == 0 || backgroundQueue.get(0).getContext() != context) {
+        new AnalysisWorker(project, context).performAnalysisInBackground();
+      }
+    }
+  }
+
+  /**
    * Remove a listener from the list of objects to be notified.
    * 
    * @param listener the listener to be removed
@@ -343,11 +358,13 @@ public class AnalysisWorker {
 
   /**
    * Queue this worker to have {@link #performAnalysis()} called in a background job.
+   * 
+   * @see #performAnalysisInBackground(Project, AnalysisContext)
    */
   public void performAnalysisInBackground() {
     synchronized (backgroundQueue) {
       if (!backgroundQueue.contains(this)) {
-        backgroundQueue.add(this);
+        backgroundQueue.add(0, this);
         if (backgroundJob == null) {
           backgroundJob = new BackgroundAnalysisJob();
           backgroundJob.setPriority(Job.BUILD);

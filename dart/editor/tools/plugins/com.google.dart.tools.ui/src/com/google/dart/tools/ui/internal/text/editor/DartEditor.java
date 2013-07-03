@@ -74,7 +74,6 @@ import com.google.dart.tools.ui.internal.text.editor.selectionactions.StructureS
 import com.google.dart.tools.ui.internal.text.editor.selectionactions.StructureSelectionAction;
 import com.google.dart.tools.ui.internal.text.functions.DartChangeHover;
 import com.google.dart.tools.ui.internal.text.functions.DartPairMatcher;
-import com.google.dart.tools.ui.internal.text.functions.DartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.DartWordFinder;
 import com.google.dart.tools.ui.internal.text.functions.DartWordIterator;
 import com.google.dart.tools.ui.internal.text.functions.DocumentCharacterIterator;
@@ -1886,14 +1885,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private final ASTCache astCache = new ASTCache();
 
-  private boolean isEditableStateKnown;
-  private boolean isEditable;
   private OpenCallHierarchyAction openCallHierarchy;
 
   private ShowSelectionLabelAction showSelectionLabel = new ShowSelectionLabelAction();
 
   private SelectionProvider selectionProvider = new DartSelectionProvider();
-  private DartReconciler reconciler;
 
   private final List<ISelectionChangedListener> dartSelectionListeners = Lists.newArrayList();
   private final CaretListener dartSelectionCaretListener = new CaretListener() {
@@ -1947,6 +1943,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
     // ignore if already know that we don't have resolved unit
     if (resolvedUnit == null && unit == null) {
+      return;
+    }
+    // ignore if this unit has already been set
+    if (resolvedUnit == unit) {
       return;
     }
     // OK, schedule selection update
@@ -2371,10 +2371,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   public com.google.dart.engine.ast.CompilationUnit getInputUnit() {
-    if (reconciler != null && reconciler.hasPendingUnitChanges()) {
-      return null;
-    }
-    // TODO(scheglov) should be set externally by DartReconciler
     return resolvedUnit;
   }
 
@@ -2567,30 +2563,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
-  /**
-   * {@link DartReconciler} calls this method when input {@link IFile} read-only state is changed.
-   * <p>
-   * Called from background {@link DartReconciler} thread.
-   */
-  public void setEditables(boolean isEditable) {
-    this.isEditable = isEditable;
-    isEditableStateKnown = true;
-    Display.getDefault().asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        updateState(getEditorInput());
-      }
-    });
-  }
-
   public void setPreferences(IPreferenceStore store) {
     uninstallSemanticHighlighting();
     super.setPreferenceStore(store);
     installSemanticHighlighting();
-  }
-
-  public void setReconciler(DartReconciler reconciler) {
-    this.reconciler = reconciler;
   }
 
   public void setSelection(LightNodeElement element, boolean moveCursor) {
@@ -2704,7 +2680,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   protected void checkEditableState() {
-    isEditableStateKnown = false;
+//    isEditableStateKnown = false;
   }
 
   @Override
@@ -4556,15 +4532,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * Tells whether the content is editable.
    */
   private boolean isContentEditable() {
-    if (!isEditableStateKnown) {
-      if (inputResourceFile != null && !DartCore.isContainedInPackages(inputResourceFile)) {
-        isEditable = !inputResourceFile.isReadOnly();
-      } else {
-        isEditable = false;
-      }
-      isEditableStateKnown = true;
-    }
-    return isEditable;
+    return inputResourceFile != null && !DartCore.isContainedInPackages(inputResourceFile)
+        && !inputResourceFile.isReadOnly();
   }
 
   /**

@@ -23,22 +23,22 @@ import com.google.dart.tools.ui.internal.text.dart.DartCodeScanner;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProcessor;
 import com.google.dart.tools.ui.internal.text.dart.DartDocDoubleClickStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartDoubleClickSelector;
+import com.google.dart.tools.ui.internal.text.dart.DartReconcilingStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartStringAutoIndentStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartStringDoubleClickSelector;
 import com.google.dart.tools.ui.internal.text.dart.SmartSemicolonAutoEditStrategy;
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocAutoIndentStrategy;
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocScanner;
 import com.google.dart.tools.ui.internal.text.dartdoc.LineDocAutoIndentStrategy;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
 import com.google.dart.tools.ui.internal.text.functions.AbstractDartScanner;
 import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
 import com.google.dart.tools.ui.internal.text.functions.DartCommentScanner;
-import com.google.dart.tools.ui.internal.text.functions.DartCompositeReconcilingStrategy;
 import com.google.dart.tools.ui.internal.text.functions.DartElementProvider;
 import com.google.dart.tools.ui.internal.text.functions.DartMultilineStringScanner;
 import com.google.dart.tools.ui.internal.text.functions.DartOutlineInformationControl;
 import com.google.dart.tools.ui.internal.text.functions.DartPresentationReconciler;
-import com.google.dart.tools.ui.internal.text.functions.DartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.HTMLAnnotationHover;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.text.functions.SingleTokenDartScanner;
@@ -71,6 +71,7 @@ import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
 import org.eclipse.jface.text.reconciler.IReconciler;
+import org.eclipse.jface.text.reconciler.IReconcilingStrategy;
 import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
@@ -587,24 +588,15 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
 
   @Override
   public IReconciler getReconciler(ISourceViewer sourceViewer) {
-
     DartX.todo("spelling");
     final ITextEditor editor = getEditor();
     if (editor != null) {
-
-      MonoReconciler reconciler = null;
-
-      DartCompositeReconcilingStrategy strategy = new DartCompositeReconcilingStrategy(
-          sourceViewer,
-          editor,
-          getConfiguredDocumentPartitioning(sourceViewer));
-      reconciler = new DartReconciler(editor, strategy);
-
-      reconciler.setIsIncrementalReconciler(false);
+      IReconcilingStrategy strategy = new DartReconcilingStrategy((DartEditor) editor);
+      MonoReconciler reconciler = new MonoReconciler(strategy, true);
+      reconciler.setIsIncrementalReconciler(true);
       reconciler.setIsAllowedToModifyDocument(false);
       reconciler.setProgressMonitor(new NullProgressMonitor());
-      reconciler.setDelay(100);
-
+      reconciler.setDelay(25);
       return reconciler;
     }
     return null;
