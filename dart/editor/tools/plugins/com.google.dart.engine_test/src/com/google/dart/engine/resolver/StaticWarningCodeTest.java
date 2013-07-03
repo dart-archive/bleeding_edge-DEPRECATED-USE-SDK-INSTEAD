@@ -1666,6 +1666,68 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typeParameterReferencedByStatic_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<K> {",
+        "  static K k;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC);
+    verify(source);
+  }
+
+  public void test_typeParameterReferencedByStatic_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<K> {",
+        "  static K get k => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC);
+    verify(source);
+  }
+
+  public void test_typeParameterReferencedByStatic_methodBodyReference() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<K> {",
+        "  static m() {",
+        "    K k;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC);
+    verify(source);
+  }
+
+  public void test_typeParameterReferencedByStatic_methodParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<K> {",
+        "  static m(K k) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC);
+    verify(source);
+  }
+
+  public void test_typeParameterReferencedByStatic_methodReturn() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<K> {",
+        "  static K m() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC);
+    verify(source);
+  }
+
+  public void test_typeParameterReferencedByStatic_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<K> {",
+        "  static set s(K k) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC);
+    verify(source);
+  }
+
   public void test_typeTestNonType() throws Exception {
     Source source = addSource(createSource(//
         "var A = 0;",

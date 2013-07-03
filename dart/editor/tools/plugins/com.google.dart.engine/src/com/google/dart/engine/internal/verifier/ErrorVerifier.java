@@ -229,6 +229,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean isInCatchClause;
 
   /**
+   * This is set to {@code true} iff the visitor is currently visiting a static variable
+   * declaration.
+   */
+  private boolean isInStaticVariableDeclaration;
+
+  /**
    * This is set to {@code true} iff the visitor is currently visiting an instance variable
    * declaration.
    */
@@ -247,7 +253,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean isInConstructorInitializer;
 
   /**
-   * This is set to {@code true} iff the visitor is currently visiting a static method.
+   * This is set to {@code true} iff the visitor is currently visiting a static method. By "method"
+   * here getter, setter and operator declarations are also implied since they are all represented
+   * with a {@link MethodDeclaration} in the AST structure.
    */
   private boolean isInStaticMethod;
 
@@ -320,6 +328,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     strictMode = currentLibrary.getContext().getAnalysisOptions().getStrictMode();
     isEnclosingConstructorConst = false;
     isInCatchClause = false;
+    isInStaticVariableDeclaration = false;
+    isInInstanceVariableDeclaration = false;
+    isInInstanceVariableInitializer = false;
+    isInConstructorInitializer = false;
+    isInStaticMethod = false;
     dynamicType = typeProvider.getDynamicType();
     DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = new InterfaceType[] {
         typeProvider.getNumType(), typeProvider.getIntType(), typeProvider.getDoubleType(),
@@ -505,10 +518,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         errorReporter.reportError(CompileTimeErrorCode.CONST_INSTANCE_FIELD, variables.getKeyword());
       }
     }
-    isInInstanceVariableDeclaration = !node.isStatic();
+    isInStaticVariableDeclaration = node.isStatic();
+    isInInstanceVariableDeclaration = !isInStaticVariableDeclaration;
     try {
       return super.visitFieldDeclaration(node);
     } finally {
+      isInStaticVariableDeclaration = false;
       isInInstanceVariableDeclaration = false;
     }
   }
@@ -801,6 +816,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitTypeName(TypeName node) {
     checkForTypeArgumentNotMatchingBounds(node);
+    checkForTypeParameterReferencedByStatic(node);
     return super.visitTypeName(node);
   }
 
@@ -4054,6 +4070,25 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return foundError;
+  }
+
+  /**
+   * This checks that if the passed type name is a type parameter being used to define a static
+   * member.
+   * 
+   * @param node the type name to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#TYPE_PARAMETER_REFERENCED_BY_STATIC
+   */
+  private boolean checkForTypeParameterReferencedByStatic(TypeName node) {
+    if (isInStaticMethod || isInStaticVariableDeclaration) {
+      Type type = node.getType();
+      if (type instanceof TypeVariableType) {
+        errorReporter.reportError(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, node);
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

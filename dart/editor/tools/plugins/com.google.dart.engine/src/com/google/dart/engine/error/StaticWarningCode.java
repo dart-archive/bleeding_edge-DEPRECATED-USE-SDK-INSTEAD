@@ -613,6 +613,15 @@ public enum StaticWarningCode implements ErrorCode {
   TYPE_TEST_NON_TYPE("The name '%s' is not a type and cannot be used in an 'is' expression"),
 
   /**
+   * 10 Generics: However, a type parameter is considered to be a malformed type when referenced by
+   * a static member.
+   * <p>
+   * 15.1 Static Types: Any use of a malformed type gives rise to a static warning. A malformed type
+   * is then interpreted as dynamic by the static type checker and the runtime.
+   */
+  TYPE_PARAMETER_REFERENCED_BY_STATIC("Static members cannot reference type parameters"),
+
+  /**
    * 15.1 Static Types: A type <i>T</i> is malformed iff: <li><i>T</i> has the form <i>id</i> or the
    * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
    * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type variable in the

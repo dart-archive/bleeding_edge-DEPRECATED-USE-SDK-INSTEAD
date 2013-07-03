@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.resolver;
 
-import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.parser.ParserErrorCode;
@@ -816,7 +816,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
+    assertErrors(
+        CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+        StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC);
     verify(source);
   }
 
@@ -827,7 +829,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
+    assertErrors(
+        CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+        StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC);
     verify(source);
   }
 

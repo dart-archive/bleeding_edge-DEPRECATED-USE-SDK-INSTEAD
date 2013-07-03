@@ -1089,12 +1089,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * <p>
    * 12.1 Constants: It is a compile-time error if evaluation of a compile-time constant would raise
    * an exception.
-   * <p>
    * 
-   * @see StaticTypeWarningCode#TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
    * @param boundedTypeName the name of the type used in the instance creation that should be
    *          limited by the bound as specified in the class declaration
    * @param boundingTypeName the name of the bounding type
+   * @see StaticTypeWarningCode#TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
    */
   TYPE_ARGUMENT_NOT_MATCHING_BOUNDS("'%s' does not extend '%s'"),
 
