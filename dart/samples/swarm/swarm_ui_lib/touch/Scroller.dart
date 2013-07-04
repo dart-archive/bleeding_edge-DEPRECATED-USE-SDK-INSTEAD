@@ -246,40 +246,40 @@ class Scroller implements Draggable, MomentumDelegate {
 
   Stream<Event> get onScrollerStart {
     if (_onScrollerStart == null) {
-      _onScrollerStart = new StreamController<Event>(sync: true);
-      _onScrollerStartStream = _onScrollerStart.stream.asBroadcastStream();
+      _onScrollerStart = new StreamController<Event>.broadcast(sync: true);
+      _onScrollerStartStream = _onScrollerStart.stream;
     }
     return _onScrollerStartStream;
   }
 
   Stream<Event> get onScrollerEnd {
     if (_onScrollerEnd == null) {
-      _onScrollerEnd = new StreamController<Event>(sync: true);
-      _onScrollerEndStream = _onScrollerEnd.stream.asBroadcastStream();
+      _onScrollerEnd = new StreamController<Event>.broadcast(sync: true);
+      _onScrollerEndStream = _onScrollerEnd.stream;
     }
     return _onScrollerEndStream;
   }
 
   Stream<Event> get onScrollerDragEnd {
     if (_onScrollerDragEnd == null) {
-      _onScrollerDragEnd = new StreamController<Event>(sync: true);
-      _onScrollerDragEndStream = _onScrollerDragEnd.stream.asBroadcastStream();
+      _onScrollerDragEnd = new StreamController<Event>.broadcast(sync: true);
+      _onScrollerDragEndStream = _onScrollerDragEnd.stream;
     }
     return _onScrollerDragEndStream;
   }
 
   Stream<Event> get onContentMoved {
     if (_onContentMoved == null) {
-      _onContentMoved = new StreamController<Event>(sync: true);
-      _onContentMovedStream = _onContentMoved.stream.asBroadcastStream();
+      _onContentMoved = new StreamController<Event>.broadcast(sync: true);
+      _onContentMovedStream = _onContentMoved.stream;
     }
     return _onContentMovedStream;
   }
 
   Stream<Event> get onDecelStart {
     if (_onDecelStart == null) {
-      _onDecelStart = new StreamController<Event>(sync: true);
-      _onDecelStartStream = _onDecelStart.stream.asBroadcastStream();
+      _onDecelStart = new StreamController<Event>.broadcast(sync: true);
+      _onDecelStartStream = _onDecelStart.stream;
     }
     return _onDecelStartStream;
   }
