@@ -1101,7 +1101,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     node.setStaticElement(element);
     node.setElement(element);
     ArgumentList argumentList = node.getArgumentList();
-    ParameterElement[] parameters = resolveArgumentsToParameters(false, argumentList, element);
+    ParameterElement[] parameters = resolveArgumentsToParameters(
+        isInConstConstructor(),
+        argumentList,
+        element);
     if (parameters != null) {
       argumentList.setCorrespondingStaticParameters(parameters);
     }
@@ -1459,6 +1462,17 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           CALL_METHOD_NAME,
           resolver.getDefiningLibrary());
       return methodElement != null;
+    }
+    return false;
+  }
+
+  /**
+   * @return {@code true} iff current enclosing function is constant constructor declaration.
+   */
+  private boolean isInConstConstructor() {
+    ExecutableElement function = resolver.getEnclosingFunction();
+    if (function instanceof ConstructorElement) {
+      return ((ConstructorElement) function).isConst();
     }
     return false;
   }

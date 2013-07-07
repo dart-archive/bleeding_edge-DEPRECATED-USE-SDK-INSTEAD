@@ -229,6 +229,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean isInCatchClause;
 
   /**
+   * This is set to {@code true} iff the visitor is currently visiting children nodes of an
+   * {@link InstanceCreationExpression}.
+   */
+  private boolean isInConstInstanceCreation;
+
+  /**
    * This is set to {@code true} iff the visitor is currently visiting a static variable
    * declaration.
    */
@@ -615,21 +621,26 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ConstructorName constructorName = node.getConstructorName();
-    TypeName typeName = constructorName.getType();
-    Type type = typeName.getType();
-    if (type instanceof InterfaceType) {
-      InterfaceType interfaceType = (InterfaceType) type;
-      checkForConstOrNewWithAbstractClass(node, typeName, interfaceType);
-      if (node.isConst()) {
-        checkForConstWithNonConst(node);
-        checkForConstWithUndefinedConstructor(node);
-        checkForConstWithTypeParameters(node);
-      } else {
-        checkForNewWithUndefinedConstructor(node);
+    isInConstInstanceCreation = node.isConst();
+    try {
+      ConstructorName constructorName = node.getConstructorName();
+      TypeName typeName = constructorName.getType();
+      Type type = typeName.getType();
+      if (type instanceof InterfaceType) {
+        InterfaceType interfaceType = (InterfaceType) type;
+        checkForConstOrNewWithAbstractClass(node, typeName, interfaceType);
+        if (isInConstInstanceCreation) {
+          checkForConstWithNonConst(node);
+          checkForConstWithUndefinedConstructor(node);
+          checkForConstWithTypeParameters(node);
+        } else {
+          checkForNewWithUndefinedConstructor(node);
+        }
       }
+      return super.visitInstanceCreationExpression(node);
+    } finally {
+      isInConstInstanceCreation = false;
     }
-    return super.visitInstanceCreationExpression(node);
   }
 
   @Override
@@ -1543,11 +1554,20 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param node the argument to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * @see CompileTimeErrorCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
    */
   private boolean checkForArgumentTypeNotAssignable(Expression argument) {
     if (argument == null) {
       return false;
     }
+
+    ErrorCode errorCode;
+    if (isInConstInstanceCreation || isEnclosingConstructorConst) {
+      errorCode = CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+    } else {
+      errorCode = StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+    }
+
     //
     // Test static type information
     //
@@ -1565,7 +1585,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         return false;
       }
       errorReporter.reportError(
-          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+          errorCode,
           argument,
           staticArgumentType.getDisplayName(),
           staticParameterType.getDisplayName());
@@ -1585,7 +1605,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         return false;
       }
       errorReporter.reportError(
-          StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+          errorCode,
           argument,
           staticArgumentType.getDisplayName(),
           staticParameterType.getDisplayName());
@@ -1599,7 +1619,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     errorReporter.reportError(
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        errorCode,
         argument,
         (propagatedArgumentType == null ? staticArgumentType : propagatedArgumentType).getDisplayName(),
         (propagatedParameterType == null ? staticParameterType : propagatedParameterType).getDisplayName());
