@@ -126,7 +126,9 @@ class AnalyzerImpl {
     context.setAnalysisOptions(contextOptions);
 
     // analyze the given file
-    Source librarySource = new FileBasedSource(contentCache, sourceFile.getAbsoluteFile());
+    sourceFile = sourceFile.getAbsoluteFile();
+    UriKind uriKind = getUriKind(sourceFile);
+    Source librarySource = new FileBasedSource(contentCache, sourceFile, uriKind);
     LibraryElement library = context.computeLibraryElement(librarySource);
     context.resolveCompilationUnit(librarySource, library);
 
@@ -216,6 +218,24 @@ class AnalyzerImpl {
     }
 
     return null;
+  }
+
+  /**
+   * Returns the {@link UriKind} for the given input file. Usually {@link UriKind#FILE_URI}, but if
+   * the given file is located in the "lib" directory of the {@link #sdk}, then returns
+   * {@link UriKind#DART_URI}.
+   */
+  private UriKind getUriKind(File file) {
+    // may be file in SDK
+    if (sdk instanceof DirectoryBasedDartSdk) {
+      DirectoryBasedDartSdk directoryBasedSdk = (DirectoryBasedDartSdk) sdk;
+      String sdkLibPath = directoryBasedSdk.getLibraryDirectory().getPath() + File.separator;
+      if (file.getPath().startsWith(sdkLibPath)) {
+        return UriKind.DART_URI;
+      }
+    }
+    // some generic file
+    return UriKind.FILE_URI;
   }
 
 }
