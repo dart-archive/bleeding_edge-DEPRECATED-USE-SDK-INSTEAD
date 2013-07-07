@@ -1624,6 +1624,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param node the expression to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#ASSIGNMENT_TO_FINAL
+   * @see StaticWarningCode#ASSIGNMENT_TO_METHOD
    */
   private boolean checkForAssignmentToFinal(Expression expression) {
     // prepare LHS element
@@ -1650,6 +1651,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         return true;
       }
       return false;
+    }
+    if (element instanceof MethodElement) {
+      errorReporter.reportError(StaticWarningCode.ASSIGNMENT_TO_METHOD, expression);
+      return true;
     }
     return false;
   }

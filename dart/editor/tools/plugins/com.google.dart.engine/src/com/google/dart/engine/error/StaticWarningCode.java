@@ -70,6 +70,12 @@ public enum StaticWarningCode implements ErrorCode {
   ASSIGNMENT_TO_FINAL("Final variables cannot be assigned a value"),
 
   /**
+   * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
+   * warning if <i>T</i> does not have an accessible instance setter named <i>v =</i>.
+   */
+  ASSIGNMENT_TO_METHOD("Methods cannot be assigned a value"),
+
+  /**
    * 13.9 Switch: It is a static warning if the last statement of the statement sequence
    * <i>s<sub>k</sub></i> is not a break, continue, return or throw statement.
    */

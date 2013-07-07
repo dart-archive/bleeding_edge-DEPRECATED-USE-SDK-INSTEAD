@@ -540,6 +540,19 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_assignmentToMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {}",
+        "}",
+        "f(A a) {",
+        "  a.m = () {};",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ASSIGNMENT_TO_METHOD);
+    verify(source);
+  }
+
   public void test_caseBlockNotTerminated() throws Exception {
     Source source = addSource(createSource(//
         "f(int p) {",
