@@ -4,6 +4,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
 
 import org.eclipse.core.resources.IContainer;
@@ -73,10 +74,15 @@ public class SimpleResourceMapImpl implements ResourceMap {
     if (resource == null) {
       return null;
     }
+    String fileName = resource.getName();
+    if (!DartCore.isDartLikeFileName(fileName) && !DartCore.isHTMLLikeFileName(fileName)) {
+      return null;
+    }
     IPath location = resource.getLocation();
     if (location == null) {
       return null;
     }
     return new FileBasedSource(contentCache, location.toFile());
+
   }
 }
