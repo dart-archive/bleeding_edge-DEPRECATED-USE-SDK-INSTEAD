@@ -1147,19 +1147,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "The class '%s' does not have a default generative constructor"),
 
   /**
-   * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. Each final instance
-   * variable <i>f</i> declared in the immediately enclosing class must have an initializer in
-   * <i>k</i>'s initializer list unless it has already been initialized by one of the following
-   * means:
-   * <ol>
-   * <li>Initialization at the declaration of <i>f</i>.
-   * <li>Initialization by means of an initializing formal of <i>k</i>.
-   * </ol>
-   * or a compile-time error occurs.
-   */
-  UNINITIALIZED_FINAL_FIELD(""),
-
-  /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
    * must have a corresponding named parameter in the set {<i>p<sub>n+1</sub></i> ...
    * <i>p<sub>n+k</sub></i>} or a static warning occurs.

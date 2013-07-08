@@ -130,16 +130,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_uninitializedFinalField() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  final int i;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.UNINITIALIZED_FINAL_FIELD);
-    verify(source);
-  }
-
   public void test_ambiguousExport() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
