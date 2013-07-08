@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
@@ -34,10 +33,6 @@ public class AssistContext extends TextInvocationContext implements IInvocationC
   private final ASTProvider.WAIT_FLAG fWaitFlag;
 
   private DartUnit fASTRoot;
-  /**
-   * The cached node finder, can be null.
-   */
-  private NodeFinder fNodeFinder;
   private final com.google.dart.engine.services.assist.AssistContext context;
 
   /*

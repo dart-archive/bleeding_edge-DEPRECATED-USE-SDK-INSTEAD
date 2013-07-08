@@ -13,12 +13,7 @@
  */
 package com.google.dart.compiler;
 
-import com.google.dart.compiler.metrics.CompilerMetrics;
 
 public class CompilerConfiguration {
-
-  public CompilerMetrics getCompilerMetrics() {
-    return null;
-  }
 
 }

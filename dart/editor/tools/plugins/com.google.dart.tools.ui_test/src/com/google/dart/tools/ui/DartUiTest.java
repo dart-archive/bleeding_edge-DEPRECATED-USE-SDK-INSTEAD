@@ -13,10 +13,7 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.compiler.ast.DartBlock;
-import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.tools.core.buffer.Buffer;
-import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
@@ -93,14 +90,6 @@ public class DartUiTest extends TestCase {
     n = scanner.scanForward(source.indexOf("test"), source.length(), ';');
     // n should be at end of stmt, not within string
     assertTrue(n == TEXT_STMT_END);
-  }
-
-  public void testNodeFinder() throws DartModelException {
-    CompilationUnit cu = getExampleCompUnit();
-    DartNode node = null;
-    // TODO stop decrementing length when parser starts including final brace
-    DartNode block = NodeFinder.perform(node, BLOCK_START, BLOCK_LENGTH - 1);
-    assertTrue(block instanceof DartBlock);
   }
 
   public void testPartitioner() {
