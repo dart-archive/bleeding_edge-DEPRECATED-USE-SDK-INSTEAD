@@ -683,6 +683,13 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     check_constEvalTypeNum_withParameter_binary("p % ''");
   }
 
+  public void test_constEvalTypeNum_plus_String() throws Exception {
+    Source source = addSource("const C = 'a' + 'b';");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    verify(source);
+  }
+
   public void test_constFormalParameter_fieldFormalParameter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2509,7 +2516,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(String p) : a = p && true;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     verify(source);
   }
 
@@ -2520,7 +2527,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(String p) : a = true && p;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     verify(source);
   }
 
@@ -2532,7 +2539,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
-        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
+        CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
         CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
   }
@@ -2545,7 +2552,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
-        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
+        CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
         CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
   }

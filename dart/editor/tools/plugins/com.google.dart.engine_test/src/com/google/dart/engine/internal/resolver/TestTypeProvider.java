@@ -281,8 +281,9 @@ public class TestTypeProvider implements TypeProvider {
           getterElement("isEmpty", false, getBoolType()),
           getterElement("length", false, getIntType()),
           getterElement("codeUnits", false, getListType().substitute(new Type[] {getIntType()}))});
-      stringElement.setMethods(new MethodElement[] {//
-      methodElement("toLowerCase", stringType), methodElement("toUpperCase", stringType)});
+      stringElement.setMethods(new MethodElement[] {
+          methodElement("+", stringType, stringType), methodElement("toLowerCase", stringType),
+          methodElement("toUpperCase", stringType)});
     }
     return stringType;
   }
