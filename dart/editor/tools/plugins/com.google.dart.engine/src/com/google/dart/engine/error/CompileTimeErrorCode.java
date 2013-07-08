@@ -1043,12 +1043,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "The name '%s' cannot be referenced in the initializer of a variable with the same name"),
 
   /**
-   * 16.1.1 Reserved Words: A reserved word may not be used as an identifier; it is a compile-time
-   * error if a reserved word is used where an identifier is expected.
-   */
-  RESERVED_WORD_AS_IDENTIFIER(""),
-
-  /**
    * 12.8.1 Rethrow: It is a compile-time error if an expression of the form <i>rethrow;</i> is not
    * enclosed within a on-catch clause.
    */
@@ -1059,20 +1053,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * appears in a generative constructor.
    */
   RETURN_IN_GENERATIVE_CONSTRUCTOR("Constructors cannot return a value"),
-
-  /**
-   * 6.1 Function Declarations: It is a compile-time error to preface a function declaration with
-   * the built-in identifier static.
-   */
-  // Low priority- case caught by parser: ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION
-  STATIC_TOP_LEVEL_FUNCTION(""),
-
-  /**
-   * 5 Variables: It is a compile-time error to preface a top level variable declaration with the
-   * built-in identifier static.
-   */
-  // Low priority- case caught by parser: ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION
-  STATIC_TOP_LEVEL_VARIABLE(""),
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form

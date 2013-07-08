@@ -28,6 +28,10 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * 
    * @see #UNDEFINED_SETTER
    */
+  // Low priority- This is currently being caught by StaticWarningCode.UNDEFINED_SETTER. In order to
+  // identify situations where the setter is actually inaccessible, we would need to convert the
+  // lookups in the resolver (ElementResolver) to use the InheritanceManager. After this, we would
+  // need to enhance the InheritanceManager to be able to make the distinction.
   INACCESSIBLE_SETTER(""),
 
   /**

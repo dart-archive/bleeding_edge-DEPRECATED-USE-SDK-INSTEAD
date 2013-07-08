@@ -96,31 +96,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_reservedWordAsIdentifier() throws Exception {
-    Source source = addSource(createSource(//
-    "int class = 2;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.RESERVED_WORD_AS_IDENTIFIER);
-    verify(source);
-  }
-
-  public void fail_staticTopLevelFunction_topLevel() throws Exception {
-    // I think this is more general than the error name implies.
-    Source source = addSource(createSource(//
-    "static f() {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.STATIC_TOP_LEVEL_FUNCTION);
-    verify(source);
-  }
-
-  public void fail_staticTopLevelVariable() throws Exception {
-    Source source = addSource(createSource(//
-    "static int x;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.STATIC_TOP_LEVEL_VARIABLE);
-    verify(source);
-  }
-
   public void fail_superInitializerInObject() throws Exception {
     Source source = addSource(createSource(//
     // TODO(brianwilkerson) Figure out how to mock Object
