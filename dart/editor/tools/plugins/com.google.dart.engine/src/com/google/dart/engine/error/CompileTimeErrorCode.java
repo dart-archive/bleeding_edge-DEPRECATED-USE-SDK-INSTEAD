@@ -522,6 +522,14 @@ public enum CompileTimeErrorCode implements ErrorCode {
   IMPLEMENTS_REPEATED("'%s' can only be implemented once"),
 
   /**
+   * 7.10 Superinterfaces: It is a compile-time error if the superclass of a class <i>C</i> appears
+   * in the implements clause of <i>C</i>.
+   * 
+   * @param className the name of the class that appears in both "extends" and "implements" clauses
+   */
+  IMPLEMENTS_SUPER_CLASS("'%s' cannot be used in both 'extends' and 'implements' clauses"),
+
+  /**
    * 7.6.1 Generative Constructors: Note that <b>this</b> is not in scope on the right hand side of
    * an initializer.
    * <p>

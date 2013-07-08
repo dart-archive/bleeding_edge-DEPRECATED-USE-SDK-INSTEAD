@@ -431,6 +431,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForFinalNotInitialized(node);
       checkForDuplicateDefinitionInheritance();
       checkForConflictingGetterAndMethod();
+      checkImplementsSuperClass(node);
       return super.visitClassDeclaration(node);
     } finally {
       initialFieldElementsMap = null;
@@ -4293,6 +4294,39 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * This verifies that the given class declaration does not have the same class in the 'extends'
+   * and 'implements' clauses.
+   * 
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#IMPLEMENTS_SUPER_CLASS
+   */
+  private boolean checkImplementsSuperClass(ClassDeclaration node) {
+    // prepare super type
+    InterfaceType superType = enclosingClass.getSupertype();
+    if (superType == null) {
+      return false;
+    }
+    // prepare interfaces
+    ImplementsClause implementsClause = node.getImplementsClause();
+    if (implementsClause == null) {
+      return false;
+    }
+    // check interfaces
+    boolean hasProblem = false;
+    for (TypeName interfaceNode : implementsClause.getInterfaces()) {
+      if (interfaceNode.getType().equals(superType)) {
+        hasProblem = true;
+        errorReporter.reportError(
+            CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
+            interfaceNode,
+            superType.getDisplayName());
+      }
+    }
+    // done
+    return hasProblem;
   }
 
   /**

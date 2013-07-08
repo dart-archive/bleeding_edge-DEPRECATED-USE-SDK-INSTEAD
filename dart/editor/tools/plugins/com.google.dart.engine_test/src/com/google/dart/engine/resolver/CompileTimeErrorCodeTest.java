@@ -1501,6 +1501,23 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_implementsSuperClass() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B extends A implements A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsSuperClass_Object() throws Exception {
+    Source source = addSource(createSource(//
+    "class A implements Object {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS);
+    verify(source);
+  }
+
   public void test_implicitThisReferenceInInitializer_field() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
