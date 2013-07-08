@@ -47,6 +47,7 @@ import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
+import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
@@ -475,6 +476,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForAllRedirectConstructorErrorCodes(node);
       checkForUndefinedConstructorInInitializerImplicit(node);
       checkForRedirectToNonConstConstructor(node);
+      checkForReturnInGenerativeConstructor(node);
       return super.visitConstructorDeclaration(node);
     } finally {
       isEnclosingConstructorConst = false;
@@ -3901,6 +3903,29 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * This checks that if the the given constructor declaration is generative, then it does not have
+   * an expression function body.
+   * 
+   * @param node the constructor to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#RETURN_IN_GENERATIVE_CONSTRUCTOR
+   */
+  private boolean checkForReturnInGenerativeConstructor(ConstructorDeclaration node) {
+    // ignore factory
+    if (node.getFactoryKeyword() != null) {
+      return false;
+    }
+    // block body (with possible return statement) is checked elsewhere
+    FunctionBody body = node.getBody();
+    if (!(body instanceof ExpressionFunctionBody)) {
+      return false;
+    }
+    // report error
+    errorReporter.reportError(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, body);
+    return true;
   }
 
   /**

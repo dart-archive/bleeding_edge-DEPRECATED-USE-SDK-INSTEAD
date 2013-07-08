@@ -3046,6 +3046,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_returnInGenerativeConstructor_expressionFunctionBody() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A() => null;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR);
+    verify(source);
+  }
+
   public void test_superInInvalidContext_binaryExpression() throws Exception {
     Source source = addSource(createSource(//
     "var v = super + 0;"));
