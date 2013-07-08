@@ -265,6 +265,35 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
+  public String getDisplayName() {
+    String name = getName();
+    Type[] typeArguments = getTypeArguments();
+    boolean allDynamic = true;
+    for (Type type : typeArguments) {
+      if (type != null && !type.isDynamic()) {
+        allDynamic = false;
+        break;
+      }
+    }
+    // If there is at least one non-dynamic type, then list them out
+    if (!allDynamic) {
+      StringBuilder builder = new StringBuilder();
+      builder.append(name);
+      builder.append("<");
+      for (int i = 0; i < typeArguments.length; i++) {
+        if (i != 0) {
+          builder.append(", ");
+        }
+        Type typeArg = typeArguments[i];
+        builder.append(typeArg.getDisplayName());
+      }
+      builder.append(">");
+      name = builder.toString();
+    }
+    return name;
+  }
+
+  @Override
   public ClassElement getElement() {
     return (ClassElement) super.getElement();
   }
