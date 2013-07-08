@@ -779,6 +779,17 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(declaration.getTypeParameters());
   }
 
+  public void test_parseClassDeclaration_native() throws Exception {
+    ClassDeclaration declaration = parse("parseClassDeclaration", new Object[] {
+        emptyCommentAndMetadata(), null}, "class A native 'nativeValue' {}");
+    NativeClause nativeClause = declaration.getNativeClause();
+    assertNotNull(nativeClause);
+    assertNotNull(nativeClause.getKeyword());
+    assertEquals("nativeValue", nativeClause.getName().getStringValue());
+    assertSame(nativeClause.getKeyword(), nativeClause.getBeginToken());
+    assertSame(nativeClause.getName().getEndToken(), nativeClause.getEndToken());
+  }
+
   public void test_parseClassDeclaration_nonEmpty() throws Exception {
     ClassDeclaration declaration = parse("parseClassDeclaration", new Object[] {
         emptyCommentAndMetadata(), null}, "class A {var f;}");

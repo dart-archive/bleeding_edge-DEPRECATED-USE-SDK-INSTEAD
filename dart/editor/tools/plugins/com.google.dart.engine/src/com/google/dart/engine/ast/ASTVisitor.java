@@ -150,6 +150,8 @@ public interface ASTVisitor<R> {
 
   public R visitNamedExpression(NamedExpression node);
 
+  public R visitNativeClause(NativeClause node);
+
   public R visitNativeFunctionBody(NativeFunctionBody node);
 
   public R visitNullLiteral(NullLiteral node);

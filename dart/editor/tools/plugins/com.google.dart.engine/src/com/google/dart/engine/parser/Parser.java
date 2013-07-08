@@ -1407,9 +1407,9 @@ public class Parser {
     //
     // Look for and skip over the extra-lingual 'native' specification.
     //
+    NativeClause nativeClause = null;
     if (matches(NATIVE) && matches(peek(), TokenType.STRING)) {
-      advance();
-      advance();
+      nativeClause = parseNativeClause();
     }
     //
     // Parse the body of the class.
@@ -1426,7 +1426,7 @@ public class Parser {
       rightBracket = createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET);
       reportError(ParserErrorCode.MISSING_CLASS_BODY);
     }
-    return new ClassDeclaration(
+    ClassDeclaration classDeclaration = new ClassDeclaration(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
         abstractKeyword,
@@ -1439,6 +1439,8 @@ public class Parser {
         leftBracket,
         members,
         rightBracket);
+    classDeclaration.setNativeClause(nativeClause);
+    return classDeclaration;
   }
 
   /**
@@ -3897,6 +3899,22 @@ public class Parser {
       expression = new BinaryExpression(expression, operator, parseUnaryExpression());
     }
     return expression;
+  }
+
+  /**
+   * Parse a class native clause.
+   * 
+   * <pre>
+   * classNativeClause ::=
+   *     'native' name
+   * </pre>
+   * 
+   * @return the class native clause that was parsed
+   */
+  private NativeClause parseNativeClause() {
+    Token keyword = getAndAdvance();
+    StringLiteral name = parseStringLiteral();
+    return new NativeClause(keyword, name);
   }
 
   /**

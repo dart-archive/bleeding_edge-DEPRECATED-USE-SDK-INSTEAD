@@ -701,6 +701,13 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitNativeClause(NativeClause node) {
+    writer.print("native ");
+    visit(node.getName());
+    return null;
+  }
+
+  @Override
   public Void visitNativeFunctionBody(NativeFunctionBody node) {
     writer.print("native ");
     visit(node.getStringLiteral());

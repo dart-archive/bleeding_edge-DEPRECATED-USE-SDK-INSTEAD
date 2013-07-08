@@ -595,6 +595,11 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
   }
 
   @Override
+  public ASTNode visitNativeClause(NativeClause node) {
+    return new NativeClause(node.getKeyword(), clone(node.getName()));
+  }
+
+  @Override
   public NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) {
     return new NativeFunctionBody(
         node.getNativeToken(),

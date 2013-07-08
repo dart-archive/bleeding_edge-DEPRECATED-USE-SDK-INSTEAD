@@ -416,6 +416,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitNativeClause(NativeClause node) {
+    return visitNode(node);
+  }
+
+  @Override
   public R visitNativeFunctionBody(NativeFunctionBody node) {
     return visitFunctionBody(node);
   }

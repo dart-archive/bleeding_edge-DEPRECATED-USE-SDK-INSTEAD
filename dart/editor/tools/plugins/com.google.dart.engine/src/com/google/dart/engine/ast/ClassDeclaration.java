@@ -70,6 +70,11 @@ public class ClassDeclaration extends CompilationUnitMember {
   private ImplementsClause implementsClause;
 
   /**
+   * The native clause for the class, or {@code null} if the class does not have a native clause.
+   */
+  private NativeClause nativeClause;
+
+  /**
    * The left curly bracket.
    */
   private Token leftBracket;
@@ -198,6 +203,16 @@ public class ClassDeclaration extends CompilationUnitMember {
   }
 
   /**
+   * Return the native clause for this class, or {@code null} if the class does not have a native
+   * cluse.
+   * 
+   * @return the native clause for this class
+   */
+  public NativeClause getNativeClause() {
+    return nativeClause;
+  }
+
+  /**
    * Return the right curly bracket.
    * 
    * @return the right curly bracket
@@ -277,6 +292,15 @@ public class ClassDeclaration extends CompilationUnitMember {
    */
   public void setName(SimpleIdentifier identifier) {
     name = becomeParentOf(identifier);
+  }
+
+  /**
+   * Set the native clause for this class to the given clause.
+   * 
+   * @param nativeClause the native clause for this class
+   */
+  public void setNativeClause(NativeClause nativeClause) {
+    this.nativeClause = nativeClause;
   }
 
   /**

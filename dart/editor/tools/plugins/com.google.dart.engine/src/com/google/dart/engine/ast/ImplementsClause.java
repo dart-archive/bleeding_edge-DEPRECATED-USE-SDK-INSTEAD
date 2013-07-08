@@ -40,7 +40,7 @@ public class ImplementsClause extends ASTNode {
   private NodeList<TypeName> interfaces = new NodeList<TypeName>(this);
 
   /**
-   * Initialize a newly created extends clause.
+   * Initialize a newly created implements clause.
    * 
    * @param keyword the token representing the 'implements' keyword
    * @param interfaces the interfaces that are being implemented
