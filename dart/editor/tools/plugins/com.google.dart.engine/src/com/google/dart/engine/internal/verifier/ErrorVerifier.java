@@ -2706,10 +2706,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#INSTANCE_MEMBER_ACCESS_FROM_STATIC TODO(scheglov) rename thid method
    */
   private boolean checkForImplicitThisReferenceInInitializer(SimpleIdentifier node) {
-    if (!isInConstructorInitializer && !isInStaticMethod && !isInInstanceVariableInitializer) {
+    if (!isInConstructorInitializer && !isInStaticMethod && !isInInstanceVariableInitializer
+        && !isInStaticVariableDeclaration) {
       return false;
     }
-    // TODO(scheglov) check if we need to test references from static fields
     // prepare element
     Element element = node.getElement();
     if (!(element instanceof MethodElement || element instanceof PropertyAccessorElement)) {
@@ -2738,25 +2738,23 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     // qualified property access
-    {
-      if (parent instanceof PropertyAccess) {
-        PropertyAccess access = (PropertyAccess) parent;
-        if (access.getPropertyName() == node && access.getRealTarget() != null) {
-          return false;
-        }
+    if (parent instanceof PropertyAccess) {
+      PropertyAccess access = (PropertyAccess) parent;
+      if (access.getPropertyName() == node && access.getRealTarget() != null) {
+        return false;
       }
-      if (parent instanceof PrefixedIdentifier) {
-        PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
-        if (prefixed.getIdentifier() == node) {
-          return false;
-        }
+    }
+    if (parent instanceof PrefixedIdentifier) {
+      PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
+      if (prefixed.getIdentifier() == node) {
+        return false;
       }
     }
     // report problem
-    if (isInConstructorInitializer || isInInstanceVariableInitializer) {
-      errorReporter.reportError(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, node);
-    } else if (isInStaticMethod) {
+    if (isInStaticMethod) {
       errorReporter.reportError(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, node);
+    } else {
+      errorReporter.reportError(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, node);
     }
     return true;
   }

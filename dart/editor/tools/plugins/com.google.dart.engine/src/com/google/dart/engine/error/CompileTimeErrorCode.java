@@ -391,7 +391,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
   EXTENDS_DISALLOWED_CLASS("Classes cannot extend '%s'"),
 
   /**
-   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
+   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt; h</i> or if <i>m &gt;
+   * n</i>.
    * <p>
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
    * uncaught exception being thrown.
