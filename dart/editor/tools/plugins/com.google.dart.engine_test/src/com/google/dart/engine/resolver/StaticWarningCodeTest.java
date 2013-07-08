@@ -76,17 +76,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_finalNotInitialized_inConstructor() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  final int x;",
-        "  A() {}",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
   public void fail_invalidFactoryName() throws Exception {
     Source source = addSource(createSource(//
     // TODO
@@ -801,6 +790,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_inConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final int x;",
+        "  A() {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.FINAL_NOT_INITIALIZED);
     verify(source);
   }
 

@@ -233,11 +233,18 @@ public enum StaticWarningCode implements ErrorCode {
   /**
    * 5 Variables: It is a static warning if a library, static or local variable <i>v</i> is final
    * and <i>v</i> is not initialized at its point of declaration.
+   * <p>
+   * 7.6.1 Generative Constructors: Each final instance variable <i>f</i> declared in the
+   * immediately enclosing class must have an initializer in <i>k</i>'s initializer list unless it
+   * has already been initialized by one of the following means:
+   * <ul>
+   * <li>Initialization at the declaration of <i>f</i>.</li>
+   * <li>Initialization by means of an initializing formal of <i>k</i>.</li>
+   * </ul>
+   * or a static warning occurs.
    * 
    * @param name the name of the uninitialized final variable
    */
-  // TODO(jwren) not yet being created,
-  // see ErrorVerifier.checkForAllFinalInitializedErrorCodes(ConstructorDeclaration)
   FINAL_NOT_INITIALIZED("The final variable '%s' must be initialized"),
 
   /**

@@ -747,11 +747,55 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_finalNotInitialized_functionTypedFieldFormal() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final Function x;",
+        "  A(int this.x(int p)) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_hasNativeClause_hasConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A native 'something' {",
+        "  final int x;",
+        "  A() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_hasNativeClause_noConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A native 'something' {",
+        "  final int x;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_finalNotInitialized_initializer() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  final int x;",
         "  A() : x = 0 {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_redirectingConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final int x;",
+        "  A(this.x);",
+        "  A.named() : this (42);",
         "}"));
     resolve(source);
     assertNoErrors();
