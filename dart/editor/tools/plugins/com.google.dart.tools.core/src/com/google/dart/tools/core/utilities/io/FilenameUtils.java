@@ -16,7 +16,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.compiler.util.apache;
+package com.google.dart.tools.core.utilities.io;
 
 import java.io.File;
 import java.util.ArrayList;

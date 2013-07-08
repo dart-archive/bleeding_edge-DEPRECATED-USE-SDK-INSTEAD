@@ -14,7 +14,6 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.common.base.Objects;
-import com.google.dart.compiler.util.apache.FilenameUtils;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.StringLiteral;
@@ -33,6 +32,7 @@ import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
+import com.google.dart.tools.core.utilities.io.FilenameUtils;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
