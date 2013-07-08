@@ -48,6 +48,7 @@ public enum CorrectionKind {
   QF_CHANGE_TO(51, "Change to '%s'"),
   QF_CREATE_CLASS(50, CorrectionImage.IMG_CORRECTION_CLASS, "Create class '%s'"),
   QF_CREATE_CONSTRUCTOR_SUPER(50, "Create constructor to call %s"),
+  QF_CREATE_FUNCTION(49, "Create function '%s'"),
   QF_CREATE_METHOD(50, "Create method '%s'"),
   QF_CREATE_MISSING_OVERRIDES(50, "Create %d missing override(s)"),
   QF_CREATE_PART(50, "Create part '%s'"),

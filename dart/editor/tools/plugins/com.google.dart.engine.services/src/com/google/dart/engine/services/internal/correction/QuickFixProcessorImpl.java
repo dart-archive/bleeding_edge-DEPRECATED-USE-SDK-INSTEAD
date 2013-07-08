@@ -421,10 +421,12 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
         addFix_importLibrary_withFunction();
         addFix_undefinedFunction_useSimilar();
+        addFix_undefinedFunction_create();
       }
       if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
         addFix_undefinedMethod_useSimilar();
-        addFix_undefinedMethodCreate();
+        addFix_undefinedMethod_create();
+        addFix_undefinedFunction_create();
       }
       // clean-up
       resetProposalElements();
@@ -983,6 +985,61 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
+  private void addFix_undefinedFunction_create() throws Exception {
+    // should be the name of the invocation
+    if (node instanceof SimpleIdentifier && node.getParent() instanceof MethodInvocation) {
+    } else {
+      return;
+    }
+    String name = ((SimpleIdentifier) node).getName();
+    MethodInvocation invocation = (MethodInvocation) node.getParent();
+    // function invocation has no target
+    Expression target = invocation.getRealTarget();
+    if (target != null) {
+      return;
+    }
+    // prepare environment
+    String eol = utils.getEndOfLine();
+    int insertOffset;
+    String sourcePrefix;
+    ASTNode enclosingMember = node.getAncestor(CompilationUnitMember.class);
+    insertOffset = enclosingMember.getEnd();
+    sourcePrefix = eol + eol;
+    // build method source
+    SourceBuilder sb = new SourceBuilder(insertOffset);
+    {
+      sb.append(sourcePrefix);
+      // may be return type
+      {
+        Type type = addFix_undefinedMethod_create_getReturnType(invocation);
+        if (type != null) {
+          String typeSource = utils.getTypeSource(type);
+          if (!typeSource.equals("dynamic")) {
+            sb.startPosition("RETURN_TYPE");
+            sb.append(typeSource);
+            sb.endPosition();
+            sb.append(" ");
+          }
+        }
+      }
+      // append name
+      {
+        sb.startPosition("NAME");
+        sb.append(name);
+        sb.endPosition();
+      }
+      addFix_undefinedMethod_create_parameters(sb, invocation);
+      sb.append(") {" + eol + "}");
+    }
+    // insert source
+    addInsertEdit(insertOffset, sb.toString());
+    // add linked positions
+    addLinkedPosition("NAME", sb, rangeNode(node));
+    addLinkedPositions(sb);
+    // add proposal
+    addUnitCorrectionProposal(CorrectionKind.QF_CREATE_FUNCTION, name);
+  }
+
   private void addFix_undefinedFunction_useSimilar() throws Exception {
     if (node instanceof SimpleIdentifier) {
       String name = ((SimpleIdentifier) node).getName();
@@ -1012,37 +1069,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
-  private void addFix_undefinedMethod_useSimilar() throws Exception {
-    if (node instanceof SimpleIdentifier && node.getParent() instanceof MethodInvocation) {
-      MethodInvocation invocation = (MethodInvocation) node.getParent();
-      String name = ((SimpleIdentifier) node).getName();
-      ClosestElementFinder finder = new ClosestElementFinder(MethodElement.class, name);
-      // unqualified invocation
-      Expression target = invocation.getRealTarget();
-      if (target == null) {
-        ClassDeclaration clazz = invocation.getAncestor(ClassDeclaration.class);
-        if (clazz != null) {
-          ClassElement clazzElement = clazz.getElement();
-          updateFinderWithClassMembers(finder, clazzElement);
-        }
-      } else {
-        Type type = typeOf(target);
-        if (type instanceof InterfaceType) {
-          ClassElement clazzElement = ((InterfaceType) type).getElement();
-          updateFinderWithClassMembers(finder, clazzElement);
-        }
-      }
-      // if we have close enough element, suggest to use it
-      String closestName = null;
-      if (finder != null && finder.distance < 5) {
-        closestName = finder.element.getName();
-        addReplaceEdit(rangeNode(node), closestName);
-        addUnitCorrectionProposal(CorrectionKind.QF_CHANGE_TO, closestName);
-      }
-    }
-  }
-
-  private void addFix_undefinedMethodCreate() throws Exception {
+  private void addFix_undefinedMethod_create() throws Exception {
     if (node instanceof SimpleIdentifier && node.getParent() instanceof MethodInvocation) {
       String name = ((SimpleIdentifier) node).getName();
       MethodInvocation invocation = (MethodInvocation) node.getParent();
@@ -1098,7 +1125,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         }
         // may be return type
         {
-          Type type = addFix_undefinedMethodCreate_getReturnType(invocation);
+          Type type = addFix_undefinedMethod_create_getReturnType(invocation);
           if (type != null) {
             String typeSource = utils.getTypeSource(type);
             if (!typeSource.equals("dynamic")) {
@@ -1115,7 +1142,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
           sb.append(name);
           sb.endPosition();
         }
-        addFix_undefinedMethodCreate_parameters(sb, invocation);
+        addFix_undefinedMethod_create_parameters(sb, invocation);
         sb.append(") {" + eol + prefix + "}");
         sb.append(sourceSuffix);
       }
@@ -1134,7 +1161,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
   /**
    * @return the possible return {@link Type}, may be <code>null</code> if can not be identified.
    */
-  private Type addFix_undefinedMethodCreate_getReturnType(MethodInvocation invocation) {
+  private Type addFix_undefinedMethod_create_getReturnType(MethodInvocation invocation) {
     if (invocation.getParent() instanceof VariableDeclaration) {
       VariableDeclaration variableDeclaration = (VariableDeclaration) invocation.getParent();
       if (variableDeclaration.getInitializer() == invocation) {
@@ -1147,7 +1174,8 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     return null;
   }
 
-  private void addFix_undefinedMethodCreate_parameters(SourceBuilder sb, MethodInvocation invocation) {
+  private void addFix_undefinedMethod_create_parameters(SourceBuilder sb,
+      MethodInvocation invocation) {
     // append parameters
     sb.append("(");
     Set<String> excluded = Sets.newHashSet();
@@ -1179,6 +1207,36 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         sb.append(favorite);
         sb.setProposals(suggestions);
         sb.endPosition();
+      }
+    }
+  }
+
+  private void addFix_undefinedMethod_useSimilar() throws Exception {
+    if (node instanceof SimpleIdentifier && node.getParent() instanceof MethodInvocation) {
+      MethodInvocation invocation = (MethodInvocation) node.getParent();
+      String name = ((SimpleIdentifier) node).getName();
+      ClosestElementFinder finder = new ClosestElementFinder(MethodElement.class, name);
+      // unqualified invocation
+      Expression target = invocation.getRealTarget();
+      if (target == null) {
+        ClassDeclaration clazz = invocation.getAncestor(ClassDeclaration.class);
+        if (clazz != null) {
+          ClassElement clazzElement = clazz.getElement();
+          updateFinderWithClassMembers(finder, clazzElement);
+        }
+      } else {
+        Type type = typeOf(target);
+        if (type instanceof InterfaceType) {
+          ClassElement clazzElement = ((InterfaceType) type).getElement();
+          updateFinderWithClassMembers(finder, clazzElement);
+        }
+      }
+      // if we have close enough element, suggest to use it
+      String closestName = null;
+      if (finder != null && finder.distance < 5) {
+        closestName = finder.element.getName();
+        addReplaceEdit(rangeNode(node), closestName);
+        addUnitCorrectionProposal(CorrectionKind.QF_CHANGE_TO, closestName);
       }
     }
   }

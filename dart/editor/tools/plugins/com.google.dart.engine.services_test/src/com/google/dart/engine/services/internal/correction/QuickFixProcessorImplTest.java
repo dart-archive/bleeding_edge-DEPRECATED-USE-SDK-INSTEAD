@@ -826,6 +826,50 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "}"));
   }
 
+  public void test_undefinedFunction_create_fromFunction() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = myUndefinedFunction(1, 2.0, '3');",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  int v = myUndefinedFunction(1, 2.0, '3');",
+            "}",
+            "",
+            "int myUndefinedFunction(int i, double d, String s) {",
+            "}",
+            ""));
+  }
+
+  public void test_undefinedFunction_create_fromMethod() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  main() {",
+        "    int v = myUndefinedFunction(1, 2.0, '3');",
+        "  }",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  main() {",
+            "    int v = myUndefinedFunction(1, 2.0, '3');",
+            "  }",
+            "}",
+            "",
+            "int myUndefinedFunction(int i, double d, String s) {",
+            "}",
+            ""));
+  }
+
   public void test_undefinedFunction_useSimilar_fromImport() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",
