@@ -143,7 +143,7 @@ public abstract class LibraryAnalysisTest extends TestCase {
           maxCount = Math.max(maxCount, newCount);
         }
         int countWidth = Integer.toString(maxCount).length();
-        String format = "%d" + countWidth + " %s";
+        String format = "%0" + countWidth + "d" + " %s";
         for (Map.Entry<String, Integer> entry : counts.entrySet()) {
           writer.println();
           writer.printf(format, entry.getValue(), entry.getKey());
