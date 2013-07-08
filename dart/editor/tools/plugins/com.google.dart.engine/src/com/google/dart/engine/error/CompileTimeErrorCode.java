@@ -992,12 +992,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   RECURSIVE_FACTORY_REDIRECT("Cycle in redirecting factory constructors"),
 
   /**
-   * 15.3.1 Typedef: It is a compile-time error if a typedef refers to itself via a chain of
-   * references that does not include a class type.
-   */
-  RECURSIVE_FUNCTION_TYPE_ALIAS(""),
-
-  /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
    * superinterface of itself.
    * <p>

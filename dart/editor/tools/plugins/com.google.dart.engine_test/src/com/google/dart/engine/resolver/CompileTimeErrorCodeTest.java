@@ -96,23 +96,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_recursiveFunctionTypeAlias_direct() throws Exception {
-    Source source = addSource(createSource(//
-    "typedef F(F f);"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_FUNCTION_TYPE_ALIAS);
-    verify(source);
-  }
-
-  public void fail_recursiveFunctionTypeAlias_indirect() throws Exception {
-    Source source = addSource(createSource(//
-        "typedef F(G g);",
-        "typedef G(F f);"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_FUNCTION_TYPE_ALIAS);
-    verify(source);
-  }
-
   public void fail_reservedWordAsIdentifier() throws Exception {
     Source source = addSource(createSource(//
     "int class = 2;"));
