@@ -115,6 +115,18 @@ public class ErrorParserTest extends ParserTestCase {
     parseExpression("f()++", ParserErrorCode.UNEXPECTED_TOKEN);
   }
 
+  public void fail_varAndType_local() throws Exception {
+    // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but this would be a
+    // better error message.
+    parseStatement("var int x;", ParserErrorCode.VAR_AND_TYPE);
+  }
+
+  public void fail_varAndType_parameter() throws Exception {
+    // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but this would be a
+    // better error message.
+    parse("parseFormalParameterList", "(var int x)", ParserErrorCode.VAR_AND_TYPE);
+  }
+
   public void fail_voidVariable_initializer() throws Exception {
     // The parser parses this as a function declaration statement because that is the only thing
     // that validly starts with 'void'. That causes a different error message to be produced.
@@ -1246,6 +1258,14 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_IDENTIFIER);
     assertInstanceOf(SimpleIdentifier.class, expression);
     assertTrue(expression.isSynthetic());
+  }
+
+  public void test_varAndType_field() throws Exception {
+    parseCompilationUnit("class C { var int x; }", ParserErrorCode.VAR_AND_TYPE);
+  }
+
+  public void test_varAndType_topLevelVariable() throws Exception {
+    parseCompilationUnit("var int x;", ParserErrorCode.VAR_AND_TYPE);
   }
 
   public void test_varAsTypeName_as() throws Exception {

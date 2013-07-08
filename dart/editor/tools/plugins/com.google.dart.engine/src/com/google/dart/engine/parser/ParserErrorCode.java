@@ -165,6 +165,7 @@ public enum ParserErrorCode implements ErrorCode {
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER(
       "The default value of a positional parameter should be preceeded by '='"),
   WRONG_TERMINATOR_FOR_PARAMETER_GROUP("Expected '%s' to close parameter group"),
+  VAR_AND_TYPE("Variables cannot be declared using both 'var' and a type name; remove the 'var'"),
   VAR_AS_TYPE_NAME("The keyword 'var' cannot be used as a type name"),
   VAR_CLASS("Classes cannot be declared to be 'var'"),
   VAR_RETURN_TYPE("The return type cannot be 'var'"),

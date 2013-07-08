@@ -683,6 +683,26 @@ public class Parser {
   }
 
   /**
+   * Return {@code true} if the given token appears to be the first token of a type name that is
+   * followed by a variable or field formal parameter.
+   * 
+   * @param startToken the first token of the sequence being checked
+   * @return {@code true} if there is a type name and variable starting at the given token
+   */
+  private boolean isTypedIdentifier(Token startToken) {
+    Token token = skipReturnType(startToken);
+    if (token == null) {
+      return false;
+    } else if (matchesIdentifier(token)) {
+      return true;
+    } else if (matches(token, Keyword.THIS) && matches(token.getNext(), TokenType.PERIOD)
+        && matchesIdentifier(token.getNext().getNext())) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Compare the given tokens to find the token that appears first in the source being parsed. That
    * is, return the left-most of all of the tokens. The arguments are allowed to be {@code null}.
    * Return the token with the smallest offset, or {@code null} if there are no arguments or if all
@@ -2669,39 +2689,13 @@ public class Parser {
     TypeName type = null;
     if (matches(Keyword.FINAL) || matches(Keyword.CONST)) {
       keyword = getAndAdvance();
-      //
-      // We are assuming that the current token is an identifier and looking to see whether we have
-      // one of the following patterns:
-      //   final ^ type variable
-      //   final ^ type<...> variable
-      //   final ^ prefix.type variable
-      //   final ^ prefix.type<...> variable
-      //   final ^ type this.field
-      //
-      if (matchesIdentifier(peek())
-          || matches(peek(), TokenType.LT)
-          || matches(peek(), Keyword.THIS)
-          || (matches(peek(), TokenType.PERIOD) && matchesIdentifier(peek(2)) && (matchesIdentifier(peek(3))
-              || matches(peek(3), TokenType.LT) || matches(peek(3), Keyword.THIS)))) {
+      if (isTypedIdentifier(currentToken)) {
         type = parseTypeName();
       }
     } else if (matches(Keyword.VAR)) {
       keyword = getAndAdvance();
     } else {
-      //
-      // We are assuming that the current token is an identifier and looking to see whether we have
-      // one of the following patterns:
-      //   ^ type variable
-      //   ^ type<...> variable
-      //   ^ prefix.type variable
-      //   ^ prefix.type<...> variable
-      //   ^ type this.field
-      //
-      if (matchesIdentifier(peek())
-          || matches(peek(), TokenType.LT)
-          || matches(peek(), Keyword.THIS)
-          || (matches(peek(), TokenType.PERIOD) && matchesIdentifier(peek(2)) && (matchesIdentifier(peek(3))
-              || matches(peek(3), TokenType.LT) || matches(peek(3), Keyword.THIS)))) {
+      if (isTypedIdentifier(currentToken)) {
         type = parseReturnType();
       } else if (!optional) {
         reportError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
@@ -4116,8 +4110,12 @@ public class Parser {
       }
     }
     TypeName type = holder.getType();
-    if (type != null && matches(type.getName().getBeginToken(), Keyword.VOID)) {
-      reportError(ParserErrorCode.VOID_PARAMETER, type.getName().getBeginToken());
+    if (type != null) {
+      if (matches(type.getName().getBeginToken(), Keyword.VOID)) {
+        reportError(ParserErrorCode.VOID_PARAMETER, type.getName().getBeginToken());
+      } else if (holder.getKeyword() != null && matches(holder.getKeyword(), Keyword.VAR)) {
+        reportError(ParserErrorCode.VAR_AND_TYPE, holder.getKeyword());
+      }
     }
     if (thisKeyword != null) {
       return new FieldFormalParameter(
@@ -5298,6 +5296,9 @@ public class Parser {
    */
   private VariableDeclarationList parseVariableDeclarationList(
       CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
+    if (type != null && keyword != null && matches(keyword, Keyword.VAR)) {
+      reportError(ParserErrorCode.VAR_AND_TYPE, keyword);
+    }
     List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
     variables.add(parseVariableDeclaration());
     while (matches(TokenType.COMMA)) {
@@ -5326,7 +5327,14 @@ public class Parser {
    */
   private VariableDeclarationStatement parseVariableDeclarationStatement(
       CommentAndMetadata commentAndMetadata) {
+//    Token startToken = currentToken;
     VariableDeclarationList variableList = parseVariableDeclarationList(commentAndMetadata);
+//    if (!matches(TokenType.SEMICOLON)) {
+//      if (matches(startToken, Keyword.VAR) && isTypedIdentifier(startToken.getNext())) {
+//        // TODO(brianwilkerson) This appears to be of the form "var type variable". We should do
+//        // a better job of recovering in this case.
+//      }
+//    }
     Token semicolon = expect(TokenType.SEMICOLON);
     return new VariableDeclarationStatement(variableList, semicolon);
   }
