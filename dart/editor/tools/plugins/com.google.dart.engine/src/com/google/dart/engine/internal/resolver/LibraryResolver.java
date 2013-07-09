@@ -25,7 +25,9 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.ImportElement;
@@ -52,6 +54,8 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -177,7 +181,7 @@ public class LibraryResolver {
       //
       // Compute the set of libraries that need to be resolved together.
       //
-      computeLibraryDependencies(targetLibrary);
+      computeLibraryDependencies(targetLibrary, unit);
       librariesInCycles = computeLibrariesInCycles(targetLibrary);
       //
       // Build the element models representing the libraries being resolved. This is done in three
@@ -578,9 +582,57 @@ public class LibraryResolver {
    */
   private void computeLibraryDependencies(Library library) throws AnalysisException {
     Source librarySource = library.getLibrarySource();
+    computeLibraryDependencies(
+        library,
+        analysisContext.computeImportedLibraries(librarySource),
+        analysisContext.computeExportedLibraries(librarySource));
+  }
+
+  /**
+   * Recursively traverse the libraries reachable from the given library, creating instances of the
+   * class {@link Library} to represent them, and record the references in the library objects.
+   * 
+   * @param library the library to be processed to find libraries that have not yet been traversed
+   * @throws AnalysisException if some portion of the library graph could not be traversed
+   */
+  private void computeLibraryDependencies(Library library, CompilationUnit unit)
+      throws AnalysisException {
+    Source librarySource = library.getLibrarySource();
+    HashSet<Source> exportedSources = new HashSet<Source>();
+    HashSet<Source> importedSources = new HashSet<Source>();
+    for (Directive directive : unit.getDirectives()) {
+      if (directive instanceof ExportDirective) {
+        Source exportSource = resolveSource(librarySource, (ExportDirective) directive);
+        if (exportSource != null) {
+          exportedSources.add(exportSource);
+        }
+      } else if (directive instanceof ImportDirective) {
+        Source importSource = resolveSource(librarySource, (ImportDirective) directive);
+        if (importSource != null) {
+          importedSources.add(importSource);
+        }
+      }
+    }
+    computeLibraryDependencies(
+        library,
+        importedSources.toArray(new Source[importedSources.size()]),
+        exportedSources.toArray(new Source[exportedSources.size()]));
+  }
+
+  /**
+   * Recursively traverse the libraries reachable from the given library, creating instances of the
+   * class {@link Library} to represent them, and record the references in the library objects.
+   * 
+   * @param library the library to be processed to find libraries that have not yet been traversed
+   * @param importedSources an array containing the sources that are imported into the given library
+   * @param exportedSources an array containing the sources that are exported from the given library
+   * @throws AnalysisException if some portion of the library graph could not be traversed
+   */
+  private void computeLibraryDependencies(Library library, Source[] importedSources,
+      Source[] exportedSources) throws AnalysisException {
     ArrayList<Library> importedLibraries = new ArrayList<Library>();
     boolean explicitlyImportsCore = false;
-    for (Source importedSource : analysisContext.computeImportedLibraries(librarySource)) {
+    for (Source importedSource : importedSources) {
       if (importedSource.equals(coreLibrarySource)) {
         explicitlyImportsCore = true;
       }
@@ -598,7 +650,7 @@ public class LibraryResolver {
     library.setImportedLibraries(importedLibraries.toArray(new Library[importedLibraries.size()]));
 
     ArrayList<Library> exportedLibraries = new ArrayList<Library>();
-    for (Source exportedSource : analysisContext.computeExportedLibraries(librarySource)) {
+    for (Source exportedSource : exportedSources) {
       Library exportedLibrary = libraryMap.get(exportedSource);
       if (exportedLibrary == null) {
         exportedLibrary = createLibraryOrNull(exportedSource);
@@ -755,6 +807,31 @@ public class LibraryResolver {
     for (Source source : library.getCompilationUnitSources()) {
       ResolverVisitor visitor = new ResolverVisitor(library, source, typeProvider);
       library.getAST(source).accept(visitor);
+    }
+  }
+
+  /**
+   * Return the result of resolving the URI of the given URI-based directive against the URI of the
+   * given library, or {@code null} if the URI is not valid.
+   * 
+   * @param librarySource the source representing the library containing the directive
+   * @param directive the directive which URI should be resolved
+   * @return the result of resolving the URI against the URI of the library
+   */
+  private Source resolveSource(Source librarySource, UriBasedDirective directive) {
+    StringLiteral uriLiteral = directive.getUri();
+    if (uriLiteral instanceof StringInterpolation) {
+      return null;
+    }
+    String uriContent = uriLiteral.getStringValue().trim();
+    if (uriContent == null) {
+      return null;
+    }
+    try {
+      new URI(uriContent);
+      return analysisContext.getSourceFactory().resolveUri(librarySource, uriContent);
+    } catch (URISyntaxException exception) {
+      return null;
     }
   }
 
