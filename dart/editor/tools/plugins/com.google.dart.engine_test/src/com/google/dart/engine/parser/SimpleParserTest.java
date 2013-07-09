@@ -1778,6 +1778,24 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(declaration.getVariables());
   }
 
+  public void test_parseCompilationUnitMember_variableGet() throws Exception {
+    TopLevelVariableDeclaration declaration = parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "String get = null;");
+    assertNotNull(declaration.getSemicolon());
+    assertNotNull(declaration.getVariables());
+  }
+
+  public void test_parseCompilationUnitMember_variableSet() throws Exception {
+    TopLevelVariableDeclaration declaration = parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "String set = null;");
+    assertNotNull(declaration.getSemicolon());
+    assertNotNull(declaration.getVariables());
+  }
+
   public void test_parseConditionalExpression() throws Exception {
     ConditionalExpression expression = parse("parseConditionalExpression", "x ? y : z");
     assertNotNull(expression.getCondition());

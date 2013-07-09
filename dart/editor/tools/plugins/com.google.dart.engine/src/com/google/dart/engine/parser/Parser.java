@@ -2144,7 +2144,7 @@ public class Parser {
           expect(TokenType.SEMICOLON));
     }
     TypeName returnType = parseReturnType();
-    if (matches(Keyword.GET) || matches(Keyword.SET)) {
+    if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier(peek())) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(
           commentAndMetadata,
