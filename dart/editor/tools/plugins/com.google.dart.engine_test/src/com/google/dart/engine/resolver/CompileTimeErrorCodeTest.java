@@ -1056,6 +1056,14 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_extendsNonClass_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+    "class B extends dynamic {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.EXTENDS_NON_CLASS);
+    verify(source);
+  }
+
   public void test_extendsOrImplementsDisallowedClass_extends_bool() throws Exception {
     Source source = addSource(createSource(//
     "class A extends bool {}"));

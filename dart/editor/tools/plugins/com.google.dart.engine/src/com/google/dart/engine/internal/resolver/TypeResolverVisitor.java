@@ -169,7 +169,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     if (extendsClause != null) {
       ErrorCode errorCode = node.getWithClause() == null ? CompileTimeErrorCode.EXTENDS_NON_CLASS
           : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
-      superclassType = resolveType(extendsClause.getSuperclass(), errorCode);
+      superclassType = resolveType(extendsClause.getSuperclass(), errorCode, errorCode);
       if (superclassType != getTypeProvider().getObjectType()) {
         classElement.setValidMixin(false);
       }
@@ -192,9 +192,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitClassTypeAlias(ClassTypeAlias node) {
     super.visitClassTypeAlias(node);
     ClassElementImpl classElement = getClassElement(node.getName());
-    InterfaceType superclassType = resolveType(
-        node.getSuperclass(),
-        CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
+    ErrorCode errorCode = CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
+    InterfaceType superclassType = resolveType(node.getSuperclass(), errorCode, errorCode);
     if (superclassType == null) {
       superclassType = getTypeProvider().getObjectType();
     }
@@ -906,6 +905,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     if (withClause != null) {
       InterfaceType[] mixinTypes = resolveTypes(
           withClause.getMixinTypes(),
+          CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
           CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
       if (classElement != null) {
         classElement.setMixins(mixinTypes);
@@ -915,19 +915,15 @@ public class TypeResolverVisitor extends ScopedVisitor {
       NodeList<TypeName> interfaces = implementsClause.getInterfaces();
       InterfaceType[] interfaceTypes = resolveTypes(
           interfaces,
-          CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
+          CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
+          CompileTimeErrorCode.IMPLEMENTS_DYNAMIC);
       TypeName[] typeNames = interfaces.toArray(new TypeName[interfaces.size()]);
-      String dynamicKeyword = Keyword.DYNAMIC.getSyntax();
       boolean[] detectedRepeatOnIndex = new boolean[typeNames.length];
       for (int i = 0; i < detectedRepeatOnIndex.length; i++) {
         detectedRepeatOnIndex[i] = false;
       }
       for (int i = 0; i < typeNames.length; i++) {
         TypeName typeName = typeNames[i];
-        String name = typeName.getName().getName();
-        if (name.equals(dynamicKeyword)) {
-          reportError(CompileTimeErrorCode.IMPLEMENTS_DYNAMIC, typeName);
-        }
         if (!detectedRepeatOnIndex[i]) {
           for (int j = i + 1; j < typeNames.length; j++) {
             Element element = typeName.getName().getElement();
@@ -954,16 +950,20 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @param typeName the type name specifying the type to be returned
    * @param nonTypeError the error to produce if the type name is defined to be something other than
    *          a type
+   * @param dynamicTypeError the error to produce if the type name is "dynamic"
    * @return the type specified by the type name
    */
-  private InterfaceType resolveType(TypeName typeName, ErrorCode nonTypeError) {
+  private InterfaceType resolveType(TypeName typeName, ErrorCode nonTypeError,
+      ErrorCode dynamicTypeError) {
     Type type = typeName.getType();
     if (type instanceof InterfaceType) {
       return (InterfaceType) type;
     }
     // If the type is not an InterfaceType, then visitTypeName() sets the type to be a DynamicTypeImpl
     Identifier name = typeName.getName();
-    if (!name.getName().equals(Keyword.DYNAMIC.getSyntax())) {
+    if (name.getName().equals(Keyword.DYNAMIC.getSyntax())) {
+      reportError(dynamicTypeError, name, name.getName());
+    } else {
       reportError(nonTypeError, name, name.getName());
     }
     return null;
@@ -975,12 +975,14 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @param typeNames the type names to be resolved
    * @param nonTypeError the error to produce if the type name is defined to be something other than
    *          a type
+   * @param dynamicTypeError the error to produce if the type name is "dynamic"
    * @return an array containing all of the types that were resolved.
    */
-  private InterfaceType[] resolveTypes(NodeList<TypeName> typeNames, ErrorCode nonTypeError) {
+  private InterfaceType[] resolveTypes(NodeList<TypeName> typeNames, ErrorCode nonTypeError,
+      ErrorCode dynamicTypeError) {
     ArrayList<InterfaceType> types = new ArrayList<InterfaceType>();
     for (TypeName typeName : typeNames) {
-      InterfaceType type = resolveType(typeName, nonTypeError);
+      InterfaceType type = resolveType(typeName, nonTypeError, dynamicTypeError);
       if (type != null) {
         types.add(type);
       }
