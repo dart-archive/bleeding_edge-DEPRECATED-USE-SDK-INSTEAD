@@ -537,6 +537,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     isInStaticVariableDeclaration = node.isStatic();
     isInInstanceVariableDeclaration = !isInStaticVariableDeclaration;
     try {
+      checkForAllInvalidOverrideErrorCodes(node);
       return super.visitFieldDeclaration(node);
     } finally {
       isInStaticVariableDeclaration = false;
@@ -1004,9 +1005,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This checks the passed method declaration against override-error codes.
+   * This checks the passed executable element against override-error codes.
    * 
-   * @param node the {@link MethodDeclaration} to evaluate
+   * @param executableElement the {@link ExecutableElement} to evaluate
+   * @param parameters the parameters of the executable element
+   * @param errorNameTarget the node to report problems on
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
    * @see CompileTimeErrorCode#INVALID_OVERRIDE_REQUIRED
@@ -1020,26 +1023,24 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see StaticWarningCode#INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE
    * @see StaticWarningCode#INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES
    */
-  private boolean checkForAllInvalidOverrideErrorCodes(MethodDeclaration node) {
-    if (enclosingClass == null || node.isStatic() || node.getBody() instanceof NativeFunctionBody) {
-      return false;
-    }
-    ExecutableElement executableElement = node.getElement();
-    if (executableElement == null) {
-      return false;
-    }
-    SimpleIdentifier methodName = node.getName();
-    if (methodName.isSynthetic()) {
-      return false;
-    }
-    String methodNameStr = methodName.getName();
+  private boolean checkForAllInvalidOverrideErrorCodes(ExecutableElement executableElement,
+      ParameterElement[] parameters, ASTNode[] parameterLocations, SimpleIdentifier errorNameTarget) {
+    String executableElementName = executableElement.getName();
     ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
         enclosingClass,
         executableElement.getName());
 
+    boolean isGetter = false;
+    boolean isSetter = false;
+    if (executableElement instanceof PropertyAccessorElement) {
+      PropertyAccessorElement accessorElement = (PropertyAccessorElement) executableElement;
+      isGetter = accessorElement.isGetter();
+      isSetter = accessorElement.isSetter();
+    }
+
     // SWC.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC
     if (overriddenExecutable == null) {
-      if (!node.isGetter() && !node.isSetter() && !node.isOperator()) {
+      if (!isGetter && !isSetter && !executableElement.isOperator()) {
         HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
         InterfaceType superclassType = enclosingClass.getSupertype();
         ClassElement superclassElement = superclassType == null ? null
@@ -1048,33 +1049,33 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           visitedClasses.add(superclassElement);
           FieldElement[] fieldElts = superclassElement.getFields();
           for (FieldElement fieldElt : fieldElts) {
-            if (fieldElt.getName().equals(methodNameStr) && fieldElt.isStatic()) {
+            if (fieldElt.getName().equals(executableElementName) && fieldElt.isStatic()) {
               errorReporter.reportError(
                   StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
-                  methodName,
-                  methodNameStr,
+                  errorNameTarget,
+                  executableElementName,
                   fieldElt.getEnclosingElement().getDisplayName());
               return true;
             }
           }
           PropertyAccessorElement[] propertyAccessorElts = superclassElement.getAccessors();
           for (PropertyAccessorElement accessorElt : propertyAccessorElts) {
-            if (accessorElt.getName().equals(methodNameStr) && accessorElt.isStatic()) {
+            if (accessorElt.getName().equals(executableElementName) && accessorElt.isStatic()) {
               errorReporter.reportError(
                   StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
-                  methodName,
-                  methodNameStr,
+                  errorNameTarget,
+                  executableElementName,
                   accessorElt.getEnclosingElement().getDisplayName());
               return true;
             }
           }
           MethodElement[] methodElements = superclassElement.getMethods();
           for (MethodElement methodElement : methodElements) {
-            if (methodElement.getName().equals(methodNameStr) && methodElement.isStatic()) {
+            if (methodElement.getName().equals(executableElementName) && methodElement.isStatic()) {
               errorReporter.reportError(
                   StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
-                  methodName,
-                  methodNameStr,
+                  errorNameTarget,
+                  executableElementName,
                   methodElement.getEnclosingElement().getDisplayName());
               return true;
             }
@@ -1091,7 +1092,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     InterfaceType enclosingType = enclosingClass.getType();
     overriddenFT = inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
         overriddenFT,
-        methodNameStr,
+        executableElementName,
         enclosingType);
 
     if (overridingFT == null || overriddenFT == null) {
@@ -1111,7 +1112,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (overridingNormalPT.length != overriddenNormalPT.length) {
       errorReporter.reportError(
           CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED,
-          methodName,
+          errorNameTarget,
           overriddenNormalPT.length,
           overriddenExecutable.getEnclosingElement().getDisplayName());
       return true;
@@ -1119,7 +1120,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (overridingPositionalPT.length < overriddenPositionalPT.length) {
       errorReporter.reportError(
           CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL,
-          methodName,
+          errorNameTarget,
           overriddenPositionalPT.length,
           overriddenExecutable.getEnclosingElement().getDisplayName());
       return true;
@@ -1135,7 +1136,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         // but it does not.
         errorReporter.reportError(
             CompileTimeErrorCode.INVALID_OVERRIDE_NAMED,
-            methodName,
+            errorNameTarget,
             overriddenParamName,
             overriddenExecutable.getEnclosingElement().getDisplayName());
         return true;
@@ -1153,9 +1154,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (!overriddenFTReturnType.equals(VoidTypeImpl.getInstance())
         && !overridingFTReturnType.isAssignableTo(overriddenFTReturnType)) {
       errorReporter.reportError(
-          !node.isGetter() ? StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE
+          !isGetter ? StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE
               : StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
-          methodName,
+          errorNameTarget,
           overridingFTReturnType.getDisplayName(),
           overriddenFTReturnType.getDisplayName(),
           overriddenExecutable.getEnclosingElement().getDisplayName());
@@ -1163,18 +1164,16 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
 
     // SWC.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
-    FormalParameterList formalParameterList = node.getParameters();
-    if (formalParameterList == null) {
+    if (parameterLocations == null) {
       return false;
     }
-    NodeList<FormalParameter> parameterNodeList = formalParameterList.getParameters();
     int parameterIndex = 0;
     for (int i = 0; i < overridingNormalPT.length; i++) {
       if (!overridingNormalPT[i].isAssignableTo(overriddenNormalPT[i])) {
         errorReporter.reportError(
-            !node.isSetter() ? StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
+            !isSetter ? StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
                 : StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE,
-            parameterNodeList.get(parameterIndex),
+            parameterLocations[parameterIndex],
             overridingNormalPT[i].getDisplayName(),
             overriddenNormalPT[i].getDisplayName(),
             overriddenExecutable.getEnclosingElement().getDisplayName());
@@ -1188,7 +1187,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       if (!overridingPositionalPT[i].isAssignableTo(overriddenPositionalPT[i])) {
         errorReporter.reportError(
             StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE,
-            parameterNodeList.get(parameterIndex),
+            parameterLocations[parameterIndex],
             overridingPositionalPT[i].getDisplayName(),
             overriddenPositionalPT[i].getDisplayName(),
             overriddenExecutable.getEnclosingElement().getDisplayName());
@@ -1208,24 +1207,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         continue;
       }
       if (!overriddenNamedPTEntry.getValue().isAssignableTo(overridingType)) {
-        // lookup the ast parameter node for the error to select
-        NormalFormalParameter parameterToSelect = null;
-        for (FormalParameter formalParameter : parameterNodeList) {
-          if (formalParameter instanceof DefaultFormalParameter
-              && formalParameter.getKind() == ParameterKind.NAMED) {
-            DefaultFormalParameter defaultFormalParameter = (DefaultFormalParameter) formalParameter;
-            NormalFormalParameter normalFormalParameter = defaultFormalParameter.getParameter();
-            if (overriddenNamedPTEntry.getKey().equals(
-                normalFormalParameter.getIdentifier().getName())) {
-              parameterToSelect = normalFormalParameter;
-              break;
-            }
+        // lookup the parameter for the error to select
+        ParameterElement parameterToSelect = null;
+        ASTNode parameterLocationToSelect = null;
+        for (int i = 0; i < parameters.length; i++) {
+          ParameterElement parameter = parameters[i];
+          if (parameter.getParameterKind() == ParameterKind.NAMED
+              && overriddenNamedPTEntry.getKey().equals(parameter.getName())) {
+            parameterToSelect = parameter;
+            parameterLocationToSelect = parameterLocations[i];
+            break;
           }
         }
         if (parameterToSelect != null) {
           errorReporter.reportError(
               StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE,
-              parameterToSelect,
+              parameterLocationToSelect,
               overridingType.getDisplayName(),
               overriddenNamedPTEntry.getValue().getDisplayName(),
               overriddenExecutable.getEnclosingElement().getDisplayName());
@@ -1240,14 +1237,15 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     // parameter elements from the method we are overriding.
     //
     boolean foundError = false;
-    ArrayList<FormalParameter> formalParameters = new ArrayList<FormalParameter>();
+    ArrayList<ASTNode> formalParameters = new ArrayList<ASTNode>();
     ArrayList<ParameterElementImpl> parameterElts = new ArrayList<ParameterElementImpl>();
     ArrayList<ParameterElementImpl> overriddenParameterElts = new ArrayList<ParameterElementImpl>();
     ParameterElement[] overriddenPEs = overriddenExecutable.getParameters();
-    for (FormalParameter formalParameter : parameterNodeList) {
-      if (formalParameter.getKind().isOptional()) {
-        formalParameters.add(formalParameter);
-        parameterElts.add((ParameterElementImpl) formalParameter.getElement());
+    for (int i = 0; i < parameters.length; i++) {
+      ParameterElement parameter = parameters[i];
+      if (parameter.getParameterKind().isOptional()) {
+        formalParameters.add(parameterLocations[i]);
+        parameterElts.add((ParameterElementImpl) parameter);
       }
     }
     for (ParameterElement parameterElt : overriddenPEs) {
@@ -1316,6 +1314,76 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return foundError;
+  }
+
+  /**
+   * This checks the passed field declaration against override-error codes.
+   * 
+   * @param node the {@link MethodDeclaration} to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see #checkForAllInvalidOverrideErrorCodes(ExecutableElement)
+   */
+  private boolean checkForAllInvalidOverrideErrorCodes(FieldDeclaration node) {
+    if (enclosingClass == null || node.isStatic()) {
+      return false;
+    }
+    boolean hasProblems = false;
+    VariableDeclarationList fields = node.getFields();
+    for (VariableDeclaration field : fields.getVariables()) {
+      FieldElement element = (FieldElement) field.getElement();
+      if (element == null) {
+        continue;
+      }
+      PropertyAccessorElement getter = element.getGetter();
+      PropertyAccessorElement setter = element.getSetter();
+      SimpleIdentifier fieldName = field.getName();
+      if (getter != null) {
+        hasProblems |= checkForAllInvalidOverrideErrorCodes(
+            getter,
+            ParameterElementImpl.EMPTY_ARRAY,
+            ASTNode.EMPTY_ARRAY,
+            fieldName);
+      }
+      if (setter != null) {
+        hasProblems |= checkForAllInvalidOverrideErrorCodes(
+            setter,
+            setter.getParameters(),
+            new ASTNode[] {fieldName},
+            fieldName);
+      }
+    }
+    return hasProblems;
+  }
+
+  /**
+   * This checks the passed method declaration against override-error codes.
+   * 
+   * @param node the {@link MethodDeclaration} to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see #checkForAllInvalidOverrideErrorCodes(ExecutableElement)
+   */
+  private boolean checkForAllInvalidOverrideErrorCodes(MethodDeclaration node) {
+    if (enclosingClass == null || node.isStatic() || node.getBody() instanceof NativeFunctionBody) {
+      return false;
+    }
+    ExecutableElement executableElement = node.getElement();
+    if (executableElement == null) {
+      return false;
+    }
+    SimpleIdentifier methodName = node.getName();
+    if (methodName.isSynthetic()) {
+      return false;
+    }
+    FormalParameterList formalParameterList = node.getParameters();
+    NodeList<FormalParameter> parameterList = formalParameterList != null
+        ? formalParameterList.getParameters() : null;
+    ASTNode[] parameters = parameterList != null
+        ? parameterList.toArray(new ASTNode[parameterList.size()]) : null;
+    return checkForAllInvalidOverrideErrorCodes(
+        executableElement,
+        executableElement.getParameters(),
+        parameters,
+        methodName);
   }
 
   /**

@@ -94,12 +94,7 @@ public class ErrorReporter {
    * @param arguments the arguments to the error, used to compose the error message
    */
   public void reportError(ErrorCode errorCode, ASTNode node, Object... arguments) {
-    errorListener.onError(new AnalysisError(
-        source,
-        node.getOffset(),
-        node.getLength(),
-        errorCode,
-        arguments));
+    reportError(errorCode, node.getOffset(), node.getLength(), arguments);
   }
 
   /**
@@ -122,12 +117,7 @@ public class ErrorReporter {
    * @param arguments the arguments to the error, used to compose the error message
    */
   public void reportError(ErrorCode errorCode, Token token, Object... arguments) {
-    errorListener.onError(new AnalysisError(
-        source,
-        token.getOffset(),
-        token.getLength(),
-        errorCode,
-        arguments));
+    reportError(errorCode, token.getOffset(), token.getLength(), arguments);
   }
 
   /**

@@ -1022,6 +1022,21 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidGetterOverrideReturnType_implicit() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  String f;",
+        "}",
+        "class B extends A {",
+        "  int f;",
+        "}"));
+    resolve(source);
+    assertErrors(
+        StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
+        StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE);
+    verify(source);
+  }
+
   public void test_invalidMethodOverrideNamedParamType() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

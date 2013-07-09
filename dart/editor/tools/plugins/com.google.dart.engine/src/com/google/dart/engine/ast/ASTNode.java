@@ -29,6 +29,11 @@ import java.util.Map;
  */
 public abstract class ASTNode {
   /**
+   * An empty array of ast nodes.
+   */
+  public static final ASTNode[] EMPTY_ARRAY = new ASTNode[0];
+
+  /**
    * The parent of the node, or {@code null} if the node is the root of an AST structure.
    */
   private ASTNode parent;
