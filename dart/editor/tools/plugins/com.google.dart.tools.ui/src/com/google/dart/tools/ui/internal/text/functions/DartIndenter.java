@@ -1756,7 +1756,6 @@ public class DartIndenter {
             break;
 
           case Symbols.TokenCLASS:
-          case Symbols.TokenINTERFACE:
             isTypeBody = true;
             break;
 

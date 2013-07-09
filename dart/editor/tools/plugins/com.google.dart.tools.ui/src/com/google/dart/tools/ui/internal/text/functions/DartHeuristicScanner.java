@@ -603,7 +603,7 @@ public final class DartHeuristicScanner implements Symbols {
         }
         token = previousToken(getPosition(), bound);
       }
-      return token == Symbols.TokenNEW;
+      return token == Symbols.TokenNEW || token == Symbols.TokenCONST;
     }
     return false;
   }
@@ -949,6 +949,9 @@ public final class DartHeuristicScanner implements Symbols {
     Assert.isNotNull(s);
     switch (s.length()) {
       case 2:
+        if ("as".equals(s)) {
+          return TokenAS;
+        }
         if ("if".equals(s)) {
           return TokenIF;
         }
@@ -956,7 +959,7 @@ public final class DartHeuristicScanner implements Symbols {
           return TokenDO;
         }
         if ("is".equals(s)) {
-          return TokenINSTANCEOF;
+          return TokenIS;
         }
         if ("in".equals(s)) {
           return TokenIN;
@@ -986,17 +989,17 @@ public final class DartHeuristicScanner implements Symbols {
         if ("case".equals(s)) {
           return TokenCASE;
         }
-        if ("call".equals(s)) {
-          return TokenCALL;
-        }
-        if ("const".equals(s)) {
-          return TokenCONST;
-        }
         if ("else".equals(s)) {
           return TokenELSE;
         }
+        if ("enum".equals(s)) {
+          return TokenENUM;
+        }
         if ("null".equals(s)) {
           return TokenNULL;
+        }
+        if ("part".equals(s)) {
+          return TokenPART;
         }
         if ("this".equals(s)) {
           return TokenTHIS;
@@ -1006,6 +1009,9 @@ public final class DartHeuristicScanner implements Symbols {
         }
         if ("void".equals(s)) {
           return TokenVOID;
+        }
+        if ("with".equals(s)) {
+          return TokenWITH;
         }
         break;
       case 5:
@@ -1041,23 +1047,14 @@ public final class DartHeuristicScanner implements Symbols {
         if ("assert".equals(s)) {
           return TokenASSERT;
         }
+        if ("export".equals(s)) {
+          return TokenEXPORT;
+        }
         if ("import".equals(s)) {
           return TokenIMPORT;
         }
-        if ("native".equals(s)) {
-          return TokenNATIVE;
-        }
-        if ("negate".equals(s)) {
-          return TokenNEGATE;
-        }
-        if ("prefix".equals(s)) {
-          return TokenPREFIX;
-        }
         if ("return".equals(s)) {
           return TokenRETURN;
-        }
-        if ("source".equals(s)) {
-          return TokenSOURCE;
         }
         if ("static".equals(s)) {
           return TokenSTATIC;
@@ -1069,6 +1066,9 @@ public final class DartHeuristicScanner implements Symbols {
       case 7:
         if ("default".equals(s)) {
           return TokenDEFAULT;
+        }
+        if ("dynamic".equals(s)) {
+          return TokenDYNAMIC;
         }
         if ("extends".equals(s)) {
           return TokenEXTENDS;
@@ -1082,6 +1082,9 @@ public final class DartHeuristicScanner implements Symbols {
         if ("library".equals(s)) {
           return TokenLIBRARY;
         }
+        if ("rethrow".equals(s)) {
+          return TokenRETHROW;
+        }
         if ("typedef".equals(s)) {
           return TokenTYPEDEF;
         }
@@ -1093,16 +1096,11 @@ public final class DartHeuristicScanner implements Symbols {
         if ("continue".equals(s)) {
           return TokenCONTINUE;
         }
+        if ("external".equals(s)) {
+          return TokenEXTERNAL;
+        }
         if ("operator".equals(s)) {
           return TokenOPERATOR;
-        }
-        if ("resource".equals(s)) {
-          return TokenRESOURCE;
-        }
-        break;
-      case 9:
-        if ("interface".equals(s)) {
-          return TokenINTERFACE;
         }
         break;
       case 10:
