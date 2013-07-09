@@ -272,11 +272,6 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
 
   @Override
   public void reconciled(CompilationUnit ast) {
-    // don't update semantic highlighting if there are parsing problems to avoid "flashing"
-    if (ast != null && ast.getParsingErrors().length != 0) {
-      return;
-    }
-
     // ensure at most one thread can be reconciling at any time
     synchronized (fReconcileLock) {
       if (fIsReconciling) {
