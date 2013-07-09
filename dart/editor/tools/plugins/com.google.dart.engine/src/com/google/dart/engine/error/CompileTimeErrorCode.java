@@ -748,6 +748,22 @@ public enum CompileTimeErrorCode implements ErrorCode {
   LABEL_UNDEFINED("Cannot reference undefined label '%s'"),
 
   /**
+   * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i> ...
+   * <i>e<sub>n</sub></i>] is evaluated as follows:
+   * <ul>
+   * <li>The operator []= is invoked on <i>a</i> with first argument <i>i</i> and second argument
+   * <i>o<sub>i+1</sub></i><i>, 1 &lt;= i &lt;= n</i></li>
+   * </ul>
+   * <p>
+   * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static type of
+   * <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of <i>p<sub>i</sub>, 1 &lt;= i &lt;=
+   * n+k</i> and let <i>S<sub>q</sub></i> be the type of the named parameter <i>q</i> of <i>f</i>.
+   * It is a static warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1 &lt;=
+   * j &lt;= m</i>.
+   */
+  LIST_ELEMENT_TYPE_NOT_ASSIGNABLE("The element type '%s' cannot be assigned to the list type '%s'"),
+
+  /**
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member with the same name
    * as <i>C</i>.
    */

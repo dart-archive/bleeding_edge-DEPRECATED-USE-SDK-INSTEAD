@@ -1415,6 +1415,15 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_listElementTypeNotAssignable() throws Exception {
+    Source source = addSource(createSource(//
+        "var v1 = <int> [42];",
+        "var v2 = const <int> [42];"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_memberWithClassName_setter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

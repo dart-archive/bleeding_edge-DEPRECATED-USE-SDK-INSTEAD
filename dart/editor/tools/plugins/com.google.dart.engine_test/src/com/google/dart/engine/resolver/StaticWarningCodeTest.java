@@ -1197,6 +1197,14 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_listElementTypeNotAssignable() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = <String> [42];"));
+    resolve(source);
+    assertErrors(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_mismatchedAccessorTypes_class() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

@@ -667,6 +667,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         }
       }
     }
+    checkForListElementTypeNotAssignable(node);
     return super.visitListLiteral(node);
   }
 
@@ -1612,9 +1613,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This verifies that the passed argument can be assigned to their corresponding parameters.
+   * This verifies that the passed argument can be assigned to its corresponding parameter.
    * 
-   * @param node the argument to evaluate
+   * @param argument the argument to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
    * @see CompileTimeErrorCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
@@ -1631,61 +1632,80 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       errorCode = StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
     }
 
-    //
-    // Test static type information
-    //
     ParameterElement staticParameterElement = argument.getStaticParameterElement();
     Type staticParameterType = staticParameterElement == null ? null
         : staticParameterElement.getType();
 
-    Type staticArgumentType = getStaticType(argument);
+    ParameterElement propagatedParameterElement = argument.getParameterElement();
+    Type propagatedParameterType = propagatedParameterElement == null ? null
+        : propagatedParameterElement.getType();
 
-    if (staticArgumentType == null || staticParameterType == null) {
+    return checkForArgumentTypeNotAssignable(
+        argument,
+        staticParameterType,
+        propagatedParameterType,
+        errorCode);
+  }
+
+  /**
+   * This verifies that the passed expression can be assigned to its corresponding parameters.
+   * 
+   * @param expression the expression to evaluate
+   * @param expectedStaticType the expected static type
+   * @param expectedPropagatedType the expected propagated type, may be {@code null}
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * @see CompileTimeErrorCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  private boolean checkForArgumentTypeNotAssignable(Expression expression, Type expectedStaticType,
+      Type expectedPropagatedType, ErrorCode errorCode) {
+    //
+    // Test static type information
+    //
+    Type staticArgumentType = getStaticType(expression);
+
+    if (staticArgumentType == null || expectedStaticType == null) {
       return false;
     }
     if (strictMode) {
-      if (staticArgumentType.isAssignableTo(staticParameterType)) {
+      if (staticArgumentType.isAssignableTo(expectedStaticType)) {
         return false;
       }
       errorReporter.reportError(
           errorCode,
-          argument,
+          expression,
           staticArgumentType.getDisplayName(),
-          staticParameterType.getDisplayName());
+          expectedStaticType.getDisplayName());
       return true;
     }
     //
     // Test propagated type information
     //
-    ParameterElement propagatedParameterElement = argument.getParameterElement();
-    Type propagatedParameterType = propagatedParameterElement == null ? null
-        : propagatedParameterElement.getType();
+    Type propagatedArgumentType = getPropagatedType(expression);
 
-    Type propagatedArgumentType = getPropagatedType(argument);
-
-    if (propagatedArgumentType == null || propagatedParameterType == null) {
-      if (staticArgumentType.isAssignableTo(staticParameterType)) {
+    if (propagatedArgumentType == null || expectedPropagatedType == null) {
+      if (staticArgumentType.isAssignableTo(expectedStaticType)) {
         return false;
       }
       errorReporter.reportError(
           errorCode,
-          argument,
+          expression,
           staticArgumentType.getDisplayName(),
-          staticParameterType.getDisplayName());
+          expectedStaticType.getDisplayName());
       return true;
     }
 
-    if (staticArgumentType.isAssignableTo(staticParameterType)
-        || staticArgumentType.isAssignableTo(propagatedParameterType)
-        || propagatedArgumentType.isAssignableTo(staticParameterType)
-        || propagatedArgumentType.isAssignableTo(propagatedParameterType)) {
+    if (staticArgumentType.isAssignableTo(expectedStaticType)
+        || staticArgumentType.isAssignableTo(expectedPropagatedType)
+        || propagatedArgumentType.isAssignableTo(expectedStaticType)
+        || propagatedArgumentType.isAssignableTo(expectedPropagatedType)) {
       return false;
     }
     errorReporter.reportError(
         errorCode,
-        argument,
+        expression,
         (propagatedArgumentType == null ? staticArgumentType : propagatedArgumentType).getDisplayName(),
-        (propagatedParameterType == null ? staticParameterType : propagatedParameterType).getDisplayName());
+        (expectedPropagatedType == null ? expectedStaticType : expectedPropagatedType).getDisplayName());
     return true;
   }
 
@@ -3085,6 +3105,35 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return foundError;
+  }
+
+  /**
+   * TODO(scheglov)
+   */
+  private boolean checkForListElementTypeNotAssignable(ListLiteral node) {
+    // Prepare list element type.
+    TypeArgumentList typeArgumentList = node.getTypeArguments();
+    if (typeArgumentList == null) {
+      return false;
+    }
+    NodeList<TypeName> typeArguments = typeArgumentList.getArguments();
+    if (typeArguments.size() < 1) {
+      return false;
+    }
+    Type listElementType = typeArguments.get(0).getType();
+    // Prepare problem to report.
+    ErrorCode errorCode;
+    if (node.getModifier() != null) {
+      errorCode = CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE;
+    } else {
+      errorCode = StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE;
+    }
+    // Check every list element.
+    boolean hasProblems = false;
+    for (Expression element : node.getElements()) {
+      hasProblems |= checkForArgumentTypeNotAssignable(element, listElementType, null, errorCode);
+    }
+    return hasProblems;
   }
 
   /**

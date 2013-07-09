@@ -2047,6 +2047,14 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     // We cannot verify resolution with undefined labels
   }
 
+  public void test_listElementTypeNotAssignable() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = const <String> [42];"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_memberWithClassName_field() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
