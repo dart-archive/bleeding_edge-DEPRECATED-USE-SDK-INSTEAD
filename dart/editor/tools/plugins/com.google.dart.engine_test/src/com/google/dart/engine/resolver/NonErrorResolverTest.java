@@ -2032,7 +2032,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A(int p) {}",
         "}",
         "class B {",
-        "  B(int p) = A;",
+        "  factory B(int p) = A;",
         "}"));
     resolve(source);
     assertNoErrors();

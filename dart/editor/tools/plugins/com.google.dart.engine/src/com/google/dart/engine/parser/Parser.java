@@ -2276,6 +2276,9 @@ public class Parser {
       separator = getAndAdvance();
       redirectedConstructor = parseConstructorName();
       body = new EmptyFunctionBody(expect(TokenType.SEMICOLON));
+      if (factoryKeyword == null) {
+        reportError(ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR, redirectedConstructor);
+      }
     } else {
       body = parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
       if (constKeyword != null && factoryKeyword != null) {

@@ -144,6 +144,7 @@ public enum ParserErrorCode implements ErrorCode {
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional arguments must occur before named arguments"),
   POSITIONAL_PARAMETER_OUTSIDE_GROUP(
       "Positional parameters must be enclosed in square brackets ('[' and ']')"),
+  REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR("Only factory constructor can specify '=' redirection."),
   STATIC_AFTER_CONST("The modifier 'static' should be before the modifier 'const'"),
   STATIC_AFTER_FINAL("The modifier 'static' should be before the modifier 'final'"),
   STATIC_AFTER_VAR("The modifier 'static' should be before the modifier 'var'"),

@@ -1529,7 +1529,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  A(int p) {}",
         "}",
         "class B {",
-        "  B() = A;",
+        "  factory B() = A;",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE);
@@ -1542,7 +1542,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  A() {}",
         "}",
         "class B {",
-        "  B() = A;",
+        "  factory B() = A;",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE);
@@ -1555,7 +1555,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  A() {}",
         "}",
         "class B {",
-        "  B() = A.name;",
+        "  factory B() = A.name;",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR);
@@ -1567,7 +1567,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  A.name() {}",
         "}",
         "class B {",
-        "  B() = A;",
+        "  factory B() = A;",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR);
@@ -1577,7 +1577,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "class B {",
         "  int A;",
-        "  B() = A;",
+        "  factory B() = A;",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.REDIRECT_TO_NON_CLASS);
@@ -1587,7 +1587,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   public void test_redirectToNonClass_undefinedIdentifier() throws Exception {
     Source source = addSource(createSource(//
         "class B {",
-        "  B() = A;",
+        "  factory B() = A;",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.REDIRECT_TO_NON_CLASS);

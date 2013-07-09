@@ -1095,6 +1095,14 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP);
   }
 
+  public void test_redirectionInNonFactoryConstructor() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "C() = D;",
+        ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR);
+  }
+
   public void test_staticAfterConst() throws Exception {
     parse(
         "parseClassMember",
