@@ -76,8 +76,31 @@ public abstract class AbstractScannerTest extends TestCase {
     tokenize("<", new Object[] {LT});
   }
 
+  public void test_tokenize_script_embedded_tags() throws Exception {
+    tokenize("<script> <p></p></script>", new Object[] {
+        LT, "script", GT, " <p></p>", LT_SLASH, "script", GT});
+  }
+
+  public void test_tokenize_script_embedded_tags2() throws Exception {
+    tokenize("<script> <p></p><</script>", new Object[] {
+        LT, "script", GT, " <p></p><", LT_SLASH, "script", GT});
+  }
+
+  public void test_tokenize_script_embedded_tags3() throws Exception {
+    tokenize("<script> <p></p></</script>", new Object[] {
+        LT, "script", GT, " <p></p></", LT_SLASH, "script", GT});
+  }
+
   public void test_tokenize_script_partial() throws Exception {
     tokenize("<script> <p> ", new Object[] {LT, "script", GT, " <p> "});
+  }
+
+  public void test_tokenize_script_partial2() throws Exception {
+    tokenize("<script> <p> <", new Object[] {LT, "script", GT, " <p> <"});
+  }
+
+  public void test_tokenize_script_partial3() throws Exception {
+    tokenize("<script> <p> </", new Object[] {LT, "script", GT, " <p> </"});
   }
 
   public void test_tokenize_script_ref() throws Exception {
@@ -200,7 +223,7 @@ public abstract class AbstractScannerTest extends TestCase {
 
   private Token tokenize(String input, Object[] expectedTokens, int[] expectedLineStarts) {
     AbstractScanner scanner = newScanner(input);
-    scanner.setPassThroughElements(new String[] {"script", "</"});
+    scanner.setPassThroughElements(new String[] {"script"});
 
     int count = 0;
     Token firstToken = scanner.tokenize();

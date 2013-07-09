@@ -198,7 +198,7 @@ public abstract class AbstractScanner {
 
   private void scan() {
     boolean inBrackets = false;
-    boolean passThrough = false;
+    String endPassThrough = null;
 
     // <--, -->, <?, <, >, =, "***", '***', in brackets, normal
 
@@ -290,7 +290,7 @@ public abstract class AbstractScanner {
             String tag = tail.getLexeme();
             for (String str : passThroughElements) {
               if (str.equals(tag)) {
-                passThrough = true;
+                endPassThrough = "</" + str + ">";
                 break;
               }
             }
@@ -304,14 +304,39 @@ public abstract class AbstractScanner {
         c = advance();
 
         // if passThrough != null, read until we match it
-        if (passThrough) {
-          while (c >= 0 && (c != '<' || peek() != '/')) {
+        if (endPassThrough != null) {
+          boolean endFound = false;
+          int len = endPassThrough.length();
+          int firstC = endPassThrough.charAt(0);
+          int index = 0;
+          int nextC = firstC;
+          while (c >= 0) {
+            if (c == nextC) {
+              index++;
+              if (index == len) {
+                endFound = true;
+                break;
+              }
+              nextC = endPassThrough.charAt(index);
+            } else if (c == firstC) {
+              index = 1;
+              nextC = endPassThrough.charAt(1);
+            } else {
+              index = 0;
+              nextC = firstC;
+            }
             c = recordStartOfLineAndAdvance(c);
           }
           if (start + 1 < getOffset()) {
-            emit(TEXT, start + 1, -1);
+            if (endFound) {
+              emit(TEXT, start + 1, -len);
+              emit(LT_SLASH, getOffset() - len + 1);
+              emit(TAG, getOffset() - len + 3, -1);
+            } else {
+              emit(TEXT, start + 1, -1);
+            }
           }
-          passThrough = false;
+          endPassThrough = null;
         }
 
       } else if (c == '/' && peek() == '>') {
