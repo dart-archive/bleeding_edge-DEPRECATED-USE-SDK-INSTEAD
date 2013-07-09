@@ -162,14 +162,14 @@ public class AnalysisWorker {
   /**
    * Ensure that a worker is at the front of the queue to update the analysis for the context.
    * 
-   * @param project the project containing the context to be analyzed (not {@code null})
+   * @param manager the manager containing the context to be analyzed (not {@code null})
    * @param context the context to be analyzed (not {@code null})
    * @see #performAnalysis()
    */
-  public static void performAnalysisInBackground(Project project, AnalysisContext context) {
+  public static void performAnalysisInBackground(ContextManager manager, AnalysisContext context) {
     synchronized (backgroundQueue) {
       if (backgroundQueue.size() == 0 || backgroundQueue.get(0).getContext() != context) {
-        new AnalysisWorker(project, context).performAnalysisInBackground();
+        new AnalysisWorker(manager, context).performAnalysisInBackground();
       }
     }
   }
@@ -261,17 +261,17 @@ public class AnalysisWorker {
    * {@link AnalysisMarkerManager#getInstance() default marker manager} to translate errors into
    * Eclipse markers.
    * 
-   * @param project the project containing sources for the specified context (not {@code null})
+   * @param manager the manager containing sources for the specified context (not {@code null})
    * @param context the context used to perform the analysis (not {@code null})
    */
-  public AnalysisWorker(ContextManager contextManager, AnalysisContext context) {
-    this(contextManager, context, DartCore.getProjectManager(), AnalysisMarkerManager.getInstance());
+  public AnalysisWorker(ContextManager manager, AnalysisContext context) {
+    this(manager, context, DartCore.getProjectManager(), AnalysisMarkerManager.getInstance());
   }
 
   /**
    * Construct a new instance for performing analysis.
    * 
-   * @param context the context containing sources for the specified context (not {@code null})
+   * @param contextManager manager containing sources for the specified context (not {@code null})
    * @param context the context used to perform the analysis (not {@code null})
    * @param projectManager used to obtain the index to be updated and notified others when analysis
    *          is complete (not {@code null})

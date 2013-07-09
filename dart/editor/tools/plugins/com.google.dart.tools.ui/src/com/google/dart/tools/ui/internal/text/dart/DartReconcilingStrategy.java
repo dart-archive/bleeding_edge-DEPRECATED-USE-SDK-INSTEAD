@@ -20,7 +20,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
-import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ContextManager;
 import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -193,9 +193,12 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    */
   private void notifyContext(String code) {
     AnalysisContext context = editor.getInputAnalysisContext();
-    Project project = editor.getInputProject();
+    ContextManager manager = editor.getInputProject();
+    if (manager == null) {
+      manager = DartCore.getProjectManager();
+    }
     notifyContextTime = System.currentTimeMillis();
     context.setContents(source, code);
-    AnalysisWorker.performAnalysisInBackground(project, context);
+    AnalysisWorker.performAnalysisInBackground(manager, context);
   }
 }
