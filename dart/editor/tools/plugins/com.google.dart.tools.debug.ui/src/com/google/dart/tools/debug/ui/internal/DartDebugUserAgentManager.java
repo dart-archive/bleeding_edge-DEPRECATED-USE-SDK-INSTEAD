@@ -56,6 +56,11 @@ public class DartDebugUserAgentManager implements IUserAgentManager {
 
   @Override
   public boolean allowUserAgent(InetAddress remoteAddress, String agentName) {
+    // This handles things like port scanners, which can cause the editor to open a lot of popups.
+    if (agentName == null) {
+      return false;
+    }
+
     // check if it's an existing agent
     if (agentAllowed(remoteAddress, agentName)) {
       return true;
