@@ -92,6 +92,11 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * <p>
    * 12.15.3 Static Invocation: It is a static type warning if the type <i>F</i> of <i>C.m</i> may
    * not be assigned to a function type.
+   * <p>
+   * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
+   * <i>super.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
+   * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. If <i>S.m</i> exists, it is a static warning if the type
+   * <i>F</i> of <i>S.m</i> may not be assigned to a function type.
    * 
    * @param nonFunctionIdentifier the name of the identifier that is not a function type
    */
@@ -124,12 +129,6 @@ public enum StaticTypeWarningCode implements ErrorCode {
       "The name '%s' is not a type and cannot be used as a parameterized type"),
 
   /**
-   * 7.6.2 Factories: It is a static type warning if any of the type arguments to <i>k'</i> are not
-   * subtypes of the bounds of the corresponding formal type parameters of type.
-   */
-  REDIRECT_WITH_INVALID_TYPE_PARAMETERS(""),
-
-  /**
    * 13.11 Return: It is a static type warning if the type of <i>e</i> may not be assigned to the
    * declared return type of the immediately enclosing function.
    * 
@@ -154,6 +153,9 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * Let <i>B<sub>i</sub></i> be the bounds of <i>T<sub>i</sub>, 1 &lt;= i &lt;= n</i>. It is a
    * static type warning if <i>A<sub>i</sub></i> is not a subtype of <i>[A<sub>1</sub>, &hellip;,
    * A<sub>n</sub>/T<sub>1</sub>, &hellip;, T<sub>n</sub>]B<sub>i</sub>, 1 &lt;= i &lt;= n</i>.
+   * <p>
+   * 7.6.2 Factories: It is a static type warning if any of the type arguments to <i>k'</i> are not
+   * subtypes of the bounds of the corresponding formal type parameters of type.
    * 
    * @param boundedTypeName the name of the type used in the instance creation that should be
    *          limited by the bound as specified in the class declaration

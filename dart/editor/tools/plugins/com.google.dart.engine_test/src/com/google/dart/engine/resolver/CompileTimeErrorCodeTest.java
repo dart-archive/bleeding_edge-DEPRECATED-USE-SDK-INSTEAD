@@ -89,6 +89,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void fail_recursiveCompileTimeConstant() throws Exception {
     Source source = addSource(createSource(//
+        "class A {",
+        "  const A();",
+        "  final m = const A();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
+    verify(source);
+  }
+
+  public void fail_recursiveCompileTimeConstant_cycle() throws Exception {
+    Source source = addSource(createSource(//
         "const x = y + 1;",
         "const y = x + 1;"));
     resolve(source);

@@ -76,24 +76,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invalidFactoryName() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(StaticWarningCode.INVALID_FACTORY_NAME);
-    verify(source);
-  }
-
-  public void fail_invocationOfNonFunction() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(StaticWarningCode.INVOCATION_OF_NON_FUNCTION);
-    verify(source);
-  }
-
   public void fail_mismatchedAccessorTypes_getterAndSuperSetter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

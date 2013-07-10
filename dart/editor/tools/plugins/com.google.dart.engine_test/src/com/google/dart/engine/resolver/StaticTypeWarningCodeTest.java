@@ -26,15 +26,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_redirectWithInvalidTypeParameters() throws Exception {
-    Source source = addSource(createSource(//
-    // TODO
-    ));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.REDIRECT_WITH_INVALID_TYPE_PARAMETERS);
-    verify(source);
-  }
-
   public void test_inconsistentMethodInheritance_paramCount() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
@@ -199,6 +190,21 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
     // A call to verify(source) fails as g() cannot be resolved.
+  }
+
+  public void test_invocationOfNonFunction_superExpression() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get g => 0;",
+        "}",
+        "class B extends A {",
+        "  m() {",
+        "    var v = super.g();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+    verify(source);
   }
 
   public void test_nonBoolCondition_conditional() throws Exception {
@@ -494,6 +500,19 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class B {}",
         "class G<E extends A> {}",
         "f(G<B> g) {}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_redirectingConstructor() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {}",
+        "class B {}",
+        "class X<T extends A> {",
+        "  X(int x, int y) {}",
+        "  factory X.name(int x, int y) = X<B>;",
+        "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);

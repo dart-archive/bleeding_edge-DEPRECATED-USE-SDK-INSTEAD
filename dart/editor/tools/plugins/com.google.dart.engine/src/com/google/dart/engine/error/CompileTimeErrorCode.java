@@ -1021,6 +1021,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.1 Constants: It is a compile-time error if the value of a compile-time constant expression
    * depends on itself.
    */
+  // TODO (jwren) Implementation of this code relies on the cycle detection in DirectedGraph.
+  // See Dart issue 8423
   RECURSIVE_COMPILE_TIME_CONSTANT(""),
 
   /**

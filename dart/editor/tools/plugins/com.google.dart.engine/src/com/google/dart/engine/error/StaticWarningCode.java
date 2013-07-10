@@ -282,11 +282,6 @@ public enum StaticWarningCode implements ErrorCode {
       "'%s' collides with a static member in the superclass '%s'"),
 
   /**
-   * 7.6.2 Factories: It is a static warning if <i>M.id</i> is not a constructor name.
-   */
-  INVALID_FACTORY_NAME(""),
-
-  /**
    * 7.2 Getters: It is a static warning if a getter <i>m1</i> overrides a getter <i>m2</i> and the
    * type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 
@@ -379,14 +374,6 @@ public enum StaticWarningCode implements ErrorCode {
    */
   INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE(
       "The parameter type '%s' is not assignable to '%s' as required by the setter it is overriding from '%s'"),
-
-  /**
-   * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
-   * <i>super.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
-   * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. If <i>S.m</i> exists, it is a static warning if the type
-   * <i>F</i> of <i>S.m</i> may not be assigned to a function type.
-   */
-  INVOCATION_OF_NON_FUNCTION(""),
 
   /**
    * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i> ...

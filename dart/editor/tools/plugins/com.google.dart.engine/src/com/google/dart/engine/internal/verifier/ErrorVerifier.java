@@ -762,7 +762,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitPropertyAccess(PropertyAccess node) {
-    checkForStaticAccessToInstanceMember(node.getTarget(), node.getPropertyName());
+    Expression target = node.getRealTarget();
+    checkForStaticAccessToInstanceMember(target, node.getPropertyName());
     return super.visitPropertyAccess(node);
   }
 
