@@ -1945,10 +1945,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (resolvedUnit == null && unit == null) {
       return;
     }
+    // TODO (danrubel): this needs to be optimized but this approach needs investigation
     // ignore if this unit has already been set
-    if (resolvedUnit == unit) {
-      return;
-    }
+//    if (resolvedUnit == unit) {
+//      return;
+//    }
     // OK, schedule selection update
     resolvedUnit = unit;
     ExecutionUtils.runLogAsync(new RunnableEx() {
