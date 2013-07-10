@@ -934,8 +934,10 @@ public class CompletionEngine {
 
     @Override
     public Void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-      if (isCompletionBetween(node.getExpression().getEnd(), node.getSemicolon().getOffset())) {
-        operatorAccess(node.getExpression(), new Ident(node));
+      if (node.getExpression() != null && node.getSemicolon() != null) {
+        if (isCompletionBetween(node.getExpression().getEnd(), node.getSemicolon().getOffset())) {
+          operatorAccess(node.getExpression(), new Ident(node));
+        }
       }
       return null;
     }
