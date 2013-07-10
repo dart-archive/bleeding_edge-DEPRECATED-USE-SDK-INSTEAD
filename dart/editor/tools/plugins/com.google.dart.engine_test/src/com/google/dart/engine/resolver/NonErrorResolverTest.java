@@ -1424,6 +1424,14 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_mapKeyTypeNotAssignable() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = <String, int > {'a' : 1};"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_memberWithClassName_setter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

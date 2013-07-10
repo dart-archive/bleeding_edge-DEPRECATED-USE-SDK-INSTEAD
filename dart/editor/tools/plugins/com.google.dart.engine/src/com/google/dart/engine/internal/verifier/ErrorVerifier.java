@@ -60,6 +60,7 @@ import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
+import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NativeFunctionBody;
@@ -686,6 +687,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     checkForNonConstMapAsExpressionStatement(node);
+    checkForMapTypeNotAssignable(node);
     return super.visitMapLiteral(node);
   }
 
@@ -3108,7 +3110,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * TODO(scheglov)
+   * This verifies that the elements given {@link ListLiteral} are subtypes of the specified element
+   * type.
+   * 
+   * @param node the list literal to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+   * @see StaticWarningCode#LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
    */
   private boolean checkForListElementTypeNotAssignable(ListLiteral node) {
     // Prepare list element type.
@@ -3132,6 +3140,51 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     boolean hasProblems = false;
     for (Expression element : node.getElements()) {
       hasProblems |= checkForArgumentTypeNotAssignable(element, listElementType, null, errorCode);
+    }
+    return hasProblems;
+  }
+
+  /**
+   * This verifies that the key/value of entries of the given {@link MapLiteral} are subtypes of the
+   * key/value types specified in the type arguments.
+   * 
+   * @param node the map literal to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
+   * @see CompileTimeErrorCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
+   * @see StaticWarningCode#MAP_KEY_TYPE_NOT_ASSIGNABLE
+   * @see StaticWarningCode#MAP_VALUE_TYPE_NOT_ASSIGNABLE
+   */
+  private boolean checkForMapTypeNotAssignable(MapLiteral node) {
+    // Prepare maps key/value types.
+    TypeArgumentList typeArgumentList = node.getTypeArguments();
+    if (typeArgumentList == null) {
+      return false;
+    }
+    NodeList<TypeName> typeArguments = typeArgumentList.getArguments();
+    if (typeArguments.size() < 2) {
+      return false;
+    }
+    Type keyType = typeArguments.get(0).getType();
+    Type valueType = typeArguments.get(1).getType();
+    // Prepare problem to report.
+    ErrorCode keyErrorCode;
+    ErrorCode valueErrorCode;
+    if (node.getModifier() != null) {
+      keyErrorCode = CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE;
+      valueErrorCode = CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE;
+    } else {
+      keyErrorCode = StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE;
+      valueErrorCode = StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE;
+    }
+    // Check every map entry.
+    boolean hasProblems = false;
+    NodeList<MapLiteralEntry> entries = node.getEntries();
+    for (MapLiteralEntry entry : entries) {
+      Expression key = entry.getKey();
+      Expression value = entry.getValue();
+      hasProblems |= checkForArgumentTypeNotAssignable(key, keyType, null, keyErrorCode);
+      hasProblems |= checkForArgumentTypeNotAssignable(value, valueType, null, valueErrorCode);
     }
     return hasProblems;
   }
