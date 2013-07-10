@@ -2161,6 +2161,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
       DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
       dartCopy.setModificationTime(source.getModificationStamp());
+      dartCopy.setState(DartEntry.ELEMENT, CacheState.INVALID);
       dartCopy.setState(SourceEntry.LINE_INFO, CacheState.INVALID);
       dartCopy.setState(DartEntry.PARSE_ERRORS, CacheState.INVALID);
       dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.INVALID);
