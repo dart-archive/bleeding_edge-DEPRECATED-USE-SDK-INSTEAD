@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.ast.ASTNode;
@@ -560,6 +561,10 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
       return;
     }
 
-    display.asyncExec(runnable);
+//    display.asyncExec(runnable);
+
+    addedPositions = Lists.newArrayList(addedPositions);
+    removedPositions = Lists.newArrayList(removedPositions);
+    fJobPresenter.updatePresentation(display, addedPositions, removedPositions);
   }
 }

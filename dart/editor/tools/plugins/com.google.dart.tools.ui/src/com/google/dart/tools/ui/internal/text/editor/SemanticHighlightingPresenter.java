@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.common.collect.Lists;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.HighlightedPosition;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.Highlighting;
@@ -32,6 +33,7 @@ import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.widgets.Display;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -529,6 +531,110 @@ public class SemanticHighlightingPresenter implements ITextPresentationListener,
       fSourceViewer.removeTextInputListener(this);
       fSourceViewer = null;
     }
+  }
+
+  public void updatePresentation(Display display, final List<Position> addedPositionsList,
+      final List<Position> removedPositionsList) {
+    if (fSourceViewer == null) {
+      return;
+    }
+
+    final HighlightedPosition[] addedPositions = new SemanticHighlightingManager.HighlightedPosition[addedPositionsList.size()];
+    addedPositionsList.toArray(addedPositions);
+    final SemanticHighlightingManager.HighlightedPosition[] removedPositions = new SemanticHighlightingManager.HighlightedPosition[removedPositionsList.size()];
+    removedPositionsList.toArray(removedPositions);
+
+    // TODO: double-check consistency with document.getPositions(...)
+    // TODO: reuse removed positions
+    if (isCanceled()) {
+      return;
+    }
+
+    IDocument document = fSourceViewer.getDocument();
+    if (document == null) {
+      return;
+    }
+
+    String positionCategory = getPositionCategory();
+
+    List<Position> removedPositionsCopy = Lists.newArrayList(removedPositionsList);
+
+    try {
+      synchronized (fPositionLock) {
+        List<Position> oldPositions = fPositions;
+        int newSize = Math.max(
+            fPositions.size() + addedPositions.length - removedPositions.length,
+            10);
+
+        /*
+         * The following loop is a kind of merge sort: it merges two List<Position>, each sorted by
+         * position.offset, into one new list. The first of the two is the previous list of
+         * positions (oldPositions), from which any deleted positions get removed on the fly. The
+         * second of two is the list of added positions. The result is stored in newPositions.
+         */
+        List<Position> newPositions = new ArrayList<Position>(newSize);
+        Position position = null;
+        Position addedPosition = null;
+        for (int i = 0, j = 0, n = oldPositions.size(), m = addedPositions.length; i < n
+            || position != null || j < m || addedPosition != null;) {
+          // loop variant: i + j < old(i + j)
+
+          // a) find the next non-deleted Position from the old list
+          while (position == null && i < n) {
+            position = oldPositions.get(i++);
+            if (position.isDeleted() || contain(removedPositionsCopy, position)) {
+              document.removePosition(positionCategory, position);
+              position = null;
+            }
+          }
+
+          // b) find the next Position from the added list
+          if (addedPosition == null && j < m) {
+            addedPosition = addedPositions[j++];
+            document.addPosition(positionCategory, addedPosition);
+          }
+
+          // c) merge: add the next of position/addedPosition with the lower offset
+          if (position != null) {
+            if (addedPosition != null) {
+              if (position.getOffset() <= addedPosition.getOffset()) {
+                newPositions.add(position);
+                position = null;
+              } else {
+                newPositions.add(addedPosition);
+                addedPosition = null;
+              }
+            } else {
+              newPositions.add(position);
+              position = null;
+            }
+          } else if (addedPosition != null) {
+            newPositions.add(addedPosition);
+            addedPosition = null;
+          }
+        }
+        fPositions = newPositions;
+      }
+    } catch (BadPositionCategoryException e) {
+      // Should not happen
+      DartToolsPlugin.log(e);
+    } catch (BadLocationException e) {
+      DartToolsPlugin.log(e);
+    }
+
+    display.asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        TextPresentation textPresentation = createPresentation(
+            addedPositionsList,
+            removedPositionsList);
+        if (textPresentation != null) {
+          fSourceViewer.changeTextPresentation(textPresentation, false);
+        } else {
+          fSourceViewer.invalidateTextPresentation();
+        }
+      }
+    });
   }
 
   /**
