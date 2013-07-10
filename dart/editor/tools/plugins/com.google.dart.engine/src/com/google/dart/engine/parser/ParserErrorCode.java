@@ -57,6 +57,8 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_LIST_OR_MAP_LITERAL("Expected a list or map literal"),
   EXPECTED_STRING_LITERAL("Expected a string literal"),
   EXPECTED_TOKEN("Expected to find '%s'"),
+  EXPECTED_ONE_LIST_TYPE_ARGUMENTS(
+      "List literal requires exactly one type arguments or none, but %d found"),
   EXPECTED_TWO_MAP_TYPE_ARGUMENTS(
       "Map literal requires exactly two type arguments or none, but %d found"),
   EXPECTED_TYPE_NAME("Expected a type name"),

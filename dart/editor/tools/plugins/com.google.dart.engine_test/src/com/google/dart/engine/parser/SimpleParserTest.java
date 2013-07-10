@@ -3060,7 +3060,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseListLiteral_empty_oneToken() throws Exception {
     Token token = token(Keyword.CONST);
-    TypeArgumentList typeArguments = new TypeArgumentList(null, null, null);
+    TypeArgumentList typeArguments = null;
     ListLiteral literal = parse("parseListLiteral", new Object[] {token, typeArguments}, "[]");
     assertEquals(token, literal.getModifier());
     assertEquals(typeArguments, literal.getTypeArguments());
@@ -3071,7 +3071,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseListLiteral_empty_twoTokens() throws Exception {
     Token token = token(Keyword.CONST);
-    TypeArgumentList typeArguments = new TypeArgumentList(null, null, null);
+    TypeArgumentList typeArguments = null;
     ListLiteral literal = parse("parseListLiteral", new Object[] {token, typeArguments}, "[ ]");
     assertEquals(token, literal.getModifier());
     assertEquals(typeArguments, literal.getTypeArguments());

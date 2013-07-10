@@ -3571,6 +3571,14 @@ public class Parser {
    * @return the list literal that was parsed
    */
   private ListLiteral parseListLiteral(Token modifier, TypeArgumentList typeArguments) {
+    // validate number of type arguments
+    if (typeArguments != null) {
+      int num = typeArguments.getArguments().size();
+      if (num != 1) {
+        reportError(ParserErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, typeArguments, num);
+      }
+    }
+    // may be empty list literal
     if (matches(TokenType.INDEX)) {
       BeginToken leftBracket = new BeginToken(
           TokenType.OPEN_SQUARE_BRACKET,
@@ -3583,6 +3591,7 @@ public class Parser {
       currentToken = currentToken.getNext();
       return new ListLiteral(modifier, typeArguments, leftBracket, null, rightBracket);
     }
+    // open
     Token leftBracket = expect(TokenType.OPEN_SQUARE_BRACKET);
     if (matches(TokenType.CLOSE_SQUARE_BRACKET)) {
       return new ListLiteral(modifier, typeArguments, leftBracket, null, getAndAdvance());
