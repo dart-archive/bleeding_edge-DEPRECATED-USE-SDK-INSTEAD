@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.Extensions;
@@ -82,7 +84,6 @@ import org.eclipse.ui.IMemento;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchCommandConstants;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
@@ -190,8 +191,27 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     return true;
   }
 
-  private TreeViewer treeViewer;
+  /**
+   * Checks if the given Dart file will be too complex for the opening it in the Dart editor.
+   */
+  private static boolean isTooComplexDartFile(IFile file) {
+    IPath fileLoc = file.getLocation();
+    if (fileLoc == null) {
+      return false;
+    }
+    try {
+      List<String> lines = Files.readLines(fileLoc.toFile(), Charsets.UTF_8);
+      for (String line : lines) {
+        if (line.length() > 1000) {
+          return true;
+        }
+      }
+    } catch (Throwable e) {
+    }
+    return false;
+  }
 
+  private TreeViewer treeViewer;
   private IMemento memento;
   private LinkWithEditorAction linkWithEditorAction;
   private MoveResourceAction moveAction;
@@ -204,21 +224,22 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private OpenNewApplicationWizardAction createApplicationAction;
 
   private IgnoreResourceAction ignoreResourceAction;
+
   private EnableDartBuilderAction enableBuilderAction;
 
   private CopyFilePathAction copyFilePathAction;
 
   private HideProjectAction hideContainerAction;
-
   private UndoRedoActionGroup undoRedoActionGroup;
   private RunPubAction pubUpdateAction;
   private RunPubAction pubInstallAction;
   private RunPubAction pubInstallOfflineAction;
+
   private RunPubAction pubDeployAction;
 
   private NewAppFromPackageAction copyPackageAction;
-
   private IPreferenceStore preferences;
+
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
@@ -585,13 +606,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         IFile file = (IFile) element;
         String editorId = IDE.getEditorDescriptor(file).getId();
         if (DartUI.ID_CU_EDITOR.equals(editorId)) {
-          IPath fileLoc = file.getLocation();
-          if (fileLoc != null) {
-            long fileLen = fileLoc.toFile().length();
-            // Gracefully degrade by opening a simpler text editor on very large files
-            if (fileLen > 60000) {
-              editorId = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
-            }
+          // Gracefully degrade by opening a simpler text editor on too complex files.
+          if (isTooComplexDartFile(file)) {
+            editorId = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
           }
         }
         getViewSite().getPage().openEditor(new FileEditorInput(file), editorId);
