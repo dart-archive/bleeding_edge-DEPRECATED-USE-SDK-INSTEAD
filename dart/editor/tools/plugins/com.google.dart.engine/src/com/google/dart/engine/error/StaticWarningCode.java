@@ -439,6 +439,18 @@ public enum StaticWarningCode implements ErrorCode {
   NEW_WITH_ABSTRACT_CLASS("Abstract classes cannot be created with a 'new' expression"),
 
   /**
+   * 15.8 Parameterized Types: Any use of a malbounded type gives rise to a static warning.
+   * 
+   * @param typeName the name of the type being referenced (<i>S</i>)
+   * @param parameterCount the number of type parameters that were declared
+   * @param argumentCount the number of type arguments provided
+   * @see CompileTimeErrorCode#CONST_WITH_INVALID_TYPE_PARAMETERS
+   * @see StaticTypeWarningCode#WRONG_NUMBER_OF_TYPE_ARGUMENTS
+   */
+  NEW_WITH_INVALID_TYPE_PARAMETERS(
+      "The type '%s' is declared with %d type parameters, but %d type arguments were given"),
+
+  /**
    * 12.11.1 New: It is a static warning if <i>T</i> is not a class accessible in the current scope,
    * optionally followed by type arguments.
    * 

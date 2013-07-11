@@ -872,19 +872,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   MULTIPLE_SUPER_INITIALIZERS("Constructor may have at most one 'super' initializer"),
 
   /**
-   * 12.11.1 New: It is a compile time error if <i>S</i> is not a generic type with <i>m</i> type
-   * parameters.
-   * 
-   * @param typeName the name of the type being referenced (<i>S</i>)
-   * @param parameterCount the number of type parameters that were declared
-   * @param argumentCount the number of type arguments provided
-   * @see CompileTimeErrorCode#CONST_WITH_INVALID_TYPE_PARAMETERS
-   * @see StaticTypeWarningCode#WRONG_NUMBER_OF_TYPE_ARGUMENTS
-   */
-  NEW_WITH_INVALID_TYPE_PARAMETERS(
-      "The type '%s' is declared with %d type parameters, but %d type arguments were given"),
-
-  /**
    * 11 Metadata: Metadata consists of a series of annotations, each of which begin with the
    * character @, followed by a constant expression that must be either a reference to a
    * compile-time constant variable, or a call to a constant constructor.

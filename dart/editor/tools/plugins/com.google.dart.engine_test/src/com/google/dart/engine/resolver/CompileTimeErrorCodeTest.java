@@ -2286,39 +2286,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_newWithInvalidTypeParameters() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "f() { return new A<A>(); }"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS);
-    verify(source);
-  }
-
-  public void test_newWithInvalidTypeParameters_tooFew() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "class C<K, V> {}",
-        "f(p) {",
-        "  return new C<A>();",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS);
-    verify(source);
-  }
-
-  public void test_newWithInvalidTypeParameters_tooMany() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {}",
-        "class C<E> {}",
-        "f(p) {",
-        "  return new C<A, A>();",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS);
-    verify(source);
-  }
-
   public void test_noAnnotationConstructorArguments() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

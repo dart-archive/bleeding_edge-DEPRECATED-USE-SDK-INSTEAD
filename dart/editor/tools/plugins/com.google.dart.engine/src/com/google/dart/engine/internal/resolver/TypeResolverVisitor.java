@@ -715,7 +715,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
         if (((InstanceCreationExpression) parent).isConst()) {
           return CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS;
         } else {
-          return CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS;
+          return StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS;
         }
       }
     }
