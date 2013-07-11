@@ -993,8 +993,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
 
     // Visit all of the states in the map to ensure that none were never initialized.
-    Set<Entry<FieldElement, INIT_STATE>> set = fieldElementsMap.entrySet();
-    for (Entry<FieldElement, INIT_STATE> entry : set) {
+    for (Entry<FieldElement, INIT_STATE> entry : fieldElementsMap.entrySet()) {
       if (entry.getValue() == INIT_STATE.NOT_INIT) {
         FieldElement fieldElement = entry.getKey();
         if (fieldElement.isFinal() || fieldElement.isConst()) {

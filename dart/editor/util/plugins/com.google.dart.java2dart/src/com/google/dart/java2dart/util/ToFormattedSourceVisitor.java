@@ -636,7 +636,17 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
     }
     visit(node.getTypeArguments(), " ");
     writer.print("[");
-    visitList(node.getElements(), ", ");
+    {
+      NodeList<Expression> elements = node.getElements();
+      if (elements.size() < 2 || elements.toString().length() < 60) {
+        visitList(elements, ", ");
+      } else {
+        String elementIndent = indentString + "    ";
+        writer.print("\n");
+        writer.print(elementIndent);
+        visitList(elements, ",\n" + elementIndent);
+      }
+    }
     writer.print("]");
     return null;
   }
