@@ -128,7 +128,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
 
   @Override
   public ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
-    return new ClassDeclaration(
+    ClassDeclaration copy = new ClassDeclaration(
         clone(node.getDocumentationComment()),
         clone(node.getMetadata()),
         node.getAbstractKeyword(),
@@ -141,6 +141,8 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
         node.getLeftBracket(),
         clone(node.getMembers()),
         node.getRightBracket());
+    copy.setNativeClause(clone(node.getNativeClause()));
+    return copy;
   }
 
   @Override
