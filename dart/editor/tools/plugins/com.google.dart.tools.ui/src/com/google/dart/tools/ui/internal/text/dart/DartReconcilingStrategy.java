@@ -119,6 +119,16 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   public DartReconcilingStrategy(DartEditor editor) {
     this.editor = editor;
     this.source = editor.getInputSource();
+
+    // Cleanup the receiver when editor is closed
+    editor.getViewer().getTextWidget().addDisposeListener(new DisposeListener() {
+      @Override
+      public void widgetDisposed(DisposeEvent e) {
+        dispose();
+      }
+    });
+
+    AnalysisWorker.addListener(analysisListener);
   }
 
   @Override
@@ -148,20 +158,10 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   @Override
   public void setDocument(final IDocument document) {
     if (this.document != null) {
-      throw new UnsupportedOperationException();
+      document.removeDocumentListener(documentListener);
     }
     this.document = document;
-
-    // Cleanup the receiver when editor is closed
-    editor.getViewer().getTextWidget().addDisposeListener(new DisposeListener() {
-      @Override
-      public void widgetDisposed(DisposeEvent e) {
-        dispose();
-      }
-    });
-
     document.addDocumentListener(documentListener);
-    AnalysisWorker.addListener(analysisListener);
   }
 
   @Override
