@@ -457,6 +457,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     try {
       enclosingClass = node.getElement();
       checkForRecursiveInterfaceInheritance(node.getElement(), new ArrayList<ClassElement>());
+      checkForTypeAliasCannotReferenceItself_mixin(node);
     } finally {
       enclosingClass = outerClassElement;
     }
@@ -608,7 +609,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     checkForDefaultValueInFunctionTypeAlias(node);
-    checkForTypeAliasCannotReferenceItself(node);
+    checkForTypeAliasCannotReferenceItself_function(node);
     return super.visitFunctionTypeAlias(node);
   }
 
@@ -4229,9 +4230,24 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
    */
-  private boolean checkForTypeAliasCannotReferenceItself(FunctionTypeAlias node) {
+  private boolean checkForTypeAliasCannotReferenceItself_function(FunctionTypeAlias node) {
     FunctionTypeAliasElement element = node.getElement();
     if (!hasFunctionTypeAliasSelfReference(element)) {
+      return false;
+    }
+    errorReporter.reportError(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node);
+    return true;
+  }
+
+  /**
+   * This verifies that the given class type alias does not reference itself.
+   * 
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+   */
+  private boolean checkForTypeAliasCannotReferenceItself_mixin(ClassTypeAlias node) {
+    ClassElement element = node.getElement();
+    if (!hasClassTypeAliasSelfReference(element, new HashSet<ClassElement>())) {
       return false;
     }
     errorReporter.reportError(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node);
@@ -4582,6 +4598,28 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link ClassElement} has direct or indirect reference to
+   *         itself using only other typedef {@link ClassElement}s.
+   */
+  private boolean hasClassTypeAliasSelfReference(ClassElement element,
+      HashSet<ClassElement> seenMixins) {
+    if (seenMixins.contains(element)) {
+      return true;
+    }
+    seenMixins.add(element);
+    for (InterfaceType mixin : element.getMixins()) {
+      ClassElement mixinElement = mixin.getElement();
+      if (!mixinElement.isTypedef()) {
+        continue;
+      }
+      if (hasClassTypeAliasSelfReference(mixinElement, seenMixins)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

@@ -3200,6 +3200,25 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typeAliasCannotRereferenceItself_mixin_direct() throws Exception {
+    Source source = addSource(createSource(//
+    "typedef M = Object with M;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    verify(source);
+  }
+
+  public void test_typeAliasCannotRereferenceItself_mixin_indirect() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef M1 = Object with M2;",
+        "typedef M2 = Object with M1;"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    verify(source);
+  }
+
   public void test_typeArgumentNotMatchingBounds_const() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
