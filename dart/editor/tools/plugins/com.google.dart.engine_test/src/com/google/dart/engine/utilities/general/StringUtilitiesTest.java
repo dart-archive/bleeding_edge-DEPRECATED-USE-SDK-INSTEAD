@@ -16,7 +16,31 @@ package com.google.dart.engine.utilities.general;
 import junit.framework.TestCase;
 
 public class StringUtilitiesTest extends TestCase {
+  public void test_EMPTY() {
+    assertEquals("", StringUtilities.EMPTY);
+    assertTrue(StringUtilities.EMPTY.isEmpty());
+  }
+
   public void test_EMPTY_ARRAY() {
     assertEquals(0, StringUtilities.EMPTY_ARRAY.length);
+  }
+
+  public void test_isEmpty() {
+    assertTrue(StringUtilities.isEmpty(""));
+    assertFalse(StringUtilities.isEmpty(" "));
+    assertFalse(StringUtilities.isEmpty("a"));
+    assertTrue(StringUtilities.isEmpty(StringUtilities.EMPTY));
+  }
+
+  public void test_substringBefore() {
+    assertEquals(null, StringUtilities.substringBefore(null, ""));
+    assertEquals(null, StringUtilities.substringBefore(null, "a"));
+    assertEquals("", StringUtilities.substringBefore("", "a"));
+    assertEquals("", StringUtilities.substringBefore("abc", "a"));
+    assertEquals("a", StringUtilities.substringBefore("abcba", "b"));
+    assertEquals("ab", StringUtilities.substringBefore("abc", "c"));
+    assertEquals("abc", StringUtilities.substringBefore("abc", "d"));
+    assertEquals("", StringUtilities.substringBefore("abc", ""));
+    assertEquals("abc", StringUtilities.substringBefore("abc", null));
   }
 }

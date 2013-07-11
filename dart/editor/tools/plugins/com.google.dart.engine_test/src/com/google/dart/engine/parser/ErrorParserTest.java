@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SuperExpression;
@@ -951,6 +952,30 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.MISSING_KEYWORD_OPERATOR);
   }
 
+  public void test_missingKeywordOperator_parseClassMember() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "+() {}",
+        ParserErrorCode.MISSING_KEYWORD_OPERATOR);
+  }
+
+  public void test_missingKeywordOperator_parseClassMember_afterTypeName() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "int +() {}",
+        ParserErrorCode.MISSING_KEYWORD_OPERATOR);
+  }
+
+  public void test_missingKeywordOperator_parseClassMember_afterVoid() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "void +() {}",
+        ParserErrorCode.MISSING_KEYWORD_OPERATOR);
+  }
+
   public void test_missingNameInLibraryDirective() throws Exception {
     CompilationUnit unit = parseCompilationUnit(
         "library;",
@@ -1006,6 +1031,16 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseFormalParameterList", "(a, [b], {c})", ParserErrorCode.MIXED_PARAMETER_GROUPS);
   }
 
+  public void test_multipleExtendsClauses() throws Exception {
+    parseCompilationUnit("class A extends B extends C {}", ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES);
+  }
+
+  public void test_multipleImplementsClauses() throws Exception {
+    parseCompilationUnit(
+        "class A implements B implements C {}",
+        ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES);
+  }
+
   public void test_multipleLibraryDirectives() throws Exception {
     parseCompilationUnit("library l; library m;", ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
   }
@@ -1033,6 +1068,12 @@ public class ErrorParserTest extends ParserTestCase {
         "parseForStatement",
         "for (int a, b in foo) {}",
         ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH);
+  }
+
+  public void test_multipleWithClauses() throws Exception {
+    parseCompilationUnit(
+        "class A extends B with C with D {}",
+        ParserErrorCode.MULTIPLE_WITH_CLAUSES);
   }
 
   public void test_namedParameterOutsideGroup() throws Exception {
@@ -1091,6 +1132,16 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_optionalAfterNormalParameters_positional() throws Exception {
     parseCompilationUnit("f([a], b) {}", ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS);
+  }
+
+  public void test_parseCascadeSection_missingIdentifier() throws Exception {
+    MethodInvocation methodInvocation = parse(
+        "parseCascadeSection",
+        "..()",
+        ParserErrorCode.MISSING_IDENTIFIER);
+    assertNull(methodInvocation.getTarget());
+    assertEquals("", methodInvocation.getMethodName().getName());
+    assertSize(0, methodInvocation.getArgumentList().getArguments());
   }
 
   public void test_positionalAfterNamedArgument() throws Exception {

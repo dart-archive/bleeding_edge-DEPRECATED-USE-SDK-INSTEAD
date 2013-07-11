@@ -1507,7 +1507,7 @@ public class Parser {
                 returnType);
           }
         }
-        if (isOperator(peek())) {
+        if (isOperator(currentToken)) {
           //
           // We appear to have found an operator declaration without the 'operator' keyword.
           //
@@ -1535,7 +1535,7 @@ public class Parser {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
     } else if (!matchesIdentifier()) {
-      if (isOperator(peek())) {
+      if (isOperator(currentToken)) {
         //
         // We appear to have found an operator declaration without the 'operator' keyword.
         //
@@ -1621,7 +1621,7 @@ public class Parser {
             validateModifiersForField(modifiers),
             type);
       }
-      if (isOperator(peek())) {
+      if (isOperator(currentToken)) {
         //
         // We appear to have found an operator declaration without the 'operator' keyword.
         //

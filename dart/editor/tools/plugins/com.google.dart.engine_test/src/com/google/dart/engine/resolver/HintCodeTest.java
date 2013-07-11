@@ -16,7 +16,6 @@ package com.google.dart.engine.resolver;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.source.Source;
 
-// TODO (jwren) Add missing '_nested' tests
 public class HintCodeTest extends ResolverTestCase {
 
   public void test_deadCode_deadBlock_conditionalElse() throws Exception {
