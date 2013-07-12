@@ -20,28 +20,33 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.parser.ParserTestCase;
 
 public class NodeLocatorTest extends ParserTestCase {
-  public void test_offset() throws Exception {
+  public void test_range() throws Exception {
+    CompilationUnit unit = parseCompilationUnit("library myLib;");
+    assertLocate(unit, 4, 10, LibraryDirective.class);
+  }
+
+  public void test_searchWithin_null() throws Exception {
+    NodeLocator locator = new NodeLocator(0, 0);
+    assertNull(locator.searchWithin(null));
+  }
+
+  public void test_searchWithin_offset() throws Exception {
     CompilationUnit unit = parseCompilationUnit("library myLib;");
     assertLocate(unit, 10, SimpleIdentifier.class);
   }
 
-  public void test_offsetAfterNode() throws Exception {
+  public void test_searchWithin_offsetAfterNode() throws Exception {
     CompilationUnit unit = parseCompilationUnit(createSource("class A {}", "class B {}"));
     NodeLocator locator = new NodeLocator(1024, 1024);
     ASTNode node = locator.searchWithin(unit.getDeclarations().get(0));
     assertNull(node);
   }
 
-  public void test_offsetBeforeNode() throws Exception {
+  public void test_searchWithin_offsetBeforeNode() throws Exception {
     CompilationUnit unit = parseCompilationUnit(createSource("class A {}", "class B {}"));
     NodeLocator locator = new NodeLocator(0, 0);
     ASTNode node = locator.searchWithin(unit.getDeclarations().get(1));
     assertNull(node);
-  }
-
-  public void test_range() throws Exception {
-    CompilationUnit unit = parseCompilationUnit("library myLib;");
-    assertLocate(unit, 4, 10, LibraryDirective.class);
   }
 
   private void assertLocate(CompilationUnit unit, int offset, Class<?> expectedClass)
@@ -54,6 +59,7 @@ public class NodeLocatorTest extends ParserTestCase {
     NodeLocator locator = new NodeLocator(start, end);
     ASTNode node = locator.searchWithin(unit);
     assertNotNull(node);
+    assertSame(node, locator.getFoundNode());
     assertTrue("Node starts after range", node.getOffset() <= start);
     assertTrue("Node ends before range", node.getOffset() + node.getLength() > end);
     assertInstanceOf(expectedClass, node);

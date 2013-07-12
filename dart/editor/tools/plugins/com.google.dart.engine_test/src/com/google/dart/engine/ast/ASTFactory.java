@@ -789,6 +789,10 @@ public final class ASTFactory {
         : token(TokenType.COLON), expression);
   }
 
+  public static NativeClause nativeClause(String nativeCode) {
+    return new NativeClause(token("native"), string(nativeCode));
+  }
+
   public static NativeFunctionBody nativeFunctionBody(String nativeMethodName) {
     return new NativeFunctionBody(
         token("native"),
@@ -869,6 +873,10 @@ public final class ASTFactory {
         constructorName == null ? null : token(TokenType.PERIOD),
         constructorName == null ? null : identifier(constructorName),
         argumentList(arguments));
+  }
+
+  public static RethrowExpression rethrowExpression() {
+    return new RethrowExpression(token(Keyword.RETHROW));
   }
 
   public static ReturnStatement returnStatement() {

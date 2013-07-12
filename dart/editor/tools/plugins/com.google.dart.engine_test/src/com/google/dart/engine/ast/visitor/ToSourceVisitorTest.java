@@ -1212,6 +1212,10 @@ public class ToSourceVisitorTest extends EngineTestCase {
         namedFormalParameter(simpleFormalParameter(Keyword.VAR, "a"), integer(0L)));
   }
 
+  public void test_visitNativeClause() {
+    assertSource("native 'code'", nativeClause("code"));
+  }
+
   public void test_visitNativeFunctionBody() {
     assertSource("native 'str';", nativeFunctionBody("str"));
   }
@@ -1260,6 +1264,10 @@ public class ToSourceVisitorTest extends EngineTestCase {
 
   public void test_visitRedirectingConstructorInvocation_unnamed() {
     assertSource("this()", redirectingConstructorInvocation());
+  }
+
+  public void test_visitRethrowExpression() {
+    assertSource("rethrow", rethrowExpression());
   }
 
   public void test_visitReturnStatement_expression() {
