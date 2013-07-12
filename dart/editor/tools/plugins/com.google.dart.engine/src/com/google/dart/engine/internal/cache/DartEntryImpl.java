@@ -363,7 +363,11 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       }
       state = state.nextState;
     };
-    return CacheState.INVALID;
+    if (descriptor == RESOLUTION_ERRORS || descriptor == RESOLVED_UNIT || descriptor == HINTS) {
+      return CacheState.INVALID;
+    } else {
+      throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
+    }
   }
 
   @Override
@@ -593,9 +597,11 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     if (parsedUnitState != CacheState.VALID) {
       parsedUnit = unit;
+      parsedUnitState = CacheState.VALID;
     }
     if (parseErrorsState != CacheState.VALID) {
       parseErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
+      parseErrorsState = CacheState.VALID;
     }
   }
 
