@@ -1750,7 +1750,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @return {@code true} if the library is 'dart:html'
    */
   private boolean isHtmlLibrary(LibraryElement library) {
-    return library.getName().equals("dart.dom.html");
+    return library != null && "dart.dom.html".equals(library.getName());
   }
 
   /**
