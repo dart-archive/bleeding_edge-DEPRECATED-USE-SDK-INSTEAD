@@ -13,8 +13,12 @@
  */
 package com.google.dart.engine.source;
 
+import com.google.dart.engine.utilities.io.FileUtilities;
+
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -138,7 +142,20 @@ public class FileBasedSource implements Source {
       readCount--;
     } while (thrownException != null && readCount > 0);
     if (thrownException != null) {
-      throw thrownException;
+      InputStreamReader reader = null;
+      try {
+        reader = new InputStreamReader(new FileInputStream(this.file), "UTF-8");
+        contents = FileUtilities.getContents(reader);
+      } finally {
+        if (reader != null) {
+          try {
+            reader.close();
+          } catch (IOException exception) {
+            // Ignored
+          }
+        }
+      }
+      receiver.accept(contents, modificationTime);
     }
     byteBuffer.rewind();
     receiver.accept(UTF_8_CHARSET.decode(byteBuffer), modificationTime);
