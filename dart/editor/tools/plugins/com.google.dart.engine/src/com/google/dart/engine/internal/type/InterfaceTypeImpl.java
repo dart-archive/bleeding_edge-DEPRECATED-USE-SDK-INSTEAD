@@ -698,11 +698,15 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       throw new IllegalArgumentException("argumentTypes.length (" + argumentTypes.length
           + ") != parameterTypes.length (" + parameterTypes.length + ")");
     }
-    if (argumentTypes.length == 0) {
+    if (argumentTypes.length == 0 || typeArguments.length == 0) {
+      return this;
+    }
+    Type[] newTypeArguments = substitute(typeArguments, argumentTypes, parameterTypes);
+    if (Arrays.equals(newTypeArguments, typeArguments)) {
       return this;
     }
     InterfaceTypeImpl newType = new InterfaceTypeImpl(getElement());
-    newType.setTypeArguments(substitute(typeArguments, argumentTypes, parameterTypes));
+    newType.setTypeArguments(newTypeArguments);
     return newType;
   }
 
