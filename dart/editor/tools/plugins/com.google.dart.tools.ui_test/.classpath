@@ -4,5 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="src-framework"/>
+	<classpathentry kind="src" path="src-ui"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
