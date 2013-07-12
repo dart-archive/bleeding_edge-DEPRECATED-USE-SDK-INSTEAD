@@ -1608,21 +1608,21 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_nonBoolExpression_assert_bool() throws Exception {
+  public void test_nonBoolExpression_functionType() throws Exception {
     Source source = addSource(createSource(//
+        "bool makeAssertion() => true;",
         "f() {",
-        "  assert(true);",
+        "  assert(makeAssertion);",
         "}"));
     resolve(source);
     assertNoErrors();
     verify(source);
   }
 
-  public void test_nonBoolExpression_assert_functionType() throws Exception {
+  public void test_nonBoolExpression_interfaceType() throws Exception {
     Source source = addSource(createSource(//
-        "bool makeAssertion() => true;",
         "f() {",
-        "  assert(makeAssertion);",
+        "  assert(true);",
         "}"));
     resolve(source);
     assertNoErrors();

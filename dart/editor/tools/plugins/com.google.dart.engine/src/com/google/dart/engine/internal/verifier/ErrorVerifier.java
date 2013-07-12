@@ -1062,17 +1062,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               return true;
             }
           }
-          PropertyAccessorElement[] propertyAccessorElts = superclassElement.getAccessors();
-          for (PropertyAccessorElement accessorElt : propertyAccessorElts) {
-            if (accessorElt.getName().equals(executableElementName) && accessorElt.isStatic()) {
-              errorReporter.reportError(
-                  StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
-                  errorNameTarget,
-                  executableElementName,
-                  accessorElt.getEnclosingElement().getDisplayName());
-              return true;
-            }
-          }
           MethodElement[] methodElements = superclassElement.getMethods();
           for (MethodElement methodElement : methodElements) {
             if (methodElement.getName().equals(executableElementName) && methodElement.isStatic()) {
@@ -3225,22 +3214,30 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * Check to make sure that all similarly typed accessors are of the same type (including inherited
    * accessors).
    * 
-   * @param node The accessor currently being visited.
+   * @param node the accessor currently being visited
+   * @return {@code true} if and only if an error code is generated on the passed node
    */
-  private void checkForMismatchedAccessorTypes(Declaration accessorDeclaration,
+  private boolean checkForMismatchedAccessorTypes(Declaration accessorDeclaration,
       String accessorTextName) {
-    PropertyAccessorElement counterpartAccessor = null;
     ExecutableElement accessorElement = (ExecutableElement) accessorDeclaration.getElement();
-
     if (!(accessorElement instanceof PropertyAccessorElement)) {
-      return;
+      return false;
     }
-
+    PropertyAccessorElement counterpartAccessor = null;
     PropertyAccessorElement propertyAccessorElement = (PropertyAccessorElement) accessorElement;
-    counterpartAccessor = propertyAccessorElement.getCorrespondingSetter();
+    if (propertyAccessorElement.isGetter()) {
+      counterpartAccessor = propertyAccessorElement.getCorrespondingSetter();
+    } else {
+      counterpartAccessor = propertyAccessorElement.getCorrespondingGetter();
+      // if the setter and getter are in the same enclosing element, return
+      if (counterpartAccessor != null
+          && counterpartAccessor.getEnclosingElement() == propertyAccessorElement.getEnclosingElement()) {
+        return false;
+      }
+    }
     if (counterpartAccessor == null) {
       // Nothing to report.  There is no corresponding accessor
-      return;
+      return false;
     }
 
     // Default of null == no accessor or no type (dynamic)
@@ -3266,8 +3263,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           accessorTextName,
           setterType.getDisplayName(),
           getterType.getDisplayName());
+      return true;
     }
-    // TODO(ericarnold): If this is a method.  Check our superiors
+    // TODO(jwren): If this is a method.  Check our supertypes.
+    return false;
   }
 
   /**
