@@ -370,15 +370,14 @@ public class DirectoryBasedDartSdk implements DartSdk {
   }
 
   @Override
-  public Source mapDartUri(ContentCache contentCache, String dartUri) {
+  public Source mapDartUri(String dartUri) {
     SdkLibrary library = getSdkLibrary(dartUri);
     if (library == null) {
       return null;
     }
-    return new FileBasedSource(
-        contentCache,
-        new File(getLibraryDirectory(), library.getPath()),
-        UriKind.DART_URI);
+    return new FileBasedSource(analysisContext.getSourceFactory().getContentCache(), new File(
+        getLibraryDirectory(),
+        library.getPath()), UriKind.DART_URI);
   }
 
   /**

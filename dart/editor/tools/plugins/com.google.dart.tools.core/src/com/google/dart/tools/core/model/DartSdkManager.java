@@ -101,10 +101,13 @@ public class DartSdkManager {
     }
 
     @Override
-    public Source mapDartUri(ContentCache contentCache, String dartUri) {
+    public Source mapDartUri(String dartUri) {
       if (DART_CORE.equals(dartUri)) {
         if (coreSource == null) {
-          coreSource = new FileBasedSource(contentCache, new File("core.dart"), UriKind.DART_URI) {
+          coreSource = new FileBasedSource(
+              getContext().getSourceFactory().getContentCache(),
+              new File("core.dart"),
+              UriKind.DART_URI) {
             @Override
             public void getContents(com.google.dart.engine.source.Source.ContentReceiver receiver)
                 throws Exception {
