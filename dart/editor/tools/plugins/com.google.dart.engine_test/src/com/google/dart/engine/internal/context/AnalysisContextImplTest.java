@@ -33,6 +33,7 @@ import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.source.LineInfo;
@@ -40,6 +41,7 @@ import com.google.dart.engine.utilities.source.LineInfo;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AnalysisContextImplTest extends EngineTestCase {
@@ -61,6 +63,10 @@ public class AnalysisContextImplTest extends EngineTestCase {
     fail("Implement this");
   }
 
+  public void fail_recordLibraryElements() {
+    fail("Implement this");
+  }
+
   @Override
   public void setUp() {
     context = new AnalysisContextImpl();
@@ -74,6 +80,20 @@ public class AnalysisContextImplTest extends EngineTestCase {
     ChangeSet changeSet = new ChangeSet();
     changeSet.changed(source);
     context.applyChanges(changeSet);
+  }
+
+  public void test_applyChanges_change_flush_element() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source librarySource = addSource("/lib.dart", createSource(//
+        "library lib;",
+        "int a = 0;"));
+    assertNotNull(context.computeLibraryElement(librarySource));
+
+    context.setContents(librarySource, createSource(//
+        "library lib;",
+        "int aa = 0;"));
+    assertNull(context.getLibraryElement(librarySource));
   }
 
   public void test_applyChanges_change_multiple() throws Exception {
@@ -132,6 +152,30 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertSame(libA, sources.get(0));
   }
 
+  public void test_applyChanges_removeContainer() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source libA = addSource("/libA.dart", createSource(//
+        "library libA;",
+        "import 'libB.dart';"));
+    final Source libB = addSource("/libB.dart", createSource(//
+        "library libB;"));
+    context.computeLibraryElement(libA);
+    assertSize(0, context.getSourcesNeedingProcessing());
+
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.removedContainer(new SourceContainer() {
+      @Override
+      public boolean contains(Source source) {
+        return source.equals(libB);
+      }
+    });
+    context.applyChanges(changeSet);
+    List<Source> sources = context.getSourcesNeedingProcessing();
+    assertSize(1, sources);
+    assertSame(libA, sources.get(0));
+  }
+
   public void test_computeDocumentationComment_block() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
@@ -158,6 +202,10 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNull(context.computeDocumentationComment(classElement));
   }
 
+  public void test_computeDocumentationComment_null() throws Exception {
+    assertNull(context.computeDocumentationComment(null));
+  }
+
   public void test_computeDocumentationComment_singleLine_multiple() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
@@ -175,23 +223,68 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertEquals(comment, context.computeDocumentationComment(classElement));
   }
 
-  public void test_computeErrors_none() throws Exception {
+  public void test_computeErrors_dart_none() throws Exception {
     Source source = addSource("/lib.dart", "library lib;");
     AnalysisError[] errors = context.computeErrors(source);
     assertLength(0, errors);
   }
 
-  public void test_computeErrors_some() throws Exception {
+  public void test_computeErrors_dart_part() throws Exception {
+    Source librarySource = addSource("/lib.dart", "library lib; part 'part.dart';");
+    Source partSource = addSource("/part.dart", "part of 'lib';");
+    context.parseCompilationUnit(librarySource);
+    AnalysisError[] errors = context.computeErrors(partSource);
+    assertNotNull(errors);
+    assertTrue(errors.length > 0);
+  }
+
+  public void test_computeErrors_dart_some() throws Exception {
     Source source = addSource("/lib.dart", "library 'lib';");
     AnalysisError[] errors = context.computeErrors(source);
     assertNotNull(errors);
     assertTrue(errors.length > 0);
   }
 
-  public void test_computeHtmlElement() throws Exception {
+  public void test_computeErrors_html_none() throws Exception {
+    Source source = addSource("/test.html", "<html></html>");
+    AnalysisError[] errors = context.computeErrors(source);
+    assertLength(0, errors);
+  }
+
+  public void test_computeExportedLibraries_none() throws Exception {
+    Source source = addSource("/test.dart", "library test;");
+    assertLength(0, context.computeExportedLibraries(source));
+  }
+
+  public void test_computeExportedLibraries_some() throws Exception {
+//    addSource("/lib1.dart", "library lib1;");
+//    addSource("/lib2.dart", "library lib2;");
+    Source source = addSource("/test.dart", "library test; export 'lib1.dart'; export 'lib2.dart';");
+    assertLength(2, context.computeExportedLibraries(source));
+  }
+
+  public void test_computeHtmlElement_nonHtml() throws Exception {
+    Source source = addSource("/test.dart", "library test;");
+    assertNull(context.computeHtmlElement(source));
+  }
+
+  public void test_computeHtmlElement_valid() throws Exception {
     Source source = addSource("/test.html", "<html></html>");
     HtmlElement element = context.computeHtmlElement(source);
     assertNotNull(element);
+    assertSame(element, context.computeHtmlElement(source));
+  }
+
+  public void test_computeImportedLibraries_none() throws Exception {
+    Source source = addSource("/test.dart", "library test;");
+    assertLength(0, context.computeImportedLibraries(source));
+  }
+
+  public void test_computeImportedLibraries_some() throws Exception {
+//    addSource("/lib1.dart", "library lib1;");
+//    addSource("/lib2.dart", "library lib2;");
+    Source source = addSource("/test.dart", "library test; import 'lib1.dart'; import 'lib2.dart';");
+    assertLength(2, context.computeImportedLibraries(source));
   }
 
   public void test_computeKindOf_html() {
@@ -236,6 +329,17 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(info);
   }
 
+  public void test_computeResolvableCompilationUnit() throws Exception {
+    Source source = addSource("/lib.dart", "library lib;");
+    CompilationUnit compilationUnit = context.parseCompilationUnit(source);
+    assertNotNull(compilationUnit);
+    assertNotSame(compilationUnit, context.computeResolvableCompilationUnit(source));
+  }
+
+  public void test_getAnalysisOptions() throws Exception {
+    assertNotNull(context.getAnalysisOptions());
+  }
+
   public void test_getElement() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
@@ -248,7 +352,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertSame(classObject, element);
   }
 
-  public void test_getErrors_none() throws Exception {
+  public void test_getErrors_dart_none() throws Exception {
     Source source = addSource("/lib.dart", "library lib;");
     AnalysisError[] errors = context.getErrors(source).getErrors();
     assertLength(0, errors);
@@ -257,7 +361,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertLength(0, errors);
   }
 
-  public void test_getErrors_some() throws Exception {
+  public void test_getErrors_dart_some() throws Exception {
     Source source = addSource("/lib.dart", "library 'lib';");
     AnalysisError[] errors = context.getErrors(source).getErrors();
     assertLength(0, errors);
@@ -266,13 +370,58 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertLength(1, errors);
   }
 
-  public void test_getHtmlElement() throws Exception {
+  public void test_getErrors_html_none() throws Exception {
+    Source source = addSource("/test.html", "<html></html>");
+    AnalysisError[] errors = context.getErrors(source).getErrors();
+    assertLength(0, errors);
+    context.computeErrors(source);
+    errors = context.getErrors(source).getErrors();
+    assertLength(0, errors);
+  }
+
+  public void test_getErrors_html_some() throws Exception {
+    Source source = addSource("/test.html", createSource(//
+        "<html><head>",
+        "<script type='application/dart' src='test.dart'/>",
+        "</head></html>"));
+    AnalysisError[] errors = context.getErrors(source).getErrors();
+    assertLength(0, errors);
+    context.computeErrors(source);
+    errors = context.getErrors(source).getErrors();
+    assertLength(1, errors);
+  }
+
+  public void test_getHtmlElement_dart() throws Exception {
+    Source source = addSource("/test.dart", "");
+    assertNull(context.getHtmlElement(source));
+    assertNull(context.computeHtmlElement(source));
+    assertNull(context.getHtmlElement(source));
+  }
+
+  public void test_getHtmlElement_html() throws Exception {
     Source source = addSource("/test.html", "<html></html>");
     HtmlElement element = context.getHtmlElement(source);
     assertNull(element);
     context.computeHtmlElement(source);
     element = context.getHtmlElement(source);
     assertNotNull(element);
+  }
+
+  public void test_getHtmlFilesReferencing_html() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    Source htmlSource = addSource("/test.html", createSource(//
+        "<html><head>",
+        "<script type='application/dart' src='test.dart'/>",
+        "<script type='application/dart' src='test.js'/>",
+        "</head></html>"));
+    Source librarySource = addSource("/test.dart", "library lib;");
+    Source secondHtmlSource = addSource("/test.html", "<html></html>");
+    context.computeLibraryElement(librarySource);
+    Source[] result = context.getHtmlFilesReferencing(secondHtmlSource);
+    assertLength(0, result);
+    context.parseHtmlUnit(htmlSource);
+    result = context.getHtmlFilesReferencing(secondHtmlSource);
+    assertLength(0, result);
   }
 
   public void test_getHtmlFilesReferencing_library() throws Exception {
@@ -286,6 +435,24 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertLength(0, result);
     context.parseHtmlUnit(htmlSource);
     result = context.getHtmlFilesReferencing(librarySource);
+    assertLength(1, result);
+    assertEquals(htmlSource, result[0]);
+  }
+
+  public void test_getHtmlFilesReferencing_part() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    Source htmlSource = addSource("/test.html", createSource(//
+        "<html><head>",
+        "<script type='application/dart' src='test.dart'/>",
+        "<script type='application/dart' src='test.js'/>",
+        "</head></html>"));
+    Source librarySource = addSource("/test.dart", "library lib; part 'part.dart';");
+    Source partSource = addSource("/part.dart", "part of lib;");
+    context.computeLibraryElement(librarySource);
+    Source[] result = context.getHtmlFilesReferencing(partSource);
+    assertLength(0, result);
+    context.parseHtmlUnit(htmlSource);
+    result = context.getHtmlFilesReferencing(partSource);
     assertLength(1, result);
     assertEquals(htmlSource, result[0]);
   }
@@ -365,11 +532,11 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source lib1Source = addSource("/lib1.dart", createSource(//
         "library lib1;",
         "import 'libA.dart';",
-        "import 'libB.dart';"));
+        "export 'libB.dart';"));
     Source lib2Source = addSource("/lib2.dart", createSource(//
         "library lib2;",
-        "import 'libA.dart';",
-        "import 'libB.dart';"));
+        "import 'libB.dart';",
+        "export 'libA.dart';"));
     context.computeLibraryElement(lib1Source);
     context.computeLibraryElement(lib2Source);
     Source[] result = context.getLibrariesDependingOn(libASource);
@@ -416,7 +583,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertInstanceOf(ClassElement.class, namespace.get("A"));
   }
 
-  public void test_getPublicNamespace_source() throws Exception {
+  public void test_getPublicNamespace_source_dart() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
     Source source = addSource("/test.dart", "class A {}");
@@ -424,6 +591,13 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Namespace namespace = context.getPublicNamespace(source);
     assertNotNull(namespace);
     assertInstanceOf(ClassElement.class, namespace.get("A"));
+  }
+
+  public void test_getPublicNamespace_source_html() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source source = addSource("/test.html", "<html></html>");
+    assertNull(context.getPublicNamespace(source));
   }
 
   public void test_getResolvedCompilationUnit_library() throws Exception {
@@ -436,7 +610,14 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNull(context.getResolvedCompilationUnit(source, library));
   }
 
-  public void test_getResolvedCompilationUnit_source() throws Exception {
+  public void test_getResolvedCompilationUnit_library_null() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source source = addSource("/lib.dart", "library lib;");
+    assertNull(context.getResolvedCompilationUnit(source, (LibraryElement) null));
+  }
+
+  public void test_getResolvedCompilationUnit_source_dart() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
     Source source = addSource("/lib.dart", "library lib;");
@@ -445,11 +626,20 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(context.getResolvedCompilationUnit(source, source));
   }
 
+  public void test_getResolvedCompilationUnit_source_html() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source source = addSource("/test.html", "<html></html>");
+    assertNull(context.getResolvedCompilationUnit(source, source));
+    assertNull(context.resolveCompilationUnit(source, source));
+    assertNull(context.getResolvedCompilationUnit(source, source));
+  }
+
   public void test_getSourceFactory() {
     assertSame(sourceFactory, context.getSourceFactory());
   }
 
-  public void test_isClientLibrary() throws Exception {
+  public void test_isClientLibrary_dart() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
     Source source = addSource("/test.dart", createSource("import 'dart:html';", "", "main() {}"));
@@ -460,7 +650,12 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertFalse(context.isServerLibrary(source));
   }
 
-  public void test_isServerLibrary() throws Exception {
+  public void test_isClientLibrary_html() throws Exception {
+    Source source = addSource("/test.html", "<html></html>");
+    assertFalse(context.isClientLibrary(source));
+  }
+
+  public void test_isServerLibrary_dart() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
     Source source = addSource("/test.dart", createSource("library lib;", "", "main() {}"));
@@ -471,6 +666,11 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertTrue(context.isServerLibrary(source));
   }
 
+  public void test_isServerLibrary_html() throws Exception {
+    Source source = addSource("/test.html", "<html></html>");
+    assertFalse(context.isServerLibrary(source));
+  }
+
   public void test_parseCompilationUnit_errors() throws Exception {
     Source source = addSource("/lib.dart", "library {");
     CompilationUnit compilationUnit = context.parseCompilationUnit(source);
@@ -478,6 +678,11 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisError[] errors = context.getErrors(source).getErrors();
     assertNotNull(errors);
     assertTrue(errors.length > 0);
+  }
+
+  public void test_parseCompilationUnit_html() throws Exception {
+    Source source = addSource("/test.html", "<html></html>");
+    assertNull(context.parseCompilationUnit(source));
   }
 
   public void test_parseCompilationUnit_noErrors() throws Exception {
@@ -546,6 +751,22 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source source = addSource("/lib.html", "<html></html>");
     HtmlUnit unit = context.resolveHtmlUnit(source);
     assertNotNull(unit);
+  }
+
+  public void test_setAnalysisOptions() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    context.setAnalysisOptions(options);
+    assertEquals(options, context.getAnalysisOptions());
+  }
+
+  public void test_setAnalysisPriorityOrder_empty() {
+    context.setAnalysisPriorityOrder(new ArrayList<Source>());
+  }
+
+  public void test_setAnalysisPriorityOrder_nonEmpty() {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    sources.add(addSource("/lib.dart", "library lib;"));
+    context.setAnalysisPriorityOrder(sources);
   }
 
   public void test_setContents_libraryWithPart() throws Exception {
