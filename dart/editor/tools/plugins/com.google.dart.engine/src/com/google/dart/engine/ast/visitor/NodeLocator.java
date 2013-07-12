@@ -91,6 +91,9 @@ public class NodeLocator extends GeneralizingASTVisitor<Void> {
    * @return the element that was found
    */
   public ASTNode searchWithin(ASTNode node) {
+    if (node == null) {
+      return null;
+    }
     try {
       node.accept(this);
     } catch (NodeFoundException exception) {
