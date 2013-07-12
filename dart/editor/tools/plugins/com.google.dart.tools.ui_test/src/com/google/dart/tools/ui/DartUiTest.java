@@ -13,21 +13,12 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.tools.core.buffer.Buffer;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.SourceFileElement;
-import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.problem.ProblemRequestor;
-import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 import com.google.dart.tools.ui.internal.text.functions.DartHeuristicScanner;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartTextTools;
 
 import junit.framework.TestCase;
 
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.IRegion;
@@ -60,20 +51,6 @@ public class DartUiTest extends TestCase {
   private static final int X_BLOCK_BEGIN = 8;
   private static final int X_BLOCK_END = 41;
   private static final int TEXT_STMT_END = 96;
-
-  public void testComparator() throws DartModelException {
-    CompilationUnit cu = getExampleCompUnit();
-    Type typeX = cu.getType("X");
-    Type typeY = cu.getType("Y");
-    Method ex = typeX.getMethod("ex", null);
-    Method ey = typeY.getMethod("ey", null);
-    DartElementComparator comp = new DartElementComparator();
-    assertFalse(comp.category(cu) == comp.category(typeX));
-    assertFalse(comp.category(cu) == comp.category(ex));
-    assertTrue(comp.category(typeX) == comp.category(typeY));
-    assertTrue(comp.category(ex) == comp.category(ey));
-    assertFalse(comp.category(typeY) == comp.category(ey));
-  }
 
   public void testHeuristicScanner() {
     Document doc = new Document(source);
@@ -130,33 +107,5 @@ public class DartUiTest extends TestCase {
         && parts[5].getOffset() == 172 && parts[5].getLength() == 34);
     assertTrue(parts[6].getType().equals("__dftl_partition_content_type")
         && parts[6].getOffset() == 206 && parts[6].getLength() == 4);
-  }
-
-  protected CompilationUnit getExampleCompUnit() throws DartModelException {
-    CompilationUnit workingCopy = newExternalWorkingCopy("X.dart", source);
-    return workingCopy;
-  }
-
-  protected CompilationUnit newExternalWorkingCopy(String name,
-      final ProblemRequestor problemRequestor, final String contents) throws DartModelException {
-    WorkingCopyOwner owner = new WorkingCopyOwner() {
-      @Override
-      public Buffer createBuffer(SourceFileElement<?> wc) {
-        Buffer buffer = super.createBuffer(wc);
-        buffer.setContents(contents);
-        return buffer;
-      }
-
-      @Override
-      public ProblemRequestor getProblemRequestor(SourceFileElement<?> workingCopy) {
-        return problemRequestor;
-      }
-    };
-    return owner.newWorkingCopy(new Path(name), null);
-  }
-
-  protected CompilationUnit newExternalWorkingCopy(String name, final String contents)
-      throws DartModelException {
-    return newExternalWorkingCopy(name, null, contents);
   }
 }

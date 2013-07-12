@@ -25,7 +25,8 @@ public class LogErrorInstrumentationTest extends InstrumentationTestCase {
     DartCore.logError(new Exception("TestException"));
 
     assertNotNull(mockedLogger.getBuilder("DartCore.LogError"));
-    assertNotNull(mockedLogger.getBuilder("DartCore.LogError").getData("StackTrace"));
+    assertNotNull(mockedLogger.getBuilder("DartCore.LogError").getData("Message"));
+    assertNotNull(mockedLogger.getBuilder("DartCore.LogError").getData("Exception"));
 
   }
 }
