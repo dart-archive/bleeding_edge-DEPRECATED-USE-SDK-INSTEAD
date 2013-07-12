@@ -24,6 +24,10 @@ import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypedLiteral;
+import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.Token;
+
+import static com.google.dart.engine.scanner.TokenFactory.token;
 
 /**
  * The class {@code ErrorParserTest} defines parser tests that test the parsing of code to ensure
@@ -127,18 +131,6 @@ public class ErrorParserTest extends ParserTestCase {
     // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but this would be a
     // better error message.
     parse("parseFormalParameterList", "(var int x)", ParserErrorCode.VAR_AND_TYPE);
-  }
-
-  public void fail_voidVariable_initializer() throws Exception {
-    // The parser parses this as a function declaration statement because that is the only thing
-    // that validly starts with 'void'. That causes a different error message to be produced.
-    parseStatement("void x = 0;", ParserErrorCode.VOID_VARIABLE);
-  }
-
-  public void fail_voidVariable_noInitializer() throws Exception {
-    // The parser parses this as a function declaration statement because that is the only thing
-    // that validly starts with 'void'. That causes a different error message to be produced.
-    parseStatement("void x;", ParserErrorCode.VOID_VARIABLE);
   }
 
   public void test_abstractClassMember_constructor() throws Exception {
@@ -475,6 +467,19 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_expectedToken_commaMissingInArgumentList() throws Exception {
     parse("parseArgumentList", "(x, y z)", ParserErrorCode.EXPECTED_TOKEN);
+  }
+
+  public void test_expectedToken_parseStatement_afterVoid() throws Exception {
+    parseStatement("void}", ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER);
+  }
+
+  public void test_expectedToken_semicolonAfterTypedef() throws Exception {
+    Token token = token(Keyword.TYPEDEF);
+    parse(
+        "parseClassTypeAlias",
+        new Object[] {emptyCommentAndMetadata(), token},
+        "A = B",
+        ParserErrorCode.EXPECTED_TOKEN);
   }
 
   public void test_expectedToken_semicolonMissingAfterExpression() throws Exception {
@@ -924,6 +929,15 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseMultiplicativeExpression", "1 *", ParserErrorCode.MISSING_IDENTIFIER);
   }
 
+  public void test_missingIdentifier_beforeClosingCurly() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "int}",
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN);
+  }
+
   public void test_missingIdentifier_functionDeclaration_returnTypeWithoutName() throws Exception {
     parse("parseFunctionDeclarationStatement", "A<T> () {}", ParserErrorCode.MISSING_IDENTIFIER);
   }
@@ -988,6 +1002,14 @@ public class ErrorParserTest extends ParserTestCase {
         "part of;",
         ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE);
     assertNotNull(unit);
+  }
+
+  public void test_missingStatement() throws Exception {
+    parseStatement("is", ParserErrorCode.MISSING_STATEMENT);
+  }
+
+  public void test_missingStatement_afterVoid() throws Exception {
+    parseStatement("void;", ParserErrorCode.MISSING_STATEMENT);
   }
 
   public void test_missingTerminatorForParameterGroup_named() throws Exception {
@@ -1352,16 +1374,54 @@ public class ErrorParserTest extends ParserTestCase {
     parseCompilationUnit("var typedef F();", ParserErrorCode.VAR_TYPEDEF);
   }
 
-  public void test_voidField_initializer() throws Exception {
+  public void test_voidParameter() throws Exception {
+    parse("parseNormalFormalParameter", "void a)", ParserErrorCode.VOID_PARAMETER);
+  }
+
+  public void test_voidVariable_parseClassMember_initializer() throws Exception {
     parse("parseClassMember", new Object[] {"C"}, "void x = 0;", ParserErrorCode.VOID_VARIABLE);
   }
 
-  public void test_voidField_noInitializer() throws Exception {
+  public void test_voidVariable_parseClassMember_noInitializer() throws Exception {
     parse("parseClassMember", new Object[] {"C"}, "void x;", ParserErrorCode.VOID_VARIABLE);
   }
 
-  public void test_voidParameter() throws Exception {
-    parse("parseNormalFormalParameter", "void a)", ParserErrorCode.VOID_PARAMETER);
+  public void test_voidVariable_parseCompilationUnit_initializer() throws Exception {
+    parseCompilationUnit("void x = 0;", ParserErrorCode.VOID_VARIABLE);
+  }
+
+  public void test_voidVariable_parseCompilationUnit_noInitializer() throws Exception {
+    parseCompilationUnit("void x;", ParserErrorCode.VOID_VARIABLE);
+  }
+
+  public void test_voidVariable_parseCompilationUnitMember_initializer() throws Exception {
+    parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "void a = 0;",
+        ParserErrorCode.VOID_VARIABLE);
+  }
+
+  public void test_voidVariable_parseCompilationUnitMember_noInitializer() throws Exception {
+    parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "void a;",
+        ParserErrorCode.VOID_VARIABLE);
+  }
+
+  public void test_voidVariable_statement_initializer() throws Exception {
+    parseStatement(
+        "void x = 0;",
+        ParserErrorCode.VOID_VARIABLE,
+        ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
+  }
+
+  public void test_voidVariable_statement_noInitializer() throws Exception {
+    parseStatement(
+        "void x;",
+        ParserErrorCode.VOID_VARIABLE,
+        ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
   }
 
   public void test_withBeforeExtends() throws Exception {

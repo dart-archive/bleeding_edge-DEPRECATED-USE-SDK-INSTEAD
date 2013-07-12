@@ -3980,6 +3980,7 @@ public class Parser {
     } else if (matches(TokenType.KEYWORD)
         && !((KeywordToken) currentToken).getKeyword().isPseudoKeyword()) {
       Keyword keyword = ((KeywordToken) currentToken).getKeyword();
+      // TODO(jwren) compute some metrics to figure out a better order for this if-then sequence to optimize performance
       if (keyword == Keyword.ASSERT) {
         return parseAssertStatement();
       } else if (keyword == Keyword.BREAK) {
