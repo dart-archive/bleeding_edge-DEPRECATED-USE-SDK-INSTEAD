@@ -28,11 +28,6 @@ import java.util.ArrayList;
 
 public class DartCoreTest_New extends TestCase {
 
-  public static boolean isRunningOnBuildBot() {
-    return System.getProperty("user.name").startsWith("chrome")
-        || System.getProperty("dart.buildbot") != null;
-  }
-
   public void test_DartCore_getDartLikeExtensions() {
     String[] extensions = DartCore.getDartLikeExtensions();
     assertNotNull(extensions);

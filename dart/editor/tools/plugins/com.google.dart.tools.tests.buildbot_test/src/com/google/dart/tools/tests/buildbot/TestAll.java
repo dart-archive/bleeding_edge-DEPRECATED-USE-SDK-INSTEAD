@@ -26,9 +26,6 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-// TODO(devoncarew): don't run com.google.dart.tools.core.artifact.TestGenerateArtifacts.test_generate_SDK_index
-// when running the tests
-
 public class TestAll {
 
   public static Test suite() {
@@ -36,9 +33,6 @@ public class TestAll {
     // SDK is. We initialize their system property with the location of the SDK gotten from
     // DartSdkManager (generally, eclipse/dart-sdk).
     initSdk();
-
-    // Some core tests need to know whether we're running on the buildbot or not.
-    System.setProperty("dart.buildbot", "true");
 
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
 
@@ -49,9 +43,6 @@ public class TestAll {
 
     // Services
     suite.addTest(com.google.dart.engine.services.TestAll.suite());
-
-    // Dartc
-    //suite.addTest(com.google.dart.compiler.TestAll.suite());
 
     // Core
     suite.addTest(com.google.dart.tools.core.TestAll.suite());
