@@ -18,25 +18,30 @@ import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.LibraryDirective;
+import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
+import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExportElement;
-import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PrefixElement;
+import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import junit.framework.Assert;
@@ -114,7 +119,17 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (!node.getOperator().isUserDefinableOperator()) {
       return null;
     }
+    Type operandType = node.getLeftOperand().getStaticType();
+    if (operandType == null || operandType.isDynamic()) {
+      return null;
+    }
     return checkResolved(node, node.getElement(), MethodElement.class);
+  }
+
+  @Override
+  public Void visitCommentReference(CommentReference node) {
+    // We don't care whether we were able to resolve references in comments.
+    return null;
   }
 
   @Override
@@ -141,7 +156,9 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.visitChildren(this);
-    return checkResolved(node, node.getElement(), FunctionElement.class);
+    // TODO(brianwilkerson) If we start resolving function expressions, then conditionally check to
+    // see whether the node was resolved correctly.
+    return null; //checkResolved(node, node.getElement(), FunctionElement.class);
   }
 
   @Override
@@ -158,12 +175,22 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
+    Type targetType = node.getRealTarget().getStaticType();
+    if (targetType == null || targetType.isDynamic()) {
+      return null;
+    }
     return checkResolved(node, node.getElement(), MethodElement.class);
   }
 
   @Override
   public Void visitLibraryDirective(LibraryDirective node) {
     return checkResolved(node, node.getElement(), LibraryElement.class);
+  }
+
+  @Override
+  public Void visitNamedExpression(NamedExpression node) {
+    // We don't resolve the names of named expressions
+    return node.getExpression().accept(this);
   }
 
   @Override
@@ -182,7 +209,22 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (!node.getOperator().isUserDefinableOperator()) {
       return null;
     }
+    Type operandType = node.getOperand().getStaticType();
+    if (operandType == null || operandType.isDynamic()) {
+      return null;
+    }
     return checkResolved(node, node.getElement(), MethodElement.class);
+  }
+
+  @Override
+  public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    SimpleIdentifier prefix = node.getPrefix();
+    prefix.accept(this);
+    Type prefixType = prefix.getStaticType();
+    if (prefixType == null || prefixType.isDynamic()) {
+      return null;
+    }
+    return checkResolved(node, node.getElement());
   }
 
   @Override
@@ -191,13 +233,39 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (!node.getOperator().isUserDefinableOperator()) {
       return null;
     }
+    Type operandType = node.getOperand().getStaticType();
+    if (operandType == null || operandType.isDynamic()) {
+      return null;
+    }
     return checkResolved(node, node.getElement(), MethodElement.class);
+  }
+
+  @Override
+  public Void visitPropertyAccess(PropertyAccess node) {
+    Expression target = node.getRealTarget();
+    target.accept(this);
+    Type targetType = target.getStaticType();
+    if (targetType == null || targetType.isDynamic()) {
+      return null;
+    }
+    return node.getPropertyName().accept(this);
   }
 
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.getName().equals("void")) {
       return null;
+    }
+    ASTNode parent = node.getParent();
+    if (parent instanceof MethodInvocation) {
+      MethodInvocation invocation = ((MethodInvocation) parent);
+      if (invocation.getMethodName() == node) {
+        Expression target = invocation.getRealTarget();
+        Type targetType = target == null ? null : target.getStaticType();
+        if (targetType == null || targetType.isDynamic()) {
+          return null;
+        }
+      }
     }
     return checkResolved(node, node.getElement());
   }
@@ -208,10 +276,6 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
 
   private Void checkResolved(ASTNode node, Element element, Class<? extends Element> expectedClass) {
     if (element == null) {
-      if (node.getParent() instanceof CommentReference) {
-        // TODO(brianwilkerson) Remove this when comments are being resolved.
-        return null;
-      }
       if (knownExceptions == null || !knownExceptions.contains(node)) {
         unresolvedNodes.add(node);
       }
