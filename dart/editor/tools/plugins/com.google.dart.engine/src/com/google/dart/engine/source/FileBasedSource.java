@@ -105,43 +105,29 @@ public class FileBasedSource implements Source {
       return;
     }
     //
-    // If not, read the contents from the file.
+    // If not, read the contents from the file using native I/O.
     //
     long modificationTime = this.file.lastModified();
     RandomAccessFile file = new RandomAccessFile(this.file, "r");
     FileChannel channel = null;
     ByteBuffer byteBuffer = null;
-    Exception thrownException = null;
-    int readCount = 5;
-    do {
-      thrownException = null;
-      try {
-        channel = file.getChannel();
-        long size = channel.size();
-        if (size > Integer.MAX_VALUE) {
-          throw new IllegalStateException("File is too long to be read");
-        }
-        int length = (int) size;
-        byte[] bytes = new byte[length];
-        byteBuffer = ByteBuffer.wrap(bytes);
-        byteBuffer.position(0);
-        byteBuffer.limit(length);
-        channel.read(byteBuffer);
-      } catch (ClosedByInterruptException exception) {
-        // Eclipse appears to be interrupting the thread
-        thrownException = exception;
-      } finally {
-        if (channel != null) {
-          try {
-            channel.close();
-          } catch (IOException exception) {
-            // Ignored
-          }
-        }
+    try {
+      channel = file.getChannel();
+      long size = channel.size();
+      if (size > Integer.MAX_VALUE) {
+        throw new IllegalStateException("File is too long to be read");
       }
-      readCount--;
-    } while (thrownException != null && readCount > 0);
-    if (thrownException != null) {
+      int length = (int) size;
+      byte[] bytes = new byte[length];
+      byteBuffer = ByteBuffer.wrap(bytes);
+      byteBuffer.position(0);
+      byteBuffer.limit(length);
+      channel.read(byteBuffer);
+    } catch (ClosedByInterruptException exception) {
+      //
+      // Eclipse appears to be interrupting the thread sometimes. If we couldn't read the file using
+      // the native I/O support, try using the non-native support.
+      //
       InputStreamReader reader = null;
       try {
         reader = new InputStreamReader(new FileInputStream(this.file), "UTF-8");
@@ -150,12 +136,20 @@ public class FileBasedSource implements Source {
         if (reader != null) {
           try {
             reader.close();
-          } catch (IOException exception) {
+          } catch (IOException closeException) {
             // Ignored
           }
         }
       }
       receiver.accept(contents, modificationTime);
+    } finally {
+      if (channel != null) {
+        try {
+          channel.close();
+        } catch (IOException closeException) {
+          // Ignored
+        }
+      }
     }
     byteBuffer.rewind();
     receiver.accept(UTF_8_CHARSET.decode(byteBuffer), modificationTime);
