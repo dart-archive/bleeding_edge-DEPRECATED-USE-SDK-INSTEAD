@@ -97,7 +97,7 @@ public class FileBasedSource implements Source {
   @Override
   public void getContents(ContentReceiver receiver) throws Exception {
     //
-    // First check to see whether our factory has an override for our contents.
+    // First check to see whether our content cache has an override for our contents.
     //
     String contents = contentCache.getContents(this);
     if (contents != null) {
@@ -124,24 +124,7 @@ public class FileBasedSource implements Source {
       byteBuffer.limit(length);
       channel.read(byteBuffer);
     } catch (ClosedByInterruptException exception) {
-      //
-      // Eclipse appears to be interrupting the thread sometimes. If we couldn't read the file using
-      // the native I/O support, try using the non-native support.
-      //
-      InputStreamReader reader = null;
-      try {
-        reader = new InputStreamReader(new FileInputStream(this.file), "UTF-8");
-        contents = FileUtilities.getContents(reader);
-      } finally {
-        if (reader != null) {
-          try {
-            reader.close();
-          } catch (IOException closeException) {
-            // Ignored
-          }
-        }
-      }
-      receiver.accept(contents, modificationTime);
+      byteBuffer = null;
     } finally {
       if (channel != null) {
         try {
@@ -151,8 +134,29 @@ public class FileBasedSource implements Source {
         }
       }
     }
-    byteBuffer.rewind();
-    receiver.accept(UTF_8_CHARSET.decode(byteBuffer), modificationTime);
+    if (byteBuffer != null) {
+      byteBuffer.rewind();
+      receiver.accept(UTF_8_CHARSET.decode(byteBuffer), modificationTime);
+      return;
+    }
+    //
+    // Eclipse appears to be interrupting the thread sometimes. If we couldn't read the file using
+    // the native I/O support, try using the non-native support.
+    //
+    InputStreamReader reader = null;
+    try {
+      reader = new InputStreamReader(new FileInputStream(this.file), "UTF-8");
+      contents = FileUtilities.getContents(reader);
+    } finally {
+      if (reader != null) {
+        try {
+          reader.close();
+        } catch (IOException closeException) {
+          // Ignored
+        }
+      }
+    }
+    receiver.accept(contents, modificationTime);
   }
 
   @Override
