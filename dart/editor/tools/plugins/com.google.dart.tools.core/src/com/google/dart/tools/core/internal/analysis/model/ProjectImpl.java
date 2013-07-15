@@ -298,7 +298,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     }
     IPath path = new Path(source.getFullName());
     IPath projPath = getResourceLocation();
-    if (projPath.isPrefixOf(path)) {
+    if (projPath != null && projPath.isPrefixOf(path)) {
       IPath relPath = path.removeFirstSegments(projPath.segmentCount());
       return projectResource.getFile(relPath);
     }
