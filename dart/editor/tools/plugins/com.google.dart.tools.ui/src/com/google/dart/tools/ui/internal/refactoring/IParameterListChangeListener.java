@@ -15,6 +15,9 @@ package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.engine.services.refactoring.ParameterInfo;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public interface IParameterListChangeListener {
 
   /**

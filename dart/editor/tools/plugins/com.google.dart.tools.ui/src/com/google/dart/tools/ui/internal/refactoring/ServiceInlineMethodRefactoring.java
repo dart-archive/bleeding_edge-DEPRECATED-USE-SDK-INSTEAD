@@ -21,6 +21,8 @@ import com.google.dart.engine.services.refactoring.InlineMethodRefactoring.Mode;
 
 /**
  * LTK wrapper around Engine Services {@link InlineMethodRefactoring}.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class ServiceInlineMethodRefactoring extends ServiceRefactoring {
   private final InlineMethodRefactoring refactoring;

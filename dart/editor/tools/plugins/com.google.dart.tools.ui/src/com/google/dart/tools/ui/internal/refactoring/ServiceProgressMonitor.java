@@ -21,6 +21,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 /**
  * Engine Services {@link ProgressMonitor} implementation that reports to Eclipse
  * {@link IProgressMonitor}.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class ServiceProgressMonitor implements ProgressMonitor {
   private final IProgressMonitor pm;

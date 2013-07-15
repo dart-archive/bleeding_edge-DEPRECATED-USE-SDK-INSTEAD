@@ -17,6 +17,9 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class InlineMethodWizard extends RefactoringWizard {
 
   static final String DIALOG_SETTING_SECTION = "InlineMethodWizard"; //$NON-NLS-1$

@@ -20,7 +20,7 @@ import com.google.dart.ui.test.driver.Operation;
 import com.google.dart.ui.test.helpers.WizardDialogHelper;
 import com.google.dart.ui.test.util.UiContext;
 
-import editor.AbstractDartEditorTest;
+import editor.AbstractDartEditorTabTest;
 
 
 import org.eclipse.jface.action.IAction;
@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Test for the "Rename" refactoring.
  */
-public final class RenameRefactoringTest extends AbstractDartEditorTest {
+public final class RenameRefactoringTest extends AbstractDartEditorTabTest {
   private static class WizardHelper extends WizardDialogHelper {
     public WizardHelper(UiContext context) {
       super(context);

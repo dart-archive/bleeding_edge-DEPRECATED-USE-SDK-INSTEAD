@@ -46,6 +46,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class ExtractMethodInputPage extends UserInputWizardPage {
 
   public static final String PAGE_NAME = "ExtractMethodInputPage";//$NON-NLS-1$

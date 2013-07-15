@@ -78,7 +78,7 @@ public class UiContext {
    * Sends {@link SWT#Selection} event to the {@link Button} with given text.
    */
   public void clickButton(String text) {
-    Button button = findWidget(getShell(), and(ofClass(Button.class), withText(text)));
+    Button button = getButtonByText(text);
     Assert.isNotNull(button, "Can not find button with text |" + text + "|");
     click(button);
   }
@@ -93,6 +93,13 @@ public class UiContext {
       }
     }
     return null;
+  }
+
+  /**
+   * @return the {@link Button} with the given text.
+   */
+  public Button getButtonByText(String text) {
+    return findWidget(getShell(), and(ofClass(Button.class), withText(text)));
   }
 
   /**
@@ -121,6 +128,23 @@ public class UiContext {
    */
   public void popShell() {
     shell = shells.removeFirst();
+  }
+
+  /**
+   * Sends {@link SWT#Selection} event to given {@link Button}.
+   */
+  public void setButtonSelection(Button button, boolean selection) {
+    button.setSelection(selection);
+    click(button);
+  }
+
+  /**
+   * Sends {@link SWT#Selection} event to given {@link Button}.
+   */
+  public void setButtonSelection(String text, boolean selection) {
+    Button button = getButtonByText(text);
+    Assert.isNotNull(button, "Can not find button with text |" + text + "|");
+    setButtonSelection(button, selection);
   }
 
   /**

@@ -66,6 +66,8 @@ import java.util.List;
 
 /**
  * A special control to edit and reorder method parameters.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 @SuppressWarnings("deprecation")
 public class ChangeParametersControl extends Composite {

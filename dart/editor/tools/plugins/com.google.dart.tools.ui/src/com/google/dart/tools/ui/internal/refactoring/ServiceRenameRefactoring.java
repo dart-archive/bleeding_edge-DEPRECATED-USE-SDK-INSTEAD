@@ -22,6 +22,8 @@ import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils.toLTK;
 
 /**
  * LTK wrapper around Engine Services {@link RenameRefactoring}.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class ServiceRenameRefactoring extends ServiceRefactoring implements INameUpdating {
   private final RenameRefactoring refactoring;
@@ -41,12 +43,6 @@ public class ServiceRenameRefactoring extends ServiceRefactoring implements INam
   @Override
   public String getCurrentElementName() {
     return refactoring.getCurrentName();
-  }
-
-  @Override
-  public Object getNewElement() {
-    // TODO(scheglov)
-    return null;
   }
 
   @Override

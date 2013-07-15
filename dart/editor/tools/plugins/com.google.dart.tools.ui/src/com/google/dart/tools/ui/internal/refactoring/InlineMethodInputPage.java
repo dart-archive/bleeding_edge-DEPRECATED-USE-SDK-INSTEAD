@@ -30,6 +30,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.PlatformUI;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class InlineMethodInputPage extends UserInputWizardPage {
 
   public static final String PAGE_NAME = "InlineMethodInputPage";//$NON-NLS-1$

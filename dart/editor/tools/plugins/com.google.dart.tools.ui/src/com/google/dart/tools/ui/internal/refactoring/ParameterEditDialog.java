@@ -37,6 +37,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class ParameterEditDialog extends StatusDialog {
 
   private final ParameterInfo fParameter;

@@ -48,13 +48,13 @@ public interface INameUpdating {
 //   */
 //  Object[] getElements();
 
-  /**
-   * Gets the element after renaming, or <code>null</code> if not available.
-   * 
-   * @return returns the new element or <code>null</code>
-   * @throws CoreException thrown when the new element could not be evaluated
-   */
-  Object getNewElement() throws CoreException;
+//  /**
+//   * Gets the element after renaming, or <code>null</code> if not available.
+//   * 
+//   * @return returns the new element or <code>null</code>
+//   * @throws CoreException thrown when the new element could not be evaluated
+//   */
+//  Object getNewElement() throws CoreException;
 
   /**
    * Get the name for the entity that this refactoring is working on.

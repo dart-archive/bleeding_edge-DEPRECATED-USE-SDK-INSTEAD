@@ -40,8 +40,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * Base for editor tab tests.
  */
-public class AbstractDartEditorTest extends TestCase {
+public class AbstractDartEditorTabTest extends TestCase {
   protected final static String EOL = System.getProperty("line.separator", "\n");
+
+  protected static TestProject testProject;
 
   /**
    * Opens given {@link CompilationUnit} in the {@link DartEditor}.
@@ -56,7 +58,6 @@ public class AbstractDartEditorTest extends TestCase {
     return Joiner.on(EOL).join(lines);
   }
 
-  protected TestProject testProject;
   private IFile testFile;
 
   protected DartEditor testEditor;
@@ -137,14 +138,15 @@ public class AbstractDartEditorTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    testProject = new TestProject();
+    if (testProject == null) {
+      testProject = new TestProject("sharedEditorTabProject");
+    }
   }
 
   @Override
   protected void tearDown() throws Exception {
     PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().closeAllEditors(false);
     UiContext.runEventLoopOnce();
-    testProject.dispose();
     super.tearDown();
   }
 

@@ -7,7 +7,6 @@ import com.google.dart.tools.ui.internal.util.RowLayouter;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 import org.eclipse.swt.SWT;
@@ -21,12 +20,12 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class ExtractLocalWizard extends RefactoringWizard {
 
   private static class ExtractLocalInputPage extends TextInputWizardPage {
-
-    private static final String REPLACE_ALL = "replaceOccurrences"; //$NON-NLS-1$
-
     private static Button createCheckbox(Composite parent, String title, boolean value,
         RowLayouter layouter) {
       Button checkBox = new Button(parent, SWT.CHECK);
@@ -40,8 +39,6 @@ public class ExtractLocalWizard extends RefactoringWizard {
     private static final String DESCRIPTION = RefactoringMessages.ExtractLocalInputPage_enter_name;
     private final String[] nameProposals;
 
-    private IDialogSettings fSettings;
-
     public ExtractLocalInputPage(String[] nameProposals) {
       super(DESCRIPTION, true, nameProposals.length == 0 ? "" : nameProposals[0]); //$NON-NLS-1$
       Assert.isNotNull(nameProposals);
@@ -51,7 +48,6 @@ public class ExtractLocalWizard extends RefactoringWizard {
 
     @Override
     public void createControl(Composite parent) {
-      loadSettings();
       Composite result = new Composite(parent, SWT.NONE);
       setControl(result);
       GridLayout layout = new GridLayout();
@@ -105,7 +101,6 @@ public class ExtractLocalWizard extends RefactoringWizard {
       checkBox.addSelectionListener(new SelectionAdapter() {
         @Override
         public void widgetSelected(SelectionEvent e) {
-          fSettings.put(REPLACE_ALL, checkBox.getSelection());
           getExtractLocalRefactoring().setReplaceAllOccurrences(checkBox.getSelection());
         }
       });
@@ -113,15 +108,6 @@ public class ExtractLocalWizard extends RefactoringWizard {
 
     private ServiceExtractLocalRefactoring getExtractLocalRefactoring() {
       return (ServiceExtractLocalRefactoring) getRefactoring();
-    }
-
-    private void loadSettings() {
-      fSettings = getDialogSettings().getSection(ExtractLocalWizard.DIALOG_SETTING_SECTION);
-      if (fSettings == null) {
-        fSettings = getDialogSettings().addNewSection(ExtractLocalWizard.DIALOG_SETTING_SECTION);
-        fSettings.put(REPLACE_ALL, true);
-      }
-      getExtractLocalRefactoring().setReplaceAllOccurrences(fSettings.getBoolean(REPLACE_ALL));
     }
   }
 

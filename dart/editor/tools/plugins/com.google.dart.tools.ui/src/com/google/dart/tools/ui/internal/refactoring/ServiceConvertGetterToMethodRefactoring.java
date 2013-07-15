@@ -18,6 +18,8 @@ import com.google.dart.engine.services.refactoring.ConvertGetterToMethodRefactor
 
 /**
  * LTK wrapper around Engine Services {@link ConvertGetterToMethodRefactoring}.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class ServiceConvertGetterToMethodRefactoring extends ServiceRefactoring {
   public ServiceConvertGetterToMethodRefactoring(ConvertGetterToMethodRefactoring refactoring) {

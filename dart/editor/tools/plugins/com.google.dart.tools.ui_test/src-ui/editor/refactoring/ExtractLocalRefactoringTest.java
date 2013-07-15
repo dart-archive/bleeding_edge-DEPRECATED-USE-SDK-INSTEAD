@@ -14,14 +14,13 @@
 package editor.refactoring;
 
 import com.google.dart.tools.ui.actions.JdtActionConstants;
+import com.google.dart.ui.test.driver.Operation;
 import com.google.dart.ui.test.driver.ShellClosedOperation;
 import com.google.dart.ui.test.driver.ShellOperation;
-import com.google.dart.ui.test.driver.Operation;
 import com.google.dart.ui.test.helpers.WizardDialogHelper;
 import com.google.dart.ui.test.util.UiContext;
 
-import editor.AbstractDartEditorTest;
-
+import editor.AbstractDartEditorTabTest;
 
 import org.eclipse.jface.action.IAction;
 
@@ -30,15 +29,91 @@ import java.util.concurrent.TimeUnit;
 /**
  * Test for the "Extract Local" refactoring.
  */
-public final class ExtractLocalRefactoringTest extends AbstractDartEditorTest {
+public final class ExtractLocalRefactoringTest extends AbstractDartEditorTabTest {
   private static class WizardHelper extends WizardDialogHelper {
     public WizardHelper(UiContext context) {
       super(context);
     }
 
+    public boolean getReplaceAll() {
+      return context.getButtonByText("Replace all.*").getSelection();
+    }
+
     public void setName(String name) {
       context.getTextByLabel("Variable name:").setText(name);
     }
+
+    public void setReplaceAll(boolean replaceAll) {
+      context.setButtonSelection("Replace all.*", replaceAll);
+    }
+  }
+
+  public void test_replaceAll_extractOnlyOne() throws Exception {
+    openTestEditor(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(123);",
+        "  print(123);",
+        "}");
+    // run action
+    selectAndExtract("123");
+    // animate wizard dialog
+    String wizardName = "Extract Local Variable";
+    addOperation(new ShellOperation(wizardName) {
+      @Override
+      public void run(UiContext context) throws Exception {
+        WizardHelper helper = new WizardHelper(context);
+        // don't extract all
+        helper.setReplaceAll(false);
+        // done
+        helper.setName("res");
+        context.clickButton("OK");
+      }
+    });
+    addOperation(new ShellClosedOperation(wizardName));
+    // validate result
+    runUiOperations(60, TimeUnit.SECONDS);
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var res = 123;",
+        "  print(res);",
+        "  print(123);",
+        "}");
+  }
+
+  public void test_replaceAll_trueByDefault() throws Exception {
+    openTestEditor(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(123);",
+        "  print(123);",
+        "}");
+    // run action
+    selectAndExtract("123");
+    // animate wizard dialog
+    String wizardName = "Extract Local Variable";
+    addOperation(new ShellOperation(wizardName) {
+      @Override
+      public void run(UiContext context) throws Exception {
+        WizardHelper helper = new WizardHelper(context);
+        // "Replace all..." should checked by default
+        assertTrue(helper.getReplaceAll());
+        // done
+        helper.setName("res");
+        context.clickButton("OK");
+      }
+    });
+    addOperation(new ShellClosedOperation(wizardName));
+    // validate result
+    runUiOperations(60, TimeUnit.SECONDS);
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var res = 123;",
+        "  print(res);",
+        "  print(res);",
+        "}");
   }
 
   public void test_singleExpression() throws Exception {
@@ -47,8 +122,8 @@ public final class ExtractLocalRefactoringTest extends AbstractDartEditorTest {
         "main() {",
         "  print(123);",
         "}");
-    // run "Rename" action
-    selectAndStartRename("123");
+    // run action
+    selectAndExtract("123");
     // animate wizard dialog
     String wizardName = "Extract Local Variable";
     addOperation(new ShellOperation(wizardName) {
@@ -76,7 +151,7 @@ public final class ExtractLocalRefactoringTest extends AbstractDartEditorTest {
         "}");
   }
 
-  private void selectAndStartRename(String pattern) throws Exception {
+  private void selectAndExtract(String pattern) throws Exception {
     selectRange(pattern);
     // run "Extract Local" action
     final IAction action = getEditorAction(JdtActionConstants.EXTRACT_LOCAL);

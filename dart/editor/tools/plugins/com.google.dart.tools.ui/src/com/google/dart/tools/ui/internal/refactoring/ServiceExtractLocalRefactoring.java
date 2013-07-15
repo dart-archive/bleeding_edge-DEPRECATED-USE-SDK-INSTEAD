@@ -21,6 +21,8 @@ import static com.google.dart.tools.ui.internal.refactoring.ServiceUtils.toLTK;
 
 /**
  * LTK wrapper around Engine Services {@link ExtractLocalRefactoring}.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class ServiceExtractLocalRefactoring extends ServiceRefactoring {
   private final ExtractLocalRefactoring refactoring;

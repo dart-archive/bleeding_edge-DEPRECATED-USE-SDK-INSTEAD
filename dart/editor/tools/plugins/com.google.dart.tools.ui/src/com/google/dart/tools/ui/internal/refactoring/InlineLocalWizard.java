@@ -7,6 +7,9 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.PlatformUI;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class InlineLocalWizard extends RefactoringWizard {
 
   private static class InlineLocalInputPage extends MessageWizardPage {

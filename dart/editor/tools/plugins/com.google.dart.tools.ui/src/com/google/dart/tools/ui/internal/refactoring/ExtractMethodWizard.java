@@ -20,6 +20,9 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class ExtractMethodWizard extends RefactoringWizard {
 
   static final String DIALOG_SETTING_SECTION = "ExtractMethodWizard"; //$NON-NLS-1$

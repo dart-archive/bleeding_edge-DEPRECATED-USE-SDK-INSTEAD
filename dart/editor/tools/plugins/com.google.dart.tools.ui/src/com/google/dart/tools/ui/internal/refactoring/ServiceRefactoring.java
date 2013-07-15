@@ -28,6 +28,8 @@ import org.eclipse.core.runtime.OperationCanceledException;
 
 /**
  * LTK wrapper around Engine Services {@link Refactoring}.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class ServiceRefactoring extends org.eclipse.ltk.core.refactoring.Refactoring {
   private final Refactoring refactoring;

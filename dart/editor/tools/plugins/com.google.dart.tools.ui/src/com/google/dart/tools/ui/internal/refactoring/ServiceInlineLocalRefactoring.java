@@ -18,6 +18,8 @@ import com.google.dart.engine.services.refactoring.InlineLocalRefactoring;
 
 /**
  * LTK wrapper around Engine Services {@link InlineLocalRefactoring}.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class ServiceInlineLocalRefactoring extends ServiceRefactoring {
   private final InlineLocalRefactoring refactoring;

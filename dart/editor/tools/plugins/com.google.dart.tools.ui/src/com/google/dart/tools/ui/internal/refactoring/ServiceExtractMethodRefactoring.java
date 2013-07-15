@@ -24,6 +24,8 @@ import java.util.List;
 
 /**
  * LTK wrapper around Engine Services {@link ExtractMethodRefactoring}.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class ServiceExtractMethodRefactoring extends ServiceRefactoring {
   private final ExtractMethodRefactoring refactoring;
