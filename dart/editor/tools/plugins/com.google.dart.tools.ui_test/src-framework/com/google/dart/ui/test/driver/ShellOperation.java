@@ -22,14 +22,25 @@ import org.eclipse.swt.widgets.Shell;
  */
 public abstract class ShellOperation extends Operation {
   private final String shellText;
+  private Shell shell;
 
   public ShellOperation(String shellText) {
     this.shellText = shellText;
   }
 
   @Override
+  public void done(UiContext context) throws Exception {
+    context.shellClosed();
+  }
+
+  @Override
+  public boolean isDone(UiContext context) throws Exception {
+    return shell == null || shell.isDisposed();
+  }
+
+  @Override
   public boolean isReady(UiContext context) throws Exception {
-    Shell shell = context.findShell(shellText);
+    shell = context.findShell(shellText);
     if (shell == null) {
       return false;
     }
@@ -39,6 +50,7 @@ public abstract class ShellOperation extends Operation {
 
   @Override
   public void onError(UiContext context) throws Exception {
-    context.getShell().close();
+    context.clickButton("Cancel");
+    context.shellClosed();
   }
 }

@@ -25,12 +25,11 @@ import static org.junit.Assert.assertEquals;
 /**
  * Helper for testing wizard dialogs.
  */
-public class WizardDialogHelper {
-  protected final UiContext context;
+public class WizardDialogHelper extends DialogHelper {
   private final Label messageTextWidget;
 
   public WizardDialogHelper(UiContext context) {
-    this.context = context;
+    super(context);
     Dialog dialog = (Dialog) context.getShell().getData();
     Object messageBox = ReflectionUtils.getFieldObject(dialog, "fMessageBox");
     messageTextWidget = ReflectionUtils.getFieldObject(messageBox, "fText");
@@ -42,10 +41,6 @@ public class WizardDialogHelper {
 
   public void assertNoMessage() {
     assertMessage("");
-  }
-
-  public void closeOK() {
-    context.clickButton("OK");
   }
 
   public String getMessage() {

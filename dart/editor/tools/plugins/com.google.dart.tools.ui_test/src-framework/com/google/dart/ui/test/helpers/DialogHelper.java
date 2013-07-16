@@ -11,30 +11,34 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.ui.test.driver;
+
+package com.google.dart.ui.test.helpers;
 
 import com.google.dart.ui.test.util.UiContext;
 
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Button;
+
+import static org.junit.Assert.assertTrue;
 
 /**
- * The {@link Operation} that waits for the {@link Shell} closing.
+ * Helper for testing dialogs.
  */
-public class ShellClosedOperation extends Operation {
-  private final String shellText;
+public class DialogHelper {
+  protected final UiContext context;
 
-  public ShellClosedOperation(String shellText) {
-    this.shellText = shellText;
+  public DialogHelper(UiContext context) {
+    this.context = context;
   }
 
-  @Override
-  public boolean isReady(UiContext context) throws Exception {
-    Shell shell = context.findShell(shellText);
-    return shell == null || shell.isDisposed();
+  public void closeCancel() {
+    Button button = context.findButton("Cancel");
+    assertTrue(button.isEnabled());
+    context.clickButton(button);
   }
 
-  @Override
-  public void run(UiContext context) throws Exception {
-    context.shellClosed();
+  public void closeOK() {
+    Button button = context.findButton("OK");
+    assertTrue(button.isEnabled());
+    context.clickButton(button);
   }
 }

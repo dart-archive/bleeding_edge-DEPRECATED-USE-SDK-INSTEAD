@@ -103,6 +103,23 @@ public class AbstractDartEditorTabTest extends TestCase {
   }
 
   /**
+   * @return the end position of the given pattern in the editor source. Fails in pattern was not
+   *         found.
+   */
+  protected int findEnd(String pattern) {
+    return findOffset(pattern) + pattern.length();
+  }
+
+  /**
+   * @return the offset of the given pattern in the editor source. Fails in pattern was not found.
+   */
+  protected int findOffset(String pattern) {
+    int position = sourceViewer.getDocument().get().indexOf(pattern);
+    assertThat(position).isNotEqualTo(-1);
+    return position;
+  }
+
+  /**
    * @return the {@link IAction} with given definition ID, not <code>null</code>.
    */
   protected final IAction getEditorAction(String id) {
@@ -130,6 +147,13 @@ public class AbstractDartEditorTabTest extends TestCase {
   /**
    * Selects and reveals the range associated with the given pattern.
    */
+  protected final void selectRange(int start, int end) throws Exception {
+    testEditor.selectAndReveal(start, end - start);
+  }
+
+  /**
+   * Selects and reveals the range associated with the given pattern.
+   */
   protected final void selectRange(String pattern) throws Exception {
     int position = findOffset(pattern);
     testEditor.selectAndReveal(position, pattern.length());
@@ -148,14 +172,5 @@ public class AbstractDartEditorTabTest extends TestCase {
     PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().closeAllEditors(false);
     UiContext.runEventLoopOnce();
     super.tearDown();
-  }
-
-  /**
-   * @return the offset of the given pattern in the editor source. Fails in pattern was not found.
-   */
-  private int findOffset(String pattern) {
-    int position = sourceViewer.getDocument().get().indexOf(pattern);
-    assertThat(position).isNotEqualTo(-1);
-    return position;
   }
 }

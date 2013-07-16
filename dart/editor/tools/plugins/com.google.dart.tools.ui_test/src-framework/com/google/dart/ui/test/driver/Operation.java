@@ -20,6 +20,20 @@ import com.google.dart.ui.test.util.UiContext;
  */
 public abstract class Operation {
   /**
+   * This method is invoked after this operation is {@link #run(UiContext)}.
+   */
+  public void done(UiContext context) throws Exception {
+  }
+
+  /**
+   * Checks if system under test is done executing this operation. "Right state" may mean different
+   * thing depending on the operation - dialog closed, job done, etc.
+   */
+  public boolean isDone(UiContext context) throws Exception {
+    return true;
+  }
+
+  /**
    * Checks if system under test is in the right state, so we can run this operation. "Right state"
    * may mean different thing depending on the operation - dialog opened, action enabled, etc.
    */

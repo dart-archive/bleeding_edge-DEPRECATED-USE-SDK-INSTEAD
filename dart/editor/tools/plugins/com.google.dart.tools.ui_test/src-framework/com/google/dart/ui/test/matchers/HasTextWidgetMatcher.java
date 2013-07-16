@@ -14,30 +14,12 @@
 
 package com.google.dart.ui.test.matchers;
 
+import com.google.dart.ui.test.util.UiContext;
+
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
 
 class HasTextWidgetMatcher implements WidgetMatcher {
-  /**
-   * @return the text of the given {@link Widget}, may be {@code null} is this type of the
-   *         {@link Widget} has no text.
-   */
-  private static String getText(Widget widget) {
-    if (widget instanceof Button) {
-      return ((Button) widget).getText();
-    }
-    if (widget instanceof Label) {
-      return ((Label) widget).getText();
-    }
-    if (widget instanceof Text) {
-      return ((Text) widget).getText();
-    }
-    return null;
-  }
-
   /**
    * Normalizes given {@link String} by removing special characters.
    */
@@ -56,7 +38,7 @@ class HasTextWidgetMatcher implements WidgetMatcher {
 
   @Override
   public boolean matches(Widget widget) {
-    String text = getText(widget);
+    String text = UiContext.getText(widget);
     if (text == null) {
       return false;
     }

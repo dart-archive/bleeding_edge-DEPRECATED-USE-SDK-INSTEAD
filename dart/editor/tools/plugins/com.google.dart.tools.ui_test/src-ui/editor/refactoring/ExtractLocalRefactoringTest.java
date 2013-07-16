@@ -15,7 +15,6 @@ package editor.refactoring;
 
 import com.google.dart.tools.ui.actions.JdtActionConstants;
 import com.google.dart.ui.test.driver.Operation;
-import com.google.dart.ui.test.driver.ShellClosedOperation;
 import com.google.dart.ui.test.driver.ShellOperation;
 import com.google.dart.ui.test.helpers.WizardDialogHelper;
 import com.google.dart.ui.test.util.UiContext;
@@ -36,11 +35,11 @@ public final class ExtractLocalRefactoringTest extends AbstractDartEditorTabTest
     }
 
     public boolean getReplaceAll() {
-      return context.getButtonByText("Replace all.*").getSelection();
+      return context.findButton("Replace all.*").getSelection();
     }
 
     public void setName(String name) {
-      context.getTextByLabel("Variable name:").setText(name);
+      context.findTextByLabel("Variable name:").setText(name);
     }
 
     public void setReplaceAll(boolean replaceAll) {
@@ -58,8 +57,7 @@ public final class ExtractLocalRefactoringTest extends AbstractDartEditorTabTest
     // run action
     selectAndExtract("123");
     // animate wizard dialog
-    String wizardName = "Extract Local Variable";
-    addOperation(new ShellOperation(wizardName) {
+    addOperation(new ShellOperation("Extract Local Variable") {
       @Override
       public void run(UiContext context) throws Exception {
         WizardHelper helper = new WizardHelper(context);
@@ -67,10 +65,9 @@ public final class ExtractLocalRefactoringTest extends AbstractDartEditorTabTest
         helper.setReplaceAll(false);
         // done
         helper.setName("res");
-        context.clickButton("OK");
+        helper.closeOK();
       }
     });
-    addOperation(new ShellClosedOperation(wizardName));
     // validate result
     runUiOperations(60, TimeUnit.SECONDS);
     assertTestUnitContent(
@@ -92,8 +89,7 @@ public final class ExtractLocalRefactoringTest extends AbstractDartEditorTabTest
     // run action
     selectAndExtract("123");
     // animate wizard dialog
-    String wizardName = "Extract Local Variable";
-    addOperation(new ShellOperation(wizardName) {
+    addOperation(new ShellOperation("Extract Local Variable") {
       @Override
       public void run(UiContext context) throws Exception {
         WizardHelper helper = new WizardHelper(context);
@@ -101,10 +97,9 @@ public final class ExtractLocalRefactoringTest extends AbstractDartEditorTabTest
         assertTrue(helper.getReplaceAll());
         // done
         helper.setName("res");
-        context.clickButton("OK");
+        helper.closeOK();
       }
     });
-    addOperation(new ShellClosedOperation(wizardName));
     // validate result
     runUiOperations(60, TimeUnit.SECONDS);
     assertTestUnitContent(
@@ -125,8 +120,7 @@ public final class ExtractLocalRefactoringTest extends AbstractDartEditorTabTest
     // run action
     selectAndExtract("123");
     // animate wizard dialog
-    String wizardName = "Extract Local Variable";
-    addOperation(new ShellOperation(wizardName) {
+    addOperation(new ShellOperation("Extract Local Variable") {
       @Override
       public void run(UiContext context) throws Exception {
         WizardHelper helper = new WizardHelper(context);
@@ -137,10 +131,9 @@ public final class ExtractLocalRefactoringTest extends AbstractDartEditorTabTest
         helper.setName("res");
         helper.assertNoMessage();
         // done
-        context.clickButton("OK");
+        helper.closeOK();
       }
     });
-    addOperation(new ShellClosedOperation(wizardName));
     // validate result
     runUiOperations(60, TimeUnit.SECONDS);
     assertTestUnitContent(

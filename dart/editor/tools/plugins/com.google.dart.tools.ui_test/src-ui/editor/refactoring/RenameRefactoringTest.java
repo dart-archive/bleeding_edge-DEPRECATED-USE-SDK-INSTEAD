@@ -14,14 +14,12 @@
 package editor.refactoring;
 
 import com.google.dart.tools.ui.actions.JdtActionConstants;
-import com.google.dart.ui.test.driver.ShellClosedOperation;
-import com.google.dart.ui.test.driver.ShellOperation;
 import com.google.dart.ui.test.driver.Operation;
+import com.google.dart.ui.test.driver.ShellOperation;
 import com.google.dart.ui.test.helpers.WizardDialogHelper;
 import com.google.dart.ui.test.util.UiContext;
 
 import editor.AbstractDartEditorTabTest;
-
 
 import org.eclipse.jface.action.IAction;
 
@@ -37,7 +35,7 @@ public final class RenameRefactoringTest extends AbstractDartEditorTabTest {
     }
 
     public void setName(String name) {
-      context.getTextByLabel("New name:").setText(name);
+      context.findTextByLabel("New name:").setText(name);
     }
   }
 
@@ -50,8 +48,7 @@ public final class RenameRefactoringTest extends AbstractDartEditorTabTest {
         "}");
     findAndStartRename("A v");
     // animate wizard dialog
-    String wizardName = "Rename Class";
-    addOperation(new ShellOperation(wizardName) {
+    addOperation(new ShellOperation("Rename Class") {
       @Override
       public void run(UiContext context) throws Exception {
         WizardHelper helper = new WizardHelper(context);
@@ -65,7 +62,6 @@ public final class RenameRefactoringTest extends AbstractDartEditorTabTest {
         helper.closeOK();
       }
     });
-    addOperation(new ShellClosedOperation(wizardName));
     // validate result
     runUiOperations(60, TimeUnit.SECONDS);
     assertTestUnitContent(
@@ -87,8 +83,7 @@ public final class RenameRefactoringTest extends AbstractDartEditorTabTest {
         "}");
     findAndStartRename("f;");
     // animate wizard dialog
-    String wizardName = "Rename Field";
-    addOperation(new ShellOperation(wizardName) {
+    addOperation(new ShellOperation("Rename Field") {
       @Override
       public void run(UiContext context) throws Exception {
         WizardHelper helper = new WizardHelper(context);
@@ -99,7 +94,6 @@ public final class RenameRefactoringTest extends AbstractDartEditorTabTest {
         helper.closeOK();
       }
     });
-    addOperation(new ShellClosedOperation(wizardName));
     // validate result
     runUiOperations(60, TimeUnit.SECONDS);
     assertTestUnitContent(
@@ -121,8 +115,7 @@ public final class RenameRefactoringTest extends AbstractDartEditorTabTest {
         "}");
     findAndStartRename("myVar;");
     // animate wizard dialog
-    String wizardName = "Rename Top-Level Variable";
-    addOperation(new ShellOperation(wizardName) {
+    addOperation(new ShellOperation("Rename Top-Level Variable") {
       @Override
       public void run(UiContext context) throws Exception {
         WizardHelper helper = new WizardHelper(context);
@@ -133,7 +126,6 @@ public final class RenameRefactoringTest extends AbstractDartEditorTabTest {
         helper.closeOK();
       }
     });
-    addOperation(new ShellClosedOperation(wizardName));
     // validate result
     runUiOperations(60, TimeUnit.SECONDS);
     assertTestUnitContent(

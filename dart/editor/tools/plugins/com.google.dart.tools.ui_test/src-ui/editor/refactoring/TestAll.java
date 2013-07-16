@@ -21,6 +21,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(RenameRefactoringTest.class);
     suite.addTestSuite(ExtractLocalRefactoringTest.class);
+    suite.addTestSuite(ExtractMethodRefactoringTest.class);
     return suite;
   }
 }

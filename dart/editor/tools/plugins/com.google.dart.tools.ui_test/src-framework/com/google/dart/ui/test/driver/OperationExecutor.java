@@ -47,6 +47,8 @@ public class OperationExecutor {
    */
   public void runUiOperations(long waitFor, TimeUnit unit) throws Exception {
     display.timerExec(5, new Runnable() {
+      private LinkedList<Operation> finishOperations = Lists.newLinkedList();
+
       @Override
       public void run() {
         // are we done?
@@ -57,23 +59,50 @@ public class OperationExecutor {
         display.timerExec(5, this);
         // run single operation
         try {
+          // wait for current operation done
+          if (!finishOperations.isEmpty()) {
+            Operation operation = finishOperations.getFirst();
+            if (operation.isDone(context)) {
+              finishOperations.removeFirst();
+              operation.done(context);
+              maybeDone();
+            }
+            return;
+          }
+          // prepare new operation
+          if (operations.isEmpty()) {
+            return;
+          }
           Operation operation = operations.getFirst();
+          // wait for new operation ready
           if (operation.isReady(context)) {
             operations.removeFirst();
             try {
               operation.run(context);
+              // done operation
+              if (operation.isDone(context)) {
+                operation.done(context);
+              } else {
+                finishOperations.addLast(operation);
+              }
+              // may be done execution
+              maybeDone();
             } catch (Throwable e) {
               operation.onError(context);
               ExecutionUtils.propagate(e);
-            } finally {
-              if (operations.isEmpty()) {
-                operationsDone.set(true);
-              }
             }
           }
         } catch (Throwable e) {
-          exception = e;
+          if (exception == null) {
+            exception = e;
+          }
           // we are done - with failure
+          operationsDone.set(true);
+        }
+      }
+
+      private void maybeDone() {
+        if (operations.isEmpty() && finishOperations.isEmpty()) {
           operationsDone.set(true);
         }
       }
