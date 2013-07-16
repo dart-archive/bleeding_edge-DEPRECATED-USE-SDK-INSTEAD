@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
@@ -24,6 +26,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.BundleContext;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +34,13 @@ import java.util.concurrent.TimeUnit;
 public class Activator extends AbstractUIPlugin implements IStartup {
 
   private static CountDownLatch EARLY_STARTUP_LATCH = new CountDownLatch(1);
+
+  /**
+   * The shared instance.
+   */
+  private static Activator PLUGIN;
+
+  public static final String PLUGIN_ID = "com.google.dart.tools.ui_test"; //$NON-NLS-1$
 
   /**
    * Closes all editors.
@@ -71,6 +81,63 @@ public class Activator extends AbstractUIPlugin implements IStartup {
           waitEventLoop(100);
         }
       }
+    }
+  }
+
+  /**
+   * Log the given message as an error to the Eclipse log.
+   * 
+   * @param message the message
+   */
+  public static void logError(String message) {
+    if (PLUGIN != null) {
+      PLUGIN.getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, message));
+    }
+  }
+
+  /**
+   * Log the given exception.
+   * 
+   * @param message the message
+   * @param exception the exception
+   */
+  public static void logError(String message, Throwable exception) {
+    if (PLUGIN != null) {
+      PLUGIN.getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, message, exception));
+    }
+  }
+
+  /**
+   * Log the given exception.
+   * 
+   * @param exception the exception to log
+   */
+  public static void logError(Throwable exception) {
+    if (PLUGIN != null) {
+      PLUGIN.getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, exception.getMessage(), exception));
+    }
+  }
+
+  /**
+   * Log the given message as a warning to the Eclipse log.
+   * 
+   * @param message the message to log
+   */
+  public static void logWarning(String message) {
+    if (PLUGIN != null) {
+      PLUGIN.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message));
+    }
+  }
+
+  /**
+   * Log the given exception as a warning in the Eclipse log.
+   * 
+   * @param message the message
+   * @param exception the exception
+   */
+  public static void logWarning(String message, Throwable exception) {
+    if (PLUGIN != null) {
+      PLUGIN.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message, exception));
     }
   }
 
@@ -144,5 +211,17 @@ public class Activator extends AbstractUIPlugin implements IStartup {
 
     // Notify others that startup is complete
     EARLY_STARTUP_LATCH.countDown();
+  }
+
+  @Override
+  public void start(BundleContext context) throws Exception {
+    super.start(context);
+    PLUGIN = this;
+  }
+
+  @Override
+  public void stop(BundleContext context) throws Exception {
+    PLUGIN = null;
+    super.stop(context);
   }
 }
