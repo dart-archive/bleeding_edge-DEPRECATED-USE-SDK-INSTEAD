@@ -771,11 +771,9 @@ def RunEditorTests(buildout, buildos):
   for editorArchive in _FindRcpZipFiles(buildout):
     if (editorArchive.endswith('_64.zip')):
       print 'Running tests for %s...' % editorArchive
-      tempDir = join(buildout, 'tests_temp')
+      tempDir = tempfile.mkdtemp(prefix='editor_')
       
       zipper = ziputils.ZipUtil(join(buildout, editorArchive), buildos)
-      shutil.rmtree(tempDir, True)  
-      os.mkdir(tempDir)
       zipper.UnZip(tempDir)
 
       editorExecutable = GetEditorExecutable(join(tempDir, 'dart'))
@@ -783,7 +781,7 @@ def RunEditorTests(buildout, buildos):
               '-data', join(tempDir, 'workspace')]
       if sys.platform == 'linux':
         args = ['xvfb-run', '-a'] + args
-      if (subprocess.call(args)):
+      if (subprocess.call(args, shell=IsWindows())):
         BuildStepFailure()
 
       shutil.rmtree(tempDir, True)
@@ -797,6 +795,10 @@ def GetEditorExecutable(editorDir):
   else:
     executable = 'DartEditor'
   return join(editorDir, executable)
+
+
+def IsWindows():
+  return sys.platform == 'win32'
 
 
 def ReplaceInFiles(paths, subs):
