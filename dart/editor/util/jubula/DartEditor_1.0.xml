@@ -1,0 +1,1537 @@
+<?xml version="1.0" encoding="UTF-16" ?>
+<content xmlns="http://www.eclipse.org/jubula/client/archive/schema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <project>
+    <name>DartEditor</name>
+    <comment xsi:nil="true"/>
+    <GUID>3bf750f1c07d42b4af85e01b7d252f88</GUID>
+    <generated>false</generated>
+    <active>true</active>
+    <defaultLanguage>en_US</defaultLanguage>
+    <projectLanguage>en_US</projectLanguage>
+    <aut id="ID_A_6319">
+      <name>Editor</name>
+      <config id="ID_C_6325">
+        <name>Editor@localhost</name>
+        <classname/>
+        <classpath/>
+        <jarfile/>
+        <parameter/>
+        <workingDir/>
+        <jreDir/>
+        <jreParameter/>
+        <server/>
+        <environment/>
+        <activateApp>false</activateApp>
+        <activationMethod>none</activationMethod>
+        <confAttrMapEntry>
+          <key>AUT_ARGUMENTS</key>
+          <value>-Dcom.google.dart.sdk=/Users/messick/eclipse/dart-sdk</value>
+        </confAttrMapEntry>
+        <confAttrMapEntry>
+          <key>AUT_ID</key>
+          <value>darteditor</value>
+        </confAttrMapEntry>
+        <confAttrMapEntry>
+          <key>CONFIG_NAME</key>
+          <value>Editor@localhost</value>
+        </confAttrMapEntry>
+        <confAttrMapEntry>
+          <key>ENVIRONMENT</key>
+          <value>DART_SDK</value>
+        </confAttrMapEntry>
+        <confAttrMapEntry>
+          <key>EXECUTABLE</key>
+          <value>/Users/messick/src/dart/editor-jubula/DartEditor.app/Contents/MacOS/DartEditor</value>
+        </confAttrMapEntry>
+        <confAttrMapEntry>
+          <key>KEYBOARD_LAYOUT</key>
+          <value>en_US</value>
+        </confAttrMapEntry>
+        <confAttrMapEntry>
+          <key>SERVER</key>
+          <value>localhost</value>
+        </confAttrMapEntry>
+        <confAttrMapEntry>
+          <key>WORKING_DIR</key>
+          <value>/Users/messick/src/dart/editor-jubula/DartEditor.app/Contents/MacOS</value>
+        </confAttrMapEntry>
+      </config>
+      <language>en_US</language>
+      <objectMapping>
+        <profile>
+          <name xsi:nil="true"/>
+          <contextFactor>0.1</contextFactor>
+          <nameFactor>0.6</nameFactor>
+          <pathFactor>0.3</pathFactor>
+          <threshold>0.85</threshold>
+        </profile>
+        <mapped>
+          <name>#1!mappedGDCat#1!</name>
+          <association>
+            <technicalName>
+              <neighbour>org.eclipse.swt.widgets.Button_1</neighbour>
+              <componentClassName>org.eclipse.swt.widgets.Button</componentClassName>
+              <supportedClassName>org.eclipse.swt.widgets.Button</supportedClassName>
+              <hierarchyName>org.eclipse.swt.widgets.Shell_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Shell_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_2</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>dialog.button.finish</hierarchyName>
+              <alternativeDisplayName>dialog.button.finish ("Finish")</alternativeDisplayName>
+            </technicalName>
+            <type xsi:nil="true"/>
+            <logicalName>fc50d665ed8349f18093079ea1b83f99</logicalName>
+          </association>
+          <association>
+            <technicalName>
+              <neighbour>org.eclipse.swt.widgets.Button_1</neighbour>
+              <neighbour>org.eclipse.swt.widgets.Label_1</neighbour>
+              <neighbour>org.eclipse.swt.widgets.Label_2</neighbour>
+              <neighbour>org.eclipse.swt.widgets.Text_1</neighbour>
+              <componentClassName>org.eclipse.swt.widgets.Text</componentClassName>
+              <supportedClassName>org.eclipse.swt.widgets.Text</supportedClassName>
+              <hierarchyName>org.eclipse.swt.widgets.Shell_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Shell_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Group_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Text_1</hierarchyName>
+              <alternativeDisplayName>Text Field/Text Area/Editor Pane/Text Pane</alternativeDisplayName>
+            </technicalName>
+            <type xsi:nil="true"/>
+            <logicalName>c574e6cd6f4c4b578412adb9854b442c</logicalName>
+          </association>
+          <association>
+            <technicalName>
+              <neighbour>org.eclipse.swt.widgets.Button_1</neighbour>
+              <neighbour>org.eclipse.swt.widgets.Button_2</neighbour>
+              <componentClassName>org.eclipse.swt.widgets.Button</componentClassName>
+              <supportedClassName>org.eclipse.swt.widgets.Button</supportedClassName>
+              <hierarchyName>org.eclipse.swt.widgets.Shell_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Shell_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>dialog.button.ok</hierarchyName>
+              <alternativeDisplayName>dialog.button.ok ("OK")</alternativeDisplayName>
+            </technicalName>
+            <type xsi:nil="true"/>
+            <logicalName>714b96598c7d43eba06f519b26afeae5</logicalName>
+          </association>
+          <association>
+            <technicalName>
+              <componentClassName>org.eclipse.swt.widgets.Tree</componentClassName>
+              <supportedClassName>org.eclipse.swt.widgets.Tree</supportedClassName>
+              <hierarchyName>org.eclipse.swt.widgets.Shell_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>com.google.dart.tools.ui.FileExplorer</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Tree_1</hierarchyName>
+              <alternativeDisplayName>Tree</alternativeDisplayName>
+            </technicalName>
+            <type xsi:nil="true"/>
+            <logicalName>18927fb1a3c74bd2ba3013d579fc2c3d</logicalName>
+          </association>
+          <association>
+            <technicalName>
+              <componentClassName>org.eclipse.swt.widgets.Button</componentClassName>
+              <supportedClassName>org.eclipse.swt.widgets.Button</supportedClassName>
+              <hierarchyName>org.eclipse.swt.widgets.Shell_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Shell_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.ltk.internal.ui.refactoring.RefactoringWizardDialog2$PageBook_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Button_1</hierarchyName>
+              <alternativeDisplayName>Button/Check Box/Radio Button ("Delete project contents on disk (cannot be undone)")</alternativeDisplayName>
+            </technicalName>
+            <type xsi:nil="true"/>
+            <logicalName>c84c00647ac840ecb2e52a02a4366b18</logicalName>
+          </association>
+          <association>
+            <technicalName>
+              <componentClassName>org.eclipse.swt.widgets.ToolItem</componentClassName>
+              <supportedClassName>org.eclipse.swt.widgets.ToolItem</supportedClassName>
+              <hierarchyName>org.eclipse.swt.widgets.Shell_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.custom.CBanner_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.Composite_1</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.CoolBar_1</hierarchyName>
+              <hierarchyName>org.eclipse.ui.workbench.help</hierarchyName>
+              <hierarchyName>org.eclipse.swt.widgets.ToolItem_1</hierarchyName>
+              <alternativeDisplayName>Toolbar Item</alternativeDisplayName>
+            </technicalName>
+            <type xsi:nil="true"/>
+            <logicalName>002403faca774a1a9d961905fa831b74</logicalName>
+          </association>
+        </mapped>
+        <unmappedComponent>
+          <name>#1!unmappedlogicalGDCat#1!</name>
+        </unmappedComponent>
+        <unmappedTechnical>
+          <name>#1!mappedtechnicalGDCat#1!</name>
+        </unmappedTechnical>
+      </objectMapping>
+      <autToolkit>com.bredexsw.guidancer.RcpToolkitPlugin</autToolkit>
+      <generateNames>true</generateNames>
+      <autId>editor</autId>
+    </aut>
+    <testcase>
+      <name>Create Application</name>
+      <comment xsi:nil="true"/>
+      <GUID>e6c0d4b3bd78475891403c54bbf91fa8</GUID>
+      <generated>false</generated>
+      <active>true</active>
+      <parameterDescription>
+        <name>name</name>
+        <type>java.lang.String</type>
+        <uniqueId>63a5ee97800b49f4ba29807dea8b10db</uniqueId>
+      </parameterDescription>
+      <testdata>
+        <row rowCount="1">
+          <data columnCount="1">
+            <data>
+              <language>en_US</language>
+              <value>sampleApp</value>
+            </data>
+          </data>
+        </row>
+        <uniqueIds>63a5ee97800b49f4ba29807dea8b10db</uniqueIds>
+      </testdata>
+      <datafile xsi:nil="true"/>
+      <teststep>
+        <cap>
+          <name>Select Menu Entry by Textpath on Menu Bar ("File","Edit","Navigate",...)</name>
+          <comment xsi:nil="true"/>
+          <GUID>5dbc09d9928c4d769a5be3a64799514c</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.MenuPath</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.MenuPath</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Operator</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Operator</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>'File'/'New Application'</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>equals</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.MenuPath</uniqueIds>
+            <uniqueIds>CompSystem.Operator</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.SelectMenuItem</actionName>
+          <componentName>2627fe8808224e1282cc0fe78c0132cc</componentName>
+          <componentType>guidancer.concrete.MenuBar</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Wait for Window</name>
+          <comment xsi:nil="true"/>
+          <GUID>2fcb6967498e465cac0aa5b6fe9fce51</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.Title</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Title</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Operator</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Operator</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Timeout</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.Timeout</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.DelayAfterVisibility</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.DelayAfterVisibility</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>''</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>equals</value>
+                </data>
+              </data>
+              <data columnCount="3">
+                <data>
+                  <language>en_US</language>
+                  <value>3000</value>
+                </data>
+              </data>
+              <data columnCount="4">
+                <data>
+                  <language>en_US</language>
+                  <value>500</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.Title</uniqueIds>
+            <uniqueIds>CompSystem.Operator</uniqueIds>
+            <uniqueIds>CompSystem.Timeout</uniqueIds>
+            <uniqueIds>CompSystem.DelayAfterVisibility</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.WaitForWindow</actionName>
+          <componentName>07bc1db7ec0240e69917f91dfbb8feb0</componentName>
+          <componentType>guidancer.concrete.GraphicApplication</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Click on Name Field</name>
+          <comment xsi:nil="true"/>
+          <GUID>2beae9992100421cba2ac20263b804e8</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.ClickCount</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.ClickCount</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.MouseButton</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.MouseButton</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.XPos</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.XPos</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.XUnits</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.XUnits</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.YPos</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.YPos</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.YUnits</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.YUnits</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+              <data columnCount="3">
+                <data>
+                  <language>en_US</language>
+                  <value>10</value>
+                </data>
+              </data>
+              <data columnCount="4">
+                <data>
+                  <language>en_US</language>
+                  <value>percent</value>
+                </data>
+              </data>
+              <data columnCount="5">
+                <data>
+                  <language>en_US</language>
+                  <value>10</value>
+                </data>
+              </data>
+              <data columnCount="6">
+                <data>
+                  <language>en_US</language>
+                  <value>percent</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.ClickCount</uniqueIds>
+            <uniqueIds>CompSystem.MouseButton</uniqueIds>
+            <uniqueIds>CompSystem.XPos</uniqueIds>
+            <uniqueIds>CompSystem.XUnits</uniqueIds>
+            <uniqueIds>CompSystem.YPos</uniqueIds>
+            <uniqueIds>CompSystem.YUnits</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.ClickDirect</actionName>
+          <componentName>c574e6cd6f4c4b578412adb9854b442c</componentName>
+          <componentType>guidancer.abstract.TextInputSupport</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Insert String</name>
+          <comment xsi:nil="true"/>
+          <GUID>7fc7115654194346b48df63d6ee66530</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.Text</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Text</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>=63a5ee97800b49f4ba29807dea8b10db</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.Text</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.InputTextDirect</actionName>
+          <componentName>07bc1db7ec0240e69917f91dfbb8feb0</componentName>
+          <componentType>guidancer.concrete.GraphicApplication</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Pause</name>
+          <comment xsi:nil="true"/>
+          <GUID>749442fe4dcd490f89e349e746a2be1a</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.TimeMillSec</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.TimeMillSec</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>500</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.TimeMillSec</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.Wait</actionName>
+          <componentName>07bc1db7ec0240e69917f91dfbb8feb0</componentName>
+          <componentType>guidancer.concrete.GraphicApplication</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Click on dialog.button.finish ("Finish")</name>
+          <comment xsi:nil="true"/>
+          <GUID>cc54edd01a5244b08b1bc44ee4708eda</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.ClickCount</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.ClickCount</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.MouseButton</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.MouseButton</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.ClickCount</uniqueIds>
+            <uniqueIds>CompSystem.MouseButton</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.Click</actionName>
+          <componentName>fc50d665ed8349f18093079ea1b83f99</componentName>
+          <componentType>guidancer.abstract.Widget</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Wait for Window to Close</name>
+          <comment xsi:nil="true"/>
+          <GUID>ea4a77e181c44185ad5196ce2142cf85</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.Title</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Title</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Operator</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Operator</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Timeout</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.Timeout</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.DelayAfterClose</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.DelayAfterClose</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>''</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>equals</value>
+                </data>
+              </data>
+              <data columnCount="3">
+                <data>
+                  <language>en_US</language>
+                  <value>2000</value>
+                </data>
+              </data>
+              <data columnCount="4">
+                <data>
+                  <language>en_US</language>
+                  <value>500</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.Title</uniqueIds>
+            <uniqueIds>CompSystem.Operator</uniqueIds>
+            <uniqueIds>CompSystem.Timeout</uniqueIds>
+            <uniqueIds>CompSystem.DelayAfterClose</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.WaitForWindowToClose</actionName>
+          <componentName>07bc1db7ec0240e69917f91dfbb8feb0</componentName>
+          <componentType>guidancer.concrete.GraphicApplication</componentType>
+        </cap>
+      </teststep>
+      <interfaceLocked>false</interfaceLocked>
+    </testcase>
+    <testcase>
+      <name>Sample Web App CRD</name>
+      <comment xsi:nil="true"/>
+      <GUID>58a1588e6c57410eb27f6cb8b871e512</GUID>
+      <generated>false</generated>
+      <active>true</active>
+      <parameterDescription>
+        <name>appName</name>
+        <type>java.lang.String</type>
+        <uniqueId>737241edb3af44e8b82c328da7a5e90e</uniqueId>
+      </parameterDescription>
+      <testdata>
+        <row rowCount="1">
+          <data columnCount="1">
+            <data>
+              <language>en_US</language>
+              <value>''</value>
+            </data>
+          </data>
+        </row>
+        <uniqueIds>737241edb3af44e8b82c328da7a5e90e</uniqueIds>
+      </testdata>
+      <datafile xsi:nil="true"/>
+      <teststep>
+        <usedTestcase>
+          <name/>
+          <comment xsi:nil="true"/>
+          <GUID>91b7e85fe1df4a51a80bd5cdc9730530</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>=737241edb3af44e8b82c328da7a5e90e</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>63a5ee97800b49f4ba29807dea8b10db</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <testcaseGuid>e6c0d4b3bd78475891403c54bbf91fa8</testcaseGuid>
+          <projectGuid>3bf750f1c07d42b4af85e01b7d252f88</projectGuid>
+          <hasOwnTestdata>true</hasOwnTestdata>
+        </usedTestcase>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Pause for building</name>
+          <comment xsi:nil="true"/>
+          <GUID>89c5e7cd1b4144f8992d1557ad1a4086</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.TimeMillSec</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.TimeMillSec</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>5000</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.TimeMillSec</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.Wait</actionName>
+          <componentName>07bc1db7ec0240e69917f91dfbb8feb0</componentName>
+          <componentType>guidancer.concrete.GraphicApplication</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <usedTestcase>
+          <name/>
+          <comment xsi:nil="true"/>
+          <GUID>dcd4780f3cf14722ace14816f9bcf271</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>=737241edb3af44e8b82c328da7a5e90e</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>496b36ca95b24b728e9446d22869e2ca</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <testcaseGuid>613de8fdef5c4a2989964afc5dc07a42</testcaseGuid>
+          <projectGuid>3bf750f1c07d42b4af85e01b7d252f88</projectGuid>
+          <hasOwnTestdata>true</hasOwnTestdata>
+        </usedTestcase>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Pause for running</name>
+          <comment xsi:nil="true"/>
+          <GUID>54e2880cd2874c6eabc6ef4e3c1024f7</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.TimeMillSec</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.TimeMillSec</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>3000</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.TimeMillSec</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.Wait</actionName>
+          <componentName>07bc1db7ec0240e69917f91dfbb8feb0</componentName>
+          <componentType>guidancer.concrete.GraphicApplication</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Activate</name>
+          <comment>Requires proper layout of Chrome and Editor</comment>
+          <GUID>26a1d0fe93e8465db9859f5ded0125d5</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.ActivationMethod</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.ActivationMethod</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>NE</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.ActivationMethod</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.Activate</actionName>
+          <componentName>07bc1db7ec0240e69917f91dfbb8feb0</componentName>
+          <componentType>guidancer.concrete.GraphicApplication</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Pause for activation</name>
+          <comment xsi:nil="true"/>
+          <GUID>c6fcca77bb6348b8b4489de6ecb58e6f</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.Title</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Title</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Operator</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Operator</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Timeout</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.Timeout</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.DelayAfterVisibility</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.DelayAfterVisibility</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>Dart Editor</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>equals</value>
+                </data>
+              </data>
+              <data columnCount="3">
+                <data>
+                  <language>en_US</language>
+                  <value>1000</value>
+                </data>
+              </data>
+              <data columnCount="4">
+                <data>
+                  <language>en_US</language>
+                  <value>200</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.Title</uniqueIds>
+            <uniqueIds>CompSystem.Operator</uniqueIds>
+            <uniqueIds>CompSystem.Timeout</uniqueIds>
+            <uniqueIds>CompSystem.DelayAfterVisibility</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.WaitForWindowActivation</actionName>
+          <componentName>07bc1db7ec0240e69917f91dfbb8feb0</componentName>
+          <componentType>guidancer.concrete.GraphicApplication</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <usedTestcase>
+          <name/>
+          <comment xsi:nil="true"/>
+          <GUID>97e636b3cbe549249a946df61c12a07e</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>=737241edb3af44e8b82c328da7a5e90e</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>7536cabbeaef49df91d54ece04a5c185</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <testcaseGuid>1b48bc5cda68490eb05328055eb66297</testcaseGuid>
+          <projectGuid>3bf750f1c07d42b4af85e01b7d252f88</projectGuid>
+          <hasOwnTestdata>true</hasOwnTestdata>
+        </usedTestcase>
+      </teststep>
+      <interfaceLocked>false</interfaceLocked>
+    </testcase>
+    <testcase>
+      <name>Delete Application</name>
+      <comment xsi:nil="true"/>
+      <GUID>1b48bc5cda68490eb05328055eb66297</GUID>
+      <generated>false</generated>
+      <active>true</active>
+      <parameterDescription>
+        <name>name</name>
+        <type>java.lang.String</type>
+        <uniqueId>7536cabbeaef49df91d54ece04a5c185</uniqueId>
+      </parameterDescription>
+      <testdata>
+        <row rowCount="1">
+          <data columnCount="1">
+            <data>
+              <language>en_US</language>
+              <value>appName</value>
+            </data>
+          </data>
+        </row>
+        <uniqueIds>7536cabbeaef49df91d54ece04a5c185</uniqueIds>
+      </testdata>
+      <datafile xsi:nil="true"/>
+      <teststep>
+        <cap>
+          <name>Select Node by Textpath on Tree</name>
+          <comment xsi:nil="true"/>
+          <GUID>0efa2588a8e94ca69aeb7bf9ca7a107c</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.PathType</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.PathType</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.PreAscend</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.PreAscend</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.TextPath</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.TextPath</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Operator</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Operator</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.ClickCount</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.ClickCount</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.MouseButton</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.MouseButton</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.ExtendSelection</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.ExtendSelection</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>absolute</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>0</value>
+                </data>
+              </data>
+              <data columnCount="3">
+                <data>
+                  <language>en_US</language>
+                  <value>=7536cabbeaef49df91d54ece04a5c185</value>
+                </data>
+              </data>
+              <data columnCount="4">
+                <data>
+                  <language>en_US</language>
+                  <value>equals</value>
+                </data>
+              </data>
+              <data columnCount="5">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+              <data columnCount="6">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+              <data columnCount="7">
+                <data>
+                  <language>en_US</language>
+                  <value>no</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.PathType</uniqueIds>
+            <uniqueIds>CompSystem.PreAscend</uniqueIds>
+            <uniqueIds>CompSystem.TextPath</uniqueIds>
+            <uniqueIds>CompSystem.Operator</uniqueIds>
+            <uniqueIds>CompSystem.ClickCount</uniqueIds>
+            <uniqueIds>CompSystem.MouseButton</uniqueIds>
+            <uniqueIds>CompSystem.ExtendSelection</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.SelectByTextPath</actionName>
+          <componentName>18927fb1a3c74bd2ba3013d579fc2c3d</componentName>
+          <componentType>guidancer.concrete.Tree</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Select Context Menu Entry by Textpath on Tree</name>
+          <comment xsi:nil="true"/>
+          <GUID>16763fe8fdd9498ebcddbee8fd15653e</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.TextPath</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.TextPath</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Operator</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Operator</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.MouseButton</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.MouseButton</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>'Delete'</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>equals</value>
+                </data>
+              </data>
+              <data columnCount="3">
+                <data>
+                  <language>en_US</language>
+                  <value>3</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.TextPath</uniqueIds>
+            <uniqueIds>CompSystem.Operator</uniqueIds>
+            <uniqueIds>CompSystem.MouseButton</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.PopupSelectByTextPathNew</actionName>
+          <componentName>18927fb1a3c74bd2ba3013d579fc2c3d</componentName>
+          <componentType>guidancer.concrete.Tree</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Wait for Window</name>
+          <comment xsi:nil="true"/>
+          <GUID>4ed2050ded604d028c8ed893ae9ad734</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.Title</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Title</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Operator</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Operator</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Timeout</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.Timeout</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.DelayAfterVisibility</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.DelayAfterVisibility</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>'Delete Resources'</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>equals</value>
+                </data>
+              </data>
+              <data columnCount="3">
+                <data>
+                  <language>en_US</language>
+                  <value>15000</value>
+                </data>
+              </data>
+              <data columnCount="4">
+                <data>
+                  <language>en_US</language>
+                  <value>500</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.Title</uniqueIds>
+            <uniqueIds>CompSystem.Operator</uniqueIds>
+            <uniqueIds>CompSystem.Timeout</uniqueIds>
+            <uniqueIds>CompSystem.DelayAfterVisibility</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.WaitForWindow</actionName>
+          <componentName>07bc1db7ec0240e69917f91dfbb8feb0</componentName>
+          <componentType>guidancer.concrete.GraphicApplication</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Click on Button/Check Box/Radio Button ("Delete project contents on disk (cannot be undone)")</name>
+          <comment xsi:nil="true"/>
+          <GUID>a60b8cc98f214a83aabab863b88e37a0</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.ClickCount</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.ClickCount</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.MouseButton</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.MouseButton</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.ClickCount</uniqueIds>
+            <uniqueIds>CompSystem.MouseButton</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.Click</actionName>
+          <componentName>c84c00647ac840ecb2e52a02a4366b18</componentName>
+          <componentType>guidancer.abstract.Widget</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Click on dialog.button.ok ("OK")</name>
+          <comment xsi:nil="true"/>
+          <GUID>04531fc60e6a4bbca495a7a13742c034</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.ClickCount</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.ClickCount</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.MouseButton</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.MouseButton</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.ClickCount</uniqueIds>
+            <uniqueIds>CompSystem.MouseButton</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.Click</actionName>
+          <componentName>714b96598c7d43eba06f519b26afeae5</componentName>
+          <componentType>guidancer.abstract.Widget</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Wait for Window to Close</name>
+          <comment xsi:nil="true"/>
+          <GUID>c01d52b7f40249b7be1bf92ebfb6e46e</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.Title</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Title</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Operator</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Operator</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Timeout</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.Timeout</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.DelayAfterClose</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.DelayAfterClose</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>'Delete Resources'</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>equals</value>
+                </data>
+              </data>
+              <data columnCount="3">
+                <data>
+                  <language>en_US</language>
+                  <value>15000</value>
+                </data>
+              </data>
+              <data columnCount="4">
+                <data>
+                  <language>en_US</language>
+                  <value>500</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.Title</uniqueIds>
+            <uniqueIds>CompSystem.Operator</uniqueIds>
+            <uniqueIds>CompSystem.Timeout</uniqueIds>
+            <uniqueIds>CompSystem.DelayAfterClose</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.WaitForWindowToClose</actionName>
+          <componentName>07bc1db7ec0240e69917f91dfbb8feb0</componentName>
+          <componentType>guidancer.concrete.GraphicApplication</componentType>
+        </cap>
+      </teststep>
+      <interfaceLocked>false</interfaceLocked>
+    </testcase>
+    <testcase>
+      <name>Run Application</name>
+      <comment xsi:nil="true"/>
+      <GUID>613de8fdef5c4a2989964afc5dc07a42</GUID>
+      <generated>false</generated>
+      <active>true</active>
+      <parameterDescription>
+        <name>name</name>
+        <type>java.lang.String</type>
+        <uniqueId>496b36ca95b24b728e9446d22869e2ca</uniqueId>
+      </parameterDescription>
+      <testdata>
+        <row rowCount="1">
+          <data columnCount="1">
+            <data>
+              <language>en_US</language>
+              <value>sample</value>
+            </data>
+          </data>
+        </row>
+        <uniqueIds>496b36ca95b24b728e9446d22869e2ca</uniqueIds>
+      </testdata>
+      <datafile xsi:nil="true"/>
+      <teststep>
+        <cap>
+          <name>Select Node by Textpath on Tree</name>
+          <comment xsi:nil="true"/>
+          <GUID>2efbea048b8643e4be6b76a8ac8c8942</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.PathType</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.PathType</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.PreAscend</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.PreAscend</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.TextPath</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.TextPath</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.Operator</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.Operator</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.ClickCount</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.ClickCount</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.MouseButton</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.MouseButton</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.ExtendSelection</name>
+            <type>java.lang.String</type>
+            <uniqueId>CompSystem.ExtendSelection</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>absolute</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>0</value>
+                </data>
+              </data>
+              <data columnCount="3">
+                <data>
+                  <language>en_US</language>
+                  <value>=496b36ca95b24b728e9446d22869e2ca</value>
+                </data>
+              </data>
+              <data columnCount="4">
+                <data>
+                  <language>en_US</language>
+                  <value>equals</value>
+                </data>
+              </data>
+              <data columnCount="5">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+              <data columnCount="6">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+              <data columnCount="7">
+                <data>
+                  <language>en_US</language>
+                  <value>no</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.PathType</uniqueIds>
+            <uniqueIds>CompSystem.PreAscend</uniqueIds>
+            <uniqueIds>CompSystem.TextPath</uniqueIds>
+            <uniqueIds>CompSystem.Operator</uniqueIds>
+            <uniqueIds>CompSystem.ClickCount</uniqueIds>
+            <uniqueIds>CompSystem.MouseButton</uniqueIds>
+            <uniqueIds>CompSystem.ExtendSelection</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.SelectByTextPath</actionName>
+          <componentName>18927fb1a3c74bd2ba3013d579fc2c3d</componentName>
+          <componentType>guidancer.concrete.Tree</componentType>
+        </cap>
+      </teststep>
+      <teststep>
+        <cap>
+          <name>Click on Toolbar Item</name>
+          <comment xsi:nil="true"/>
+          <GUID>db75ab8ed2de4e5a88b7c5f0b43b6348</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <parameterDescription>
+            <name>CompSystem.ClickCount</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.ClickCount</uniqueId>
+          </parameterDescription>
+          <parameterDescription>
+            <name>CompSystem.MouseButton</name>
+            <type>java.lang.Integer</type>
+            <uniqueId>CompSystem.MouseButton</uniqueId>
+          </parameterDescription>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+              <data columnCount="2">
+                <data>
+                  <language>en_US</language>
+                  <value>1</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>CompSystem.ClickCount</uniqueIds>
+            <uniqueIds>CompSystem.MouseButton</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <actionName>CompSystem.Click</actionName>
+          <componentName>002403faca774a1a9d961905fa831b74</componentName>
+          <componentType>guidancer.abstract.Widget</componentType>
+        </cap>
+      </teststep>
+      <interfaceLocked>false</interfaceLocked>
+    </testcase>
+    <execCategories>
+      <testsuite>
+        <name>Editor tests</name>
+        <comment>Setup details in shared doc: Using Jubula with Dart Editor</comment>
+        <GUID>4c4e9dbb59b34de4be70638bb270400a</GUID>
+        <generated>false</generated>
+        <active>true</active>
+        <selectedAut>ID_A_6319</selectedAut>
+        <stepDelay>0</stepDelay>
+        <commandLineParameter xsi:nil="true"/>
+        <usedTestcase>
+          <name/>
+          <comment xsi:nil="true"/>
+          <GUID>6910fd1c65e74b23b86d7e0744734a41</GUID>
+          <generated>false</generated>
+          <active>true</active>
+          <testdata>
+            <row rowCount="1">
+              <data columnCount="1">
+                <data>
+                  <language>en_US</language>
+                  <value>testapp</value>
+                </data>
+              </data>
+            </row>
+            <uniqueIds>737241edb3af44e8b82c328da7a5e90e</uniqueIds>
+          </testdata>
+          <datafile xsi:nil="true"/>
+          <testcaseGuid>58a1588e6c57410eb27f6cb8b871e512</testcaseGuid>
+          <projectGuid>3bf750f1c07d42b4af85e01b7d252f88</projectGuid>
+          <hasOwnTestdata>true</hasOwnTestdata>
+        </usedTestcase>
+        <eventHandler>
+          <event>TestErrorEvent.Config</event>
+          <reentryProperty>continue</reentryProperty>
+        </eventHandler>
+        <eventHandler>
+          <event>TestErrorEvent.CompNotFound</event>
+          <reentryProperty>exit</reentryProperty>
+        </eventHandler>
+        <eventHandler>
+          <event>TestErrorEvent.Action</event>
+          <reentryProperty>exit</reentryProperty>
+        </eventHandler>
+        <eventHandler>
+          <event>TestErrorEvent.VerifyFailed</event>
+          <reentryProperty>continue</reentryProperty>
+        </eventHandler>
+      </testsuite>
+    </execCategories>
+    <metaDataVersion>6</metaDataVersion>
+    <autToolKit>com.bredexsw.guidancer.RcpToolkitPlugin</autToolKit>
+    <majorProjectVersion>1</majorProjectVersion>
+    <minorProjectVersion>0</minorProjectVersion>
+    <testResultDetailsCleanupInterval>5</testResultDetailsCleanupInterval>
+    <isReusable>false</isReusable>
+    <isProtected>false</isProtected>
+    <reusedProjects>
+      <projectName>unbound_modules_swt</projectName>
+      <projectGUID>8a81818316dd751b0116dd75444a0001</projectGUID>
+      <majorProjectVersion>6</majorProjectVersion>
+      <minorProjectVersion>0</minorProjectVersion>
+    </reusedProjects>
+    <reusedProjects>
+      <projectName>unbound_modules_rcp</projectName>
+      <projectGUID>8ab6b0832254bb19012254bb2bfe0001</projectGUID>
+      <majorProjectVersion>6</majorProjectVersion>
+      <minorProjectVersion>0</minorProjectVersion>
+    </reusedProjects>
+    <reusedProjects>
+      <projectName>unbound_modules_concrete</projectName>
+      <projectGUID>8ab6b083150339b501150364afb90435</projectGUID>
+      <majorProjectVersion>6</majorProjectVersion>
+      <minorProjectVersion>0</minorProjectVersion>
+    </reusedProjects>
+    <usedToolkit>
+      <name>com.bredexsw.guidancer.ConcreteToolkitPlugin</name>
+      <majorVersion>4</majorVersion>
+      <minorVersion>6</minorVersion>
+    </usedToolkit>
+    <usedToolkit>
+      <name>com.bredexsw.guidancer.AbstractToolkitPlugin</name>
+      <majorVersion>4</majorVersion>
+      <minorVersion>0</minorVersion>
+    </usedToolkit>
+    <componentNames>
+      <compType>org.eclipse.swt.widgets.ToolItem</compType>
+      <GUID>002403faca774a1a9d961905fa831b74</GUID>
+      <creationContext>STEP</creationContext>
+      <refGuid xsi:nil="true"/>
+      <compName>DartEditor_ToolItem_1_tbi</compName>
+    </componentNames>
+    <componentNames>
+      <compType>org.eclipse.swt.GraphicApplication</compType>
+      <GUID>07bc1db7ec0240e69917f91dfbb8feb0</GUID>
+      <creationContext>STEP</creationContext>
+      <refGuid xsi:nil="true"/>
+      <compName>Application</compName>
+    </componentNames>
+    <componentNames>
+      <compType>org.eclipse.swt.widgets.Tree</compType>
+      <GUID>18927fb1a3c74bd2ba3013d579fc2c3d</GUID>
+      <creationContext>STEP</creationContext>
+      <refGuid xsi:nil="true"/>
+      <compName>DartEditor_Tree_1_tre</compName>
+    </componentNames>
+    <componentNames>
+      <compType>org.eclipse.swt.widgets.Menu</compType>
+      <GUID>2627fe8808224e1282cc0fe78c0132cc</GUID>
+      <creationContext>STEP</creationContext>
+      <refGuid xsi:nil="true"/>
+      <compName>Menu</compName>
+    </componentNames>
+    <componentNames>
+      <compType>guidancer.concrete.Button</compType>
+      <GUID>714b96598c7d43eba06f519b26afeae5</GUID>
+      <creationContext>STEP</creationContext>
+      <refGuid xsi:nil="true"/>
+      <compName>DartEditor_DeleteResources_OK_btn</compName>
+    </componentNames>
+    <componentNames>
+      <compType>guidancer.concrete.TextComponent</compType>
+      <GUID>c574e6cd6f4c4b578412adb9854b442c</GUID>
+      <creationContext>STEP</creationContext>
+      <refGuid xsi:nil="true"/>
+      <compName>DartEditor_Nameandlocation_Text_1_txf</compName>
+    </componentNames>
+    <componentNames>
+      <compType>guidancer.concrete.Button</compType>
+      <GUID>c84c00647ac840ecb2e52a02a4366b18</GUID>
+      <creationContext>STEP</creationContext>
+      <refGuid xsi:nil="true"/>
+      <compName>DartEditor_DeleteResources_Deleteprojectcontentsondi0_btn</compName>
+    </componentNames>
+    <componentNames>
+      <compType>guidancer.concrete.Button</compType>
+      <GUID>fc50d665ed8349f18093079ea1b83f99</GUID>
+      <creationContext>STEP</creationContext>
+      <refGuid xsi:nil="true"/>
+      <compName>DartEditor_Finish_btn</compName>
+    </componentNames>
+    <testresultSummaries/>
+    <checkConfiguration>
+      <checkId>org.eclipse.jubula.client.teststyle.impl.standard.checks.testSuiteHasAUT</checkId>
+      <activated>true</activated>
+      <severity>ERROR</severity>
+      <activeContext>
+        <class>TestSuiteContext</class>
+        <active>true</active>
+      </activeContext>
+    </checkConfiguration>
+    <checkConfiguration>
+      <checkId>org.eclipse.jubula.client.teststyle.impl.standard.checks.testSuiteNotEmpty</checkId>
+      <activated>true</activated>
+      <severity>ERROR</severity>
+      <activeContext>
+        <class>TestSuiteContext</class>
+        <active>true</active>
+      </activeContext>
+    </checkConfiguration>
+    <teststyleEnabled>true</teststyleEnabled>
+  </project>
+</content>
