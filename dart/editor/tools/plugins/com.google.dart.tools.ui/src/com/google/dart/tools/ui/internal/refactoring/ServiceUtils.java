@@ -48,6 +48,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.ltk.core.refactoring.TextChange;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
@@ -152,8 +153,12 @@ public class ServiceUtils {
       List<Edit> edits = entry.getValue();
       // add edits
       TextEdit ltkEdits[] = toLTK(edits);
-      for (TextEdit ltkEdit : ltkEdits) {
-        ltkChange.addEdit(ltkEdit);
+      try {
+        for (TextEdit ltkEdit : ltkEdits) {
+          ltkChange.addEdit(ltkEdit);
+        }
+      } catch (MalformedTreeException e) {
+        throw new Error(source + " " + StringUtils.join(ltkEdits, " "), e);
       }
       // add group
       String groupName = entry.getKey();
