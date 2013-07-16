@@ -17,7 +17,6 @@ import ziputils
 import hashlib
 
 from os.path import join
-from xml.dom.minidom import parseString
 
 BUILD_OS = None
 DART_PATH = None
@@ -32,6 +31,8 @@ REVISION = None
 TRUNK_BUILD = None
 MILESTONE_BUILD = None
 PLUGINS_BUILD = None
+
+NO_UPLOAD = None
 
 utils = None
 
@@ -202,6 +203,7 @@ def main():
   global TRUNK_BUILD
   global MILESTONE_BUILD
   global PLUGINS_BUILD
+  global NO_UPLOAD
   global utils
 
   if not sys.argv:
@@ -225,6 +227,9 @@ def main():
   BUILD_OS = utils.GuessOS()
   DART_PATH = dartpath
   TOOLS_PATH = toolspath
+
+  if (os.environ.get('DART_NO_UPLOAD') is not None):
+    NO_UPLOAD = True
 
   # TODO(devoncarew): remove this hardcoded e:\ path
   buildroot_parent = {'linux': dartpath, 'macos': dartpath, 'win32': r'e:\tmp'}
@@ -406,43 +411,8 @@ def main():
     if status:
       return status
 
-    junit_status = 0
-
     if not build_skip_tests:
-      StartBuildStep('run_tests')
-
-      junit_status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
-                              'buildTests.xml',
-                              revision, builder_name, buildroot, buildout,
-                              editorpath, buildos,
-                              extra_artifacts=extra_artifacts)
-
-      #<testsuite errors="0" failures="1" name="com.google.dart.tools.core_test"
-      #   tests="740" time="40.713">
-      testResults = parseString(open(join(buildout, 'test-results.xml')).read())
-      testSuite = testResults.documentElement
-
-      if testSuite.getAttribute("errors") != "0":
-        junit_status = 1
-      if testSuite.getAttribute("failures") != "0":
-        junit_status = 1
-
-      if junit_status:
-        BuildStepFailure()
-
-      StartBuildStep('test_summary')
-      PrintTestSummary(testSuite)
-
-      if junit_status:
-        BuildStepFailure()
-        PrettyPrintTestFailures(testSuite)
-
-      properties = ReadPropertyFile(buildos, ant_property_file.name)
-      if junit_status:
-        if properties['build.runtime']:
-          #if there is a build.runtime and the status is not
-          #zero see if there are any *.log entries
-          PrintErrorLog(properties['build.runtime'])
+      RunEditorTests(buildout, buildos)
 
     if buildos:
       StartBuildStep('upload_artifacts')
@@ -795,6 +765,40 @@ def CreateChecksumFile(filename):
   return checksum_filename
 
 
+def RunEditorTests(buildout, buildos):
+  StartBuildStep('run_tests')
+
+  for editorArchive in _FindRcpZipFiles(buildout):
+    if (editorArchive.endswith('_64.zip')):
+      print 'Running tests for %s...' % editorArchive
+      tempDir = join(buildout, 'tests_temp')
+      
+      zipper = ziputils.ZipUtil(join(buildout, editorArchive), buildos)
+      shutil.rmtree(tempDir, True)  
+      os.mkdir(tempDir)
+      zipper.UnZip(tempDir)
+
+      editorExecutable = GetEditorExecutable(join(tempDir, 'dart'))
+      args = [editorExecutable, '-consoleLog', '--test', '--auto-exit',
+              '-data', join(tempDir, 'workspace')]
+      if sys.platform == 'linux':
+        args = ['xvfb-run', '-a'] + args
+      if (subprocess.call(args)):
+        BuildStepFailure()
+
+      shutil.rmtree(tempDir, True)
+
+
+def GetEditorExecutable(editorDir):
+  if sys.platform == 'darwin':
+    executable = join('DartEditor.app', 'Contents', 'MacOS', 'DartEditor')
+  elif sys.platform == 'win32':
+    executable = 'DartEditor.exe'
+  else:
+    executable = 'DartEditor'
+  return join(editorDir, executable)
+
+
 def ReplaceInFiles(paths, subs):
   '''Reads a series of files, applies a series of substitutions to each, and
      saves them back out. subs should by a list of (pattern, replace) tuples.'''
@@ -996,6 +1000,9 @@ def CreateTgz(directory, targetFile):
 def UploadFile(targetFile, createChecksum=True):
   """Upload the given file to google storage."""
 
+  if (NO_UPLOAD):
+    return
+    
   filePathRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(targetFile))
   filePathLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(targetFile))
 
@@ -1062,29 +1069,6 @@ def StartBuildStep(name):
 
 def BuildStepFailure():
   print '@@@STEP_FAILURE@@@'
-  sys.stdout.flush()
-
-def PrintTestSummary(testSuite):
-  print "\n%s:\n  %s tests, %s errors, %s failures (time: %s)\n" % (
-      testSuite.getAttribute("name"),
-      testSuite.getAttribute("tests"),
-      testSuite.getAttribute("errors"),
-      testSuite.getAttribute("failures"),
-      testSuite.getAttribute("time"))
-  sys.stdout.flush()
-
-
-def PrettyPrintTestFailures(testSuite):
-  # for all testcase children
-  #   if they contain a failure or error child node
-  #     print out the name and node text
-  for testCase in testSuite.getElementsByTagName('testcase'):
-    for failureNode in testCase.getElementsByTagName('failure'):
-      print 'test failed: %s' % testCase.getAttribute('name')
-      print failureNode.childNodes[0].data
-    for errorNode in testCase.getElementsByTagName('error'):
-      print 'test error: %s' % testCase.getAttribute('name')
-      print errorNode.childNodes[0].data
   sys.stdout.flush()
 
 

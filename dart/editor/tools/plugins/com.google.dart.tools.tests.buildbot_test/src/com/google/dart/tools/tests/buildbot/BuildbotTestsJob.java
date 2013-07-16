@@ -24,15 +24,16 @@ import junit.framework.TestResult;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ILogListener;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,20 +42,26 @@ import java.util.List;
  */
 class BuildbotTestsJob extends Job {
 
-  private class JobTestRunner extends AbstractTestRunner {
+  private class JobTestRunner extends AbstractTestRunner implements ILogListener {
     private IProgressMonitor monitor;
 
     public JobTestRunner(IProgressMonitor monitor, Test test) {
       super(test);
 
       this.monitor = monitor;
+
+      Platform.addLogListener(this);
+    }
+
+    @Override
+    public void logging(IStatus status, String plugin) {
+      // TODO(devoncarew): fail the current test if the status severity is error
+
     }
 
     @Override
     protected boolean filterTest(TestCase test) {
-      final List<String> proscribed = Arrays.asList(
-      // This takes a long time to run, and should only be run during the build.
-      "com.google.dart.tools.core.artifact.TestGenerateArtifacts.test_generate_SDK_index");
+      final List<String> proscribed = Collections.emptyList();
 
       String testId = getTestId(test);
 
@@ -71,17 +78,19 @@ class BuildbotTestsJob extends Job {
 
     @Override
     protected void testFailed(TestCase test, TestResult result) {
-      System.out.println(getTestId(test) + ": fail");
+      System.out.println("fail");
     }
 
     @Override
     protected void testPassed(TestCase test) {
-      System.out.println(getTestId(test) + ": pass");
+      System.out.println("pass");
     }
 
     @Override
     protected void testsFinished(List<TestCase> allTests, List<TestResult> failures,
         List<TestTime> slowTests, long totalTime) {
+      Platform.removeLogListener(this);
+
       // shame the slow tests
       printHeader("slow tests");
 
@@ -108,20 +117,21 @@ class BuildbotTestsJob extends Job {
         }
       }
 
-      System.out.println(formatInt(allTests.size()) + " tests run; " + formatInt(failures.size())
-          + " failures [" + formatDouble(totalTime / 1000.0) + " secs].");
+      System.out.println(formatInt(allTests.size()) + " tests were run; "
+          + formatInt(failures.size()) + " failures [" + formatDouble(totalTime / 1000.0)
+          + " secs].");
 
       monitor.done();
     }
 
     @Override
     protected void testsStarted(List<TestCase> tests) {
-      //monitor.beginTask(getName(), tests.size());
+      monitor.beginTask(getName(), tests.size());
     }
 
     @Override
     protected void testStarted(TestCase test) {
-      monitor.subTask(getTestId(test));
+      System.out.print(getTestId(test) + ": ");
       monitor.worked(1);
     }
   }
