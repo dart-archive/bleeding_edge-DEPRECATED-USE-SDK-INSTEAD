@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -1218,20 +1217,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   public void applyCompilationUnitElement(com.google.dart.engine.ast.CompilationUnit unit) {
     super.applyCompilationUnitElement(unit);
     if (unit != null) {
-      ExecutionUtils.runLogAsync(new RunnableEx() {
-        @Override
-        public void run() {
-          ExecutionUtils.runLog(new RunnableEx() {
-            @Override
-            public void run() throws Exception {
-              CompilationUnitElement element = getInputElement();
-              if (element != null && fJavaEditorErrorTickUpdater != null) {
-                fJavaEditorErrorTickUpdater.updateEditorImage(element);
-              }
-            }
-          });
-        }
-      });
       // notify listeners
       {
         Object[] listeners = fReconcilingListeners.getListeners();
