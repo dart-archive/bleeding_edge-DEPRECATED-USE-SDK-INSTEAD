@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 
@@ -65,5 +66,16 @@ public class ElementImplTest extends EngineTestCase {
     ClassElement classElement = classElement("C");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classElement});
     assertTrue(classElement.isAccessibleIn(library));
+  }
+
+  public void test_SORT_BY_OFFSET() {
+    ClassElementImpl classElementA = classElement("A");
+    classElementA.setNameOffset(1);
+    ClassElementImpl classElementB = classElement("B");
+    classElementB.setNameOffset(2);
+    assertEquals(0, Element.SORT_BY_OFFSET.compare(classElementA, classElementA));
+    assertTrue(Element.SORT_BY_OFFSET.compare(classElementA, classElementB) < 0);
+    assertTrue(Element.SORT_BY_OFFSET.compare(classElementB, classElementA) > 0);
+
   }
 }

@@ -1672,7 +1672,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_initializingFormalForNonExistantField_static() throws Exception {
+  public void test_initializingFormalForNonExistantField_synthetic() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get x => 1;",
+        "  A(this.x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD);
+    verify(source);
+  }
+
+  public void test_initializingFormalForStaticField() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
         "  static int x;",

@@ -277,6 +277,23 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertNotNull(new InterfaceTypeImpl(classElement("A")));
   }
 
+  public void test_getAccessors() {
+    ClassElementImpl typeElement = classElement("A");
+    PropertyAccessorElement getterG = getterElement("g", false, null);
+    PropertyAccessorElement getterH = getterElement("h", false, null);
+    typeElement.setAccessors(new PropertyAccessorElement[] {getterG, getterH});
+    InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
+
+    assertEquals(2, type.getAccessors().length);
+  }
+
+  public void test_getAccessors_empty() {
+    ClassElementImpl typeElement = classElement("A");
+    InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
+
+    assertEquals(0, type.getAccessors().length);
+  }
+
   public void test_getElement() {
     ClassElementImpl typeElement = classElement("A");
     InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
@@ -674,6 +691,23 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertNull(typeA.getMethod("m"));
   }
 
+  public void test_getMethods() {
+    ClassElementImpl typeElement = classElement("A");
+    MethodElementImpl methodOne = methodElement("one", null);
+    MethodElementImpl methodTwo = methodElement("two", null);
+    typeElement.setMethods(new MethodElement[] {methodOne, methodTwo});
+    InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
+
+    assertEquals(2, type.getMethods().length);
+  }
+
+  public void test_getMethods_empty() {
+    ClassElementImpl typeElement = classElement("A");
+    InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
+
+    assertEquals(0, type.getMethods().length);
+  }
+
   public void test_getMixins_nonParameterized() {
     //
     // class C extends Object with A, B
@@ -807,6 +841,13 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType type = classElement("A").getType();
 
     assertLength(0, type.getTypeArguments());
+  }
+
+  public void test_hashCode() {
+    ClassElement classA = classElement("A");
+    InterfaceType typeA = classA.getType();
+
+    assertFalse(0 == typeA.hashCode());
   }
 
   public void test_isDirectSupertypeOf_extends() {
@@ -1447,6 +1488,19 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     Type[] resultArguments = result.getTypeArguments();
     assertLength(1, resultArguments);
     assertEquals(argumentType, resultArguments[0]);
+  }
+
+  public void test_substitute_exception() {
+    try {
+      ClassElementImpl classA = classElement("A");
+      InterfaceTypeImpl type = new InterfaceTypeImpl(classA);
+      InterfaceType argumentType = classElement("B").getType();
+
+      type.substitute(new Type[] {argumentType}, new Type[] {});
+      fail("Expected to encounter exception, argument and parameter type array lengths not equal.");
+    } catch (Exception e) {
+      // Expected result
+    }
   }
 
   public void test_substitute_notEqual() {
