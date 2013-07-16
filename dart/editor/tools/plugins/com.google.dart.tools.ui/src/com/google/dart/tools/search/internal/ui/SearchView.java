@@ -18,9 +18,11 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.SubActionBars;
@@ -36,16 +38,22 @@ public class SearchView extends ViewPart {
   public static final String ID = "com.google.dart.tools.SearchView";
   public static final String SEARCH_MARKER = "com.google.dart.tools.search.searchmarker";
 
-  static void updateColors(Control control) {
-    SWTUtil.setColors(control, DartToolsPlugin.getDefault().getCombinedPreferenceStore());
-  }
-
   private IActionBars actionBars;
   private PageBook pageBook;
   private SubActionBars pageActionBars;
 
-  private SearchPage page;
   private Composite emptyComposite;
+  private Label emptyLabel;
+
+  private SearchPage page;
+
+  private IPreferenceStore preferences;
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      updateColors();
+    }
+  };
 
   @Override
   public void createPartControl(Composite parent) {
@@ -56,18 +64,22 @@ public class SearchView extends ViewPart {
       emptyComposite = new Composite(pageBook, SWT.NONE);
       GridLayoutFactory.create(emptyComposite);
       {
-        Label emptyLabel = new Label(emptyComposite, SWT.WRAP);
+        emptyLabel = new Label(emptyComposite, SWT.WRAP);
         emptyLabel.setText("No search results available.");
         SWTUtil.bindJFaceResourcesFontToControl(emptyComposite);
       }
-      updateColors(emptyComposite);
     }
     // show empty page
     pageBook.showPage(emptyComposite);
+    // update colors
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
+    preferences.addPropertyChangeListener(propertyChangeListener);
+    updateColors();
   }
 
   @Override
   public void dispose() {
+    preferences.removePropertyChangeListener(propertyChangeListener);
     showPage(null);
     super.dispose();
   }
@@ -113,5 +125,13 @@ public class SearchView extends ViewPart {
       pageBook.showPage(emptyComposite);
       actionBars.updateActionBars();
     }
+  }
+
+  private void updateColors() {
+    if (emptyComposite.isDisposed()) {
+      return;
+    }
+    SWTUtil.setColors(emptyComposite, preferences);
+    SWTUtil.setColors(emptyLabel, preferences);
   }
 }

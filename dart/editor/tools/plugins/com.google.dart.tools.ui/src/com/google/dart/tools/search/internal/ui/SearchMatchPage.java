@@ -52,7 +52,10 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.Position;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IBaseLabelProvider;
@@ -814,12 +817,19 @@ public abstract class SearchMatchPage extends SearchPage {
   private final SearchView searchView;
   private final String taskName;
   private final Set<IResource> markerResources = Sets.newHashSet();
+
   private TreeViewer viewer;
 
+  private IPreferenceStore preferences;
+  private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+      updateColors();
+    }
+  };
+
   private ElementItem rootItem;
-
   private ItemCursor itemCursor;
-
   private PositionTracker positionTracker;
 
   public SearchMatchPage(SearchView searchView, String taskName) {
@@ -839,15 +849,19 @@ public abstract class SearchMatchPage extends SearchPage {
         openSelectedElement(selection);
       }
     });
-    SearchView.updateColors(viewer.getControl());
+    // update colors
+    preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
+    preferences.addPropertyChangeListener(propertyChangeListener);
+    updateColors();
     SWTUtil.bindJFaceResourcesFontToControl(viewer.getControl());
   }
 
   @Override
   public void dispose() {
-    super.dispose();
+    preferences.removePropertyChangeListener(propertyChangeListener);
     removeMarkers();
     disposePositionTracker();
+    super.dispose();
   }
 
   @Override
@@ -1125,5 +1139,12 @@ public abstract class SearchMatchPage extends SearchPage {
     for (ElementItem child : item.children) {
       trackPositions(child);
     }
+  }
+
+  private void updateColors() {
+    if (viewer.getTree().isDisposed()) {
+      return;
+    }
+    SWTUtil.setColors(viewer.getTree(), preferences);
   }
 }
