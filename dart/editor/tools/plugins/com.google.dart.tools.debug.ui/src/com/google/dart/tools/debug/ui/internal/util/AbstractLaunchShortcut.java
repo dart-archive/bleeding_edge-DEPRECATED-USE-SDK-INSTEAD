@@ -315,7 +315,7 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
   private IResource getPrimaryLaunchTarget(IResource resource) {
 
     // html file - is launchable 
-    if (DartCore.isHTMLLikeFileName(resource.getName())) {
+    if (DartCore.isHtmlLikeFileName(resource.getName())) {
       return resource;
     }
 

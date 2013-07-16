@@ -68,11 +68,11 @@ public class DartCoreTest_New extends TestCase {
   }
 
   public void test_DartCore_isCSSLikeFileName() {
-    assertTrue(DartCore.isCSSLikeFileName("name.css"));
-    assertTrue(DartCore.isCSSLikeFileName("name.CSS"));
-    assertTrue(DartCore.isCSSLikeFileName("name.cSS"));
-    assertFalse(DartCore.isCSSLikeFileName("name.cs"));
-    assertFalse(DartCore.isCSSLikeFileName("namecss"));
+    assertTrue(DartCore.isCssLikeFileName("name.css"));
+    assertTrue(DartCore.isCssLikeFileName("name.CSS"));
+    assertTrue(DartCore.isCssLikeFileName("name.cSS"));
+    assertFalse(DartCore.isCssLikeFileName("name.cs"));
+    assertFalse(DartCore.isCssLikeFileName("namecss"));
   }
 
   public void test_DartCore_isDartGeneratedFile() {
@@ -92,16 +92,16 @@ public class DartCoreTest_New extends TestCase {
   }
 
   public void test_DartCore_isHTMLLikeFileName() {
-    assertTrue(DartCore.isHTMLLikeFileName("name.html"));
-    assertTrue(DartCore.isHTMLLikeFileName("name.HTML"));
-    assertTrue(DartCore.isHTMLLikeFileName("name.hTML"));
-    assertFalse(DartCore.isHTMLLikeFileName("name.ht"));
-    assertFalse(DartCore.isHTMLLikeFileName("namehtml"));
+    assertTrue(DartCore.isHtmlLikeFileName("name.html"));
+    assertTrue(DartCore.isHtmlLikeFileName("name.HTML"));
+    assertTrue(DartCore.isHtmlLikeFileName("name.hTML"));
+    assertFalse(DartCore.isHtmlLikeFileName("name.ht"));
+    assertFalse(DartCore.isHtmlLikeFileName("namehtml"));
     // again for "htm"
-    assertTrue(DartCore.isHTMLLikeFileName("name.htm"));
-    assertTrue(DartCore.isHTMLLikeFileName("name.HTM"));
-    assertTrue(DartCore.isHTMLLikeFileName("name.hTM"));
-    assertFalse(DartCore.isHTMLLikeFileName("namehtm"));
+    assertTrue(DartCore.isHtmlLikeFileName("name.htm"));
+    assertTrue(DartCore.isHtmlLikeFileName("name.HTM"));
+    assertTrue(DartCore.isHtmlLikeFileName("name.hTM"));
+    assertFalse(DartCore.isHtmlLikeFileName("namehtm"));
   }
 
   public void test_DartCore_isJSLikeFileName() {
@@ -113,11 +113,11 @@ public class DartCoreTest_New extends TestCase {
   }
 
   public void test_DartCore_isTXTLikeFileName() {
-    assertTrue(DartCore.isTXTLikeFileName("name.txt"));
-    assertTrue(DartCore.isTXTLikeFileName("name.TXT"));
-    assertTrue(DartCore.isTXTLikeFileName("name.tXt"));
-    assertFalse(DartCore.isTXTLikeFileName("name.tx"));
-    assertFalse(DartCore.isTXTLikeFileName("nametxt"));
+    assertTrue(DartCore.isTxtLikeFileName("name.txt"));
+    assertTrue(DartCore.isTxtLikeFileName("name.TXT"));
+    assertTrue(DartCore.isTxtLikeFileName("name.tXt"));
+    assertFalse(DartCore.isTxtLikeFileName("name.tx"));
+    assertFalse(DartCore.isTxtLikeFileName("nametxt"));
   }
 
   @SuppressWarnings("unchecked")

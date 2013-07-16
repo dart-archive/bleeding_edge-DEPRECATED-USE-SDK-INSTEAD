@@ -48,7 +48,7 @@ public class NewFileGenerator extends AbstractGenerator {
       nameOfSrcTxt = "generated-dart-class-empty.txt";
     }
 
-    if (DartCore.isHTMLLikeFileName(fileName)) {
+    if (DartCore.isHtmlLikeFileName(fileName)) {
       String className = fileName.substring(0, fileName.indexOf('.'));
       substitutions.put("title", className); //$NON-NLS-1$
       substitutions.put("fileName", className); //$NON-NLS-1$

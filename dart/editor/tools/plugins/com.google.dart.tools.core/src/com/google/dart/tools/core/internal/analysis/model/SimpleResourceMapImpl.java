@@ -75,7 +75,7 @@ public class SimpleResourceMapImpl implements ResourceMap {
       return null;
     }
     String fileName = resource.getName();
-    if (!DartCore.isDartLikeFileName(fileName) && !DartCore.isHTMLLikeFileName(fileName)) {
+    if (!DartCore.isDartLikeFileName(fileName) && !DartCore.isHtmlLikeFileName(fileName)) {
       return null;
     }
     IPath location = resource.getLocation();

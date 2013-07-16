@@ -105,7 +105,7 @@ public class PubResourceMapImpl extends SimpleResourceMapImpl {
       return null;
     }
     String fileName = resource.getName();
-    if (!DartCore.isDartLikeFileName(fileName) && !DartCore.isHTMLLikeFileName(fileName)) {
+    if (!DartCore.isDartLikeFileName(fileName) && !DartCore.isHtmlLikeFileName(fileName)) {
       return null;
     }
     IPath fileLocation = resource.getLocation();

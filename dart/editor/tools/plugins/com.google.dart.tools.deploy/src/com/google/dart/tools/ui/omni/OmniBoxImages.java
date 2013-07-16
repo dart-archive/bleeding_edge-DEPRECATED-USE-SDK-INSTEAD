@@ -47,7 +47,7 @@ public class OmniBoxImages {
 
     if (file != null) {
       String name = file.getName();
-      if (DartCore.isHTMLLikeFileName(name)) {
+      if (DartCore.isHtmlLikeFileName(name)) {
         return DartPluginImages.DESC_DART_HTML_FILE;
       }
       if (DartCore.isDartLikeFileName(name)) {

@@ -382,7 +382,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     getProject().accept(new IResourceProxyVisitor() {
       @Override
       public boolean visit(IResourceProxy proxy) throws CoreException {
-        if (proxy.getType() != IResource.FILE || !DartCore.isHTMLLikeFileName(proxy.getName())) {
+        if (proxy.getType() != IResource.FILE || !DartCore.isHtmlLikeFileName(proxy.getName())) {
           return true;
         }
         IResource resource = proxy.requestResource();

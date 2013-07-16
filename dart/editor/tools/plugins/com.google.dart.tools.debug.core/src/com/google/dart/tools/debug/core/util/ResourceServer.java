@@ -203,7 +203,7 @@ public class ResourceServer implements IResourceResolver {
               if (resource instanceof IFile) {
                 IFile file = (IFile) resource;
 
-                if (DartCore.isHTMLLikeFileName(file.getName())) {
+                if (DartCore.isHtmlLikeFileName(file.getName())) {
                   files.add(file);
                 } else if ("crx".equals(file.getFileExtension())) {
                   files.add(file);

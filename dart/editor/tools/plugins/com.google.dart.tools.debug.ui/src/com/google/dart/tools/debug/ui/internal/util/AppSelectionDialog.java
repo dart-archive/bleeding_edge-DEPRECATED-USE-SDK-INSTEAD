@@ -27,7 +27,7 @@ public class AppSelectionDialog extends FilteredResourcesSelectionDialog {
   public static class HtmlResourceFilter implements IResourceFilter {
     @Override
     public boolean matches(IResource resource) {
-      return DartCore.isHTMLLikeFileName(resource.getName());
+      return DartCore.isHtmlLikeFileName(resource.getName());
     }
   }
 

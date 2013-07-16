@@ -26,7 +26,7 @@ import com.google.dart.tools.core.internal.analysis.model.InvertedSourceContaine
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 import static com.google.dart.tools.core.DartCore.isDartLikeFileName;
-import static com.google.dart.tools.core.DartCore.isHTMLLikeFileName;
+import static com.google.dart.tools.core.DartCore.isHtmlLikeFileName;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -291,7 +291,7 @@ public class DeltaProcessor {
           }
 
           // Notify context of Dart source that have been added, changed, or removed
-          if (isDartLikeFileName(name) || isHTMLLikeFileName(name)) {
+          if (isDartLikeFileName(name) || isHtmlLikeFileName(name)) {
             event.setResource(resource, null, null);
             switch (delta.getKind()) {
               case ADDED:
@@ -558,7 +558,7 @@ public class DeltaProcessor {
       }
 
       // Notify listener of new source files
-      if (isDartLikeFileName(name) || isHTMLLikeFileName(name)) {
+      if (isDartLikeFileName(name) || isHtmlLikeFileName(name)) {
         event.setProxy(proxy, null, null);
         listener.sourceAdded(event);
         return false;

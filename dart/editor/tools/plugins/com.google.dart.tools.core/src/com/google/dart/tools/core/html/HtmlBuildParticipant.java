@@ -54,7 +54,7 @@ public class HtmlBuildParticipant implements BuildParticipant, BuildVisitor {
     if (delta.getKind() == IResourceDelta.CHANGED) {
       IResource resource = delta.getResource();
       if (resource.getType() == IResource.FILE) {
-        if (DartCore.isHTMLLikeFileName(resource.getName())) {
+        if (DartCore.isHtmlLikeFileName(resource.getName())) {
           processHtml((IFile) resource);
         }
       }
@@ -65,7 +65,7 @@ public class HtmlBuildParticipant implements BuildParticipant, BuildVisitor {
   @Override
   public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
     if (proxy.getType() == IResource.FILE) {
-      if (DartCore.isHTMLLikeFileName(proxy.getName())) {
+      if (DartCore.isHtmlLikeFileName(proxy.getName())) {
         processHtml((IFile) proxy.requestResource());
       }
     }

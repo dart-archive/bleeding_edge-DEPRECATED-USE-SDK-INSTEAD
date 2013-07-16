@@ -44,7 +44,7 @@ import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 
 import static com.google.dart.tools.core.DartCore.isDartLikeFileName;
-import static com.google.dart.tools.core.DartCore.isHTMLLikeFileName;
+import static com.google.dart.tools.core.DartCore.isHtmlLikeFileName;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -401,7 +401,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         public boolean visit(IResourceProxy proxy) throws CoreException {
           if (proxy.getType() == IResource.FILE) {
             String name = proxy.getName();
-            if (isDartLikeFileName(name) || isHTMLLikeFileName(name)) {
+            if (isDartLikeFileName(name) || isHtmlLikeFileName(name)) {
               if (proxy.requestResource().getLocation() != null) {
                 Source source = new FileBasedSource(
                     context.getSourceFactory().getContentCache(),

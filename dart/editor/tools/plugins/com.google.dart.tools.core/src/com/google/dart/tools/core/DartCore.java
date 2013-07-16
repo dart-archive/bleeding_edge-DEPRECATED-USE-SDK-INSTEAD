@@ -769,7 +769,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param fileName the file name being tested
    * @return <code>true</code> if the given file name's extension is an CSS-like extension
    */
-  public static boolean isCSSLikeFileName(String fileName) {
+  public static boolean isCssLikeFileName(String fileName) {
     return isLikeFileName(fileName, CSS_FILE_EXTENSIONS);
   }
 
@@ -817,7 +817,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param fileName the file name being tested
    * @return <code>true</code> if the given file name's extension is an HTML-like extension
    */
-  public static boolean isHTMLLikeFileName(String fileName) {
+  public static boolean isHtmlLikeFileName(String fileName) {
     return isLikeFileName(fileName, HTML_FILE_EXTENSIONS);
   }
 
@@ -1008,7 +1008,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param fileName the file name being tested
    * @return <code>true</code> if the given file name's extension is an HTML-like extension
    */
-  public static boolean isTXTLikeFileName(String fileName) {
+  public static boolean isTxtLikeFileName(String fileName) {
     return isLikeFileName(fileName, TXT_FILE_EXTENSIONS);
   }
 
