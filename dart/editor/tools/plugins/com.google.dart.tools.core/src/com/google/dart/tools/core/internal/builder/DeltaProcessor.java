@@ -498,6 +498,9 @@ public class DeltaProcessor {
    * @param resource the resources to be recursively traversed
    */
   protected void processResources(IResource resource) throws CoreException {
+    if (!resource.exists()) {
+      return;
+    }
     resource.accept(new IResourceProxyVisitor() {
       @Override
       public boolean visit(IResourceProxy proxy) throws CoreException {
