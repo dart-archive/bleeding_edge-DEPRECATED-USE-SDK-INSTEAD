@@ -27,11 +27,13 @@ import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
+import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.SwitchMember;
@@ -152,8 +154,8 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitBlock(Block node) {
     Scope outerScope = nameScope;
-    nameScope = new EnclosedScope(nameScope);
     try {
+      nameScope = new EnclosedScope(nameScope);
       super.visitBlock(node);
     } finally {
       nameScope = outerScope;
@@ -166,8 +168,8 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
     SimpleIdentifier exception = node.getExceptionParameter();
     if (exception != null) {
       Scope outerScope = nameScope;
-      nameScope = new EnclosedScope(nameScope);
       try {
+        nameScope = new EnclosedScope(nameScope);
         nameScope.define(exception.getElement());
         SimpleIdentifier stackTrace = node.getStackTraceParameter();
         if (stackTrace != null) {
@@ -229,42 +231,43 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitDoStatement(DoStatement node) {
-    LabelScope outerScope = labelScope;
-    labelScope = new LabelScope(outerScope, false, false);
+    LabelScope outerLabelScope = labelScope;
     try {
-      super.visitDoStatement(node);
+      labelScope = new LabelScope(labelScope, false, false);
+      visitStatementInScope(node.getBody());
+      safelyVisit(node.getCondition());
     } finally {
-      labelScope = outerScope;
+      labelScope = outerLabelScope;
     }
     return null;
   }
 
   @Override
   public Void visitForEachStatement(ForEachStatement node) {
-    LabelScope outerLabelScope = labelScope;
-    labelScope = new LabelScope(outerLabelScope, false, false);
     Scope outerNameScope = nameScope;
-    nameScope = new EnclosedScope(nameScope);
+    LabelScope outerLabelScope = labelScope;
     try {
+      nameScope = new EnclosedScope(nameScope);
+      labelScope = new LabelScope(outerLabelScope, false, false);
       visitForEachStatementInScope(node);
     } finally {
-      nameScope = outerNameScope;
       labelScope = outerLabelScope;
+      nameScope = outerNameScope;
     }
     return null;
   }
 
   @Override
   public Void visitForStatement(ForStatement node) {
-    LabelScope outerLabelScope = labelScope;
-    labelScope = new LabelScope(outerLabelScope, false, false);
     Scope outerNameScope = nameScope;
-    nameScope = new EnclosedScope(nameScope);
+    LabelScope outerLabelScope = labelScope;
     try {
+      nameScope = new EnclosedScope(nameScope);
+      labelScope = new LabelScope(outerLabelScope, false, false);
       visitForStatementInScope(node);
     } finally {
-      nameScope = outerNameScope;
       labelScope = outerLabelScope;
+      nameScope = outerNameScope;
     }
     return null;
   }
@@ -320,6 +323,14 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
+  public Void visitIfStatement(IfStatement node) {
+    safelyVisit(node.getCondition());
+    visitStatementInScope(node.getThenStatement());
+    visitStatementInScope(node.getElseStatement());
+    return null;
+  }
+
+  @Override
   public Void visitLabeledStatement(LabeledStatement node) {
     LabelScope outerScope = addScopesFor(node.getLabels());
     try {
@@ -346,8 +357,8 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   public Void visitSwitchCase(SwitchCase node) {
     node.getExpression().accept(this);
     Scope outerNameScope = nameScope;
-    nameScope = new EnclosedScope(nameScope);
     try {
+      nameScope = new EnclosedScope(nameScope);
       node.getStatements().accept(this);
     } finally {
       nameScope = outerNameScope;
@@ -358,8 +369,8 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitSwitchDefault(SwitchDefault node) {
     Scope outerNameScope = nameScope;
-    nameScope = new EnclosedScope(nameScope);
     try {
+      nameScope = new EnclosedScope(nameScope);
       node.getStatements().accept(this);
     } finally {
       nameScope = outerNameScope;
@@ -370,15 +381,15 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitSwitchStatement(SwitchStatement node) {
     LabelScope outerScope = labelScope;
-    labelScope = new LabelScope(outerScope, true, false);
-    for (SwitchMember member : node.getMembers()) {
-      for (Label label : member.getLabels()) {
-        SimpleIdentifier labelName = label.getLabel();
-        LabelElement labelElement = (LabelElement) labelName.getElement();
-        labelScope = new LabelScope(labelScope, labelName.getName(), labelElement);
-      }
-    }
     try {
+      labelScope = new LabelScope(outerScope, true, false);
+      for (SwitchMember member : node.getMembers()) {
+        for (Label label : member.getLabels()) {
+          SimpleIdentifier labelName = label.getLabel();
+          LabelElement labelElement = (LabelElement) labelName.getElement();
+          labelScope = new LabelScope(labelScope, labelName.getName(), labelElement);
+        }
+      }
       super.visitSwitchStatement(node);
     } finally {
       labelScope = outerScope;
@@ -402,9 +413,10 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitWhileStatement(WhileStatement node) {
     LabelScope outerScope = labelScope;
-    labelScope = new LabelScope(outerScope, false, false);
     try {
-      super.visitWhileStatement(node);
+      labelScope = new LabelScope(outerScope, false, false);
+      safelyVisit(node.getCondition());
+      visitStatementInScope(node.getBody());
     } finally {
       labelScope = outerScope;
     }
@@ -498,7 +510,7 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
     //
     safelyVisit(node.getIterator());
     safelyVisit(node.getLoopVariable());
-    safelyVisit(node.getBody());
+    visitStatementInScope(node.getBody());
   }
 
   /**
@@ -509,7 +521,32 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
    * @param node the statement to be visited
    */
   protected void visitForStatementInScope(ForStatement node) {
-    super.visitForStatement(node);
+    safelyVisit(node.getVariables());
+    safelyVisit(node.getInitialization());
+    safelyVisit(node.getCondition());
+    node.getUpdaters().accept(this);
+    visitStatementInScope(node.getBody());
+  }
+
+  /**
+   * Visit the given statement after it's scope has been created. This is used by ResolverVisitor to
+   * correctly visit the 'then' and 'else' statements of an 'if' statement.
+   * 
+   * @param node the statement to be visited
+   */
+  protected void visitStatementInScope(Statement node) {
+    if (node instanceof Block) {
+      // Don't create a scope around a block because the block will create it's own scope.
+      visitBlock((Block) node);
+    } else if (node != null) {
+      Scope outerNameScope = nameScope;
+      try {
+        nameScope = new EnclosedScope(nameScope);
+        node.accept(this);
+      } finally {
+        nameScope = outerNameScope;
+      }
+    }
   }
 
   /**

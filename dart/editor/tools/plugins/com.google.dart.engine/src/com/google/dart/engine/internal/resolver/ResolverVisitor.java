@@ -486,7 +486,7 @@ public class ResolverVisitor extends ScopedVisitor {
       try {
         overrideManager.enterScope();
         propagateTrueState(condition);
-        thenStatement.accept(this);
+        visitStatementInScope(thenStatement);
       } finally {
         thenOverrides = overrideManager.captureLocalOverrides();
         overrideManager.exitScope();
@@ -498,7 +498,7 @@ public class ResolverVisitor extends ScopedVisitor {
       try {
         overrideManager.enterScope();
         propagateFalseState(condition);
-        elseStatement.accept(this);
+        visitStatementInScope(elseStatement);
       } finally {
         elseOverrides = overrideManager.captureLocalOverrides();
         overrideManager.exitScope();
@@ -684,7 +684,7 @@ public class ResolverVisitor extends ScopedVisitor {
       try {
         overrideManager.enterScope();
         propagateTrueState(condition);
-        body.accept(this);
+        visitStatementInScope(body);
       } finally {
         overrideManager.exitScope();
       }
@@ -784,7 +784,7 @@ public class ResolverVisitor extends ScopedVisitor {
             recordPropagatedType(loopVariable.getIdentifier(), iteratorElementType);
           }
         }
-        body.accept(this);
+        visitStatementInScope(body);
       } finally {
         overrideManager.exitScope();
       }
@@ -801,7 +801,7 @@ public class ResolverVisitor extends ScopedVisitor {
     overrideManager.enterScope();
     try {
       propagateTrueState(node.getCondition());
-      safelyVisit(node.getBody());
+      visitStatementInScope(node.getBody());
       node.getUpdaters().accept(this);
     } finally {
       overrideManager.exitScope();
