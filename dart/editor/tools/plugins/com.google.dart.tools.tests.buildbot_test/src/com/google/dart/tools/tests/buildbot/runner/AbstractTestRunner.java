@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.tests.buildbot.runner;
 
+import junit.framework.AssertionFailedError;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestResult;
@@ -102,6 +103,8 @@ public abstract class AbstractTestRunner {
     return false;
   }
 
+  private boolean failCurrentTest;
+
   public AbstractTestRunner(Test test) {
     this.mainTest = test;
   }
@@ -122,11 +125,17 @@ public abstract class AbstractTestRunner {
     List<TestTime> slowTests = new ArrayList<TestTime>();
 
     for (TestCase test : tests) {
+      failCurrentTest = false;
+
       testStarted(test);
 
       long startTime = System.nanoTime();
       TestResult result = test.run();
       long elapsedTimeMS = (System.nanoTime() - startTime) / (1000 * 1000);
+
+      if (failCurrentTest && result.wasSuccessful()) {
+        result.addFailure(test, new AssertionFailedError("IStatus.ERROR written to eclipse log"));
+      }
 
       if (result.wasSuccessful()) {
         testPassed(test);
@@ -150,6 +159,10 @@ public abstract class AbstractTestRunner {
   public final void setStatusFile(String filePath) {
     // TODO(devoncarew): read and use the status file
 
+  }
+
+  protected void failCurrentTest() {
+    this.failCurrentTest = true;
   }
 
   protected boolean filterTest(TestCase test) {

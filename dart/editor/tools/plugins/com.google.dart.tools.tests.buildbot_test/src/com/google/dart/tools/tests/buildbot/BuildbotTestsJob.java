@@ -55,8 +55,9 @@ class BuildbotTestsJob extends Job {
 
     @Override
     public void logging(IStatus status, String plugin) {
-      // TODO(devoncarew): fail the current test if the status severity is error
-
+      if (status.getSeverity() == IStatus.ERROR) {
+        failCurrentTest();
+      }
     }
 
     @Override
@@ -111,7 +112,7 @@ class BuildbotTestsJob extends Job {
         for (TestResult result : failures) {
           if (result.failureCount() > 0) {
             printFailure(result.failures().nextElement());
-          } else {
+          } else if (result.failureCount() > 0) {
             printFailure(result.errors().nextElement());
           }
         }
