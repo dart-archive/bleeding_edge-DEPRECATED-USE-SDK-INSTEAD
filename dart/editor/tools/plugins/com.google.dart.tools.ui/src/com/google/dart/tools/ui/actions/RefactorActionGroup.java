@@ -79,15 +79,15 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
   @Override
   public void fillActionBars(IActionBars actionBars) {
     super.fillActionBars(actionBars);
-    actionBars.setGlobalActionHandler(JdtActionConstants.RENAME, renameAction);
-    actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_LOCAL, extractLocalAction);
-    actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_METHOD, extractMethodAction);
-    actionBars.setGlobalActionHandler(JdtActionConstants.INLINE, inlineAction);
+    actionBars.setGlobalActionHandler(DartActionConstants.RENAME, renameAction);
+    actionBars.setGlobalActionHandler(DartActionConstants.EXTRACT_LOCAL, extractLocalAction);
+    actionBars.setGlobalActionHandler(DartActionConstants.EXTRACT_METHOD, extractMethodAction);
+    actionBars.setGlobalActionHandler(DartActionConstants.INLINE, inlineAction);
     actionBars.setGlobalActionHandler(
-        JdtActionConstants.CONVERT_METHOD_TO_GETTER,
+        DartActionConstants.CONVERT_METHOD_TO_GETTER,
         convertMethodToGetterAction);
     actionBars.setGlobalActionHandler(
-        JdtActionConstants.CONVERT_GETTER_TO_METHOD,
+        DartActionConstants.CONVERT_GETTER_TO_METHOD,
         convertGetterToMethodAction);
   }
 

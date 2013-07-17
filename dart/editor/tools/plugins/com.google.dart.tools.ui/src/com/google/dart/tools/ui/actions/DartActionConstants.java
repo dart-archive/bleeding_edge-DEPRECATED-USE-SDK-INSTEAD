@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.actions;
 
 /**
  * Action ids for standard actions, for groups in the menu bar, and for actions in context menus of
- * JDT views.
+ * Dart Editor views.
  * <p>
  * This class may be instantiated; it is not intended to be subclassed.
  * </p>
@@ -24,7 +24,7 @@ package com.google.dart.tools.ui.actions;
  * this early stage to solicit feedback from pioneering adopters on the understanding that any code
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
-public class JdtActionConstants {
+public class DartActionConstants {
 
   // Navigate menu
 

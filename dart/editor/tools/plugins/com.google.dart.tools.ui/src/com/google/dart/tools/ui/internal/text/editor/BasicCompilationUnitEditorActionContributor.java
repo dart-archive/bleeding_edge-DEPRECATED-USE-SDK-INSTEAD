@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.actions.JdtActionConstants;
+import com.google.dart.tools.ui.actions.DartActionConstants;
 
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -69,7 +69,7 @@ public class BasicCompilationUnitEditorActionContributor extends BasicDartEditor
   public BasicCompilationUnitEditorActionContributor() {
 
     fRetargetContentAssist = new RetargetAction(
-        JdtActionConstants.CONTENT_ASSIST,
+        DartActionConstants.CONTENT_ASSIST,
         DartEditorMessages.ContentAssistProposal_label);
     fRetargetContentAssist.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
     fRetargetContentAssist.setImageDescriptor(DartPluginImages.DESC_ELCL_CODE_ASSIST);
@@ -162,7 +162,7 @@ public class BasicCompilationUnitEditorActionContributor extends BasicDartEditor
   public void init(IActionBars bars, IWorkbenchPage page) {
     super.init(bars, page);
     // register actions that have a dynamic editor.
-    bars.setGlobalActionHandler(JdtActionConstants.CONTENT_ASSIST, fContentAssist);
+    bars.setGlobalActionHandler(DartActionConstants.CONTENT_ASSIST, fContentAssist);
   }
 
   /*
@@ -193,10 +193,10 @@ public class BasicCompilationUnitEditorActionContributor extends BasicDartEditor
 
     IActionBars actionBars = getActionBars();
     actionBars.setGlobalActionHandler(
-        JdtActionConstants.SHIFT_RIGHT,
+        DartActionConstants.SHIFT_RIGHT,
         getAction(textEditor, "ShiftRight")); //$NON-NLS-1$
     actionBars.setGlobalActionHandler(
-        JdtActionConstants.SHIFT_LEFT,
+        DartActionConstants.SHIFT_LEFT,
         getAction(textEditor, "ShiftLeft")); //$NON-NLS-1$
 
     actionBars.setGlobalActionHandler(

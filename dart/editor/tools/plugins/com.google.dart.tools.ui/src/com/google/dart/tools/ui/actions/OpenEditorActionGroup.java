@@ -171,6 +171,6 @@ public class OpenEditorActionGroup extends ActionGroup {
   }
 
   private void setGlobalActionHandlers(IActionBars actionBars) {
-    actionBars.setGlobalActionHandler(JdtActionConstants.OPEN, fOpen);
+    actionBars.setGlobalActionHandler(DartActionConstants.OPEN, fOpen);
   }
 }

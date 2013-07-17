@@ -13,7 +13,7 @@
  */
 package editor.refactoring;
 
-import com.google.dart.tools.ui.actions.JdtActionConstants;
+import com.google.dart.tools.ui.actions.DartActionConstants;
 import com.google.dart.ui.test.driver.Operation;
 import com.google.dart.ui.test.driver.ShellOperation;
 import com.google.dart.ui.test.helpers.DialogHelper;
@@ -400,7 +400,7 @@ public final class ExtractMethodRefactoringTest extends AbstractDartEditorTabTes
 
   private void runExtractAction() throws Exception {
     // run "Extract Method" action
-    final IAction action = getEditorAction(JdtActionConstants.EXTRACT_METHOD);
+    final IAction action = getEditorAction(DartActionConstants.EXTRACT_METHOD);
     addOperation(new Operation() {
       @Override
       public boolean isReady(UiContext context) throws Exception {

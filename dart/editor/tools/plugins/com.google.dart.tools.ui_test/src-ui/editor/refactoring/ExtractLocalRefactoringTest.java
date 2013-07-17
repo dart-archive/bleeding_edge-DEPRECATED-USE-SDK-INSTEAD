@@ -13,7 +13,7 @@
  */
 package editor.refactoring;
 
-import com.google.dart.tools.ui.actions.JdtActionConstants;
+import com.google.dart.tools.ui.actions.DartActionConstants;
 import com.google.dart.ui.test.driver.Operation;
 import com.google.dart.ui.test.driver.ShellOperation;
 import com.google.dart.ui.test.helpers.WizardDialogHelper;
@@ -147,7 +147,7 @@ public final class ExtractLocalRefactoringTest extends AbstractDartEditorTabTest
   private void selectAndExtract(String pattern) throws Exception {
     selectRange(pattern);
     // run "Extract Local" action
-    final IAction action = getEditorAction(JdtActionConstants.EXTRACT_LOCAL);
+    final IAction action = getEditorAction(DartActionConstants.EXTRACT_LOCAL);
     addOperation(new Operation() {
       @Override
       public boolean isReady(UiContext context) throws Exception {

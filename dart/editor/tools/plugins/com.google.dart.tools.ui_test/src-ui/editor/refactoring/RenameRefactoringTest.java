@@ -13,7 +13,7 @@
  */
 package editor.refactoring;
 
-import com.google.dart.tools.ui.actions.JdtActionConstants;
+import com.google.dart.tools.ui.actions.DartActionConstants;
 import com.google.dart.ui.test.driver.Operation;
 import com.google.dart.ui.test.driver.ShellOperation;
 import com.google.dart.ui.test.helpers.WizardDialogHelper;
@@ -139,7 +139,7 @@ public final class RenameRefactoringTest extends AbstractDartEditorTabTest {
   private void findAndStartRename(String pattern) throws Exception {
     selectOffset(pattern);
     // run "Rename" action
-    final IAction renameAction = getEditorAction(JdtActionConstants.RENAME);
+    final IAction renameAction = getEditorAction(DartActionConstants.RENAME);
     addOperation(new Operation() {
       @Override
       public boolean isReady(UiContext context) throws Exception {

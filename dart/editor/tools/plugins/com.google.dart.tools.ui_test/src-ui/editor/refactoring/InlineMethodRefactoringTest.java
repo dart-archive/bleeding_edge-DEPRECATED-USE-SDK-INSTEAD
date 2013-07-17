@@ -13,7 +13,7 @@
  */
 package editor.refactoring;
 
-import com.google.dart.tools.ui.actions.JdtActionConstants;
+import com.google.dart.tools.ui.actions.DartActionConstants;
 import com.google.dart.ui.test.driver.Operation;
 import com.google.dart.ui.test.driver.ShellOperation;
 import com.google.dart.ui.test.helpers.WizardDialogHelper;
@@ -185,7 +185,7 @@ public final class InlineMethodRefactoringTest extends AbstractDartEditorTabTest
 
   private void selectAndInline(String pattern, final WizardOperation operation) throws Exception {
     selectOffset(pattern);
-    final IAction action = getEditorAction(JdtActionConstants.INLINE);
+    final IAction action = getEditorAction(DartActionConstants.INLINE);
     addOperation(new Operation() {
       @Override
       public boolean isReady(UiContext context) throws Exception {

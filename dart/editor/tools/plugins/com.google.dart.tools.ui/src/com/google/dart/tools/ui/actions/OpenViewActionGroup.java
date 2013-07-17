@@ -50,7 +50,7 @@ public class OpenViewActionGroup extends AbstractDartSelectionActionGroup {
   @Override
   public void fillActionBars(IActionBars actionBars) {
     super.fillActionBars(actionBars);
-    actionBars.setGlobalActionHandler(JdtActionConstants.OPEN_TYPE_HIERARCHY, thAction);
+    actionBars.setGlobalActionHandler(DartActionConstants.OPEN_TYPE_HIERARCHY, thAction);
   }
 
   @Override
