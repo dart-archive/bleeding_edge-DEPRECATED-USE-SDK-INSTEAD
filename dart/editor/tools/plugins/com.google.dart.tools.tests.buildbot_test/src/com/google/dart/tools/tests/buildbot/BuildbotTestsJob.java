@@ -35,6 +35,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -110,11 +111,8 @@ class BuildbotTestsJob extends Job {
 
       if (failures.size() > 0) {
         for (TestResult result : failures) {
-          if (result.failureCount() > 0) {
-            printFailure(result.failures().nextElement());
-          } else if (result.failureCount() > 0) {
-            printFailure(result.errors().nextElement());
-          }
+          printFailures(result.failures());
+          printFailures(result.errors());
         }
       }
 
@@ -149,6 +147,7 @@ class BuildbotTestsJob extends Job {
   }
 
   private boolean exitWhenFinished;
+
   private Test mainTest;
 
   public BuildbotTestsJob(boolean exitWhenFinished) {
@@ -194,6 +193,12 @@ class BuildbotTestsJob extends Job {
     System.out.println(AbstractTestRunner.getTestId(test));
     printStackTrace(failure.trace().split("\n"));
     System.out.println();
+  }
+
+  private void printFailures(Enumeration<TestFailure> failures) {
+    while (failures.hasMoreElements()) {
+      printFailure(failures.nextElement());
+    }
   }
 
   private void printHeader(String title) {
