@@ -683,18 +683,6 @@ public enum StaticWarningCode implements ErrorCode {
   TYPE_PARAMETER_REFERENCED_BY_STATIC("Static members cannot reference type parameters"),
 
   /**
-   * 15.1 Static Types: A type <i>T</i> is malformed iff: <li><i>T</i> has the form <i>id</i> or the
-   * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
-   * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type variable in the
-   * enclosing lexical scope, but occurs in the signature or body of a static member.</li> <li>
-   * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
-   * and <i>G</i> is malformed.</li></ul>
-   * <p>
-   * Any use of a malformed type gives rise to a static warning.
-   */
-  TYPE_VARIABLE_IN_STATIC_SCOPE(""),
-
-  /**
    * 12.15.3 Static Invocation: A static method invocation <i>i</i> has the form
    * <i>C.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
    * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. It is a static warning if <i>C</i> does not denote a
