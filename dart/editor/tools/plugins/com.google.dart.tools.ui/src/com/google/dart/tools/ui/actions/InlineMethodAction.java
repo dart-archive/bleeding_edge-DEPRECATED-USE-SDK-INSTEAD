@@ -34,6 +34,8 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * {@link Action} for "Inline Method" refactoring.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class InlineMethodAction extends AbstractDartSelectionAction {
   public InlineMethodAction(DartEditor editor) {

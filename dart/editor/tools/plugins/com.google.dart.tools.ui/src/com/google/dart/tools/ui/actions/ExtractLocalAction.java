@@ -34,6 +34,8 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * {@link Action} for "Extract Local" refactoring.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class ExtractLocalAction extends AbstractDartSelectionAction {
   public ExtractLocalAction(DartEditor editor) {

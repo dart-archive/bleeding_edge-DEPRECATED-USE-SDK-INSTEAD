@@ -28,6 +28,8 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * {@link Action} to inline local variable, method, function.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class InlineAction extends AbstractDartSelectionAction {
   private final InlineLocalAction inlineLocal;

@@ -20,7 +20,7 @@ import com.google.dart.engine.services.refactoring.ConvertGetterToMethodRefactor
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.refactoring.ConvertMethodToGetterWizard;
+import com.google.dart.tools.ui.internal.refactoring.ConvertGetterToMethodWizard;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
@@ -126,7 +126,7 @@ public class ConvertGetterToMethodAction extends AbstractDartSelectionAction {
       ServiceConvertGetterToMethodRefactoring ltkRefactoring = new ServiceConvertGetterToMethodRefactoring(
           serviceRefactoring);
       new RefactoringStarter().activate(
-          new ConvertMethodToGetterWizard(ltkRefactoring),
+          new ConvertGetterToMethodWizard(ltkRefactoring),
           getShell(),
           RefactoringMessages.ConvertGetterToMethodAction_dialog_title,
           RefactoringSaveHelper.SAVE_ALL);

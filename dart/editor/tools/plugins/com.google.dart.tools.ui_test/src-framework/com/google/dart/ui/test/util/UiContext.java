@@ -134,6 +134,13 @@ public class UiContext {
   }
 
   /**
+   * @return the {@link Label} with the given text.
+   */
+  public Label findLabel(String text) {
+    return findWidget(getShell(), and(ofClass(Label.class), withText(text)));
+  }
+
+  /**
    * @return the {@link Shell} with the given text, may be {@code null}.
    */
   public Shell findShell(String text) {

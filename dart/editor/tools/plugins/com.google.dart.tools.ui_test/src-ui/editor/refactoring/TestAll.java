@@ -22,6 +22,10 @@ public class TestAll {
     suite.addTestSuite(RenameRefactoringTest.class);
     suite.addTestSuite(ExtractLocalRefactoringTest.class);
     suite.addTestSuite(ExtractMethodRefactoringTest.class);
+    suite.addTestSuite(InlineLocalRefactoringTest.class);
+    suite.addTestSuite(InlineMethodRefactoringTest.class);
+    suite.addTestSuite(ConvertMethodToGetterRefactoringTest.class);
+    suite.addTestSuite(ConvertGetterToMethodRefactoringTest.class);
     return suite;
   }
 }

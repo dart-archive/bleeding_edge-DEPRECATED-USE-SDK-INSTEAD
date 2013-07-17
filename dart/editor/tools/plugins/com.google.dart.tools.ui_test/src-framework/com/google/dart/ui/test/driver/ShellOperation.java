@@ -44,6 +44,9 @@ public abstract class ShellOperation extends Operation {
     if (shell == null) {
       return false;
     }
+    if (!shell.isVisible()) {
+      return false;
+    }
     context.useShell(shell);
     return true;
   }

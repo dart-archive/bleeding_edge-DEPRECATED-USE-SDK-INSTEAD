@@ -28,6 +28,8 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * Renames a Dart element or workbench resource.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class RenameAction extends AbstractDartSelectionAction {
   private final RenameDartElementAction renameElement;

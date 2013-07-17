@@ -34,6 +34,8 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * {@link Action} for "Inline Local" refactoring.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class InlineLocalAction extends AbstractDartSelectionAction {
   public InlineLocalAction(DartEditor editor) {
