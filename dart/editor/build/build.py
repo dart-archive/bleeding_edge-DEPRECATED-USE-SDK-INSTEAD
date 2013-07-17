@@ -766,21 +766,34 @@ def CreateChecksumFile(filename):
 def RunEditorTests(buildout, buildos):
   StartBuildStep('run_tests')
 
-  for editorArchive in _FindRcpZipFiles(buildout):
-    if (editorArchive.endswith('_64.zip')):
-      with utils.TempDir('editor_') as tempDir:
-        print 'Running tests for %s...' % editorArchive
+  for editorArchive in _GetTestableRcpArchives(buildout):
+    with utils.TempDir('editor_') as tempDir:
+      print 'Running tests for %s...' % editorArchive
 
-        zipper = ziputils.ZipUtil(join(buildout, editorArchive), buildos)
-        zipper.UnZip(tempDir)
+      zipper = ziputils.ZipUtil(join(buildout, editorArchive), buildos)
+      zipper.UnZip(tempDir)
 
-        editorExecutable = GetEditorExecutable(join(tempDir, 'dart'))
-        args = [editorExecutable, '-consoleLog', '--test', '--auto-exit',
-                '-data', join(tempDir, 'workspace')]
-        if sys.platform == 'linux':
-          args = ['xvfb-run', '-a'] + args
-        if (subprocess.call(args, shell=IsWindows())):
-          BuildStepFailure()
+      editorExecutable = GetEditorExecutable(join(tempDir, 'dart'))
+      args = [editorExecutable, '--test', '--auto-exit',
+              '-data', join(tempDir, 'workspace')]
+      if sys.platform == 'linux':
+        args = ['xvfb-run', '-a'] + args
+      # this can hang if a 32 bit jvm is not available on windows...
+      if subprocess.call(args, shell=IsWindows()):
+        BuildStepFailure()
+
+
+# Return x86_64.zip (64 bit) on mac and linux; x86.zip (32 bit) on windows
+def _GetTestableRcpArchives(buildout):
+  result = []
+  
+  for archive in _FindRcpZipFiles(buildout):
+    if IsWindows() and archive.endswith('x86.zip'):
+      result.append(archive)
+    elif not IsWindows() and archive.endswith('x86_64.zip'):
+      result.append(archive)
+  
+  return result
 
 
 def GetEditorExecutable(editorDir):
