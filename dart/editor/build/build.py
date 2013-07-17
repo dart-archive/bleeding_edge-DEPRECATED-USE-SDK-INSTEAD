@@ -244,7 +244,6 @@ def main():
                                                     prefix='AntProperties',
                                                     delete=False)
     ant_property_file.close()
-    extra_artifacts = tempfile.mkdtemp(prefix='ExtraArtifacts')
     ant = AntWrapper(ant_property_file.name, os.path.join(antpath, 'bin'),
                      bzip2libpath)
 
@@ -376,71 +375,70 @@ def main():
                                editorpath, buildos)
       return status
 
-    #tell the ant script where to write the sdk zip file so it can
-    #be expanded later
-    status = ant.RunAnt('.', 'build_rcp.xml', revision, builder_name,
-                        buildroot, buildout, editorpath, buildos,
-                        sdk_zip=sdk_zip,
-                        running_on_bot=running_on_buildbot,
-                        extra_artifacts=extra_artifacts)
-    #the ant script writes a property file in a known location so
-    #we can read it.
-    properties = ReadPropertyFile(buildos, ant_property_file.name)
+    with utils.TempDir('ExtraArtifacts') as extra_artifacts:
+      #tell the ant script where to write the sdk zip file so it can
+      #be expanded later
+      status = ant.RunAnt('.', 'build_rcp.xml', revision, builder_name,
+                          buildroot, buildout, editorpath, buildos,
+                          sdk_zip=sdk_zip,
+                          running_on_bot=running_on_buildbot,
+                          extra_artifacts=extra_artifacts)
+      #the ant script writes a property file in a known location so
+      #we can read it.
+      properties = ReadPropertyFile(buildos, ant_property_file.name)
 
-    if not properties:
-      raise Exception('no data was found in file {%s}' % ant_property_file.name)
-    if status:
-      if properties['build.runtime']:
-        PrintErrorLog(properties['build.runtime'])
-      return status
+      if not properties:
+        raise Exception('no data was found in file {%s}'
+                        % ant_property_file.name)
+      if status:
+        if properties['build.runtime']:
+          PrintErrorLog(properties['build.runtime'])
+        return status
 
-    #For the dart-editor build, return at this point.
-    #We don't need to install the sdk+dartium, run tests, or copy to google
-    #storage.
-    if not buildos:
-      print 'skipping sdk and dartium steps for dart-editor build'
+      #For the dart-editor build, return at this point.
+      #We don't need to install the sdk+dartium, run tests, or copy to google
+      #storage.
+      if not buildos:
+        print 'skipping sdk and dartium steps for dart-editor build'
+        return 0
+
+      #This is an override for local testing
+      force_run_install = os.environ.get('FORCE_RUN_INSTALL')
+
+      if force_run_install or (not PLUGINS_BUILD):
+        InstallSdk(buildroot, buildout, buildos, buildout)
+        InstallDartium(buildroot, buildout, buildos, gsu)
+
+      if status:
+        return status
+
+      if not build_skip_tests:
+        RunEditorTests(buildout, buildos)
+
+      if buildos:
+        StartBuildStep('upload_artifacts')
+
+        _InstallArtifacts(buildout, buildos, extra_artifacts)
+
+        # dart-editor-linux.gtk.x86.zip --> darteditor-linux-32.zip
+        RenameRcpZipFiles(buildout)
+
+        PostProcessEditorBuilds(buildout)
+
+        if running_on_buildbot:
+          version_file = _FindVersionFile(buildout)
+          if version_file:
+            UploadFile(version_file, False)
+
+          found_zips = _FindRcpZipFiles(buildout)
+          for zipfile in found_zips:
+            UploadFile(zipfile)
+
       return 0
-
-    #This is an override for local testing
-    force_run_install = os.environ.get('FORCE_RUN_INSTALL')
-
-    if force_run_install or (not PLUGINS_BUILD):
-      InstallSdk(buildroot, buildout, buildos, buildout)
-      InstallDartium(buildroot, buildout, buildos, gsu)
-
-    if status:
-      return status
-
-    if not build_skip_tests:
-      RunEditorTests(buildout, buildos)
-
-    if buildos:
-      StartBuildStep('upload_artifacts')
-
-      _InstallArtifacts(buildout, buildos, extra_artifacts)
-
-      # dart-editor-linux.gtk.x86.zip --> darteditor-linux-32.zip
-      RenameRcpZipFiles(buildout)
-
-      PostProcessEditorBuilds(buildout)
-
-      if running_on_buildbot:
-        version_file = _FindVersionFile(buildout)
-        if version_file:
-          UploadFile(version_file, False)
-
-        found_zips = _FindRcpZipFiles(buildout)
-        for zipfile in found_zips:
-          UploadFile(zipfile)
-
-    return 0
   finally:
     if ant_property_file is not None:
       print 'cleaning up temp file {0}'.format(ant_property_file.name)
       os.remove(ant_property_file.name)
-    if extra_artifacts:
-      print 'cleaning up temp dir {0}'.format(extra_artifacts)
-      shutil.rmtree(extra_artifacts)
     print 'cleaning up {0}'.format(buildroot)
     shutil.rmtree(buildroot, True)
     print 'Build Done'
@@ -770,21 +768,19 @@ def RunEditorTests(buildout, buildos):
 
   for editorArchive in _FindRcpZipFiles(buildout):
     if (editorArchive.endswith('_64.zip')):
-      print 'Running tests for %s...' % editorArchive
-      tempDir = tempfile.mkdtemp(prefix='editor_')
-      
-      zipper = ziputils.ZipUtil(join(buildout, editorArchive), buildos)
-      zipper.UnZip(tempDir)
+      with utils.TempDir('editor_') as tempDir:
+        print 'Running tests for %s...' % editorArchive
 
-      editorExecutable = GetEditorExecutable(join(tempDir, 'dart'))
-      args = [editorExecutable, '-consoleLog', '--test', '--auto-exit',
-              '-data', join(tempDir, 'workspace')]
-      if sys.platform == 'linux':
-        args = ['xvfb-run', '-a'] + args
-      if (subprocess.call(args, shell=IsWindows())):
-        BuildStepFailure()
+        zipper = ziputils.ZipUtil(join(buildout, editorArchive), buildos)
+        zipper.UnZip(tempDir)
 
-      shutil.rmtree(tempDir, True)
+        editorExecutable = GetEditorExecutable(join(tempDir, 'dart'))
+        args = [editorExecutable, '-consoleLog', '--test', '--auto-exit',
+                '-data', join(tempDir, 'workspace')]
+        if sys.platform == 'linux':
+          args = ['xvfb-run', '-a'] + args
+        if (subprocess.call(args, shell=IsWindows())):
+          BuildStepFailure()
 
 
 def GetEditorExecutable(editorDir):
