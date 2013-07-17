@@ -50,6 +50,11 @@ public abstract class MockContainer extends MockResource implements IContainer {
     }
   }
 
+  public void accept(IResourceProxyVisitor visitor, int depth, int memberFlags)
+      throws CoreException {
+    accept(visitor, memberFlags);
+  }
+
   @Override
   public void accept(IResourceVisitor visitor) throws CoreException {
     if (visitor.visit(this)) {

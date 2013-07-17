@@ -58,6 +58,11 @@ public class MockFile extends MockResource implements IFile {
     visitor.visit(new MockProxy(this));
   }
 
+  public void accept(IResourceProxyVisitor visitor, int depth, int memberFlags)
+      throws CoreException {
+    accept(visitor, memberFlags);
+  }
+
   @Override
   public void accept(IResourceVisitor visitor) throws CoreException {
     visitor.visit(this);
