@@ -41,6 +41,7 @@ import com.google.dart.java2dart.util.TokenFactory;
 
 import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
 import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
+import static com.google.dart.java2dart.util.ASTFactory.functionExpressionInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
 import static com.google.dart.java2dart.util.ASTFactory.indexExpression;
 import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
@@ -146,46 +147,51 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         super.visitMethodInvocation(node);
-        List<Expression> args = node.getArgumentList().getArguments();
+        Expression target = node.getTarget();
         SimpleIdentifier nameNode = node.getMethodName();
+        List<Expression> args = node.getArgumentList().getArguments();
+        if (isMethodInClass(node, "compare", "java.util.Comparator")) {
+          replaceNode(node, functionExpressionInvocation(target, args));
+          return null;
+        }
         if (isMethodInClass(node, "size", "java.util.Collection")
             || isMethodInClass(node, "size", "java.util.Map")) {
-          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+          replaceNode(node, propertyAccess(target, nameNode));
           nameNode.setToken(token("length"));
           return null;
         }
         if (isMethodInClass(node, "isEmpty", "java.util.Collection")) {
-          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+          replaceNode(node, propertyAccess(target, nameNode));
           return null;
         }
         if (isMethodInClass(node, "get", "java.util.List")
             || isMethodInClass(node, "get", "java.util.Map")) {
-          replaceNode(node, indexExpression(node.getTarget(), args.get(0)));
+          replaceNode(node, indexExpression(target, args.get(0)));
           return null;
         }
         if (isMethodInClass(node, "toArray", "java.util.Collection")) {
           replaceNode(
               node,
-              instanceCreationExpression(Keyword.NEW, typeName("List"), "from", node.getTarget()));
+              instanceCreationExpression(Keyword.NEW, typeName("List"), "from", target));
           return null;
         }
         if (isMethodInClass(node, "iterator", "java.util.Collection")) {
           replaceNode(
               node,
-              instanceCreationExpression(Keyword.NEW, typeName("JavaIterator"), node.getTarget()));
+              instanceCreationExpression(Keyword.NEW, typeName("JavaIterator"), target));
           return null;
         }
         if (isMethodInClass(node, "hasNext", "java.util.Iterator")) {
-          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+          replaceNode(node, propertyAccess(target, nameNode));
           return null;
         }
         if (isMethodInClass(node, "isEmpty", "java.util.Map")) {
-          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+          replaceNode(node, propertyAccess(target, nameNode));
           return null;
         }
         if (isMethodInClass(node, "put", "java.util.Map")) {
           Assert.isTrue(node.getParent() instanceof ExpressionStatement);
-          IndexExpression indexExpression = indexExpression(node.getTarget(), args.get(0));
+          IndexExpression indexExpression = indexExpression(target, args.get(0));
           AssignmentExpression assignment = assignmentExpression(
               indexExpression,
               TokenType.EQ,
@@ -194,16 +200,16 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "entrySet", "java.util.Map")) {
-          replaceNode(node, methodInvocation("getMapEntrySet", node.getTarget()));
+          replaceNode(node, methodInvocation("getMapEntrySet", target));
           return null;
         }
         if (isMethodInClass(node, "values", "java.util.Map")) {
-          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+          replaceNode(node, propertyAccess(target, nameNode));
           return null;
         }
         if (isMethodInClass(node, "keySet", "java.util.Map")) {
           nameNode.setToken(token("keys"));
-          replaceNode(node, methodInvocation(propertyAccess(node.getTarget(), nameNode), "toSet"));
+          replaceNode(node, methodInvocation(propertyAccess(target, nameNode), "toSet"));
           return null;
         }
         if (isMethodInClass2(node, "remove(int)", "java.util.List")) {
@@ -215,11 +221,11 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "add", "java.util.Set")) {
-          replaceNode(node, methodInvocation("javaSetAdd", node.getTarget(), args.get(0)));
+          replaceNode(node, methodInvocation("javaSetAdd", target, args.get(0)));
           return null;
         }
         if (isMethodInClass(node, "putAll", "java.util.Map")) {
-          replaceNode(node, methodInvocation("javaMapPutAll", node.getTarget(), args.get(0)));
+          replaceNode(node, methodInvocation("javaMapPutAll", target, args.get(0)));
           return null;
         }
         if (isMethodInClass(node, "addAll", "java.util.Collections")) {

@@ -655,6 +655,11 @@ public final class ASTFactory {
     return new FunctionExpressionInvocation(function, argumentList(arguments));
   }
 
+  public static FunctionExpressionInvocation functionExpressionInvocation(Expression function,
+      List<Expression> arguments) {
+    return new FunctionExpressionInvocation(function, argumentList(arguments));
+  }
+
   public static FunctionTypedFormalParameter functionTypedFormalParameter(TypeName returnType,
       String identifier, FormalParameter... parameters) {
     return new FunctionTypedFormalParameter(

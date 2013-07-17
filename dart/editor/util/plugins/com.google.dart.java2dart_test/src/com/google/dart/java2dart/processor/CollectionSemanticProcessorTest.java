@@ -211,11 +211,15 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "      return a.length() - b.length();",
         "    }",
         "  };",
+        "  int main(String a, String b) {",
+        "    return MY.compare(a, b);",
+        "  }",
         "}");
     runProcessor();
     assertFormattedSource(
         "class Test {",
         "  Comparator<String> MY = (String a, String b) => a.length() - b.length();",
+        "  int main(String a, String b) => MY(a, b);",
         "}");
   }
 
