@@ -203,12 +203,6 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   private final Object fReconcileLock = new Object();
 
   /**
-   * <code>true</code> if any thread is executing <code>reconcile</code>, <code>false</code>
-   * otherwise.
-   */
-  private boolean fIsReconciling = false;
-
-  /**
    * The semantic highlighting presenter - cache for background thread, only valid during
    * {@link #reconciled(DartUnit, boolean, IProgressMonitor)}
    */
@@ -273,47 +267,38 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
 
   @Override
   public void reconciled(CompilationUnit ast) {
-    // ensure at most one thread can be reconciling at any time
     synchronized (fReconcileLock) {
-      if (fIsReconciling) {
-        return;
-      } else {
-        fIsReconciling = true;
-      }
-    }
-    fJobPresenter = fPresenter;
-    fJobSemanticHighlightings = fSemanticHighlightings;
-    fJobHighlightings = fHighlightings;
+      fJobPresenter = fPresenter;
+      fJobSemanticHighlightings = fSemanticHighlightings;
+      fJobHighlightings = fHighlightings;
 
-    try {
-      if (fJobPresenter == null || fJobSemanticHighlightings == null || fJobHighlightings == null) {
-        return;
-      }
+      try {
+        if (fJobPresenter == null || fJobSemanticHighlightings == null || fJobHighlightings == null) {
+          return;
+        }
 
-      fJobPresenter.setCanceled(false);
+        fJobPresenter.setCanceled(false);
 
-      startReconcilingPositions();
+        startReconcilingPositions();
 
-      if (!fJobPresenter.isCanceled()) {
-        reconcilePositions(ast);
-      }
+        if (!fJobPresenter.isCanceled()) {
+          reconcilePositions(ast);
+        }
 
-      TextPresentation textPresentation = null;
-      if (!fJobPresenter.isCanceled()) {
-        textPresentation = fJobPresenter.createPresentation(fAddedPositions, fRemovedPositions);
-      }
+        TextPresentation textPresentation = null;
+        if (!fJobPresenter.isCanceled()) {
+          textPresentation = fJobPresenter.createPresentation(fAddedPositions, fRemovedPositions);
+        }
 
-      if (!fJobPresenter.isCanceled()) {
-        updatePresentation(textPresentation, fAddedPositions, fRemovedPositions);
-      }
+        if (!fJobPresenter.isCanceled()) {
+          updatePresentation(textPresentation, fAddedPositions, fRemovedPositions);
+        }
 
-      stopReconcilingPositions();
-    } finally {
-      fJobPresenter = null;
-      fJobSemanticHighlightings = null;
-      fJobHighlightings = null;
-      synchronized (fReconcileLock) {
-        fIsReconciling = false;
+        stopReconcilingPositions();
+      } finally {
+        fJobPresenter = null;
+        fJobSemanticHighlightings = null;
+        fJobHighlightings = null;
       }
     }
   }
@@ -347,17 +332,6 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     fHighlightings = null;
     fPresenter = null;
   }
-
-  // XXX
-//  /**
-//   * @param node Root node
-//   * @return Array of subtrees that may be affected by past document changes
-//   */
-//  private DartNode[] getAffectedSubtrees(DartNode node) {
-//    // TODO: only return nodes which are affected by document changes - would
-//    // require an 'anchor' concept for taking distant effects into account
-//    return new DartNode[] {node};
-//  }
 
   private final void processNode(SemanticToken token, ASTNode node) {
     ISourceViewer sourceViewer = this.fSourceViewer;
