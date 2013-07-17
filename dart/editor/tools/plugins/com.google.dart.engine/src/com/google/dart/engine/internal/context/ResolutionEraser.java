@@ -38,12 +38,14 @@ import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
+    node.setStaticElement(null);
     node.setElement(null);
     return super.visitAssignmentExpression(node);
   }
 
   @Override
   public Void visitBinaryExpression(BinaryExpression node) {
+    node.setStaticElement(null);
     node.setElement(null);
     return super.visitBinaryExpression(node);
   }
@@ -62,6 +64,7 @@ public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitConstructorName(ConstructorName node) {
+    node.setStaticElement(null);
     node.setElement(null);
     return super.visitConstructorName(node);
   }
@@ -87,48 +90,56 @@ public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    node.setStaticElement(null);
     node.setElement(null);
     return super.visitFunctionExpressionInvocation(node);
   }
 
   @Override
   public Void visitIndexExpression(IndexExpression node) {
+    node.setStaticElement(null);
     node.setElement(null);
     return super.visitIndexExpression(node);
   }
 
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    node.setStaticElement(null);
     node.setElement(null);
     return super.visitInstanceCreationExpression(node);
   }
 
   @Override
   public Void visitPostfixExpression(PostfixExpression node) {
+    node.setStaticElement(null);
     node.setElement(null);
     return super.visitPostfixExpression(node);
   }
 
   @Override
   public Void visitPrefixExpression(PrefixExpression node) {
+    node.setStaticElement(null);
     node.setElement(null);
     return super.visitPrefixExpression(node);
   }
 
   @Override
   public Void visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    node.setStaticElement(null);
     node.setElement(null);
     return super.visitRedirectingConstructorInvocation(node);
   }
 
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
+    node.setStaticElement(null);
     node.setElement(null);
     return super.visitSimpleIdentifier(node);
   }
 
   @Override
   public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    node.setStaticElement(null);
     node.setElement(null);
     return super.visitSuperConstructorInvocation(node);
   }
