@@ -34,6 +34,7 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
+import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import junit.framework.Assert;
@@ -51,6 +52,12 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
   private ArrayList<Expression> unresolvedExpressions = new ArrayList<Expression>();
 
   /**
+   * A list containing all of the AST Expression nodes for which a propagated type was computed but
+   * where that type was not more specific than the static type.
+   */
+  private ArrayList<Expression> invalidlyPropagatedExpressions = new ArrayList<Expression>();
+
+  /**
    * A list containing all of the AST TypeName nodes that were not resolved.
    */
   private ArrayList<TypeName> unresolvedTypes = new ArrayList<TypeName>();
@@ -59,6 +66,11 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
    * Counter for the number of Expression nodes visited that are resolved.
    */
   int resolvedExpressionCount = 0;
+
+  /**
+   * Counter for the number of Expression nodes visited that have propagated type information.
+   */
+  int propagatedExpressionCount = 0;
 
   /**
    * Counter for the number of TypeName nodes visited that are resolved.
@@ -77,21 +89,16 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
    * Assert that all of the visited nodes have a static type associated with them.
    */
   public void assertResolved() {
-    if (!unresolvedExpressions.isEmpty() || !unresolvedTypes.isEmpty()) {
-      int unresolvedExpressionCount = unresolvedExpressions.size();
-      int unresolvedTypeCount = unresolvedTypes.size();
+    if (!unresolvedExpressions.isEmpty() /*|| !invalidlyPropagatedExpressions.isEmpty()*/
+        || !unresolvedTypes.isEmpty()) {
       PrintStringWriter writer = new PrintStringWriter();
-      writer.print("Failed to associate types with nodes: ");
-      writer.print(unresolvedExpressionCount);
-      writer.print("/");
-      writer.print(resolvedExpressionCount + unresolvedExpressionCount);
-      writer.print(" Expressions and ");
-      writer.print(unresolvedTypeCount);
-      writer.print("/");
-      writer.print(resolvedTypeCount + unresolvedTypeCount);
-      writer.println(" TypeNames.");
+      int unresolvedTypeCount = unresolvedTypes.size();
       if (unresolvedTypeCount > 0) {
-        writer.println("TypeNames:");
+        writer.print("Failed to resolve ");
+        writer.print(unresolvedTypeCount);
+        writer.print(" of ");
+        writer.print(resolvedTypeCount + unresolvedTypeCount);
+        writer.println(" type names:");
         for (TypeName identifier : unresolvedTypes) {
           writer.print("  ");
           writer.print(identifier.toString());
@@ -102,15 +109,42 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
           writer.println(")");
         }
       }
+      int unresolvedExpressionCount = unresolvedExpressions.size();
       if (unresolvedExpressionCount > 0) {
-        writer.println("Expressions:");
-        for (Expression identifier : unresolvedExpressions) {
+        writer.println("Failed to resolve ");
+        writer.print(unresolvedExpressionCount);
+        writer.print(" of ");
+        writer.print(resolvedExpressionCount + unresolvedExpressionCount);
+        writer.println(" expressions:");
+        for (Expression expression : unresolvedExpressions) {
           writer.print("  ");
-          writer.print(identifier.toString());
+          writer.print(expression.toString());
           writer.print(" (");
-          writer.print(getFileName(identifier));
+          writer.print(getFileName(expression));
           writer.print(" : ");
-          writer.print(identifier.getOffset());
+          writer.print(expression.getOffset());
+          writer.println(")");
+        }
+      }
+      int invalidlyPropagatedExpressionCount = invalidlyPropagatedExpressions.size();
+      if (invalidlyPropagatedExpressionCount > 0) {
+        writer.println("Incorrectly propagated ");
+        writer.print(invalidlyPropagatedExpressionCount);
+        writer.print(" of ");
+        writer.print(propagatedExpressionCount);
+        writer.println(" expressions:");
+        for (Expression expression : invalidlyPropagatedExpressions) {
+          writer.print("  ");
+          writer.print(expression.toString());
+          writer.print(" [");
+          writer.print(expression.getStaticType().getDisplayName());
+          writer.print(", ");
+          writer.print(expression.getPropagatedType().getDisplayName());
+          writer.println("]");
+          writer.print("    ");
+          writer.print(getFileName(expression));
+          writer.print(" : ");
+          writer.print(expression.getOffset());
           writer.println(")");
         }
       }
@@ -145,10 +179,18 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitExpression(Expression node) {
     node.visitChildren(this);
-    if (node.getStaticType() == null) {
+    Type staticType = node.getStaticType();
+    if (staticType == null) {
       unresolvedExpressions.add(node);
     } else {
       resolvedExpressionCount++;
+      Type propagatedType = node.getPropagatedType();
+      if (propagatedType != null) {
+        propagatedExpressionCount++;
+        if (!propagatedType.isMoreSpecificThan(staticType)) {
+          invalidlyPropagatedExpressions.add(node);
+        }
+      }
     }
     return null;
   }
