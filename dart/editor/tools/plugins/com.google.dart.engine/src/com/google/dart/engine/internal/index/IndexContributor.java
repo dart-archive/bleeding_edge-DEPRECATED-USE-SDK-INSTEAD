@@ -119,21 +119,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * Return the propagated type of the given expression, or the static type if there is no
-   * propagated type information.
-   * 
-   * @param expression the expression whose type is to be returned
-   * @return the propagated or static type of the given expression, whichever is best
-   */
-  private static Type getBestType(Expression expression) {
-    Type type = expression.getPropagatedType();
-    if (type == null) {
-      type = expression.getStaticType();
-    }
-    return type;
-  }
-
-  /**
    * If the given expression has resolved type, returns the new location with this type.
    * 
    * @param location the base location
@@ -141,10 +126,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    */
   private static Location getLocationWithExpressionType(Location location, Expression expression) {
     if (expression != null) {
-      Type type = getBestType(expression);
-      if (type != null) {
-        return new LocationWithData<Type>(location, type);
-      }
+      return new LocationWithData<Type>(location, expression.getBestType());
     }
     return location;
   }
