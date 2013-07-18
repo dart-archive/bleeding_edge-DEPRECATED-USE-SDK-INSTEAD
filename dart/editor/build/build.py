@@ -776,7 +776,7 @@ def RunEditorTests(buildout, buildos):
       editorExecutable = GetEditorExecutable(join(tempDir, 'dart'))
       args = [editorExecutable, '--test', '--auto-exit',
               '-data', join(tempDir, 'workspace')]
-      if sys.platform == 'linux':
+      if sys.platform == 'linux2':
         args = ['xvfb-run', '-a'] + args
       # this can hang if a 32 bit jvm is not available on windows...
       if subprocess.call(args, shell=IsWindows()):
@@ -786,13 +786,13 @@ def RunEditorTests(buildout, buildos):
 # Return x86_64.zip (64 bit) on mac and linux; x86.zip (32 bit) on windows
 def _GetTestableRcpArchives(buildout):
   result = []
-  
+
   for archive in _FindRcpZipFiles(buildout):
     if IsWindows() and archive.endswith('x86.zip'):
       result.append(archive)
     elif not IsWindows() and archive.endswith('x86_64.zip'):
       result.append(archive)
-  
+
   return result
 
 
