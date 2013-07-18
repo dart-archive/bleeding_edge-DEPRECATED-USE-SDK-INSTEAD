@@ -50,7 +50,7 @@ import java.util.Map;
 /**
  * Manages the override and overwrite indicators for the given Dart element and annotation model.
  */
-class OverrideIndicatorManager {
+public class OverrideIndicatorManager {
 
   static class OverriddenElementFinder extends GeneralizingASTVisitor<Void> {
 
