@@ -30,10 +30,12 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
 
@@ -48,7 +50,7 @@ public class UiContext2 {
     UIThreadRunnable.syncExec(new VoidResult() {
       @Override
       public void run() {
-        widget.notifyListeners(SWT.Selection, new Event());
+        _click(widget);
       }
     });
   }
@@ -63,10 +65,38 @@ public class UiContext2 {
   }
 
   /**
+   * Asynchronously clicks the {@link Button} with matching text.
+   */
+  public static void clickButtonAsync(Widget start, String text) {
+    final Button button = findButton(start, text);
+    Assert.isNotNull(button, "Cannot find button: " + text);
+    UIThreadRunnable.asyncExec(new VoidResult() {
+      @Override
+      public void run() {
+        _click(button);
+      }
+    });
+  }
+
+  /**
    * @return the {@link Button} with matching text.
    */
   public static Button findButton(Widget start, String text) {
     return findWidget(start, and(ofClass(Button.class), withText(text)));
+  }
+
+  /**
+   * @return the {@link Label} with matching text.
+   */
+  public static Label findLabel(Widget start, String text) {
+    return findWidget(start, and(ofClass(Label.class), withText(text)));
+  }
+
+  /**
+   * @return the first {@link Table} widget.
+   */
+  public static Table findTable(Widget start) {
+    return findWidget(start, ofClass(Table.class));
   }
 
   /**
@@ -138,6 +168,26 @@ public class UiContext2 {
   }
 
   /**
+   * @return the text of the {@link Widget} that has {@link Label} with given text.
+   */
+  public static String getTextByLabel(Widget start, String labelText) {
+    Widget textWidget = findWidgetByLabel(start, labelText);
+    return getText(textWidget);
+  }
+
+  /**
+   * @return the {@link Control#isEnabled()} result.
+   */
+  public static boolean isEnabled(final Control control) {
+    return UIThreadRunnable.syncExec(new Result<Boolean>() {
+      @Override
+      public Boolean run() {
+        return control.isEnabled();
+      }
+    });
+  }
+
+  /**
    * Asynchronously runs the given {@link IAction}.
    */
   public static void runAction(final IAction action) {
@@ -147,6 +197,14 @@ public class UiContext2 {
         action.run();
       }
     });
+  }
+
+  /**
+   * Calls {@link Button#setSelection(boolean)}.
+   */
+  public static void setButtonSelection(Widget start, String text, boolean selection) {
+    Button button = findButton(start, text);
+    setSelection(button, selection);
   }
 
   /**
@@ -207,7 +265,7 @@ public class UiContext2 {
           public void run() {
             Display display = Display.getCurrent();
             for (Shell shell : display.getShells()) {
-              if (text.equals(shell.getText())) {
+              if (text.equals(shell.getText()) && shell.isVisible()) {
                 foundShell[0] = shell;
               }
             }
@@ -239,5 +297,12 @@ public class UiContext2 {
         });
       }
     });
+  }
+
+  /**
+   * Sends {@link SWT#Selection} event to given {@link Widget}.
+   */
+  private static void _click(Widget widget) {
+    widget.notifyListeners(SWT.Selection, new Event());
   }
 }

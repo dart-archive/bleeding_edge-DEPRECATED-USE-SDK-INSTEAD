@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -21,11 +21,11 @@ public class TestAll2 {
     TestSuite suite = new TestSuite("Tests in " + TestAll2.class.getPackage().getName());
     suite.addTestSuite(RenameRefactoringTest2.class);
     suite.addTestSuite(ExtractLocalRefactoringTest2.class);
-//    suite.addTestSuite(ExtractMethodRefactoringTest.class);
-//    suite.addTestSuite(InlineLocalRefactoringTest.class);
-//    suite.addTestSuite(InlineMethodRefactoringTest.class);
-//    suite.addTestSuite(ConvertMethodToGetterRefactoringTest.class);
-//    suite.addTestSuite(ConvertGetterToMethodRefactoringTest.class);
+    suite.addTestSuite(ExtractMethodRefactoringTest2.class);
+    suite.addTestSuite(InlineLocalRefactoringTest2.class);
+    suite.addTestSuite(InlineMethodRefactoringTest2.class);
+    suite.addTestSuite(ConvertMethodToGetterRefactoringTest2.class);
+    suite.addTestSuite(ConvertGetterToMethodRefactoringTest2.class);
     return suite;
   }
 }

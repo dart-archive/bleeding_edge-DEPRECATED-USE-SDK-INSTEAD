@@ -8,7 +8,7 @@ import org.eclipse.swt.widgets.Shell;
  * Helper for testing dialogs.
  */
 public class DialogHelper {
-  protected final Shell shell;
+  public final Shell shell;
 
   public DialogHelper(Shell shell) {
     this.shell = shell;

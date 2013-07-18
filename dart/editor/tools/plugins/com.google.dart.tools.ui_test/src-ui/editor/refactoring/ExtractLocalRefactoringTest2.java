@@ -32,7 +32,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Shell;
 
 /**
- * Test for the "Rename" refactoring.
+ * Test for the "Extract Local" refactoring.
  */
 public final class ExtractLocalRefactoringTest2 extends AbstractDartEditorTabTest2 {
   private static class WizardHelper extends WizardDialogHelper {

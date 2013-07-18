@@ -24,6 +24,27 @@ import java.util.ArrayList;
  * blocking operations.
  */
 public abstract class UIThreadRunnable implements Runnable {
+  /**
+   * Helper class used in {@link #propagate(Throwable)}.
+   */
+  private static class ExceptionThrower {
+    private static Throwable throwable;
+
+    public static synchronized void spit(Throwable t) {
+      ExceptionThrower.throwable = t;
+      try {
+        ExceptionThrower.class.newInstance();
+      } catch (InstantiationException e) {
+      } catch (IllegalAccessException e) {
+      } finally {
+        ExceptionThrower.throwable = null;
+      }
+    }
+
+    private ExceptionThrower() throws Throwable {
+      throw throwable;
+    }
+  }
 
   /**
    * The shared display instance.
@@ -120,6 +141,17 @@ public abstract class UIThreadRunnable implements Runnable {
   }
 
   /**
+   * Propagates {@code Throwable} as-is without any wrapping. This is trick.
+   * 
+   * @return nothing will ever be returned; this return type is only for your convenience, to use
+   *         this method in "throw" statement.
+   */
+  public static RuntimeException propagate(Throwable throwable) {
+    ExceptionThrower.spit(throwable);
+    return null;
+  }
+
+  /**
    * Executes the {@code toExecute} on the display thread, and blocks the calling thread.
    * 
    * @param <T> the type of the result.
@@ -139,14 +171,22 @@ public abstract class UIThreadRunnable implements Runnable {
    * @return the object result of execution on the UI thread.
    */
   public static <T> T[] syncExec(Display display, final ArrayResult<T> toExecute) {
+    final Throwable exception[] = {null};
     final ArrayList<T[]> arrayList = new ArrayList<T[]>();
     new UIThreadRunnable(display) {
       @Override
       protected void doRun() {
-        T[] run = toExecute.run();
-        arrayList.add(run);
+        try {
+          T[] run = toExecute.run();
+          arrayList.add(run);
+        } catch (Throwable e) {
+          exception[0] = e;
+        }
       }
     }.run();
+    if (exception[0] != null) {
+      propagate(exception[0]);
+    }
     return arrayList.get(0);
   }
 
@@ -158,15 +198,24 @@ public abstract class UIThreadRunnable implements Runnable {
    * @param toExecute the runnable to execute.
    * @return the object result of execution on the UI thread.
    */
+  @SuppressWarnings("unchecked")
   public static <T> T syncExec(Display display, final Result<T> toExecute) {
-    final ArrayList<T> arrayList = new ArrayList<T>();
+    final Throwable exception[] = {null};
+    final Object result[] = {null};
     new UIThreadRunnable(display) {
       @Override
       protected void doRun() {
-        arrayList.add(toExecute.run());
+        try {
+          result[0] = toExecute.run();
+        } catch (Throwable e) {
+          exception[0] = e;
+        }
       }
     }.run();
-    return arrayList.get(0);
+    if (exception[0] != null) {
+      propagate(exception[0]);
+    }
+    return (T) result[0];
   }
 
   /**
@@ -176,12 +225,20 @@ public abstract class UIThreadRunnable implements Runnable {
    * @param toExecute the runnable to execute.
    */
   public static void syncExec(Display display, final VoidResult toExecute) {
+    final Throwable exception[] = {null};
     new UIThreadRunnable(display) {
       @Override
       protected void doRun() {
-        toExecute.run();
+        try {
+          toExecute.run();
+        } catch (Throwable e) {
+          exception[0] = e;
+        }
       }
     }.run();
+    if (exception[0] != null) {
+      propagate(exception[0]);
+    }
   }
 
   /**
