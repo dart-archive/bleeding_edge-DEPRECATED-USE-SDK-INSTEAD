@@ -38,7 +38,9 @@ import java.net.URI;
 import java.util.Comparator;
 
 /**
- * Instances of the class <code>Util</code>
+ * Instances of the class <code>Util</code>.
+ * 
+ * @coverage dart.tools.core
  */
 public class Util {
   public static final String EMPTY_STRING = "";

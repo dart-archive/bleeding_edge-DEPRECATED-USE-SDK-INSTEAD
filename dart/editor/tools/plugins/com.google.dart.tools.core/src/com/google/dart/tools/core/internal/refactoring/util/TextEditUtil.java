@@ -17,6 +17,9 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.TextEdit;
 
+/**
+ * @coverage dart.tools.core
+ */
 public class TextEditUtil {
 
   /**

@@ -20,6 +20,8 @@ import com.google.dart.compiler.ast.DartNode;
  * Instances of the class <code>ChildListPropertyDescriptor</code> implement a property descriptor
  * for a child list property of an AST node. A child list property is one whose value is a list of
  * {@link DartNode}.
+ * 
+ * @coverage dart.tools.core
  */
 public final class ChildListPropertyDescriptor extends StructuralPropertyDescriptor {
   /**

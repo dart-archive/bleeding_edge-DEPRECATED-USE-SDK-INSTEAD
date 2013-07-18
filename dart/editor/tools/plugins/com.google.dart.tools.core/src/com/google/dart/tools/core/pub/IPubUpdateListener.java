@@ -18,7 +18,9 @@ import org.eclipse.core.resources.IContainer;
 import java.util.Map;
 
 /**
- * A pub update listener is notified when the pub packages have been updated
+ * A pub update listener is notified when the pub packages have been updated.
+ * 
+ * @coverage dart.tools.core.pub
  */
 public interface IPubUpdateListener {
 

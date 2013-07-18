@@ -21,6 +21,8 @@ import org.eclipse.core.runtime.CoreException;
  * associated {@link ProjectManager} based on those changes. In addition, it traverses changes in
  * the "packages" directory hierarchy because the builder does not receive resources changes for
  * symlinked folders (e.g. packages).
+ * 
+ * @coverage dart.tools.core.model
  */
 public class WorkspaceDeltaProcessor implements IResourceChangeListener {
   /**

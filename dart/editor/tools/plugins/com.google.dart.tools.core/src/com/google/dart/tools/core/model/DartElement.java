@@ -34,6 +34,8 @@ import java.util.List;
  * recognize this common special case.
  * <p>
  * This interface is not intended to be implemented by clients.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartElement extends IAdaptable {
   /**

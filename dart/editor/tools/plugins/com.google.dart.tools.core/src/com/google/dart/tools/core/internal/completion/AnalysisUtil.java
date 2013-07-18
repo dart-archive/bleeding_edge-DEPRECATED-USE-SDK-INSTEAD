@@ -6,6 +6,8 @@ import com.google.dart.engine.services.completion.CompletionRequestor;
 /**
  * DEBUG: This class is only intended to facilitate using the new analysis engine for code
  * completion until support for the new engine is fully-plumbed into the editor.
+ * 
+ * @coverage dart.tools.core.completion
  */
 public class AnalysisUtil implements CompletionRequestor {
 

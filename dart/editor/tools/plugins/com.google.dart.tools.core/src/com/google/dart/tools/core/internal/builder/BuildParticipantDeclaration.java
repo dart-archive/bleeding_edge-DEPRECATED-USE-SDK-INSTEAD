@@ -34,6 +34,8 @@ import java.util.Iterator;
 /**
  * Each {@link BuildParticipantDeclaration} represents one type of build participant and is used to
  * instantiate that type of build participant.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class BuildParticipantDeclaration {
 

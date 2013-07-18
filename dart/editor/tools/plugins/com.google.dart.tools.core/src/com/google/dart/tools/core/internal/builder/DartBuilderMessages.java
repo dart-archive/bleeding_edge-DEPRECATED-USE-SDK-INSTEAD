@@ -17,7 +17,7 @@ package com.google.dart.tools.core.internal.builder;
 import org.eclipse.osgi.util.NLS;
 
 /**
- * 
+ * @coverage dart.tools.core.builder
  */
 public class DartBuilderMessages extends NLS {
   private static final String BUNDLE_NAME = "com.google.dart.tools.core.internal.builder.DartBuilderMessages"; //$NON-NLS-1$

@@ -24,6 +24,8 @@ import org.eclipse.core.runtime.CoreException;
 
 /**
  * A utility class to manipulate markers.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class MarkerUtilities {
   public static final String ISSUE_MARKER = DartCore.PLUGIN_ID + ".issue";

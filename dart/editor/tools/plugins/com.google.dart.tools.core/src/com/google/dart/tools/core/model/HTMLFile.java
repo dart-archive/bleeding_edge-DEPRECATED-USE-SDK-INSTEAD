@@ -16,6 +16,8 @@ package com.google.dart.tools.core.model;
 /**
  * The interface <code>HTMLFile</code> defines the behavior of HTML files contained within a project
  * that reference one or more libraries.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface HTMLFile extends DartElement {
   /**

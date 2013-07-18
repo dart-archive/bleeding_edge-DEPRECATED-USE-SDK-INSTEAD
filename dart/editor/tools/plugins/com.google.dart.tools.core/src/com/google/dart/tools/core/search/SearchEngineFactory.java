@@ -19,6 +19,8 @@ import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 /**
  * The class <code>SearchEngineFactory</code> defines utility methods that can be used to create
  * {@link SearchEngine search engines}.
+ * 
+ * @coverage dart.tools.core.search
  */
 //TODO (pquitslund): remove
 public final class SearchEngineFactory {

@@ -27,6 +27,8 @@ import org.eclipse.core.runtime.IPath;
 /**
  * Filter out the children of symlinked 'packages' directories. This does not filter the main
  * 'packages' directory.
+ * 
+ * @coverage dart.tools.core
  */
 public class DartPackagesFolderMatcher extends AbstractFileInfoMatcher {
   public static final String MATCHER_ID = "com.google.dart.tools.core.packagesFolderMatcher";

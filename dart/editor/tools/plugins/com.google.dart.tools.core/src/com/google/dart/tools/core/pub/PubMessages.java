@@ -17,6 +17,9 @@ import org.eclipse.osgi.util.NLS;
 
 import java.util.ResourceBundle;
 
+/**
+ * @coverage dart.tools.core.pub
+ */
 public class PubMessages extends NLS {
 
   private static final String BUNDLE_NAME = "com.google.dart.tools.core.pub.PubMessages";//$NON-NLS-1$

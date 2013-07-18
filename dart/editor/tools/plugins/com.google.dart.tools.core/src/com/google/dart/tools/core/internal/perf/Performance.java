@@ -36,6 +36,7 @@ import java.util.TreeSet;
  * @see Metric
  * @see Result
  * @see CmdLineOptions
+ * @coverage dart.tools.core
  */
 public class Performance {
 

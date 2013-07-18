@@ -23,6 +23,8 @@ import java.util.Map;
 /**
  * This canonicalization manager class caches the results from calling the File.getCanonicalFile()
  * method. When symlinks are involved, that method can be extremely expensive.
+ * 
+ * @coverage dart.tools.core
  */
 public class CanonicalizationManager {
   private static CanonicalizationManager manager = new CanonicalizationManager();

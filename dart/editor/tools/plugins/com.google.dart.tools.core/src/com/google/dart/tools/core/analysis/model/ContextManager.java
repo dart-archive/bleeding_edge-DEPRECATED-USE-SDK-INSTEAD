@@ -27,6 +27,8 @@ import org.eclipse.core.resources.IResource;
 /**
  * Instances of {@code ContextManager} manage and provide access to multiple instances of
  * {@link AnalysisContext}.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface ContextManager {
 

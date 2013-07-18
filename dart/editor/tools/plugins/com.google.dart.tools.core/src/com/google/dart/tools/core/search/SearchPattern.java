@@ -19,6 +19,8 @@ import com.google.dart.tools.core.model.DartElement;
  * The interface <code>SearchPattern</code> defines the behavior common to objects that determine
  * whether a given Dart element matches the elements being searched for. Specific kinds of patterns
  * can be created using the static methods defined in the class {@link SearchPatternFactory}.
+ * 
+ * @coverage dart.tools.core.search
  */
 public interface SearchPattern {
   /**

@@ -27,6 +27,8 @@ import java.util.List;
 /**
  * Instances of the class <code>DartProjectInfo</code> maintain the cached data shared by all equal
  * projects.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartProjectInfo extends OpenableElementInfo {
   /**
@@ -60,15 +62,6 @@ public class DartProjectInfo extends OpenableElementInfo {
   }
 
   /**
-   * Return a list containing the names of all the dependencies specified in pubspec.yaml file
-   * 
-   * @return the dependencies
-   */
-  public List<String> getPackageDependencies() {
-    return dependencies;
-  }
-
-  /**
    * Return the mapping for the html files contained in this project.
    * 
    * @return the table with the html files to library mapping
@@ -97,6 +90,15 @@ public class DartProjectInfo extends OpenableElementInfo {
     return new IResource[0];
   }
 
+  /**
+   * Return a list containing the names of all the dependencies specified in pubspec.yaml file
+   * 
+   * @return the dependencies
+   */
+  public List<String> getPackageDependencies() {
+    return dependencies;
+  }
+
   public void resetCaches() {
     DartCore.notYetImplemented();
   }
@@ -108,15 +110,6 @@ public class DartProjectInfo extends OpenableElementInfo {
    */
   public void setChildPaths(List<String> paths) {
     childPaths = paths;
-  }
-
-  /**
-   * Set the dependencies to the given list populated from information in pubspec.yaml
-   * 
-   * @param dependencies the dependencies to set
-   */
-  public void setPackageDependencies(List<String> dependencies) {
-    this.dependencies = dependencies;
   }
 
   /**
@@ -133,6 +126,15 @@ public class DartProjectInfo extends OpenableElementInfo {
    */
   public void setLinkedPackageDirName(String packageDirectoryName) {
     this.linkedPackageDirName = packageDirectoryName;
+  }
+
+  /**
+   * Set the dependencies to the given list populated from information in pubspec.yaml
+   * 
+   * @param dependencies the dependencies to set
+   */
+  public void setPackageDependencies(List<String> dependencies) {
+    this.dependencies = dependencies;
   }
 
   /**

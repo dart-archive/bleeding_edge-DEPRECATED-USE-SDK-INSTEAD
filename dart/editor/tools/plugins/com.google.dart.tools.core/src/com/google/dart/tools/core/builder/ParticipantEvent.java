@@ -25,6 +25,8 @@ import org.eclipse.core.runtime.OperationCanceledException;
 
 /**
  * Common superclass for events sent to {@link BuildParticipant}.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class ParticipantEvent {
 

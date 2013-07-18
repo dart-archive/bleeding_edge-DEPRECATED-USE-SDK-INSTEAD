@@ -18,7 +18,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
- * Interface used by {@link BuildParticipant} when visiting resources in a {@link CleanEvent}
+ * Interface used by {@link BuildParticipant} when visiting resources in a {@link CleanEvent}.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public interface CleanVisitor {
 

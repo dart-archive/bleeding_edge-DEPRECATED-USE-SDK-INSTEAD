@@ -17,6 +17,8 @@ import com.google.dart.engine.context.AnalysisContext;
 
 /**
  * Instances of {@link AnalysisEvent} contain information about analysis progress.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface AnalysisEvent {
 

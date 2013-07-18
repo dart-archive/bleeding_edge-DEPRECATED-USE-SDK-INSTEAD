@@ -45,6 +45,8 @@ import com.google.dart.tools.core.problem.Problem;
  * </pre>
  * In either case, the bracketing <code>beginReporting</code> <code>endReporting</code> calls are
  * always made as well as <code>acceptContext</code> call.
+ * 
+ * @coverage dart.tools.core.completion
  */
 public abstract class CompletionRequestor {
   /**

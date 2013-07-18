@@ -18,6 +18,8 @@ import java.util.List;
 
 /**
  * Create a sample web application with Pub support.
+ * 
+ * @coverage dart.tools.core.generator
  */
 public class WebAppSample extends AbstractSample {
 

@@ -31,6 +31,8 @@ import com.google.dart.tools.core.internal.problem.ProblemSeverities;
  * Problem detected when compiling. However, the Dart problem markers carry equivalent information
  * to Problem, in particular their ID (attribute "id") is set to one of the IDs defined on this
  * interface.
+ * 
+ * @coverage dart.tools.core.problem
  */
 public interface Problem {
   /**

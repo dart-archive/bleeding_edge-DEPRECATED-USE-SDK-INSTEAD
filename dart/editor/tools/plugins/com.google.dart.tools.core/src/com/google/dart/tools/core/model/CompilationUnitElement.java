@@ -17,6 +17,8 @@ package com.google.dart.tools.core.model;
  * The interface <code>CompilationUnitElement</code> defines the behavior common to
  * {@link DartElement Dart elements} that are contained, either directly or indirectly, in a
  * {@link CompilationUnit compilation unit}.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface CompilationUnitElement extends DartElement, DartDocumentable {
   /**

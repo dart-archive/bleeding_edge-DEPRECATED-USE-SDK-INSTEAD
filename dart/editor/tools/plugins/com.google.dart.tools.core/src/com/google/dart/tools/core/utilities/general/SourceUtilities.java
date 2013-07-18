@@ -20,6 +20,8 @@ import java.util.List;
 
 /**
  * The class <code>SourceUtilities</code> defines utility methods for processing strings.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public final class SourceUtilities {
   /**

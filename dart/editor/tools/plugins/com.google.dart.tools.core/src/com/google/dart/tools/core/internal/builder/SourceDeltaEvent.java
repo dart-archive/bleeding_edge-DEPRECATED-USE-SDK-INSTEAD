@@ -17,6 +17,8 @@ import com.google.dart.engine.source.Source;
 
 /**
  * Used by {@link DeltaProcessor} to communicate changes to source files.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public interface SourceDeltaEvent extends ResourceDeltaEvent {
 

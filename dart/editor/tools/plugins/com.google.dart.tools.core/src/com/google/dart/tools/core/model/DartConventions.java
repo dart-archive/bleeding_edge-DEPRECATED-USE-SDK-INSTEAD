@@ -25,6 +25,8 @@ import org.eclipse.core.runtime.Status;
 /**
  * The class <code>DartConventions</code> provides methods for checking Dart-specific conventions
  * such as name syntax.
+ * 
+ * @coverage dart.tools.core.model
  */
 public final class DartConventions {
   @SuppressWarnings("unused")

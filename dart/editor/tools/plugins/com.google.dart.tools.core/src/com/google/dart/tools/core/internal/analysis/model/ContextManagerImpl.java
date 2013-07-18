@@ -32,6 +32,8 @@ import java.util.List;
 /**
  * Instances of {@code ContextManagerImpl} manage and provide access to multiple instances of
  * {@link AnalysisContext}.
+ * 
+ * @coverage dart.tools.core.model
  */
 public abstract class ContextManagerImpl implements ContextManager {
 

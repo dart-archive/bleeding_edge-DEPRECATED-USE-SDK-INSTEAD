@@ -24,6 +24,8 @@ import java.util.List;
 
 /**
  * A utility class to pull Dart scripts out of an html file.
+ * 
+ * @coverage dart.tools.core
  */
 public class DartHtmlScriptHelper {
 

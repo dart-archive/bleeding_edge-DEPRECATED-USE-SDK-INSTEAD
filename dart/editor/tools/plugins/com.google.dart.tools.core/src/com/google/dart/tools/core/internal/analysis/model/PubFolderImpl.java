@@ -40,7 +40,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a project or folder within a project containing a pubspec file
+ * Represents a project or folder within a project containing a pubspec file.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class PubFolderImpl extends PubResourceMapImpl implements PubFolder {
 

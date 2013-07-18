@@ -18,6 +18,7 @@ package com.google.dart.tools.core.html;
  * A parser for html files; it generates as AST tree rooted in the XmlDocument class.
  * 
  * @see XmlDocument
+ * @coverage dart.tools.core
  */
 public class HtmlParser extends XmlParser {
 

@@ -22,6 +22,8 @@ import java.util.regex.Pattern;
 /**
  * Instances of the class <code>RegularExpressionSearchPattern</code> implement a search pattern
  * that matches elements whose name matches a given regular expression.
+ * 
+ * @coverage dart.tools.core.search
  */
 public class RegularExpressionSearchPattern implements SearchPattern {
   /**

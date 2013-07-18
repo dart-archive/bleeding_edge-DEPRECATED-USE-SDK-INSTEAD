@@ -19,6 +19,9 @@ import com.google.dart.tools.core.analysis.model.PubFolder;
 
 import org.eclipse.core.resources.IResource;
 
+/**
+ * @coverage dart.tools.core.builder
+ */
 public interface ResourceDeltaEvent {
 
   /**

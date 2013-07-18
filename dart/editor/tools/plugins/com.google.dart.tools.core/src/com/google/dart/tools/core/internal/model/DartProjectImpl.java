@@ -69,6 +69,8 @@ import java.util.Map;
 
 /**
  * Instances of the class <code>DartProjectImpl</code> implement a project that has a Dart nature.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartProjectImpl extends OpenableElementImpl implements DartProject {
   /**

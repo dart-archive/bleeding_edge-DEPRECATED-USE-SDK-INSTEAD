@@ -19,6 +19,8 @@ import java.util.List;
 /**
  * An xml model element. A node is parented by another node, and has child nodes and zero or more
  * owned XmlAttribute properties.
+ * 
+ * @coverage dart.tools.core
  */
 public class XmlNode {
   private XmlNode parent;

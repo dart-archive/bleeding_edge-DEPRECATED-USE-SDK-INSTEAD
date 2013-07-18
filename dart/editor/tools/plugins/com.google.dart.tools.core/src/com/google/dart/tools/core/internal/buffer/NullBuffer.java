@@ -20,6 +20,8 @@ import org.eclipse.core.resources.IFile;
 /**
  * Instances of the class <code>NullBuffer</code> represent a null buffer. This buffer is used to
  * represent a buffer for a file that has no source attached.
+ * 
+ * @coverage dart.tools.core.buffer
  */
 public class NullBuffer extends FileBuffer {
   /**

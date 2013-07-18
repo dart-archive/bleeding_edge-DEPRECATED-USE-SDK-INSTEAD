@@ -14,7 +14,9 @@
 package com.google.dart.tools.core.pub;
 
 /**
- * Constants for use when dealing with Pubspecs
+ * Constants for use when dealing with Pubspecs.
+ * 
+ * @coverage dart.tools.core.pub
  */
 public interface PubspecConstants {
 

@@ -14,7 +14,9 @@
 package com.google.dart.tools.core.utilities.general;
 
 /**
- * Utility methods for {@link StringBuilder}
+ * Utility methods for {@link StringBuilder}.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public class FormattedStringBuilder {
 

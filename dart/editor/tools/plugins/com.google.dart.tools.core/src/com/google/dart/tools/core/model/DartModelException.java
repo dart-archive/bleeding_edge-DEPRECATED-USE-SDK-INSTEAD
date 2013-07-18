@@ -25,6 +25,8 @@ import java.io.PrintWriter;
  * Instances of the class <code>DartModelException</code> represent a failure in the Dart model.
  * Dart model exceptions contain a Dart-specific status object describing the cause of the
  * exception.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartModelException extends CoreException {
   private static final long serialVersionUID = 1L;

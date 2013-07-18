@@ -32,7 +32,9 @@ import java.net.URI;
 import java.util.HashMap;
 
 /**
- * Utilities for mapping {@link Source} to {@link File} to {@link IFile}
+ * Utilities for mapping {@link Source} to {@link File} to {@link IFile}.
+ * 
+ * @coverage dart.tools.core
  */
 public class ResourceUtil {
   /**

@@ -24,6 +24,8 @@ import org.eclipse.core.runtime.CoreException;
 
 /**
  * Instances of the class <code>DartProjectNature</code> implement the nature of a Dart project.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartProjectNature implements IProjectNature {
   /**

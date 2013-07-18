@@ -15,6 +15,8 @@ package com.google.dart.tools.core.internal.util;
 
 /**
  * The class <code>CharOperation</code> is a utility class used to manipulate arrays of characters.
+ * 
+ * @coverage dart.tools.core
  */
 public final class CharOperation {
   /**

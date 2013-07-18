@@ -38,6 +38,8 @@ import java.util.Map;
 /**
  * Instances of the class <code>DartModelImpl</code> implement the root Dart element corresponding
  * to the workspace.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartModelImpl extends OpenableElementImpl implements DartModel {
   private DartProjectImpl externalProject;

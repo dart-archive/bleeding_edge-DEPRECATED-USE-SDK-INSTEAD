@@ -16,6 +16,8 @@ package com.google.dart.tools.core.problem;
 /**
  * The interface <code>ProblemRequestor</code> defines the behavior or objects that want to receive
  * Dart compilation problem as they are discovered by some Dart operation.
+ * 
+ * @coverage dart.tools.core.problem
  */
 public interface ProblemRequestor {
   /**

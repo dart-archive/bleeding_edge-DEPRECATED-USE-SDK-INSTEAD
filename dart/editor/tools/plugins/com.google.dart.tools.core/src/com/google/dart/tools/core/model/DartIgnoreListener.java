@@ -20,6 +20,7 @@ import com.google.dart.tools.core.internal.model.DartIgnoreManager;
  * during analysis) as managed by the {@link DartIgnoreManager}.
  * 
  * @see DartIgnoreManager#addListener(DartIgnoreListener)
+ * @coverage dart.tools.core.model
  */
 public interface DartIgnoreListener {
 

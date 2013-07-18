@@ -65,7 +65,9 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Concrete implementation of {@link ProjectManager}
+ * Concrete implementation of {@link ProjectManager}.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class ProjectManagerImpl extends ContextManagerImpl implements ProjectManager {
 

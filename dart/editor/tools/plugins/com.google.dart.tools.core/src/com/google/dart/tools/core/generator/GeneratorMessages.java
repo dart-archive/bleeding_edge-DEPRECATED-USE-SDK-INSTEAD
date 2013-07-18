@@ -15,6 +15,9 @@ package com.google.dart.tools.core.generator;
 
 import org.eclipse.osgi.util.NLS;
 
+/**
+ * @coverage dart.tools.core.generator
+ */
 public class GeneratorMessages extends NLS {
   private static final String BUNDLE_NAME = "com.google.dart.tools.core.generator.GeneratorMessages"; //$NON-NLS-1$
   public static String ApplicationGenerator_description;

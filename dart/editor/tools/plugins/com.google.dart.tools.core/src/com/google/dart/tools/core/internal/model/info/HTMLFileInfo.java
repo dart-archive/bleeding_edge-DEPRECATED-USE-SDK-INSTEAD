@@ -19,6 +19,8 @@ import com.google.dart.tools.core.model.DartLibrary;
 /**
  * Instances of the class <code>HTMLFileInfo</code> represent the information known about an HTML
  * file that references one or more libraries.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class HTMLFileInfo extends OpenableElementInfo {
   /**

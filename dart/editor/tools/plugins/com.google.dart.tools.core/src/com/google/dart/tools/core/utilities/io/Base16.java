@@ -21,6 +21,8 @@ import java.io.ObjectOutputStream;
 
 /**
  * Helper for hex-decimal encoding and decoding.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public class Base16 {
   /**

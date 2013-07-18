@@ -15,6 +15,8 @@ package com.google.dart.tools.core.model;
 
 /**
  * Visitor for {@link DartElement} hierarchy.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartElementVisitor {
   boolean visit(DartElement element) throws DartModelException;

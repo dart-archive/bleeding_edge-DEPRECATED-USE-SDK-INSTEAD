@@ -20,6 +20,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * Wrap String-based completion proposals for use in legacy char[]-based client code.
+ * 
+ * @coverage dart.tools.core.completion
  */
 public class ProxyProposal extends CompletionProposal {
 
@@ -160,6 +162,7 @@ public class ProxyProposal extends CompletionProposal {
     return proposal.getKind() == ProposalKind.GETTER;
   }
 
+  @Override
   public boolean isPotentialMatch() {
     return proposal.isPotentialMatch();
   }

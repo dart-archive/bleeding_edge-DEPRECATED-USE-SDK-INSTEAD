@@ -37,6 +37,8 @@ import java.util.ArrayList;
 /**
  * Instances of the class <code>FileBuffer</code> implement a buffer whose contents is associated
  * with a {@link IFile file}.
+ * 
+ * @coverage dart.tools.core.buffer
  */
 public class FileBuffer implements Buffer {
   private IFile file;

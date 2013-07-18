@@ -25,6 +25,8 @@ import com.google.dart.tools.core.DartCore;
  * Children of an included element <b>cannot</b> be selectively excluded.
  * <p>
  * Instances can be created via the {@link DartCore#newRegion()} method.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface Region {
   /**

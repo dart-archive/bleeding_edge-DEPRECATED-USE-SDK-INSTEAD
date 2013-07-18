@@ -19,6 +19,8 @@ import com.google.dart.engine.source.SourceContainer;
 /**
  * Instances of the class {@link InvertedSourceContainer} represent a source container that contains
  * all source containers not in a given directory.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class InvertedSourceContainer implements SourceContainer {
 

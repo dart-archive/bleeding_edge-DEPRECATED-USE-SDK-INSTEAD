@@ -36,6 +36,8 @@ import java.util.EventObject;
  * When a buffer is closed, <code>getOffset</code> is 0, <code>getLength</code> is 0, and
  * <code>getText</code> is <code>null</code>.
  * </p>
+ * 
+ * @coverage dart.tools.core.buffer
  */
 public class BufferChangedEvent extends EventObject {
   private static final long serialVersionUID = 1L;

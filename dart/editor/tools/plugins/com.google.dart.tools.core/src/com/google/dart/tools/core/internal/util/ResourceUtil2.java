@@ -20,6 +20,8 @@ import java.io.File;
 
 /**
  * This class exists to de-couple users of the ResourceUtil class from dartc dependencies.
+ * 
+ * @coverage dart.tools.core
  */
 public class ResourceUtil2 {
 

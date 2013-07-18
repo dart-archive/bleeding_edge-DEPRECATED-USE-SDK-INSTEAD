@@ -28,6 +28,8 @@ import java.util.List;
  * Regardless of the other flags, the editor should open an editor tag for each *.dart file
  * specified on the command line, and open a project for each directory specified on the command
  * line.
+ * 
+ * @coverage dart.tools.core
  */
 public class CmdLineOptions {
 

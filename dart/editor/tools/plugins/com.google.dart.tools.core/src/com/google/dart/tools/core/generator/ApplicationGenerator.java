@@ -37,6 +37,8 @@ import java.util.HashMap;
 /**
  * Instances of <code>ApplicationGenerator</code> are used to create a new Application in an after
  * validating the name and location.
+ * 
+ * @coverage dart.tools.core.generator
  */
 public class ApplicationGenerator extends AbstractGenerator {
 

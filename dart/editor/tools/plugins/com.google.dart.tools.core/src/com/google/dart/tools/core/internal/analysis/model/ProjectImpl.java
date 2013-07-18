@@ -59,7 +59,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 /**
- * Represents an Eclipse project that has a Dart nature
+ * Represents an Eclipse project that has a Dart nature.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class ProjectImpl extends ContextManagerImpl implements Project {
 

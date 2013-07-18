@@ -15,6 +15,8 @@ package com.google.dart.tools.core.html;
 
 /**
  * An xml model element. An XmlAttribute is owned by an XmlNode.
+ * 
+ * @coverage dart.tools.core
  */
 public class XmlAttribute extends XmlNode {
   private String value;

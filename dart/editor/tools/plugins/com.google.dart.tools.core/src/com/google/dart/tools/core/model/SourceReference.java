@@ -25,6 +25,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
  * is a working copy.
  * <p>
  * This interface is not intended to be implemented by clients.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface SourceReference {
   /**

@@ -19,6 +19,8 @@ import java.util.Arrays;
  * Instances of the class <code>ToStringSorter</code> take a collection of objects and returns a
  * sorted collection of these objects. The sorting of these objects is based on their toString().
  * They are sorted in alphabetical order.
+ * 
+ * @coverage dart.tools.core
  */
 public class ToStringSorter<E> {
   /**

@@ -32,6 +32,8 @@ import java.util.Map;
 /**
  * Object managing interaction with a Dart compilation and analysis service running in a separate
  * process.
+ * 
+ * @coverage dart.tools.core.dart2js
  */
 public class JsonServer {
   private final Object lock = new Object();

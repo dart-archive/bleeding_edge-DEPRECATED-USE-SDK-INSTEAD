@@ -43,6 +43,8 @@ import java.util.Map;
  * This build participant has a higher priority and should be called by {@link DartBuilder} before
  * the dart project is analyzed or build.dart is run. It will run pub install on any pubspec file
  * that has been added or changed.
+ * 
+ * @coverage dart.tools.core.pub
  */
 public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
 

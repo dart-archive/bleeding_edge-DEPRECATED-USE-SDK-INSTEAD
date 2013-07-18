@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.core;
 
+/**
+ * @coverage dart.tools.core
+ */
 public class NotYetImplementedException extends RuntimeException {
   private static final long serialVersionUID = -8813043470742839802L;
 

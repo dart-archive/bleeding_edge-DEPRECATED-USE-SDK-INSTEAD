@@ -17,6 +17,8 @@ import org.eclipse.core.runtime.IStatus;
 
 /**
  * A utility class to work with IStatus.
+ * 
+ * @coverage dart.tools.core
  */
 public class StatusUtil {
 

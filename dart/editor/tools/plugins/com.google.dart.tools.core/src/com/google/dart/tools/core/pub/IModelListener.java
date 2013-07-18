@@ -15,7 +15,9 @@
 package com.google.dart.tools.core.pub;
 
 /**
- * A listener for changes to the {@link PubspecModel}
+ * A listener for changes to the {@link PubspecModel}.
+ * 
+ * @coverage dart.tools.core.pub
  */
 public interface IModelListener {
   public static String ADDED = "__added"; //$NON-NLS-1$

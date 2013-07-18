@@ -19,6 +19,8 @@ import org.json.JSONObject;
 
 /**
  * A JSON server response indicating that the compile completed.
+ * 
+ * @coverage dart.tools.core.dart2js
  */
 public class ResponseDone {
   private boolean success;

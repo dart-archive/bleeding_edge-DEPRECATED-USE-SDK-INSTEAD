@@ -16,6 +16,8 @@ package com.google.dart.tools.core.model;
 /**
  * The interface <code>ParentElement</code> defines the behavior common to Dart elements that
  * contain other Dart elements.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface ParentElement {
   /**

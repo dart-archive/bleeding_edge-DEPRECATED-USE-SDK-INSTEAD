@@ -26,7 +26,9 @@ import java.io.InputStream;
 import java.util.HashMap;
 
 /**
- * Generator for new file wizard in the Files view
+ * Generator for new file wizard in the Files view.
+ * 
+ * @coverage dart.tools.core.generator
  */
 public class NewFileGenerator extends AbstractGenerator {
 

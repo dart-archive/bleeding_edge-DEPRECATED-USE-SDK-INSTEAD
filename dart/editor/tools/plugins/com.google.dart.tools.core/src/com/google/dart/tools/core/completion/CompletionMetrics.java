@@ -16,6 +16,7 @@ package com.google.dart.tools.core.completion;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.engine.services.completion.CompletionEngine;
 import com.google.dart.tools.core.model.CompilationUnit;
 
 import java.util.Collection;
@@ -23,6 +24,8 @@ import java.util.Collection;
 /**
  * Returned by {@link CompletionRequestor#getMetrics()} and used by {@link CompletionEngine} to
  * report metrics.
+ * 
+ * @coverage dart.tools.core.completion
  */
 public abstract class CompletionMetrics {
 

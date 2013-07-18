@@ -44,6 +44,9 @@ import java.security.Signature;
  * </p>
  * <p>
  * The completion engine creates instances of this class.
+ * </p>
+ * 
+ * @coverage dart.tools.core.completion
  */
 public class CompletionProposal {
   /**

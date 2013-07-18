@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.core.internal.util;
 
+/**
+ * @coverage dart.tools.core
+ */
 public class ScannerHelper {
   // public final static long[] Bits = {
   // ASTNode.Bit1, ASTNode.Bit2, ASTNode.Bit3, ASTNode.Bit4, ASTNode.Bit5,

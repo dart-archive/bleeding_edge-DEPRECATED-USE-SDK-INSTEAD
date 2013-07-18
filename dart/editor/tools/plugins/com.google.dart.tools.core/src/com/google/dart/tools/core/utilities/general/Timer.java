@@ -20,6 +20,8 @@ import java.text.NumberFormat;
 
 /**
  * A simple timer class. The output is controlled by an options flag.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public class Timer {
   private final String name;

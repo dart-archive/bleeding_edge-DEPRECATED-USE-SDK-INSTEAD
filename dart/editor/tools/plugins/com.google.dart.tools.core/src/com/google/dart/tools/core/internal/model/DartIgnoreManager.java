@@ -31,6 +31,8 @@ import java.util.Collection;
 /**
  * The unique instance of the class <code>DartIgnoreManager</code> is used to manage the ignored
  * elements in the Dart element model.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartIgnoreManager {
 

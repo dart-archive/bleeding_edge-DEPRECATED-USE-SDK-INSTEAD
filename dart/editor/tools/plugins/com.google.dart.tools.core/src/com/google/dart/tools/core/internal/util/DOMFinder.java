@@ -30,6 +30,8 @@ import com.google.dart.tools.core.model.SourceReference;
 /**
  * Instances of the class <code>DOMFinder</code> locate the {@link DartNode AST node} associated
  * with a {@link DartElement}.
+ * 
+ * @coverage dart.tools.core
  */
 public class DOMFinder extends ASTVisitor<Void> {
   /**

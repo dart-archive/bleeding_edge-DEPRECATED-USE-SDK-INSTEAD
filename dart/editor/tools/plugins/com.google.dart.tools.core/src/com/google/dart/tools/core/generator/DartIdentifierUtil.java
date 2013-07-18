@@ -24,6 +24,8 @@ import org.eclipse.core.runtime.Status;
  * {@link #validateIdentifier()}.
  * <p>
  * TODO the private methods in DartScanner should be accessible so that we don't make copies here.
+ * 
+ * @coverage dart.tools.core.generator
  */
 public class DartIdentifierUtil {
 

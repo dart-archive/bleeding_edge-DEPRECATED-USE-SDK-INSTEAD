@@ -14,7 +14,9 @@
 package com.google.dart.tools.core.internal.builder;
 
 /**
- * Used by {@link DeltaProcessor} to communicate Dart project changes
+ * Used by {@link DeltaProcessor} to communicate Dart project changes.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public interface DeltaListener {
 

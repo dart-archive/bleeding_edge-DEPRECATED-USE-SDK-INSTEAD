@@ -42,6 +42,8 @@ import java.util.Iterator;
  * closes its children when </code>#close(LRUCacheEntry)</code> is called, it should be careful not
  * to change the LRU linked list. It can be sure it is not causing problems by calling
  * <code>#peek(K)</code> instead of <code>#get(K)</code> method.
+ * 
+ * @coverage dart.tools.core
  */
 public abstract class OverflowingLRUCache<K, V> extends LRUCache<K, V> {
   /**

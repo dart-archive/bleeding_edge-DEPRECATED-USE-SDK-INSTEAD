@@ -46,6 +46,8 @@ import java.util.ArrayList;
  * <p>
  * When the workspace is shutdown, {@link #stop()} should be called to gracefully exit the
  * background process if it is running.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class AnalysisMarkerManager {
 

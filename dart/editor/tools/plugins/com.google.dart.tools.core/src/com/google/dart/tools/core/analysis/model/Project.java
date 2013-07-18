@@ -8,6 +8,8 @@ import org.eclipse.core.resources.IProject;
 
 /**
  * Instances of {@code Project} represents an Eclipse project that has a Dart nature.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface Project extends ContextManager {
 
@@ -47,6 +49,7 @@ public interface Project extends ContextManager {
    * 
    * @return the Eclipse project (not {@code null})
    */
+  @Override
   IProject getResource();
 
   /**

@@ -19,6 +19,8 @@ import com.google.dart.tools.core.model.DartImport;
 /**
  * Instances of the enum <code>MatchKind</code> represent the kind of reference that was found when
  * a match represents a reference to an element.
+ * 
+ * @coverage dart.tools.core.search
  */
 public enum MatchKind {
   /**

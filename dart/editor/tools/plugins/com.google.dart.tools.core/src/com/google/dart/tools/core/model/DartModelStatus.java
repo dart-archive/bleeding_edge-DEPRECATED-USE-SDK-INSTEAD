@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.IStatus;
  * <li>elements - optional handles to Dart elements associated with the failure</li>
  * <li>string - optional string associated with the failure</li>
  * </ul>
+ * @coverage dart.tools.core.model
  */
 public interface DartModelStatus extends IStatus {
   /**

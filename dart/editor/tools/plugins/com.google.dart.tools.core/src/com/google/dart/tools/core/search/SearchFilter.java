@@ -16,6 +16,8 @@ package com.google.dart.tools.core.search;
 /**
  * The interface <code>SearchFilter</code> defines the behavior of objects that can be used to
  * filter search results.
+ * 
+ * @coverage dart.tools.core.search
  */
 public interface SearchFilter {
   /**

@@ -20,6 +20,8 @@ import org.eclipse.core.runtime.PlatformObject;
 
 /**
  * The class <code>AdapterUtilities</code> defines utility methods for adapting objects.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public class AdapterUtilities {
 

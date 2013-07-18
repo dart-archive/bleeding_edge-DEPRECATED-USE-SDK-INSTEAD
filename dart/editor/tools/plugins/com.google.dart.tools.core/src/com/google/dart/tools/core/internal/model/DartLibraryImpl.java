@@ -74,6 +74,8 @@ import java.util.Set;
 /**
  * Instances of the class <code>DartLibraryImpl</code> implement an object that represents a Dart
  * library.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     CompilationUnitContainer {

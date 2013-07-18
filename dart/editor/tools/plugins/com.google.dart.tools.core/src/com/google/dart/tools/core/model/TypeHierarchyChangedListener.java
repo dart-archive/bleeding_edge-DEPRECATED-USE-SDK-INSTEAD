@@ -18,6 +18,8 @@ package com.google.dart.tools.core.model;
  * <p>
  * This interface may be implemented by clients.
  * </p>
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface TypeHierarchyChangedListener {
   /**

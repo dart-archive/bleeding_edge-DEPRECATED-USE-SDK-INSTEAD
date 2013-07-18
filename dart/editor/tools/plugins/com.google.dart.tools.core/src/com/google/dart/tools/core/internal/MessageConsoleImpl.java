@@ -23,6 +23,8 @@ import java.util.List;
 
 /**
  * Basic {@link MessageConsole} implementation.
+ * 
+ * @coverage dart.tools.core
  */
 public class MessageConsoleImpl implements MessageConsole {
 

@@ -15,6 +15,8 @@ package com.google.dart.tools.core.model;
 
 /**
  * Represents a type parameter defined by a {@link Type}.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartTypeParameter extends CompilationUnitElement, SourceReference {
   /**

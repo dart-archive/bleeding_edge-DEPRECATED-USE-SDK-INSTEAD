@@ -30,6 +30,8 @@ import java.util.Map.Entry;
  * {@link DeltaProcessor#traverse(IContainer)} or
  * {@link DeltaProcessor#traverse(org.eclipse.core.resources.IResourceDelta)} to traverse the
  * changes, then call {@link #applyChanges()}.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class ProjectUpdater implements DeltaListener {
   private HashMap<AnalysisContext, ChangeSet> contextChangeMap = new HashMap<AnalysisContext, ChangeSet>();

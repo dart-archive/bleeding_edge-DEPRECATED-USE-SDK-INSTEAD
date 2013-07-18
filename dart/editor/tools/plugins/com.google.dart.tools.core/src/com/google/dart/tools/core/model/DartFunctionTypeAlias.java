@@ -16,6 +16,8 @@ package com.google.dart.tools.core.model;
 /**
  * The interface <code>DartFunctionTypeAlias</code> defines the behavior of objects representing
  * function type aliases defined in compilation units.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartFunctionTypeAlias extends CompilationUnitElement, SourceManipulation,
     SourceReference {

@@ -33,7 +33,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import java.util.HashMap;
 
 /**
- * Instances of the class <code>SourceReferenceImpl</code>
+ * Instances of the class <code>SourceReferenceImpl</code>.
+ * 
+ * @coverage dart.tools.core.model
  */
 public abstract class SourceReferenceImpl extends DartElementImpl implements SourceReference {
   /*

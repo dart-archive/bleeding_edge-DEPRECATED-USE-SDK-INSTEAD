@@ -35,6 +35,8 @@ import static org.eclipse.core.resources.IResource.DEPTH_INFINITE;
 
 /**
  * Performs source analysis using instances of {@link AnalysisContext}.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class AnalysisEngineParticipant implements BuildParticipant {
 

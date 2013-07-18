@@ -25,6 +25,8 @@ import java.util.List;
 
 /**
  * The class <code>IResourceUtilities</code> defines utility methods used to work with resources.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public final class IResourceUtilities {
 

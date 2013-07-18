@@ -19,6 +19,8 @@ import java.net.URI;
 
 /**
  * Information about source part, i.e. {@link CompilationUnit}.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartPart {
   DartPart[] EMPTY_ARRAY = new DartPart[0];

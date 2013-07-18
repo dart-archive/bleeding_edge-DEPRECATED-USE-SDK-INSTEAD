@@ -18,7 +18,9 @@ import org.eclipse.osgi.util.NLS;
 import java.text.MessageFormat;
 
 /**
- * Instances of the class <code>Messages</code>
+ * Instances of the class <code>Messages</code>.
+ * 
+ * @coverage dart.tools.core
  */
 public final class Messages extends NLS {
   private static final String BUNDLE_NAME = "com.google.dart.tools.core.internal.util.messages";//$NON-NLS-1$

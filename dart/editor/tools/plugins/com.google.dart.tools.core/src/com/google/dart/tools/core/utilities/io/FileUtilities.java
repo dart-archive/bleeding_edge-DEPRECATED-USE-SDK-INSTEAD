@@ -36,6 +36,8 @@ import java.net.URL;
 /**
  * The class <code>FileUtilities</code> implements utility methods used to create and manipulate
  * files.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public class FileUtilities {
   /**

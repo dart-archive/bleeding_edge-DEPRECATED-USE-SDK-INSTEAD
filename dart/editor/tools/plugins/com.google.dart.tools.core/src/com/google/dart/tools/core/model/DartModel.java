@@ -22,6 +22,8 @@ import java.util.List;
 /**
  * The interface <code>DartModel</code> defines the behavior of the root Dart element corresponding
  * to the workspace.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartModel extends DartElement {
 

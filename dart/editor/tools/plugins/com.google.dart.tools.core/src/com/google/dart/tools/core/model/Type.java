@@ -21,6 +21,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 /**
  * The interface <code>Type</code> defines the behavior of objects representing types defined in
  * compilation units.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface Type extends CompilationUnitElement, ParentElement, SourceManipulation,
     SourceReference {

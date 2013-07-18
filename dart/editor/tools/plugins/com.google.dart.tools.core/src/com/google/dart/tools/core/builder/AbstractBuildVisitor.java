@@ -20,6 +20,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * An abstract implementation of a {@link BuildVisitor}.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public abstract class AbstractBuildVisitor implements BuildVisitor {
 

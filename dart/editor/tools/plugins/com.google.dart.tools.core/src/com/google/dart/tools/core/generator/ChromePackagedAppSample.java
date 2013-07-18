@@ -18,6 +18,8 @@ import java.util.List;
 
 /**
  * Create a sample Chrome packaged application.
+ * 
+ * @coverage dart.tools.core.generator
  */
 public class ChromePackagedAppSample extends AbstractSample {
 

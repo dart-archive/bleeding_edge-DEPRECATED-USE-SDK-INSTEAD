@@ -27,6 +27,9 @@ import org.eclipse.core.runtime.Path;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * @coverage dart.tools.core.model
+ */
 public class PubResourceMapImpl extends SimpleResourceMapImpl {
 
   /**

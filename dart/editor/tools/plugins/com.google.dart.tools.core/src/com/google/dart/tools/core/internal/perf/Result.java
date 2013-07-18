@@ -21,6 +21,7 @@ import static com.google.dart.tools.core.utilities.general.FormattedStringBuilde
  * 
  * @see Performance
  * @see Metric
+ * @coverage dart.tools.core
  */
 public class Result {
   private final Metric metric;

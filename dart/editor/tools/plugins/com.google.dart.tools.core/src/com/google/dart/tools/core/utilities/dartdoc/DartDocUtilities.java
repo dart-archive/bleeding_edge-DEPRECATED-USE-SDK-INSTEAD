@@ -44,6 +44,8 @@ import java.nio.CharBuffer;
 
 /**
  * A utility class for dealing with Dart doc text.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public final class DartDocUtilities {
 

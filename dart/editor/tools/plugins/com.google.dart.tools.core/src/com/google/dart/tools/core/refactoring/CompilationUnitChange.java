@@ -22,6 +22,8 @@ import org.eclipse.ltk.core.refactoring.TextFileChange;
 
 /**
  * A {@link TextFileChange} that operates on an {@link Source} in the workspace.
+ * 
+ * @coverage dart.tools.core
  */
 public class CompilationUnitChange extends TextFileChange {
 

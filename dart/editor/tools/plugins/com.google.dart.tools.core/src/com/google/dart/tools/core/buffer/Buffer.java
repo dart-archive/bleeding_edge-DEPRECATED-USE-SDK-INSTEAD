@@ -38,6 +38,8 @@ import org.eclipse.text.edits.UndoEdit;
  * <p>
  * This interface may be implemented by clients.
  * </p>
+ * 
+ * @coverage dart.tools.core.buffer
  */
 public interface Buffer {
   /**

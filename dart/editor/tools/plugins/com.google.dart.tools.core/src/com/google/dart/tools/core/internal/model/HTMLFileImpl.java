@@ -37,6 +37,8 @@ import java.util.Map;
 
 /**
  * Instances of the class <code>HTMLFileImpl</code> implement an HTML file.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class HTMLFileImpl extends OpenableElementImpl implements HTMLFile {
   /**

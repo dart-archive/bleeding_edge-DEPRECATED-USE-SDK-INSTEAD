@@ -2,6 +2,8 @@ package com.google.dart.tools.core.internal.builder;
 
 /**
  * Abstract {@link DeltaListener} to be subclassed for convenience.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class DeltaAdapter implements DeltaListener {
 

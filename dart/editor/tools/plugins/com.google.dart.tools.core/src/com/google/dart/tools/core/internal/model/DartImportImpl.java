@@ -24,6 +24,8 @@ import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 /**
  * Information about imported {@link DartLibrary}.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartImportImpl extends SourceReferenceImpl implements DartImport {
   private final SourceRange sourceRange;

@@ -23,6 +23,8 @@ import java.util.ArrayList;
 
 /**
  * Instances of the class <code>BufferCache</code> implement an LRU cache of <code>Buffers</code>.
+ * 
+ * @coverage dart.tools.core.buffer
  */
 public class BufferCache extends OverflowingLRUCache<OpenableElement, Buffer> {
 

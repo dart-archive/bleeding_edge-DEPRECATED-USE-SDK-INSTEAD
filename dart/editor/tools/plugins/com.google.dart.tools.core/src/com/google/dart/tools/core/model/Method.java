@@ -16,6 +16,8 @@ package com.google.dart.tools.core.model;
 /**
  * The interface <code>Method</code> defines the behavior of objects representing methods defined in
  * types.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface Method extends TypeMember, DartFunction {
 

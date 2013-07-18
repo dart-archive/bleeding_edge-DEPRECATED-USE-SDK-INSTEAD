@@ -27,7 +27,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Model representing the pubspec
+ * Model representing the pubspec.
+ * 
+ * @coverage dart.tools.core.pub
  */
 public class PubspecModel {
 

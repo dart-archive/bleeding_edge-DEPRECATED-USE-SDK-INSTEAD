@@ -18,6 +18,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 /**
  * The interface <code>SourceManipulation</code> defines behavior common to Dart elements that
  * support source code manipulations such as copy, move, rename, and delete.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface SourceManipulation {
   /**

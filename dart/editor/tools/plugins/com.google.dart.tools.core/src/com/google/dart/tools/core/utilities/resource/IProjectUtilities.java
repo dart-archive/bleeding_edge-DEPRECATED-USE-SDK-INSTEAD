@@ -41,6 +41,8 @@ import java.net.URI;
 
 /**
  * The class <code>IProjectUtilities</code> defines utility methods used to work with projects.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public final class IProjectUtilities {
   /**

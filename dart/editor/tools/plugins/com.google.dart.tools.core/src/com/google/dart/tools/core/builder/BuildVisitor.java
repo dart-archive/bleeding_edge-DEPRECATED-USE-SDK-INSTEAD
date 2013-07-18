@@ -19,6 +19,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * Interface used by {@link BuildParticipant} when visiting resources in a {@link BuildEvent}
+ * 
+ * @coverage dart.tools.core.builder
  */
 public interface BuildVisitor extends CleanVisitor {
 

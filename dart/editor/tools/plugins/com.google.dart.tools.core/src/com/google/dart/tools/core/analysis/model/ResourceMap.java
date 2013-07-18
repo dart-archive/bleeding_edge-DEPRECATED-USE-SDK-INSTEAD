@@ -23,6 +23,8 @@ import org.eclipse.core.resources.IResource;
 /**
  * Instances of {@code ResourceMap} provides a bi-directional map between sources in a particular
  * {@link AnalysisContext} and instances of {@link IResource}.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface ResourceMap {
 

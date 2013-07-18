@@ -16,6 +16,8 @@ package com.google.dart.tools.core.model;
 /**
  * The interface <code>TypeMember</code> defines the behavior common to objects representing members
  * defined in types.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface TypeMember extends CompilationUnitElement, ParentElement, SourceManipulation,
     SourceReference {

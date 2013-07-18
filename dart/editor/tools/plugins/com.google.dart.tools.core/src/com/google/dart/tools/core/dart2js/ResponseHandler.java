@@ -19,6 +19,8 @@ import com.google.dart.tools.core.DartCore;
  * Class for handling responses from requests made of a {@link JsonServer}. Subclasses should
  * implement {@link #processMessage(ResponseMessage)} and {@link #processDone(ResponseDone)}, and
  * optionally {@link #handleException(Response, Exception)}.
+ * 
+ * @coverage dart.tools.core.dart2js
  */
 public abstract class ResponseHandler {
 

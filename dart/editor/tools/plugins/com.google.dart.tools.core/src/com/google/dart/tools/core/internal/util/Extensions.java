@@ -19,6 +19,8 @@ import java.io.File;
 /**
  * The class <code>Extensions</code> defines utility methods for working with various file
  * extensions.
+ * 
+ * @coverage dart.tools.core
  */
 public final class Extensions {
   /**

@@ -19,6 +19,8 @@ import com.google.dart.tools.core.model.DartElement;
 /**
  * Instances of the class <code>DartElementInfo</code> maintain the cached data that is shared by
  * all equal elements.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartElementInfo {
   /**

@@ -33,6 +33,8 @@ import java.util.Set;
 
 /**
  * Maintains a list of the latest versions for all packages installed in the local pub cache.
+ * 
+ * @coverage dart.tools.core.pub
  */
 public class PubCacheManager {
 

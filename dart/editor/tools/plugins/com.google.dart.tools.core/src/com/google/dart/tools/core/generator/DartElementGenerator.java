@@ -23,6 +23,8 @@ import org.eclipse.core.runtime.Status;
 /**
  * Subclasses of <code>DartElementGenerator</code> are used to validate inputs and create new Dart
  * elements after validation.
+ * 
+ * @coverage dart.tools.core.generator
  */
 public class DartElementGenerator {
   protected final IWorkspace workspace = ResourcesPlugin.getWorkspace();

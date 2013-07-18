@@ -30,6 +30,8 @@ import java.util.Set;
 /**
  * A comprehensive list of html keywords and attributes. This class reads its content from the
  * html.txt file.
+ * 
+ * @coverage dart.tools.core
  */
 public class HtmlKeywords {
   private static List<String> globalAttributes;

@@ -25,6 +25,8 @@ import java.util.Iterator;
 /**
  * The unique instance of the class <code>BufferManager</code> manages the set of open buffers by
  * implementing a LRU cache of buffers.
+ * 
+ * @coverage dart.tools.core.buffer
  */
 public class BufferManager {
   public static Buffer createBuffer(OpenableElement owner) {

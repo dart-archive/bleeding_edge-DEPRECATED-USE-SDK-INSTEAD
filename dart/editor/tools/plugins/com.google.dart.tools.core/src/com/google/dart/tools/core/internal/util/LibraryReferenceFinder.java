@@ -19,6 +19,8 @@ import java.util.List;
 /**
  * Instances of the class <code>LibraryReferenceFinder</code> scan a file for potential references
  * to one or more Dart libraries.
+ * 
+ * @coverage dart.tools.core
  */
 public class LibraryReferenceFinder {
   private static final String COMMENT_START = "<!--";

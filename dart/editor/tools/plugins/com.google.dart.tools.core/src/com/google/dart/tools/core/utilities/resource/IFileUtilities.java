@@ -23,6 +23,8 @@ import java.io.InputStreamReader;
 /**
  * The class <code>IFileUtilities</code> defines utility methods for manipulating instances of the
  * class {@link IFile}.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public final class IFileUtilities {
   /**

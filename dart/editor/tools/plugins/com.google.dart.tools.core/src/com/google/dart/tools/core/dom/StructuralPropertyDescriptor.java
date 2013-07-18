@@ -30,6 +30,8 @@ import com.google.dart.compiler.ast.DartNode;
  * <li>child list properties ({@link ChildListPropertyDescriptor}) - properties where the value is a
  * list of AST nodes; for example, the statements of a {@link DartBlock}</li>
  * </ul>
+ * 
+ * @coverage dart.tools.core
  */
 public abstract class StructuralPropertyDescriptor {
   /**

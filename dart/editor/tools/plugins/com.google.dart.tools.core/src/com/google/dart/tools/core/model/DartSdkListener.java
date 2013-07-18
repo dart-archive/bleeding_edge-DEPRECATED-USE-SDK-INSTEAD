@@ -18,6 +18,7 @@ package com.google.dart.tools.core.model;
  * An interface to listen for SDK changes.
  * 
  * @see DartSdkManager
+ * @coverage dart.tools.core.model
  */
 public interface DartSdkListener {
 

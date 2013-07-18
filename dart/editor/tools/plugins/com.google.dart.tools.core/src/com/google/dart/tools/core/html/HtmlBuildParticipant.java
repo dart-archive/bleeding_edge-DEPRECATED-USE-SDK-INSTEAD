@@ -36,6 +36,8 @@ import java.util.List;
 
 /**
  * A build participant to analyze html files.
+ * 
+ * @coverage dart.tools.core
  */
 public class HtmlBuildParticipant implements BuildParticipant, BuildVisitor {
 

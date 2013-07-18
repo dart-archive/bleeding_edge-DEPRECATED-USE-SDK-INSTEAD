@@ -20,6 +20,8 @@ import org.eclipse.ltk.core.refactoring.MultiStateTextFileChange;
 
 /**
  * Multi state compilation unit change for composite refactorings.
+ * 
+ * @coverage dart.tools.core
  */
 public final class MultiStateCompilationUnitChange extends MultiStateTextFileChange {
 

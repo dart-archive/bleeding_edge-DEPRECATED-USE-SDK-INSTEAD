@@ -18,6 +18,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * A participant in the building of dart projects.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public interface BuildParticipant {
 

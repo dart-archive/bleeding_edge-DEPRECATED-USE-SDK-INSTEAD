@@ -31,6 +31,8 @@ import java.util.Map;
 /**
  * The interface <code>DartProject</code> defines the behavior of objects representing a project
  * that has a Dart nature.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartProject extends ParentElement, OpenableElement {
 

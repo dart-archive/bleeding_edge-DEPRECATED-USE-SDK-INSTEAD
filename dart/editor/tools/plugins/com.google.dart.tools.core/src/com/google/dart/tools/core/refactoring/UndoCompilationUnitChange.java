@@ -30,6 +30,9 @@ import org.eclipse.ltk.core.refactoring.UndoTextFileChange;
 import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.text.edits.UndoEdit;
 
+/**
+ * @coverage dart.tools.core
+ */
 /* package */class UndoCompilationUnitChange extends UndoTextFileChange {
 
   static IFile getFile(CompilationUnit unit) throws CoreException {

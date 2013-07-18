@@ -55,6 +55,8 @@ import java.util.Map;
 /**
  * Instances of the class <code>CompilationUnitImpl</code> implement the representation of files
  * containing Dart source code that needs to be compiled.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> implements
     CompilationUnit {

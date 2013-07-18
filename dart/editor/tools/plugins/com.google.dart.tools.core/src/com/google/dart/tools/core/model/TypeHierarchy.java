@@ -35,6 +35,7 @@ import java.io.OutputStream;
  * that they are unaffected by cycles.
  * 
  * @noimplement This interface is not intended to be implemented by clients.
+ * @coverage dart.tools.core.model
  */
 public interface TypeHierarchy {
   /**

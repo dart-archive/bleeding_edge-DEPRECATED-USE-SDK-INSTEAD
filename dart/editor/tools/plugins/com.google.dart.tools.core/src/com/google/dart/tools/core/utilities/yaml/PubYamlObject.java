@@ -18,6 +18,8 @@ import java.util.Map;
 
 /**
  * An object for reading from and writing to pubspec.yaml
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public class PubYamlObject {
 

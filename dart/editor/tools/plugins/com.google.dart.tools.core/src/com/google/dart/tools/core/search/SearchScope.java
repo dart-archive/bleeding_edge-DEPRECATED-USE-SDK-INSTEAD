@@ -22,6 +22,8 @@ import com.google.dart.tools.core.model.DartElement;
  * following factory methods on <code>SearchEngine</code>: <code>createHierarchyScope(Type)</code>,
  * <code>createDartSearchScope(IResource[])</code>, <code>createWorkspaceScope()</code>, or clients
  * may choose to implement this interface.
+ * 
+ * @coverage dart.tools.core.search
  */
 public interface SearchScope {
   /**

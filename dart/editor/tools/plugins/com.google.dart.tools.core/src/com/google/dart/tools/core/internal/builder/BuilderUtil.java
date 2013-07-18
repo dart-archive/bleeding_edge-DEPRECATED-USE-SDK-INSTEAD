@@ -22,6 +22,8 @@ import org.eclipse.core.runtime.Status;
 
 /**
  * Static builder utility methods shared by multiple classes
+ * 
+ * @coverage dart.tools.core.builder
  */
 class BuilderUtil {
 

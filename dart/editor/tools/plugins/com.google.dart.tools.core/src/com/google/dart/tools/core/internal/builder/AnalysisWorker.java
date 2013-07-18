@@ -42,6 +42,8 @@ import java.util.ArrayList;
  * Instances of {@code AnalysisWorker} perform analysis by repeatedly calling
  * {@link AnalysisContext#performAnalysisTask()} and update both the index and the error markers
  * based upon the analysis results.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class AnalysisWorker {
 

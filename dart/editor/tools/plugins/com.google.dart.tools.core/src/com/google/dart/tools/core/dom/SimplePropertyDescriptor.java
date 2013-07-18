@@ -16,7 +16,9 @@ package com.google.dart.tools.core.dom;
 import com.google.dart.compiler.ast.DartNode;
 
 /**
- * Instances of the class <code>SimplePropertyDescriptor</code>
+ * Instances of the class <code>SimplePropertyDescriptor</code>.
+ * 
+ * @coverage dart.tools.core
  */
 public final class SimplePropertyDescriptor extends StructuralPropertyDescriptor {
   /**

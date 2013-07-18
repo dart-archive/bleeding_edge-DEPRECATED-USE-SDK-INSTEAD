@@ -20,6 +20,8 @@ import org.json.JSONObject;
 
 /**
  * A JSON server response representing a compiler error or warning.
+ * 
+ * @coverage dart.tools.core.dart2js
  */
 public class ResponseMessage {
   public static class Location {

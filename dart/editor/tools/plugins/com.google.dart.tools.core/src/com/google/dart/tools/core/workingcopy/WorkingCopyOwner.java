@@ -44,6 +44,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * @see SourceFileElement#becomeWorkingCopy(org.eclipse.core.runtime.IProgressMonitor)
  * @see SourceFileElement#discardWorkingCopy()
  * @see SourceFileElement#getWorkingCopy(org.eclipse.core.runtime.IProgressMonitor)
+ * @coverage dart.tools.core
  */
 public abstract class WorkingCopyOwner {
 

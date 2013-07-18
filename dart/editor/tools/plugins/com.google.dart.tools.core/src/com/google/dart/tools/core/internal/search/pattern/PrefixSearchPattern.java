@@ -21,6 +21,8 @@ import com.google.dart.tools.core.search.SearchPattern;
 /**
  * Instances of the class <code>PrefixSearchPattern</code> implement a search pattern that matches
  * elements whose name has a given prefix.
+ * 
+ * @coverage dart.tools.core.search
  */
 public class PrefixSearchPattern implements SearchPattern {
   /**

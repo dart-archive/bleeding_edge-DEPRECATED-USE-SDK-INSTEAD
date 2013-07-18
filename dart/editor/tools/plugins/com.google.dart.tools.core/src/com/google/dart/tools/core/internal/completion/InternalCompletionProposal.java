@@ -35,6 +35,8 @@ import java.util.List;
 
 /**
  * Instances of the class <code>InternalCompletionProposal</code> implement a completion proposal.
+ * 
+ * @coverage dart.tools.core.completion
  */
 public class InternalCompletionProposal extends CompletionProposal {
   protected char[] declarationTypeName;

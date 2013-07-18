@@ -21,6 +21,8 @@ import java.util.List;
 /**
  * The abstract class <code>PropertyVisitor</code> implements behavior common to visitors that
  * traverse the type hierarchy in order to manipulate the properties of a node.
+ * 
+ * @coverage dart.tools.core
  */
 public abstract class PropertyVisitor extends ASTVisitor<Object> {
   /**

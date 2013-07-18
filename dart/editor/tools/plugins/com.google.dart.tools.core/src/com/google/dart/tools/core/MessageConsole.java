@@ -17,6 +17,7 @@ package com.google.dart.tools.core;
  * A console to which messages can be printed. Unlike a system log, consoles are meant to be viewed
  * by end-users. Clients connect to the console via link {@link MessageStream}s.
  * 
+ * @coverage dart.tools.core
  * @see #addStream(MessageStream)
  */
 public interface MessageConsole {

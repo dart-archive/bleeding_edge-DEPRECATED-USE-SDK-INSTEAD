@@ -35,6 +35,9 @@ import java.io.IOException;
  *          ... other libraries ...
  *       util/
  *          ... Dart utilities ...
+ * </pre>
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartSdk {
 

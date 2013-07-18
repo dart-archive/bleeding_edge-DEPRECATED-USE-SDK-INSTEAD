@@ -21,6 +21,8 @@ import org.eclipse.core.runtime.OperationCanceledException;
 /**
  * Event passed to {@link BuildParticipant}s when
  * {@link BuildParticipant#clean(CleanEvent, IProgressMonitor)} is called.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class CleanEvent extends ParticipantEvent {
 

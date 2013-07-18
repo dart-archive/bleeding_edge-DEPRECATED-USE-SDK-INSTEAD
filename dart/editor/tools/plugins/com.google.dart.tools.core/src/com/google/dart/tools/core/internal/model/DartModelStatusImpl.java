@@ -25,6 +25,8 @@ import org.eclipse.core.runtime.Status;
 /**
  * Instances of the class <code>DartModelStatusImpl</code> implement a Dart model status that can be
  * used when creating exceptions.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartModelStatusImpl extends Status implements DartModelStatus,
     DartModelStatusConstants {

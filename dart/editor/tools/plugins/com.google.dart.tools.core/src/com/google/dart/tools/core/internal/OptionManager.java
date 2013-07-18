@@ -34,6 +34,8 @@ import java.util.Map;
 
 /**
  * Manages {@link DartCore} options.
+ * 
+ * @coverage dart.tools.core
  */
 public class OptionManager {
 

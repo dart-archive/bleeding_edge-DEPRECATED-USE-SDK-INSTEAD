@@ -18,6 +18,8 @@ package com.google.dart.tools.core.model;
  * status objects.
  * <p>
  * This interface declares constants only; it is not intended to be implemented or extended.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartModelStatusConstants {
   public static final int BAD_TEXT_EDIT_LOCATION = 1;

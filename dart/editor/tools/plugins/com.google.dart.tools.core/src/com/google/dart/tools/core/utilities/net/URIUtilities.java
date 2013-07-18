@@ -19,6 +19,8 @@ import java.net.URI;
 /**
  * The class <code>URIUtilities</code> defines utility methods for working with instances of the
  * class {@link URI}.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public final class URIUtilities {
   /**

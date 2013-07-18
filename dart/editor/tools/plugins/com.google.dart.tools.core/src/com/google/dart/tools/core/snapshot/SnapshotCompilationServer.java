@@ -29,6 +29,7 @@ import java.io.File;
  * any of the referenced source has changed.
  * 
  * @see SnapshotCompiler
+ * @coverage dart.tools.core
  */
 public class SnapshotCompilationServer {
 

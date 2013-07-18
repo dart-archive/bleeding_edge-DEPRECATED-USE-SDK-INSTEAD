@@ -23,6 +23,8 @@ import java.net.UnknownHostException;
 
 /**
  * A collection of static networking utilities.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public class NetUtils {
   private static String loopbackAddress;

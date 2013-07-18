@@ -24,6 +24,8 @@ import org.eclipse.core.runtime.Platform;
 
 /**
  * A manager class to retrieve the current IInstrumentationLogger instance.
+ * 
+ * @coverage dart.tools.core
  */
 public class InstrumentationLogger {
 

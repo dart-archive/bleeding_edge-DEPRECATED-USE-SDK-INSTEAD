@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
+ * @coverage dart.tools.core
  */
 public class XmlElement extends XmlNode {
   private List<XmlAttribute> attributes = new ArrayList<XmlAttribute>();

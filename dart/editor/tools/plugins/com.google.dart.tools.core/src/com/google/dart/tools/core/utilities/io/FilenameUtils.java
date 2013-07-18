@@ -76,6 +76,7 @@ import java.util.Collection;
  * 
  * @version $Id: FilenameUtils.java 1307462 2012-03-30 15:13:11Z ggregory $
  * @since 1.1
+ * @coverage dart.tools.core.utilities
  */
 public class FilenameUtils {
 

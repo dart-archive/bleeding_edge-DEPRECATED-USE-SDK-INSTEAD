@@ -19,6 +19,8 @@ import java.util.List;
 
 /**
  * Create a sample web application using the Web UI (web_ui) package.
+ * 
+ * @coverage dart.tools.core.generator
  */
 public class WebUiSample extends AbstractSample {
 

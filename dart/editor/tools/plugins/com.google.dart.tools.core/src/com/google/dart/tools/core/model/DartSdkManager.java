@@ -54,6 +54,8 @@ import java.util.zip.ZipInputStream;
 
 /**
  * The clearing house for getting the current SDK and listening for SDK changes.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartSdkManager {
 

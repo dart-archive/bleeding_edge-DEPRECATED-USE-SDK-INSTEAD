@@ -19,6 +19,8 @@ import java.util.List;
 
 /**
  * Create a simple command-line Dart application.
+ * 
+ * @coverage dart.tools.core.generator
  */
 public class CommandLineSample extends AbstractSample {
 

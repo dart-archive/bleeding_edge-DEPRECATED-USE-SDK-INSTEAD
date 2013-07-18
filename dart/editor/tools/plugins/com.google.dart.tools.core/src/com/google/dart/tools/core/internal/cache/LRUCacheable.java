@@ -18,6 +18,8 @@ package com.google.dart.tools.core.internal.cache;
  * size associated with them. It is used by the class {@link LRUCache} to manage cached objects.
  * Elements added to the cache that do not implement this interface are assumed to have a footprint
  * of one (1).
+ * 
+ * @coverage dart.tools.core
  */
 public interface LRUCacheable {
   /**

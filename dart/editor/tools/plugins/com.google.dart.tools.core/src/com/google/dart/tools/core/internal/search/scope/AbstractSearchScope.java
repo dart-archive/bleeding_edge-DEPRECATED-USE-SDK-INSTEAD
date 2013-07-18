@@ -20,6 +20,8 @@ import com.google.dart.tools.core.search.SearchScope;
 /**
  * The abstract class <code>AbstractSearchScope</code> defines the behavior common to search scopes
  * that can be maintained over time.
+ * 
+ * @coverage dart.tools.core.search
  */
 public abstract class AbstractSearchScope implements SearchScope {
   /**

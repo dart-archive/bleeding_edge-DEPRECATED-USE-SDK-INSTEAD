@@ -20,6 +20,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
  * a variable defined within another element. Variables can be defined in {@link DartFunction
  * functions}, {@link Method methods} and {@link CompilationUnit compilation units}, and include
  * parameters defined for either methods or functions.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartVariableDeclaration extends CompilationUnitElement, SourceReference {
   /**

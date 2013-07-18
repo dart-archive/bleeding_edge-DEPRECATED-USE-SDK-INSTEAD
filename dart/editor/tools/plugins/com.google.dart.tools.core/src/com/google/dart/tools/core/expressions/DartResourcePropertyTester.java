@@ -22,6 +22,8 @@ import org.eclipse.core.resources.IResource;
 
 /**
  * Tests files to see if they are being ignored by the analyzer.
+ * 
+ * @coverage dart.tools.core
  */
 public class DartResourcePropertyTester extends PropertyTester {
 

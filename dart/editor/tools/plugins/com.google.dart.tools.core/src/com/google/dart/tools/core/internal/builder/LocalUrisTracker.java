@@ -29,6 +29,8 @@ import java.util.Map;
 
 /**
  * Helper for tracking which {@link URI}s are local or not.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class LocalUrisTracker {
   private static final Map<URI, Boolean> localUris = Maps.newHashMap();

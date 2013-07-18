@@ -21,6 +21,8 @@ import java.util.Comparator;
 
 /**
  * Instances of the class <code>SearchMatch</code> represent a match found by a search engine.
+ * 
+ * @coverage dart.tools.core.search
  */
 public class SearchMatch {
   /**

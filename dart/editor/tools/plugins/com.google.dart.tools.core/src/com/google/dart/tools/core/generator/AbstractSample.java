@@ -41,6 +41,8 @@ import java.util.Map;
 
 /**
  * An abstract template class to create sample applications.
+ * 
+ * @coverage dart.tools.core.generator
  */
 public class AbstractSample {
 

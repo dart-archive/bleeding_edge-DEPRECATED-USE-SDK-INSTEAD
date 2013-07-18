@@ -21,6 +21,9 @@ import com.google.dart.engine.utilities.source.SourceRange;
 
 import java.util.List;
 
+/**
+ * @coverage dart.tools.core.utilities
+ */
 public class SourceRangeFactory {
 
   public static SourceRange create(DartCompilationError error) {

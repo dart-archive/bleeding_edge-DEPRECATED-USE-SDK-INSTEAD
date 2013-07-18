@@ -22,6 +22,8 @@ import java.util.List;
 /**
  * The interface <code>DartLibrary</code> defines the behavior of objects representing a Dart
  * library.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartLibrary extends OpenableElement, ParentElement {
   /**

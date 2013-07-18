@@ -63,6 +63,8 @@ import org.eclipse.core.resources.IResourceDelta;
  * <p>
  * {@link DartElementDelta} object are not valid outside the dynamic scope of the notification.
  * </p>
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartElementDelta {
   /**

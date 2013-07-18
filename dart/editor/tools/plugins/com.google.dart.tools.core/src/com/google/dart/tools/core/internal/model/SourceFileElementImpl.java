@@ -44,6 +44,7 @@ import org.eclipse.text.edits.UndoEdit;
  * editable dart source file.
  * 
  * @param <E> the type of source file being represented
+ * @coverage dart.tools.core.model
  */
 public abstract class SourceFileElementImpl<E> extends OpenableElementImpl implements
     SourceFileElement<E>, SourceReference {

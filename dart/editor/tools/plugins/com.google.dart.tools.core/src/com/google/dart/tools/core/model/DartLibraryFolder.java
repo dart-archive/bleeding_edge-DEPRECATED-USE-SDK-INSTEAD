@@ -17,6 +17,8 @@ package com.google.dart.tools.core.model;
  * The interface <code>DartLibraryFolder</code> defines the behavior of elements that represent a
  * folder within the directory containing a library file that has contents related to the library
  * defined by that file.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartLibraryFolder extends OpenableElement, ParentElement {
 }

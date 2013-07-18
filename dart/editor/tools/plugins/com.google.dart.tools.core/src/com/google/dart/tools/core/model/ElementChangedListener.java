@@ -16,6 +16,8 @@ package com.google.dart.tools.core.model;
 /**
  * The interface <code>ElementChangedListener</code> defines the behavior of objects that want to
  * receive notification of changes to Dart elements maintained by the Dart model.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface ElementChangedListener {
   /**

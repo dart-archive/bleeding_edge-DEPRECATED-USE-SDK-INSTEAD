@@ -23,6 +23,8 @@ import java.util.NoSuchElementException;
  * <p>
  * Once the iterator is created, elements which are later added to the cache are not returned by the
  * iterator. However, elements returned from the iterator could have been closed by the cache.
+ * 
+ * @coverage dart.tools.core
  */
 public class LRUCacheIterator<V> implements Iterator<V> {
   public static class Element<V> {

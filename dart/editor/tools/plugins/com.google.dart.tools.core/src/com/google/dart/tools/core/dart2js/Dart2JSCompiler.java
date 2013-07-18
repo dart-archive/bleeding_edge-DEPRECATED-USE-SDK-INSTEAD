@@ -44,6 +44,8 @@ import java.util.List;
 
 /**
  * Launch the dart2js process and collect stdout, stderr, and exit code information.
+ * 
+ * @coverage dart.tools.core.dart2js
  */
 public class Dart2JSCompiler {
 

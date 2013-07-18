@@ -16,6 +16,8 @@ package com.google.dart.tools.core.internal.problem;
 /**
  * The interface <code>ProblemSeverities</code> defines constants that can be combined to represent
  * the severity of a compilation problem.
+ * 
+ * @coverage dart.tools.core.problem
  */
 public interface ProblemSeverities {
   final int Ignore = 256; // during handling only

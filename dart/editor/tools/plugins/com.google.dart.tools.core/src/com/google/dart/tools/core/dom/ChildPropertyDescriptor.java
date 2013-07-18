@@ -19,6 +19,8 @@ import com.google.dart.compiler.ast.DartNode;
 /**
  * Instances of the class <code>ChildPropertyDescriptor</code> describe a child property of an AST
  * node. A child property is one whose value is an {@link DartNode}.
+ * 
+ * @coverage dart.tools.core
  */
 public final class ChildPropertyDescriptor extends StructuralPropertyDescriptor {
   /**

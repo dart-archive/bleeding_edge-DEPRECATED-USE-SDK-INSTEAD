@@ -26,6 +26,8 @@ import org.eclipse.core.runtime.Platform;
 /**
  * The unique instance of the class <code>DefaultWorkingCopyOwner</code> implement the default
  * working copy owner.
+ * 
+ * @coverage dart.tools.core
  */
 public class DefaultWorkingCopyOwner extends WorkingCopyOwner {
 

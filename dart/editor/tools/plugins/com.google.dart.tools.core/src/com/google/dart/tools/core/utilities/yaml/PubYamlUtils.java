@@ -46,7 +46,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Utility class for using Snake YAML parser and other yaml utility methods
+ * Utility class for using Snake YAML parser and other yaml utility methods.
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public class PubYamlUtils {
 

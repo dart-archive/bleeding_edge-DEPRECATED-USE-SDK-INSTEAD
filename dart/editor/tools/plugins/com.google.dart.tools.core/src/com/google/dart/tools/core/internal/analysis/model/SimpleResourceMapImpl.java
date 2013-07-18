@@ -15,6 +15,8 @@ import org.eclipse.core.runtime.Path;
 /**
  * Instances of {@code SimpleResourceMapImpl} provide basic mapping between sources and resources,
  * but do NOT properly map canonical package sources.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class SimpleResourceMapImpl implements ResourceMap {
 

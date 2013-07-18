@@ -17,6 +17,8 @@ import com.google.dart.engine.context.AnalysisContext;
 
 /**
  * Used by {@link ProjectManager} to notify others as analysis is process and when it is complete.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface AnalysisListener {
 

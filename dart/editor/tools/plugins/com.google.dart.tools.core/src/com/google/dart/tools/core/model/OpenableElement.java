@@ -39,6 +39,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * themselves <code>Openable</code>. For example, opening a compilation unit provides access to all
  * its constituent elements, but opening a library does not open all compilation units in the
  * library.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface OpenableElement extends DartElement {
   /**

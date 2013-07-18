@@ -26,6 +26,8 @@ import java.util.List;
  * Runs the pub operation as an external process. The operation can be scheduled via the {@link Job}
  * infrastructure or executed directly by calling {@link #run(IProgressMonitor)} or
  * {@link #runSilent(IProgressMonitor)} if this operation should not display output in the console.
+ * 
+ * @coverage dart.tools.core.pub
  */
 public class RunPubJob extends Job {
 

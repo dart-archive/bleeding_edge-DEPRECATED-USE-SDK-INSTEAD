@@ -18,6 +18,8 @@ package com.google.dart.tools.core;
  * preferences defined by {@link DartCore}, specifically those accessed using the methods
  * {@link DartCore#getOptions()}, {@link DartCore#getOption(String)},
  * {@link DartCore#getDefaultOptions()} and {@link DartCore#setOptions(java.util.Hashtable)}.
+ * 
+ * @coverage dart.tools.core
  */
 public interface DartPreferenceConstants {
   /**

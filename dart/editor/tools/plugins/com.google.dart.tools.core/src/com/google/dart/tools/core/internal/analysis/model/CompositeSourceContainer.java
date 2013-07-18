@@ -22,6 +22,8 @@ import java.util.Collection;
 /**
  * Instances of the class {@link CompositeSourceContainer} represent a source container that
  * contains all source containers within a given directory.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class CompositeSourceContainer implements SourceContainer {
 

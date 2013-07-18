@@ -18,6 +18,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * A DartElement that is documentable.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartDocumentable extends DartElement {
 

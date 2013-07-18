@@ -19,6 +19,8 @@ import java.util.EventObject;
  * Instances of the class <code>ElementChangedEvent</code> describe a change to the structure or
  * contents of a tree of Dart elements. The changes to the elements are described by the associated
  * delta object carried by this event.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class ElementChangedEvent extends EventObject {
   private static final long serialVersionUID = 1L;

@@ -49,6 +49,8 @@ import java.io.IOException;
 /**
  * {@code DeltaProcessor} traverses both {@link IResource} hierarchies and {@link IResourceDelta}s.
  * As Dart related resources are encountered, registered {@link DeltaListener}s are notified.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class DeltaProcessor {
 

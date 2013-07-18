@@ -39,6 +39,8 @@ import java.util.List;
 /**
  * Instances of the class <code>DartTypeImpl</code> implement the representation of types defined in
  * compilation units.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartTypeImpl extends SourceReferenceImpl implements Type {
   /**

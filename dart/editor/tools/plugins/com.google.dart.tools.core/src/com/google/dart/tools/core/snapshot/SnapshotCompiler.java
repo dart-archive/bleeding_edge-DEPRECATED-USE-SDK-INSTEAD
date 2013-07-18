@@ -41,6 +41,7 @@ import java.util.List;
  * To use a snapshot: dart foo.snapshot
  * 
  * @see http://www.dartlang.org/articles/snapshots/
+ * @coverage dart.tools.core
  */
 public class SnapshotCompiler {
 

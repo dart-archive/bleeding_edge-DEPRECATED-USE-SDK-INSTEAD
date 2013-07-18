@@ -16,6 +16,8 @@ package com.google.dart.tools.core.dom.rewrite;
 /**
  * The interface <code>TrackedNodePosition</code> defines the behavior of objects that are returned
  * when a rewrite change is requested to be tracked.
+ * 
+ * @coverage dart.tools.core
  */
 public interface TrackedNodePosition {
   /**

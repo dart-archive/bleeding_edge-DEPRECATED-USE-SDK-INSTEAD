@@ -28,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Start and manage the JSON server process.
+ * 
+ * @coverage dart.tools.core.dart2js
  */
 public class JsonServerProcess {
   private static final String STARTUP_TOKEN = "accepting connections";

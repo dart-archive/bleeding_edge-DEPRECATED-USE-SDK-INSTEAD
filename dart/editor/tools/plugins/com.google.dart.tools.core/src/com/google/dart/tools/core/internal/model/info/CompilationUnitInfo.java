@@ -21,6 +21,8 @@ import java.util.ArrayList;
 /**
  * Instances of the class <code>CompilationUnitInfo</code> maintain the cached data shared by all
  * equal compilation units.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class CompilationUnitInfo extends OpenableElementInfo {
 

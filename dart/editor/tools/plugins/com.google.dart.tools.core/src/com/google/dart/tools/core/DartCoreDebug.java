@@ -20,6 +20,8 @@ import org.eclipse.core.runtime.Platform;
 
 /**
  * Debug/Tracing options for the {@link DartCore} plugin.
+ * 
+ * @coverage dart.tools.core
  */
 public class DartCoreDebug {
 

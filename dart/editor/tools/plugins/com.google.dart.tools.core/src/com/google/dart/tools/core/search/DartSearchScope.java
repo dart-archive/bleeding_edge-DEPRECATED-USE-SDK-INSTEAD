@@ -24,6 +24,7 @@ import com.google.dart.tools.core.model.DartElement;
  * <code>createWorkspaceScope()</code>, or clients may choose to implement this interface.
  * 
  * @deprecated Use the interface SearchScope instead
+ * @coverage dart.tools.core.search
  */
 @Deprecated
 public interface DartSearchScope {

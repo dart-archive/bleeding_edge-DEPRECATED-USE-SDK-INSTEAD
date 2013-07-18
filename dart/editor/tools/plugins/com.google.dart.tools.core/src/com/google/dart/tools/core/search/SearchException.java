@@ -15,6 +15,8 @@ package com.google.dart.tools.core.search;
 
 /**
  * An exception class representing a search failure.
+ * 
+ * @coverage dart.tools.core.search
  */
 public class SearchException extends Exception {
   private static final long serialVersionUID = 1L;

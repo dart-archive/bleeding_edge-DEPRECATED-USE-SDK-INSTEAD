@@ -63,6 +63,7 @@ import java.util.Map;
  * parameters. E.g. --changed=file1.txt --changed=file2.foo --removed=file3.bar.
  * 
  * @see DartBuilder
+ * @coverage dart.tools.core.builder
  */
 public class BuildDartParticipant implements BuildParticipant {
   // The name of the build.dart snapshot file.

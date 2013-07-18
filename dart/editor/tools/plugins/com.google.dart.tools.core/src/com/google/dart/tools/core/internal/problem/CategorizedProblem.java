@@ -59,6 +59,8 @@ import com.google.dart.tools.core.problem.Problem;
  * it to the extra marker attributes of the problems they generate; markers resulting from compiler
  * participants' problems that do not have the <code> IMarker#SOURCE_ID</code> extra attribute set
  * do not have the <code> DartBuilder#SOURCE_ID</code> attribute set either.
+ * 
+ * @coverage dart.tools.core.problem
  */
 public abstract class CategorizedProblem implements Problem {
   /**

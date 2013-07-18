@@ -31,6 +31,8 @@ import java.util.Map;
  *     timer.end();
  *   }
  * </pre>
+ * 
+ * @coverage dart.tools.core.utilities
  */
 public class PerformanceManager {
   /**

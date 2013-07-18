@@ -23,6 +23,8 @@ import com.google.dart.tools.core.DartCore;
  * order to catch exceptions, any method that needs to visit the children of a given node should use
  * the method {@link #visitChildren(DartNode)} rather than asking the node to visit its children
  * directly.
+ * 
+ * @coverage dart.tools.core
  */
 public class SafeDartNodeTraverser<R> extends ASTVisitor<R> {
   /*

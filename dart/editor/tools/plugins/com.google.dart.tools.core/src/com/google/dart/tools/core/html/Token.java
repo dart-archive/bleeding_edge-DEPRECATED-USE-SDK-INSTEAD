@@ -15,6 +15,8 @@ package com.google.dart.tools.core.html;
 
 /**
  * A value and location tuple.
+ * 
+ * @coverage dart.tools.core
  */
 public class Token {
   private String value;

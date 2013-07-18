@@ -20,6 +20,7 @@ import java.util.Stack;
  * parsing, see the related HtmlParser class.
  * 
  * @see HtmlParser
+ * @coverage dart.tools.core
  */
 public class XmlParser {
 

@@ -19,6 +19,8 @@ import java.net.URI;
 
 /**
  * Information about imported {@link DartLibrary}.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartImport extends CompilationUnitElement, SourceReference {
   DartImport[] EMPTY_ARRAY = new DartImport[0];

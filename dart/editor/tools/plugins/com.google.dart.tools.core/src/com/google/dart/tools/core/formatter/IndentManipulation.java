@@ -30,6 +30,8 @@ import java.util.Map;
 /**
  * The class <code>IndentManipulation</code> is a utility class to provide String manipulation
  * functions dealing with indentations.
+ * 
+ * @coverage dart.tools.core
  */
 public final class IndentManipulation {
   /**

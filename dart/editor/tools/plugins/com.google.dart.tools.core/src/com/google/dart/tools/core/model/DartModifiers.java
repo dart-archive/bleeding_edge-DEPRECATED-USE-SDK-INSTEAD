@@ -15,6 +15,9 @@ package com.google.dart.tools.core.model;
 
 import com.google.dart.compiler.ast.Modifiers;
 
+/**
+ * @coverage dart.tools.core.model
+ */
 public class DartModifiers {
   private Modifiers modifiers;
 

@@ -21,6 +21,8 @@ import java.util.Map;
 /**
  * The class <code>DefaultCodeFormatterConstants</code> defines utility methods and constants used
  * to set up the options of the code formatter.
+ * 
+ * @coverage dart.tools.core
  */
 public final class DefaultCodeFormatterConstants {
   /**

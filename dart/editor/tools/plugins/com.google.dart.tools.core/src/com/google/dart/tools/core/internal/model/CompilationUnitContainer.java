@@ -16,7 +16,9 @@ package com.google.dart.tools.core.internal.model;
 import com.google.dart.tools.core.model.DartElement;
 
 /**
- * An object containing {@link CompilationUnitImpl} instances
+ * An object containing {@link CompilationUnitImpl} instances.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface CompilationUnitContainer extends DartElement {
 }

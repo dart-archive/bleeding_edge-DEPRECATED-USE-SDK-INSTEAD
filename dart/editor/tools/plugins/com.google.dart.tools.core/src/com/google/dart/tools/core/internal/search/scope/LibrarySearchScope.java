@@ -22,6 +22,8 @@ import java.util.Collection;
 /**
  * Instances of the class <code>LibrarySearchScope</code> implement a search scope that encompasses
  * everything in a given collection of libraries.
+ * 
+ * @coverage dart.tools.core.search
  */
 public class LibrarySearchScope implements SearchScope {
   /**

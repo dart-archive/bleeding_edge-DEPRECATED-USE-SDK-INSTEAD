@@ -89,6 +89,8 @@ import java.util.Properties;
 /**
  * The class <code>DartCore</code> is used to access the elements modeling projects that have a Dart
  * nature.
+ * 
+ * @coverage dart.tools.core
  */
 public class DartCore extends Plugin implements DartSdkListener {
   /**

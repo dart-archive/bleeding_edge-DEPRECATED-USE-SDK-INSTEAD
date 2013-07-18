@@ -33,6 +33,8 @@ import java.util.Set;
  * <p>
  * This implementation is NOT thread-safe. Synchronization wrappers would have to be added to ensure
  * atomic insertions and deletions from the cache.
+ * 
+ * @coverage dart.tools.core
  */
 public class LRUCache<K, V> {
   /**

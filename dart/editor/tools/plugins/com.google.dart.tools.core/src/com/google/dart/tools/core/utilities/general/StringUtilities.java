@@ -16,6 +16,9 @@ package com.google.dart.tools.core.utilities.general;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @coverage dart.tools.core.utilities
+ */
 public final class StringUtilities {
 
   /**

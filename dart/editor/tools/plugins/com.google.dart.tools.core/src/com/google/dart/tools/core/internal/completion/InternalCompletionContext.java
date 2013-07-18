@@ -21,6 +21,8 @@ import java.security.Signature;
 
 /**
  * Internal completion context.
+ * 
+ * @coverage dart.tools.core.completion
  */
 public class InternalCompletionContext extends CompletionContext {
   protected char[][] expectedTypesSignatures;

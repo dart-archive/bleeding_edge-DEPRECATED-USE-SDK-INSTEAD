@@ -15,9 +15,13 @@ package com.google.dart.tools.core.completion;
 
 import com.google.dart.tools.core.model.DartElement;
 
+import java.security.Signature;
+
 /**
  * Instances of the class <code>CompletionContext</code> implement the context in which the
  * completion occurs.
+ * 
+ * @coverage dart.tools.core.completion
  */
 public class CompletionContext {
   /**

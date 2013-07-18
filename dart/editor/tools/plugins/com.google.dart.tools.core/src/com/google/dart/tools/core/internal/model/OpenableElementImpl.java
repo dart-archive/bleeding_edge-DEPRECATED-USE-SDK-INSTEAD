@@ -43,6 +43,8 @@ import java.util.Map;
 /**
  * The abstract class <code>OpenableElementImpl</code> implements behavior common to Dart elements
  * that are openable.
+ * 
+ * @coverage dart.tools.core.model
  */
 public abstract class OpenableElementImpl extends DartElementImpl implements OpenableElement,
     BufferChangedListener {

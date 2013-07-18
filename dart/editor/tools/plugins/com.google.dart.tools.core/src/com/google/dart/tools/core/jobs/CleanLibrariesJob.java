@@ -28,6 +28,8 @@ import org.eclipse.core.runtime.jobs.Job;
 
 /**
  * Clean all workspace projects and rebuild the index.
+ * 
+ * @coverage dart.tools.core
  */
 public class CleanLibrariesJob extends Job {
 

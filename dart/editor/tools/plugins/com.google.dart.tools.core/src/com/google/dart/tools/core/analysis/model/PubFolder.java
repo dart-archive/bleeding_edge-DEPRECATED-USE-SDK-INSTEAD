@@ -22,7 +22,9 @@ import org.eclipse.core.runtime.CoreException;
 import java.io.IOException;
 
 /**
- * Represents a project or folder within a project containing a pubspec file
+ * Represents a project or folder within a project containing a pubspec file.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface PubFolder extends ResourceMap {
 

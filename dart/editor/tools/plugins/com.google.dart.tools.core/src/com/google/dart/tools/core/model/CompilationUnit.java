@@ -22,6 +22,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 /**
  * The interface <code>CompilationUnit</code> defines the behavior of objects representing files
  * containing Dart source code that needs to be compiled.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface CompilationUnit extends CodeAssistElement, SourceFileElement<CompilationUnit>,
     OpenableElement, ParentElement, SourceManipulation, SourceReference {

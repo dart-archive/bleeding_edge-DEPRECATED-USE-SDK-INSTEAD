@@ -13,10 +13,11 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-
 /**
  * Indirect way for the UI to hook a {@link ScanCallback} into the build process to allow users to
  * cancel analysis of a new project.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public abstract class ScanCallbackProvider {
   private static ScanCallbackProvider provider;

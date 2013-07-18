@@ -21,6 +21,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 /**
  * The interface <code>CodeAssistElement</code> defines the behavior common to Dart elements that
  * support source code assist and code resolve.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface CodeAssistElement {
   /**

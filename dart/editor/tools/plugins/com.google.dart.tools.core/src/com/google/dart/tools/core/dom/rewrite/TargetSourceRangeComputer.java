@@ -33,6 +33,8 @@ import com.google.dart.tools.core.model.CompilationUnit;
  * {@link ASTRewrite#rewriteAST(org.eclipse.jface.text.IDocument, java.util.Map)} , the
  * {@link #computeSourceRange(ASTNode)} method on this object will be used to compute the source
  * range for a node being deleted or replaced.
+ * 
+ * @coverage dart.tools.core
  */
 public class TargetSourceRangeComputer {
   /**

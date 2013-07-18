@@ -23,6 +23,8 @@ import com.google.dart.tools.core.model.OpenableElement;
 /**
  * Instances of the class <code>ElementCache</code> implement an LRU cache of
  * <code>DartElements</code>.
+ * 
+ * @coverage dart.tools.core
  */
 public class ElementCache extends OverflowingLRUCache<OpenableElement, OpenableElementInfo> {
   private DartElement spaceLimitParent = null;

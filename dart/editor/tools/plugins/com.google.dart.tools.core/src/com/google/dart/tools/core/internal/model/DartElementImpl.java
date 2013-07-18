@@ -49,6 +49,8 @@ import java.util.List;
 /**
  * Instances of the class <code>DartElementImpl</code> implement the behavior common to elements
  * within a project that has a Dart nature.
+ * 
+ * @coverage dart.tools.core.model
  */
 public abstract class DartElementImpl extends PlatformObject implements DartElement {
   /**

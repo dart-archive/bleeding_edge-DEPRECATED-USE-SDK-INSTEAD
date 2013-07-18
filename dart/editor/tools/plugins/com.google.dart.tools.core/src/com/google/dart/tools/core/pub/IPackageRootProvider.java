@@ -22,6 +22,8 @@ import java.io.File;
 
 /**
  * This interface is able to return the appropriate package-root for a given IProject.
+ * 
+ * @coverage dart.tools.core.pub
  */
 public interface IPackageRootProvider {
 

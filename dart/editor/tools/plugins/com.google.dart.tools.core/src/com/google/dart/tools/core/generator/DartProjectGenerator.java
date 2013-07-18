@@ -32,6 +32,8 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 /**
  * Instances of <code>DartProjectGenerator</code> are used to create a new Dart project after
  * validating the name of the new project.
+ * 
+ * @coverage dart.tools.core.generator
  */
 public class DartProjectGenerator extends DartElementGenerator {
 

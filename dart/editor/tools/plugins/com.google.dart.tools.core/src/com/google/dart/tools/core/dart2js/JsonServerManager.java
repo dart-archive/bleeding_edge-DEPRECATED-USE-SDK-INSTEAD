@@ -21,7 +21,9 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 
 /**
- * Manages instances of {@link JsonServer}
+ * Manages instances of {@link JsonServer}.
+ * 
+ * @coverage dart.tools.core.dart2js
  */
 public class JsonServerManager {
   public static final String LOCALHOST_ADDRESS = "127.0.0.1";

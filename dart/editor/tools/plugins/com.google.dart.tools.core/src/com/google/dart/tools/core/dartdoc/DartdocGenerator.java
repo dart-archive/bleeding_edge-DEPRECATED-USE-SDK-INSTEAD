@@ -41,6 +41,7 @@ import java.util.List;
  * Launch the dartdoc process and collect stdout, stderr, and exit code information.
  * 
  * @see Dart2JSCompiler
+ * @coverage dart.tools.core
  */
 public class DartdocGenerator {
 

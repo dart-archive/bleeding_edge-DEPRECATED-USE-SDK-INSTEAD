@@ -17,6 +17,8 @@ import com.google.dart.tools.core.internal.model.DartElementImpl;
 
 /**
  * Instances of the class <code>MementoTokenizer</code> tokenize a DartElementImpl memento.
+ * 
+ * @coverage dart.tools.core
  */
 public class MementoTokenizer {
   public static final String CLASS_TYPE_ALIAS = Character.toString(DartElementImpl.MEMENTO_DELIMITER_CLASS_TYPE_ALIAS);

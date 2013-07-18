@@ -16,6 +16,8 @@ package com.google.dart.tools.core.search;
 /**
  * The interface <code>SearchListener</code> defines the behavior of objects that are listening for
  * the results of a search.
+ * 
+ * @coverage dart.tools.core.search
  */
 public interface SearchListener {
   /**

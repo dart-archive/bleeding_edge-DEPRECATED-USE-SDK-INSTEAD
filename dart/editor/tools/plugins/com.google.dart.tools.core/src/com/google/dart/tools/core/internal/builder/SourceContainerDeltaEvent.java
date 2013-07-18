@@ -16,6 +16,9 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.SourceContainer;
 
+/**
+ * @coverage dart.tools.core.builder
+ */
 public interface SourceContainerDeltaEvent extends ResourceDeltaEvent {
 
   /**

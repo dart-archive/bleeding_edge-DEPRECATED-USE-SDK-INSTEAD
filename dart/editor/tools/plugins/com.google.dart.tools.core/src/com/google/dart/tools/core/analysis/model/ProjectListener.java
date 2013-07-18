@@ -2,6 +2,8 @@ package com.google.dart.tools.core.analysis.model;
 
 /**
  * Used by {@link ProjectManager} to notify others when a project has been analyzed.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface ProjectListener {
 

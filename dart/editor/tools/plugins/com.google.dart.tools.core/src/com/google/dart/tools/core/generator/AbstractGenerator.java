@@ -38,6 +38,8 @@ public abstract class AbstractGenerator {
   /**
    * If the passed file name does not have an extension, return the file name appended with given
    * extension.
+   * 
+   * @coverage dart.tools.core.generator
    */
   public static String appendIfNoExtension(String fileName, String extension) {
     if (fileName == null || fileName.isEmpty()) {

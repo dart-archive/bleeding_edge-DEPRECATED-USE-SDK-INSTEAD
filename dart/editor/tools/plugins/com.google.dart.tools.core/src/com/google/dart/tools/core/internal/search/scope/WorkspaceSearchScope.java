@@ -19,6 +19,8 @@ import com.google.dart.tools.core.search.SearchScope;
 /**
  * Instances of the class <code>WorkspaceSearchScope</code> implement a search scope that
  * encompasses everything in the workspace.
+ * 
+ * @coverage dart.tools.core.search
  */
 public class WorkspaceSearchScope implements SearchScope {
   @Override

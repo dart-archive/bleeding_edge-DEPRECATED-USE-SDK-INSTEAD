@@ -18,6 +18,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
 /**
  * The interface <code>DartFunction</code> defines the behavior of elements representing the
  * definition of a function within Dart source code.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface DartFunction extends CompilationUnitElement, ParentElement, SourceReference {
   /**

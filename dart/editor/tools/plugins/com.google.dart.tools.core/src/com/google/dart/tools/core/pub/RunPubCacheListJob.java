@@ -32,6 +32,8 @@ import java.util.List;
 /**
  * Runs the pub cache list command to retrieve information about the packages currently installed in
  * the pub cache. Returns a string in JSON format contain the pub cache info if successful.
+ * 
+ * @coverage dart.tools.core.pub
  */
 public class RunPubCacheListJob extends Job {
 

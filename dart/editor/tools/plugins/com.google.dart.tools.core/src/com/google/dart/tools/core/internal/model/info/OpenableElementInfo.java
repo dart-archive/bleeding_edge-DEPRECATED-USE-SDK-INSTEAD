@@ -20,6 +20,8 @@ import com.google.dart.tools.core.model.OpenableElement;
 /**
  * Instances of the class <code>OpenableElementInfo</code> implement the information associated with
  * an {@link OpenableElement} model element.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class OpenableElementInfo extends DartElementInfo {
   /**

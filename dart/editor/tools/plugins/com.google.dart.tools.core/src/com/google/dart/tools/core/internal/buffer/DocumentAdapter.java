@@ -20,6 +20,8 @@ import org.eclipse.jface.text.Document;
 
 /**
  * Instances of the class <code>DocumentAdapter</code> adapt a {@link Buffer} to a {@link Document}.
+ * 
+ * @coverage dart.tools.core.buffer
  */
 public class DocumentAdapter extends Document {
   /**

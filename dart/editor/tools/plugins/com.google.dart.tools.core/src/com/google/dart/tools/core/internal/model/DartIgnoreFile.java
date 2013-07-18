@@ -26,6 +26,8 @@ import java.util.Set;
 
 /**
  * Represents a list of patterns that describe resources to be ignored from analysis.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartIgnoreFile {
 

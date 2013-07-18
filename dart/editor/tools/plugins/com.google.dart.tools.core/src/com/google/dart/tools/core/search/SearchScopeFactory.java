@@ -26,6 +26,8 @@ import java.util.Collection;
 /**
  * The class <code>SearchScopeFactory</code> defines utility methods that can be used to create
  * search scopes.
+ * 
+ * @coverage dart.tools.core.search
  */
 public final class SearchScopeFactory {
   /**

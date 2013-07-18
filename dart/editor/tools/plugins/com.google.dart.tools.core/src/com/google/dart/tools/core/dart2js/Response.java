@@ -21,6 +21,8 @@ import java.util.Map;
 
 /**
  * A JSON object that represents a response from the JSON server.
+ * 
+ * @coverage dart.tools.core.dart2js
  */
 public class Response {
   public enum Kind {

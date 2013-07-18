@@ -31,6 +31,8 @@ import java.util.Map;
 /**
  * Instances of the class <code>DartBuilder</code> implement the incremental builder for Dart
  * projects and contained pub packages.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class DartBuilder extends IncrementalProjectBuilder {
 

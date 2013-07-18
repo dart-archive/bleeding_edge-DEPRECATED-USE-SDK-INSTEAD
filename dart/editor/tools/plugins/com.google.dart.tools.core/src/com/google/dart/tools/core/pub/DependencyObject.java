@@ -14,7 +14,9 @@
 package com.google.dart.tools.core.pub;
 
 /**
- * Object representing a dependency package
+ * Object representing a dependency package.
+ * 
+ * @coverage dart.tools.core.pub
  */
 public class DependencyObject {
 

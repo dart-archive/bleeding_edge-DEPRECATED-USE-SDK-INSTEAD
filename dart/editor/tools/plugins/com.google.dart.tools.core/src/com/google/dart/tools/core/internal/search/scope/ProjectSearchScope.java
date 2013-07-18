@@ -20,6 +20,8 @@ import com.google.dart.tools.core.search.SearchScope;
 /**
  * Instances of the class <code>ProjectSearchScope</code> implement a search scope that encompasses
  * everything in the workspace.
+ * 
+ * @coverage dart.tools.core.search
  */
 public class ProjectSearchScope implements SearchScope {
 

@@ -17,6 +17,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Utilities for {@link SourceRange} checks.
+ * 
+ * @coverage dart.tools.core
  */
 public class SourceRangeUtils {
   /**

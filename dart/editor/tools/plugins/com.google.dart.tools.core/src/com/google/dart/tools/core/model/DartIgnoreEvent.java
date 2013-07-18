@@ -14,7 +14,9 @@
 package com.google.dart.tools.core.model;
 
 /**
- * An event that encapsulates an ignore action
+ * An event that encapsulates an ignore action.
+ * 
+ * @coverage dart.tools.core.model
  */
 public class DartIgnoreEvent {
 

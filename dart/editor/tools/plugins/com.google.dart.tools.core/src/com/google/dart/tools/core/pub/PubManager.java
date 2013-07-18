@@ -21,6 +21,8 @@ import java.util.Map;
 /**
  * The unique instance of the class <code>PubManager</code> is used to manage the listeners for pub
  * updates.
+ * 
+ * @coverage dart.tools.core.pub
  */
 public class PubManager {
 

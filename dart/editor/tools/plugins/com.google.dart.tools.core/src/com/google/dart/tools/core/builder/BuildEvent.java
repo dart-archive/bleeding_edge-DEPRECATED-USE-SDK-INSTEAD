@@ -25,7 +25,9 @@ import org.eclipse.core.runtime.OperationCanceledException;
 /**
  * Event passed to {@link BuildParticipant}s when
  * {@link BuildParticipant#build(BuildEvent, IProgressMonitor)} is called. Use
- * {@link #traverse(BuildParticipant, boolean)} to visit all resources to be processed
+ * {@link #traverse(BuildParticipant, boolean)} to visit all resources to be processed.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class BuildEvent extends ParticipantEvent {
   private final IResourceDelta projectDelta;

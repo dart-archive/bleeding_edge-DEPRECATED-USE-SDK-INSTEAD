@@ -26,6 +26,8 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 
 /**
  * Instances of {@code ProjectManager} manage Eclipse projects that have the Dart nature.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface ProjectManager extends ContextManager {
 
@@ -94,6 +96,7 @@ public interface ProjectManager extends ContextManager {
    * 
    * @return the Eclipse workspace (not {@code null})
    */
+  @Override
   IWorkspaceRoot getResource();
 
   /**

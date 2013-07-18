@@ -16,7 +16,9 @@ package com.google.dart.tools.core.internal.builder;
 import java.util.ArrayList;
 
 /**
- * A collection of {@link DeltaListener}s
+ * A collection of {@link DeltaListener}s.
+ * 
+ * @coverage dart.tools.core.builder
  */
 public class DeltaListenerList implements DeltaListener {
 

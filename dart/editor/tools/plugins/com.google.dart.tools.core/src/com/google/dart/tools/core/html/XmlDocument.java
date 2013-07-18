@@ -15,6 +15,8 @@ package com.google.dart.tools.core.html;
 
 /**
  * An xml model element. XmlDocument is the root node of the xml model.
+ * 
+ * @coverage dart.tools.core
  */
 public class XmlDocument extends XmlNode {
 

@@ -28,6 +28,8 @@ import java.io.UnsupportedEncodingException;
 /**
  * Execute the process created by the given process builder; collect the results and the exit code.
  * The process runs to completion before the run() method returns.
+ * 
+ * @coverage dart.tools.core.dart2js
  */
 public class ProcessRunner {
   private ProcessBuilder processBuilder;

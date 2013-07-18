@@ -20,6 +20,8 @@ import org.eclipse.core.resources.IResource;
 
 /**
  * Instances of {@link ResolvedEvent} contain information about the resolved compilation unit.
+ * 
+ * @coverage dart.tools.core.model
  */
 public interface ResolvedEvent extends AnalysisEvent {
 

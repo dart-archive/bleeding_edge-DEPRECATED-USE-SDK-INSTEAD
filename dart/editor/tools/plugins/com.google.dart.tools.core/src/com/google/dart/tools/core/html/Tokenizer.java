@@ -23,6 +23,8 @@ import java.util.LinkedList;
 
 /**
  * Public for testing.
+ * 
+ * @coverage dart.tools.core
  */
 public class Tokenizer {
 
