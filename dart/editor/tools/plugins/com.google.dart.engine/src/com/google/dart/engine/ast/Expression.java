@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.type.Type;
 
 /**
@@ -40,6 +41,23 @@ public abstract class Expression extends ASTNode {
    * performed on the AST structure.
    */
   private Type propagatedType;
+
+  /**
+   * Return the best type information available for this expression. If type propagation was able to
+   * find a better type than static analysis, that type will be returned. Otherwise, the result of
+   * static analysis will be returned. If no type analysis has been performed, then the type
+   * 'dynamic' will be returned.
+   * 
+   * @return the best type information available for this expression
+   */
+  public Type getBestType() {
+    if (propagatedType != null) {
+      return propagatedType;
+    } else if (staticType != null) {
+      return staticType;
+    }
+    return DynamicTypeImpl.getInstance();
+  }
 
   /**
    * If this expression is an argument to an invocation, and the AST structure has been resolved,

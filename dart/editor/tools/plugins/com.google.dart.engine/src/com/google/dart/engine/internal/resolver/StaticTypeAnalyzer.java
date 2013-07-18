@@ -307,7 +307,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       recordStaticType(node, staticType);
       Type overrideType = staticType;
 
-      Type propagatedType = getPropagatedType(rightHandSide);
+      Type propagatedType = rightHandSide.getPropagatedType();
       if (propagatedType != null) {
         if (propagatedType.isMoreSpecificThan(staticType)) {
           recordPropagatedType(node, propagatedType);
@@ -406,7 +406,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitCascadeExpression(CascadeExpression node) {
     recordStaticType(node, getStaticType(node.getTarget()));
-    recordPropagatedType(node, getPropagatedType(node.getTarget()));
+    recordPropagatedType(node, node.getTarget().getPropagatedType());
     return null;
   }
 
@@ -437,8 +437,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     }
     recordStaticType(node, staticType);
 
-    Type propagatedThenType = getPropagatedType(node.getThenExpression());
-    Type propagatedElseType = getPropagatedType(node.getElseExpression());
+    Type propagatedThenType = node.getThenExpression().getPropagatedType();
+    Type propagatedElseType = node.getElseExpression().getPropagatedType();
     if (propagatedThenType != null || propagatedElseType != null) {
       if (propagatedThenType == null) {
         propagatedThenType = staticThenType;
@@ -693,9 +693,9 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     NodeList<Expression> elements = node.getElements();
     int count = elements.size();
     if (count > 0) {
-      Type propagatedType = getBestType(elements.get(0));
+      Type propagatedType = elements.get(0).getBestType();
       for (int i = 1; i < count; i++) {
-        Type elementType = getBestType(elements.get(i));
+        Type elementType = elements.get(i).getBestType();
         if (!propagatedType.equals(elementType)) {
           propagatedType = dynamicType;
         } else {
@@ -754,11 +754,11 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     int count = entries.size();
     if (count > 0) {
       MapLiteralEntry entry = entries.get(0);
-      Type propagatedKeyType = getBestType(entry.getKey());
-      Type propagatedValueType = getBestType(entry.getValue());
+      Type propagatedKeyType = entry.getKey().getBestType();
+      Type propagatedValueType = entry.getValue().getBestType();
       for (int i = 1; i < count; i++) {
         entry = entries.get(i);
-        Type elementKeyType = getBestType(entry.getKey());
+        Type elementKeyType = entry.getKey().getBestType();
         if (!propagatedKeyType.equals(elementKeyType)) {
           propagatedKeyType = dynamicType;
         } else {
@@ -767,7 +767,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
             propagatedKeyType = dynamicType;
           }
         }
-        Type elementValueType = getBestType(entry.getValue());
+        Type elementValueType = entry.getValue().getBestType();
         if (!propagatedValueType.equals(elementValueType)) {
           propagatedValueType = dynamicType;
         } else {
@@ -859,7 +859,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     // 2) Future<valueType>, if the closure returns a value.
     if (methodName.equals("then")) {
       Expression target = node.getRealTarget();
-      Type targetType = target == null ? null : getBestType(target);
+      Type targetType = target == null ? null : target.getBestType();
       if (isAsyncFutureType(targetType)) {
         NodeList<Expression> arguments = node.getArgumentList().getArguments();
         if (arguments.size() == 1) {
@@ -890,7 +890,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     if (methodName.equals("$dom_createEvent")) {
       Expression target = node.getRealTarget();
       if (target != null) {
-        Type targetType = getBestType(target);
+        Type targetType = target.getBestType();
         if (targetType instanceof InterfaceType
             && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals(
                 "Document"))) {
@@ -917,7 +917,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
           }
         }
       } else {
-        Type targetType = getBestType(target);
+        Type targetType = target.getBestType();
         if (targetType instanceof InterfaceType
             && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals(
                 "Document"))) {
@@ -932,7 +932,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       }
     } else if (methodName.equals("$dom_createElement")) {
       Expression target = node.getRealTarget();
-      Type targetType = getBestType(target);
+      Type targetType = target.getBestType();
       if (targetType instanceof InterfaceType
           && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals("Document"))) {
         LibraryElement library = targetType.getElement().getLibrary();
@@ -977,7 +977,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitNamedExpression(NamedExpression node) {
     Expression expression = node.getExpression();
     recordStaticType(node, getStaticType(expression));
-    recordPropagatedType(node, getPropagatedType(expression));
+    recordPropagatedType(node, expression.getPropagatedType());
     return null;
   }
 
@@ -995,7 +995,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitParenthesizedExpression(ParenthesizedExpression node) {
     Expression expression = node.getExpression();
     recordStaticType(node, getStaticType(expression));
-    recordPropagatedType(node, getPropagatedType(expression));
+    recordPropagatedType(node, expression.getPropagatedType());
     return null;
   }
 
@@ -1037,7 +1037,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       }
     }
     recordStaticType(node, staticType);
-    recordPropagatedType(node, getPropagatedType(operand));
+    recordPropagatedType(node, operand.getPropagatedType());
     return null;
   }
 
@@ -1334,7 +1334,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitVariableDeclaration(VariableDeclaration node) {
     Expression initializer = node.getInitializer();
     if (initializer != null) {
-      Type rightType = getBestType(initializer);
+      Type rightType = initializer.getBestType();
       SimpleIdentifier name = node.getName();
       recordPropagatedType(name, rightType);
       VariableElement element = (VariableElement) name.getElement();
@@ -1385,7 +1385,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   private Type computePropagatedReturnType(FunctionBody body) {
     if (body instanceof ExpressionFunctionBody) {
       ExpressionFunctionBody expressionBody = (ExpressionFunctionBody) body;
-      return getBestType(expressionBody.getExpression());
+      return expressionBody.getExpression().getBestType();
     }
     if (body instanceof BlockFunctionBody) {
       final Type[] result = {null};
@@ -1402,7 +1402,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
           Type type;
           Expression expression = node.getExpression();
           if (expression != null) {
-            type = getBestType(expression);
+            type = expression.getBestType();
           } else {
             type = BottomTypeImpl.getInstance();
           }
@@ -1502,24 +1502,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       return getStaticType(((ExpressionFunctionBody) body).getExpression());
     }
     return dynamicType;
-  }
-
-  /**
-   * Return the propagated type of the given expression if it is available, or the static type if
-   * there is no propagated type.
-   * 
-   * @param expression the expression whose type is to be returned
-   * @return the propagated or static type of the given expression
-   */
-  private Type getBestType(Expression expression) {
-    Type type = expression.getPropagatedType();
-    if (type == null) {
-      type = expression.getStaticType();
-      if (type == null) {
-        return dynamicType;
-      }
-    }
-    return type;
   }
 
   /**
@@ -1626,17 +1608,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   private Type getFirstArgumentAsType(LibraryElement library, ArgumentList argumentList,
       HashMap<String, String> nameMap) {
     return getElementNameAsType(library, getFirstArgumentAsString(argumentList), nameMap);
-  }
-
-  /**
-   * Return the propagated type of the given expression.
-   * 
-   * @param expression the expression whose type is to be returned
-   * @return the propagated type of the given expression
-   */
-  private Type getPropagatedType(Expression expression) {
-    Type type = expression.getPropagatedType();
-    return type;
   }
 
   /**
