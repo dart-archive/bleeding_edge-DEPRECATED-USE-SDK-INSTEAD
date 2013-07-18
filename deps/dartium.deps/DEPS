@@ -14,7 +14,7 @@ vars.update({
   "dart_branch": "/branches/bleeding_edge",
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
-  "dartium_webkit_revision": "1301",
+  "dartium_webkit_revision": "1302",
   "dartium_tools_revision": "1300",
 })
 
