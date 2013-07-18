@@ -33,6 +33,15 @@ public class HtmlParserTest extends TestCase {
     assertEquals("sdfsdf", bodyNode.getAttributeString("foo"));
   }
 
+  public void test_linkRelNPE() {
+    final String data = "<link rel=";
+
+    XmlDocument root = new XmlDocument();
+    root.addChild(new XmlNode("link"));
+
+    verifyParseTree(data, root);
+  }
+
   public void test_parse1() {
     XmlDocument root = new XmlDocument();
     XmlElement htmlNode = new XmlElement("html");

@@ -258,7 +258,9 @@ public class XmlParser {
           if (!peek(">")) {
             token = tokenizer.next();;
 
-            attribute.setValue(stripQuotes(token.getValue()));
+            if (token != null) {
+              attribute.setValue(stripQuotes(token.getValue()));
+            }
             attribute.setEnd(token);
           } else {
             attribute.setEnd(token);
