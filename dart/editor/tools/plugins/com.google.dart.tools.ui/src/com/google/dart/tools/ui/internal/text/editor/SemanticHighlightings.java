@@ -23,7 +23,6 @@ import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.ExportDirective;
-import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.ImplementsClause;
@@ -546,19 +545,11 @@ public class SemanticHighlightings {
    * Semantic highlighting for variables with dynamic types.
    */
   private static final class DynamicTypeHighlighting extends DefaultSemanticHighlighting {
-    private static Type typeOf(Expression expr) {
-      Type type = expr.getPropagatedType();
-      if (type == null) {
-        type = expr.getStaticType();
-      }
-      return type;
-    }
-
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      Type type = typeOf(node);
-      return type != null && type.isDynamic();
+      Type type = node.getBestType();
+      return type.isDynamic();
     }
 
     @Override
