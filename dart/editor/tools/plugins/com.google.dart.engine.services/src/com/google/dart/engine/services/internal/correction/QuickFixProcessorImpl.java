@@ -221,17 +221,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     return false;
   }
 
-  /**
-   * @return the most specific {@link Type} of the given Expression.
-   */
-  private static Type typeOf(Expression expr) {
-    Type type = expr.getPropagatedType();
-    if (type == null) {
-      type = expr.getStaticType();
-    }
-    return type;
-  }
-
   private final List<CorrectionProposal> proposals = Lists.newArrayList();
   private final List<Edit> textEdits = Lists.newArrayList();
   private AnalysisError problem;
@@ -1096,7 +1085,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         sourcePrefix = eol + prefix + eol;
         sourceSuffix = "";
       } else {
-        Type targetType = typeOf(target);
+        Type targetType = target.getBestType();
         Element targetElement = targetType.getElement();
         targetSource = targetElement.getSource();
         // may be static
@@ -1187,17 +1176,15 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         sb.append(", ");
       }
       // append type name
-      Type type = typeOf(argument);
-      if (type != null) {
-        String typeSource = utils.getTypeSource(type);
-        {
-          sb.startPosition("TYPE" + i);
-          sb.append(typeSource);
-          addSuperTypeProposals(sb, Sets.<Type> newHashSet(), type);
-          sb.endPosition();
-        }
-        sb.append(" ");
+      Type type = argument.getBestType();
+      String typeSource = utils.getTypeSource(type);
+      {
+        sb.startPosition("TYPE" + i);
+        sb.append(typeSource);
+        addSuperTypeProposals(sb, Sets.<Type> newHashSet(), type);
+        sb.endPosition();
       }
+      sb.append(" ");
       // append parameter name
       {
         String[] suggestions = getArgumentNameSuggestions(excluded, type, argument, i);
@@ -1225,7 +1212,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
           updateFinderWithClassMembers(finder, clazzElement);
         }
       } else {
-        Type type = typeOf(target);
+        Type type = target.getBestType();
         if (type instanceof InterfaceType) {
           ClassElement clazzElement = ((InterfaceType) type).getElement();
           updateFinderWithClassMembers(finder, clazzElement);

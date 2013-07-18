@@ -708,17 +708,6 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return the most specific {@link Type} of the given {@link Expression}.
-   */
-  public static Type typeOf(Expression expr) {
-    Type type = expr.getPropagatedType();
-    if (type == null) {
-      type = expr.getStaticType();
-    }
-    return type;
-  }
-
-  /**
    * Adds "toAdd" items which are not excluded.
    */
   private static void addAll(Set<String> excluded, Set<String> result, Collection<String> toAdd) {
@@ -1585,8 +1574,8 @@ public class CorrectionUtils {
       }
       return invertCondition0(innerExpresion);
     }
-    Type type = typeOf(expression);
-    if (type != null && type.getDisplayName().equals("bool")) {
+    Type type = expression.getBestType();
+    if (type.getDisplayName().equals("bool")) {
       return InvertedCondition.simple("!" + getText(expression));
     }
     return InvertedCondition.simple(getText(expression));

@@ -181,17 +181,6 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     return false;
   }
 
-  /**
-   * @return the most specific {@link Type} of the given Expression.
-   */
-  private static Type typeOf(Expression expr) {
-    Type type = expr.getPropagatedType();
-    if (type == null) {
-      type = expr.getStaticType();
-    }
-    return type;
-  }
-
   private final List<CorrectionProposal> proposals = Lists.newArrayList();
   private final List<Edit> textEdits = Lists.newArrayList();
 
@@ -353,8 +342,8 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     Expression expression = expressionStatement.getExpression();
     int offset = expression.getOffset();
     // prepare expression type
-    Type type = typeOf(expression);
-    if (type == null || type.isVoid()) {
+    Type type = expression.getBestType();
+    if (type.isVoid()) {
       return;
     }
     //
