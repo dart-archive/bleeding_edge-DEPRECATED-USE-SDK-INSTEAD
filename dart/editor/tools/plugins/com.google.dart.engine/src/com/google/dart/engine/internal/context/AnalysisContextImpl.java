@@ -173,9 +173,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Instances of the class {@code ResolveDartTask} resolve a specific source as a Dart file.
+   * Instances of the class {@code ResolveDartLibraryTask} resolve a specific source as a Dart
+   * library.
    */
-  private class ResolveDartTask implements AnalysisTask {
+  private class ResolveDartLibraryTask implements AnalysisTask {
     /**
      * The source to be resolved.
      */
@@ -185,9 +186,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
      * Initialize a newly created task to resolve the given source as a Dart file.
      * 
      * @param source the source to be resolved
-     * @param librarySource the source of the library in which the source is to be resolved
      */
-    public ResolveDartTask(Source source) {
+    public ResolveDartLibraryTask(Source source) {
       this.source = source;
     }
 
@@ -198,6 +198,47 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       } catch (AnalysisException exception) {
         AnalysisEngine.getInstance().getLogger().logError(
             "Could not resolve " + source.getFullName(),
+            exception);
+      }
+    }
+  }
+
+  /**
+   * Instances of the class {@code ResolveDartUnitTask} resolve a specific source as a Dart file
+   * within a library.
+   */
+  private class ResolveDartUnitTask implements AnalysisTask {
+    /**
+     * The source to be resolved.
+     */
+    private Source unitSource;
+
+    /**
+     * The source of the library in which the source is to be resolved.
+     */
+    private Source librarySource;
+
+    /**
+     * Initialize a newly created task to resolve the given source as a Dart file.
+     * 
+     * @param unitSource the source to be resolved
+     * @param librarySource the source of the library in which the source is to be resolved
+     */
+    public ResolveDartUnitTask(Source unitSource, Source librarySource) {
+      this.unitSource = unitSource;
+      this.librarySource = librarySource;
+    }
+
+    @Override
+    public void perform() {
+      try {
+        resolveCompilationUnit(unitSource, librarySource);
+      } catch (AnalysisException exception) {
+        DartEntryImpl dartCopy = getReadableDartEntry(unitSource).getWritableCopy();
+        dartCopy.recordResolutionError();
+        sourceMap.put(unitSource, dartCopy);
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Could not resolve " + unitSource.getFullName() + " in " + librarySource.getFullName(),
             exception);
       }
     }
@@ -1494,20 +1535,36 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             dartCopy.setState(DartEntry.PARSE_ERRORS, CacheState.IN_PROCESS);
             sourceMap.put(source, dartCopy);
             return new ParseDartTask(source);
+          } else if (dartEntry.getState(DartEntry.PARSED_UNIT) == CacheState.FLUSHED) {
+            DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+            dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.IN_PROCESS);
+            sourceMap.put(source, dartCopy);
+            return new ParseDartTask(source);
           } else if (dartEntry.getState(DartEntry.ELEMENT) == CacheState.INVALID) {
             DartEntryImpl dartCopy = dartEntry.getWritableCopy();
             dartCopy.setState(DartEntry.ELEMENT, CacheState.IN_PROCESS);
             sourceMap.put(source, dartCopy);
-            return new ResolveDartTask(source);
+            return new ResolveDartLibraryTask(source);
+          }
+          for (Source librarySource : getLibrariesContaining(source)) {
+            if (dartEntry.getState(DartEntry.RESOLVED_UNIT, librarySource) == CacheState.FLUSHED) {
+              DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+              dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.IN_PROCESS);
+              sourceMap.put(source, dartCopy);
+              return new ResolveDartUnitTask(source, librarySource);
+            }
           }
         } else if (sourceEntry instanceof HtmlEntry) {
           HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
-          if (htmlEntry.getState(HtmlEntry.PARSED_UNIT) == CacheState.INVALID) {
+          CacheState parsedUnitState = htmlEntry.getState(HtmlEntry.PARSED_UNIT);
+          if (parsedUnitState == CacheState.INVALID || parsedUnitState == CacheState.FLUSHED) {
             HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
             htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.IN_PROCESS);
             sourceMap.put(source, htmlCopy);
             return new ParseHtmlTask(source);
-          } else if (htmlEntry.getState(HtmlEntry.ELEMENT) == CacheState.INVALID) {
+          }
+          CacheState elementState = htmlEntry.getState(HtmlEntry.ELEMENT);
+          if (elementState == CacheState.INVALID || elementState == CacheState.FLUSHED) {
             HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
             htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.IN_PROCESS);
             sourceMap.put(source, htmlCopy);
@@ -1552,7 +1609,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             DartEntryImpl dartCopy = dartEntry.getWritableCopy();
             dartCopy.setState(DartEntry.ELEMENT, CacheState.IN_PROCESS);
             sourceMap.put(source, dartCopy);
-            return new ResolveDartTask(source);
+            return new ResolveDartLibraryTask(source);
           }
         } else if (sourceEntry instanceof HtmlEntry) {
           HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
@@ -2121,19 +2178,31 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       SourceEntry sourceEntry = sourceMap.get(source);
       if (sourceEntry instanceof DartEntry) {
         DartEntry dartEntry = (DartEntry) sourceEntry;
-        if (dartEntry.getState(DartEntry.PARSED_UNIT) == CacheState.INVALID) {
+        CacheState parsedUnitState = dartEntry.getState(DartEntry.PARSED_UNIT);
+        if (parsedUnitState == CacheState.INVALID || parsedUnitState == CacheState.FLUSHED) {
           safelyParseCompilationUnit(source, dartEntry);
           return true;
-        } else if (dartEntry.getState(DartEntry.ELEMENT) == CacheState.INVALID) {
+        }
+        CacheState elementState = dartEntry.getState(DartEntry.ELEMENT);
+        if (elementState == CacheState.INVALID || elementState == CacheState.FLUSHED) {
           safelyResolveCompilationUnit(source);
           return true;
         }
+        for (Source librarySource : getLibrariesContaining(source)) {
+          if (dartEntry.getState(DartEntry.RESOLVED_UNIT, librarySource) == CacheState.FLUSHED) {
+            safelyResolveCompilationUnit(source, librarySource);
+            return true;
+          }
+        }
       } else if (sourceEntry instanceof HtmlEntry) {
         HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
-        if (htmlEntry.getState(HtmlEntry.PARSED_UNIT) == CacheState.INVALID) {
+        CacheState parsedUnitState = htmlEntry.getState(HtmlEntry.PARSED_UNIT);
+        if (parsedUnitState == CacheState.INVALID || parsedUnitState == CacheState.FLUSHED) {
           safelyParseHtmlUnit(source);
           return true;
-        } else if (htmlEntry.getState(HtmlEntry.ELEMENT) == CacheState.INVALID) {
+        }
+        CacheState elementState = htmlEntry.getState(HtmlEntry.ELEMENT);
+        if (elementState == CacheState.INVALID || elementState == CacheState.FLUSHED) {
           safelyResolveHtmlUnit(source);
           return true;
         }
@@ -2315,6 +2384,27 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       computeLibraryElement(source);
     } catch (AnalysisException exception) {
       // Ignored
+    }
+  }
+
+  /**
+   * Resolve the given source within the given library and update the cache.
+   * <p>
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param unitSource the source to be resolved
+   * @param librarySource the source
+   */
+  private void safelyResolveCompilationUnit(Source unitSource, Source librarySource) {
+    try {
+      resolveCompilationUnit(unitSource, librarySource);
+    } catch (AnalysisException exception) {
+      DartEntryImpl dartCopy = getReadableDartEntry(unitSource).getWritableCopy();
+      dartCopy.recordResolutionError();
+      sourceMap.put(unitSource, dartCopy);
+      AnalysisEngine.getInstance().getLogger().logError(
+          "Could not resolve " + unitSource.getFullName() + " in " + librarySource.getFullName(),
+          exception);
     }
   }
 
