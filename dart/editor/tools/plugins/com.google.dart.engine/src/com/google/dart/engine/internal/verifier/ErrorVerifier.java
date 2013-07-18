@@ -1673,7 +1673,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     //
     // Test propagated type information
     //
-    Type propagatedArgumentType = getPropagatedType(expression);
+    Type propagatedArgumentType = expression.getPropagatedType();
 
     if (propagatedArgumentType == null || expectedPropagatedType == null) {
       if (staticArgumentType.isAssignableTo(expectedStaticType)) {
@@ -2643,7 +2643,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     // test the propagated type of the expression
-    Type propagatedType = getPropagatedType(expression);
+    Type propagatedType = expression.getPropagatedType();
     if (propagatedType != null && propagatedType.isAssignableTo(fieldType)) {
       return false;
     }
@@ -2929,9 +2929,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           // TODO(brianwilkerson) This is failing with const variables whose declared type is
           // dynamic. The problem is that we don't have any way to propagate type information for
           // the variable.
-          firstType = getBestType(expression);
+          firstType = expression.getBestType();
         } else {
-          Type nType = getBestType(expression);
+          Type nType = expression.getBestType();
           if (!firstType.equals(nType)) {
             errorReporter.reportError(
                 CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
@@ -3020,7 +3020,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Type leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.getType();
     Type staticRightType = getStaticType(rhs);
     boolean isStaticAssignable = staticRightType.isAssignableTo(leftType);
-    Type propagatedRightType = getPropagatedType(rhs);
+    Type propagatedRightType = rhs.getPropagatedType();
     if (strictMode || propagatedRightType == null) {
       if (!isStaticAssignable) {
         errorReporter.reportError(
@@ -4122,7 +4122,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     boolean isStaticAssignable = staticReturnType.isAssignableTo(expectedReturnType);
-    Type propagatedReturnType = getPropagatedType(returnExpression);
+    Type propagatedReturnType = returnExpression.getPropagatedType();
     if (strictMode || propagatedReturnType == null) {
       if (isStaticAssignable) {
         return false;
@@ -4510,21 +4510,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Return the propagated type of the given expression, or the static type if there is no
-   * propagated type information.
-   * 
-   * @param expression the expression whose type is to be returned
-   * @return the propagated or static type of the given expression, whichever is best
-   */
-  private Type getBestType(Expression expression) {
-    Type type = getPropagatedType(expression);
-    if (type == null) {
-      type = getStaticType(expression);
-    }
-    return type;
-  }
-
-  /**
    * Returns the Type (return type) for a given getter.
    * 
    * @param propertyAccessorElement
@@ -4537,16 +4522,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     } else {
       return null;
     }
-  }
-
-  /**
-   * Return the propagated type of the given expression that is to be used for type analysis.
-   * 
-   * @param expression the expression whose type is to be returned
-   * @return the propagated type of the given expression
-   */
-  private Type getPropagatedType(Expression expression) {
-    return expression.getPropagatedType();
   }
 
   /**
