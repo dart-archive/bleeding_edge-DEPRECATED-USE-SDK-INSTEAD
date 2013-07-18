@@ -60,7 +60,7 @@ public class TestUtilities {
     public boolean threadCompleted();
   }
 
-  private static final String CORE_TEST_PLUGIN_ID = "com.google.dart.tools.core_test";
+  public static final String CORE_TEST_PLUGIN_ID = "com.google.dart.tools.core_test";
 
   /**
    * The name of the directory containing projects that can be loaded for testing purposes.
