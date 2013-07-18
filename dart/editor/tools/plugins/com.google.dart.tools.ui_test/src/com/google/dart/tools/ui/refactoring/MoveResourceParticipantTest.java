@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.refactoring;
 import com.google.dart.engine.internal.index.AbstractDartTest;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.MoveResourceParticipant;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.refactoring.MoveSupport;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
@@ -38,7 +39,7 @@ public final class MoveResourceParticipantTest extends AbstractDartTest {
    * Waits for background build and moves the given {@link IFile}.
    */
   private static void buildAndMove(IFile file, IFolder destination) throws Exception {
-    RefactoringUtils.waitReadyForRefactoring();
+    RefactoringUtils.waitReadyForRefactoring(new NullProgressMonitor());
     moveFile(file, destination);
   }
 
