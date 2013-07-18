@@ -72,6 +72,18 @@ public class ExecutionUtils {
   }
 
   /**
+   * Runs given {@link Runnable} inside of UI thread, using {@link Display#asyncExec(Runnable)}.
+   */
+  public static void runAsync(final Runnable runnable) {
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        runnable.run();
+      }
+    });
+  }
+
+  /**
    * Runs given {@link RunnableEx} and ignores exception.
    * 
    * @return <code>true</code> if execution was done without exception.
@@ -195,12 +207,20 @@ public class ExecutionUtils {
    * Runs given {@link RunnableEx} inside of UI thread, using {@link Display#syncExec(Runnable)}.
    */
   public static void runRethrowUI(final RunnableEx runnable) {
+    final Throwable exception[] = {null};
     Display.getDefault().syncExec(new Runnable() {
       @Override
       public void run() {
-        ExecutionUtils.runRethrow(runnable);
+        try {
+          runnable.run();
+        } catch (Throwable e) {
+          exception[0] = e;
+        }
       }
     });
+    if (exception[0] != null) {
+      propagate(exception[0]);
+    }
   }
 
   /**

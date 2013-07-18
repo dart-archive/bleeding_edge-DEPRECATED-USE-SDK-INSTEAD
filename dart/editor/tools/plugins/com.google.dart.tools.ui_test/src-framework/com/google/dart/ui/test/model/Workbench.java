@@ -13,12 +13,20 @@
  */
 package com.google.dart.ui.test.model;
 
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 import com.google.dart.ui.test.model.internal.views.CloseViewCommand;
 import com.google.dart.ui.test.model.internal.views.ShowViewCommand;
 import com.google.dart.ui.test.model.internal.views.ViewExplorer;
 import com.google.dart.ui.test.model.internal.workbench.CommandException;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.views.IViewDescriptor;
 
 /**
@@ -101,6 +109,28 @@ public class Workbench {
       return view;
     }
 
+  }
+
+  public static void closeAllEditors() {
+    ExecutionUtils.runRethrowUI(new RunnableEx() {
+      @Override
+      public void run() throws Exception {
+        getActivePage().closeAllEditors(false);
+      }
+    });
+  }
+
+  public static IEditorPart openEditor(final IFile file) {
+    return ExecutionUtils.runObjectUI(new RunnableObjectEx<IEditorPart>() {
+      @Override
+      public IEditorPart runObject() throws Exception {
+        return IDE.openEditor(getActivePage(), file);
+      }
+    });
+  }
+
+  private static IWorkbenchPage getActivePage() {
+    return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
   }
 
 }

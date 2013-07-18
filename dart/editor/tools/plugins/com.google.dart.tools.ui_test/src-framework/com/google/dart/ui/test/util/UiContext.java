@@ -42,6 +42,13 @@ import java.util.LinkedList;
  */
 public class UiContext {
   /**
+   * Sends {@link SWT#Selection} event to given {@link Widget}.
+   */
+  public static void click(Widget widget) {
+    widget.notifyListeners(SWT.Selection, new Event());
+  }
+
+  /**
    * @return the text of the given {@link Widget}, may be {@code null} is this type of the
    *         {@link Widget} has no text.
    */
@@ -84,19 +91,13 @@ public class UiContext {
   }
 
   private final Display display;
+
   private final LinkedList<Shell> shells = Lists.newLinkedList();
 
   private Shell shell;
 
   public UiContext() {
     this.display = Display.getCurrent();
-  }
-
-  /**
-   * Sends {@link SWT#Selection} event to given {@link Widget}.
-   */
-  public void click(Widget widget) {
-    widget.notifyListeners(SWT.Selection, new Event());
   }
 
   /**
