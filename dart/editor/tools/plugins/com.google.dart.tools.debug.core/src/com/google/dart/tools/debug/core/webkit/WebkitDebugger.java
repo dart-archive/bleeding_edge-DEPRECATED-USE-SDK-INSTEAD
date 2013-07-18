@@ -183,7 +183,6 @@ public class WebkitDebugger extends WebkitDomain {
 
   private Map<String, WebkitScript> scriptMap = new HashMap<String, WebkitScript>();
   private Map<String, WebkitBreakpoint> breakpointMap = new HashMap<String, WebkitBreakpoint>();
-  private Map<WebkitRemoteObject, String> classInfoMap = new HashMap<WebkitRemoteObject, String>();
 
   private int remoteObjectCount;
 
@@ -285,24 +284,6 @@ public class WebkitDebugger extends WebkitDomain {
 
   public Collection<WebkitScript> getAllScripts() {
     return scriptMap.values();
-  }
-
-  public String getClassNameSync(WebkitRemoteObject value) {
-    WebkitRemoteObject classInfo = value.getClassInfo();
-
-    if (classInfo != null) {
-      if (!classInfoMap.containsKey(classInfo)) {
-        populateClassInfoMap(classInfo);
-      }
-
-      return classInfoMap.get(classInfo);
-    } else {
-      if (value.getClassName() == null) {
-        return value.getType();
-      } else {
-        return value.getClassName();
-      }
-    }
   }
 
   /**
@@ -893,43 +874,6 @@ public class WebkitDebugger extends WebkitDomain {
 
   private void handleResumed() {
     clearRemoteObjects();
-    classInfoMap.clear();
-  }
-
-  private void populateClassInfoMap(final WebkitRemoteObject classInfo) {
-    final CountDownLatch latch = new CountDownLatch(1);
-
-    try {
-      getConnection().getRuntime().getProperties(
-          classInfo,
-          true,
-          new WebkitCallback<WebkitPropertyDescriptor[]>() {
-            @Override
-            public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
-              // [[library,[string,dart:core]], [class,[string,TypeErrorImplementation]], [__proto__,[object,Object]]]
-
-              if (!result.isError()) {
-                for (WebkitPropertyDescriptor descriptor : result.getResult()) {
-                  if (descriptor.getName().equals("class")) {
-                    String className = descriptor.getValue().getValue();
-
-                    classInfoMap.put(classInfo, className);
-                  }
-                }
-              }
-
-              latch.countDown();
-            }
-          });
-    } catch (IOException ex) {
-      latch.countDown();
-    }
-
-    try {
-      latch.await();
-    } catch (InterruptedException e) {
-
-    }
   }
 
 }

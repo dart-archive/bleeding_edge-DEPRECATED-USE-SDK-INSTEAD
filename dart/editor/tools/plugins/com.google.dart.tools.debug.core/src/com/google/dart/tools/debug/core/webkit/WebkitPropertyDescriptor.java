@@ -24,7 +24,6 @@ import org.json.JSONObject;
  * @see code.google.com/chrome/devtools/docs/protocol/tot/runtime.html#type-PropertyDescriptor
  */
 public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescriptor> {
-  public static final String CLASS_INFO = "@classInfo";
   public static final String STATIC_FIELDS = "@staticFields";
 
   public static WebkitPropertyDescriptor createObjectDescriptor(WebkitRemoteObject thisObject,

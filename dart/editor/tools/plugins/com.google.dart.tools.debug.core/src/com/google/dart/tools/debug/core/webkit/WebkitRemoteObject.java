@@ -66,8 +66,6 @@ public class WebkitRemoteObject {
 
   private String value;
 
-  private WebkitRemoteObject classInfo;
-
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof WebkitRemoteObject) {
@@ -160,14 +158,6 @@ public class WebkitRemoteObject {
     } else {
       return "[" + type + "," + value + "]";
     }
-  }
-
-  protected WebkitRemoteObject getClassInfo() {
-    return classInfo;
-  }
-
-  protected void setClassInfo(WebkitRemoteObject classInfo) {
-    this.classInfo = classInfo;
   }
 
 }

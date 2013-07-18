@@ -162,10 +162,6 @@ class VariableCollector {
           }
         } else {
           if (parentVariable != null) {
-//            if (WebkitPropertyDescriptor.CLASS_INFO.equals(descriptor.getName())) {
-//              gettingClassInfo = collectClassInfo(descriptor.getValue(), latch);
-//            }
-
             if (WebkitPropertyDescriptor.STATIC_FIELDS.equals(descriptor.getName())) {
               gettingStaticFields = collectStaticFields(descriptor.getValue(), latch);
             }

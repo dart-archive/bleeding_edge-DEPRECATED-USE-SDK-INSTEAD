@@ -336,15 +336,7 @@ public class WebkitRuntime extends WebkitDomain {
     if (object.has("result")) {
       JSONObject obj = object.getJSONObject("result");
 
-      WebkitPropertyDescriptor[] properties = WebkitPropertyDescriptor.createFrom(obj.getJSONArray("result"));
-
-      for (WebkitPropertyDescriptor property : properties) {
-        if (property.getName().equals(WebkitPropertyDescriptor.CLASS_INFO)) {
-          parentObject.setClassInfo(property.getValue());
-        }
-      }
-
-      result.setResult(properties);
+      result.setResult(WebkitPropertyDescriptor.createFrom(obj.getJSONArray("result")));
     }
 
     return result;
