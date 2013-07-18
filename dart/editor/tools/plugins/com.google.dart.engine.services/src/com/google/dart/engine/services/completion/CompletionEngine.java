@@ -2535,13 +2535,7 @@ public class CompletionEngine {
   }
 
   private Type typeOf(Expression expr) {
-    Type type = expr.getPropagatedType();
-    if (type == null) {
-      type = expr.getStaticType();
-    }
-    if (type == null) {
-      type = DynamicTypeImpl.getInstance();
-    }
+    Type type = expr.getBestType();
     if (type.isDynamic()) {
       final Type[] result = new Type[1];
       AstNodeClassifier visitor = new AstNodeClassifier() {
