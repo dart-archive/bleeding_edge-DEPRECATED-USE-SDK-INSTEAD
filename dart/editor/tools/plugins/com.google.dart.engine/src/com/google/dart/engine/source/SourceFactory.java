@@ -157,6 +157,9 @@ public class SourceFactory {
    * @return the source representing the contained URI
    */
   public Source resolveUri(Source containingSource, String containedUri) {
+    if (containedUri == null) {
+      return null;
+    }
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
       return resolveUri(containingSource, new URI(containedUri));
