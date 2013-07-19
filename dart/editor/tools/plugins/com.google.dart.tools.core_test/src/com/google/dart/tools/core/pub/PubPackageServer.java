@@ -16,7 +16,6 @@ package com.google.dart.tools.core.pub;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.test.util.TestUtilities;
-import com.google.dart.tools.core.utilities.net.NetUtils;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -28,6 +27,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Starts the dart HTTP server that serves the packages for pub requests during tests. Users should
@@ -43,6 +44,9 @@ public class PubPackageServer {
 
   private static ProcessRunner runner;
 
+  /**
+   * Check if server is up and running
+   */
   public static boolean isRunning() {
     return runner != null;
   }
@@ -59,7 +63,6 @@ public class PubPackageServer {
 
     URL dataUrl = FileLocator.find(Platform.getBundle(TestUtilities.CORE_TEST_PLUGIN_ID), new Path(
         PUB_SERVER_DATA_PATH), null);
-
     URL serverUrl = FileLocator.find(
         Platform.getBundle(TestUtilities.CORE_TEST_PLUGIN_ID),
         new Path(PUB_SERVER_PATH),
@@ -74,12 +77,10 @@ public class PubPackageServer {
       } catch (URISyntaxException e) {
 
       } catch (IOException e) {
-        e.printStackTrace();
+
       }
     }
-
     if (testDataLocation != null && pubDartServerPath != null) {
-      pubServerPort = NetUtils.findUnusedPort(0);
       startServer(pubDartServerPath, testDataLocation);
     }
   }
@@ -94,7 +95,14 @@ public class PubPackageServer {
     runner = null;
   }
 
+  private static void init() {
+    runner.dispose();
+    runner = null;
+    pubServerPort = 0;
+  }
+
   private static void startServer(String pubDartServerPath, String testDataLocation) {
+
     String vmExecPath = null;
     if (DartSdkManager.getManager().hasSdk()) {
       File vmExec = DartSdkManager.getManager().getSdk().getVmExecutable();
@@ -108,23 +116,40 @@ public class PubPackageServer {
       List<String> commandsList = new ArrayList<String>();
       commandsList.add(vmExecPath);
       commandsList.add(pubDartServerPath);
-      commandsList.add(Integer.toString(pubServerPort));
       commandsList.add(testDataLocation);
 
       String[] commands = commandsList.toArray(new String[commandsList.size()]);
       ProcessBuilder processBuilder = new ProcessBuilder(commands);
       runner = new ProcessRunner(processBuilder);
+
       try {
         runner.runAsync();
       } catch (IOException e) {
-
+        // process did not start due to exception
+        init();
+        return;
       }
 
-      // check if process has started and is running 
-      //int exitcode = runner.getExitCode();
+      try {
+        Thread.sleep(200);
+      } catch (InterruptedException e) {
 
+      }
+      // parse stdout to get portno
+      String stdout = runner.getStdOut();
+      final Pattern portPattern = Pattern.compile("\\d+");
+      Matcher matcher = portPattern.matcher(stdout);
+      if (matcher.find()) {
+        try {
+          pubServerPort = Integer.parseInt(matcher.group());
+        } catch (NumberFormatException nfe) {
+          //log("bad port value for server port: " + matcher.group());
+          init();
+        }
+      } else {
+        //log("no server port found");
+        init();
+      }
     }
-
   }
-
 }

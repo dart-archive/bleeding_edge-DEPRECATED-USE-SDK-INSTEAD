@@ -20,22 +20,19 @@ const LOG_REQUESTS = true;
 String baseDir;
 
 main() {
-  int port = 0;
+  int port;
   var options = new Options().arguments;
-  if (options.length != 2) {
-    print('Insufficient arguments \npub_package_server portNo serverDataLocation');
+  if (options.length != 1) {
+    print('Insufficient arguments \npub_package_server serverDataLocation');
     exit(64);
   }
 
-  port = int.parse(options.first);
-  baseDir = options.elementAt(1);
+  baseDir = options.first;
 
-  //TODO(keertip): bind to 0 and send info back. This allows multiple
-  //servers to be started.
-  HttpServer.bind("localhost", port).then((server) {
+  HttpServer.bind("localhost", 0).then((server) {
     port = server.port;
     server.listen(requestReceivedHandler);
-    print('Serving packages on http://localhost:$port');
+    print('Server is using port $port');
   });
 }
 
