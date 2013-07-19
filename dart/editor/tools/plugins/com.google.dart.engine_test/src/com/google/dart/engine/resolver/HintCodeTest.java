@@ -18,6 +18,59 @@ import com.google.dart.engine.source.Source;
 
 public class HintCodeTest extends ResolverTestCase {
 
+  public void fail_unusedImport() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;"));
+    resolve(source);
+    assertErrors(HintCode.UNUSED_IMPORT);
+    verify(source);
+  }
+
+  public void fail_unusedImport_as() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';", // unused
+        "import 'lib1.dart' as one;",
+        "one.A a;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    resolve(source);
+    assertErrors(HintCode.UNUSED_IMPORT);
+    verify(source);
+  }
+
+  public void fail_unusedImport_hide() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';",
+        "import 'lib1.dart' hide A;", // unused
+        "A a;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    resolve(source);
+    assertErrors(HintCode.UNUSED_IMPORT);
+    verify(source);
+  }
+
+  public void fail_unusedImport_show() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';", // unused
+        "import 'lib1.dart' show A;",
+        "A a;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    resolve(source);
+    assertErrors(HintCode.UNUSED_IMPORT);
+    verify(source);
+  }
+
   public void test_deadCode_deadBlock_conditionalElse() throws Exception {
     Source source = addSource(createSource(//
         "f() {",

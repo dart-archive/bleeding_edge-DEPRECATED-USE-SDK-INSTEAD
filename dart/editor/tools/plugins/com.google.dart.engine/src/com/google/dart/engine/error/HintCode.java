@@ -39,7 +39,12 @@ public enum HintCode implements ErrorCode {
    * @param supertypeName name of the supertype
    */
   DEAD_CODE_ON_CATCH_SUBTYPE(
-      "Dead code, this on-catch block will never be executed since '%s' is a subtype of '%s'");
+      "Dead code, this on-catch block will never be executed since '%s' is a subtype of '%s'"),
+
+  /**
+   * Unused imports are imports which are never not used.
+   */
+  UNUSED_IMPORT("Unused import");
 
   /**
    * The message template used to create the message to be displayed for this error.
