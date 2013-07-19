@@ -1960,7 +1960,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     } catch (AnalysisException exception) {
       thrownException = exception;
     }
-    DartEntryImpl dartCopy = null;
+    DartEntry dartEntry = null;
     synchronized (cacheLock) {
       SourceEntry sourceEntry = sourceMap.get(source);
       if (!(sourceEntry instanceof DartEntry)) {
@@ -1968,11 +1968,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             "Internal error: attempting to parse non-Dart file as a Dart file: "
                 + source.getFullName());
       }
+      dartEntry = (DartEntry) sourceEntry;
       accessed(source);
-      long resultTime = scanResult == null ? source.getModificationStamp()
-          : scanResult.getModificationTime();
-      if (sourceEntry.getModificationTime() == resultTime) {
-        dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
+      long sourceTime = source.getModificationStamp();
+      long resultTime = scanResult == null ? sourceTime : scanResult.getModificationTime();
+      if (sourceTime == resultTime) {
+        if (dartEntry.getModificationTime() != sourceTime) {
+          // The source has changed without the context being notified. Simulate notification.
+          sourceChanged(source);
+          dartEntry = getReadableDartEntry(source);
+        }
+        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         if (thrownException == null) {
           dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
           if (hasPartOfDirective && !hasLibraryDirective) {
@@ -1989,6 +1995,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.recordParseError();
         }
         sourceMap.put(source, dartCopy);
+        dartEntry = dartCopy;
       }
     }
     if (thrownException != null) {
@@ -1999,7 +2006,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
 //    ChangeNoticeImpl notice = getNotice(source);
 //    notice.setErrors(dartCopy.getAllErrors(), lineInfo);
-    return dartCopy;
+    return dartEntry;
   }
 
   /**
