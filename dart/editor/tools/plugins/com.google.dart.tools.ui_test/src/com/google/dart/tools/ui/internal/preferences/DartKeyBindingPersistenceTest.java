@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.preferences;
 
-import junit.framework.TestCase;
+import com.google.dart.ui.test.UIThreadTestCase;
 
 import org.eclipse.core.commands.common.NotDefinedException;
 import org.eclipse.core.runtime.CoreException;
@@ -28,7 +28,7 @@ import java.io.File;
 import java.io.Reader;
 import java.io.StringReader;
 
-public class DartKeyBindingPersistenceTest extends TestCase {
+public class DartKeyBindingPersistenceTest extends UIThreadTestCase {
 
   public void testExportPrefs() {
     DartKeyBindingPersistence persist = getBindingPersist();
@@ -99,9 +99,7 @@ public class DartKeyBindingPersistenceTest extends TestCase {
     return persist;
   }
 
-  private boolean hasKeyBinding(
-      DartKeyBindingPersistence persist,
-      String commandName,
+  private boolean hasKeyBinding(DartKeyBindingPersistence persist, String commandName,
       String keySequence) {
     try {
       Binding bind = persist.findBinding(commandName, null);

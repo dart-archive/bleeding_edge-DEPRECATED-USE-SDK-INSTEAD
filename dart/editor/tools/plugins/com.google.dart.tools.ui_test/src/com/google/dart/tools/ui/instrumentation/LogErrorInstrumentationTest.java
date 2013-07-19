@@ -14,7 +14,8 @@
 
 package com.google.dart.tools.ui.instrumentation;
 
-import com.google.dart.tools.core.DartCore;
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.Activator;
 
 public class LogErrorInstrumentationTest extends InstrumentationTestCase {
@@ -22,11 +23,25 @@ public class LogErrorInstrumentationTest extends InstrumentationTestCase {
   public void testLogError() {
     assertTrue(Activator.waitForEarlyStartup(10000));
 
-    DartCore.logError(new Exception("TestException"));
+    // Actually calling DartCore.logError() here will fail this test.
+    logError(null, new Exception("TestException"));
 
     assertNotNull(mockedLogger.getBuilder("DartCore.LogError"));
     assertNotNull(mockedLogger.getBuilder("DartCore.LogError").getData("Message"));
     assertNotNull(mockedLogger.getBuilder("DartCore.LogError").getData("Exception"));
-
   }
+
+  private void logError(String message, Exception exception) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartCore.LogError");
+
+    instrumentation.data("Message", message != null ? message : "null");
+    instrumentation.data("Exception", exception != null ? exception.toString() : "null");
+
+    if (exception != null) {
+      instrumentation.record(exception);
+    }
+
+    instrumentation.log();
+  }
+
 }

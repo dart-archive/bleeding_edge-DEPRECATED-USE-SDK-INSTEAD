@@ -28,6 +28,8 @@ public class UITestCase extends TestCase {
 
   @Override
   protected void setUp() throws Exception {
+    super.setUp();
+
     checkThread();
     watcher.start();
   }
@@ -39,6 +41,8 @@ public class UITestCase extends TestCase {
     } finally {
       watcher.stop();
     }
+
+    super.tearDown();
   }
 
   private void checkThread() {

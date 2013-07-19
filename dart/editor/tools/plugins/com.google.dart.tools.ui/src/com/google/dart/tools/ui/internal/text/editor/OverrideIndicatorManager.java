@@ -52,7 +52,7 @@ import java.util.Map;
  */
 public class OverrideIndicatorManager {
 
-  static class OverriddenElementFinder extends GeneralizingASTVisitor<Void> {
+  public static class OverriddenElementFinder extends GeneralizingASTVisitor<Void> {
 
     private Map<Annotation, Position> annotationMap = new HashMap<Annotation, Position>();
 
@@ -142,7 +142,7 @@ public class OverrideIndicatorManager {
   /**
    * Overwrite and override indicator annotation.
    */
-  static class OverrideIndicator extends Annotation {
+  public static class OverrideIndicator extends Annotation {
 
     private boolean isOverride;
     private Element element;

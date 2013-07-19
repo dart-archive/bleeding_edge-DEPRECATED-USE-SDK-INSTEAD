@@ -444,36 +444,40 @@ public class UpdateUtils {
       monitor.beginTask(taskName, 1);
     }
 
-    Enumeration<ZipArchiveEntry> e = zip.getEntries();
-    while (e.hasMoreElements()) {
-      ZipArchiveEntry entry = e.nextElement();
-      File file = new File(destination, entry.getName());
-      if (entry.isDirectory()) {
-        file.mkdirs();
-      } else {
-        InputStream is = zip.getInputStream(entry);
+    try {
+      Enumeration<ZipArchiveEntry> e = zip.getEntries();
 
-        File parent = file.getParentFile();
-        if (parent != null && parent.exists() == false) {
-          parent.mkdirs();
+      while (e.hasMoreElements()) {
+        ZipArchiveEntry entry = e.nextElement();
+        File file = new File(destination, entry.getName());
+        if (entry.isDirectory()) {
+          file.mkdirs();
+        } else {
+          InputStream is = zip.getInputStream(entry);
+
+          File parent = file.getParentFile();
+          if (parent != null && parent.exists() == false) {
+            parent.mkdirs();
+          }
+
+          FileOutputStream os = new FileOutputStream(file);
+          try {
+            IOUtils.copy(is, os);
+          } finally {
+            os.close();
+            is.close();
+          }
+          file.setLastModified(entry.getTime());
+
+          int mode = entry.getUnixMode();
+
+          if ((mode & EXEC_MASK) != 0) {
+            file.setExecutable(true);
+          }
         }
-
-        FileOutputStream os = new FileOutputStream(file);
-        try {
-          IOUtils.copy(is, os);
-        } finally {
-          os.close();
-          is.close();
-        }
-        file.setLastModified(entry.getTime());
-
-        int mode = entry.getUnixMode();
-
-        if ((mode & EXEC_MASK) != 0) {
-          file.setExecutable(true);
-        }
-
       }
+    } finally {
+      ZipFile.closeQuietly(zip);
     }
 
     //TODO (pquitslund): fix progress units
@@ -481,7 +485,6 @@ public class UpdateUtils {
       monitor.worked(1);
       monitor.done();
     }
-
   }
 
   private static void copyStream(InputStream in, FileOutputStream out, IProgressMonitor monitor,
