@@ -317,43 +317,43 @@ public class ProblemsLabelDecorator implements ILabelDecorator, ILightweightLabe
       return 0;
     }
     int severity = 0;
-    if (sourceElement == null) {
-      severity = res.findMaxProblemSeverity(IMarker.PROBLEM, true, depth);
-    } else {
-      IMarker[] markers = res.findMarkers(IMarker.PROBLEM, true, depth);
-      if (markers != null && markers.length > 0) {
-        for (int i = 0; i < markers.length && (severity != IMarker.SEVERITY_ERROR); i++) {
-          IMarker curr = markers[i];
-          if (isMarkerInRange(curr, sourceElement)) {
-            int val = curr.getAttribute(IMarker.SEVERITY, -1);
-            if (val == IMarker.SEVERITY_WARNING || val == IMarker.SEVERITY_ERROR) {
-              severity = val;
+    try {
+      if (sourceElement == null) {
+        severity = res.findMaxProblemSeverity(IMarker.PROBLEM, true, depth);
+      } else {
+        IMarker[] markers = res.findMarkers(IMarker.PROBLEM, true, depth);
+        if (markers != null && markers.length > 0) {
+          for (int i = 0; i < markers.length && (severity != IMarker.SEVERITY_ERROR); i++) {
+            IMarker curr = markers[i];
+            if (isMarkerInRange(curr, sourceElement)) {
+              int val = curr.getAttribute(IMarker.SEVERITY, -1);
+              if (val == IMarker.SEVERITY_WARNING || val == IMarker.SEVERITY_ERROR) {
+                severity = val;
+              }
             }
           }
         }
       }
-    }
 
-    if (severity == IMarker.SEVERITY_ERROR) {
-      return ERRORTICK_ERROR;
-    } else if (severity == IMarker.SEVERITY_WARNING) {
-      return ERRORTICK_WARNING;
-    }
+      if (severity == IMarker.SEVERITY_ERROR) {
+        return ERRORTICK_ERROR;
+      } else if (severity == IMarker.SEVERITY_WARNING) {
+        return ERRORTICK_WARNING;
+      }
 
-    if (res instanceof IFolder) {
-      IFolder folder = (IFolder) res;
+      if (res instanceof IFolder) {
+        IFolder folder = (IFolder) res;
 
-      IPath path = folder.getLocation();
+        IPath path = folder.getLocation();
 
-      if (path != null) {
-        try {
+        if (path != null) {
           if (FileUtilities.isLinkedFile(path.toFile())) {
             return LINKED;
           }
-        } catch (CoreException e) {
-
         }
       }
+    } catch (CoreException e) {
+      // Ignored because if the resource has become unavailable we can simply not decorate it.
     }
 
     return 0;
