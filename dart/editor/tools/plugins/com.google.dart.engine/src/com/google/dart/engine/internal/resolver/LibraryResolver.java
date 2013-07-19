@@ -46,9 +46,9 @@ import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.ShowElementCombinatorImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.hint.HintGenerator;
 import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
-import com.google.dart.engine.internal.verifier.HintVerifier;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
@@ -872,10 +872,10 @@ public class LibraryResolver {
           typeProvider,
           library.getInheritanceManager());
       unit.accept(errorVerifier);
-
-      if (enableHints) {
-        new HintVerifier(analysisContext, errorReporter).visitCompilationUnit(unit);
-      }
+    }
+    if (enableHints) {
+      HintGenerator hintGenerator = new HintGenerator(library, analysisContext, errorListener);
+      hintGenerator.generateForLibrary();
     }
   }
 }
