@@ -186,10 +186,10 @@ public class EventSender {
   }
 
   private final Control control;
-
   private int stateMask;
   private int dragButton;
   private int lastDragX;
+
   private int lastDragY;
 
   /**

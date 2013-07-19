@@ -47,7 +47,7 @@ public class AbstractDartEditorTabTest2 extends TestCase {
 
   protected static TestProject testProject;
 
-  private static IWorkbenchPage activePage;
+  protected static IWorkbenchPage activePage;
 
   protected static String makeSource(String... lines) {
     return Joiner.on(EOL).join(lines);
@@ -130,6 +130,12 @@ public class AbstractDartEditorTabTest2 extends TestCase {
    */
   protected final IAction getEditorAction(String id) {
     IActionBars actionBars = testEditor.getEditorSite().getActionBars();
+    {
+      IAction action = testEditor.getAction(id);
+      if (action != null) {
+        return action;
+      }
+    }
     return actionBars.getGlobalActionHandler(id);
   }
 

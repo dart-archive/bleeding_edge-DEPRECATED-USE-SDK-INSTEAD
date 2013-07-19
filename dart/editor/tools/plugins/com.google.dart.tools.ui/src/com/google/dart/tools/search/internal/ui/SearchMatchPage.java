@@ -86,6 +86,8 @@ import java.util.Set;
 
 /**
  * Abstract {@link SearchPage} for displaying {@link SearchMatch}s.
+ * 
+ * @coverage dart.editor.ui.search
  */
 public abstract class SearchMatchPage extends SearchPage {
   /**
@@ -832,6 +834,9 @@ public abstract class SearchMatchPage extends SearchPage {
   private ItemCursor itemCursor;
   private PositionTracker positionTracker;
 
+  private long lastQueryStartTime = 0;
+  private long lastQueryFinishTime = 0;
+
   public SearchMatchPage(SearchView searchView, String taskName) {
     this.searchView = searchView;
     this.taskName = taskName;
@@ -867,6 +872,16 @@ public abstract class SearchMatchPage extends SearchPage {
   @Override
   public Control getControl() {
     return viewer.getControl();
+  }
+
+  @Override
+  public long getLastQueryFinishTime() {
+    return lastQueryFinishTime;
+  }
+
+  @Override
+  public long getLastQueryStartTime() {
+    return lastQueryStartTime;
   }
 
   @Override
@@ -1036,6 +1051,7 @@ public abstract class SearchMatchPage extends SearchPage {
    */
   private void refresh() {
     try {
+      lastQueryStartTime = System.currentTimeMillis();
       new Job(taskName) {
         @Override
         protected IStatus run(IProgressMonitor monitor) {
@@ -1053,6 +1069,7 @@ public abstract class SearchMatchPage extends SearchPage {
               viewer.setInput(rootItem);
               viewer.setExpandedElements(expandedElements);
               expandWhileSmallNumberOfChildren(rootItem.children);
+              lastQueryFinishTime = System.currentTimeMillis();
               return Status.OK_STATUS;
             }
           }.schedule();

@@ -22,6 +22,8 @@ import org.eclipse.swt.widgets.Shell;
 
 /**
  * Triggers a text search.
+ * 
+ * @coverage dart.editor.ui.search
  */
 public class TextSearchAction extends Action {
   private final String searchText;

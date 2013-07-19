@@ -48,6 +48,8 @@ import java.util.List;
 
 /**
  * Finds references of the selected {@link Element} in the workspace.
+ * 
+ * @coverage dart.editor.ui.search
  */
 public class FindReferencesAction extends AbstractDartSelectionAction {
   /**

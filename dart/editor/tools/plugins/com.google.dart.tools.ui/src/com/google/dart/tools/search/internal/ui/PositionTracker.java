@@ -18,6 +18,8 @@ import java.util.Map;
 
 /**
  * Helper for updating search {@link Position}s when corresponding files are changed.
+ * 
+ * @coverage dart.editor.ui.search
  */
 class PositionTracker implements IFileBufferListener {
   private final Map<IFile, List<Position>> fileToPositions = Maps.newHashMap();

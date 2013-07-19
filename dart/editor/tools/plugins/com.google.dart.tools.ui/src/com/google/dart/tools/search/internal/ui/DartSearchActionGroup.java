@@ -27,6 +27,8 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
 /**
  * {@link ActionGroup} that adds the Dart search actions.
+ * 
+ * @coverage dart.editor.ui.search
  */
 public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
   private FindReferencesAction findReferencesAction;

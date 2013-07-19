@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -37,6 +38,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
 
 /**
@@ -107,6 +110,13 @@ public class UiContext2 {
   }
 
   /**
+   * @return the first {@link Tree} widget.
+   */
+  public static Tree findTree(Widget start) {
+    return findWidget(start, ofClass(Tree.class));
+  }
+
+  /**
    * @return the matching {@link Widget}, may be {@code null}.
    */
   public static <T extends Widget> T findWidget(final Widget start, final WidgetMatcher matcher) {
@@ -162,6 +172,9 @@ public class UiContext2 {
         if (widget instanceof Text) {
           return ((Text) widget).getText();
         }
+        if (widget instanceof TreeItem) {
+          return ((TreeItem) widget).getText();
+        }
         return null;
       }
     });
@@ -173,6 +186,30 @@ public class UiContext2 {
   public static String getTextByLabel(Widget start, String labelText) {
     Widget textWidget = findWidgetByLabel(start, labelText);
     return getText(textWidget);
+  }
+
+  /**
+   * @return the {@link TreeItem}s of the given {@link Tree}.
+   */
+  public static TreeItem[] getTreeItems(final Tree tree) {
+    return UIThreadRunnable.syncExec(new Result<TreeItem[]>() {
+      @Override
+      public TreeItem[] run() {
+        return tree.getItems();
+      }
+    });
+  }
+
+  /**
+   * @return the {@link TreeItem} children of the given {@link TreeItem}.
+   */
+  public static TreeItem[] getTreeItems(final TreeItem item) {
+    return UIThreadRunnable.syncExec(new Result<TreeItem[]>() {
+      @Override
+      public TreeItem[] run() {
+        return item.getItems();
+      }
+    });
   }
 
   /**
@@ -195,6 +232,25 @@ public class UiContext2 {
       @Override
       public void run() {
         action.run();
+      }
+    });
+  }
+
+  /**
+   * Sends the {@link SWT#DefaultSelection} to the parent {@link Tree}.
+   */
+  public static void sendDefaultSelection(final TreeItem item) {
+    UIThreadRunnable.syncExec(new VoidResult() {
+      @Override
+      public void run() {
+        Tree tree = item.getParent();
+        Event event = new Event();
+        event.widget = tree;
+        event.item = item;
+        Rectangle bounds = item.getBounds();
+        event.x = bounds.x + 1;
+        event.y = bounds.y + 1;
+        tree.notifyListeners(SWT.DefaultSelection, event);
       }
     });
   }

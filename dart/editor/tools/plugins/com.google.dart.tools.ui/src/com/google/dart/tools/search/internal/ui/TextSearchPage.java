@@ -43,6 +43,9 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.part.IPageSite;
 import org.eclipse.ui.progress.UIJob;
 
+/**
+ * @coverage dart.editor.ui.search
+ */
 public class TextSearchPage extends SearchPage {
   private static final String[] DEFAULT_FILE_EXTENSIONS = {"*"};
 
@@ -112,6 +115,16 @@ public class TextSearchPage extends SearchPage {
   @Override
   public Control getControl() {
     return fileSearchPage.getControl();
+  }
+
+  @Override
+  public long getLastQueryFinishTime() {
+    return 0;
+  }
+
+  @Override
+  public long getLastQueryStartTime() {
+    return 0;
   }
 
   @Override

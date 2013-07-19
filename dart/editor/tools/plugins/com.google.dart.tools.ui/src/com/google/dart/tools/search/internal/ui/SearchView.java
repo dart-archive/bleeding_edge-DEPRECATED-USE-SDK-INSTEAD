@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.search.internal.ui;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
@@ -33,6 +34,8 @@ import org.eclipse.ui.part.ViewPart;
 
 /**
  * {@link ViewPart} for displaying search results.
+ * 
+ * @coverage dart.editor.ui.search
  */
 public class SearchView extends ViewPart {
   public static final String ID = "com.google.dart.tools.SearchView";
@@ -82,6 +85,22 @@ public class SearchView extends ViewPart {
     preferences.removePropertyChangeListener(propertyChangeListener);
     showPage(null);
     super.dispose();
+  }
+
+  /**
+   * @return the time when query was last time finished.
+   */
+  @VisibleForTesting
+  public long getLastQueryFinishTime() {
+    return page.getLastQueryFinishTime();
+  }
+
+  /**
+   * @return the time when query was last time started.
+   */
+  @VisibleForTesting
+  public long getLastQueryStartTime() {
+    return page.getLastQueryStartTime();
   }
 
   @Override

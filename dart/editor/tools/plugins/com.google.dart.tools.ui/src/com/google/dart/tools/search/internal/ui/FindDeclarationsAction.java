@@ -40,6 +40,8 @@ import java.util.List;
 
 /**
  * Finds declarations of the {@link Element}s similar to selected in the workspace.
+ * 
+ * @coverage dart.editor.ui.search
  */
 public class FindDeclarationsAction extends AbstractDartSelectionAction {
   static boolean isInvocationNameOrPropertyAccessSelected(DartSelection selection) {

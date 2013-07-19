@@ -165,6 +165,21 @@ public class ViewFinder extends WorkbenchFinder {
   }
 
   /**
+   * @return the {@link Control} of the given view.
+   */
+  public static Control getControl(IViewPart viewPart) {
+    if (viewPart == null) {
+      return null;
+    }
+    IViewSite viewSite = viewPart.getViewSite();
+    if (viewSite instanceof PartSite) {
+      PartSite partSite = (PartSite) viewSite;
+      return partSite.getPane().getControl();
+    }
+    return null;
+  }
+
+  /**
    * Get the control associated with the view registered with the platform at the given id.
    * 
    * @param viewId the platform-registered view identifier
@@ -288,18 +303,6 @@ public class ViewFinder extends WorkbenchFinder {
 
   public static IViewMatcher nameMatcher(String name) {
     return new NameMatcher(name);
-  }
-
-  private static Control getControl(IViewPart viewPart) {
-    if (viewPart == null) {
-      return null;
-    }
-    IViewSite viewSite = viewPart.getViewSite();
-    if (viewSite instanceof PartSite) {
-      PartSite partSite = (PartSite) viewSite;
-      return partSite.getPane().getControl();
-    }
-    return null;
   }
 
 }

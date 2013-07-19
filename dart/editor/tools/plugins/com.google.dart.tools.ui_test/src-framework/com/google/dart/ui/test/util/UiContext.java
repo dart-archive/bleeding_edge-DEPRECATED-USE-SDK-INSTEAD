@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
 
 import java.util.LinkedList;
@@ -64,6 +65,9 @@ public class UiContext {
     }
     if (widget instanceof Text) {
       return ((Text) widget).getText();
+    }
+    if (widget instanceof TreeItem) {
+      return ((TreeItem) widget).getText();
     }
     return null;
   }

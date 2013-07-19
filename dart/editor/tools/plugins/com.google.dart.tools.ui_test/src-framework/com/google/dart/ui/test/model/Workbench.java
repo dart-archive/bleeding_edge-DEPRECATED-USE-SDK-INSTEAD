@@ -16,14 +16,21 @@ package com.google.dart.ui.test.model;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
+import com.google.dart.ui.test.Condition;
+import com.google.dart.ui.test.WaitTimedOutException;
+import com.google.dart.ui.test.internal.runtime.ConditionHandler;
 import com.google.dart.ui.test.model.internal.views.CloseViewCommand;
 import com.google.dart.ui.test.model.internal.views.ShowViewCommand;
 import com.google.dart.ui.test.model.internal.views.ViewExplorer;
+import com.google.dart.ui.test.model.internal.views.ViewFinder;
 import com.google.dart.ui.test.model.internal.workbench.CommandException;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
@@ -65,7 +72,7 @@ public class Workbench {
     FILES("Files"),
     OUTLINE("Outline"),
     PROBLEMS("Problems"),
-    //SEARCH("Search"),
+    SEARCH("Search"),
     WELCOME("Welcome");
 
     private final String name;
@@ -79,10 +86,36 @@ public class Workbench {
     }
 
     /**
+     * @return the {@link Control} of the first instance of this view, may be {@code null}.
+     */
+    public Control getControl() {
+      IViewPart view = getInstance();
+      if (view == null) {
+        return null;
+      }
+      return ViewFinder.getControl(view);
+    }
+
+    /**
+     * @return the first instance of this view, may be {@code null}.
+     */
+    public IViewPart getInstance() {
+      IViewReference reference = ViewFinder.findNamed(name);
+      if (reference == null) {
+        return null;
+      }
+      return reference.getView(false);
+    }
+
+    /**
      * Get the view name.
      */
     public String getName() {
       return name;
+    }
+
+    public boolean isOpen() {
+      return ViewExplorer.findView(name) != null;
     }
 
     /**
@@ -99,6 +132,18 @@ public class Workbench {
       IViewDescriptor view = getDescriptor();
       new ShowViewCommand(view).run();
       return this;
+    }
+
+    /**
+     * Waits for the view to open and returns its {@link Control}.
+     */
+    public void waitForOpen() throws WaitTimedOutException {
+      ConditionHandler.DEFAULT.waitFor(new Condition() {
+        @Override
+        public boolean test() {
+          return isOpen();
+        }
+      });
     }
 
     private IViewDescriptor getDescriptor() throws CommandException {
