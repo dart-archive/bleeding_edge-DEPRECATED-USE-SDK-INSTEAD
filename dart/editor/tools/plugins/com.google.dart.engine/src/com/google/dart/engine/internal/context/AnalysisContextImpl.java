@@ -2028,7 +2028,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     } catch (AnalysisException exception) {
       thrownException = exception;
     }
-    HtmlEntryImpl htmlCopy = null;
+    HtmlEntry htmlEntry = null;
     synchronized (cacheLock) {
       SourceEntry sourceEntry = sourceMap.get(source);
       if (!(sourceEntry instanceof HtmlEntry)) {
@@ -2036,11 +2036,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             "Internal error: attempting to parse non-HTML file as a HTML file: "
                 + source.getFullName());
       }
+      htmlEntry = (HtmlEntry) sourceEntry;
       accessed(source);
-      long resultTime = result == null ? source.getModificationStamp()
-          : result.getModificationTime();
-      if (sourceEntry.getModificationTime() == resultTime) {
-        htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
+      long sourceTime = source.getModificationStamp();
+      long resultTime = result == null ? sourceTime : result.getModificationTime();
+      if (sourceTime == resultTime) {
+        if (htmlEntry.getModificationTime() != sourceTime) {
+          // The source has changed without the context being notified. Simulate notification.
+          sourceChanged(source);
+          htmlEntry = getReadableHtmlEntry(source);
+        }
+        HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
         if (thrownException == null) {
           HtmlUnit unit = result.getHtmlUnit();
           htmlCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
@@ -2061,8 +2067,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       throw thrownException;
     }
     ChangeNoticeImpl notice = getNotice(source);
-    notice.setErrors(htmlCopy.getAllErrors(), lineInfo);
-    return htmlCopy;
+    notice.setErrors(htmlEntry.getAllErrors(), lineInfo);
+    return htmlEntry;
   }
 
   private ScanResult internalScan(final Source source, final AnalysisErrorListener errorListener)
