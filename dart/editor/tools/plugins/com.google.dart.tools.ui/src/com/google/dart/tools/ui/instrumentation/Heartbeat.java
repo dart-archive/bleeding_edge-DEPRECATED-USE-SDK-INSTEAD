@@ -13,9 +13,13 @@
  */
 package com.google.dart.tools.ui.instrumentation;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.feedback.FeedbackUtils;
+import com.google.dart.tools.ui.instrumentation.util.Base64;
 
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbench;
@@ -23,6 +27,8 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * {@code Heartbeat} provides utility methods that an external instrumentation plugin can call to
@@ -101,6 +107,39 @@ public class Heartbeat {
           instrumentation.metric(editorKey + "-Id", editor.getId());
           instrumentation.metric(editorKey + "-Dirty", editor.isDirty());
           instrumentation.data(editorKey + "-Name", editor.getTitle());
+
+          InstrumentationBuilder srcInstr = Instrumentation.builder("Editor-src-HB");
+          try {
+
+            IEditorPart part = editor.getEditor(false);
+
+            srcInstr.metric(editorKey + "-Id", editor.getId());
+            srcInstr.metric(editorKey + "-Dirty", editor.isDirty());
+            srcInstr.data(editorKey + "-Name", editor.getTitle());
+
+            if (part instanceof ITextEditor) {
+              ITextEditor textEditor = (ITextEditor) part;
+              IDocumentProvider provider = textEditor.getDocumentProvider();
+              if (provider != null) {
+                IDocument document = provider.getDocument(textEditor.getEditorInput());
+                if (document != null) {
+                  String docSrc = document.get();
+
+                  //TODO(lukechurch): Add a Java+Python compatible compressor here
+                  String docSrcb64 = Base64.encodeBytes(docSrc.getBytes());
+
+                  srcInstr.data(editorKey + "-src", docSrcb64);
+
+                }
+              }
+            }
+
+          } catch (Exception e) {
+            srcInstr.record(e);
+
+          } finally {
+            srcInstr.log();
+          }
         }
       }
     }
