@@ -2058,6 +2058,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
         }
         sourceMap.put(source, htmlCopy);
+        htmlEntry = htmlCopy;
       }
     }
     if (thrownException != null) {
