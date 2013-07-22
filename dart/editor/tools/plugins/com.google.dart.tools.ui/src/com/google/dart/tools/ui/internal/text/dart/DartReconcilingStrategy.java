@@ -75,15 +75,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     public void complete(AnalysisEvent event) {
       AnalysisContext context = editor.getInputAnalysisContext();
       if (event.getContext().equals(context)) {
-        Source source = editor.getInputSource();
-        Source[] libraries = context.getLibrariesContaining(source);
-        if (libraries != null && libraries.length > 0) {
-          // TODO (danrubel): Handle multiple libraries gracefully
-          CompilationUnit unit = context.getResolvedCompilationUnit(source, libraries[0]);
-          if (unit != null) {
-            applyAnalysisResult(unit);
-          }
-        }
+        applyResolvedUnit();
       }
     }
 
@@ -133,12 +125,16 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
   @Override
   public void initialReconcile() {
-    notifyContext(document.get());
-    try {
-      CompilationUnit unit = editor.getInputAnalysisContext().parseCompilationUnit(source);
-      editor.applyCompilationUnitElement(unit);
-    } catch (AnalysisException e) {
-      DartCore.logError("Parse failed for " + editor.getTitle(), e);
+    if (!applyResolvedUnit()) {
+      // TODO (danrubel): Set priority so that context will keep this AST in memory
+      // rather than notifying the context that the source has changed
+      notifyContext(document.get());
+      try {
+        CompilationUnit unit = editor.getInputAnalysisContext().parseCompilationUnit(source);
+        editor.applyCompilationUnitElement(unit);
+      } catch (AnalysisException e) {
+        DartCore.logError("Parse failed for " + editor.getTitle(), e);
+      }
     }
   }
 
@@ -172,9 +168,28 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * Apply analysis results only if there are no pending source changes.
    */
   private void applyAnalysisResult(CompilationUnit unit) {
-    if (notifyContextTime > sourceChangedTime && unit != null) {
+    if (notifyContextTime >= sourceChangedTime && unit != null) {
       editor.applyCompilationUnitElement(unit);
     }
+  }
+
+  /**
+   * Get the resolved compilation unit from the editor's analysis context and apply that unit.
+   * 
+   * @return {@code true} if a resolved unit was obtained and applied
+   */
+  private boolean applyResolvedUnit() {
+    AnalysisContext context = editor.getInputAnalysisContext();
+    Source[] libraries = context.getLibrariesContaining(source);
+    if (libraries != null && libraries.length > 0) {
+      // TODO (danrubel): Handle multiple libraries gracefully
+      CompilationUnit unit = context.getResolvedCompilationUnit(source, libraries[0]);
+      if (unit != null) {
+        applyAnalysisResult(unit);
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
