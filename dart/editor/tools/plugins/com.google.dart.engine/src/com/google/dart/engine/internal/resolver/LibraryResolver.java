@@ -874,7 +874,10 @@ public class LibraryResolver {
       unit.accept(errorVerifier);
     }
     if (enableHints) {
-      HintGenerator hintGenerator = new HintGenerator(library, analysisContext, errorListener);
+      HintGenerator hintGenerator = new HintGenerator(
+          library.getCompilationUnits(),
+          analysisContext,
+          errorListener);
       hintGenerator.generateForLibrary();
     }
   }

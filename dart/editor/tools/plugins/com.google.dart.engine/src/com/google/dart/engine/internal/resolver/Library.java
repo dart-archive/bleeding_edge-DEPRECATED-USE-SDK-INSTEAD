@@ -29,6 +29,7 @@ import com.google.dart.engine.source.Source;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -131,6 +132,24 @@ public class Library {
       astMap.put(source, unit);
     }
     return unit;
+  }
+
+  /**
+   * Return an array of the {@link CompilationUnit}s that make up the library. The first unit is
+   * always the defining unit.
+   * 
+   * @return an array of the {@link CompilationUnit}s that make up the library. The first unit is
+   *         always the defining unit
+   */
+  public CompilationUnit[] getCompilationUnits() throws AnalysisException {
+    ArrayList<CompilationUnit> unitArrayList = new ArrayList<CompilationUnit>(astMap.size());
+    unitArrayList.add(getDefiningCompilationUnit());
+    for (Source source : astMap.keySet()) {
+      if (!librarySource.equals(source)) {
+        unitArrayList.add(getAST(source));
+      }
+    }
+    return unitArrayList.toArray(new CompilationUnit[unitArrayList.size()]);
   }
 
   /**

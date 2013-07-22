@@ -16,10 +16,10 @@ package com.google.dart.engine.internal.hint;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.internal.error.ErrorReporter;
-import com.google.dart.engine.internal.resolver.Library;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -30,7 +30,7 @@ import com.google.dart.engine.source.Source;
  * @coverage dart.engine.resolver
  */
 public class HintGenerator {
-  private final Library library;
+  private final CompilationUnit[] compilationUnits;
 
   @SuppressWarnings("unused")
   private final AnalysisContext context;
@@ -41,23 +41,18 @@ public class HintGenerator {
 
   private DeadCodeVerifier deadCodeVerifier;
 
-  public HintGenerator(Library library, AnalysisContext context, AnalysisErrorListener errorListener) {
-    this.library = library;
+  public HintGenerator(CompilationUnit[] compilationUnits, AnalysisContext context,
+      AnalysisErrorListener errorListener) {
+    this.compilationUnits = compilationUnits;
     this.context = context;
     this.errorListener = errorListener;
   }
 
   public void generateForLibrary() throws AnalysisException {
-    CompilationUnit definingUnit = library.getDefiningCompilationUnit();
-    Source definingSource = library.getLibrarySource();
-
-    generateForCompilationUnit(definingUnit, definingSource);
-
-    for (Source source : library.getCompilationUnitSources()) {
-      // visit all of the sources, except the defining source
-      if (!source.equals(definingSource)) {
-        CompilationUnit unit = library.getAST(source);
-        generateForCompilationUnit(unit, source);
+    for (CompilationUnit unit : compilationUnits) {
+      CompilationUnitElement element = unit.getElement();
+      if (element != null) {
+        generateForCompilationUnit(unit, element.getSource());
       }
     }
   }
