@@ -54,6 +54,7 @@ import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -548,8 +549,19 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      Type type = node.getBestType();
-      return type.isDynamic();
+      // should be variable
+      Element element = node.getElement();
+      if (!(element instanceof VariableElement)) {
+        return false;
+      }
+      // may be has propagated type
+      Type propagatedType = node.getPropagatedType();
+      if (propagatedType != null && !propagatedType.isDynamic()) {
+        return false;
+      }
+      // has dynamic static type
+      Type staticType = node.getStaticType();
+      return staticType != null && staticType.isDynamic();
     }
 
     @Override
