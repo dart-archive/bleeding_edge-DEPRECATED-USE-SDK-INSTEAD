@@ -279,7 +279,7 @@ public class DartEntryImplTest extends EngineTestCase {
     entry1.setValue(DartEntry.RESOLUTION_ERRORS, libSrc1, errors1);
     entry1.setValue(DartEntry.RESOLUTION_ERRORS, libSrc2, errors2);
 
-    DartEntryImpl entry2 = new DartEntryImpl();
+    TestDartEntryImpl entry2 = new TestDartEntryImpl();
     entry2.copyFrom(entry1);
     assertExactElements(entry2.getAllErrors(), errors1[0], errors2[0]);
 

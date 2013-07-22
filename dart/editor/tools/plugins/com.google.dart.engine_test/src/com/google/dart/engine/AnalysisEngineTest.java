@@ -33,7 +33,7 @@ public class AnalysisEngineTest extends EngineTestCase {
     Logger logger = new TestLogger();
     engine.setLogger(logger);
     assertEquals(logger, engine.getLogger());
-    engine.setLogger(null);
+    engine.setLogger(defaultLogger);
     assertEquals(defaultLogger, engine.getLogger());
   }
 

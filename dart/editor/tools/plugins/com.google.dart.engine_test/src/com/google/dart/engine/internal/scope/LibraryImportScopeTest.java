@@ -116,14 +116,14 @@ public class LibraryImportScopeTest extends ResolverTestCase {
   public void test_getDefiningLibrary() throws Exception {
     LibraryElement definingLibrary = createTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryImportScope(definingLibrary, errorListener);
+    LibraryImportScope scope = new LibraryImportScope(definingLibrary, errorListener);
     assertEquals(definingLibrary, scope.getDefiningLibrary());
   }
 
   public void test_getErrorListener() throws Exception {
     LibraryElement definingLibrary = createTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryImportScope(definingLibrary, errorListener);
+    LibraryImportScope scope = new LibraryImportScope(definingLibrary, errorListener);
     assertEquals(errorListener, scope.getErrorListener());
   }
 

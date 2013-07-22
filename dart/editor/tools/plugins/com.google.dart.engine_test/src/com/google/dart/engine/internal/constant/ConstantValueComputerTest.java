@@ -24,32 +24,38 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.engine.utilities.logging.TestLogger;
 
 public class ConstantValueComputerTest extends ResolverTestCase {
   public void test_computeValues_cycle() throws Exception {
-    Source librarySource = addSource(createSource(//
-        "const int a = c;",
-        "const int b = a;",
-        "const int c = b;"));
-    LibraryElement libraryElement = resolve(librarySource);
-    CompilationUnit unit = getAnalysisContext().resolveCompilationUnit(
-        librarySource,
-        libraryElement);
-    assertNotNull(unit);
-
+    Logger systemLogger = AnalysisEngine.getInstance().getLogger();
     TestLogger logger = new TestLogger();
     AnalysisEngine.getInstance().setLogger(logger);
-    ConstantValueComputer computer = new ConstantValueComputer();
-    computer.add(unit);
-    computer.computeValues();
-    NodeList<CompilationUnitMember> members = unit.getDeclarations();
-    assertSize(3, members);
-    validate(false, ((TopLevelVariableDeclaration) members.get(0)).getVariables());
-    validate(false, ((TopLevelVariableDeclaration) members.get(1)).getVariables());
-    validate(false, ((TopLevelVariableDeclaration) members.get(2)).getVariables());
-    assertEquals(1, logger.getErrorCount());
-    assertEquals(0, logger.getInfoCount());
+
+    try {
+      Source librarySource = addSource(createSource(//
+          "const int a = c;",
+          "const int b = a;",
+          "const int c = b;"));
+      LibraryElement libraryElement = resolve(librarySource);
+      CompilationUnit unit = getAnalysisContext().resolveCompilationUnit(
+          librarySource,
+          libraryElement);
+      assertNotNull(unit);
+
+      ConstantValueComputer computer = new ConstantValueComputer();
+      computer.add(unit);
+      computer.computeValues();
+      NodeList<CompilationUnitMember> members = unit.getDeclarations();
+      assertSize(3, members);
+      validate(false, ((TopLevelVariableDeclaration) members.get(0)).getVariables());
+      validate(false, ((TopLevelVariableDeclaration) members.get(1)).getVariables());
+      validate(false, ((TopLevelVariableDeclaration) members.get(2)).getVariables());
+      assertEquals(2, logger.getErrorCount());
+    } finally {
+      AnalysisEngine.getInstance().setLogger(systemLogger);
+    }
   }
 
   public void test_computeValues_dependentVariables() throws Exception {

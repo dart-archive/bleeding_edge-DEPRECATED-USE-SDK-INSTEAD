@@ -947,6 +947,38 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     return sourceFactory;
   }
 
+  /**
+   * Return a list of the sources that would be processed by {@link #performAnalysisTask()}. This
+   * method is intended to be used for testing purposes only.
+   * 
+   * @return a list of the sources that would be processed by {@link #performAnalysisTask()}
+   */
+  @VisibleForTesting
+  public List<Source> getSourcesNeedingProcessing() {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    synchronized (cacheLock) {
+      for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
+        SourceEntry sourceEntry = entry.getValue();
+        if (sourceEntry instanceof DartEntry) {
+          DartEntry dartEntry = (DartEntry) sourceEntry;
+          CacheState parsedUnitState = dartEntry.getState(DartEntry.PARSED_UNIT);
+          CacheState elementState = dartEntry.getState(DartEntry.ELEMENT);
+          if (parsedUnitState == CacheState.INVALID || elementState == CacheState.INVALID) {
+            sources.add(entry.getKey());
+          }
+        } else if (sourceEntry instanceof HtmlEntry) {
+          HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+          CacheState parsedUnitState = htmlEntry.getState(HtmlEntry.PARSED_UNIT);
+          CacheState elementState = htmlEntry.getState(HtmlEntry.ELEMENT);
+          if (parsedUnitState == CacheState.INVALID || elementState == CacheState.INVALID) {
+            sources.add(entry.getKey());
+          }
+        }
+      }
+    }
+    return sources;
+  }
+
   @Override
   public boolean isClientLibrary(Source librarySource) {
     SourceEntry sourceEntry = getReadableSourceEntry(librarySource);
@@ -1222,38 +1254,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return a list of the sources that would be processed by {@link #performAnalysisTask()}. This
-   * method is intended to be used for testing purposes only.
-   * 
-   * @return a list of the sources that would be processed by {@link #performAnalysisTask()}
-   */
-  @VisibleForTesting
-  protected List<Source> getSourcesNeedingProcessing() {
-    ArrayList<Source> sources = new ArrayList<Source>();
-    synchronized (cacheLock) {
-      for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
-        SourceEntry sourceEntry = entry.getValue();
-        if (sourceEntry instanceof DartEntry) {
-          DartEntry dartEntry = (DartEntry) sourceEntry;
-          CacheState parsedUnitState = dartEntry.getState(DartEntry.PARSED_UNIT);
-          CacheState elementState = dartEntry.getState(DartEntry.ELEMENT);
-          if (parsedUnitState == CacheState.INVALID || elementState == CacheState.INVALID) {
-            sources.add(entry.getKey());
-          }
-        } else if (sourceEntry instanceof HtmlEntry) {
-          HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
-          CacheState parsedUnitState = htmlEntry.getState(HtmlEntry.PARSED_UNIT);
-          CacheState elementState = htmlEntry.getState(HtmlEntry.ELEMENT);
-          if (parsedUnitState == CacheState.INVALID || elementState == CacheState.INVALID) {
-            sources.add(entry.getKey());
-          }
-        }
-      }
-    }
-    return sources;
-  }
-
-  /**
    * Record that the given source was just accessed for some unspecified purpose.
    * <p>
    * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
@@ -1500,7 +1500,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 libraries.add(librarySource);
               }
             } catch (Exception exception) {
-              AnalysisEngine.getInstance().getLogger().logError(
+              AnalysisEngine.getInstance().getLogger().logInformation(
                   "Invalid URL ('" + scriptAttribute.getText() + "') in script tag in '"
                       + htmlSource.getFullName() + "'",
                   exception);
@@ -2365,9 +2365,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       internalParseCompilationUnit(dartCopy, source);
     } catch (AnalysisException exception) {
-      AnalysisEngine.getInstance().getLogger().logError(
-          "Could not parse " + source.getFullName(),
-          exception);
+      if (!(exception.getCause() instanceof IOException)) {
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Could not parse " + source.getFullName(),
+            exception);
+      }
     }
     sourceMap.put(source, dartCopy);
   }

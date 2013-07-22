@@ -169,7 +169,7 @@ public class SourceFactoryTest extends TestCase {
 
   public void test_setContents() {
     ContentCache contentCache = new ContentCache();
-    SourceFactory factory = new SourceFactory(contentCache);
+    TestSourceFactory factory = new TestSourceFactory(contentCache);
     File file = createFile("/does/not/exist.dart");
     Source source = new FileBasedSource(contentCache, file);
     assertNull(factory.getContents(source));
@@ -188,7 +188,7 @@ public class SourceFactoryTest extends TestCase {
   public void test_sharedContents() {
     ContentCache contentCache = new ContentCache();
 
-    SourceFactory factory1 = new SourceFactory(contentCache);
+    TestSourceFactory factory1 = new TestSourceFactory(contentCache);
     File file = createFile("/does/not/exist.dart");
     Source source1 = new FileBasedSource(contentCache, file);
     assertNull(factory1.getContents(source1));
@@ -196,14 +196,14 @@ public class SourceFactoryTest extends TestCase {
     factory1.setContents(source1, contents);
     assertEquals(contents, factory1.getContents(source1));
 
-    SourceFactory factory2 = new SourceFactory(contentCache);
+    TestSourceFactory factory2 = new TestSourceFactory(contentCache);
     Source source2 = new FileBasedSource(contentCache, file);
     assertEquals(contents, factory2.getContents(source2));
   }
 
   public void test_sharedContentsNot() {
     ContentCache contentCache1 = new ContentCache();
-    SourceFactory factory1 = new SourceFactory(contentCache1);
+    TestSourceFactory factory1 = new TestSourceFactory(contentCache1);
     File file = createFile("/does/not/exist.dart");
     Source source1 = new FileBasedSource(contentCache1, file);
     assertNull(factory1.getContents(source1));
@@ -212,7 +212,7 @@ public class SourceFactoryTest extends TestCase {
     assertEquals(contents, factory1.getContents(source1));
 
     ContentCache contentCache2 = new ContentCache();
-    SourceFactory factory2 = new SourceFactory(contentCache2);
+    TestSourceFactory factory2 = new TestSourceFactory(contentCache2);
     Source source2 = new FileBasedSource(contentCache2, file);
     assertNull(factory2.getContents(source2));
   }

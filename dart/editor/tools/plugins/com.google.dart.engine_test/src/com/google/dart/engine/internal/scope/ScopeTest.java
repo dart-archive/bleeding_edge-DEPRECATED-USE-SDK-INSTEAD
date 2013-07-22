@@ -88,7 +88,7 @@ public class ScopeTest extends ResolverTestCase {
 
   public void test_getDefiningLibrary() throws Exception {
     LibraryElement definingLibrary = createTestLibrary();
-    Scope scope = new TestScope(definingLibrary, null);
+    TestScope scope = new TestScope(definingLibrary, null);
     assertEquals(definingLibrary, scope.getDefiningLibrary());
   }
 
@@ -97,7 +97,7 @@ public class ScopeTest extends ResolverTestCase {
         new AnalysisContextImpl(),
         libraryIdentifier("test"));
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new TestScope(definingLibrary, errorListener);
+    TestScope scope = new TestScope(definingLibrary, errorListener);
     assertEquals(errorListener, scope.getErrorListener());
   }
 

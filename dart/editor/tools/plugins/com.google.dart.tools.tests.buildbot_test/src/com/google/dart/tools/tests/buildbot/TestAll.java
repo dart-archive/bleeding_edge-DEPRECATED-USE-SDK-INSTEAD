@@ -14,12 +14,6 @@
 
 package com.google.dart.tools.tests.buildbot;
 
-import com.google.dart.engine.ExtendedTestSuite;
-import com.google.dart.engine.source.ContentCacheTest;
-import com.google.dart.engine.source.DirectoryBasedSourceContainerTest;
-import com.google.dart.engine.source.FileBasedSourceTest;
-import com.google.dart.engine.source.FileUriResolverTest;
-import com.google.dart.engine.source.PackageUriResolverTest;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 
@@ -37,9 +31,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
 
     // Engine
-    // TODO (jwren) currently only a subset of the engine tests run on the buildbot
-    //suite.addTest(com.google.dart.engine.TestAll.suite());
-    suite.addTest(engineTests());
+    suite.addTest(com.google.dart.engine.TestAll.suite());
 
     // Services
     suite.addTest(com.google.dart.engine.services.TestAll.suite());
@@ -57,35 +49,6 @@ public class TestAll {
     // Web
     suite.addTest(com.google.dart.tools.ui.web.TestAll.suite());
 
-    return suite;
-  }
-
-  private static TestSuite engineTests() {
-    // Copy of TestAll from engine_test
-    TestSuite suite = new ExtendedTestSuite("Tests in "
-        + com.google.dart.engine.TestAll.class.getPackage().getName());
-    //suite.addTestSuite(AnalysisEngineTest.class);
-    suite.addTest(com.google.dart.engine.ast.TestAll.suite());
-    suite.addTest(com.google.dart.engine.index.TestAll.suite());
-    //suite.addTest(com.google.dart.engine.internal.TestAll.suite());
-    suite.addTest(com.google.dart.engine.parser.TestAll.suite());
-    //suite.addTest(com.google.dart.engine.resolver.TestAll.suite());
-    suite.addTest(com.google.dart.engine.scanner.TestAll.suite());
-    //suite.addTest(com.google.dart.engine.sdk.TestAll.suite());
-    suite.addTest(com.google.dart.engine.search.TestAll.suite());
-
-    // only a subset from "source" TestAll:
-    //suite.addTest(com.google.dart.engine.source.TestAll.suite());
-    suite.addTestSuite(ContentCacheTest.class);
-    //suite.addTestSuite(DartUriResolverTest.class);
-    suite.addTestSuite(FileUriResolverTest.class);
-    suite.addTestSuite(PackageUriResolverTest.class);
-    suite.addTestSuite(DirectoryBasedSourceContainerTest.class);
-    //suite.addTestSuite(SourceFactoryTest.class);
-    suite.addTestSuite(FileBasedSourceTest.class);
-    ///////// end of source subset
-
-    suite.addTest(com.google.dart.engine.utilities.TestAll.suite());
     return suite;
   }
 
