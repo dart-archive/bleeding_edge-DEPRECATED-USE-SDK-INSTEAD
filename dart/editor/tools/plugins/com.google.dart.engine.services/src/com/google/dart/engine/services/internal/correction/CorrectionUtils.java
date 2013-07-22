@@ -64,6 +64,7 @@ import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.internal.util.ExecutionUtils;
 import com.google.dart.engine.services.internal.util.RunnableObjectEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
@@ -134,7 +135,43 @@ public class CorrectionUtils {
     }
   }
 
+  /**
+   * If {@code true} then {@link #addEdit(SourceChange, String, String, Edit)} validates that
+   * {@link Edit} replaces correct part of the {@link Source}.
+   */
+  private static boolean DEBUG_VALIDATE_EDITS = true;
+
   private static final String[] KNOWN_METHOD_NAME_PREFIXES = {"get", "is", "to"};
+
+  /**
+   * Validates that the {@link Edit} replaces the expected part of the {@link Source} and adds this
+   * {@link Edit} to the {@link SourceChange}.
+   */
+  public static void addEdit(SourceChange change, String description, String expected, Edit edit)
+      throws Exception {
+    if (DEBUG_VALIDATE_EDITS) {
+      Source source = change.getSource();
+      String sourceContent = getSourceContent(source);
+      // prepare range
+      int beginIndex = edit.offset;
+      int endIndex = beginIndex + edit.length;
+      int sourceLength = sourceContent.length();
+      if (beginIndex >= sourceLength || endIndex >= sourceLength) {
+        throw new IllegalStateException(source + " has " + sourceLength + " characters but "
+            + beginIndex + " to " + endIndex + " requested."
+            + "\n\nTry to use Tools | Reanalyze Sources.");
+      }
+      // check that range has expected content
+      String rangeContent = sourceContent.substring(beginIndex, endIndex);
+      if (!rangeContent.equals(expected)) {
+        throw new IllegalStateException(source + " expected |" + expected + "| at " + beginIndex
+            + " to " + endIndex + " but |" + rangeContent + "| found."
+            + "\n\nTry to use Tools | Reanalyze Sources.");
+      }
+    }
+    // do add the Edit
+    change.addEdit(description, edit);
+  }
 
   /**
    * @return <code>true</code> if given {@link List}s are equals at given position.

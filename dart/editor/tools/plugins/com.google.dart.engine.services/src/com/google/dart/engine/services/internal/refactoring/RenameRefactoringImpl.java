@@ -20,6 +20,8 @@ import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
@@ -32,6 +34,7 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEl
  * Abstract implementation of {@link RenameRefactoring}.
  */
 public abstract class RenameRefactoringImpl extends RefactoringImpl implements RenameRefactoring {
+
   /**
    * @return the {@link Edit} to replace the given {@link SearchMatch} reference.
    */
@@ -74,12 +77,14 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   protected final SearchEngine searchEngine;
 
   protected final Element element;
+  protected final String oldName;
 
   protected String newName;
 
   public RenameRefactoringImpl(SearchEngine searchEngine, Element element) {
     this.searchEngine = searchEngine;
     this.element = element;
+    this.oldName = element.getDisplayName();
   }
 
   @Override
@@ -112,23 +117,27 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   }
 
   /**
-   * @return the {@link Edit} to rename declaration of renaming {@link Element}.
+   * Adds the "Update declaration" {@link Edit} to the {@link SourceChange}.
    */
-  protected final Edit createDeclarationRenameEdit() {
-    return createDeclarationRenameEdit(element);
+  protected final void addDeclarationEdit(SourceChange change, Element element) throws Exception {
+    Edit edit = new Edit(rangeElementName(element), newName);
+    addEdit(change, "Update declaration", edit);
   }
 
   /**
-   * @return the {@link Edit} to rename declaration if the given {@link Element}.
+   * Adds the {@link Edit} that replaces {@link #oldName} to the {@link SourceChange}.
    */
-  protected final Edit createDeclarationRenameEdit(Element element) {
-    return new Edit(rangeElementName(element), newName);
+  protected final void addEdit(SourceChange sourceChange, String description, Edit edit)
+      throws Exception {
+    CorrectionUtils.addEdit(sourceChange, description, oldName, edit);
   }
 
   /**
-   * @return the {@link Edit} to set new name for the given {@link SearchMatch} reference.
+   * Adds the "Update reference" {@link Edit} to the {@link SourceChange}.
    */
-  protected final Edit createReferenceRenameEdit(SearchMatch reference) {
-    return createReferenceEdit(reference, newName);
+  protected final void addReferenceEdit(SourceChange change, SearchMatch reference)
+      throws Exception {
+    Edit edit = createReferenceEdit(reference, newName);
+    addEdit(change, "Update reference", edit);
   }
 }

@@ -84,11 +84,11 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     pm = checkProgressMonitor(pm);
     SourceChange change = new SourceChange(getRefactoringName(), element.getSource());
     // update declaration
-    change.addEdit("Update declaration", createDeclarationRenameEdit());
+    addDeclarationEdit(change, element);
     // update references
     List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
     for (SearchMatch reference : references) {
-      change.addEdit("Update reference", createReferenceRenameEdit(reference));
+      addReferenceEdit(change, reference);
     }
     return change;
   }

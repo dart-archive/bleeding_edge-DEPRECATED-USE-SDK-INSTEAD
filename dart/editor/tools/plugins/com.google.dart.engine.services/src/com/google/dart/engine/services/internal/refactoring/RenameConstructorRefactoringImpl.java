@@ -19,6 +19,7 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -26,6 +27,7 @@ import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.change.SourceChangeManager;
+import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.Refactoring;
@@ -78,6 +80,7 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     try {
       SourceChangeManager changeManager = new SourceChangeManager();
       String replacement = newName.isEmpty() ? "" : "." + newName;
+      String oldContent = oldName.isEmpty() ? "" : "." + oldName;
       List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
       // update declaration
       if (!element.isSynthetic()) {
@@ -85,7 +88,8 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
           if (reference.getKind() == MatchKind.CONSTRUCTOR_DECLARATION) {
             Source refSource = reference.getElement().getSource();
             SourceChange refChange = changeManager.get(refSource);
-            refChange.addEdit("Update declaration", createReferenceEdit(reference, replacement));
+            Edit refEdit = createReferenceEdit(reference, replacement);
+            CorrectionUtils.addEdit(refChange, "Update declaration", oldContent, refEdit);
           }
         }
       }
@@ -94,7 +98,8 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         if (reference.getKind() == MatchKind.CONSTRUCTOR_REFERENCE) {
           Source refSource = reference.getElement().getSource();
           SourceChange refChange = changeManager.get(refSource);
-          refChange.addEdit("Update reference", createReferenceEdit(reference, replacement));
+          Edit refEdit = createReferenceEdit(reference, replacement);
+          CorrectionUtils.addEdit(refChange, "Update reference", oldContent, refEdit);
         }
       }
       // return CompositeChange

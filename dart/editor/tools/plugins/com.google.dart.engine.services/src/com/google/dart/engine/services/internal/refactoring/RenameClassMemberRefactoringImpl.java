@@ -91,14 +91,14 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         if (!renameElement.isSynthetic()) {
           Source elementSource = renameElement.getSource();
           SourceChange elementChange = changeManager.get(elementSource);
-          elementChange.addEdit("Update declaration", createDeclarationRenameEdit(renameElement));
+          addDeclarationEdit(elementChange, renameElement);
         }
       }
       // update references
       for (SearchMatch reference : validator.renameElementsReferences) {
         Source refSource = reference.getElement().getSource();
         SourceChange refChange = changeManager.get(refSource);
-        refChange.addEdit("Update reference", createReferenceRenameEdit(reference));
+        addReferenceEdit(refChange, reference);
       }
       // return CompositeChange
       CompositeChange compositeChange = new CompositeChange(getRefactoringName());

@@ -61,6 +61,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils.InsertDesc;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
@@ -83,6 +84,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -100,6 +102,53 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         expression,
         nameSuggestExclude);
     assertThat(suggestions).isEqualTo(expected);
+  }
+
+  public void test_addEdit_badRange() throws Exception {
+    parseTestUnit("// 12345");
+    Edit edit = new Edit(400, 3, "abc");
+    // mock SourceChange
+    SourceChange change = mock(SourceChange.class);
+    when(change.getSource()).thenReturn(testSource);
+    // add Edit
+    String description = "desc";
+    try {
+      CorrectionUtils.addEdit(change, description, "234", edit);
+      fail();
+    } catch (IllegalStateException e) {
+    }
+    // verify
+    verify(change, never()).addEdit(description, edit);
+  }
+
+  public void test_addEdit_badRangeContent() throws Exception {
+    parseTestUnit("// 12345");
+    Edit edit = new Edit(4, 3, "abc");
+    // mock SourceChange
+    SourceChange change = mock(SourceChange.class);
+    when(change.getSource()).thenReturn(testSource);
+    // add Edit
+    String description = "desc";
+    try {
+      CorrectionUtils.addEdit(change, description, "err", edit);
+      fail();
+    } catch (IllegalStateException e) {
+    }
+    // verify
+    verify(change, never()).addEdit(description, edit);
+  }
+
+  public void test_addEdit_OK() throws Exception {
+    parseTestUnit("// 12345");
+    Edit edit = new Edit(4, 3, "abc");
+    // mock SourceChange
+    SourceChange change = mock(SourceChange.class);
+    when(change.getSource()).thenReturn(testSource);
+    // add Edit
+    String description = "desc";
+    CorrectionUtils.addEdit(change, description, "234", edit);
+    // verify
+    verify(change).addEdit(description, edit);
   }
 
   public void test_allListsEqual_0() throws Exception {

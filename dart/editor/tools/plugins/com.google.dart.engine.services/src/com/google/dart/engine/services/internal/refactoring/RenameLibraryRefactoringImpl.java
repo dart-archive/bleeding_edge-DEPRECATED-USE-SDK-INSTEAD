@@ -68,14 +68,14 @@ public class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
       {
         Source elementSource = element.getSource();
         SourceChange elementChange = changeManager.get(elementSource);
-        elementChange.addEdit("Update declaration", createDeclarationRenameEdit());
+        addDeclarationEdit(elementChange, element);
       }
       // update references
       List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
       for (SearchMatch reference : references) {
         Source refSource = reference.getElement().getSource();
         SourceChange refChange = changeManager.get(refSource);
-        refChange.addEdit("Update reference", createReferenceRenameEdit(reference));
+        addReferenceEdit(refChange, reference);
       }
       // return CompositeChange
       CompositeChange compositeChange = new CompositeChange(getRefactoringName());
