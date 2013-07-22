@@ -85,6 +85,7 @@ import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.ast.ASTCloner;
 import com.google.dart.engine.utilities.source.LineInfo;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.CharBuffer;
@@ -1999,9 +2000,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (thrownException != null) {
-      AnalysisEngine.getInstance().getLogger().logError(
-          "Could not parse " + source.getFullName(),
-          thrownException);
+      if (!(thrownException.getCause() instanceof IOException)) {
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Could not parse " + source.getFullName(),
+            thrownException);
+      }
       throw thrownException;
     }
 //    ChangeNoticeImpl notice = getNotice(source);
