@@ -23,7 +23,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
-import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
+import com.google.dart.tools.ui.actions.AbstractRefactoringAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -42,7 +42,7 @@ import org.eclipse.ui.IWorkbenchSite;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameDartElementAction extends AbstractDartSelectionAction {
+public class RenameDartElementAction extends AbstractRefactoringAction {
   /**
    * @return the {@link Element} to rename {@code true}, may be {@code null} if invalid selection.
    */
@@ -100,6 +100,12 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
 
   @Override
   public void selectionChanged(DartSelection selection) {
+    // cannot operate on this editor
+    if (!canOperateOn()) {
+      setEnabled(false);
+      return;
+    }
+    // validate element
     Element element = getElementToRename(selection);
     setEnabled(element != null);
   }

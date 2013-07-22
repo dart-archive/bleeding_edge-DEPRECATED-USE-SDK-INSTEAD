@@ -37,13 +37,18 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class ExtractLocalAction extends AbstractDartSelectionAction {
+public class ExtractLocalAction extends AbstractRefactoringAction {
   public ExtractLocalAction(DartEditor editor) {
     super(editor);
   }
 
   @Override
   public void selectionChanged(DartSelection selection) {
+    // cannot operate on this editor
+    if (!canOperateOn()) {
+      setEnabled(false);
+      return;
+    }
     // empty selection
     if (selection.getLength() == 0) {
       setEnabled(false);

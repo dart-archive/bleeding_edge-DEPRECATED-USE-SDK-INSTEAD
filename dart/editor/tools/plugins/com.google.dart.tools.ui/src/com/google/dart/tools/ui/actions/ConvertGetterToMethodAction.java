@@ -40,7 +40,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * {@link Action} for "Convert Getter To Method" refactoring.
  */
-public class ConvertGetterToMethodAction extends AbstractDartSelectionAction {
+public class ConvertGetterToMethodAction extends AbstractRefactoringAction {
   /**
    * @return the {@link ConvertGetterToMethodRefactoring} to process given {@link Element}, may be
    *         {@code null} if {@link Element} cannot be processed.
@@ -143,6 +143,12 @@ public class ConvertGetterToMethodAction extends AbstractDartSelectionAction {
    * Updates enablement for given {@link Element}.
    */
   private void selectionChanged(Element element) {
+    // cannot operate on this editor
+    if (!canOperateOn()) {
+      setEnabled(false);
+      return;
+    }
+    // validate Element
     ConvertGetterToMethodRefactoring refactoring = newRefactoring(element);
     if (refactoring != null) {
       try {
@@ -153,6 +159,7 @@ public class ConvertGetterToMethodAction extends AbstractDartSelectionAction {
       } catch (Throwable e) {
       }
     }
+    // invalid Element
     setEnabled(false);
   }
 }

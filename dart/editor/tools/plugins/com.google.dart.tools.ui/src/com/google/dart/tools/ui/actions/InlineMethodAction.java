@@ -37,13 +37,19 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class InlineMethodAction extends AbstractDartSelectionAction {
+public class InlineMethodAction extends AbstractRefactoringAction {
   public InlineMethodAction(DartEditor editor) {
     super(editor);
   }
 
   @Override
   public void selectionChanged(DartSelection selection) {
+    // cannot operate on this editor
+    if (!canOperateOn()) {
+      setEnabled(false);
+      return;
+    }
+    // validate element
     Element element = getSelectionElement(selection);
     if (element == null) {
       setEnabled(false);

@@ -48,6 +48,9 @@ public class SelectionConverter {
     if (editor == null) {
       return false;
     }
+    if (!editor.isEditable()) {
+      return false;
+    }
     return getInput(editor) != null;
 
   }
