@@ -1910,6 +1910,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           if (isDisposed()) {
             return;
           }
+          applySelectionToOutline();
           fireDartSelectionListeners();
         }
       });
@@ -4358,6 +4359,28 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         }
       }
       fOccurrenceAnnotations = null;
+    }
+  }
+
+  /**
+   * Applies the current selection to the Outline view.
+   */
+  private void applySelectionToOutline() {
+    // prepare resolved unit
+    com.google.dart.engine.ast.CompilationUnit unit = resolvedUnit;
+    if (unit == null) {
+      return;
+    }
+    // prepare selection
+    ISelection selection = getSelectionProvider().getSelection();
+    if (!(selection instanceof TextSelection)) {
+      return;
+    }
+    int offset = ((TextSelection) selection).getOffset();
+    // apply selected element
+    LightNodeElement element = computeHighlightRangeSourceElement(resolvedUnit, offset);
+    if (element != null && fOutlinePage != null) {
+      fOutlinePage.select(element);
     }
   }
 
