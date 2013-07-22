@@ -17,23 +17,56 @@ package com.google.dart.engine.utilities.logging;
  * Instances of the class {@code TestLogger} implement a logger that can be used by tests.
  */
 public class TestLogger implements Logger {
+  /**
+   * The number of error messages that were logged.
+   */
+  private long errorCount = 0L;
+
+  /**
+   * The number of informational messages that were logged.
+   */
+  private long infoCount = 0L;
+
+  /**
+   * Return the number of error messages that were logged.
+   * 
+   * @return the number of error messages that were logged
+   */
+  public long getErrorCount() {
+    return errorCount;
+  }
+
+  /**
+   * Return the number of informational messages that were logged.
+   * 
+   * @return the number of informational messages that were logged
+   */
+  public long getInfoCount() {
+    return infoCount;
+  }
+
   @Override
   public void logError(String message) {
+    errorCount++;
   }
 
   @Override
   public void logError(String message, Throwable exception) {
+    errorCount++;
   }
 
   @Override
   public void logError(Throwable exception) {
+    errorCount++;
   }
 
   @Override
   public void logInformation(String message) {
+    infoCount++;
   }
 
   @Override
   public void logInformation(String message, Throwable exception) {
+    infoCount++;
   }
 }

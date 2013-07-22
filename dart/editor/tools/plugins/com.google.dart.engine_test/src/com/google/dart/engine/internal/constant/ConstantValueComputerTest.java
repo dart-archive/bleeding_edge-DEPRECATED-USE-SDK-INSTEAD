@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.constant;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.NodeList;
@@ -23,6 +24,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.logging.TestLogger;
 
 public class ConstantValueComputerTest extends ResolverTestCase {
   public void test_computeValues_cycle() throws Exception {
@@ -36,6 +38,8 @@ public class ConstantValueComputerTest extends ResolverTestCase {
         libraryElement);
     assertNotNull(unit);
 
+    TestLogger logger = new TestLogger();
+    AnalysisEngine.getInstance().setLogger(logger);
     ConstantValueComputer computer = new ConstantValueComputer();
     computer.add(unit);
     computer.computeValues();
@@ -44,6 +48,8 @@ public class ConstantValueComputerTest extends ResolverTestCase {
     validate(false, ((TopLevelVariableDeclaration) members.get(0)).getVariables());
     validate(false, ((TopLevelVariableDeclaration) members.get(1)).getVariables());
     validate(false, ((TopLevelVariableDeclaration) members.get(2)).getVariables());
+    assertEquals(1, logger.getErrorCount());
+    assertEquals(0, logger.getInfoCount());
   }
 
   public void test_computeValues_dependentVariables() throws Exception {
