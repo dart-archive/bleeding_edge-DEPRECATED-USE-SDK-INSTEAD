@@ -15,10 +15,26 @@ package com.google.dart.tools.core.pub;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
 public class PubspecModelTest extends TestCase {
+
+  private static final String YAML_WITH_ERRORS = "name: tss \nauthor: GS <s@gmail.com>\n"
+      + "description: A sample web application \ndependencies: \n  browser: any"
+      + "  webui: \n    git: git://github.com/webui\n    ref: polymer";
+
+  private static final String YAML_NO_ERRORS = "name: tss \nauthor: GS <s@gmail.com>\n"
+      + "description: A sample web application \ndependencies: \n  browser: any"
+      + "  webui: \n    git: git://github.com/webui";
 
   // Assert dependency can be added/removed to model
   public void test_addDependency() {
@@ -32,7 +48,7 @@ public class PubspecModelTest extends TestCase {
 
   public void test_authors() {
     PubspecModel pubspecModel = new PubspecModel(null);
-    pubspecModel.initialize(PubYamlUtilsTest.pubspecYamlString2);
+    pubspecModel.setValuesFromString(PubYamlUtilsTest.pubspecYamlString2);
     assertEquals("GS <s@gmail.com>, AS <f@gmail.com>, KM <k@tpl.com>", pubspecModel.getAuthor());
     String string = pubspecModel.getContents();
     PubspecModel model2 = new PubspecModel(string);
@@ -51,6 +67,27 @@ public class PubspecModelTest extends TestCase {
     assertNotNull(pubspecModel.getDependecies());
     assertNotNull(pubspecModel.getDocumentation());
     assertNotNull(pubspecModel.getHomepage());
+  }
+
+  public void test_errorGeneration() {
+    final String projectName = "pubspecTest";
+    IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+    try {
+      project.create(null);
+      assertTrue(project.exists());
+      IFile file = project.getFile("pubspec.yaml");
+      InputStream is = new ByteArrayInputStream(YAML_WITH_ERRORS.getBytes());
+      file.create(is, true, null);
+      new PubspecModel(file, YAML_WITH_ERRORS);
+      assertTrue(file.findMarkers(PubspecModel.PUBSPEC_MARKER, false, IResource.DEPTH_ONE).length > 0);
+      is = new ByteArrayInputStream(YAML_NO_ERRORS.getBytes());
+      file.setContents(is, 0, null);
+      new PubspecModel(file, YAML_NO_ERRORS);
+      assertTrue(file.findMarkers(PubspecModel.PUBSPEC_MARKER, false, IResource.DEPTH_ONE).length == 0);
+    } catch (CoreException e) {
+
+    }
+
   }
 
   // Assert that there is no info lost in getContents conversion to yaml 
@@ -73,7 +110,7 @@ public class PubspecModelTest extends TestCase {
   // Assert model can be initialized from pubspec yaml string
   public void test_initialize() {
     PubspecModel pubspecModel = new PubspecModel(null);
-    pubspecModel.initialize(PubYamlUtilsTest.pubspecYamlString);
+    pubspecModel.setValuesFromString(PubYamlUtilsTest.pubspecYamlString);
     assertEquals("web_components", pubspecModel.getName());
     assertEquals("an easy way to build web apps in Dart", pubspecModel.getDescription());
     assertEquals("0.0.1", pubspecModel.getVersion());
@@ -86,7 +123,7 @@ public class PubspecModelTest extends TestCase {
 
   public void test_initialize2() {
     PubspecModel pubspecModel = new PubspecModel(null);
-    pubspecModel.initialize(PubYamlUtilsTest.pubspecYamlString2);
+    pubspecModel.setValuesFromString(PubYamlUtilsTest.pubspecYamlString2);
     assertEquals("web_components", pubspecModel.getName());
     assertEquals(">=1.2.3 <2.0.0", pubspecModel.getSdkVersion());
   }

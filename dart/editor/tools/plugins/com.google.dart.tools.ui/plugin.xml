@@ -459,8 +459,13 @@
             markerSeverity="0"/>
       <type name="com.google.dart.tools.ui.occurrences"/>
       <type name="com.google.dart.tools.ui.overrideIndicator"/>
+      <type
+            name="com.google.dart.tools.ui.pubspec.error"
+            super="org.eclipse.ui.workbench.texteditor.warning"
+            markerSeverity="2"
+            markerType="com.google.dart.tools.core.pubspecIssue"/>
    </extension>
-    
+   
    <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
        <specification
@@ -542,6 +547,26 @@
            textStylePreferenceKey="suggestionTextStyle"
            textStylePreferenceValue="PROBLEM_UNDERLINE"
            verticalRulerPreferenceKey="suggestionIndicationInVerticalRuler"
+           verticalRulerPreferenceValue="true">
+     </specification>
+     <specification
+           annotationType="com.google.dart.tools.ui.pubspec.error"
+           colorPreferenceKey="pubspecErrorIndicationColor"
+           colorPreferenceValue="255,0,0"
+           icon="icons/full/misc/error_tsk.gif"
+           contributesToHeader="true"
+           highlightPreferenceKey="pubspecErrorIndicationHighlighting"
+           highlightPreferenceValue="false"
+           label="Pubspec"
+           overviewRulerPreferenceKey="pubspecErrorIndicationInOverviewRuler"
+           overviewRulerPreferenceValue="true"
+           presentationLayer="4"
+           symbolicIcon="error"
+           textPreferenceKey="pubspecErrorIndication"
+           textPreferenceValue="true"
+           textStylePreferenceKey="pubspecErrorTextStyle"
+           textStylePreferenceValue="PROBLEM_UNDERLINE"
+           verticalRulerPreferenceKey="pubspecErrorIndicationInVerticalRuler"
            verticalRulerPreferenceValue="true">
      </specification>
    </extension>

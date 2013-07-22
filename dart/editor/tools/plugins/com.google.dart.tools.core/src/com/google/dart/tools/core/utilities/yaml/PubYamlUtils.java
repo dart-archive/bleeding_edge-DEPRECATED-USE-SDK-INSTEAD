@@ -295,7 +295,7 @@ public class PubYamlUtils {
     try {
       map = parsePubspecYamlToMap(contents);
     } catch (ScannerException e) {
-      // do nothing
+      DartCore.logError(e);
     }
     if (map != null) {
       Map<String, Object> dependecies = (Map<String, Object>) map.get(PubspecConstants.DEPENDENCIES);
@@ -337,7 +337,7 @@ public class PubYamlUtils {
     try {
       map = PubYamlUtils.parsePubspecYamlToMap(lockFileContents);
     } catch (ScannerException e) {
-
+      DartCore.logError(e);
     }
     if (map != null) {
       Map<String, Object> packagesMap = (Map<String, Object>) map.get("packages");
@@ -394,15 +394,10 @@ public class PubYamlUtils {
    * Parse the pubspec.yaml string contents to an Map
    */
   @SuppressWarnings("unchecked")
-  public static Map<String, Object> parsePubspecYamlToMap(String contents) {
+  public static Map<String, Object> parsePubspecYamlToMap(String contents) throws ScannerException {
     Yaml yaml = new Yaml();
-    try {
-      Map<String, Object> map = (Map<String, Object>) yaml.load(contents);
-      return map;
-    } catch (ScannerException e) {
-      throw e;
-    }
-
+    Map<String, Object> map = (Map<String, Object>) yaml.load(contents);
+    return map;
   }
 
   public static String[] sortVersionArray(String[] versionList) {

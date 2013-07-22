@@ -101,7 +101,7 @@ public class PubspecEditor extends FormEditor {
   }
 
   public void doRevert() {
-    model.initialize(getContents((IFileEditorInput) getEditorInput()));
+    model.setValuesFromString(getContents((IFileEditorInput) getEditorInput()));
   }
 
   @Override
@@ -111,8 +111,7 @@ public class PubspecEditor extends FormEditor {
       updateDocumentContents();
     }
     if (getActivePage() == 1 || yamlEditor.isDirty()) {
-      model.initialize(yamlEditor.getDocument().get());
-      updateDocumentContents();
+      model.setValuesFromString(yamlEditor.getDocument().get());
     }
     yamlEditor.doSave(monitor);
     editorDirtyStateChanged();
@@ -189,7 +188,7 @@ public class PubspecEditor extends FormEditor {
     if (newPageIndex == 0) {
       if (yamlEditor.isDirty()) {
         if (model != null) {
-          model.initialize(yamlEditor.getDocument().get());
+          model.setValuesFromString(yamlEditor.getDocument().get());
         }
       }
     }
@@ -208,16 +207,15 @@ public class PubspecEditor extends FormEditor {
 
     String contents = null;
     if (input instanceof IFileEditorInput) {
-      contents = getContents((IFileEditorInput) input);
+      IFile file = ((IFileEditorInput) input).getFile();
+      contents = getContents(file.getLocation().toFile());
       editable = true;
+      model = new PubspecModel(file, contents);
     } else if (input instanceof FileStoreEditorInput) {
       File file = new File(((FileStoreEditorInput) input).getURI());
       if (file.exists()) {
         contents = getContents(file);
       }
-    }
-    if (contents != null) {
-      // TODO(keerti): more error checking/recovery if contents cannot be parsed   
       model = new PubspecModel(contents);
     }
   }

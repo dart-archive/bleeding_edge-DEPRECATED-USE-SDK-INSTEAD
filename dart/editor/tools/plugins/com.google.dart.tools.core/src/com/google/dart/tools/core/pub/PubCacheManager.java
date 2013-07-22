@@ -55,10 +55,16 @@ public class PubCacheManager {
       String message = getPubCacheList();
       // no errors
       if (message.startsWith("{\"packages")) {
-        Map<String, Object> object = PubYamlUtils.parsePubspecYamlToMap(message);
-        synchronized (pubUsedPackages) {
-          pubCachePackages = (HashMap<String, Object>) object.get(PubspecConstants.PACKAGES);
+        Map<String, Object> object = null;
+        try {
+          object = PubYamlUtils.parsePubspecYamlToMap(message);
+          synchronized (pubUsedPackages) {
+            pubCachePackages = (HashMap<String, Object>) object.get(PubspecConstants.PACKAGES);
+          }
+        } catch (Exception e) {
+          DartCore.logError("Error while parsing pub cache list", e);
         }
+
         if (packages == null) {
           initializeList();
           if (!pubUsedPackages.isEmpty()) {

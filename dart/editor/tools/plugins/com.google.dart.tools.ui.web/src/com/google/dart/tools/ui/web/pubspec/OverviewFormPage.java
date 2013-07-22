@@ -436,7 +436,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
       MessageDialog.openError(
           null,
           "Pubspec Editor",
-          "Looks like the pubspec.yaml is corrupted. Switch to the Source tab to fix.");
+          "Looks like the pubspec.yaml has invalid syntax or is corrupted.\nSwitch to the Source tab to fix.");
     }
 
     infoSectionPart.getSection().setEnabled(editable);
