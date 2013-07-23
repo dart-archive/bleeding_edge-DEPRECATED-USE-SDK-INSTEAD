@@ -996,7 +996,7 @@ public abstract class AbstractScanner {
     while (true) {
       next = advance();
       if ('\n' == next || '\r' == next || -1 == next) {
-        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(tokenStart, 0));
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(tokenStart, -1));
         return next;
       }
     }

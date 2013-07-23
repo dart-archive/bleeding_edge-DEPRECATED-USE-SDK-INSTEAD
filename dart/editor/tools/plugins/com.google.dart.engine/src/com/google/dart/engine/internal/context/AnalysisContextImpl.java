@@ -83,6 +83,7 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.ast.ASTCloner;
+import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.io.IOException;
@@ -462,8 +463,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           return null;
         }
         StringBuilder builder = new StringBuilder();
-        for (Token token : comment.getTokens()) {
-          builder.append(token.getLexeme());
+        Token[] tokens = comment.getTokens();
+        for (int i = 0; i < tokens.length; i++) {
+          if (i > 0) {
+            builder.append(OSUtilities.LINE_SEPARATOR);
+          }
+          builder.append(tokens[i].getLexeme());
         }
         return builder.toString();
       }

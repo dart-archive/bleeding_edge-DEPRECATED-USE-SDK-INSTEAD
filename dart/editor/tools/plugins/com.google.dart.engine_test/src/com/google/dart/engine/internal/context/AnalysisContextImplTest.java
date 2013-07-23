@@ -220,7 +220,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(libraryElement);
     ClassElement classElement = libraryElement.getDefiningCompilationUnit().getTypes()[0];
     assertNotNull(libraryElement);
-    assertEquals(comment, context.computeDocumentationComment(classElement));
+    assertEquals(comment.trim(), context.computeDocumentationComment(classElement));
   }
 
   public void test_computeErrors_dart_none() throws Exception {

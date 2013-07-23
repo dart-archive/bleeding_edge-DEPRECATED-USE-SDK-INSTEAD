@@ -16,6 +16,7 @@ package com.google.dart.engine.scanner;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.source.TestSource;
+import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import junit.framework.TestCase;
@@ -799,7 +800,7 @@ public abstract class AbstractScannerTest extends TestCase {
   protected abstract Token scan(String source, GatheringErrorListener listener);
 
   private void assertComment(TokenType commentType, String source) throws Exception {
-    Token token = scan(source);
+    Token token = scan(source + OSUtilities.LINE_SEPARATOR);
     assertNotNull(token);
     assertEquals(TokenType.EOF, token.getType());
 

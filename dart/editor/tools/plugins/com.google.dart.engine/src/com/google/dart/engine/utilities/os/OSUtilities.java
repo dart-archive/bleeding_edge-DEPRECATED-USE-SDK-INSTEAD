@@ -21,6 +21,11 @@ package com.google.dart.engine.utilities.os;
  */
 public final class OSUtilities {
   /**
+   * The line separator used by the current platform.
+   */
+  public static final String LINE_SEPARATOR = System.getProperty("line.separator"); //$NON-NLS-1$
+
+  /**
    * The prefix common to all OS names that indicate that we are running on a Macintosh OS.
    */
   private static final String OS_PREFIX_MAC = "mac"; //$NON-NLS-1$
