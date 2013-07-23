@@ -22,9 +22,8 @@ import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.collection.BooleanArray;
 import com.google.dart.engine.utilities.general.StringUtilities;
-
-import java.util.EnumSet;
 
 /**
  * The abstract class {@code ElementImpl} implements the behavior common to objects that implement
@@ -53,7 +52,7 @@ public abstract class ElementImpl implements Element {
   /**
    * A bit-encoded form of the modifiers associated with this element.
    */
-  private EnumSet<Modifier> modifiers;
+  private int modifiers;
 
   /**
    * An array containing all of the metadata associated with this element.
@@ -175,12 +174,11 @@ public abstract class ElementImpl implements Element {
 
   @Override
   public int hashCode() {
-    // TODO: we may want to re-visit this optimization in the future
+    // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
     if (cachedHashCode == 0) {
       cachedHashCode = getLocation().hashCode();
     }
-
     return cachedHashCode;
   }
 
@@ -270,7 +268,7 @@ public abstract class ElementImpl implements Element {
    * @return {@code true} if this element has the given modifier associated with it
    */
   protected boolean hasModifier(Modifier modifier) {
-    return modifiers != null && modifiers.contains(modifier);
+    return BooleanArray.get(modifiers, modifier);
   }
 
   /**
@@ -316,18 +314,6 @@ public abstract class ElementImpl implements Element {
    * @param value {@code true} if the modifier is to be associated with this element
    */
   protected void setModifier(Modifier modifier, boolean value) {
-    if (value) {
-      if (modifiers == null) {
-        modifiers = EnumSet.noneOf(Modifier.class);
-      }
-      modifiers.add(modifier);
-    } else {
-      if (modifiers != null) {
-        modifiers.remove(modifier);
-        if (modifiers.isEmpty()) {
-          modifiers = null;
-        }
-      }
-    }
+    modifiers = BooleanArray.set(modifiers, modifier, value);
   }
 }
