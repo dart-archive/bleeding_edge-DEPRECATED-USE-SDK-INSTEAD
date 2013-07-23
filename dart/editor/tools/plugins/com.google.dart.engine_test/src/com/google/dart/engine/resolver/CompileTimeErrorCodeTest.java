@@ -2679,7 +2679,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_prefixCollidesWithTopLevelMembers_functionTypeAlias() throws Exception {
     addSource("/lib.dart", "library lib;");
     Source source = addSource(createSource(//
-        "import '/lib.dart' as p;",
+        "import 'lib.dart' as p;",
         "typedef p();"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
@@ -2689,7 +2689,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_prefixCollidesWithTopLevelMembers_topLevelFunction() throws Exception {
     addSource("/lib.dart", "library lib;");
     Source source = addSource(createSource(//
-        "import '/lib.dart' as p;",
+        "import 'lib.dart' as p;",
         "p() {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
@@ -2699,7 +2699,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_prefixCollidesWithTopLevelMembers_topLevelVariable() throws Exception {
     addSource("/lib.dart", "library lib;");
     Source source = addSource(createSource(//
-        "import '/lib.dart' as p;",
+        "import 'lib.dart' as p;",
         "var p = null;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
@@ -2709,7 +2709,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_prefixCollidesWithTopLevelMembers_type() throws Exception {
     addSource("/lib.dart", "library lib;");
     Source source = addSource(createSource(//
-        "import '/lib.dart' as p;",
+        "import 'lib.dart' as p;",
         "class p {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);

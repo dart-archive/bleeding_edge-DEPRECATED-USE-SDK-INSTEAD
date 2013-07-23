@@ -2005,7 +2005,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_prefixCollidesWithTopLevelMembers() throws Exception {
     addSource("/lib.dart", "library lib;");
     Source source = addSource(createSource(//
-        "import '/lib.dart' as p;",
+        "import 'lib.dart' as p;",
         "typedef P();",
         "p2() {}",
         "var p3;",
