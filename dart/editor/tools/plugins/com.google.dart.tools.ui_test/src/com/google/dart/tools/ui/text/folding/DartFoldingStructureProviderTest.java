@@ -82,6 +82,7 @@ public class DartFoldingStructureProviderTest extends ParserTestCase {
         "    return;",
         "  }",
         "}");
+    source = source.replace("\r\n", "\n");
     int[] offsets = {242, 267, 205, 81, 44, 0, 146, 52, 103, 252, 321, 313};
     int[] lengths = {127, 30, 47, 22, 26, 18, 58, 28, 43, 61, 30, 54};
     verify(source, offsets, lengths);

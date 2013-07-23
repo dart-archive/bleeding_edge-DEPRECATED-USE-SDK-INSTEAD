@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.preferences;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.ui.test.UIThreadTestCase;
 
 import org.eclipse.core.commands.common.NotDefinedException;
@@ -29,6 +30,16 @@ import java.io.Reader;
 import java.io.StringReader;
 
 public class DartKeyBindingPersistenceTest extends UIThreadTestCase {
+
+  private static String PLATFORM_CTRL;
+
+  static {
+    if (DartCore.isMac()) {
+      PLATFORM_CTRL = "COMMAND";
+    } else {
+      PLATFORM_CTRL = "CTRL";
+    }
+  }
 
   public void testExportPrefs() {
     DartKeyBindingPersistence persist = getBindingPersist();
@@ -48,7 +59,7 @@ public class DartKeyBindingPersistenceTest extends UIThreadTestCase {
 
   public void testImportPrefs() {
     DartKeyBindingPersistence persist = getBindingPersist();
-    assertTrue(hasKeyBinding(persist, "Close", "COMMAND+W"));
+    assertTrue(hasKeyBinding(persist, "Close", PLATFORM_CTRL + "+W"));
     File file = new File("testImportPrefs");
     try {
       try {
@@ -64,7 +75,7 @@ public class DartKeyBindingPersistenceTest extends UIThreadTestCase {
       }
       assertTrue(file.exists() && file.canRead());
       assertTrue(file.length() > 0L);
-      assertTrue(hasKeyBinding(persist, "Close", "COMMAND+W"));
+      assertTrue(hasKeyBinding(persist, "Close", PLATFORM_CTRL + "+W"));
     } finally {
       file.delete();
     }
@@ -72,7 +83,7 @@ public class DartKeyBindingPersistenceTest extends UIThreadTestCase {
 
   public void testResetPrefs() {
     DartKeyBindingPersistence persist = getBindingPersist();
-    assertTrue(hasKeyBinding(persist, "Close", "COMMAND+W"));
+    assertTrue(hasKeyBinding(persist, "Close", PLATFORM_CTRL + "+W"));
     persist = getBindingPersist();
     try {
       Reader reader = new StringReader("<dartKeyBindings/>");
@@ -80,14 +91,14 @@ public class DartKeyBindingPersistenceTest extends UIThreadTestCase {
     } catch (CoreException ex) {
       fail(ex.getMessage());
     }
-    assertFalse(hasKeyBinding(persist, "Close", "COMMAND+W"));
+    assertFalse(hasKeyBinding(persist, "Close", PLATFORM_CTRL + "+W"));
     persist = getBindingPersist();
     try {
       persist.resetBindings();
     } catch (CoreException ex) {
       fail(ex.getMessage());
     }
-    assertTrue(hasKeyBinding(persist, "Close", "COMMAND+W"));
+    assertTrue(hasKeyBinding(persist, "Close", PLATFORM_CTRL + "+W"));
   }
 
   private DartKeyBindingPersistence getBindingPersist() {

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.update;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.PluginUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
@@ -58,7 +59,11 @@ public class UpdateUtilsTest extends TestCase {
     UpdateUtils.copyDirectory(fromDir, toDir, NO_OVERWRITE, NULL_MONITOR);
 
     assertTrue(new File(toDir, "exec").canExecute());
-    assertFalse(new File(toDir, "no_exec").canExecute());
+
+    // File.canExecute() is always true on windows.
+    if (!DartCore.isWindows()) {
+      assertFalse(new File(toDir, "no_exec").canExecute());
+    }
   }
 
   public void testParseRevisionJSON() throws Exception {
@@ -84,7 +89,11 @@ public class UpdateUtilsTest extends TestCase {
     UpdateUtils.unzip(new File(fromDir, "archive.zip"), toDir, NULL_TASK, NULL_MONITOR);
 
     assertTrue(new File(toDir, "exec").canExecute());
-    assertFalse(new File(toDir, "no_exec").canExecute());
+
+    // File.canExecute() is always true on windows.
+    if (!DartCore.isWindows()) {
+      assertFalse(new File(toDir, "no_exec").canExecute());
+    }
   }
 
   @Override

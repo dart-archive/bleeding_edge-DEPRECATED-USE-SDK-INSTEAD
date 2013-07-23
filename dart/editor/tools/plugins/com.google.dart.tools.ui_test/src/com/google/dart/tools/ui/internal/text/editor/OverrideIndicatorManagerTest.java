@@ -55,6 +55,7 @@ public class OverrideIndicatorManagerTest extends ResolverTestCase {
         "  void m2(){}",
         "  void side(){}", // not annotated
         "}");
+    source = source.replace("\r\n", "\n");
     int[] offsets = {227, 242, 256, 212};
     int[] lengths = {3, 2, 2, 3};
     verify(source, offsets, lengths);

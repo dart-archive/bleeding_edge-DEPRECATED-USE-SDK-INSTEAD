@@ -399,7 +399,7 @@ public class SemanticHighlightingTest extends
             ""));
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "import '/meta.dart';",
+        "import 'meta.dart';",
         "@deprecated",
         "class A {",
         "  @deprecated",
