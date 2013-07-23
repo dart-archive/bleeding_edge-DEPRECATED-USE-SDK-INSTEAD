@@ -17,12 +17,15 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
 import com.google.dart.tools.core.analysis.model.ContextManager;
 import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
+import com.google.dart.tools.ui.instrumentation.util.Base64;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -140,7 +143,21 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
   @Override
   public void reconcile(DirtyRegion dirtyRegion, IRegion subRegion) {
-    notifyContext(document.get());
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartReconcilingStrategy-reconcile");
+    try {
+      instrumentation.data("Name", editor.getTitle());
+      instrumentation.data("Offset", dirtyRegion.getOffset());
+      instrumentation.data("Length", dirtyRegion.getLength());
+      String newText = dirtyRegion.getText();
+      if (newText != null) {
+        instrumentation.data("NewText", Base64.encodeBytes(newText.getBytes()));
+      } else {
+        // region was deleted
+      }
+      notifyContext(document.get());
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
