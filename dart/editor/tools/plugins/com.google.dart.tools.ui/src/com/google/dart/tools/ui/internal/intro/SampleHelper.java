@@ -16,7 +16,13 @@ package com.google.dart.tools.ui.internal.intro;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.dart2js.ProcessRunner;
+import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.pub.PubspecConstants;
+import com.google.dart.tools.core.pub.RunPubCacheListJob;
+import com.google.dart.tools.core.pub.RunPubJob;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
+import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 import com.google.dart.tools.ui.internal.projects.ProjectUtils;
@@ -30,58 +36,29 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.IProgressService;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
-import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A helper for opening samples.
  */
 public class SampleHelper {
 
-  public static File generateUniqueSampleDirFrom(String baseName, File dir) {
-    int index = 1;
-    int copyIndex = baseName.lastIndexOf("-"); //$NON-NLS-1$
-    if (copyIndex > -1) {
-      String trailer = baseName.substring(copyIndex + 1);
-      if (isNumber(trailer)) {
-        try {
-          index = Integer.parseInt(trailer);
-          baseName = baseName.substring(0, copyIndex);
-        } catch (NumberFormatException nfe) {
-        }
-      }
-    }
-    String newName = baseName;
-    File newDir = new File(dir.getParent(), newName);
-    while (newDir.exists()) {
-      newName = MessageFormat.format(IntroMessages.IntroEditor_projectName, new Object[] {
-          baseName, Integer.toString(index)});
-      index++;
-      newDir = new File(dir.getParent(), newName);
-    }
-
-    return newDir;
-  }
-
-  public static boolean isNumber(String string) {
-    int numChars = string.length();
-    if (numChars == 0) {
-      return false;
-    }
-    for (int i = 0; i < numChars; i++) {
-      if (!Character.isDigit(string.charAt(i))) {
-        return false;
-      }
-    }
-    return true;
-  }
+  private static String TODOMVC_PUBSPEC = "name: todomvc\ndescription: TodoMVC built with the Dart Web UI package\n"
+      + "dependencies:\n  browser: any\n  web_ui: any\n";
 
   /**
    * Open the given sample.
@@ -92,10 +69,10 @@ public class SampleHelper {
    */
   public static void openSample(SampleDescription description, final File sampleFile,
       final IProgressMonitor monitor, final IWorkbenchWindow window) {
-    String sampleName = getDirectory(sampleFile).getName();
+    final String sampleName = getDirectory(sampleFile).getName();
     // user.home/dart/clock
     File potentialDir = new File(DartCore.getUserDefaultDartFolder(), sampleName);
-    final File newProjectDir = generateUniqueSampleDirFrom(sampleName, potentialDir);
+    final File newProjectDir = ProjectUtils.generateUniqueSampleDirFrom(sampleName, potentialDir);
 
     final String newProjectName = newProjectDir.getName();
     final IProject newProjectHandle = ResourcesPlugin.getWorkspace().getRoot().getProject(
@@ -106,14 +83,18 @@ public class SampleHelper {
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
-        // Copy sample to new directory before creating project
-        // so that builder will have the resources to analyze first time through
-        try {
-          FileUtilities.copyDirectoryContents(getDirectory(sampleFile), newProjectDir);
-        } catch (IOException e) {
-          DartToolsPlugin.log(e);
-        }
 
+        if (!sampleName.equals("todomvc")) {
+          // Copy sample to new directory before creating project
+          // so that builder will have the resources to analyze first time through
+          try {
+            FileUtilities.copyDirectoryContents(getDirectory(sampleFile), newProjectDir);
+          } catch (IOException e) {
+            DartToolsPlugin.log(e);
+          }
+        } else {
+          copySampleContents(sampleFile, newProjectDir, newProjectHandle);
+        }
         try {
           ProjectUtils.createNewProject(
               newProjectName,
@@ -171,6 +152,81 @@ public class SampleHelper {
     }
   }
 
+  private static boolean copySampleContents(final File sampleFile, final File newProjectDir,
+      final IProject project) {
+
+    Control focusControl = Display.getCurrent().getFocusControl();
+    try {
+      IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
+      progressService.busyCursorWhile(new IRunnableWithProgress() {
+
+        @Override
+        public void run(IProgressMonitor monitor) throws InvocationTargetException,
+            InterruptedException {
+          copyTodoMVCContents(sampleFile, newProjectDir, project, monitor);
+        }
+      });
+
+      return true;
+    } catch (Throwable ie) {
+      return false;
+    } finally {
+      if (focusControl != null) {
+        focusControl.setFocus();
+      }
+    }
+  }
+
+  // create a pubspec file and run pub install/update to get the latest web_ui package
+  // copy the contents of example/todomvc 
+  private static void copyTodoMVCContents(File sampleFile, File newProjectDir, IProject project,
+      IProgressMonitor monitor) {
+
+    monitor.subTask("Creating pubspec.yaml");
+    File pubspecFile = new File(newProjectDir, DartCore.PUBSPEC_FILE_NAME);
+    try {
+      FileUtilities.create(pubspecFile);
+    } catch (IOException e) {
+      DartCore.logError("TodoMVC Sample - Error while creating pubspec.yaml", e);
+    }
+    monitor.worked(1);
+    if (pubspecFile.exists()) {
+      try {
+        FileUtilities.setContents(pubspecFile, TODOMVC_PUBSPEC);
+      } catch (IOException e) {
+        DartCore.logError("TodoMVC Sample - Error while setting pubspec.yaml contents", e);
+      }
+      if (runPubInstall(newProjectDir, monitor)) {
+        monitor.subTask("Get web_ui directory information");
+        String webUiPackageLoc = getWebUiDir(monitor);
+        monitor.worked(2);
+        if (webUiPackageLoc != null) {
+          File webuiDir = new File(webUiPackageLoc, "example/todomvc");
+          try {
+            monitor.subTask("Copy todomvc sample code");
+            FileUtilities.copyDirectoryContents(webuiDir, newProjectDir);
+            // delete lock file so pub install runs again to create packages folder in web directory
+            FileUtilities.delete(new File(newProjectDir, DartCore.PUBSPEC_LOCK_FILE_NAME));
+          } catch (IOException e) {
+            DartCore.logError("TodoMVC Sample - Error while copying contents", e);
+          }
+          monitor.worked(1);
+        } else {
+          // error pub cache list did not run, cannot get location for web_ui package,
+          // for now fall back to copying from samples
+          try {
+            monitor.subTask("Copy todomvc sample code");
+            FileUtilities.copyDirectoryContents(getDirectory(sampleFile), newProjectDir);
+          } catch (IOException e) {
+            DartCore.logError("TodoMVC Sample - Error while copying contents", e);
+          }
+          monitor.worked(1);
+        }
+      }
+    }
+
+  }
+
   private static File getDirectory(File file) {
     IPath path = new Path(file.getAbsolutePath());
     int i = getPathIndexForSamplesDir(path);
@@ -191,4 +247,63 @@ public class SampleHelper {
     return i;
   }
 
+  // run pub cache list and get location of web ui package on disk
+  @SuppressWarnings("unchecked")
+  private static String getWebUiDir(IProgressMonitor monitor) {
+
+    String message = new RunPubCacheListJob().run(monitor).getMessage();
+    if (message.startsWith("{\"packages")) {
+      Map<String, Object> object = null;
+      try {
+        object = PubYamlUtils.parsePubspecYamlToMap(message);
+      } catch (Exception e) {
+        DartCore.logError("Error while running pub cache list", e);
+      }
+      if (object != null) {
+        HashMap<String, Object> pubCachePackages = (HashMap<String, Object>) object.get(PubspecConstants.PACKAGES);
+        if (pubCachePackages != null) {
+          Map<String, Object> webui = (Map<String, Object>) pubCachePackages.get("web_ui");
+          if (webui != null) {
+            String[] list = webui.keySet().toArray(new String[webui.keySet().size()]);
+            list = PubYamlUtils.sortVersionArray(list);
+            String latestVersion = list[list.length - 1].toString();
+            return ((Map<String, String>) webui.get(latestVersion)).get(PubspecConstants.LOCATION);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private static boolean runPubInstall(File newProjectDir, IProgressMonitor monitor) {
+
+    monitor.subTask("Running pub install");
+    ProcessBuilder builder = new ProcessBuilder();
+    builder.directory(newProjectDir);
+    builder.redirectErrorStream(true);
+    File pubFile = DartSdkManager.getManager().getSdk().getPubExecutable();
+
+    List<String> args = new ArrayList<String>();
+    if (DartCore.isMac()) {
+      args.add("/bin/bash");
+      args.add("--login");
+      args.add("-c");
+      args.add("\"" + pubFile.getAbsolutePath() + "\"" + " " + RunPubJob.INSTALL_COMMAND);
+    } else {
+      args.add(pubFile.getAbsolutePath());
+      args.add(RunPubJob.INSTALL_COMMAND);
+    }
+    builder.command(args);
+    ProcessRunner runner = new ProcessRunner(builder);
+    try {
+      runner.runSync(monitor);
+    } catch (IOException e) {
+      DartCore.logError("TodoMVC Sample - Running pub install", e);
+    }
+    monitor.worked(2);
+    if (runner.getExitCode() == 0) {
+      return true;
+    }
+    return false;
+  }
 }

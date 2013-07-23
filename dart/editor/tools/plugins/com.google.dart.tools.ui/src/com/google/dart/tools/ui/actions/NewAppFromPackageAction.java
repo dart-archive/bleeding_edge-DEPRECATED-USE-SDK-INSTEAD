@@ -19,7 +19,6 @@ import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.filesview.DartPackageNode;
-import com.google.dart.tools.ui.internal.intro.SampleHelper;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 import com.google.dart.tools.ui.internal.projects.ProjectUtils;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -88,7 +87,7 @@ public class NewAppFromPackageAction extends InstrumentedSelectionDispatchAction
 
     String packageName = packageDir.getName();
     File potentialDir = new File(DartCore.getUserDefaultDartFolder(), packageName);
-    final File newProjectDir = SampleHelper.generateUniqueSampleDirFrom(
+    final File newProjectDir = ProjectUtils.generateUniqueSampleDirFrom(
         packageName + "_copy",
         potentialDir);
 

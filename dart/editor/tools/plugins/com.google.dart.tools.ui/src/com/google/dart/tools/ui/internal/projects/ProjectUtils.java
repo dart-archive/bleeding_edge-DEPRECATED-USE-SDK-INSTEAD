@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.ApplicationGenerator;
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
+import com.google.dart.tools.ui.internal.intro.IntroMessages;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 
 import org.eclipse.core.commands.ExecutionException;
@@ -49,6 +50,7 @@ import org.eclipse.ui.statushandlers.StatusAdapter;
 import org.eclipse.ui.statushandlers.StatusManager;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.text.MessageFormat;
@@ -167,6 +169,31 @@ public class ProjectUtils {
       index++;
     }
     return newName;
+  }
+
+  public static File generateUniqueSampleDirFrom(String baseName, File dir) {
+    int index = 1;
+    int copyIndex = baseName.lastIndexOf("-"); //$NON-NLS-1$
+    if (copyIndex > -1) {
+      String trailer = baseName.substring(copyIndex + 1);
+      if (isNumber(trailer)) {
+        try {
+          index = Integer.parseInt(trailer);
+          baseName = baseName.substring(0, copyIndex);
+        } catch (NumberFormatException nfe) {
+        }
+      }
+    }
+    String newName = baseName;
+    File newDir = new File(dir.getParent(), newName);
+    while (newDir.exists()) {
+      newName = MessageFormat.format(IntroMessages.IntroEditor_projectName, new Object[] {
+          baseName, Integer.toString(index)});
+      index++;
+      newDir = new File(dir.getParent(), newName);
+    }
+
+    return newDir;
   }
 
   /**
