@@ -18,6 +18,7 @@ import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -28,6 +29,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -114,7 +116,7 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
       }
 
       DartCore.getConsole().print(stringBuilder.toString());
-
+      refreshEditor();
       return new Status(IStatus.OK, DartToolsPlugin.PLUGIN_ID, stringBuilder.toString());
     }
 
@@ -244,6 +246,22 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
       }
     }
     return properties;
+  }
+
+  /**
+   * Refresh the active editor - this is to catch changes to read/write access of resource.
+   */
+  private void refreshEditor() {
+
+    Display.getDefault().syncExec(new Runnable() {
+      @Override
+      public void run() {
+        IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+        if (editor instanceof DartEditor) {
+          ((DartEditor) editor).validateEditorInputState();
+        }
+      }
+    });
   }
 
 }
