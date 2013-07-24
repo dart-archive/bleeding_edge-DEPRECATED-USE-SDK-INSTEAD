@@ -191,9 +191,10 @@ public class SourceFactory {
    * 
    * @param source the source whose contents are being overridden
    * @param contents the new contents of the source
+   * @return {@code true} if the new cached contents are different from the old, else {@code false}
    */
-  public void setContents(Source source, String contents) {
-    contentCache.setContents(source, contents);
+  public boolean setContents(Source source, String contents) {
+    return contentCache.setContents(source, contents);
   }
 
   /**

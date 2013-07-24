@@ -76,14 +76,16 @@ public class ContentCache {
    * 
    * @param source the source whose contents are being overridden
    * @param contents the new contents of the source
+   * @return {@code true} if the new cached contents are different than the old, else {@code false}
    */
-  public void setContents(Source source, String contents) {
+  public boolean setContents(Source source, String contents) {
     if (contents == null) {
-      contentMap.remove(source);
       stampMap.remove(source);
+      return contentMap.remove(source) != null;
     } else {
-      contentMap.put(source, contents);
       stampMap.put(source, Long.valueOf(System.currentTimeMillis()));
+      String originalContents = contentMap.put(source, contents);
+      return !contents.equals(originalContents);
     }
   }
 }

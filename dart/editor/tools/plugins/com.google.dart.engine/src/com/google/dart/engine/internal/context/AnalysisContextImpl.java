@@ -1225,8 +1225,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public void setContents(Source source, String contents) {
     synchronized (cacheLock) {
-      sourceFactory.setContents(source, contents);
-      sourceChanged(source);
+      if (sourceFactory.setContents(source, contents)) {
+        sourceChanged(source);
+      }
     }
   }
 

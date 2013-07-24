@@ -23,12 +23,16 @@ public class ContentCacheTest extends TestCase {
     assertNull(cache.getModificationStamp(source));
 
     String contents = "library lib;";
-    cache.setContents(source, contents);
+    assertTrue(cache.setContents(source, contents));
     assertEquals(contents, cache.getContents(source));
     assertNotNull(cache.getModificationStamp(source));
 
-    cache.setContents(source, null);
+    assertFalse(cache.setContents(source, contents));
+
+    assertTrue(cache.setContents(source, null));
     assertNull(cache.getContents(source));
     assertNull(cache.getModificationStamp(source));
+
+    assertFalse(cache.setContents(source, null));
   }
 }
