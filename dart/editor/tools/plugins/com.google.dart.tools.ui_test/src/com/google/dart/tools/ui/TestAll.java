@@ -27,12 +27,12 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(DartUiTest.class);
-    suite.addTest(com.google.dart.tools.ui.internal.TestAll.suite());
+    suite.addTestSuite(PartitionTest.class);
     suite.addTest(com.google.dart.tools.ui.feedback.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.instrumentation.TestAll.suite());
+    suite.addTest(com.google.dart.tools.ui.internal.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.refactoring.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.text.folding.TestAll.suite());
-    suite.addTest(com.google.dart.tools.ui.internal.text.editor.TestAll.suite());
     return suite;
   }
 }
