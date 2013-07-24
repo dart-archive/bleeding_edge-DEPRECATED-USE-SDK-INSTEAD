@@ -224,6 +224,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * at which it occurred.
    */
   private void notifyContext(String code) {
+    editor.applyCompilationUnitElement(null);
     AnalysisContext context = editor.getInputAnalysisContext();
     ContextManager manager = editor.getInputProject();
     if (manager == null) {
