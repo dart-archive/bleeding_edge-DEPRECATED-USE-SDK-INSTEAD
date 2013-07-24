@@ -39,6 +39,18 @@ import org.eclipse.jface.text.reconciler.IReconcilingStrategy;
 import org.eclipse.jface.text.reconciler.IReconcilingStrategyExtension;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcilingStrategyExtension {
 
@@ -116,6 +128,18 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     this.editor = editor;
     this.source = editor.getInputSource();
 
+    // Prioritize analysis when editor becomes active
+    editor.getViewer().getTextWidget().addFocusListener(new FocusListener() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        updateAnalysisPriorityOrder(true);
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+      }
+    });
+
     // Cleanup the receiver when editor is closed
     editor.getViewer().getTextWidget().addDisposeListener(new DisposeListener() {
       @Override
@@ -129,6 +153,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
   @Override
   public void initialReconcile() {
+    updateAnalysisPriorityOrder(true);
     if (!applyResolvedUnit()) {
       // TODO (danrubel): Set priority so that context will keep this AST in memory
       try {
@@ -223,6 +248,36 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     performAnalysisInBackground();
     document.removeDocumentListener(documentListener);
     AnalysisWorker.removeListener(analysisListener);
+    updateAnalysisPriorityOrder(false);
+  }
+
+  /**
+   * Answer the list of sources associated with the specified context that are open in a tab.
+   * 
+   * @param context the context (not {@code null})
+   * @return a list of sources (not {@code null}, contains no {@code null}s)
+   */
+  private List<Source> getOpenSourcesForContext(AnalysisContext context) {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    IWorkbench workbench = PlatformUI.getWorkbench();
+    for (IWorkbenchWindow window : workbench.getWorkbenchWindows()) {
+      for (IWorkbenchPage page : window.getPages()) {
+        IEditorReference[] allEditors = page.getEditorReferences();
+        for (IEditorReference editorRef : allEditors) {
+          IEditorPart part = editorRef.getEditor(false);
+          if (part instanceof DartEditor) {
+            DartEditor otherEditor = (DartEditor) part;
+            if (otherEditor.getInputAnalysisContext() == context) {
+              Source otherSource = otherEditor.getInputSource();
+              if (otherSource != null) {
+                sources.add(otherSource);
+              }
+            }
+          }
+        }
+      }
+    }
+    return sources;
   }
 
   /**
@@ -250,5 +305,33 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     if (context != null) {
       context.setContents(source, code);
     }
+  }
+
+  /**
+   * Update the order in which sources are analyzed in the context associated with the editor. This
+   * is called once per instantiated editor on startup and then once for each editor as it becomes
+   * active. For example, if there are 2 of 7 editors visible on startup, then this will be called
+   * for the 2 visible editors.
+   * 
+   * @param isOpen {@code true} if the editor is open and the source should be the first source
+   *          analyzed or {@code false} if the editor is closed and the source should be removed
+   *          from the priority list.
+   */
+  private void updateAnalysisPriorityOrder(final boolean isOpen) {
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        // TODO (danrubel): Revisit when reviewing performance of startup, open, and activate
+        AnalysisContext context = editor.getInputAnalysisContext();
+        if (context != null) {
+          List<Source> sources = getOpenSourcesForContext(context);
+          sources.remove(source);
+          if (isOpen) {
+            sources.add(0, source);
+          }
+          context.setAnalysisPriorityOrder(sources);
+        }
+      }
+    });
   }
 }
