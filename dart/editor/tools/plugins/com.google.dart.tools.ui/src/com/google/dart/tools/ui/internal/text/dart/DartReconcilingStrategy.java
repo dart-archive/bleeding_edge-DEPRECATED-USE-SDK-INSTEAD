@@ -93,7 +93,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   };
 
   /**
-   * Listen for changes to the source and record the last modification time.
+   * Listen for changes to the source to clear the cached AST and record the last modification time.
    */
   final IDocumentListener documentListener = new IDocumentListener() {
     @Override
@@ -103,6 +103,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     @Override
     public void documentChanged(DocumentEvent event) {
       sourceChangedTime = System.currentTimeMillis();
+      editor.applyCompilationUnitElement(null);
     }
   };
 
@@ -130,11 +131,13 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   public void initialReconcile() {
     if (!applyResolvedUnit()) {
       // TODO (danrubel): Set priority so that context will keep this AST in memory
-      // rather than notifying the context that the source has changed
-      notifyContext(document.get());
       try {
-        CompilationUnit unit = editor.getInputAnalysisContext().parseCompilationUnit(source);
-        editor.applyCompilationUnitElement(unit);
+        AnalysisContext context = editor.getInputAnalysisContext();
+        if (context != null) {
+          CompilationUnit unit = context.parseCompilationUnit(source);
+          editor.applyCompilationUnitElement(unit);
+          performAnalysisInBackground();
+        }
       } catch (AnalysisException e) {
         DartCore.logError("Parse failed for " + editor.getTitle(), e);
       }
@@ -154,7 +157,8 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       } else {
         // region was deleted
       }
-      notifyContext(document.get());
+      sourceChanged(document.get());
+      performAnalysisInBackground();
     } finally {
       instrumentation.log();
     }
@@ -162,7 +166,8 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
   @Override
   public void reconcile(IRegion partition) {
-    notifyContext(document.get());
+    sourceChanged(document.get());
+    performAnalysisInBackground();
   }
 
   /**
@@ -213,25 +218,37 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * Cleanup when the editor is closed.
    */
   private void dispose() {
-    // clear the cached source content so that the source will be read from disk
-    notifyContext(null);
+    // clear the cached source content to ensure the source will be read from disk
+    sourceChanged(null);
+    performAnalysisInBackground();
     document.removeDocumentListener(documentListener);
     AnalysisWorker.removeListener(analysisListener);
   }
 
   /**
-   * Notify the underlying analysis context that a source change has occurred, and record the time
-   * at which it occurred.
+   * Start background analysis of the context containing the source being edited.
    */
-  private void notifyContext(String code) {
-    editor.applyCompilationUnitElement(null);
+  private void performAnalysisInBackground() {
     AnalysisContext context = editor.getInputAnalysisContext();
-    ContextManager manager = editor.getInputProject();
-    if (manager == null) {
-      manager = DartCore.getProjectManager();
+    if (context != null) {
+      ContextManager manager = editor.getInputProject();
+      if (manager == null) {
+        manager = DartCore.getProjectManager();
+      }
+      AnalysisWorker.performAnalysisInBackground(manager, context);
     }
+  }
+
+  /**
+   * Clear the cached compilation unit and notify the context that the source has changed.
+   * 
+   * @param code the new source code (not {@code null})
+   */
+  private void sourceChanged(String code) {
     notifyContextTime = System.currentTimeMillis();
-    context.setContents(source, code);
-    AnalysisWorker.performAnalysisInBackground(manager, context);
+    AnalysisContext context = editor.getInputAnalysisContext();
+    if (context != null) {
+      context.setContents(source, code);
+    }
   }
 }
