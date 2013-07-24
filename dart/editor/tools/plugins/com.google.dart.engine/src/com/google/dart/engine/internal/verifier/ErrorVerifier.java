@@ -380,6 +380,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForInvalidAssignment(node);
     }
     checkForAssignmentToFinal(node);
+    checkForArgumentTypeNotAssignable(node.getRightHandSide());
     return super.visitAssignmentExpression(node);
   }
 
@@ -742,6 +743,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitPostfixExpression(PostfixExpression node) {
     checkForAssignmentToFinal(node.getOperand());
+    checkForIntNotAssignable(node.getOperand());
     return super.visitPostfixExpression(node);
   }
 
@@ -758,6 +760,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (node.getOperator().getType().isIncrementOperator()) {
       checkForAssignmentToFinal(node.getOperand());
     }
+    checkForIntNotAssignable(node.getOperand());
     return super.visitPrefixExpression(node);
   }
 
@@ -1651,52 +1654,73 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForArgumentTypeNotAssignable(Expression expression, Type expectedStaticType,
       Type expectedPropagatedType, ErrorCode errorCode) {
+    return checkForArgumentTypeNotAssignable(
+        expression,
+        expectedStaticType,
+        getStaticType(expression),
+        expectedPropagatedType,
+        expression.getPropagatedType(),
+        errorCode);
+  }
+
+  /**
+   * This verifies that the passed expression can be assigned to its corresponding parameters.
+   * 
+   * @param expression the expression to evaluate
+   * @param expectedStaticType the expected static type of the parameter
+   * @param actualStaticType the actual static type of the argument
+   * @param expectedPropagatedType the expected propagated type of the parameter, may be
+   *          {@code null}
+   * @param actualPropagatedType the expected propagated type of the parameter, may be {@code null}
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * @see CompileTimeErrorCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  private boolean checkForArgumentTypeNotAssignable(Expression expression, Type expectedStaticType,
+      Type actualStaticType, Type expectedPropagatedType, Type actualPropagatedType,
+      ErrorCode errorCode) {
     //
     // Test static type information
     //
-    Type staticArgumentType = getStaticType(expression);
-
-    if (staticArgumentType == null || expectedStaticType == null) {
+    if (actualStaticType == null || expectedStaticType == null) {
       return false;
     }
     if (strictMode) {
-      if (staticArgumentType.isAssignableTo(expectedStaticType)) {
+      if (actualStaticType.isAssignableTo(expectedStaticType)) {
         return false;
       }
       errorReporter.reportError(
           errorCode,
           expression,
-          staticArgumentType.getDisplayName(),
+          actualStaticType.getDisplayName(),
           expectedStaticType.getDisplayName());
       return true;
     }
     //
     // Test propagated type information
     //
-    Type propagatedArgumentType = expression.getPropagatedType();
-
-    if (propagatedArgumentType == null || expectedPropagatedType == null) {
-      if (staticArgumentType.isAssignableTo(expectedStaticType)) {
+    if (actualPropagatedType == null || expectedPropagatedType == null) {
+      if (actualStaticType.isAssignableTo(expectedStaticType)) {
         return false;
       }
       errorReporter.reportError(
           errorCode,
           expression,
-          staticArgumentType.getDisplayName(),
+          actualStaticType.getDisplayName(),
           expectedStaticType.getDisplayName());
       return true;
     }
 
-    if (staticArgumentType.isAssignableTo(expectedStaticType)
-        || staticArgumentType.isAssignableTo(expectedPropagatedType)
-        || propagatedArgumentType.isAssignableTo(expectedStaticType)
-        || propagatedArgumentType.isAssignableTo(expectedPropagatedType)) {
+    if (actualStaticType.isAssignableTo(expectedStaticType)
+        || actualStaticType.isAssignableTo(expectedPropagatedType)
+        || actualPropagatedType.isAssignableTo(expectedStaticType)
+        || actualPropagatedType.isAssignableTo(expectedPropagatedType)) {
       return false;
     }
     errorReporter.reportError(
         errorCode,
         expression,
-        (propagatedArgumentType == null ? staticArgumentType : propagatedArgumentType).getDisplayName(),
+        (actualPropagatedType == null ? actualStaticType : actualPropagatedType).getDisplayName(),
         (expectedPropagatedType == null ? expectedStaticType : expectedPropagatedType).getDisplayName());
     return true;
   }
@@ -2968,6 +2992,45 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       errorReporter.reportError(error);
     }
     return true;
+  }
+
+  /**
+   * This verifies that an 'int' can be assigned to the parameter corresponding to the given
+   * expression. This is used for prefix and postfix expressions where the argument value is
+   * implicit.
+   * 
+   * @param argument the expression to which the operator is being applied
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   * @see CompileTimeErrorCode#ARGUMENT_TYPE_NOT_ASSIGNABLE
+   */
+  private boolean checkForIntNotAssignable(Expression argument) {
+    if (argument == null) {
+      return false;
+    }
+
+    ErrorCode errorCode;
+    if (isInConstInstanceCreation || isEnclosingConstructorConst) {
+      errorCode = CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+    } else {
+      errorCode = StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+    }
+
+    ParameterElement staticParameterElement = argument.getStaticParameterElement();
+    Type staticParameterType = staticParameterElement == null ? null
+        : staticParameterElement.getType();
+
+    ParameterElement propagatedParameterElement = argument.getParameterElement();
+    Type propagatedParameterType = propagatedParameterElement == null ? null
+        : propagatedParameterElement.getType();
+
+    return checkForArgumentTypeNotAssignable(
+        argument,
+        staticParameterType,
+        typeProvider.getIntType(),
+        propagatedParameterType,
+        typeProvider.getIntType(),
+        errorCode);
   }
 
   /**

@@ -83,6 +83,11 @@ public abstract class Expression extends ASTNode {
       if (binaryExpression.getRightOperand() == this) {
         return binaryExpression.getPropagatedParameterElementForRightOperand();
       }
+    } else if (parent instanceof AssignmentExpression) {
+      AssignmentExpression assignmentExpression = (AssignmentExpression) parent;
+      if (assignmentExpression.getRightHandSide() == this) {
+        return assignmentExpression.getPropagatedParameterElementForRightHandSide();
+      }
     } else if (parent instanceof PrefixExpression) {
       return ((PrefixExpression) parent).getPropagatedParameterElementForOperand();
     } else if (parent instanceof PostfixExpression) {
@@ -124,6 +129,11 @@ public abstract class Expression extends ASTNode {
       BinaryExpression binaryExpression = (BinaryExpression) parent;
       if (binaryExpression.getRightOperand() == this) {
         return binaryExpression.getStaticParameterElementForRightOperand();
+      }
+    } else if (parent instanceof AssignmentExpression) {
+      AssignmentExpression assignmentExpression = (AssignmentExpression) parent;
+      if (assignmentExpression.getRightHandSide() == this) {
+        return assignmentExpression.getStaticParameterElementForRightHandSide();
       }
     } else if (parent instanceof PrefixExpression) {
       return ((PrefixExpression) parent).getStaticParameterElementForOperand();
