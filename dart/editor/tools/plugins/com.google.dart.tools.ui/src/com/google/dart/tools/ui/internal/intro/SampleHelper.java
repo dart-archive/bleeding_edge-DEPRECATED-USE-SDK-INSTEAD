@@ -251,6 +251,7 @@ public class SampleHelper {
   @SuppressWarnings("unchecked")
   private static String getWebUiDir(IProgressMonitor monitor) {
 
+    // TODO(keertip): refactor and move common code to RunPubCacheListJob()
     String message = new RunPubCacheListJob().run(monitor).getMessage();
     if (message.startsWith("{\"packages")) {
       Map<String, Object> object = null;
@@ -277,6 +278,7 @@ public class SampleHelper {
 
   private static boolean runPubInstall(File newProjectDir, IProgressMonitor monitor) {
 
+    // TODO(keertip): move to RunPubJob
     monitor.subTask("Running pub install");
     ProcessBuilder builder = new ProcessBuilder();
     builder.directory(newProjectDir);
