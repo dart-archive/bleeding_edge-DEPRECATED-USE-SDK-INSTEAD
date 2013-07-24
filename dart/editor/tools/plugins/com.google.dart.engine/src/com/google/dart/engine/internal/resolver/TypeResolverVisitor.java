@@ -483,7 +483,11 @@ public class TypeResolverVisitor extends ScopedVisitor {
       elementValid = false;
     }
     if (!elementValid) {
-      setElement(typeName, dynamicType.getElement());
+      if (element instanceof MultiplyDefinedElement) {
+        setElement(typeName, element);
+      } else {
+        setElement(typeName, dynamicType.getElement());
+      }
       typeName.setStaticType(dynamicType);
       node.setType(dynamicType);
       return null;
