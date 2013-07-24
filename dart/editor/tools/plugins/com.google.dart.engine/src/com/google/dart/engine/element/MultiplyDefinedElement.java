@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.type.Type;
+
 /**
  * The interface {@code MultiplyDefinedElement} defines the behavior of pseudo-elements that
  * represent multiple elements defined within a single scope that have the same name. This situation
@@ -30,4 +32,11 @@ public interface MultiplyDefinedElement extends Element {
    * @return the elements that were defined with the same name
    */
   public Element[] getConflictingElements();
+
+  /**
+   * Return the type of this element as the dynamic type.
+   * 
+   * @return the type of this element as the dynamic type
+   */
+  public Type getType();
 }

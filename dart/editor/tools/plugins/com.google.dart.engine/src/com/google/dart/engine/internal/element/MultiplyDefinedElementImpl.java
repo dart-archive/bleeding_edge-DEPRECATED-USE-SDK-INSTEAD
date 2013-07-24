@@ -22,7 +22,9 @@ import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
+import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.Type;
 
 import java.util.ArrayList;
 
@@ -129,6 +131,11 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @Override
   public Source getSource() {
     return null;
+  }
+
+  @Override
+  public Type getType() {
+    return DynamicTypeImpl.getInstance();
   }
 
   @Override

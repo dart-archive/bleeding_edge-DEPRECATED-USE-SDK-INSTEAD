@@ -115,7 +115,6 @@ import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.internal.constant.ValidResult;
-import com.google.dart.engine.internal.element.DynamicElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.member.ConstructorMember;
@@ -1437,7 +1436,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       TypeName constructorTypeName = redirectedNode.getType();
       Type redirectedType = constructorTypeName.getType();
       if (redirectedType != null && redirectedType.getElement() != null
-          && redirectedType.getElement() != DynamicElementImpl.getInstance()) {
+          && !redirectedType.isDynamic()) {
         //
         // Prepare the constructor name
         //

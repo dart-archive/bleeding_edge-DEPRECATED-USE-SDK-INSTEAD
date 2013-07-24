@@ -99,7 +99,6 @@ import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.internal.element.DynamicElementImpl;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.resolver.TypeProviderImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
@@ -1503,7 +1502,7 @@ public class CompletionEngine {
     if (receiverType != null) {
       // Complete this.!y where this is absent
       Element rcvrTypeElem = receiverType.getElement();
-      if (rcvrTypeElem.equals(DynamicElementImpl.getInstance())) {
+      if (receiverType.isDynamic()) {
         rcvrTypeElem = getObjectClassElement();
       }
       if (rcvrTypeElem instanceof ClassElement) {
@@ -1593,7 +1592,7 @@ public class CompletionEngine {
       if (rcvrTypeElem == null) {
         rcvrTypeElem = getObjectClassElement(); // { f() => null.! }
       }
-      if (rcvrTypeElem.equals(DynamicElementImpl.getInstance())) {
+      if (receiverType.isDynamic()) {
         rcvrTypeElem = getObjectClassElement();
       }
       if (rcvrTypeElem instanceof ClassElement) {
@@ -2516,8 +2515,7 @@ public class CompletionEngine {
         break;
       }
       case DYNAMIC: {
-        DynamicElementImpl receiverElement = (DynamicElementImpl) receiver;
-        receiverType = receiverElement.getType();
+        receiverType = DynamicTypeImpl.getInstance();
         break;
       }
       case FUNCTION_TYPE_ALIAS: {
