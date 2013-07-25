@@ -13,19 +13,18 @@
  */
 package com.google.dart.tools.ui.internal.dialogs;
 
-import com.google.dart.tools.core.model.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.index.Index;
+import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.search.SearchEngineFactory;
+import com.google.dart.engine.search.SearchListener;
+import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.search.SearchPatternFactory;
+import com.google.dart.engine.search.SearchScope;
+import com.google.dart.engine.search.SearchScopeFactory;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartConventions;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.search.SearchEngine;
-import com.google.dart.tools.core.search.SearchEngineFactory;
-import com.google.dart.tools.core.search.SearchException;
-import com.google.dart.tools.core.search.SearchListener;
-import com.google.dart.tools.core.search.SearchMatch;
-import com.google.dart.tools.core.search.SearchPatternFactory;
-import com.google.dart.tools.core.search.SearchScope;
-import com.google.dart.tools.core.search.SearchScopeFactory;
-import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -54,7 +53,6 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ILabelDecorator;
@@ -301,9 +299,9 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 
     }
 
-    public String getFullyQualifiedText(CompilationUnitElement element) {
+    public String getFullyQualifiedText(Element element) {
       StringBuffer result = new StringBuffer();
-      result.append(element.getElementName());
+      result.append(element.getName());
 //      String containerName = type.getTypeContainerName();
 //      if (containerName.length() > 0) {
 //        result.append(DartElementLabels.CONCAT_STRING);
@@ -338,13 +336,13 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 //      return DartElementImageProvider.getTypeImageDescriptor(false, false);
 //    }
 
-    public String getQualificationText(CompilationUnitElement element) {
+    public String getQualificationText(Element element) {
       StringBuffer result = new StringBuffer();
 
-      DartLibrary library = element.getCompilationUnit().getLibrary();
+      LibraryElement library = element.getLibrary();
       result.append(library.getDisplayName());
 
-      IResource resource = element.getResource();
+      IResource resource = DartCore.getProjectManager().getResource(element.getSource());
       if (resource != null) {
         result.append(DartElementLabels.CONCAT_STRING);
         IContainer container = resource.getParent();
@@ -358,11 +356,11 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       return result.toString();
     }
 
-    public String getQualifiedText(CompilationUnitElement element) {
+    public String getQualifiedText(Element element) {
       StringBuffer result = new StringBuffer();
-      result.append(element.getElementName());
+      result.append(element.getName());
 
-      DartLibrary library = element.getCompilationUnit().getLibrary();
+      LibraryElement library = element.getLibrary();
       if (library != null) {
         result.append(DartElementLabels.CONCAT_STRING);
         result.append(library.getDisplayName());
@@ -372,7 +370,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 
     public String getText(Object element) {
 
-      return ((DartElement) element).getElementName();
+      return ((Element) element).getName();
     }
 
 //    public String getText(Type last, Type current,
@@ -527,9 +525,9 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 
     @Override
     public Image getImage(Object object) {
-      if (object instanceof CompilationUnitElement) {
-        CompilationUnitElement element = (CompilationUnitElement) object;
-        DartLibrary library = element.getCompilationUnit().getLibrary();
+      if (object instanceof Element) {
+        Element element = (Element) object;
+        LibraryElement library = element.getLibrary();
         if (library != null) {
           return imageProvider.getImage(library);
         }
@@ -539,8 +537,8 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 
     @Override
     public String getText(Object element) {
-      if (element instanceof CompilationUnitElement) {
-        return fTypeInfoUtil.getQualificationText((CompilationUnitElement) element);
+      if (element instanceof Element) {
+        return fTypeInfoUtil.getQualificationText((Element) element);
       }
 
       return super.getText(element);
@@ -572,20 +570,20 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 
     @Override
     public String decorateText(String text, Object element) {
-      if (!(element instanceof CompilationUnitElement)) {
+      if (!(element instanceof Element)) {
         return null;
       }
 
       if (fContainerInfo && isDuplicateElement(element)) {
-        return fTypeInfoUtil.getFullyQualifiedText((CompilationUnitElement) element);
+        return fTypeInfoUtil.getFullyQualifiedText((Element) element);
       }
 
-      return fTypeInfoUtil.getQualifiedText((CompilationUnitElement) element);
+      return fTypeInfoUtil.getQualifiedText((Element) element);
     }
 
     @Override
     public Image getImage(Object element) {
-      if (!(element instanceof CompilationUnitElement)) {
+      if (!(element instanceof Element)) {
         return super.getImage(element);
       }
       return fLabelProvider.getImage(element);
@@ -593,16 +591,16 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 
     @Override
     public String getText(Object element) {
-      if (!(element instanceof CompilationUnitElement)) {
+      if (!(element instanceof Element)) {
         return super.getText(element);
       }
 
       if (fContainerInfo && isDuplicateElement(element)) {
-        return fTypeInfoUtil.getFullyQualifiedText((CompilationUnitElement) element);
+        return fTypeInfoUtil.getFullyQualifiedText((Element) element);
       }
 
       if (!fContainerInfo && isDuplicateElement(element)) {
-        return fTypeInfoUtil.getQualifiedText((CompilationUnitElement) element);
+        return fTypeInfoUtil.getQualifiedText((Element) element);
       }
 
       return fTypeInfoUtil.getText(element);
@@ -644,9 +642,9 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
     @Override
     public int compare(Object left, Object right) {
 
-      DartElement leftInfo = (DartElement) left;
-      DartElement rightInfo = (DartElement) right;
-      return compareName(leftInfo.getElementName(), rightInfo.getElementName());
+      Element leftInfo = (Element) left;
+      Element rightInfo = (Element) right;
+      return compareName(leftInfo.getName(), rightInfo.getName());
 
 //      int result = compareName(leftInfo.getSimpleTypeName(),
 //          rightInfo.getSimpleTypeName());
@@ -801,7 +799,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       super(new TypeSearchPattern());
       fScope = scope;
       fIsWorkspaceScope = scope == null ? false
-          : scope.equals(SearchScopeFactory.createWorkspaceScope());
+          : scope.equals(SearchScopeFactory.createUniverseScope());
       fElemKind = elementKind;
       fFilterExt = extension;
       String stringPackage = ((TypeSearchPattern) patternMatcher).getPackagePattern();
@@ -883,14 +881,14 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       return false;
     }
 
-    public boolean matchesCachedResult(CompilationUnitElement element) {
+    public boolean matchesCachedResult(Element element) {
       if (!(matchesFilterExtension(element))) {
         return false;
       }
       return matchesName(element);
     }
 
-    public boolean matchesFilterExtension(DartElement element) {
+    public boolean matchesFilterExtension(Element element) {
       return true;
 //TODO: consider whether we need filter extensions
 //      if (fFilterExt == null)
@@ -899,20 +897,20 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 //      return fFilterExt.select(fAdapter);
     }
 
-    public boolean matchesHistoryElement(DartElement element) {
+    public boolean matchesHistoryElement(Element element) {
       if (!(matchesScope(element) && matchesFilterExtension(element))) {
         return false;
       }
       return matchesName(element);
     }
 
-    public boolean matchesRawNamePattern(DartElement type) {
-      return Strings.startsWithIgnoreCase(type.getElementName(), getPattern());
+    public boolean matchesRawNamePattern(Element type) {
+      return Strings.startsWithIgnoreCase(type.getName(), getPattern());
     }
 
     @Override
     public boolean matchesRawNamePattern(Object item) {
-      CompilationUnitElement element = (CompilationUnitElement) item;
+      Element element = (Element) item;
       return matchesRawNamePattern(element);
     }
 
@@ -923,7 +921,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
         return true;
       }
 
-      CompilationUnitElement element = (CompilationUnitElement) item;
+      Element element = (Element) item;
       if (!(matchesScope(element) && matchesFilterExtension(element))) {
         return false;
       }
@@ -940,11 +938,11 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       this.fMatchEverything = matchEverything;
     }
 
-    private boolean matchesName(DartElement element) {
-      return matches(element.getElementName());
+    private boolean matchesName(Element element) {
+      return matches(element.getName());
     }
 
-    private boolean matchesScope(DartElement element) {
+    private boolean matchesScope(Element element) {
       if (fIsWorkspaceScope) {
         return true;
       }
@@ -1053,7 +1051,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       if (fStop) {
         return;
       }
-      DartElement element = match.getElement();
+      Element element = match.getElement();
       if (fTypeItemsFilter.matchesFilterExtension(element)) {
         fContentProvider.add(element, fTypeItemsFilter);
       }
@@ -1150,7 +1148,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
 
     if (scope == null) {
       fAllowScopeSwitching = true;
-      scope = SearchScopeFactory.createWorkspaceScope();
+      scope = SearchScopeFactory.createUniverseScope();
     }
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         shell,
@@ -1305,7 +1303,10 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
     TypeItemsFilter typeSearchFilter = (TypeItemsFilter) itemsFilter;
     SearchListener requestor = new TypeSearchRequestor(provider, typeSearchFilter);
 
-    SearchEngine engine = SearchEngineFactory.createSearchEngine((WorkingCopyOwner) null);
+    Index globalIndex = DartCore.getProjectManager().getIndex();
+    SearchEngine engine = SearchEngineFactory.createSearchEngine(globalIndex);
+
+    //SearchEngine engine = SearchEngineFactory.createSearchEngine((WorkingCopyOwner) null);
     progressMonitor.setTaskName(DartUIMessages.FilteredTypesSelectionDialog_searchJob_taskName);
 
     /*
@@ -1330,7 +1331,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       typeSearchFilter.setMatchEverythingMode(true);
     }
 
-    com.google.dart.tools.core.search.SearchPattern searchPattern = null;
+    com.google.dart.engine.search.SearchPattern searchPattern = null;
 
     switch (matchRule) {
       case SearchPattern.RULE_CAMELCASE_MATCH:
@@ -1352,10 +1353,8 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
           typeSearchFilter.getSearchScope(),
           searchPattern,
           null,
-          requestor,
-          progressMonitor);
-    } catch (SearchException e) {
-      DartToolsPlugin.log(e);
+          requestor
+      /* progressMonitor */);
     } finally {
       typeSearchFilter.setMatchEverythingMode(false);
     }
@@ -1439,7 +1438,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
       //TODO: adding workingset scope support
 //      IWorkingSet ws = fFilterActionGroup.getWorkingSet();
 //      if (ws == null || (ws.isAggregateWorkingSet() && ws.isEmpty())) {
-      setSearchScope(SearchScopeFactory.createWorkspaceScope());
+      setSearchScope(SearchScopeFactory.createUniverseScope());
       setSubtitle(null);
 //      } else {
 //        setSearchScope(JavaSearchScopeFactory.getInstance().createJavaSearchScope(
@@ -1459,27 +1458,15 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
   @Override
   protected void setResult(@SuppressWarnings("rawtypes") List newResult) {
 
-    List<CompilationUnitElement> resultToReturn = new ArrayList<CompilationUnitElement>();
+    List<Element> resultToReturn = new ArrayList<Element>();
 
     for (int i = 0; i < newResult.size(); i++) {
-      if (newResult.get(i) instanceof CompilationUnitElement) {
-        CompilationUnitElement element = (CompilationUnitElement) newResult.get(i);
-        if (element.exists()) {
-          // items are added to history in the
-          // org.eclipse.ui.dialogs.FilteredItemsSelectionDialog#computeResult()
-          // method
-          resultToReturn.add(element);
-        } else {
-          String containerName = ""; //$NON-NLS-1$
-//          IPackageFragmentRoot root = typeInfo.getPackageFragmentRoot();
-//          String containerName = JavaScriptElementLabels.getElementLabel(root,
-//              JavaScriptElementLabels.ROOT_QUALIFIED);
-          String message = Messages.format(
-              DartUIMessages.FilteredTypesSelectionDialog_dialogMessage,
-              new String[] {element.getElementName(), containerName});
-          MessageDialog.openError(getShell(), fTitle, message);
-          getSelectionHistory().remove(element);
-        }
+      if (newResult.get(i) instanceof Element) {
+        Element element = (Element) newResult.get(i);
+        // items are added to history in the
+        // org.eclipse.ui.dialogs.FilteredItemsSelectionDialog#computeResult()
+        // method
+        resultToReturn.add(element);
       }
     }
 
@@ -1517,17 +1504,7 @@ public class FilteredTypesSelectionDialog extends FilteredItemsSelectionDialog i
     }
 
     if (fValidator != null) {
-      CompilationUnitElement element = (CompilationUnitElement) item;
-      if (!element.exists()) {
-        return new Status(
-            IStatus.ERROR,
-            DartToolsPlugin.getPluginId(),
-            IStatus.ERROR,
-            Messages.format(
-                DartUIMessages.FilteredTypesSelectionDialog_error_type_doesnot_exist,
-                ((CompilationUnitElement) item).getElementName()), null);
-      }
-      Object[] elements = {element};
+      Object[] elements = {item};
       return fValidator.validate(elements);
     } else {
       return new Status(IStatus.OK, DartToolsPlugin.getPluginId(), IStatus.OK, "", null); //$NON-NLS-1$

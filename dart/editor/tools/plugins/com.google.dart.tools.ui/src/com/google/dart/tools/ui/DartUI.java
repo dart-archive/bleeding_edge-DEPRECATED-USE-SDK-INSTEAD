@@ -15,6 +15,8 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.search.SearchScope;
+import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -22,8 +24,6 @@ import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.search.SearchScope;
-import com.google.dart.tools.core.search.SearchScopeFactory;
 import com.google.dart.tools.ui.dialogs.TypeSelectionExtension;
 import com.google.dart.tools.ui.internal.SharedImages;
 import com.google.dart.tools.ui.internal.dialogs.FilteredTypesSelectionDialog;
@@ -260,7 +260,7 @@ public final class DartUI {
     // TODO (pquitslund): update to use project scope once implemented in search core
     //DartSearchScope scope = SearchEngine.createJavaSearchScope(
     //                            new DartProject[] {JavaScriptCore.create(project)});
-    SearchScope scope = SearchScopeFactory.createWorkspaceScope();
+    SearchScope scope = SearchScopeFactory.createUniverseScope();
     return createTypeDialog(parent, context, scope, style, multipleSelection);
   }
 

@@ -13,15 +13,13 @@
  */
 package com.google.dart.tools.ui.internal.dialogs;
 
-import com.google.dart.tools.core.search.SearchScope;
+import com.google.dart.engine.search.SearchScope;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.dialogs.TypeSelectionExtension;
-import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.PlatformUI;
 
 /**
  * A type selection dialog used for opening types.
@@ -40,23 +38,6 @@ public class OpenTypeSelectionDialog extends FilteredTypesSelectionDialog {
     super(parent, multi, context, scope, elementKinds, extension);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.dialogs.SelectionStatusDialog#configureShell(org.eclipse
-   * .swt.widgets.Shell)
-   */
-  @Override
-  protected void configureShell(Shell newShell) {
-    super.configureShell(newShell);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(newShell, DartHelpContextIds.OPEN_TYPE_DIALOG);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.google.dart.tools.ui.dialogs.FilteredTypesSelectionDialog#getDialogSettings ()
-   */
   @Override
   protected IDialogSettings getDialogSettings() {
     IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettings().getSection(

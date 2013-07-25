@@ -13,14 +13,13 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
-import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartUIMessages;
 import com.google.dart.tools.ui.internal.dialogs.OpenTypeSelectionDialog;
-import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
@@ -46,14 +45,12 @@ import org.eclipse.ui.actions.NewProjectAction;
 import org.eclipse.ui.dialogs.SelectionDialog;
 
 /**
- * Action to open the "Open Dart Type" dialog.
+ * Action to open the "Open Type" dialog.
  */
 public class OpenTypeAction extends Action implements IWorkbenchWindowActionDelegate,
     IActionDelegate2 {
 
-  private static final int SEARCH_ELEMENT_KINDS = 0; /*
-                                                      * IJavaSearchConstants.TYPE
-                                                      */
+  private static final int SEARCH_ELEMENT_KINDS = 0;
 
   public OpenTypeAction() {
     super();
@@ -61,7 +58,6 @@ public class OpenTypeAction extends Action implements IWorkbenchWindowActionDele
     setDescription(DartUIMessages.OpenTypeAction_description);
     setToolTipText(DartUIMessages.OpenTypeAction_tooltip);
     setImageDescriptor(DartPluginImages.DESC_TOOL_OPENTYPE);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.OPEN_TYPE_ACTION);
   }
 
   @Override
@@ -123,7 +119,7 @@ public class OpenTypeAction extends Action implements IWorkbenchWindowActionDele
 
     if (types.length == 1) {
       try {
-        DartUI.openInEditor((DartElement) types[0], true, true);
+        DartUI.openInEditor((Element) types[0], true, true);
       } catch (CoreException x) {
         ExceptionHandler.handle(
             x,
