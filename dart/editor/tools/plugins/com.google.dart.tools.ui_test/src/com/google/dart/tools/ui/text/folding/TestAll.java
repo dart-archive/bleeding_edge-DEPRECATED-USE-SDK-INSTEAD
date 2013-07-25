@@ -20,9 +20,7 @@ public class TestAll {
 
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    // TODO: this test fails with:
-    // junit.framework.AssertionFailedError: No annotation found for offset: 81, length: 21
-    //suite.addTestSuite(DartFoldingStructureProviderTest.class);
+    suite.addTestSuite(DartFoldingStructureProviderTest.class);
     return suite;
   }
 }
