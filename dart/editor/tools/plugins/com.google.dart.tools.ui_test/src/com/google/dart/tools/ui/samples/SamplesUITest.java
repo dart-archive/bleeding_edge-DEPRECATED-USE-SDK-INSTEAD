@@ -16,8 +16,6 @@ package com.google.dart.tools.ui.samples;
 import com.google.dart.ui.test.UITestCase;
 import com.google.dart.ui.test.model.Workspace.Sample;
 
-import org.eclipse.core.runtime.CoreException;
-
 /**
  * Test samples.
  */
@@ -47,16 +45,13 @@ public final class SamplesUITest extends UITestCase {
     testSample(Sample.TODO_MVC);
   }
 
-  private void testSample(Sample sample) throws CoreException {
+  private void testSample(Sample sample) throws Exception {
 
     try {
 
       sample.open();
-
-      //TODO (pquitslund): add problem marker assertions
-
-      //// ???: maybe: project.getMarkers() ....  or project.assertNoMarkers(IPredicate)
-      //// Workspace.assertNoMarkers()
+      //TODO (pquitslund): work in progress
+      sample.run();
 
     } finally {
       sample.dispose();

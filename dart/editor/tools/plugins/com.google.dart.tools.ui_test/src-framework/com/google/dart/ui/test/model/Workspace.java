@@ -15,17 +15,20 @@ package com.google.dart.ui.test.model;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import com.google.dart.tools.debug.ui.launch.DartLaunchService;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
 import com.google.dart.tools.ui.internal.intro.SampleDescription;
 import com.google.dart.tools.ui.internal.intro.SampleDescriptionHelper;
 import com.google.dart.tools.ui.internal.intro.SampleHelper;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
+import com.google.dart.ui.test.model.Workspace.Project.Type;
 import com.google.dart.ui.test.runnable.Result;
 import com.google.dart.ui.test.runnable.VoidResult;
 
 import static com.google.dart.ui.test.runnable.UIThreadRunnable.syncExec;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -51,14 +54,28 @@ public class Workspace {
      */
     public static enum Type {
 
-      SERVER(ProjectType.SERVER),
-      WEB(ProjectType.WEB),
-      NONE(ProjectType.NONE);
+      SERVER(ProjectType.SERVER) {
+        @Override
+        void launch(IResource resource) {
+          DartLaunchService.getInstance().launchInServer(resource);
+        }
+      },
+      WEB(ProjectType.WEB) {
+        @Override
+        void launch(IResource resource) {
+          DartLaunchService.getInstance().launchInDartium(resource);
+        }
+      },
+      UNKNOWN(ProjectType.NONE);
 
       private final ProjectType type;
 
       private Type(ProjectType type) {
         this.type = type;
+      }
+
+      void launch(IResource resource) {
+        //Implemented in subtypes
       }
 
       private ProjectType adapt() {
@@ -67,12 +84,14 @@ public class Workspace {
     }
 
     private final IProject project;
+    private Type type;
 
     /**
-     * Create an instance for the given {@link IProject}.
+     * Create an instance for the given {@link IProject} and {@link Type}.
      */
-    public Project(IProject project) {
+    public Project(IProject project, Type type) {
       this.project = project;
+      this.type = type;
     }
 
     /**
@@ -93,6 +112,19 @@ public class Workspace {
       return project.getName();
     }
 
+    /**
+     * Launch the given resource using a launch derived from the project {@link Type}.
+     */
+    public void launch(IResource resource) {
+      type.launch(resource);
+    }
+
+    /**
+     * Set the project type.
+     */
+    public void setType(Type type) {
+      this.type = type;
+    }
   };
 
   /**
@@ -100,14 +132,14 @@ public class Workspace {
    */
   public static enum Sample {
 
-    CLOCK("Clock"),
-    SLIDER("Slider"),
-    SOLAR("Solar"),
-    SOLAR_3D("Solar 3D"),
-    SWIPE("Swipe"),
-    SUNFLOWER("Sunflower"),
-    TIME("Time server"),
-    TODO_MVC("TodoMVC");
+    CLOCK("Clock", Type.WEB),
+    SLIDER("Slider", Type.WEB),
+    SOLAR("Solar", Type.WEB),
+    SOLAR_3D("Solar 3D", Type.WEB),
+    SWIPE("Swipe", Type.WEB),
+    SUNFLOWER("Sunflower", Type.WEB),
+    TIME("Time server", Type.SERVER),
+    TODO_MVC("TodoMVC", Type.WEB);
 
     private static SampleDescription getDescription(String name) {
       for (SampleDescription desc : SampleDescriptionHelper.getDescriptions()) {
@@ -129,8 +161,10 @@ public class Workspace {
     }
 
     private final SampleDescription description;
+    private final Type type;
 
-    private Sample(String name) {
+    private Sample(String name, Type type) {
+      this.type = type;
       this.description = getDescription(name);
     }
 
@@ -169,7 +203,7 @@ public class Workspace {
           //(in a future) so we can do this more cleanly
           return project.getName().startsWith(description.directory.getName());
         }
-      });
+      }, type);
 
       if (!projects.isEmpty()) {
         return projects.get(0);
@@ -185,6 +219,18 @@ public class Workspace {
       openSample(description);
     }
 
+    /**
+     * Run this sample.
+     */
+    public void run() {
+      IResource launchable = getLaunchableFile();
+      getProject().launch(launchable);
+    }
+
+    IResource getLaunchableFile() {
+      return getProject().project.findMember(description.file, false);
+    }
+
   }
 
   /**
@@ -196,7 +242,7 @@ public class Workspace {
    */
   public static Project createProject(String name, Project.Type type) {
     IProject project = createProject(name, type.adapt());
-    return createProject(project);
+    return createProject(project, type);
   }
 
   /**
@@ -212,7 +258,7 @@ public class Workspace {
       public boolean apply(IProject project) {
         return project.getName().equals(name);
       }
-    });
+    }, Type.UNKNOWN);
 
     if (!projects.isEmpty()) {
       return projects.get(0);
@@ -231,11 +277,11 @@ public class Workspace {
       public boolean apply(IProject input) {
         return true;
       }
-    });
+    }, Type.UNKNOWN);
   }
 
-  private static Project createProject(IProject project) {
-    return new Project(project);
+  private static Project createProject(IProject project, Project.Type type) {
+    return new Project(project, type);
   }
 
   private static IProject createProject(final String name, final ProjectType type) {
@@ -256,13 +302,13 @@ public class Workspace {
 
   }
 
-  private static List<Project> findProjects(Predicate<IProject> matcher) {
+  private static List<Project> findProjects(Predicate<IProject> matcher, Type type) {
 
     List<Project> projects = Lists.newArrayList();
 
     for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
       if (matcher.apply(project)) {
-        projects.add(createProject(project));
+        projects.add(createProject(project, type));
       }
     }
 
