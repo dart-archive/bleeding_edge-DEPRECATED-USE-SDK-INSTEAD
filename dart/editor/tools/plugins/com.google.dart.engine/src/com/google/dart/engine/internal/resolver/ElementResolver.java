@@ -1036,7 +1036,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Element element = resolveSimpleIdentifier(node);
     if (isFactoryConstructorReturnType(node) && element != resolver.getEnclosingClass()) {
       resolver.reportError(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
-    } else if (element == null) {
+    } else if (element == null || (element instanceof PrefixElement && !isValidAsPrefix(node))) {
       // TODO(brianwilkerson) Recover from this error.
       if (isConstructorReturnType(node)) {
         resolver.reportError(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
@@ -1488,6 +1488,28 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return ((ExecutableElement) element).isStatic();
     } else if (element instanceof PropertyInducingElement) {
       return ((PropertyInducingElement) element).isStatic();
+    }
+    return false;
+  }
+
+  /**
+   * Return {@code true} if the given node can validly be resolved to a prefix:
+   * <ul>
+   * <li>it is the prefix in an import directive, or</li>
+   * <li>it is the prefix in a prefixed identifier.</li>
+   * </ul>
+   * 
+   * @param node the node being tested
+   * @return {@code true} if the given node is the prefix in an import directive
+   */
+  private boolean isValidAsPrefix(SimpleIdentifier node) {
+    ASTNode parent = node.getParent();
+    if (parent instanceof ImportDirective) {
+      return ((ImportDirective) parent).getPrefix() == node;
+    } else if (parent instanceof PrefixedIdentifier) {
+      return true;
+    } else if (parent instanceof MethodInvocation) {
+      return ((MethodInvocation) parent).getTarget() == node;
     }
     return false;
   }

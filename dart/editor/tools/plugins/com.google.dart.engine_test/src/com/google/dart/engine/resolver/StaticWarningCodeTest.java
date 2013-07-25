@@ -122,14 +122,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER, StaticWarningCode.UNDEFINED_IDENTIFIER);
   }
 
-  public void fail_undefinedIdentifier_function() throws Exception {
-    Source source = addSource(createSource(//
-    "int a() => b;"));
-    resolve(source);
-    assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
-    verify(source);
-  }
-
   public void fail_undefinedSetter() throws Exception {
     Source source = addSource(createSource(//
         "class C {}",
@@ -1841,9 +1833,37 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source1);
   }
 
+  public void test_undefinedIdentifier_function() throws Exception {
+    Source source = addSource(createSource(//
+    "int a() => b;"));
+    resolve(source);
+    assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
+  }
+
+  public void test_undefinedIdentifier_function_prefix() throws Exception {
+    addSource("/lib.dart", "library lib;");
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as b;",
+        "",
+        "int a() => b;"));
+    resolve(source);
+    assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
+    verify(source);
+  }
+
   public void test_undefinedIdentifier_initializer() throws Exception {
     Source source = addSource(createSource(//
     "var a = b;"));
+    resolve(source);
+    assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
+  }
+
+  public void test_undefinedIdentifier_initializer_prefix() throws Exception {
+    addSource("/lib.dart", "library lib;");
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as b;",
+        "",
+        "var a = b;"));
     resolve(source);
     assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
   }
