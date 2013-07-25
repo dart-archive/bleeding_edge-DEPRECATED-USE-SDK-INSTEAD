@@ -30,6 +30,8 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
@@ -70,7 +72,9 @@ public class AnalysisContextImplTest extends EngineTestCase {
   @Override
   public void setUp() {
     context = new AnalysisContextImpl();
-    sourceFactory = new SourceFactory(new FileUriResolver());
+    sourceFactory = new SourceFactory(
+        new DartUriResolver(DirectoryBasedDartSdk.getDefaultSdk()),
+        new FileUriResolver());
     context.setSourceFactory(sourceFactory);
   }
 

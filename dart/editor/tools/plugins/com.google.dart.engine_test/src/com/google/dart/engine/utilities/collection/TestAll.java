@@ -25,6 +25,7 @@ public class TestAll {
     suite.addTestSuite(FastRemoveListTest.class);
     suite.addTestSuite(IntListTest.class);
     suite.addTestSuite(IntStackTest.class);
+    suite.addTestSuite(ListUtilitiesTest.class);
     return suite;
   }
 }

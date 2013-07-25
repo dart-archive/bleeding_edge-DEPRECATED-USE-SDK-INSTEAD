@@ -83,6 +83,7 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.ast.ASTCloner;
+import com.google.dart.engine.utilities.collection.ListUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
 
@@ -479,38 +480,45 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public AnalysisError[] computeErrors(Source source) throws AnalysisException {
-    synchronized (cacheLock) {
-      SourceEntry sourceEntry = getSourceEntry(source);
-      if (sourceEntry instanceof DartEntry) {
-        DartEntry dartEntry = (DartEntry) sourceEntry;
-        CacheState parseErrorsState = dartEntry.getState(DartEntry.PARSE_ERRORS);
-        if (parseErrorsState != CacheState.VALID && parseErrorsState != CacheState.ERROR) {
-          dartEntry = internalParseDart(source);
-        }
+    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    if (sourceEntry instanceof DartEntry) {
+      ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
+      DartEntry dartEntry = (DartEntry) sourceEntry;
+      ListUtilities.addAll(
+          errors,
+          internalGetDartParseData(source, dartEntry, DartEntry.PARSE_ERRORS));
+      if (dartEntry.getValue(DartEntry.SOURCE_KIND) == SourceKind.LIBRARY) {
+        ListUtilities.addAll(
+            errors,
+            internalGetDartResolutionData(source, source, dartEntry, DartEntry.RESOLUTION_ERRORS));
+      } else {
         Source[] libraries = getLibrariesContaining(source);
         for (Source librarySource : libraries) {
-          CacheState resolutionErrorsState = dartEntry.getState(
-              DartEntry.RESOLUTION_ERRORS,
-              librarySource);
-          if (resolutionErrorsState != CacheState.VALID
-              && resolutionErrorsState != CacheState.ERROR) {
-            // TODO(brianwilkerson) Decide whether to resolve the source against all libraries or
-            // whether to add a librarySource parameter to this method.
-            // resolveCompilationUnit(source, librarySource);
-          }
+          ListUtilities.addAll(
+              errors,
+              internalGetDartResolutionData(
+                  source,
+                  librarySource,
+                  dartEntry,
+                  DartEntry.RESOLUTION_ERRORS));
         }
-        return dartEntry.getAllErrors();
-      } else if (sourceEntry instanceof HtmlEntry) {
-        HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
-        CacheState resolutionErrorsState = htmlEntry.getState(HtmlEntry.RESOLUTION_ERRORS);
-        if (resolutionErrorsState != CacheState.VALID && resolutionErrorsState != CacheState.ERROR) {
-          computeHtmlElement(source);
-          htmlEntry = (HtmlEntry) getSourceEntry(source);
-        }
-        return htmlEntry.getValue(HtmlEntry.RESOLUTION_ERRORS);
       }
-      return AnalysisError.NO_ERRORS;
+      // TODO(brianwilkerson) Gather other kinds of errors when their generation is moved out of
+      // resolution into separate phases.
+      //addAll(errors, internalGetDartHintData(source, dartEntry, DartEntry.HINTS));
+      if (errors.isEmpty()) {
+        return AnalysisError.NO_ERRORS;
+      }
+      return errors.toArray(new AnalysisError[errors.size()]);
+    } else if (sourceEntry instanceof HtmlEntry) {
+      HtmlEntry htmlEntry = (HtmlEntry) sourceEntry;
+      return internalGetHtmlResolutionData(
+          source,
+          htmlEntry,
+          HtmlEntry.RESOLUTION_ERRORS,
+          AnalysisError.NO_ERRORS);
     }
+    return AnalysisError.NO_ERRORS;
   }
 
   @Override
@@ -525,37 +533,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return null;
     }
     CacheState elementState = htmlEntry.getState(HtmlEntry.ELEMENT);
-    if (elementState == CacheState.ERROR || elementState == CacheState.VALID) {
-      return htmlEntry.getValue(HtmlEntry.ELEMENT);
+    if (elementState != CacheState.ERROR && elementState != CacheState.VALID) {
+      htmlEntry = internalResolveHtml(source);
     }
-    synchronized (cacheLock) {
-      try {
-        HtmlElement element = htmlEntry.getValue(HtmlEntry.ELEMENT);
-        if (element == null) {
-          HtmlUnit unit = internalGetHtmlParseData(source, htmlEntry, HtmlEntry.PARSED_UNIT, null);
-          if (unit == null) {
-            return null;
-          }
-          HtmlUnitBuilder builder = new HtmlUnitBuilder(this);
-          element = builder.buildHtmlElement(source, unit);
-          AnalysisError[] resolutionErrors = builder.getErrorListener().getErrors(source);
-          HtmlEntryImpl htmlCopy = getHtmlEntry(source).getWritableCopy();
-          htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, resolutionErrors);
-          htmlCopy.setValue(HtmlEntry.ELEMENT, element);
-          sourceMap.put(source, htmlCopy);
-          getNotice(source).setErrors(
-              htmlCopy.getAllErrors(),
-              htmlCopy.getValue(SourceEntry.LINE_INFO));
-        }
-        return element;
-      } catch (AnalysisException exception) {
-        HtmlEntryImpl htmlCopy = getHtmlEntry(source).getWritableCopy();
-        htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.ERROR);
-        htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.ERROR);
-        sourceMap.put(source, htmlCopy);
-        throw exception;
-      }
-    }
+    return htmlEntry.getValue(HtmlEntry.ELEMENT);
   }
 
   @Override
@@ -570,11 +551,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return SourceKind.UNKNOWN;
     } else if (sourceEntry instanceof DartEntry) {
       try {
-        return internalGetDartParseData(
-            source,
-            (DartEntry) sourceEntry,
-            DartEntry.SOURCE_KIND,
-            SourceKind.UNKNOWN);
+        return internalGetDartParseData(source, (DartEntry) sourceEntry, DartEntry.SOURCE_KIND);
       } catch (AnalysisException exception) {
         return SourceKind.UNKNOWN;
       }
@@ -1450,30 +1427,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return the HTML unit information associated with the given source, or {@code null} if the
-   * source is not known to this context. This method should be used to access the HTML unit
-   * information rather than accessing the HTML unit map directly because sources in the SDK are
-   * implicitly part of every analysis context and are therefore only added to the map when first
-   * accessed.
-   * <p>
-   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
-   * 
-   * @param source the source for which information is being sought
-   * @return the HTML unit information associated with the given source
-   */
-  private HtmlEntry getHtmlEntry(Source source) {
-    SourceEntry sourceEntry = getSourceEntry(source);
-    if (sourceEntry == null) {
-      sourceEntry = new HtmlEntryImpl();
-      sourceMap.put(source, sourceEntry);
-      return (HtmlEntry) sourceEntry;
-    } else if (sourceEntry instanceof HtmlEntry) {
-      return (HtmlEntry) sourceEntry;
-    }
-    return null;
-  }
-
-  /**
    * Return the sources of libraries that are referenced in the specified HTML file.
    * 
    * @param htmlSource the source of the HTML file being analyzed
@@ -1748,25 +1701,41 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Given a source for a Dart file, return the data represented by the given descriptor that is
-   * associated with that source, or the given default value if the source is not a Dart file. This
-   * method assumes that the data can be produced by parsing the source if it is not already cached.
+   * Given a source for an HTML file, return a cache entry in which all of the data represented by
+   * the given descriptors is available. This method assumes that the data can be produced by
+   * parsing the source if it is not already cached.
+   * 
+   * @param htmlEntry the cache entry associated with the HTML file
+   * @param descriptor the descriptor representing the data to be returned
+   * @return a cache entry containing the required data
+   */
+  private boolean hasHtmlParseDataCached(HtmlEntry htmlEntry, DataDescriptor<?>... descriptors) {
+    for (DataDescriptor<?> descriptor : descriptors) {
+      CacheState state = htmlEntry.getState(descriptor);
+      if (state != CacheState.VALID && state != CacheState.ERROR) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Given a source for a Dart file, return a cache entry in which the data represented by the given
+   * descriptor is available. This method assumes that the data can be produced by parsing the
+   * source if it is not already cached.
    * 
    * @param source the source representing the Dart file
    * @param dartEntry the cache entry associated with the Dart file
    * @param descriptor the descriptor representing the data to be returned
-   * @param defaultValue the value to be returned if the source is not a Dart file
-   * @return the requested data about the given source
-   * @throws AnalysisException if data could not be returned because the source could not be parsed
+   * @return a cache entry containing the required data
+   * @throws AnalysisException if data could not be returned because the source could not be
+   *           resolved
    */
-  private <E> E internalGetDartParseData(Source source, DartEntry dartEntry,
-      DataDescriptor<E> descriptor, E defaultValue) throws AnalysisException {
+  private DartEntry internalCacheDartParseData(Source source, DartEntry dartEntry,
+      DataDescriptor<?> descriptor) throws AnalysisException {
     //
     // Check to see whether we already have the information being requested.
     //
-    if (dartEntry == null) {
-      return defaultValue;
-    }
     CacheState state = dartEntry.getState(descriptor);
     while (state != CacheState.ERROR && state != CacheState.VALID) {
       //
@@ -1776,6 +1745,80 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       dartEntry = internalParseDart(source);
       state = dartEntry.getState(descriptor);
     }
+    return dartEntry;
+  }
+
+  /**
+   * Given a source for a Dart file and the library that contains it, return a cache entry in which
+   * all of the data represented by the given descriptors is available. This method assumes that the
+   * data can be produced by resolving the source in the context of the library if it is not already
+   * cached.
+   * 
+   * @param unitSource the source representing the Dart file
+   * @param librarySource the source representing the library containing the Dart file
+   * @param dartEntry the cache entry associated with the Dart file
+   * @param descriptor the descriptor representing the data to be returned
+   * @return the requested data about the given source
+   * @throws AnalysisException if data could not be returned because the source could not be parsed
+   */
+  private DartEntry internalCacheDartResolutionData(Source unitSource, Source librarySource,
+      DartEntry dartEntry, DataDescriptor<?> descriptor) throws AnalysisException {
+    //
+    // Check to see whether we already have the information being requested.
+    //
+    CacheState state = dartEntry.getState(descriptor, librarySource);
+    while (state != CacheState.ERROR && state != CacheState.VALID) {
+      //
+      // If not, compute the information. Unless the modification date of the source continues to
+      // change, this loop will eventually terminate.
+      //
+      dartEntry = internalResolveDart(unitSource, librarySource);
+      state = dartEntry.getState(descriptor, librarySource);
+    }
+    return dartEntry;
+  }
+
+  /**
+   * Given a source for an HTML file, return a cache entry in which all of the data represented by
+   * the given descriptors is available. This method assumes that the data can be produced by
+   * parsing the source if it is not already cached.
+   * 
+   * @param source the source representing the HTML file
+   * @param htmlEntry the cache entry associated with the HTML file
+   * @param descriptor the descriptor representing the data to be returned
+   * @return a cache entry containing the required data
+   * @throws AnalysisException if data could not be returned because the source could not be
+   *           resolved
+   */
+  private HtmlEntry internalCacheHtmlParseData(Source source, HtmlEntry htmlEntry,
+      DataDescriptor<?>... descriptors) throws AnalysisException {
+    //
+    // Check to see whether we already have the information being requested.
+    //
+    while (!hasHtmlParseDataCached(htmlEntry, descriptors)) {
+      //
+      // If not, compute the information. Unless the modification date of the source continues to
+      // change, this loop will eventually terminate.
+      //
+      htmlEntry = internalParseHtml(source);
+    }
+    return htmlEntry;
+  }
+
+  /**
+   * Given a source for a Dart file, return the data represented by the given descriptor that is
+   * associated with that source. This method assumes that the data can be produced by parsing the
+   * source if it is not already cached.
+   * 
+   * @param source the source representing the Dart file
+   * @param dartEntry the cache entry associated with the Dart file
+   * @param descriptor the descriptor representing the data to be returned
+   * @return the requested data about the given source
+   * @throws AnalysisException if data could not be returned because the source could not be parsed
+   */
+  private <E> E internalGetDartParseData(Source source, DartEntry dartEntry,
+      DataDescriptor<E> descriptor) throws AnalysisException {
+    dartEntry = internalCacheDartParseData(source, dartEntry, descriptor);
     return dartEntry.getValue(descriptor);
   }
 
@@ -1792,7 +1835,51 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private <E> E internalGetDartParseData(Source source, DataDescriptor<E> descriptor, E defaultValue)
       throws AnalysisException {
-    return internalGetDartParseData(source, getReadableDartEntry(source), descriptor, defaultValue);
+    DartEntry dartEntry = getReadableDartEntry(source);
+    if (dartEntry == null) {
+      return defaultValue;
+    }
+    return internalGetDartParseData(source, dartEntry, descriptor);
+  }
+
+  /**
+   * Given a source for a Dart file and the library that contains it, return the data represented by
+   * the given descriptor that is associated with that source. This method assumes that the data can
+   * be produced by resolving the source in the context of the library if it is not already cached.
+   * 
+   * @param unitSource the source representing the Dart file
+   * @param librarySource the source representing the library containing the Dart file
+   * @param dartEntry the entry representing the Dart file
+   * @param descriptor the descriptor representing the data to be returned
+   * @return the requested data about the given source
+   * @throws AnalysisException if data could not be returned because the source could not be parsed
+   */
+  private <E> E internalGetDartResolutionData(Source unitSource, Source librarySource,
+      DartEntry dartEntry, DataDescriptor<E> descriptor) throws AnalysisException {
+    dartEntry = internalCacheDartResolutionData(unitSource, librarySource, dartEntry, descriptor);
+    return dartEntry.getValue(descriptor, librarySource);
+  }
+
+  /**
+   * Given a source for a Dart file and the library that contains it, return the data represented by
+   * the given descriptor that is associated with that source. This method assumes that the data can
+   * be produced by resolving the source in the context of the library if it is not already cached.
+   * 
+   * @param unitSource the source representing the Dart file
+   * @param librarySource the source representing the library containing the Dart file
+   * @param descriptor the descriptor representing the data to be returned
+   * @param defaultValue the value to be returned if the file is not a Dart file
+   * @return the requested data about the given source
+   * @throws AnalysisException if data could not be returned because the source could not be parsed
+   */
+  private <E> E internalGetDartResolutionData(Source unitSource, Source librarySource,
+      DataDescriptor<E> descriptor, E defaultValue) throws AnalysisException {
+    DartEntry dartEntry = getReadableDartEntry(unitSource);
+    if (dartEntry == null) {
+      return defaultValue;
+    }
+    dartEntry = internalCacheDartResolutionData(unitSource, librarySource, dartEntry, descriptor);
+    return dartEntry.getValue(descriptor);
   }
 
   /**
@@ -1808,21 +1895,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private <E> E internalGetHtmlParseData(Source source, DataDescriptor<E> descriptor, E defaultValue)
       throws AnalysisException {
-    return internalGetHtmlParseData(source, getReadableHtmlEntry(source), descriptor, defaultValue);
+    HtmlEntry htmlEntry = getReadableHtmlEntry(source);
+    if (htmlEntry == null) {
+      return defaultValue;
+    }
+    htmlEntry = internalCacheHtmlParseData(source, htmlEntry, descriptor);
+    return htmlEntry.getValue(descriptor);
   }
 
   /**
    * Given a source for an HTML file, return the data represented by the given descriptor that is
    * associated with that source, or the given default value if the source is not an HTML file. This
-   * method assumes that the data can be produced by parsing the source if it is not already cached.
+   * method assumes that the data can be produced by resolving the source if it is not already
+   * cached.
    * 
-   * @param source the source representing the Dart file
+   * @param source the source representing the HTML file
    * @param descriptor the descriptor representing the data to be returned
-   * @param defaultValue the value to be returned if the source is not a Dart file
+   * @param defaultValue the value to be returned if the source is not an HTML file
    * @return the requested data about the given source
-   * @throws AnalysisException if data could not be returned because the source could not be parsed
+   * @throws AnalysisException if data could not be returned because the source could not be
+   *           resolved
    */
-  private <E> E internalGetHtmlParseData(Source source, HtmlEntry htmlEntry,
+  private <E> E internalGetHtmlResolutionData(Source source, HtmlEntry htmlEntry,
       DataDescriptor<E> descriptor, E defaultValue) throws AnalysisException {
     //
     // Check to see whether we already have the information being requested.
@@ -1836,7 +1930,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       // If not, compute the information. Unless the modification date of the source continues to
       // change, this loop will eventually terminate.
       //
-      htmlEntry = internalParseHtml(source);
+      htmlEntry = internalResolveHtml(source);
       state = htmlEntry.getState(descriptor);
     }
     return htmlEntry.getValue(descriptor);
@@ -2081,6 +2175,130 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     return htmlEntry;
   }
 
+  private DartEntry internalResolveDart(Source unitSource, Source librarySource)
+      throws AnalysisException {
+    DartEntry dartEntry = getReadableDartEntry(unitSource);
+    if (dartEntry == null) {
+      throw new AnalysisException(
+          "Internal error: attempting to parse non-Dart file as a Dart file: "
+              + unitSource.getFullName());
+    }
+    LibraryResolver resolver = null;
+    AnalysisException thrownException = null;
+    try {
+      resolver = new LibraryResolver(this);
+      resolver.resolveLibrary(librarySource, true);
+    } catch (AnalysisException exception) {
+      thrownException = exception;
+    }
+    if (thrownException == null) {
+      synchronized (cacheLock) {
+        accessed(unitSource);
+      }
+      recordResolutionResults(resolver);
+      dartEntry = getReadableDartEntry(unitSource);
+    } else {
+      AnalysisEngine.getInstance().getLogger().logError(
+          "Could not resolve " + unitSource.getFullName(),
+          thrownException);
+      // TODO(brianwilkerson) This is incomplete. We ought to mark all of the compilation units in
+      // the library as being unresolvable.
+      boolean unitIsLibrary = unitSource.equals(librarySource);
+      DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+      dartCopy.setState(DartEntry.RESOLUTION_ERRORS, librarySource, CacheState.ERROR);
+      if (unitIsLibrary) {
+        dartCopy.setState(DartEntry.ELEMENT, CacheState.ERROR);
+      }
+      sourceMap.put(unitSource, dartCopy);
+      if (!unitIsLibrary) {
+        DartEntry libraryEntry = getReadableDartEntry(librarySource);
+        if (libraryEntry != null) {
+          DartEntryImpl libraryCopy = dartEntry.getWritableCopy();
+          libraryCopy.setState(DartEntry.RESOLUTION_ERRORS, librarySource, CacheState.ERROR);
+          libraryCopy.setState(DartEntry.ELEMENT, CacheState.ERROR);
+          sourceMap.put(librarySource, libraryCopy);
+        }
+      }
+      throw thrownException;
+    }
+    ChangeNoticeImpl notice = getNotice(unitSource);
+    notice.setErrors(dartEntry.getAllErrors(), dartEntry.getValue(SourceEntry.LINE_INFO));
+    return dartEntry;
+  }
+
+  /**
+   * Scan and parse the given HTML file, updating the cache as appropriate, and return the updated
+   * cache entry associated with the source.
+   * 
+   * @param source the source representing the HTML file to be parsed
+   * @return the updated cache entry associated with the source
+   * @throws AnalysisException if the source does not represent an HTML file or if the file cannot
+   *           be parsed for some reason
+   */
+  private HtmlEntry internalResolveHtml(Source source) throws AnalysisException {
+    HtmlEntry htmlEntry = getReadableHtmlEntry(source);
+    if (htmlEntry == null) {
+      throw new AnalysisException(
+          "Internal error: attempting to parse non-HTML file as a HTML file: "
+              + source.getFullName());
+    }
+    long resultTime = 0L;
+    HtmlElement element = null;
+    AnalysisError[] resolutionErrors = null;
+    AnalysisException thrownException = null;
+    try {
+      htmlEntry = internalCacheHtmlParseData(source, htmlEntry, HtmlEntry.PARSED_UNIT);
+      HtmlUnit unit = htmlEntry.getValue(HtmlEntry.PARSED_UNIT);
+      if (unit == null) {
+        throw new AnalysisException(
+            "Internal error: internalCacheHtmlParseData returned an entry without a parsed HTML unit");
+      }
+      resultTime = htmlEntry.getModificationTime();
+      HtmlUnitBuilder builder = new HtmlUnitBuilder(this);
+      element = builder.buildHtmlElement(source, unit);
+      resolutionErrors = builder.getErrorListener().getErrors(source);
+    } catch (AnalysisException exception) {
+      thrownException = exception;
+    }
+    synchronized (cacheLock) {
+      SourceEntry sourceEntry = sourceMap.get(source);
+      if (!(sourceEntry instanceof HtmlEntry)) {
+        throw new AnalysisException(
+            "Internal error: attempting to resolve non-HTML file as a HTML file: "
+                + source.getFullName());
+      }
+      htmlEntry = (HtmlEntry) sourceEntry;
+      accessed(source);
+      long sourceTime = source.getModificationStamp();
+      if (sourceTime == resultTime) {
+        if (htmlEntry.getModificationTime() != sourceTime) {
+          // The source has changed without the context being notified. Simulate notification.
+          sourceChanged(source);
+          htmlEntry = getReadableHtmlEntry(source);
+        }
+        HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
+        if (thrownException == null) {
+          htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, resolutionErrors);
+          htmlCopy.setValue(HtmlEntry.ELEMENT, element);
+        } else {
+          htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.ERROR);
+          htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.ERROR);
+        }
+        sourceMap.put(source, htmlCopy);
+        htmlEntry = htmlCopy;
+      }
+    }
+    if (thrownException != null) {
+      AnalysisEngine.getInstance().getLogger().logError(
+          "Could not resolve " + source.getFullName(),
+          thrownException);
+      throw thrownException;
+    }
+    ChangeNoticeImpl notice = getNotice(source);
+    notice.setErrors(htmlEntry.getAllErrors(), htmlEntry.getValue(SourceEntry.LINE_INFO));
+    return htmlEntry;
+  }
+
   private ScanResult internalScan(final Source source, final AnalysisErrorListener errorListener)
       throws AnalysisException {
     final ScanResult result = new ScanResult();
@@ -2314,19 +2532,23 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         synchronized (cacheLock) {
           DartEntry dartEntry = getDartEntry(source);
           if (dartEntry != null) {
-            DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-            dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
-            dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
-            dartCopy.setValue(DartEntry.RESOLVED_UNIT, librarySource, unit);
-            dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
-            if (source == librarySource) {
-              recordElementData(dartCopy, library.getLibraryElement(), htmlSource);
-            }
-            sourceMap.put(source, dartCopy);
+            long sourceTime = source.getModificationStamp();
+            long resultTime = dartEntry.getModificationTime();
+            if (sourceTime == resultTime) {
+              DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+              dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
+              dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
+              dartCopy.setValue(DartEntry.RESOLVED_UNIT, librarySource, unit);
+              dartCopy.setValue(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
+              if (source == librarySource) {
+                recordElementData(dartCopy, library.getLibraryElement(), htmlSource);
+              }
+              sourceMap.put(source, dartCopy);
 
-            ChangeNoticeImpl notice = getNotice(source);
-            notice.setCompilationUnit(unit);
-            notice.setErrors(dartCopy.getAllErrors(), lineInfo);
+              ChangeNoticeImpl notice = getNotice(source);
+              notice.setCompilationUnit(unit);
+              notice.setErrors(dartCopy.getAllErrors(), lineInfo);
+            }
           }
         }
       }
