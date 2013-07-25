@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -111,6 +112,11 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
       if (hints != enableHints.getSelection()) {
         // trigger processing for hints
         DartCore.getProjectManager().setHintOption(enableHints.getSelection());
+      }
+      try {
+        DartCore.getPlugin().savePrefs();
+      } catch (CoreException e) {
+        DartToolsPlugin.log(e);
       }
     }
 

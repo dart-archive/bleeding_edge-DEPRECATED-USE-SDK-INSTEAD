@@ -1368,6 +1368,9 @@ public class DartCore extends Plugin implements DartSdkListener {
     return null;
   }
 
+  /**
+   * Get the core plugin preferences. Use savePrefs() to save the preferences.
+   */
   public IEclipsePreferences getPrefs() {
     if (prefs == null) {
       prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
@@ -1388,6 +1391,19 @@ public class DartCore extends Plugin implements DartSdkListener {
 
   public boolean isHintsEnabled() {
     return DartCore.getPlugin().getPrefs().getBoolean(ENABLE_HINTS_PREFERENCE, true);
+  }
+
+  /**
+   * Save the core plugin preferences
+   * 
+   * @throws CoreException
+   */
+  public void savePrefs() throws CoreException {
+    try {
+      getPrefs().flush();
+    } catch (BackingStoreException e) {
+      throw new CoreException(new Status(IStatus.ERROR, PLUGIN_ID, e.toString(), e));
+    }
   }
 
   @Override
