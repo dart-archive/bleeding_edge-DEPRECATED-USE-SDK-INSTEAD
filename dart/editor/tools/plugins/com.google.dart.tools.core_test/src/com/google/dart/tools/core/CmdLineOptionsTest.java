@@ -91,27 +91,17 @@ public class CmdLineOptionsTest extends TestCase {
 
   public void test_parse_perf() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--perf"});
-    assertOptions(options, true, 0, false, 0, false, 0, 0);
+    assertOptions(options, true, 0, true, 0, false, 0, 0);
   }
 
   public void test_parse_perf_startTime_old() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--perf", "12345"});
-    assertOptions(options, true, 12345, false, 0, false, 0, 1);
-  }
-
-  public void test_parse_perf_startTime_old2() {
-    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"-perf", "12345"});
-    assertOptions(options, true, 12345, false, 0, false, 0, 2);
+    assertOptions(options, true, 12345, true, 0, false, 0, 0);
   }
 
   public void test_parse_test() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--test"});
     assertOptions(options, false, 0, false, 0, true, 0, 0);
-  }
-
-  public void test_startTime() throws Exception {
-    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--start-time", "337"});
-    assertOptions(options, false, 337, false, 0, false, 0, 0);
   }
 
   public void test_test_noName_hasOtherOption() {
@@ -136,10 +126,7 @@ public class CmdLineOptionsTest extends TestCase {
       int fileCount, boolean runTests, int pkgRootCount, int warningCount) {
     assertNotNull(options);
     assertEquals(perf, options.getMeasurePerformance());
-    if (startTime == 0) {
-      long delta = System.currentTimeMillis() - options.getStartTime();
-      assertTrue("Expected getStartTime() to be within 100 ms", 0 <= delta && delta <= 100);
-    } else {
+    if (startTime != 0) {
       assertEquals(startTime, options.getStartTime());
     }
     assertEquals(exitPerf, options.getAutoExit());
@@ -151,9 +138,13 @@ public class CmdLineOptionsTest extends TestCase {
       msg.print("Expected ");
       msg.print(warningCount);
       msg.print(" but found:");
-      for (String warning : options.getWarnings()) {
-        msg.println();
-        msg.print(warning);
+      if (options.getWarnings().isEmpty()) {
+        msg.print(" 0");
+      } else {
+        for (String warning : options.getWarnings()) {
+          msg.println();
+          msg.print(warning);
+        }
       }
       fail(msg.toString());
     }
