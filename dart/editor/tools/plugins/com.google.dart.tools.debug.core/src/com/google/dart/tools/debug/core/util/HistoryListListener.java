@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright 2013 Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,15 +14,13 @@
 
 package com.google.dart.tools.debug.core.util;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+/**
+ * A listener for events fired from a HistoryList.
+ * 
+ * @param <T>
+ */
+public interface HistoryListListener<T> {
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(HistoryListTest.class);
-    suite.addTestSuite(HttpUrlConnectorTest.class);
-    suite.addTestSuite(JsonTests.class);
-    return suite;
-  }
+  public void historyChanged(T current);
+
 }
