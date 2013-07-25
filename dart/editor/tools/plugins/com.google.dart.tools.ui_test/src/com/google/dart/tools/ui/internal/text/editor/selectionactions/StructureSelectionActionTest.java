@@ -36,7 +36,7 @@ abstract public class StructureSelectionActionTest extends ParserTestCase {
   }
 
   String sampleCode() {
-    return createSource(
+    String source = createSource(
         "class R {",
         "  static R _m;",
         "  static R m;",
@@ -69,6 +69,8 @@ abstract public class StructureSelectionActionTest extends ParserTestCase {
         "    var h = R.g();",
         "  }",
         "}");
+    source = source.replace("\r\n", "\n");
+    return source;
   }
 
   void saveSelection(int offset, int length) {
