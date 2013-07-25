@@ -32,16 +32,13 @@ import java.util.List;
  * @coverage dart.tools.core
  */
 public class CmdLineOptions {
-
   public static final String PACKAGE_ROOT = "--package-root";
   public static final String PACKAGE_OVERRIDE = "--package-override-directory";
 
   private static final String AUTO_EXIT = "--auto-exit";
-  private static final String KILL_AFTER_PERF_OLD = "-kill-after-perf"; // deprecated
+
   private static final String OPEN = "--open";
   private static final String PERF = "--perf";
-  private static final String PERF_OLD = "-perf"; // deprecated
-  private static final String START_TIME = "--start-time";
   private static final String TEST = "--test";
 
   private static CmdLineOptions globalOptions;
@@ -64,7 +61,6 @@ public class CmdLineOptions {
    */
   public static CmdLineOptions parseCmdLine(String[] args) {
     CmdLineOptions options = new CmdLineOptions();
-    options.startTime = System.currentTimeMillis();
 
     ArrayList<File> roots = new ArrayList<File>();
 
@@ -72,35 +68,27 @@ public class CmdLineOptions {
     while (index < args.length) {
       String arg = args[index++];
 
-      if (arg.equals(AUTO_EXIT) || arg.equals(KILL_AFTER_PERF_OLD)) {
+      if (arg.equals(AUTO_EXIT)) {
         options.autoExit = true;
-        if (arg.equals(KILL_AFTER_PERF_OLD)) {
-          options.deprecated(KILL_AFTER_PERF_OLD, "Use " + AUTO_EXIT + " instead");
-        }
-
       } else if (arg.equals(OPEN)) {
         while (isOptionValue(args, index)) {
           options.files.add(new File(args[index]));
           index++;
         }
-
-      } else if (arg.equals(PERF) || arg.equals(PERF_OLD)) {
-        // process --perf <startTime-in-milliseconds>
+      } else if (arg.equals(PERF)) {
+        // --perf [<startTime-in-milliseconds>]
         options.measurePerformance = true;
+        options.startTime = System.currentTimeMillis();
+        options.autoExit = true;
+
         if (isOptionValue(args, index)) {
           try {
             options.startTime = Long.valueOf(args[index]);
             index++;
           } catch (NumberFormatException e) {
-            // fall through to set start time to current time
-          }
-          options.deprecated(arg, "Use " + PERF + " " + START_TIME
-              + " <start-time-in-milliseconds> instead");
-        }
-        if (arg.equals(PERF_OLD)) {
-          options.deprecated(PERF_OLD, "Use " + PERF + " instead");
-        }
 
+          }
+        }
       } else if (arg.equals(PACKAGE_ROOT)) {
         while (isOptionValue(args, index)) {
           roots.add(new File(args[index]).getAbsoluteFile());
@@ -109,7 +97,6 @@ public class CmdLineOptions {
         if (roots.size() == 0) {
           options.warning("Expected path after " + PACKAGE_ROOT);
         }
-
       } else if (arg.equals(PACKAGE_OVERRIDE)) {
         if (isOptionValue(args, index)) {
           options.packageOverrideDirectory = new File(args[index]).getAbsoluteFile();
@@ -117,25 +104,12 @@ public class CmdLineOptions {
         } else {
           options.warning("Expected path after " + PACKAGE_OVERRIDE);
         }
-
-      } else if (arg.equals(START_TIME)) {
-        // process --start-time <startTime-in-milliseconds>
-        if (isOptionValue(args, index)) {
-          try {
-            options.startTime = Long.valueOf(args[index]);
-            index++;
-          } catch (NumberFormatException e) {
-            options.warning("Expected number after " + START_TIME);
-          }
-        }
-
       } else if (arg.equals(TEST)) {
         options.runTests = true;
         if (isOptionValue(args, index)) {
           options.runTestName = args[index];
           index++;
         }
-
       } else if (arg.equals("-version") || arg.equals("-port") || arg.equals("-testLoaderClass")
           || arg.equals("-loaderpluginname") || arg.equals("-classNames")
           || arg.equals("-testApplication") || arg.equals("-testpluginname") || arg.equals("-test")) {
@@ -144,7 +118,6 @@ public class CmdLineOptions {
         if (isOptionValue(args, index)) {
           index++;
         }
-
       } else if (arg.length() > 0) {
         options.warning("Unknown option: " + arg);
       }
@@ -203,7 +176,7 @@ public class CmdLineOptions {
 
   private String runTestName = null;
   private boolean junitTestsAreRunning = false;
-  private long startTime = 0;
+  private long startTime;
   private File[] packageRoots = null;
   private File packageOverrideDirectory = null;
   private ArrayList<String> warnings = new ArrayList<String>();
@@ -299,17 +272,6 @@ public class CmdLineOptions {
     for (String message : warnings) {
       System.err.println(message);
     }
-  }
-
-  /**
-   * Report use of a deprecated option key
-   * 
-   * @param optionKey the option key that is deprecated (e.g. {@value #PERF_OLD}) or is being used
-   *          in a deprecated manner (e.g. {@value #PERF} milliseconds)
-   * @param message message indicating action to correct the situation
-   */
-  private void deprecated(String optionKey, String message) {
-    warning("Deprecated use of " + optionKey + ": " + message);
   }
 
   /**

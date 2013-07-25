@@ -47,11 +47,6 @@ public class CmdLineOptionsTest extends TestCase {
     assertOptions(options, false, 0, false, 0, false, 0, 1);
   }
 
-  public void test_parse_killAfterPerf_old() {
-    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"-kill-after-perf"});
-    assertOptions(options, false, 0, true, 0, false, 0, 1);
-  }
-
   public void test_parse_open() {
     File file1 = new File("does-not-exist.dart");
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--open", file1.getPath()});

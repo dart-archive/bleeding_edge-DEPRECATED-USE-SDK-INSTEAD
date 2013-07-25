@@ -23,6 +23,7 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.feedback.FeedbackUtils;
 import com.google.dart.tools.ui.internal.text.editor.AutoSaveHelper;
 
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.ui.IStartup;
 
 import java.io.File;
@@ -45,8 +46,7 @@ public class DartUIStartup implements IStartup {
   }
 
   private void doEarlyStartup() {
-
-    //Pre-start the instrumentation logger if it's registered
+    // Pre-start the instrumentation logger if it's registered.
     InstrumentationLogger.ensureLoggerStarted();
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartUIStartup.earlyStartup");
 
@@ -54,18 +54,19 @@ public class DartUIStartup implements IStartup {
       reportPlatformStatistics();
       reportDartCoreDebug();
 
-      new CmdLineFileProcessor(CmdLineOptions.getOptions()).run();
+      CmdLineFileProcessor.process(CmdLineOptions.getOptions());
       instrumentation.metric("OpenInitialFilesAndFolders", "Complete");
 
       AutoSaveHelper.start();
       instrumentation.metric("AutoSaveHelperStart", "Complete");
 
-      // TODO (danrubel): performance measurements from old startup
-
+      if (CmdLineOptions.getOptions().getMeasurePerformance()) {
+        Job perfJob = new PerfJob();
+        perfJob.schedule();
+      }
     } catch (Throwable throwable) {
       // Catch any runtime exceptions that occur during warm up and log them.
       DartToolsPlugin.log("Exception occured during editor warmup", throwable);
-
     } finally {
       instrumentation.log();
     }

@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.ui.swtbot.performance;
 
-import com.google.dart.tools.core.internal.perf.Metric;
-import com.google.dart.tools.core.internal.perf.Performance;
-
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
 

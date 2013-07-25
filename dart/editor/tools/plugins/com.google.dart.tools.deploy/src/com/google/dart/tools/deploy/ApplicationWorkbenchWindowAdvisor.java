@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.deploy;
 
+import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.perf.PerfManager;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
@@ -97,6 +99,14 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 
   @Override
   public void postWindowOpen() {
+    CmdLineOptions cmdLineOptions = CmdLineOptions.getOptions();
+
+    if (cmdLineOptions.getMeasurePerformance()) {
+      PerfManager.getManager().logStat(
+          "editor-open",
+          System.currentTimeMillis() - cmdLineOptions.getStartTime());
+    }
+
     filterUnwantedPreferenceNodes();
 
     setDebugPreferences();

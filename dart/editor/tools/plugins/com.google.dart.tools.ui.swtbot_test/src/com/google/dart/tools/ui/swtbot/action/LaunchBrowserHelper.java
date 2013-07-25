@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.swtbot.action;
 
-import com.google.dart.tools.core.internal.perf.Metric;
 import com.google.dart.tools.ui.swtbot.DartLib;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotMetric;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
@@ -63,7 +63,7 @@ public class LaunchBrowserHelper {
         lib.dir.getName(),
         pathFromTopLevelDir,
         FilesViewHelper.RUN_TEXT);
-    Metric metric = SwtBotPerformance.LAUNCH_APP;
+    SwtBotMetric metric = SwtBotPerformance.LAUNCH_APP;
 
     List<String> comments = new ArrayList<String>();
     comments.add(lib.name);

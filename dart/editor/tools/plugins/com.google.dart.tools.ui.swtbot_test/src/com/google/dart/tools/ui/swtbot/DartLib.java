@@ -17,11 +17,10 @@ import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.ui.swtbot.action.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.conditions.AnalysisCompleteCondition;
 import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
+import com.google.dart.tools.ui.swtbot.performance.Performance;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.util.AntRunner;
 import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
-
-import static com.google.dart.tools.core.internal.perf.Performance.prepend;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
@@ -214,7 +213,7 @@ public class DartLib {
    */
   public void logFullAnalysisTime(String... comments) {
     ICondition condition = new AnalysisCompleteCondition();
-    SwtBotPerformance.ANALYZE_FULL.logInBackground(condition, prepend(name, comments));
+    SwtBotPerformance.ANALYZE_FULL.logInBackground(condition, Performance.prepend(name, comments));
   }
 
   /**

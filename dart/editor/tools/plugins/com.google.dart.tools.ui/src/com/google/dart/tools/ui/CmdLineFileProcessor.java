@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.CmdLineOptions;
-import com.google.dart.tools.core.internal.perf.Performance;
 import com.google.dart.tools.core.internal.util.ResourceUtil2;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
@@ -39,6 +38,17 @@ import java.io.File;
  */
 public class CmdLineFileProcessor {
 
+  /**
+   * Take action on the given command-line options.
+   * 
+   * @param options
+   */
+  public static void process(CmdLineOptions options) {
+    CmdLineFileProcessor processor = new CmdLineFileProcessor(options);
+
+    processor.handleAsyncOptions();
+  }
+
   private final CmdLineOptions options;
 
   /**
@@ -55,15 +65,12 @@ public class CmdLineFileProcessor {
    * Loop through the files input on the command line, retrieved from
    * {@link CmdLineOptions#getFiles()}, and open them in the Editor appropriately.
    */
-  public void run() {
+  public void handleAsyncOptions() {
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
         for (File file : options.getFiles()) {
           processFile(file);
-        }
-        if (options.getMeasurePerformance()) {
-          Performance.TIME_TO_OPEN.log(options.getStartTime());
         }
       }
     });

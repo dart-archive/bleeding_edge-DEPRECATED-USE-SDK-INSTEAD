@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.deploy;
 
-import com.google.dart.tools.core.CmdLineOptions;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.perf.Performance;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
 
 import org.eclipse.core.runtime.Platform;
@@ -60,11 +57,9 @@ public class DartIDEApplication implements IApplication {
 
   @Override
   public Object start(IApplicationContext context) throws Exception {
-
     Display display = PlatformUI.createDisplay();
 
     if (isWorkspaceServerPortBound()) {
-
       final Shell shell = WorkbenchPlugin.getSplashShell(display);
 
       final boolean[] runAnyway = new boolean[1];
@@ -79,7 +74,6 @@ public class DartIDEApplication implements IApplication {
       if (!runAnyway[0]) {
         return EXIT_OK;
       }
-
     }
 
     try {
@@ -87,13 +81,6 @@ public class DartIDEApplication implements IApplication {
 
       // processor must be created before we start event loop
       DelayedEventsProcessor processor = new DelayedEventsProcessor(display);
-
-      // Now that the start time of the Editor has been recorded from the command line, we can
-      // record the time taken to start the Application
-      if (CmdLineOptions.getOptions().getMeasurePerformance()) {
-        System.out.println("Dart Editor build " + DartCore.getBuildIdOrDate()); //$NON-NLS-1$
-        Performance.TIME_TO_START_ECLIPSE.log(CmdLineOptions.getOptions().getStartTime());
-      }
 
       int returnCode = PlatformUI.createAndRunWorkbench(display, new ApplicationWorkbenchAdvisor(
           processor));
