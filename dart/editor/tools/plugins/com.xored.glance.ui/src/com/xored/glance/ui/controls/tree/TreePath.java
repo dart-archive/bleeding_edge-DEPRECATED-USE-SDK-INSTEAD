@@ -36,11 +36,13 @@ public class TreePath implements IPath {
     }
   }
 
+  @Override
   public void select(Composite composite) {
     Tree tree = (Tree) composite;
     select(tree.getItems(), 0);
   }
 
+  @Override
   public void discardSelection() {
     this.cancel = true;
   }
@@ -57,6 +59,7 @@ public class TreePath implements IPath {
           // After tree item removes tree selection restores
           // we should set selection after this
           tree.getDisplay().asyncExec(new Runnable() {
+            @Override
             public void run() {
               tree.setSelection(item);
               tree.showSelection();
@@ -76,6 +79,7 @@ public class TreePath implements IPath {
       final TreeItem parent = item.getParentItem();
       if (item.getData() instanceof PendingUpdateAdapter) {
         item.addDisposeListener(new DisposeListener() {
+          @Override
           public void widgetDisposed(DisposeEvent e) {
             select(parent.getItems(), index);
           }

@@ -47,14 +47,17 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
     blocks = new TextViewerBlock[] {new TextViewerBlock(viewer)};
   }
 
+  @Override
   public void addTextSourceListener(final ITextSourceListener listener) {
     listeners.add(listener);
   }
 
+  @Override
   public void removeTextSourceListener(final ITextSourceListener listener) {
     listeners.add(listener);
   }
 
+  @Override
   public void dispose() {
     if (!disposed) {
       selector.dispose();
@@ -66,11 +69,14 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
     }
   }
 
+  @Override
   public void selectionChanged(final SelectionChangedEvent event) {
     final ISelection selection = event.getSelection();
     if (selection instanceof TextSelection) {
       final TextSelection tSelection = (TextSelection) selection;
-      final SourceSelection sSelection = new SourceSelection(getBlock(), tSelection.getOffset(),
+      final SourceSelection sSelection = new SourceSelection(
+          getBlock(),
+          tSelection.getOffset(),
           tSelection.getLength());
       final Object[] objects = listeners.getListeners();
       for (final Object object : objects) {
@@ -80,6 +86,7 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
     }
   }
 
+  @Override
   public boolean isDisposed() {
     return disposed;
   }
@@ -88,18 +95,22 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
     return blocks[0];
   }
 
+  @Override
   public ITextBlock[] getBlocks() {
     return blocks;
   }
 
+  @Override
   public SourceSelection getSelection() {
     final Point selection = viewer.getSelectedRange();
     return new SourceSelection(getBlock(), selection.x, selection.y);
   }
 
+  @Override
   public void select(final Match match) {
     final Annotation[] remove = getAnnotations(true);
-    final Map<Annotation, Position> add = match != null ? createAnnotations(new Match[] {match},
+    final Map<Annotation, Position> add = match != null ? createAnnotations(
+        new Match[] {match},
         true) : new HashMap<Annotation, Position>();
     final IAnnotationModel model = viewer.getAnnotationModel();
     if (model instanceof IAnnotationModelExtension) {
@@ -117,6 +128,7 @@ public class SourceViewerControl extends BaseTextSource implements ISelectionCha
     selector.setMatch(match);
   }
 
+  @Override
   public void show(final Match[] matches) {
     replaceMatches(matches);
   }

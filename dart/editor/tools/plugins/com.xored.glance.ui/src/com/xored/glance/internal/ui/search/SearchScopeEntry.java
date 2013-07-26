@@ -56,11 +56,13 @@ public class SearchScopeEntry implements ITextBlockListener, Comparable<SearchSc
     public void cleared(SearchScopeEntry entry);
   }
 
+  @Override
   public void textChanged(TextChangedEvent event) {
     clear();
     listener.cleared(this);
   }
 
+  @Override
   public int compareTo(SearchScopeEntry entry) {
     return block.compareTo(entry.block);
   }

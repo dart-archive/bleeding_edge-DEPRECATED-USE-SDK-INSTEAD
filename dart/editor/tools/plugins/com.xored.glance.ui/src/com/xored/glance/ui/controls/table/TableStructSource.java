@@ -43,6 +43,7 @@ public class TableStructSource extends StructSource {
     return new TableContent(getControl());
   }
 
+  @Override
   protected SourceSelection getSourceSelection() {
     TableItem[] items = getControl().getSelection();
     if (items.length > 0) {

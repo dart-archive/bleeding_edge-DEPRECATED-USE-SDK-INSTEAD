@@ -31,7 +31,8 @@ public abstract class ImageAnimation extends Thread {
       imageDataArray = loader.load(url.openStream());
     } catch (Exception e) {
       throw new CoreException(GlancePlugin.createStatus(
-          "Can't read image '" + url.toString() + "'", e));
+          "Can't read image '" + url.toString() + "'",
+          e));
     }
     if (imageDataArray == null || imageDataArray.length <= 1) {
       throw new CoreException(GlancePlugin.createStatus("Image '" + url.toString()
@@ -45,7 +46,9 @@ public abstract class ImageAnimation extends Thread {
     /*
      * Create an off-screen image to draw on, and fill it with the shell background.
      */
-    final Image offScreenImage = new Image(display, loader.logicalScreenWidth,
+    final Image offScreenImage = new Image(
+        display,
+        loader.logicalScreenWidth,
         loader.logicalScreenHeight);
     GC offScreenImageGC = new GC(offScreenImage);
     offScreenImageGC.setBackground(bg);
@@ -58,8 +61,16 @@ public abstract class ImageAnimation extends Thread {
       int imageDataIndex = 0;
       ImageData imageData = imageDataArray[imageDataIndex];
       image = new Image(display, imageData);
-      offScreenImageGC.drawImage(image, 0, 0, imageData.width, imageData.height, imageData.x,
-          imageData.y, imageData.width, imageData.height);
+      offScreenImageGC.drawImage(
+          image,
+          0,
+          0,
+          imageData.width,
+          imageData.height,
+          imageData.x,
+          imageData.y,
+          imageData.width,
+          imageData.height);
 
       /*
        * Now loop through the images, creating and drawing each one on the off-screen image before
@@ -71,13 +82,24 @@ public abstract class ImageAnimation extends Thread {
           case SWT.DM_FILL_BACKGROUND:
             /* Fill with the background color before drawing. */
             offScreenImageGC.setBackground(bg);
-            offScreenImageGC.fillRectangle(imageData.x, imageData.y, imageData.width,
+            offScreenImageGC.fillRectangle(
+                imageData.x,
+                imageData.y,
+                imageData.width,
                 imageData.height);
             break;
           case SWT.DM_FILL_PREVIOUS:
             /* Restore the previous image before drawing. */
-            offScreenImageGC.drawImage(image, 0, 0, imageData.width, imageData.height, imageData.x,
-                imageData.y, imageData.width, imageData.height);
+            offScreenImageGC.drawImage(
+                image,
+                0,
+                0,
+                imageData.width,
+                imageData.height,
+                imageData.x,
+                imageData.y,
+                imageData.width,
+                imageData.height);
             break;
         }
 
@@ -85,11 +107,20 @@ public abstract class ImageAnimation extends Thread {
         imageData = imageDataArray[imageDataIndex];
         image.dispose();
         image = new Image(display, imageData);
-        offScreenImageGC.drawImage(image, 0, 0, imageData.width, imageData.height, imageData.x,
-            imageData.y, imageData.width, imageData.height);
+        offScreenImageGC.drawImage(
+            image,
+            0,
+            0,
+            imageData.width,
+            imageData.height,
+            imageData.x,
+            imageData.y,
+            imageData.width,
+            imageData.height);
         final Image newImage = image;
 
         UIUtils.syncExec(display, new Runnable() {
+          @Override
           public void run() {
             updateImage(newImage);
           }

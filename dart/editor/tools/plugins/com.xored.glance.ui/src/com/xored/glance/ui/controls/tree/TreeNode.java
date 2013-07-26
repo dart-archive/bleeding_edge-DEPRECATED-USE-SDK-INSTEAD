@@ -31,6 +31,7 @@ public class TreeNode implements DisposeListener {
     }
   }
 
+  @Override
   public void widgetDisposed(DisposeEvent e) {
     close();
   }
@@ -147,6 +148,7 @@ public class TreeNode implements DisposeListener {
     return this.index.length - index.length;
   }
 
+  @Override
   public String toString() {
     int iMax = items.size() - 1;
     if (iMax == -1)

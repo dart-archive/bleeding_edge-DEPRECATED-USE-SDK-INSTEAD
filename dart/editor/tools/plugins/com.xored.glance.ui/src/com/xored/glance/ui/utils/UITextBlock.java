@@ -36,6 +36,7 @@ public class UITextBlock implements ITextBlock, ITextBlockListener {
    * 
    * @see com.xored.glance.ui.sources.ITextBlock#getText()
    */
+  @Override
   public String getText() {
     return text;
   }
@@ -46,6 +47,7 @@ public class UITextBlock implements ITextBlock, ITextBlockListener {
    * @see com.xored.glance.ui.sources.ITextBlock#addTextBlockListener(com.xored
    * .glance.ui.sources.ITextBlockListener)
    */
+  @Override
   public void addTextBlockListener(ITextBlockListener listener) {
     listeners.add(listener);
   }
@@ -56,6 +58,7 @@ public class UITextBlock implements ITextBlock, ITextBlockListener {
    * @see com.xored.glance.ui.sources.ITextBlock#removeTextBlockListener(com.xored
    * .glance.ui.sources.ITextBlockListener)
    */
+  @Override
   public void removeTextBlockListener(ITextBlockListener listener) {
     listeners.remove(listener);
   }
@@ -66,6 +69,7 @@ public class UITextBlock implements ITextBlock, ITextBlockListener {
    * @see com.xored.glance.ui.sources.ITextBlockListener#textChanged(com.xored.
    * glance.ui.sources.TextChangedEvent)
    */
+  @Override
   public void textChanged(TextChangedEvent event) {
     text = block.getText();
     Object[] objects = listeners.getListeners();
@@ -80,6 +84,7 @@ public class UITextBlock implements ITextBlock, ITextBlockListener {
    * 
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
+  @Override
   public int compareTo(ITextBlock block) {
     return this.block.compareTo(((UITextBlock) block).block);
   }

@@ -161,6 +161,7 @@ public class ItemDecorator implements Listener {
     return TextUtils.getStyles(presentation);
   }
 
+  @Override
   public void handleEvent(Event event) {
     switch (event.type) {
       case SWT.PaintItem:

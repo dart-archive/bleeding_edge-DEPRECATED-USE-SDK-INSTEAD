@@ -47,14 +47,18 @@ public class TextUtils {
   public static void applyStyles(final TextPresentation presentation, final Match[] matches,
       final Match selected) {
 
-    final StyleRange[] ranges = createStyleRanges(presentation.getExtent(), matches,
+    final StyleRange[] ranges = createStyleRanges(
+        presentation.getExtent(),
+        matches,
         ColorManager.getInstance().getBackgroundColor());
 
     presentation.mergeStyleRanges(ranges);
 
     if (selected != null) {
-      final StyleRange[] selectedRanges = createStyleRanges(presentation.getExtent(),
-          new Match[] {selected}, ColorManager.getInstance().getSelectedBackgroundColor());
+      final StyleRange[] selectedRanges = createStyleRanges(
+          presentation.getExtent(),
+          new Match[] {selected},
+          ColorManager.getInstance().getSelectedBackgroundColor());
       presentation.mergeStyleRanges(selectedRanges);
 
     }
@@ -65,8 +69,11 @@ public class TextUtils {
     final Match[] regionMatches = getRangeMatches(region.getOffset(), region.getLength(), matches);
     final StyleRange[] ranges = new StyleRange[regionMatches.length];
     for (int i = 0; i < regionMatches.length; i++) {
-      final StyleRange range = new StyleRange(regionMatches[i].getOffset(),
-          regionMatches[i].getLength(), null, color);
+      final StyleRange range = new StyleRange(
+          regionMatches[i].getOffset(),
+          regionMatches[i].getLength(),
+          null,
+          color);
       ranges[i] = range;
     }
     return ranges;

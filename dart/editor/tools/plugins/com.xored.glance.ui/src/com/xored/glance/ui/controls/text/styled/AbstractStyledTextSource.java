@@ -33,6 +33,7 @@ public abstract class AbstractStyledTextSource extends BaseTextSource implements
     return new StyledTextBlock(text);
   }
 
+  @Override
   public final void dispose() {
     if (text != null && !text.isDisposed() && !disposed) {
       doDispose();
@@ -45,26 +46,32 @@ public abstract class AbstractStyledTextSource extends BaseTextSource implements
     text.removeSelectionListener(this);
   }
 
+  @Override
   public boolean isDisposed() {
     return disposed;
   }
 
+  @Override
   public ITextBlock[] getBlocks() {
     return blocks;
   }
 
+  @Override
   public void addTextSourceListener(final ITextSourceListener listener) {
     list.add(listener);
   }
 
+  @Override
   public void removeTextSourceListener(final ITextSourceListener listener) {
     list.remove(listener);
   }
 
+  @Override
   public void widgetDefaultSelected(final SelectionEvent e) {
     fireSelectionChanged();
   }
 
+  @Override
   public void widgetSelected(final SelectionEvent e) {
     fireSelectionChanged();
   }
@@ -78,12 +85,14 @@ public abstract class AbstractStyledTextSource extends BaseTextSource implements
     }
   }
 
+  @Override
   public SourceSelection getSelection() {
     final Point point = text.getSelection();
     final SourceSelection selection = new SourceSelection(blocks[0], point.x, point.y - point.x);
     return selection;
   }
 
+  @Override
   public void select(final Match match) {
     this.selected = match;
     focusKeeper.setMatch(match);

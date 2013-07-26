@@ -68,6 +68,7 @@ public class ColoredTextViewerBlock extends TextViewerBlock implements ITextPres
     viewer.invalidateTextPresentation();
   }
 
+  @Override
   public void applyTextPresentation(TextPresentation presentation) {
     TextUtils.applyStyles(presentation, matches, selected);
   }

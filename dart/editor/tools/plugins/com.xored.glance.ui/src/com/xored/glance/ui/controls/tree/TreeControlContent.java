@@ -65,6 +65,7 @@ public class TreeControlContent extends TreeContent {
       return;
     }
     tree.getDisplay().asyncExec(new Runnable() {
+      @Override
       public void run() {
         try {
           if (tree == null || tree.isDisposed()) {
@@ -89,6 +90,7 @@ public class TreeControlContent extends TreeContent {
       return;
     final Display display = tree.getDisplay();
     BusyIndicatorUtils.withoutIndicator(display, new Runnable() {
+      @Override
       public void run() {
         int maxIndexingDepth = ConfigurationManager.getInstance().getMaxIndexingDepth();
         int level = 1;

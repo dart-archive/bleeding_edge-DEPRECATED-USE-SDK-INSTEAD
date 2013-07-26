@@ -23,18 +23,22 @@ public class StyledTextBlock implements ITextBlock, ExtendedModifyListener {
     text.addExtendedModifyListener(this);
   }
 
+  @Override
   public String getText() {
     return text.getText();
   }
 
+  @Override
   public void addTextBlockListener(ITextBlockListener listener) {
     listeners.add(listener);
   }
 
+  @Override
   public void removeTextBlockListener(ITextBlockListener listener) {
     listeners.remove(listener);
   }
 
+  @Override
   public void modifyText(ExtendedModifyEvent event) {
     Object[] objects = listeners.getListeners();
     TextChangedEvent textEvent = new TextChangedEvent(event.start, event.length, event.replacedText);
@@ -44,6 +48,7 @@ public class StyledTextBlock implements ITextBlock, ExtendedModifyListener {
     }
   }
 
+  @Override
   public int compareTo(ITextBlock o) {
     //style text support only one text block
     return 0;

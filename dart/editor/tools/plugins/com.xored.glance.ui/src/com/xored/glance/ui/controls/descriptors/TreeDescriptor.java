@@ -15,10 +15,12 @@ import com.xored.glance.ui.sources.ITextSourceDescriptor;
  */
 public class TreeDescriptor implements ITextSourceDescriptor {
 
+  @Override
   public ITextSource createSource(Control control) {
     return new TreeControlSource((Tree) control);
   }
 
+  @Override
   public boolean isValid(Control control) {
     return control instanceof Tree;
   }

@@ -1,7 +1,6 @@
 package com.xored.glance.internal.ui;
 
-import java.util.List;
-import java.util.Map;
+import com.xored.glance.internal.ui.search.SearchManager;
 
 import org.eclipse.jface.bindings.Binding;
 import org.eclipse.jface.bindings.BindingManager;
@@ -13,7 +12,8 @@ import org.eclipse.ui.internal.keys.BindingService;
 import org.eclipse.ui.internal.keys.WorkbenchKeyboard;
 import org.eclipse.ui.keys.IBindingService;
 
-import com.xored.glance.internal.ui.search.SearchManager;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("restriction")
 public class GlanceEventDispatcher {

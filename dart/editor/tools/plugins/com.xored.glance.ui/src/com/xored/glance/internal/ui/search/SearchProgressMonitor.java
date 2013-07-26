@@ -21,12 +21,14 @@ public class SearchProgressMonitor implements IProgressMonitor {
     this.panel = panel;
   }
 
+  @Override
   public void beginTask(String name, int totalWork) {
     total = totalWork;
     panel.newTask(name);
     current = 0;
   }
 
+  @Override
   public void done() {
     if (isCanceled()) {
       return;
@@ -34,6 +36,7 @@ public class SearchProgressMonitor implements IProgressMonitor {
     panel.setIndexingState(ISearchPanel.INDEXING_STATE_FINISHED);
   }
 
+  @Override
   public void internalWorked(double work) {
     if (isCanceled()) {
       return;
@@ -45,21 +48,26 @@ public class SearchProgressMonitor implements IProgressMonitor {
     panel.updateIndexingPercent(current);
   }
 
+  @Override
   public boolean isCanceled() {
     return cancel || panel.getControl().isDisposed();
   }
 
+  @Override
   public void setCanceled(boolean value) {
     this.cancel = value;
     panel.setIndexingState(ISearchPanel.INDEXING_STATE_FINISHED);
   }
 
+  @Override
   public void setTaskName(String name) {
   }
 
+  @Override
   public void subTask(String name) {
   }
 
+  @Override
   public void worked(int work) {
     internalWorked(work);
   }

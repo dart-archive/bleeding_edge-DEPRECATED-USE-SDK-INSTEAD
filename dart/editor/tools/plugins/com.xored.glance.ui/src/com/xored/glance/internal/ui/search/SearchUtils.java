@@ -131,7 +131,7 @@ public class SearchUtils {
           out.append("\\E"); //$NON-NLS-1$
           quoting = false;
         }
-        out.append(re); //$NON-NLS-1$
+        out.append(re); 
         continue;
       }
       if (!quoting) {

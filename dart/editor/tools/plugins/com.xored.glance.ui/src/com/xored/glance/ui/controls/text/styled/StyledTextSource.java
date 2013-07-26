@@ -53,7 +53,9 @@ public class StyledTextSource extends AbstractStyledTextSource {
   }
 
   private void clearRangeGroup(final RangeGroup group) {
-    getText().replaceStyleRanges(group.getStart(), group.getEnd() - group.getStart(),
+    getText().replaceStyleRanges(
+        group.getStart(),
+        group.getEnd() - group.getStart(),
         new StyleRange[0]);
     final StyleRange[] ranges = group.getRanges();
     for (final StyleRange range : ranges) {
@@ -66,21 +68,28 @@ public class StyledTextSource extends AbstractStyledTextSource {
     super.select(match);
     clearSelected();
     if (match != null) {
-      final List<StyleRange> ranges = createRanges(match,
+      final List<StyleRange> ranges = createRanges(
+          match,
           ColorManager.getInstance().getSelectedBackgroundColor());
-      selectedRange = new RangeGroup(match.getOffset(), match.getOffset() + match.getLength(),
+      selectedRange = new RangeGroup(
+          match.getOffset(),
+          match.getOffset() + match.getLength(),
           ranges.toArray(new StyleRange[ranges.size()]));
     }
   }
 
+  @Override
   public void show(final Match[] matches) {
     clearAll();
     previous = new RangeGroup[matches.length];
     for (int i = 0; i < matches.length; i++) {
       final Match match = matches[i];
-      final List<StyleRange> ranges = createRanges(match,
+      final List<StyleRange> ranges = createRanges(
+          match,
           ColorManager.getInstance().getBackgroundColor());
-      previous[i] = new RangeGroup(match.getOffset(), match.getOffset() + match.getLength(),
+      previous[i] = new RangeGroup(
+          match.getOffset(),
+          match.getOffset() + match.getLength(),
           ranges.toArray(new StyleRange[ranges.size()]));
     }
 
@@ -99,12 +108,20 @@ public class StyledTextSource extends AbstractStyledTextSource {
       if (styleRange.length < 0) {
         continue;
       }
-      final StyleRange newStyleRange = new StyleRange(styleRange.start, styleRange.length, null,
-          bg, styleRange.fontStyle);
+      final StyleRange newStyleRange = new StyleRange(
+          styleRange.start,
+          styleRange.length,
+          null,
+          bg,
+          styleRange.fontStyle);
       if (styleRange.start - index > 0)
-        getText().replaceStyleRanges(index, styleRange.start - index,
+        getText().replaceStyleRanges(
+            index,
+            styleRange.start - index,
             new StyleRange[] {newStyleRange});
-      getText().replaceStyleRanges(styleRange.start, styleRange.length,
+      getText().replaceStyleRanges(
+          styleRange.start,
+          styleRange.length,
           new StyleRange[] {newStyleRange});
       index = styleRange.start + styleRange.length;
     }

@@ -47,6 +47,7 @@ public class SearchEngine extends Thread {
     }
   }
 
+  @Override
   public void run() {
     while (!exit) {
       sleepWhileInterrupted(0);
@@ -172,6 +173,7 @@ public class SearchEngine extends Thread {
       }
     }
 
+    @Override
     public boolean isCanceled() {
       synchronized (monitor) {
         return cancel;

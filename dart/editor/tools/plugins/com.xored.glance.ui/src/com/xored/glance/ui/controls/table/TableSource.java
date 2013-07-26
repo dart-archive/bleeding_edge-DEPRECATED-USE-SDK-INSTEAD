@@ -37,6 +37,7 @@ public class TableSource extends ItemSource {
     super.dispose();
   }
 
+  @Override
   public SourceSelection getSelection() {
     TableItem[] items = getControl().getSelection();
     if (items.length > 0) {

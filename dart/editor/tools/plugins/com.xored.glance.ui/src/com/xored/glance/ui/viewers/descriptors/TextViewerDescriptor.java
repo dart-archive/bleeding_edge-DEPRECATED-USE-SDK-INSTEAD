@@ -18,11 +18,13 @@ import com.xored.glance.ui.sources.ITextSource;
  */
 public class TextViewerDescriptor extends AbstractViewerDescriptor {
 
+  @Override
   public boolean isValid(Control control) {
     ITextViewer viewer = getTextViewer(control);
     return viewer instanceof TextViewer && viewer.getDocument() != null;
   }
 
+  @Override
   public ITextSource createSource(Control control) {
     return new TextViewerControl((TextViewer) getTextViewer(control));
   }

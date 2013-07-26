@@ -29,28 +29,35 @@ public abstract class TreeContent extends TreeNode implements IStructContent {
 
   public abstract TreeItemContent getContent(TreeCell cell);
 
+  @Override
   public abstract void index(IProgressMonitor monitor);
 
+  @Override
   public void dispose() {
   }
 
+  @Override
   public final ITextBlock getContent(StructCell cell) {
     return getContent((TreeCell) cell);
   }
 
+  @Override
   public IPath getPath(ITextBlock block) {
     TreeItemContent content = (TreeItemContent) block;
     return new TreePath(content.getNode());
   }
 
+  @Override
   public void addListener(ITextSourceListener listener) {
     listeners.add(listener);
   }
 
+  @Override
   public void removeListener(ITextSourceListener listener) {
     listeners.remove(listener);
   }
 
+  @Override
   public ITextSourceListener[] getListeners() {
     Object[] objects = listeners.getListeners();
     ITextSourceListener[] listeners = new ITextSourceListener[objects.length];
@@ -58,6 +65,7 @@ public abstract class TreeContent extends TreeNode implements IStructContent {
     return listeners;
   }
 
+  @Override
   public ITextBlock[] getBlocks() {
     return blocks.toArray(new TreeItemContent[0]);
   }

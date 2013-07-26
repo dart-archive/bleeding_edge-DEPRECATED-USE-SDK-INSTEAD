@@ -62,6 +62,7 @@ public abstract class ItemSource extends BaseTextSource implements SelectionList
     return cells;
   }
 
+  @Override
   public ITextBlock[] getBlocks() {
     return getCells().toArray(new ITextBlock[getCells().size()]);
   }
@@ -70,6 +71,7 @@ public abstract class ItemSource extends BaseTextSource implements SelectionList
     return composite.getFont();
   }
 
+  @Override
   public void select(Match match) {
     if (match != null) {
       Item item = getCell(match).getItem();
@@ -80,6 +82,7 @@ public abstract class ItemSource extends BaseTextSource implements SelectionList
     setMatch(match);
   }
 
+  @Override
   public void dispose() {
     if (selection != null) {
       getItemProvider().select(getCell(selection).getItem());
@@ -87,14 +90,17 @@ public abstract class ItemSource extends BaseTextSource implements SelectionList
     decorator.dispose();
   }
 
+  @Override
   public boolean isDisposed() {
     return decorator.isDisposed();
   }
 
+  @Override
   public void widgetDefaultSelected(SelectionEvent e) {
     fireSelectionChanged();
   }
 
+  @Override
   public void widgetSelected(SelectionEvent e) {
     fireSelectionChanged();
   }
@@ -107,14 +113,17 @@ public abstract class ItemSource extends BaseTextSource implements SelectionList
     }
   }
 
+  @Override
   public void show(Match[] matches) {
     setMatches(matches);
   }
 
+  @Override
   public void removeTextSourceListener(ITextSourceListener listener) {
     decorator.removeTextSourceListener(listener);
   }
 
+  @Override
   public void addTextSourceListener(ITextSourceListener listener) {
     decorator.addTextSourceListener(listener);
   }

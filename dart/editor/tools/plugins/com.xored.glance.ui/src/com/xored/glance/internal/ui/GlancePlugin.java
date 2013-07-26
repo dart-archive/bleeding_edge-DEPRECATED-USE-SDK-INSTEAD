@@ -47,7 +47,7 @@ public class GlancePlugin extends AbstractUIPlugin {
   }
 
   public static IStatus createStatus(String message, Throwable t) {
-    return new Status(Status.ERROR, PLUGIN_ID, message, t);
+    return new Status(IStatus.ERROR, PLUGIN_ID, message, t);
   }
 
   /**

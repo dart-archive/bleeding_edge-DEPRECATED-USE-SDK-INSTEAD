@@ -15,10 +15,12 @@ import com.xored.glance.ui.sources.ITextSourceDescriptor;
  */
 public class StyledTextDescriptor implements ITextSourceDescriptor {
 
+  @Override
   public ITextSource createSource(Control control) {
     return new StyledTextSource((StyledText) control);
   }
 
+  @Override
   public boolean isValid(Control control) {
     return control instanceof StyledText;
   }

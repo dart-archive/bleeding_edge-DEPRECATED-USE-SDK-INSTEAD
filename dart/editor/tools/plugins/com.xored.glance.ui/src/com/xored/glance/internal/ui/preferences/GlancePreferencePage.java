@@ -38,6 +38,7 @@ public class GlancePreferencePage extends FieldEditorPreferencePage implements
     super(GRID);
   }
 
+  @Override
   public void init(final IWorkbench workbench) {
   }
 
@@ -73,14 +74,18 @@ public class GlancePreferencePage extends FieldEditorPreferencePage implements
 
     createCurrentWindowOption(composite);
     addField(new BooleanFieldEditor(PANEL_STARTUP, "Show at startup", composite));
-    addField(new BooleanFieldEditor(PANEL_STATUS_LINE, "Show panel in status line when possible",
+    addField(new BooleanFieldEditor(
+        PANEL_STATUS_LINE,
+        "Show panel in status line when possible",
         composite));
     addField(new BooleanFieldEditor(PANEL_DIRECTIONS, "Show direction buttons", composite));
     addField(new BooleanFieldEditor(PANEL_CLOSE, "Show close button", composite));
     addField(new BooleanFieldEditor(PANEL_AUTO_INDEXING, "Enable auto indexing", composite));
     addField(new BooleanFieldEditor(SEARCH_INCREMENTAL, "Enable incremental search", composite));
     final IntegerFieldEditor maxIndexingDepthEditor = new IntegerFieldEditor(
-        PANEL_MAX_INDEXING_DEPTH, "Max indexing depth for trees:", composite);
+        PANEL_MAX_INDEXING_DEPTH,
+        "Max indexing depth for trees:",
+        composite);
     maxIndexingDepthEditor.setValidRange(1, Integer.MAX_VALUE);
     addField(maxIndexingDepthEditor);
     addField(new IntegerFieldEditor(PANEL_TEXT_SIZE, "Default box width in chars:", composite));

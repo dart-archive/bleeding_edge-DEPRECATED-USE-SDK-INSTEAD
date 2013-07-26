@@ -23,14 +23,17 @@ public class TableContent implements IStructContent {
   public TableContent(Table table) {
   }
 
+  @Override
   public void addListener(ITextSourceListener listener) {
     listeners.add(listener);
   }
 
+  @Override
   public void removeListener(ITextSourceListener listener) {
     listeners.remove(listener);
   }
 
+  @Override
   public ITextSourceListener[] getListeners() {
     Object[] objects = listeners.getListeners();
     ITextSourceListener[] listeners = new ITextSourceListener[objects.length];
@@ -38,21 +41,26 @@ public class TableContent implements IStructContent {
     return listeners;
   }
 
+  @Override
   public void dispose() {
   }
 
+  @Override
   public ITextBlock[] getBlocks() {
     return null;
   }
 
+  @Override
   public ITextBlock getContent(StructCell cell) {
     return null;
   }
 
+  @Override
   public IPath getPath(ITextBlock block) {
     return null;
   }
 
+  @Override
   public void index(IProgressMonitor monitor) {
     monitor.done();
   }

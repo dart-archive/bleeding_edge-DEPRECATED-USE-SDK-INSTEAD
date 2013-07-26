@@ -18,6 +18,7 @@ import com.xored.glance.ui.sources.ITextSource;
  */
 public class SourceViewerDescriptor extends AbstractViewerDescriptor {
 
+  @Override
   public boolean isValid(Control control) {
     ITextViewer viewer = getTextViewer(control);
     if (viewer instanceof SourceViewer) {
@@ -28,6 +29,7 @@ public class SourceViewerDescriptor extends AbstractViewerDescriptor {
     return false;
   }
 
+  @Override
   public ITextSource createSource(Control control) {
     return new SourceViewerControl((SourceViewer) getTextViewer(control));
   }

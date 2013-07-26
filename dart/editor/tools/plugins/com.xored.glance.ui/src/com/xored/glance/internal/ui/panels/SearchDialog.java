@@ -104,6 +104,7 @@ public class SearchDialog extends PopupDialog {
   protected void configureShell(final Shell shell) {
     super.configureShell(shell);
     shell.addDisposeListener(new DisposeListener() {
+      @Override
       public void widgetDisposed(final DisposeEvent e) {
         handleClose();
       }
@@ -168,9 +169,11 @@ public class SearchDialog extends PopupDialog {
   private Control separator;
 
   private static final GridDataFactory LAYOUTDATA_GRAB_BOTH = GridDataFactory.fillDefaults().grab(
-      true, true);
+      true,
+      true);
   private static final GridLayoutFactory POPUP_LAYOUT_FACTORY = GridLayoutFactory.fillDefaults().margins(
-      POPUP_MARGINWIDTH, POPUP_MARGINHEIGHT).spacing(POPUP_HORIZONTALSPACING, POPUP_VERTICALSPACING);
+      POPUP_MARGINWIDTH,
+      POPUP_MARGINHEIGHT).spacing(POPUP_HORIZONTALSPACING, POPUP_VERTICALSPACING);
 
   protected static final String HELP_TEXT = "Enter search text";
 

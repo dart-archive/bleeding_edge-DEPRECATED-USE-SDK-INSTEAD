@@ -26,6 +26,7 @@ public class MoveTracker implements Listener {
     control.addListener(SWT.Dispose, this);
   }
 
+  @Override
   public void handleEvent(Event event) {
     if (control != null && !control.isDisposed()) {
       switch (event.type) {
