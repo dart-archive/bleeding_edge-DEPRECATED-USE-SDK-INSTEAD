@@ -41,7 +41,7 @@ void main() {
         for (int j = 0; j < nl; j++) {
           Node cur = nodes[j];
           while (cur != null) {
-            cur = cur.$dom_firstChild;
+            cur = cur.firstChild;
           }
           ret = cur;
         }
@@ -55,7 +55,7 @@ void main() {
         for (int j = 0; j < nl; j++) {
           Node cur = nodes[j];
           while (cur != null) {
-            cur = cur.$dom_lastChild;
+            cur = cur.lastChild;
           }
           ret = cur;
         }
@@ -63,7 +63,7 @@ void main() {
     })
     .test('nextSibling', () {
       for (int i = 0; i < num * 2; i++) {
-        Node cur = document.body.$dom_firstChild;
+        Node cur = document.body.firstChild;
         while (cur != null) {
           cur = cur.nextNode;
         }
@@ -72,7 +72,7 @@ void main() {
     })
     .test('previousSibling', () {
       for (int i = 0; i < num * 2; i++) {
-        Node cur = document.body.$dom_lastChild;
+        Node cur = document.body.lastChild;
         while (cur != null) {
           cur = cur.previousNode;
         }

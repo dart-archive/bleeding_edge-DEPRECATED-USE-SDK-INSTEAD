@@ -65,7 +65,7 @@ void main() {
     })
     .test('insertBefore', () {
       for (int i = 0; i < elems.length; i++)
-        document.body.insertBefore(elems[i], document.body.$dom_firstChild);
+        document.body.insertBefore(elems[i], document.body.firstChild);
     })
     .end();
 }
