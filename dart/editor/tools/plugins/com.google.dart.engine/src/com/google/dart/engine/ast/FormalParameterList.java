@@ -61,12 +61,14 @@ public class FormalParameterList extends ASTNode {
   private NodeList<FormalParameter> parameters = new NodeList<FormalParameter>(this);
 
   /**
-   * The left square bracket ('[') or left curly brace ('{') introducing the optional parameters.
+   * The left square bracket ('[') or left curly brace ('{') introducing the optional parameters, or
+   * {@code null} if there are no optional parameters.
    */
   private Token leftDelimiter;
 
   /**
-   * The right square bracket (']') or right curly brace ('}') introducing the optional parameters.
+   * The right square bracket (']') or right curly brace ('}') introducing the optional parameters,
+   * or {@code null} if there are no optional parameters.
    */
   private Token rightDelimiter;
 
@@ -125,7 +127,7 @@ public class FormalParameterList extends ASTNode {
 
   /**
    * Return the left square bracket ('[') or left curly brace ('{') introducing the optional
-   * parameters.
+   * parameters, or {@code null} if there are no optional parameters.
    * 
    * @return the left square bracket ('[') or left curly brace ('{') introducing the optional
    *         parameters
@@ -154,7 +156,7 @@ public class FormalParameterList extends ASTNode {
 
   /**
    * Return the right square bracket (']') or right curly brace ('}') introducing the optional
-   * parameters.
+   * parameters, or {@code null} if there are no optional parameters.
    * 
    * @return the right square bracket (']') or right curly brace ('}') introducing the optional
    *         parameters

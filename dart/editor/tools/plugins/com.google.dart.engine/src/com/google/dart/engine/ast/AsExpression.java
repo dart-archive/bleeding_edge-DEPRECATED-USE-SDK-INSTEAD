@@ -60,9 +60,9 @@ public class AsExpression extends Expression {
   }
 
   /**
-   * Return the is operator being applied.
+   * Return the as operator being applied.
    * 
-   * @return the is operator being applied
+   * @return the as operator being applied
    */
   public Token getAsOperator() {
     return asOperator;

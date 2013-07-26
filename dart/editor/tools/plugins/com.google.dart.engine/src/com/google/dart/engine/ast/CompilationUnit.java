@@ -84,7 +84,7 @@ public class CompilationUnit extends ASTNode {
   private CompilationUnitElement element;
 
   /**
-   * The {@link LineInfo} for this {@link CompilationUnit}.
+   * The line information for this compilation unit.
    */
   private LineInfo lineInfo;
 
@@ -160,11 +160,10 @@ public class CompilationUnit extends ASTNode {
   }
 
   /**
-   * Return an array containing all of the errors associated with the receiver. If the receiver has
-   * not been resolved, then return {@code null}.
+   * Return an array containing all of the errors associated with the receiver. The array will be
+   * empty if the receiver has not been resolved and there were no parse errors.
    * 
-   * @return an array of errors (contains no {@code null}s) or {@code null} if the receiver has not
-   *         been resolved
+   * @return the errors associated with the receiver
    */
   public AnalysisError[] getErrors() {
     AnalysisError[] parserErrors = getParsingErrors();
@@ -191,9 +190,9 @@ public class CompilationUnit extends ASTNode {
   }
 
   /**
-   * Get the {@link LineInfo} object for this compilation unit.
+   * Return the line information for this compilation unit.
    * 
-   * @return the associated {@link LineInfo}
+   * @return the line information for this compilation unit
    */
   public LineInfo getLineInfo() {
     return lineInfo;
@@ -207,18 +206,17 @@ public class CompilationUnit extends ASTNode {
   /**
    * Return an array containing all of the parsing errors associated with the receiver.
    * 
-   * @return an array of errors (not {@code null}, contains no {@code null}s).
+   * @return the parsing errors associated with the receiver
    */
   public AnalysisError[] getParsingErrors() {
     return parsingErrors;
   }
 
   /**
-   * Return an array containing all of the resolution errors associated with the receiver. If the
-   * receiver has not been resolved, then return {@code null}.
+   * Return an array containing all of the resolution errors associated with the receiver. The array
+   * will be empty if the receiver has not been resolved.
    * 
-   * @return an array of errors (contains no {@code null}s) or {@code null} if the receiver has not
-   *         been resolved
+   * @return the resolution errors associated with the receiver
    */
   public AnalysisError[] getResolutionErrors() {
     return resolutionErrors;
@@ -244,29 +242,27 @@ public class CompilationUnit extends ASTNode {
   }
 
   /**
-   * Set the {@link LineInfo} object for this compilation unit.
+   * Set the line information for this compilation unit to the given line information.
    * 
-   * @param errors LineInfo to associate with this compilation unit
+   * @param errors the line information to associate with this compilation unit
    */
   public void setLineInfo(LineInfo lineInfo) {
     this.lineInfo = lineInfo;
   }
 
   /**
-   * Called to cache the parsing errors when the unit is parsed.
+   * Set the parse errors associated with this compilation unit to the given errors.
    * 
-   * @param errors an array of parsing errors, if {@code null} is passed, the error array is set to
-   *          an empty array, {@link AnalysisError#NO_ERRORS}
+   * @param the parse errors to be associated with this compilation unit
    */
   public void setParsingErrors(AnalysisError[] errors) {
     parsingErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
   }
 
   /**
-   * Called to cache the resolution errors when the unit is resolved.
+   * Set the resolution errors associated with this compilation unit to the given errors.
    * 
-   * @param errors an array of resolution errors, if {@code null} is passed, the error array is set
-   *          to an empty array, {@link AnalysisError#NO_ERRORS}
+   * @param the resolution errors to be associated with this compilation unit
    */
   public void setResolutionErrors(AnalysisError[] errors) {
     resolutionErrors = errors == null ? AnalysisError.NO_ERRORS : errors;

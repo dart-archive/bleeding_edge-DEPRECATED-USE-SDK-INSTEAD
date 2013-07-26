@@ -22,12 +22,29 @@ import java.util.LinkedList;
  * visit all of the nodes in an AST structure, similar to {@link GeneralizingASTVisitor}. This
  * visitor uses a breadth-first ordering rather than the depth-first ordering of
  * {@link GeneralizingASTVisitor}.
+ * <p>
+ * Subclasses that override a visit method must either invoke the overridden visit method or
+ * explicitly invoke the more general visit method. Failure to do so will cause the visit methods
+ * for superclasses of the node to not be invoked and will cause the children of the visited node to
+ * not be visited.
+ * <p>
+ * In addition, subclasses should <b>not</b> explicitly visit the children of a node, but should
+ * ensure that the method {@link #visitNode(ASTNode)} is used to visit the children (either directly
+ * or indirectly). Failure to do will break the order in which nodes are visited.
  * 
  * @coverage dart.engine.ast
  */
 public class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
+  /**
+   * A queue holding the nodes that have not yet been visited in the order in which they ought to be
+   * visited.
+   */
   private final LinkedList<ASTNode> queue = new LinkedList<ASTNode>();
 
+  /**
+   * A visitor, used to visit the children of the current node, that will add the nodes it visits to
+   * the {@link #queue}.
+   */
   private GeneralizingASTVisitor<Void> childVisitor = new GeneralizingASTVisitor<Void>() {
     @Override
     public Void visitNode(ASTNode node) {
@@ -37,9 +54,9 @@ public class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
   };
 
   /**
-   * Visit all nodes in the tree starting at the given {@code root} node, in depth-first order.
+   * Visit all nodes in the tree starting at the given {@code root} node, in breadth-first order.
    * 
-   * @param root the root of the ASTNode tree
+   * @param root the root of the AST structure to be visited
    */
   public void visitAllNodes(ASTNode root) {
     queue.add(root);

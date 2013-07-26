@@ -66,8 +66,11 @@ public abstract class ASTNode {
   public abstract <R> R accept(ASTVisitor<R> visitor);
 
   /**
-   * @return the {@link ASTNode} of given {@link Class} which is {@link ASTNode} itself, or one of
-   *         its parents.
+   * Return the node of the given class that most immediately encloses this node, or {@code null} if
+   * there is no enclosing node of the given class.
+   * 
+   * @param nodeClass the class of the node to be returned
+   * @return the node of the given type that encloses this node
    */
   @SuppressWarnings("unchecked")
   public <E extends ASTNode> E getAncestor(Class<E> enclosingClass) {

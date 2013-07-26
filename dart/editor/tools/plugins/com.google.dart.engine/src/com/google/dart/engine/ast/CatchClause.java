@@ -57,12 +57,14 @@ public class CatchClause extends ASTNode {
   private SimpleIdentifier exceptionParameter;
 
   /**
-   * The comma separating the exception parameter from the stack trace parameter.
+   * The comma separating the exception parameter from the stack trace parameter, or {@code null} if
+   * there is no stack trace parameter.
    */
   private Token comma;
 
   /**
-   * The parameter whose value will be the stack trace associated with the exception.
+   * The parameter whose value will be the stack trace associated with the exception, or
+   * {@code null} if there is no stack trace parameter.
    */
   private SimpleIdentifier stackTraceParameter;
 
@@ -136,7 +138,7 @@ public class CatchClause extends ASTNode {
   }
 
   /**
-   * Return the comma.
+   * Return the comma, or {@code null} if there is no stack trace parameter.
    * 
    * @return the comma
    */
@@ -196,7 +198,8 @@ public class CatchClause extends ASTNode {
   }
 
   /**
-   * Return the parameter whose value will be the stack trace associated with the exception.
+   * Return the parameter whose value will be the stack trace associated with the exception, or
+   * {@code null} if there is no stack trace parameter.
    * 
    * @return the parameter whose value will be the stack trace associated with the exception
    */

@@ -52,7 +52,7 @@ public class IfStatement extends Statement {
   private Statement thenStatement;
 
   /**
-   * The token representing the 'else' keyword.
+   * The token representing the 'else' keyword, or {@code null} if there is no else statement.
    */
   private Token elseKeyword;
 
@@ -104,7 +104,8 @@ public class IfStatement extends Statement {
   }
 
   /**
-   * Return the token representing the 'else' keyword.
+   * Return the token representing the 'else' keyword, or {@code null} if there is no else
+   * statement.
    * 
    * @return the token representing the 'else' keyword
    */

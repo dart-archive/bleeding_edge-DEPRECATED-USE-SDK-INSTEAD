@@ -163,5 +163,4 @@ public class VariableDeclarationList extends AnnotatedNode {
     }
     return variables.getBeginToken();
   }
-
 }

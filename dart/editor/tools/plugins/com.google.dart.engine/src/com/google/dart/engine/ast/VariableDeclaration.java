@@ -77,17 +77,14 @@ public class VariableDeclaration extends Declaration {
   @Override
   public Comment getDocumentationComment() {
     Comment comment = super.getDocumentationComment();
-
     if (comment == null) {
       if (getParent() != null && getParent().getParent() != null) {
         ASTNode node = getParent().getParent();
-
         if (node instanceof AnnotatedNode) {
           return ((AnnotatedNode) node).getDocumentationComment();
         }
       }
     }
-
     return comment;
   }
 
@@ -195,5 +192,4 @@ public class VariableDeclaration extends Declaration {
   protected Token getFirstTokenAfterCommentAndMetadata() {
     return name.getBeginToken();
   }
-
 }

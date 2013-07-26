@@ -95,7 +95,8 @@ public class DeclaredIdentifier extends Declaration {
   }
 
   /**
-   * Return the token representing either the 'final', 'const' or 'var' keyword.
+   * Return the token representing either the 'final', 'const' or 'var' keyword, or {@code null} if
+   * no keyword was used.
    * 
    * @return the token representing either the 'final', 'const' or 'var' keyword
    */

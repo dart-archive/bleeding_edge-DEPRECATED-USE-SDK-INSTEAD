@@ -33,7 +33,7 @@ public class ExpressionStatement extends Statement {
 
   /**
    * The semicolon terminating the statement, or {@code null} if the expression is a function
-   * expression and isn't followed by a semicolon.
+   * expression and therefore isn't followed by a semicolon.
    */
   private Token semicolon;
 
@@ -76,7 +76,8 @@ public class ExpressionStatement extends Statement {
   }
 
   /**
-   * Return the semicolon terminating the statement.
+   * Return the semicolon terminating the statement, or {@code null} if the expression is a function
+   * expression and therefore isn't followed by a semicolon.
    * 
    * @return the semicolon terminating the statement
    */

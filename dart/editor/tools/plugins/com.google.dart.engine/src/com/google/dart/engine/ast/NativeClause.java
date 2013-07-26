@@ -73,7 +73,9 @@ public class NativeClause extends ASTNode {
   }
 
   /**
-   * @return the name of the native object that implements the class.
+   * Return the name of the native object that implements the class.
+   * 
+   * @return the name of the native object that implements the class
    */
   public StringLiteral getName() {
     return name;

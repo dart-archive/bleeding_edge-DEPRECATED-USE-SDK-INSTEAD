@@ -53,7 +53,8 @@ public class FieldFormalParameter extends NormalFormalParameter {
   private Token period;
 
   /**
-   * The parameters of the function-typed parameter.
+   * The parameters of the function-typed parameter, or {@code null} if this is not a function-typed
+   * field formal parameter.
    */
   private FormalParameterList parameters;
 
@@ -102,7 +103,8 @@ public class FieldFormalParameter extends NormalFormalParameter {
   }
 
   /**
-   * Return the token representing either the 'final', 'const' or 'var' keyword.
+   * Return the token representing either the 'final', 'const' or 'var' keyword, or {@code null} if
+   * no keyword was used.
    * 
    * @return the token representing either the 'final', 'const' or 'var' keyword
    */

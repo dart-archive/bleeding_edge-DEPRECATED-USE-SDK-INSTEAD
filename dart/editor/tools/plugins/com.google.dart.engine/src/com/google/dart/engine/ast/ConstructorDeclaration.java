@@ -79,19 +79,13 @@ public class ConstructorDeclaration extends ClassMember {
   private SimpleIdentifier name;
 
   /**
-   * The element associated with this constructor, or {@code null} if the AST structure has not been
-   * resolved or if this constructor could not be resolved.
-   */
-  private ConstructorElement element;
-
-  /**
    * The parameters associated with the constructor.
    */
   private FormalParameterList parameters;
 
   /**
-   * The token for the separator (colon or equals) before the initializers, or {@code null} if there
-   * are no initializers.
+   * The token for the separator (colon or equals) before the initializer list or redirection, or
+   * {@code null} if there are no initializers.
    */
   private Token separator;
 
@@ -110,6 +104,12 @@ public class ConstructorDeclaration extends ClassMember {
    * The body of the constructor, or {@code null} if the constructor does not have a body.
    */
   private FunctionBody body;
+
+  /**
+   * The element associated with this constructor, or {@code null} if the AST structure has not been
+   * resolved or if this constructor could not be resolved.
+   */
+  private ConstructorElement element;
 
   /**
    * Initialize a newly created constructor declaration.
@@ -265,10 +265,10 @@ public class ConstructorDeclaration extends ClassMember {
   }
 
   /**
-   * Return the token for the separator (colon or equals) before the initializers, or {@code null}
-   * if there are no initializers.
+   * Return the token for the separator (colon or equals) before the initializer list or
+   * redirection, or {@code null} if there are no initializers.
    * 
-   * @return the token for the separator (colon or equals) before the initializers
+   * @return the token for the separator before the initializer list or redirection
    */
   public Token getSeparator() {
     return separator;

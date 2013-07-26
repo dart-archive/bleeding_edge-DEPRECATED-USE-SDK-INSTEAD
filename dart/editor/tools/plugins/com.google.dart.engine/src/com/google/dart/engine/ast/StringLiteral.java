@@ -26,7 +26,6 @@ package com.google.dart.engine.ast;
  * @coverage dart.engine.ast
  */
 public abstract class StringLiteral extends Literal {
-
   /**
    * Return the value of the string literal, or {@code null} if the string is not a constant string
    * without any string interpolation.

@@ -92,9 +92,10 @@ public class TypeParameter extends Declaration {
   }
 
   /**
-   * Return the token representing the 'assert' keyword.
+   * Return the token representing the 'extends' keyword, or {@code null} if there was no explicit
+   * upper bound.
    * 
-   * @return the token representing the 'assert' keyword
+   * @return the token representing the 'extends' keyword
    */
   public Token getKeyword() {
     return keyword;
@@ -119,9 +120,9 @@ public class TypeParameter extends Declaration {
   }
 
   /**
-   * Set the token representing the 'assert' keyword to the given token.
+   * Set the token representing the 'extends' keyword to the given token.
    * 
-   * @param keyword the token representing the 'assert' keyword
+   * @param keyword the token representing the 'extends' keyword
    */
   public void setKeyword(Token keyword) {
     this.keyword = keyword;
