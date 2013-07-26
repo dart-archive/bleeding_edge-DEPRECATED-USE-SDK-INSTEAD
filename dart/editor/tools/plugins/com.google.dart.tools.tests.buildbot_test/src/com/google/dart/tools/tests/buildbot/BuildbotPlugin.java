@@ -55,7 +55,7 @@ public class BuildbotPlugin extends Plugin {
     // When the plugin is initialized, check for a --test command-line parameter to the
     // application. If it exists, run the buildbot test suite.
     if (shouldRunTests()) {
-      Job job = new BuildbotTestsJob(shouldExit(), TestAll.suite());
+      Job job = new BuildbotTestsJob(true, TestAll.suite());
 
       job.schedule(2000);
     }
@@ -66,10 +66,6 @@ public class BuildbotPlugin extends Plugin {
     super.stop(context);
 
     plugin = null;
-  }
-
-  private boolean shouldExit() {
-    return CmdLineOptions.getOptions().getAutoExit();
   }
 
   private boolean shouldRunTests() {

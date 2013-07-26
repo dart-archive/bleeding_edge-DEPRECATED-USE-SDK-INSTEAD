@@ -71,10 +71,6 @@ class BuildbotTestsJob extends Job {
         return true;
       }
 
-      if (testId.indexOf(".fail_") != -1) {
-        return true;
-      }
-
       return super.filterTest(test);
     }
 

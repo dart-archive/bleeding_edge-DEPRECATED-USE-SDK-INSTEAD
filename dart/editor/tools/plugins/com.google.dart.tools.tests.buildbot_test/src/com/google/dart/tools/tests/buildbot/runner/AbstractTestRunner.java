@@ -137,6 +137,13 @@ public abstract class AbstractTestRunner {
         result.addFailure(test, new AssertionFailedError("IStatus.ERROR written to eclipse log"));
       }
 
+      if (isTestFailureExpected(test) && result.wasSuccessful()) {
+        result.addFailure(test, new AssertionFailedError("test passed but was expected to fail"));
+      } else if (isTestFailureExpected(test) && !result.wasSuccessful()) {
+        // This test failed and was expected to fail. We clear out the test results.
+        result = new TestResult();
+      }
+
       if (result.wasSuccessful()) {
         testPassed(test);
 
@@ -171,6 +178,12 @@ public abstract class AbstractTestRunner {
     }
 
     return false;
+  }
+
+  protected boolean isTestFailureExpected(TestCase test) {
+    String testId = getTestId(test);
+
+    return testId.indexOf(".fail_") != -1;
   }
 
   protected abstract void testFailed(TestCase test, TestResult result);
