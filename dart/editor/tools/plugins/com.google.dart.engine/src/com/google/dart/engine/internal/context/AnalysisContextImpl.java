@@ -364,6 +364,14 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   private static final int MAX_CACHE_SIZE = 64;
 
   /**
+   * The maximum number of sources that can be on the priority list. This <b>must</b> be less than
+   * the {@link #MAX_CACHE_SIZE} in order to prevent an infinite loop in performAnalysisTask().
+   * 
+   * @see #setAnalysisPriorityOrder(List)
+   */
+  private static final int MAX_PRIORITY_LIST_SIZE = MAX_CACHE_SIZE - 4;
+
+  /**
    * The name of the 'src' attribute in a HTML tag.
    */
   private static final String ATTRIBUTE_SRC = "src";
@@ -1194,7 +1202,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       if (sources == null || sources.isEmpty()) {
         priorityOrder = Source.EMPTY_ARRAY;
       } else {
-        priorityOrder = sources.toArray(new Source[sources.size()]);
+        //
+        // Cap the size of the priority list to being less than the cache size. Failure to do so can
+        // result in an infinite loop in performAnalysisTask() because re-caching one AST structure
+        // can cause another priority source's AST structure to be flushed.
+        //
+        int count = Math.min(sources.size(), MAX_PRIORITY_LIST_SIZE);
+        priorityOrder = new Source[count];
+        for (int i = 0; i < count; i++) {
+          priorityOrder[i] = sources.get(i);
+        }
       }
     }
   }
