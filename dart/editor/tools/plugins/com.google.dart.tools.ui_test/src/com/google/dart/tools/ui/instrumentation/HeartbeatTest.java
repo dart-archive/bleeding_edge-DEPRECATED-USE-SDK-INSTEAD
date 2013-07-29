@@ -35,7 +35,7 @@ public class HeartbeatTest extends TestCase {
 //    instrumentation.echoToStdOut(getClass().getSimpleName());
 //    System.out.println("heartbeat took " + delta + " ms");
 
-    assertTrue(delta < 25);
+    assertTrue(delta < 100);
     assertNotNull(instrumentation.getMetric("OpenWindowsCount"));
   }
 }
