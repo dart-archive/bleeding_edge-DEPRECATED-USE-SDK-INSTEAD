@@ -111,6 +111,13 @@ public abstract class SourceEntryImpl implements SourceEntry {
     }
   }
 
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    writeOn(builder);
+    return builder.toString();
+  }
+
   /**
    * Copy the information from the given cache entry.
    * 
@@ -141,5 +148,18 @@ public abstract class SourceEntryImpl implements SourceEntry {
       return currentValue;
     }
     return defaultValue;
+  }
+
+  /**
+   * Write a textual representation of this entry to the given builder. The result will only be used
+   * for debugging purposes.
+   * 
+   * @param builder the builder to which the text should be written
+   */
+  protected void writeOn(StringBuilder builder) {
+    builder.append("time = ");
+    builder.append(Long.toString(modificationTime, 16));
+    builder.append("; lineInfo = ");
+    builder.append(lineInfoState);
   }
 }

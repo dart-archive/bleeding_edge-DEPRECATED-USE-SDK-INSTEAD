@@ -146,6 +146,26 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       hintsState = CacheState.ERROR;
       hints = AnalysisError.NO_ERRORS;
     }
+
+    /**
+     * Write a textual representation of this state to the given builder. The result will only be
+     * used for debugging purposes.
+     * 
+     * @param builder the builder to which the text should be written
+     */
+    protected void writeOn(StringBuilder builder) {
+      if (librarySource != null) {
+        builder.append("; resolvedUnit = ");
+        builder.append(resolvedUnitState);
+        builder.append("; resolutionErrors = ");
+        builder.append(resolutionErrorsState);
+        builder.append("; hints = ");
+        builder.append(hintsState);
+        if (nextState != null) {
+          nextState.writeOn(builder);
+        }
+      }
+    }
   }
 
   /**
@@ -181,15 +201,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private AnalysisError[] parseErrors = AnalysisError.NO_ERRORS;
 
   /**
-   * The state of the cached list of included parts.
+   * The state of the cached list of imported libraries.
    */
-  private CacheState includedPartsState = CacheState.INVALID;
+  private CacheState importedLibrariesState = CacheState.INVALID;
 
   /**
-   * The list of parts included in the library, or an empty array if the list is not currently
+   * The list of libraries imported by the library, or an empty array if the list is not currently
    * cached. The list will be empty if the Dart file is a part rather than a library.
    */
-  private Source[] includedParts = Source.EMPTY_ARRAY;
+  private Source[] importedLibraries = Source.EMPTY_ARRAY;
 
   /**
    * The state of the cached list of exported libraries.
@@ -203,15 +223,15 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private Source[] exportedLibraries = Source.EMPTY_ARRAY;
 
   /**
-   * The state of the cached list of imported libraries.
+   * The state of the cached list of included parts.
    */
-  private CacheState importedLibrariesState = CacheState.INVALID;
+  private CacheState includedPartsState = CacheState.INVALID;
 
   /**
-   * The list of libraries imported by the library, or an empty array if the list is not currently
+   * The list of parts included in the library, or an empty array if the list is not currently
    * cached. The list will be empty if the Dart file is a part rather than a library.
    */
-  private Source[] importedLibraries = Source.EMPTY_ARRAY;
+  private Source[] includedParts = Source.EMPTY_ARRAY;
 
   /**
    * The information known as a result of resolving this compilation unit as part of the library
@@ -762,6 +782,33 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     clientServerState = other.clientServerState;
     launchableState = other.launchableState;
     bitmask = other.bitmask;
+  }
+
+  @Override
+  protected void writeOn(StringBuilder builder) {
+    builder.append("Dart: ");
+    super.writeOn(builder);
+    builder.append("; sourceKind = ");
+    builder.append(sourceKindState);
+    builder.append("; parsedUnit = ");
+    builder.append(parsedUnitState);
+    builder.append("; parseErrors = ");
+    builder.append(parseErrorsState);
+    builder.append("; exportedLibraries = ");
+    builder.append(exportedLibrariesState);
+    builder.append("; importedLibraries = ");
+    builder.append(importedLibrariesState);
+    builder.append("; includedParts = ");
+    builder.append(includedPartsState);
+    builder.append("; element = ");
+    builder.append(elementState);
+    builder.append("; publicNamespace = ");
+    builder.append(publicNamespaceState);
+    builder.append("; clientServer = ");
+    builder.append(clientServerState);
+    builder.append("; launchable = ");
+    builder.append(launchableState);
+    resolutionState.writeOn(builder);
   }
 
   /**

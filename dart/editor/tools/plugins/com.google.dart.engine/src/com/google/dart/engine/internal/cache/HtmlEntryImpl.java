@@ -224,4 +224,18 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     hints = other.hints;
     hintsState = other.hintsState;
   }
+
+  @Override
+  protected void writeOn(StringBuilder builder) {
+    builder.append("Html: ");
+    super.writeOn(builder);
+    builder.append("; parsedUnit = ");
+    builder.append(parsedUnitState);
+    builder.append("; resolutionErrors = ");
+    builder.append(resolutionErrorsState);
+    builder.append("; referencedLibraries = ");
+    builder.append(referencedLibrariesState);
+    builder.append("; element = ");
+    builder.append(elementState);
+  }
 }
