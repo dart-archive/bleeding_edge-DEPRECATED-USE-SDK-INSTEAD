@@ -508,7 +508,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     if (node.isCascaded()) {
       writer.print("..");
     } else {
-      visit(node.getArray());
+      visit(node.getTarget());
     }
     writer.print('[');
     visit(node.getIndex());

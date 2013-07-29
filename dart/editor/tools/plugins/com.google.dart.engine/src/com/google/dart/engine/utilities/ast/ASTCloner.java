@@ -469,7 +469,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
     Token period = node.getPeriod();
     if (period == null) {
       return new IndexExpression(
-          clone(node.getArray()),
+          clone(node.getTarget()),
           node.getLeftBracket(),
           clone(node.getIndex()),
           node.getRightBracket());

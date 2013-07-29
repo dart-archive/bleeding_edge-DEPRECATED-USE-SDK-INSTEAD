@@ -439,7 +439,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseAssignableExpression_expression_index() throws Exception {
     IndexExpression expression = parse("parseAssignableExpression", new Object[] {false}, "(x)[y]");
-    assertNotNull(expression.getArray());
+    assertNotNull(expression.getTarget());
     assertNotNull(expression.getLeftBracket());
     assertNotNull(expression.getIndex());
     assertNotNull(expression.getRightBracket());
@@ -473,7 +473,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseAssignableExpression_identifier_index() throws Exception {
     IndexExpression expression = parse("parseAssignableExpression", new Object[] {false}, "x[y]");
-    assertNotNull(expression.getArray());
+    assertNotNull(expression.getTarget());
     assertNotNull(expression.getLeftBracket());
     assertNotNull(expression.getIndex());
     assertNotNull(expression.getRightBracket());
@@ -494,7 +494,7 @@ public class SimpleParserTest extends ParserTestCase {
         "parseAssignableExpression",
         new Object[] {false},
         "super[y]");
-    assertInstanceOf(SuperExpression.class, expression.getArray());
+    assertInstanceOf(SuperExpression.class, expression.getTarget());
     assertNotNull(expression.getLeftBracket());
     assertNotNull(expression.getIndex());
     assertNotNull(expression.getRightBracket());
@@ -600,7 +600,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseCascadeSection_i() throws Exception {
     IndexExpression section = parse("parseCascadeSection", "..[i]");
-    assertNull(section.getArray());
+    assertNull(section.getTarget());
     assertNotNull(section.getLeftBracket());
     assertNotNull(section.getIndex());
     assertNotNull(section.getRightBracket());
@@ -3549,7 +3549,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parsePostfixExpression_none_indexExpression() throws Exception {
     IndexExpression expression = parse("parsePostfixExpression", "a[0]");
-    assertNotNull(expression.getArray());
+    assertNotNull(expression.getTarget());
     assertNotNull(expression.getIndex());
   }
 

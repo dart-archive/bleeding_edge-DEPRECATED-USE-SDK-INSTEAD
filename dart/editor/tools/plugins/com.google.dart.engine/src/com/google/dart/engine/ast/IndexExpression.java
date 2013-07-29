@@ -105,17 +105,6 @@ public class IndexExpression extends Expression {
     return visitor.visitIndexExpression(this);
   }
 
-  /**
-   * Return the expression used to compute the object being indexed, or {@code null} if this index
-   * expression is part of a cascade expression.
-   * 
-   * @return the expression used to compute the object being indexed
-   * @see #getRealTarget()
-   */
-  public Expression getArray() {
-    return target;
-  }
-
   @Override
   public Token getBeginToken() {
     if (target != null) {
@@ -171,12 +160,12 @@ public class IndexExpression extends Expression {
 
   /**
    * Return the expression used to compute the object being indexed. If this index expression is not
-   * part of a cascade expression, then this is the same as {@link #getArray()}. If this index
+   * part of a cascade expression, then this is the same as {@link #getTarget()}. If this index
    * expression is part of a cascade expression, then the target expression stored with the cascade
    * expression is returned.
    * 
    * @return the expression used to compute the object being indexed
-   * @see #getArray()
+   * @see #getTarget()
    */
   public Expression getRealTarget() {
     if (isCascaded()) {
@@ -211,6 +200,17 @@ public class IndexExpression extends Expression {
    */
   public MethodElement getStaticElement() {
     return staticElement;
+  }
+
+  /**
+   * Return the expression used to compute the object being indexed, or {@code null} if this index
+   * expression is part of a cascade expression.
+   * 
+   * @return the expression used to compute the object being indexed
+   * @see #getRealTarget()
+   */
+  public Expression getTarget() {
+    return target;
   }
 
   /**
@@ -273,15 +273,6 @@ public class IndexExpression extends Expression {
   }
 
   /**
-   * Set the expression used to compute the object being indexed to the given expression.
-   * 
-   * @param expression the expression used to compute the object being indexed
-   */
-  public void setArray(Expression expression) {
-    target = becomeParentOf(expression);
-  }
-
-  /**
    * Set the element associated with the operator based on the propagated type of the target to the
    * given element.
    * 
@@ -335,6 +326,15 @@ public class IndexExpression extends Expression {
    */
   public void setStaticElement(MethodElement element) {
     staticElement = element;
+  }
+
+  /**
+   * Set the expression used to compute the object being indexed to the given expression.
+   * 
+   * @param expression the expression used to compute the object being indexed
+   */
+  public void setTarget(Expression expression) {
+    target = becomeParentOf(expression);
   }
 
   @Override
