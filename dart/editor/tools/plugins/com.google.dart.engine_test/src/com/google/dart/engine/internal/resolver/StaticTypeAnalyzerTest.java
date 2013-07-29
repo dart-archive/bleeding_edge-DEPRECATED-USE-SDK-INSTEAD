@@ -191,7 +191,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
         resolvedInteger(1));
     MethodElement plusMethod = getMethod(numType, "+");
     node.setStaticElement(plusMethod);
-    node.setElement(plusMethod);
     assertSame(numType, analyze(node));
     listener.assertNoErrors();
   }

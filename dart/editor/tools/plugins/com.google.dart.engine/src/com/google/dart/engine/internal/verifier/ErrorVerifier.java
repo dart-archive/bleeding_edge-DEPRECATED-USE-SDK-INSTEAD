@@ -3047,7 +3047,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     VariableElement leftElement = getVariableElement(lhs);
     Type leftType = (leftElement == null) ? getStaticType(lhs) : leftElement.getType();
-    MethodElement invokedMethod = node.getElement();
+    MethodElement invokedMethod = node.getStaticElement();
     if (invokedMethod == null) {
       return false;
     }

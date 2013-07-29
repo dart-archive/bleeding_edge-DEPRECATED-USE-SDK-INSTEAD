@@ -80,18 +80,6 @@ public class AssignmentExpression extends Expression {
     return leftHandSide.getBeginToken();
   }
 
-  /**
-   * Return the element associated with the operator based on the propagated type of the
-   * left-hand-side, or {@code null} if the AST structure has not been resolved, if the operator is
-   * not a compound operator, or if the operator could not be resolved. One example of the latter
-   * case is an operator that is not defined for the type of the left-hand operand.
-   * 
-   * @return the element associated with the operator
-   */
-  public MethodElement getElement() {
-    return propagatedElement;
-  }
-
   @Override
   public Token getEndToken() {
     return rightHandSide.getEndToken();
@@ -116,6 +104,18 @@ public class AssignmentExpression extends Expression {
   }
 
   /**
+   * Return the element associated with the operator based on the propagated type of the
+   * left-hand-side, or {@code null} if the AST structure has not been resolved, if the operator is
+   * not a compound operator, or if the operator could not be resolved. One example of the latter
+   * case is an operator that is not defined for the type of the left-hand operand.
+   * 
+   * @return the element associated with the operator
+   */
+  public MethodElement getPropagatedElement() {
+    return propagatedElement;
+  }
+
+  /**
    * Return the expression used to compute the right hand side.
    * 
    * @return the expression used to compute the right hand side
@@ -137,16 +137,6 @@ public class AssignmentExpression extends Expression {
   }
 
   /**
-   * Set the element associated with the operator based on the propagated type of the left-hand-side
-   * to the given element.
-   * 
-   * @param element the element to be associated with the operator
-   */
-  public void setElement(MethodElement element) {
-    propagatedElement = element;
-  }
-
-  /**
    * Return the expression used to compute the left hand side.
    * 
    * @param expression the expression used to compute the left hand side
@@ -162,6 +152,16 @@ public class AssignmentExpression extends Expression {
    */
   public void setOperator(Token operator) {
     this.operator = operator;
+  }
+
+  /**
+   * Set the element associated with the operator based on the propagated type of the left-hand-side
+   * to the given element.
+   * 
+   * @param element the element to be associated with the operator
+   */
+  public void setPropagatedElement(MethodElement element) {
+    propagatedElement = element;
   }
 
   /**

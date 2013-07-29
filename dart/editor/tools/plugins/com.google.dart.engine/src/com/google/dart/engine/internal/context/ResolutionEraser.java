@@ -39,7 +39,7 @@ public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
     node.setStaticElement(null);
-    node.setElement(null);
+    node.setPropagatedElement(null);
     return super.visitAssignmentExpression(node);
   }
 

@@ -226,7 +226,7 @@ public class ElementResolverTest extends EngineTestCase {
         TokenType.PLUS_EQ,
         integer(1L));
     resolveNode(assignment);
-    assertSame(getMethod(typeProvider.getNumType(), "+"), assignment.getElement());
+    assertSame(getMethod(typeProvider.getNumType(), "+"), assignment.getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -236,7 +236,7 @@ public class ElementResolverTest extends EngineTestCase {
         TokenType.EQ,
         integer(0));
     resolveNode(expression);
-    assertNull(expression.getElement());
+    assertNull(expression.getStaticElement());
     listener.assertNoErrors();
   }
 
