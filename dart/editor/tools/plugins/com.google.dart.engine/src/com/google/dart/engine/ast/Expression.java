@@ -69,7 +69,7 @@ public abstract class Expression extends ASTNode {
    * @return the parameter element representing the parameter to which the value of this expression
    *         will be bound
    */
-  public ParameterElement getParameterElement() {
+  public ParameterElement getPropagatedParameterElement() {
     ASTNode parent = getParent();
     if (parent instanceof ArgumentList) {
       return ((ArgumentList) parent).getPropagatedParameterElementFor(this);

@@ -825,7 +825,7 @@ public class CorrectionUtils {
     }
     // positional argument
     {
-      ParameterElement parameter = expression.getParameterElement();
+      ParameterElement parameter = expression.getPropagatedParameterElement();
       if (parameter == null) {
         parameter = expression.getStaticParameterElement();
       }

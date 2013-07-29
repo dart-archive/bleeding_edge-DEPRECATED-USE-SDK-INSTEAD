@@ -65,7 +65,8 @@ public class ForStatement extends Statement {
   private Token leftSeparator;
 
   /**
-   * The condition used to determine when to terminate the loop.
+   * The condition used to determine when to terminate the loop, or {@code null} if there is no
+   * condition.
    */
   private Expression condition;
 
@@ -139,7 +140,8 @@ public class ForStatement extends Statement {
   }
 
   /**
-   * Return the condition used to determine when to terminate the loop.
+   * Return the condition used to determine when to terminate the loop, or {@code null} if there is
+   * no condition.
    * 
    * @return the condition used to determine when to terminate the loop
    */

@@ -348,7 +348,7 @@ public class IndexExpression extends Expression {
    * propagated type information, then return the parameter element representing the parameter to
    * which the value of the index expression will be bound. Otherwise, return {@code null}.
    * <p>
-   * This method is only intended to be used by {@link Expression#getParameterElement()}.
+   * This method is only intended to be used by {@link Expression#getPropagatedParameterElement()}.
    * 
    * @return the parameter element representing the parameter to which the value of the index
    *         expression will be bound

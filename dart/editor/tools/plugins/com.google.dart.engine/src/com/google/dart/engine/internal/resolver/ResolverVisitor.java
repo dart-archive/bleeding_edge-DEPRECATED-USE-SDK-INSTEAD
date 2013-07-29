@@ -900,7 +900,7 @@ public class ResolverVisitor extends ScopedVisitor {
    */
   private void inferFunctionExpressionsParametersTypes(ArgumentList argumentList) {
     for (Expression argument : argumentList.getArguments()) {
-      ParameterElement parameter = argument.getParameterElement();
+      ParameterElement parameter = argument.getPropagatedParameterElement();
       if (parameter == null) {
         parameter = argument.getStaticParameterElement();
       }

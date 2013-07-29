@@ -796,15 +796,15 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     recordResolution(methodName, staticElement, propagatedElement);
     ArgumentList argumentList = node.getArgumentList();
     if (staticElement != null) {
-      ParameterElement[] parameters = computePropagatedParameters(argumentList, staticElement);
+      ParameterElement[] parameters = computeCorrespondingParameters(argumentList, staticElement);
       if (parameters != null) {
         argumentList.setCorrespondingStaticParameters(parameters);
       }
     }
     if (propagatedElement != null) {
-      ParameterElement[] parameters = computePropagatedParameters(argumentList, propagatedElement);
+      ParameterElement[] parameters = computeCorrespondingParameters(argumentList, propagatedElement);
       if (parameters != null) {
-        argumentList.setCorrespondingParameters(parameters);
+        argumentList.setCorrespondingPropagatedParameters(parameters);
       }
     }
     //
@@ -1268,7 +1268,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param executableElement the element that will be invoked with the arguments
    * @return the parameters that correspond to the arguments
    */
-  private ParameterElement[] computePropagatedParameters(ArgumentList argumentList, Element element) {
+  private ParameterElement[] computeCorrespondingParameters(ArgumentList argumentList, Element element) {
     if (element instanceof PropertyAccessorElement) {
       //
       // This is an invocation of the call method defined on the value returned by the getter.

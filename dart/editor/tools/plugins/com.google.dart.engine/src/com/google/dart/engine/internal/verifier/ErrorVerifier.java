@@ -1630,7 +1630,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Type staticParameterType = staticParameterElement == null ? null
         : staticParameterElement.getType();
 
-    ParameterElement propagatedParameterElement = argument.getParameterElement();
+    ParameterElement propagatedParameterElement = argument.getPropagatedParameterElement();
     Type propagatedParameterType = propagatedParameterElement == null ? null
         : propagatedParameterElement.getType();
 
@@ -3019,7 +3019,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Type staticParameterType = staticParameterElement == null ? null
         : staticParameterElement.getType();
 
-    ParameterElement propagatedParameterElement = argument.getParameterElement();
+    ParameterElement propagatedParameterElement = argument.getPropagatedParameterElement();
     Type propagatedParameterType = propagatedParameterElement == null ? null
         : propagatedParameterElement.getType();
 

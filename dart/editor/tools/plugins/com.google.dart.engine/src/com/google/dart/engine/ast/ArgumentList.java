@@ -132,7 +132,7 @@ public class ArgumentList extends ASTNode {
    * 
    * @param parameters the parameter elements corresponding to the arguments
    */
-  public void setCorrespondingParameters(ParameterElement[] parameters) {
+  public void setCorrespondingPropagatedParameters(ParameterElement[] parameters) {
     if (parameters.length != arguments.size()) {
       throw new IllegalArgumentException("Expected " + arguments.size() + " parameters, not "
           + parameters.length);
@@ -186,7 +186,7 @@ public class ArgumentList extends ASTNode {
    * element representing the parameter to which the value of the given expression will be bound.
    * Otherwise, return {@code null}.
    * <p>
-   * This method is only intended to be used by {@link Expression#getParameterElement()}.
+   * This method is only intended to be used by {@link Expression#getPropagatedParameterElement()}.
    * 
    * @param expression the expression corresponding to the parameter to be returned
    * @return the parameter element representing the parameter to which the value of the expression
