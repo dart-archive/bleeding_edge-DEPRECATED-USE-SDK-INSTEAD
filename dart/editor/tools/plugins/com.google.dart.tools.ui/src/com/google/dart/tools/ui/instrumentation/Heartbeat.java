@@ -30,6 +30,9 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+
 /**
  * {@code Heartbeat} provides utility methods that an external instrumentation plugin can call to
  * get periodic information about the health of the development environment.
@@ -49,12 +52,38 @@ public class Heartbeat {
    * @param instrumentation the instrumentation used to log information (not {@code null})
    */
   public void heartbeat(InstrumentationBuilder instrumentation) {
-    logWindowsPagesAndTabs(instrumentation);
 
     //@TODO(lukechurch): Add tests
     instrumentation.metric("MexMemory-FeedbackUtils", FeedbackUtils.getMaxMem());
     instrumentation.metric("TotalMemory", Runtime.getRuntime().totalMemory());
     instrumentation.metric("FreeMemory", Runtime.getRuntime().freeMemory());
+
+    logThreads(instrumentation);
+    logWindowsPagesAndTabs(instrumentation);
+  }
+
+  private void logThreads(InstrumentationBuilder instrumentation) {
+    java.lang.management.ThreadMXBean th = ManagementFactory.getThreadMXBean();
+    ThreadInfo[] thInfos = th.getThreadInfo(th.getAllThreadIds());
+
+    instrumentation.metric("threads-count", thInfos.length);
+
+    for (ThreadInfo thInfo : thInfos) {
+      instrumentation.metric("Thread-Name", thInfo.getThreadName());
+      instrumentation.metric("Thread-ID", thInfo.getThreadId());
+      instrumentation.metric("Thread-State", thInfo.getThreadState().toString());
+
+      instrumentation.metric("Blocked-Count", thInfo.getBlockedCount());
+      instrumentation.metric("Blocked-Time", thInfo.getBlockedTime());
+
+      instrumentation.metric("Waited-Count", thInfo.getWaitedCount());
+      instrumentation.metric("Waited-Time", thInfo.getWaitedTime());
+
+      instrumentation.data(
+          "Thread-ST",
+          Base64.encodeBytes(thInfo.getStackTrace().toString().getBytes()));
+
+    }
 
   }
 
