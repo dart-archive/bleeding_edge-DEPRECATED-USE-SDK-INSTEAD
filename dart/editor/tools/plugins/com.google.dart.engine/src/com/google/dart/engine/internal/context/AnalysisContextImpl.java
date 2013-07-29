@@ -1202,6 +1202,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       if (sources == null || sources.isEmpty()) {
         priorityOrder = Source.EMPTY_ARRAY;
       } else {
+        while (sources.remove(null)) {
+          // Nothing else to do.
+        }
         //
         // Cap the size of the priority list to being less than the cache size. Failure to do so can
         // result in an infinite loop in performAnalysisTask() because re-caching one AST structure
@@ -1403,7 +1406,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
    */
   private void flushAstFromCache() {
-    Source removedSource = recentlyUsed.remove(0);
+    Source removedSource = removeAstToFlush();
     SourceEntry sourceEntry = sourceMap.get(removedSource);
     if (sourceEntry instanceof HtmlEntry) {
       HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
@@ -2433,6 +2436,20 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Return {@code true} if the given source is in the array of priority sources.
+   * <p>
+   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   */
+  private boolean isPrioritySource(Source source) {
+    for (Source prioritySource : priorityOrder) {
+      if (source.equals(prioritySource)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Perform a single analysis task.
    * <p>
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
@@ -2584,6 +2601,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
     }
+  }
+
+  /**
+   * Remove and return one source from the list of recently used sources whose AST structure can be
+   * flushed from the cache. The source that will be returned will be the source that has been
+   * unreferenced for the longest period of time but that is not a priority for analysis.
+   * 
+   * @return the source that was removed
+   *         <p>
+   *         Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   */
+  private Source removeAstToFlush() {
+    for (int i = 0; i < recentlyUsed.size(); i++) {
+      Source source = recentlyUsed.get(i);
+      if (!isPrioritySource(source)) {
+        return recentlyUsed.remove(i);
+      }
+    }
+    AnalysisEngine.getInstance().getLogger().logError(
+        "Internal error: The number of priority sources is greater than the maximum cache size",
+        new Exception());
+    return recentlyUsed.remove(0);
   }
 
   /**
