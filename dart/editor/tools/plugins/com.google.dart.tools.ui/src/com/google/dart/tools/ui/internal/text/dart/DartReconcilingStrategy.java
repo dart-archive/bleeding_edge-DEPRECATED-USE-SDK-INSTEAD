@@ -262,12 +262,12 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   }
 
   /**
-   * Answer the list of sources associated with the specified context that are open in a tab.
+   * Answer the list of sources associated with the specified context that are open and visible.
    * 
    * @param context the context (not {@code null})
    * @return a list of sources (not {@code null}, contains no {@code null}s)
    */
-  private List<Source> getOpenSourcesForContext(AnalysisContext context) {
+  private List<Source> getVisibleSourcesForContext(AnalysisContext context) {
     ArrayList<Source> sources = new ArrayList<Source>();
     IWorkbench workbench = PlatformUI.getWorkbench();
     for (IWorkbenchWindow window : workbench.getWorkbenchWindows()) {
@@ -277,7 +277,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
           IEditorPart part = editorRef.getEditor(false);
           if (part instanceof DartEditor) {
             DartEditor otherEditor = (DartEditor) part;
-            if (otherEditor.getInputAnalysisContext() == context) {
+            if (otherEditor.getInputAnalysisContext() == context && otherEditor.isVisible()) {
               Source otherSource = otherEditor.getInputSource();
               if (otherSource != null) {
                 sources.add(otherSource);
@@ -334,7 +334,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
         // TODO (danrubel): Revisit when reviewing performance of startup, open, and activate
         AnalysisContext context = editor.getInputAnalysisContext();
         if (context != null) {
-          List<Source> sources = getOpenSourcesForContext(context);
+          List<Source> sources = getVisibleSourcesForContext(context);
           sources.remove(source);
           if (isOpen) {
             sources.add(0, source);

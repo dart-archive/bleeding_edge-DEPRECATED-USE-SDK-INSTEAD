@@ -2521,6 +2521,20 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   /**
+   * @return {@code true} if the editor's content is visible
+   */
+  public boolean isVisible() {
+    ISourceViewer viewer = getViewer();
+    if (viewer != null) {
+      StyledText widget = viewer.getTextWidget();
+      if (widget != null) {
+        return widget.isVisible();
+      }
+    }
+    return false;
+  }
+
+  /**
    * Informs the editor that its outliner has been closed.
    */
   public void outlinePageClosed() {
@@ -4653,5 +4667,4 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     }
   }
-
 }
