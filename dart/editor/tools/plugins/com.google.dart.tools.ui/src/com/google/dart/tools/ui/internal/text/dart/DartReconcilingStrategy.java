@@ -116,6 +116,17 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     public void documentChanged(DocumentEvent event) {
       sourceChangedTime = System.currentTimeMillis();
       editor.applyCompilationUnitElement(null);
+
+      // Start analysis immediately if "." pressed to improve code completion response
+      // TODO (danrubel): do the same for ctrl-space ?
+
+      // This may need to be modified or removed 
+      // if we enable/set content assist immediate-activation character(s)
+
+      if (".".equals(event.getText())) {
+        sourceChanged(document.get());
+        performAnalysisInBackground();
+      }
     }
   };
 
@@ -155,7 +166,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   public void initialReconcile() {
     updateAnalysisPriorityOrder(true);
     if (!applyResolvedUnit()) {
-      // TODO (danrubel): Set priority so that context will keep this AST in memory
       try {
         AnalysisContext context = editor.getInputAnalysisContext();
         if (context != null) {
