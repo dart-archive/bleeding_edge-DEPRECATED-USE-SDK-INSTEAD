@@ -877,8 +877,8 @@ class ResourceServerHandler implements Runnable {
 
     StringBuilder builder = new StringBuilder();
 
-    // HTTP/1.0 200 OK
-    builder.append("HTTP/1.0 " + response.responseCode + " " + response.responseText + CRLF);
+    // HTTP/1.1 200 OK
+    builder.append("HTTP/1.1 " + response.responseCode + " " + response.responseText + CRLF);
 
     for (String key : response.headers.keySet()) {
       builder.append(key + ": " + response.headers.get(key) + CRLF);
