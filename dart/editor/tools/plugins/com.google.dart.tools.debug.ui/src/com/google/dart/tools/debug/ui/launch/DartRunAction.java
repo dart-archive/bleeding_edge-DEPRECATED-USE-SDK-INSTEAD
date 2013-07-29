@@ -168,7 +168,7 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
 
     if (candidates.size() == 0) {
       // Selection is neither a server or browser app.
-      DartRunLastAction runLastAction = new DartRunLastAction();
+      DartRunLastAction runLastAction = new DartRunLastAction(getWindow(), true);
       runLastAction.run();
     } else {
       ISelection sel = new StructuredSelection(resource);

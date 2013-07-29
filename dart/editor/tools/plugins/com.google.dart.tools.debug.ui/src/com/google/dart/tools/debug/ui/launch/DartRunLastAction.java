@@ -22,6 +22,7 @@ import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import java.util.List;
@@ -65,6 +66,11 @@ public class DartRunLastAction extends DartRunAbstractAction {
         } else {
           instrumentation.metric("Problem", "Launch config was null");
         }
+      } else {
+        MessageDialog.openInformation(
+            window.getShell(),
+            "Unable to Run",
+            "Unable to run current selection - please select a runnable resource.");
       }
     } catch (Throwable exception) {
       // We need to defensively show all errors coming out of here - the user needs feedback as
