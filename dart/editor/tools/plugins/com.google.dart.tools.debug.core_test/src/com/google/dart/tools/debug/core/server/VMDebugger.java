@@ -11,10 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.debug.core.configs;
+package com.google.dart.tools.debug.core.server;
 
 import com.google.common.base.Charsets;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.debug.core.configs.DartServerLaunchConfigurationDelegate;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.model.IDebugTarget;

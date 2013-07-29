@@ -49,6 +49,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -174,7 +175,9 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
           performAnalysisInBackground();
         }
       } catch (AnalysisException e) {
-        DartCore.logError("Parse failed for " + editor.getTitle(), e);
+        if (!(e.getCause() instanceof IOException)) {
+          DartCore.logError("Parse failed for " + editor.getTitle(), e);
+        }
       }
     }
   }

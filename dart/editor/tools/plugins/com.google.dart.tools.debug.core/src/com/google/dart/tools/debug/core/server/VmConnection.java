@@ -871,7 +871,7 @@ public class VmConnection {
         } catch (IOException exception) {
 
         } catch (Throwable exception) {
-          DartDebugCorePlugin.logError(exception);
+          DartDebugCorePlugin.logInfo(exception);
         }
       }
     });
@@ -1368,7 +1368,7 @@ public class VmConnection {
             isStepping = false;
 
             if (result.isError()) {
-              DartDebugCorePlugin.logError(result.getError());
+              DartDebugCorePlugin.logInfo(result.getError());
             } else {
               List<VmCallFrame> frames = result.getResult();;
 

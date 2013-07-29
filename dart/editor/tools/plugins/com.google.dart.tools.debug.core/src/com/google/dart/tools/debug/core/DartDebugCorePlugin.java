@@ -237,6 +237,18 @@ public class DartDebugCorePlugin extends Plugin {
   }
 
   /**
+   * Log the given exception.
+   * 
+   * @param exception
+   */
+  public static void logInfo(Throwable exception) {
+    if (getPlugin() != null) {
+      getPlugin().getLog().log(
+          new Status(IStatus.INFO, PLUGIN_ID, exception.getMessage(), exception));
+    }
+  }
+
+  /**
    * Log the given message as a warning to the Eclipse log.
    * 
    * @param message

@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.tools.debug.core.configs;
+package com.google.dart.tools.debug.core.server;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.debug.core.DebugPlugin;
