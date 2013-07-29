@@ -50,7 +50,7 @@ class VariableCollector {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
                 try {
-                  collector.collectFields(result, !obj.isList());
+                  collector.collectFields(result, !obj.isList(), !obj.isList());
                 } catch (Throwable t) {
                   DartDebugCorePlugin.logError(t);
 
@@ -85,7 +85,7 @@ class VariableCollector {
       collector.createThisVariable(thisObject);
     }
 
-    for (WebkitRemoteObject obj : remoteObjects) {
+    for (final WebkitRemoteObject obj : remoteObjects) {
       try {
         target.getConnection().getRuntime().getProperties(
             obj,
@@ -94,7 +94,7 @@ class VariableCollector {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
                 try {
-                  collector.collectFields(result, false);
+                  collector.collectFields(result, false, !obj.isList());
                 } catch (Throwable t) {
                   DartDebugCorePlugin.logError(t);
 
@@ -139,7 +139,8 @@ class VariableCollector {
     return variables.toArray(new IVariable[variables.size()]);
   }
 
-  private void collectFields(WebkitResult<WebkitPropertyDescriptor[]> results, boolean shouldSort) {
+  private void collectFields(WebkitResult<WebkitPropertyDescriptor[]> results, boolean shouldSort,
+      boolean collectStatics) {
     boolean gettingStaticFields = false;
 
     if (!results.isError()) {
@@ -161,7 +162,7 @@ class VariableCollector {
             variables.add(variable);
           }
         } else {
-          if (parentVariable != null) {
+          if (parentVariable != null && collectStatics) {
             if (WebkitPropertyDescriptor.STATIC_FIELDS.equals(descriptor.getName())) {
               gettingStaticFields = collectStaticFields(descriptor.getValue(), latch);
             }
@@ -239,14 +240,17 @@ class VariableCollector {
         "this"), true));
   }
 
-  private boolean isListLength(WebkitPropertyDescriptor descriptor) {
+  private boolean isListNonIndex(WebkitPropertyDescriptor descriptor) {
     if (parentVariable != null && parentVariable.isListValue()) {
-      if ("length".equals(descriptor.getName())) {
+      try {
+        Integer.parseInt(descriptor.getName());
+        return false;
+      } catch (NumberFormatException nfe) {
         return true;
       }
+    } else {
+      return false;
     }
-
-    return false;
   }
 
   /**
@@ -257,8 +261,8 @@ class VariableCollector {
    * @return
    */
   private boolean shouldFilter(WebkitPropertyDescriptor descriptor) {
-    // array length
-    if (isListLength(descriptor)) {
+    // array fields which are not indexes
+    if (isListNonIndex(descriptor)) {
       return true;
     }
 

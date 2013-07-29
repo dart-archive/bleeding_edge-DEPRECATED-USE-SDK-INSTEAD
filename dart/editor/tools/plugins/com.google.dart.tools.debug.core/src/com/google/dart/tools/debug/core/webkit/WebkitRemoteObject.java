@@ -27,19 +27,6 @@ public class WebkitRemoteObject {
   public static WebkitRemoteObject createFrom(JSONObject params) throws JSONException {
     WebkitRemoteObject remoteObject = new WebkitRemoteObject();
 
-//    className ( optional string )
-
-//    description ( optional string )
-
-//    objectId ( optional RemoteObjectId )
-
-//    subtype ( optional enumerated string [ "array" , "date" , "node" , "null" , "regexp" ] )
-
-//    type ( enumerated string [ "boolean" , "function" , "number" , "object" , "string" , "undefined" ] )
-
-//    value ( optional any )
-//    Remote object value (in case of primitive values or JSON values if it was requested).
-
     remoteObject.className = JsonUtils.getString(params, "className");
     remoteObject.description = JsonUtils.getString(params, "description");
     remoteObject.objectId = JsonUtils.getString(params, "objectId");
@@ -87,14 +74,15 @@ public class WebkitRemoteObject {
     return objectId;
   }
 
+  /**
+   * One of "array", "date", "node", "null", "regexp".
+   */
   public String getSubtype() {
     return subtype;
   }
 
   /**
-   * Valid values include "object", "string", and "number".
-   * 
-   * @return
+   * One of "boolean", "function", "number", "object", "string", "undefined".
    */
   public String getType() {
     return type;
@@ -119,12 +107,20 @@ public class WebkitRemoteObject {
     return getObjectId() != null;
   }
 
+  public boolean isDartFunction() {
+    return "[Dart Function]".equals(className);
+  }
+
   public boolean isFunction() {
     return "function".equals(type);
   }
 
   public boolean isList() {
     return "array".equals(subtype);
+  }
+
+  public boolean isNode() {
+    return "node".equals(subtype);
   }
 
   public boolean isNull() {
@@ -149,6 +145,14 @@ public class WebkitRemoteObject {
 
   public boolean isString() {
     return "string".equals(type);
+  }
+
+  public boolean isSyntaxError() {
+    return isObject() && "SyntaxError".equals(className);
+  }
+
+  public boolean isUndefined() {
+    return "undefined".equals(type);
   }
 
   @Override

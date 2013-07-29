@@ -67,6 +67,12 @@ public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescri
     // value ( optional RemoteObject )
     if (params.has("value")) {
       descriptor.value = WebkitRemoteObject.createFrom(params.getJSONObject("value"));
+
+      if (descriptor.value != null) {
+        if (descriptor.value.isDartFunction()) {
+          descriptor.enumerable = false;
+        }
+      }
     }
 
     descriptor.wasThrown = JsonUtils.getBoolean(params, "wasThrown");
