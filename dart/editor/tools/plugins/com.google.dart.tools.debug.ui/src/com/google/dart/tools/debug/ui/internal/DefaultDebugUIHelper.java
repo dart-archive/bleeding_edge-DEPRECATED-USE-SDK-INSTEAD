@@ -76,8 +76,8 @@ public class DefaultDebugUIHelper extends DebugUIHelper {
             return;
           } catch (IOException e) {
             title = "Error Re-connecting";
-            message = "Got " + e.toString() + " while reconnecting.\n\n"
-                + "Try to reconnect again?";
+            message = "Unable to reconnect - DevTools must first be closed in the browser."
+                + " Try to reconnect again?\n\n" + "(" + e.toString() + ")";
           }
         }
       }
