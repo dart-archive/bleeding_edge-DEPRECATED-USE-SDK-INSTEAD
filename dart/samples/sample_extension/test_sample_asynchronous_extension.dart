@@ -12,7 +12,6 @@ void check(bool condition, String message) {
   }
 }
 
-// TODO(3008): Run this test automatically on buildbot (dart:3008).
 void main() {
   RandomArray r = new RandomArray();
   r.randomArray(17, 100).then((list_100) {
