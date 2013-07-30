@@ -3,6 +3,19 @@
 # BSD-style license that can be found in the LICENSE file.
 
 {
+  'includes': [
+    '../../runtime/tools/gyp/runtime-configurations.gypi',
+  ],
+  'target_defaults': {
+    'configurations': {
+      'Dart_arm_Base': {
+        'target_conditions': [
+        ['_toolset=="target"', {
+          'ldflags!': ['-static'],
+        }],
+      ]},
+    },
+  },
   'targets': [
     {
       'target_name': 'sample_extension',
