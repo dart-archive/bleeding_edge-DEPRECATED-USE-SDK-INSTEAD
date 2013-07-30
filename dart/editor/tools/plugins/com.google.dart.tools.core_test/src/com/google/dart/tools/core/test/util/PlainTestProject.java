@@ -34,6 +34,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Helper for creating, manipulating and disposing temporary {@link IProject}s. This creates plain
@@ -67,10 +68,19 @@ public class PlainTestProject {
           TestUtilities.deleteProject(project);
         }
 
-        project.create(null);
-        project.open(null);
-        IProjectDescription description = workspace.newProjectDescription(projectName);
-        project.setDescription(description, null);
+        ProgressMonitorLatch latch = new ProgressMonitorLatch();
+
+        try {
+          IProjectDescription description = workspace.newProjectDescription(projectName);
+          project.create(description, latch);
+          latch.await();
+
+          latch = new ProgressMonitorLatch();
+          project.open(latch);
+          latch.await();
+        } finally {
+          latch.setCanceled(true);
+        }
       }
     }, null);
   }
@@ -92,7 +102,23 @@ public class PlainTestProject {
    * Disposes allocated resources and deletes project.
    */
   public void dispose() throws Exception {
-    TestUtilities.deleteProject(project);
+    final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    try {
+      workspace.run(new IWorkspaceRunnable() {
+        @Override
+        public void run(IProgressMonitor monitor) throws CoreException {
+          TestUtilities.deleteProject(project);
+          latch.countDown();
+        }
+      }, null);
+    } finally {
+      latch.countDown();
+    }
+
+    latch.await();
   }
 
   /**
