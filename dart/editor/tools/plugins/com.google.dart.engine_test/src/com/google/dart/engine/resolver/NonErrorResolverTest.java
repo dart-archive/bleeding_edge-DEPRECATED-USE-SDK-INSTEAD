@@ -962,7 +962,8 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "import 'lib.dart';"));
     addSource("/lib.dart", "library lib;");
     resolve(source);
-    assertErrors(HintCode.UNUSED_IMPORT, HintCode.UNUSED_IMPORT);
+    assertNoErrors();
+    //assertErrors(HintCode.UNUSED_IMPORT, HintCode.UNUSED_IMPORT);
     verify(source);
   }
 

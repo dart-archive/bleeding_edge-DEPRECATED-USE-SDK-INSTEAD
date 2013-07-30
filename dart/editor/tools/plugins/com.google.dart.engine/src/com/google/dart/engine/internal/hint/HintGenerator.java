@@ -65,15 +65,16 @@ public class HintGenerator {
         }
       }
     }
-    importsVerifier.generateUnusedImportHints(new ErrorReporter(
-        errorListener,
-        compilationUnits[0].getElement().getSource()));
+    // TODO (jwren) Fix bug with exported libraries before re-enabling the unused imports hints.
+//    importsVerifier.generateUnusedImportHints(new ErrorReporter(
+//        errorListener,
+//        compilationUnits[0].getElement().getSource()));
   }
 
   private void generateForCompilationUnit(CompilationUnit unit, Source source) {
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
 
-    importsVerifier.visitCompilationUnit(unit);
+//    importsVerifier.visitCompilationUnit(unit);
 
     deadCodeVerifier = new DeadCodeVerifier(errorReporter);
     deadCodeVerifier.visitCompilationUnit(unit);
