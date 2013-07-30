@@ -67,4 +67,17 @@ public class ElementLocationImplTest extends EngineTestCase {
     ElementLocationImpl location = new ElementLocationImpl(encoding);
     assertEquals(encoding, location.getEncoding());
   }
+
+  public void test_hashCode_equal() {
+    String encoding = "a;b;c";
+    ElementLocationImpl first = new ElementLocationImpl(encoding);
+    ElementLocationImpl second = new ElementLocationImpl(encoding);
+    assertTrue(first.hashCode() == second.hashCode());
+  }
+
+  public void test_hashCode_equalWithDifferentUriKind() {
+    ElementLocationImpl first = new ElementLocationImpl("fa;fb;c");
+    ElementLocationImpl second = new ElementLocationImpl("pa;pb;c");
+    assertTrue(first.hashCode() == second.hashCode());
+  }
 }

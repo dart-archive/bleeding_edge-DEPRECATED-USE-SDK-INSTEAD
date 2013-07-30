@@ -17,7 +17,6 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Instances of the class {@code ElementLocationImpl} implement an {@link ElementLocation}.
@@ -108,7 +107,18 @@ public class ElementLocationImpl implements ElementLocation {
 
   @Override
   public int hashCode() {
-    return Arrays.hashCode(components);
+    int result = 1;
+    for (int i = 0; i < components.length; i++) {
+      String component = components[i];
+      int componentHash;
+      if (i <= 1) {
+        componentHash = hashSourceComponent(component);
+      } else {
+        componentHash = component.hashCode();
+      }
+      result = 31 * result + componentHash;
+    }
+    return result;
   }
 
   @Override
@@ -184,5 +194,18 @@ public class ElementLocationImpl implements ElementLocation {
       return left.equals(right);
     }
     return left.substring(1).equals(right.substring(1));
+  }
+
+  /**
+   * Return the hash code of the given encoded source component, ignoring the source type indicator.
+   * 
+   * @param sourceComponent the component to compute a hash code
+   * @return the hash code of the given encoded source component
+   */
+  private int hashSourceComponent(String sourceComponent) {
+    if (sourceComponent.length() <= 1) {
+      return sourceComponent.hashCode();
+    }
+    return sourceComponent.substring(1).hashCode();
   }
 }
