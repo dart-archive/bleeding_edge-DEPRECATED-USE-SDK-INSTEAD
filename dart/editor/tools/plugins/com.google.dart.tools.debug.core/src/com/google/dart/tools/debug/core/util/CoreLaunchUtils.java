@@ -75,6 +75,22 @@ public class CoreLaunchUtils {
     DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
   }
 
+  /**
+   * Goes through all the dart launches registered with the {@link ILaunchManager} and removes the
+   * terminated launches
+   * 
+   * @throws CoreException
+   */
+  public static void removeTerminatedLaunches() throws CoreException {
+    ILaunch[] launches = DebugPlugin.getDefault().getLaunchManager().getLaunches();
+    for (ILaunch launch : launches) {
+      if (launch.getLaunchConfiguration().getType().getIdentifier().startsWith("com.google.dart")
+          && launch.isTerminated()) {
+        removeLaunch(launch);
+      }
+    }
+  }
+
   private CoreLaunchUtils() {
 
   }

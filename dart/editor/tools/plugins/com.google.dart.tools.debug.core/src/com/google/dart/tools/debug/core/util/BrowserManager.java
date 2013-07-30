@@ -63,7 +63,6 @@ public class BrowserManager {
 
   private static IResourceResolver resourceResolver;
 
-
   /**
    * Create a Chrome user data directory, and return the path to that directory.
    * 
@@ -261,6 +260,8 @@ public class BrowserManager {
     boolean restart = browserProcess == null || isProcessTerminated(browserProcess)
         || DartiumDebugTarget.getActiveTarget() == null
         || !DartiumDebugTarget.getActiveTarget().canTerminate();
+
+    CoreLaunchUtils.removeTerminatedLaunches();
 
     if (!restart) {
       DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
