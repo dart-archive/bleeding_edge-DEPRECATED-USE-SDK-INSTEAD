@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.text;
 
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
@@ -590,14 +591,18 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
   public IReconciler getReconciler(ISourceViewer sourceViewer) {
     DartX.todo("spelling");
     final ITextEditor editor = getEditor();
-    if (editor != null) {
-      IReconcilingStrategy strategy = new DartReconcilingStrategy((DartEditor) editor);
-      MonoReconciler reconciler = new MonoReconciler(strategy, true);
-      reconciler.setIsIncrementalReconciler(true);
-      reconciler.setIsAllowedToModifyDocument(false);
-      reconciler.setProgressMonitor(new NullProgressMonitor());
-      reconciler.setDelay(150);
-      return reconciler;
+    if (editor instanceof DartEditor) {
+      DartEditor dartEditor = (DartEditor) editor;
+      Source source = dartEditor.getInputSource();
+      if (source != null) {
+        IReconcilingStrategy strategy = new DartReconcilingStrategy(dartEditor, source);
+        MonoReconciler reconciler = new MonoReconciler(strategy, true);
+        reconciler.setIsIncrementalReconciler(true);
+        reconciler.setIsAllowedToModifyDocument(false);
+        reconciler.setProgressMonitor(new NullProgressMonitor());
+        reconciler.setDelay(150);
+        return reconciler;
+      }
     }
     return null;
   }

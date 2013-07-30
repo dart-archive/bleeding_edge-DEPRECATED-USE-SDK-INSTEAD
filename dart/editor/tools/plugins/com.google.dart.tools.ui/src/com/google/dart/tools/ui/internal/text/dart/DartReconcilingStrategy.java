@@ -62,7 +62,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private final DartEditor editor;
 
   /**
-   * The source being edited.
+   * The source being edited (not {@code null}).
    */
   private Source source;
 
@@ -135,10 +135,11 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * Construct a new instance for the specified editor.
    * 
    * @param editor the editor (not {@code null})
+   * @param source the source to be reconciled (not {@code null})
    */
-  public DartReconcilingStrategy(DartEditor editor) {
+  public DartReconcilingStrategy(DartEditor editor, Source source) {
     this.editor = editor;
-    this.source = editor.getInputSource();
+    this.source = source;
 
     // Prioritize analysis when editor becomes active
     editor.getViewer().getTextWidget().addFocusListener(new FocusListener() {
