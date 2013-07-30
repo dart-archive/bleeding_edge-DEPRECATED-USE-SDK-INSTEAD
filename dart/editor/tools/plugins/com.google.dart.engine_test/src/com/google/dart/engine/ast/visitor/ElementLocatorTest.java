@@ -26,6 +26,7 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.internal.index.AbstractDartTest;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
@@ -183,6 +184,14 @@ public class ElementLocatorTest extends ResolverTestCase {
         "}");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(PropertyAccessorElement.class, element);
+  }
+
+  @Override
+  protected void reset() {
+    super.reset();
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.setHint(false);
+    getAnalysisContext().setAnalysisOptions(analysisOptions);
   }
 
   /**

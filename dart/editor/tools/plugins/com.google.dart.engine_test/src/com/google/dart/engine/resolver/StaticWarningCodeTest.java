@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
@@ -852,7 +853,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     addSource("/lib1.dart", "library lib;");
     addSource("/lib2.dart", "library lib;");
     resolve(source);
-    assertErrors(StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME);
+    assertErrors(
+        StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME,
+        HintCode.UNUSED_IMPORT,
+        HintCode.UNUSED_IMPORT);
     verify(source);
   }
 
@@ -1271,12 +1275,13 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_newWithNonType_fromLibrary() throws Exception {
-    Source source1 = addSource("lib.dart", "");
+    Source source1 = addSource("lib.dart", "class B {}");
     Source source2 = addSource("lib2.dart", createSource(//
         "import 'lib.dart' as lib;",
         "void f() {",
         "  var a = new lib.A();",
-        "}"));
+        "}",
+        "lib.B b;"));
     resolve(source1);
     resolve(source2);
     assertErrors(StaticWarningCode.NEW_WITH_NON_TYPE);
@@ -1841,11 +1846,14 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedIdentifier_function_prefix() throws Exception {
-    addSource("/lib.dart", "library lib;");
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class C {}"));
     Source source = addSource(createSource(//
         "import 'lib.dart' as b;",
         "",
-        "int a() => b;"));
+        "int a() => b;",
+        "b.C c;"));
     resolve(source);
     assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
     verify(source);
@@ -1859,11 +1867,14 @@ public class StaticWarningCodeTest extends ResolverTestCase {
   }
 
   public void test_undefinedIdentifier_initializer_prefix() throws Exception {
-    addSource("/lib.dart", "library lib;");
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class C {}"));
     Source source = addSource(createSource(//
         "import 'lib.dart' as b;",
         "",
-        "var a = b;"));
+        "var a = b;",
+        "b.C c;"));
     resolve(source);
     assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
   }

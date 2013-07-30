@@ -962,16 +962,18 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "import 'lib.dart';"));
     addSource("/lib.dart", "library lib;");
     resolve(source);
-    assertNoErrors();
+    assertErrors(HintCode.UNUSED_IMPORT, HintCode.UNUSED_IMPORT);
     verify(source);
   }
 
   public void test_importOfNonLibrary_libraryDeclared() throws Exception {
     Source source = addSource(createSource(//
         "library lib;",
-        "import 'part.dart';"));
+        "import 'part.dart';",
+        "A a;"));
     addSource("/part.dart", createSource(//
-        "library lib1;"));
+        "library lib1;",
+        "class A {}"));
     resolve(source);
     assertNoErrors();
     verify(source);
@@ -980,9 +982,10 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_importOfNonLibrary_libraryNotDeclared() throws Exception {
     Source source = addSource(createSource(//
         "library lib;",
-        "import 'part.dart';"));
+        "import 'part.dart';",
+        "A a;"));
     addSource("/part.dart", createSource(//
-        ""));
+        "class A {}"));
     resolve(source);
     assertNoErrors();
     verify(source);
@@ -2003,13 +2006,16 @@ public class NonErrorResolverTest extends ResolverTestCase {
   }
 
   public void test_prefixCollidesWithTopLevelMembers() throws Exception {
-    addSource("/lib.dart", "library lib;");
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "class A {}"));
     Source source = addSource(createSource(//
         "import 'lib.dart' as p;",
         "typedef P();",
         "p2() {}",
         "var p3;",
-        "class p4 {}"));
+        "class p4 {}",
+        "p.A a;"));
     resolve(source);
     assertNoErrors();
     verify(source);

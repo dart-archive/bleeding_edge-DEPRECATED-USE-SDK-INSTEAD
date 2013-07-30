@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.internal.error.ErrorReporter;
@@ -37,28 +38,42 @@ public class HintGenerator {
 
   AnalysisErrorListener errorListener;
 
-//  private PubVerifier pubVerifier;
-
+  private ImportsVerifier importsVerifier;
   private DeadCodeVerifier deadCodeVerifier;
+
+//private PubVerifier pubVerifier;
 
   public HintGenerator(CompilationUnit[] compilationUnits, AnalysisContext context,
       AnalysisErrorListener errorListener) {
     this.compilationUnits = compilationUnits;
     this.context = context;
     this.errorListener = errorListener;
+    LibraryElement library = compilationUnits[0].getElement().getLibrary();
+    importsVerifier = new ImportsVerifier(library);
   }
 
   public void generateForLibrary() throws AnalysisException {
-    for (CompilationUnit unit : compilationUnits) {
-      CompilationUnitElement element = unit.getElement();
+    for (int i = 0; i < compilationUnits.length; i++) {
+      CompilationUnitElement element = compilationUnits[i].getElement();
       if (element != null) {
-        generateForCompilationUnit(unit, element.getSource());
+        if (i == 0) {
+          importsVerifier.setInDefiningCompilationUnit(true);
+          generateForCompilationUnit(compilationUnits[i], element.getSource());
+          importsVerifier.setInDefiningCompilationUnit(false);
+        } else {
+          generateForCompilationUnit(compilationUnits[i], element.getSource());
+        }
       }
     }
+    importsVerifier.generateUnusedImportHints(new ErrorReporter(
+        errorListener,
+        compilationUnits[0].getElement().getSource()));
   }
 
   private void generateForCompilationUnit(CompilationUnit unit, Source source) {
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
+
+    importsVerifier.visitCompilationUnit(unit);
 
     deadCodeVerifier = new DeadCodeVerifier(errorReporter);
     deadCodeVerifier.visitCompilationUnit(unit);

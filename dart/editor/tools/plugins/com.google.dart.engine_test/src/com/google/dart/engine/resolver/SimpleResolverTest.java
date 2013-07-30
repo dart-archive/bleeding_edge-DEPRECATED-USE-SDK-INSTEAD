@@ -311,7 +311,8 @@ public class SimpleResolverTest extends ResolverTestCase {
   public void test_import_hide() throws Exception {
     addSource("lib1.dart", createSource(//
         "library lib1;",
-        "set foo(value) {}"));
+        "set foo(value) {}",
+        "class A {}"));
     addSource("lib2.dart", createSource(//
         "library lib2;",
         "set foo(value) {}"));
@@ -321,7 +322,8 @@ public class SimpleResolverTest extends ResolverTestCase {
         "",
         "main() {",
         "  foo = 0;",
-        "}"));
+        "}",
+        "A a;"));
     resolve(source);
     assertNoErrors();
     verify(source);

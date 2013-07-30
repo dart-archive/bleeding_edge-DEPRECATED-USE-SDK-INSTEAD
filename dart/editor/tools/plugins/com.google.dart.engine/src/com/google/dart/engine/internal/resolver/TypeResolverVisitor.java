@@ -423,6 +423,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
                   prefixedIdentifier.getIdentifier(),
                   prefixedIdentifier.getIdentifier().getName());
             }
+            setElement(prefix, element);
             return null;
           } else if (element != null) {
             //
