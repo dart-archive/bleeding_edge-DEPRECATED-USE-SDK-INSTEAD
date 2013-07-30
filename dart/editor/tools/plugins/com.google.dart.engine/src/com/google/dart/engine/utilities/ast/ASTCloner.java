@@ -838,7 +838,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
   @Override
   public VariableDeclaration visitVariableDeclaration(VariableDeclaration node) {
     return new VariableDeclaration(
-        clone(node.getDocumentationComment()),
+        null,
         clone(node.getMetadata()),
         clone(node.getName()),
         node.getEquals(),
@@ -848,7 +848,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
   @Override
   public VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) {
     return new VariableDeclarationList(
-        clone(node.getDocumentationComment()),
+        null,
         clone(node.getMetadata()),
         node.getKeyword(),
         clone(node.getType()),

@@ -16,11 +16,14 @@ package com.google.dart.engine.internal.index;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -1015,6 +1018,37 @@ public class IndexContributorTest extends AbstractDartTest {
           IndexConstants.IS_REFERENCED_BY,
           new ExpectedLocation(mainElement, findOffset("foo());"), "foo"));
     }
+  }
+
+  /**
+   * There was bug in the AST structure, when single {@link Comment} was cloned and assigned to both
+   * {@link FieldDeclaration} and {@link VariableDeclaration}. This caused duplicate indexing. Here
+   * we test that this problem is fixed one way or another.
+   */
+  public void test_isReferencedBy_identifierInComment() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "/// [A] text",
+        "var myVariable = null;",
+        "");
+    // prepare elements
+    Element classElementA = findElement("A {}");
+    Element variableElement = findElement("myVariable =");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        classElementA,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(testUnitElement, findOffset("A] text"), "A"));
+    assertNoRecordedRelation(
+        relations,
+        classElementA,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(variableElement, findOffset("A] text"), "A"));
   }
 
   public void test_isReferencedBy_ImportElement_noPrefix() throws Exception {
