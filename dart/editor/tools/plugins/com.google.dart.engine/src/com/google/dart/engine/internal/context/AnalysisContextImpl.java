@@ -804,7 +804,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   public Source[] getLibrariesContaining(Source source) {
     synchronized (cacheLock) {
       SourceEntry sourceEntry = sourceMap.get(source);
-      if (sourceEntry.getKind() == SourceKind.LIBRARY) {
+      if (sourceEntry != null && sourceEntry.getKind() == SourceKind.LIBRARY) {
         return new Source[] {source};
       }
       ArrayList<Source> librarySources = new ArrayList<Source>();
