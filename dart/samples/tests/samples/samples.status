@@ -37,6 +37,9 @@ lib/util/util_test: Skip
 lib/view/view_test: Skip
 browser/*: Skip
 
+[ $runtime == vm && $system == macos]
+standalone/sample_extension_test: Fail, Pass
+
 [ $compiler == dart2js && $browser ]
 dartcombat/dartcombat_test: Skip
 
