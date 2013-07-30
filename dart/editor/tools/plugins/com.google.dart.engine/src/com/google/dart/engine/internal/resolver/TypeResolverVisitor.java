@@ -1027,12 +1027,12 @@ public class TypeResolverVisitor extends ScopedVisitor {
     ParameterElement[] parameters = getElements(parameterList);
     FunctionTypeAliasElementImpl aliasElement = new FunctionTypeAliasElementImpl(null);
     aliasElement.setSynthetic(true);
-    aliasElement.setParameters(parameters);
+    aliasElement.shareParameters(parameters);
     aliasElement.setReturnType(computeReturnType(returnType));
     FunctionTypeImpl type = new FunctionTypeImpl(aliasElement);
     ClassElement definingClass = element.getAncestor(ClassElement.class);
     if (definingClass != null) {
-      aliasElement.setTypeVariables(definingClass.getTypeVariables());
+      aliasElement.shareTypeVariables(definingClass.getTypeVariables());
       type.setTypeArguments(definingClass.getType().getTypeArguments());
     } else {
       FunctionTypeAliasElement alias = element.getAncestor(FunctionTypeAliasElement.class);

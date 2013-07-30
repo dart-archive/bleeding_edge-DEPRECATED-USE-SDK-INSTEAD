@@ -21,6 +21,7 @@ import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.internal.resolver.TypeResolverVisitor;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
 
@@ -156,6 +157,28 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
     for (TypeVariableElement variable : typeVariables) {
       ((TypeVariableElementImpl) variable).setEnclosingElement(this);
     }
+    this.typeVariables = typeVariables;
+  }
+
+  /**
+   * Set the parameters defined by this type alias to the given parameters without becoming the
+   * parent of the parameters. This should only be used by the {@link TypeResolverVisitor} when
+   * creating a synthetic type alias.
+   * 
+   * @param parameters the parameters defined by this type alias
+   */
+  public void shareParameters(ParameterElement[] parameters) {
+    this.parameters = parameters;
+  }
+
+  /**
+   * Set the type variables defined for this type to the given variables without becoming the parent
+   * of the variables. This should only be used by the {@link TypeResolverVisitor} when creating a
+   * synthetic type alias.
+   * 
+   * @param typeVariables the type variables defined for this type
+   */
+  public void shareTypeVariables(TypeVariableElement[] typeVariables) {
     this.typeVariables = typeVariables;
   }
 
