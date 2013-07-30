@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.web.pubspec;
 
 import com.google.dart.tools.core.pub.DependencyObject;
 import com.google.dart.tools.core.pub.IModelListener;
+import com.google.dart.tools.core.pub.PubPackageManager;
 import com.google.dart.tools.core.pub.PubspecModel;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
@@ -47,6 +48,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.eclipse.ui.forms.DetailsPart;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.MasterDetailsBlock;
@@ -237,20 +240,38 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
   }
 
   private void handleAddDependency() {
-    AddPackageDialog inputDialog = new AddPackageDialog(
-        page.getSite().getShell(),
-        "Add Dependency",
-        "Enter the name of package:",
-        "",
-        null);
-    if (inputDialog.open() != Window.OK) {
-      return;
-    }
+    String[] list = PubPackageManager.getInstance().getPackageListArray();
+    int result = Window.OK;
+    String name = null;
+    if (list.length > 0) {
+      ElementListSelectionDialog inputDialog = new ElementListSelectionDialog(
+          PlatformUI.getWorkbench().getDisplay().getActiveShell(),
+          new LabelProvider());
+      inputDialog.setTitle("Add dependency");
+      inputDialog.setMessage("Enter name of package:");
+      inputDialog.setElements(list);
+      result = inputDialog.open();
+      if (result == Window.OK) {
+        name = (String) inputDialog.getFirstResult();
+      }
 
-    model.add(
-        new DependencyObject[] {new DependencyObject(inputDialog.getValue())},
-        IModelListener.ADDED);
-    sectionPart.markDirty();
+    } else {
+      AddPackageDialog inputDialog = new AddPackageDialog(
+          page.getSite().getShell(),
+          "Add Dependency",
+          "Enter the name of package:",
+          "",
+          null);
+
+      result = inputDialog.open();
+      if (result == Window.OK) {
+        name = inputDialog.getValue();
+      }
+    }
+    if (name != null) {
+      model.add(new DependencyObject[] {new DependencyObject(name)}, IModelListener.ADDED);
+      sectionPart.markDirty();
+    }
   }
 
   private void handleRemoveDependency() {

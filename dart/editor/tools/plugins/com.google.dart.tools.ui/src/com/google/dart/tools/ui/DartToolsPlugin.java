@@ -16,6 +16,7 @@ package com.google.dart.tools.ui;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.pub.PubPackageManager;
 import com.google.dart.tools.ui.internal.preferences.MembersOrderPreferenceCache;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory;
@@ -788,6 +789,8 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   public void start(BundleContext context) throws Exception {
     super.start(context);
 
+    // get the packages from pub
+    PubPackageManager.getInstance().initialize();
     //ensurePreferenceStoreBackwardsCompatibility();
 
     DartX.todo();
@@ -815,6 +818,8 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   public void stop(BundleContext context) throws Exception {
     try {
       DartUIStartup.cancelStartup();
+
+      PubPackageManager.getInstance().stop();
 
       if (imageDescriptorRegistry != null) {
         imageDescriptorRegistry.dispose();
