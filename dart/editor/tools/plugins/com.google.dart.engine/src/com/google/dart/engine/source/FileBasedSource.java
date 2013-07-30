@@ -46,7 +46,7 @@ public class FileBasedSource implements Source {
   /**
    * The cached encoding for this source.
    */
-  private final String encoding;
+  private String encoding;
 
   /**
    * The kind of URI from which this source was originally derived.
@@ -80,7 +80,6 @@ public class FileBasedSource implements Source {
     this.contentCache = contentCache;
     this.file = file;
     this.uriKind = uriKind;
-    this.encoding = uriKind.getEncoding() + file.toURI().toString();
   }
 
   @Override
@@ -161,6 +160,9 @@ public class FileBasedSource implements Source {
 
   @Override
   public String getEncoding() {
+    if (encoding == null) {
+      encoding = uriKind.getEncoding() + file.toURI().toString();
+    }
     return encoding;
   }
 
