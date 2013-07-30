@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -43,6 +44,7 @@ import com.google.dart.engine.utilities.source.LineInfo;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -523,7 +525,12 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source librarySource = addSource("/lib.dart", createSource("library lib;", "part 'part.dart';"));
     Source partSource = addSource("/part.dart", "part of lib;");
     context.computeLibraryElement(librarySource);
-    Source[] result = context.getLibrariesContaining(partSource);
+
+    Source[] result = context.getLibrariesContaining(librarySource);
+    assertLength(1, result);
+    assertEquals(librarySource, result[0]);
+
+    result = context.getLibrariesContaining(partSource);
     assertLength(1, result);
     assertEquals(librarySource, result[0]);
   }
@@ -732,6 +739,32 @@ public class AnalysisContextImplTest extends EngineTestCase {
       }
     }
     fail("Did not finish analysis after " + maxCount + " iterations");
+  }
+
+  public void test_performAnalysisTask_stress() throws Exception {
+    Field field = AnalysisContextImpl.class.getDeclaredField("MAX_CACHE_SIZE");
+    field.setAccessible(true);
+    int maxCacheSize = field.getInt(null);
+    int sourceCount = maxCacheSize + 2;
+    ArrayList<Source> sources = new ArrayList<Source>(sourceCount);
+    ChangeSet changeSet = new ChangeSet();
+    for (int i = 0; i < sourceCount; i++) {
+      Source source = addSource("/lib" + i + ".dart", "library lib" + i + ";");
+      sources.add(source);
+      changeSet.added(source);
+    }
+    context.applyChanges(changeSet);
+    context.setAnalysisPriorityOrder(sources);
+    for (int i = 0; i < sourceCount * 3; i++) {
+      ChangeNotice[] notice = context.performAnalysisTask();
+      if (notice == null) {
+        return;
+      }
+    }
+    ChangeNotice[] notice = context.performAnalysisTask();
+    if (notice != null) {
+      fail("performAnalysisTask failed to terminate after analyzing all sources");
+    }
   }
 
   public void test_resolveCompilationUnit_library() throws Exception {

@@ -803,9 +803,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public Source[] getLibrariesContaining(Source source) {
     synchronized (cacheLock) {
+      SourceEntry sourceEntry = sourceMap.get(source);
+      if (sourceEntry.getKind() == SourceKind.LIBRARY) {
+        return new Source[] {source};
+      }
       ArrayList<Source> librarySources = new ArrayList<Source>();
       for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
-        SourceEntry sourceEntry = entry.getValue();
+        /*SourceEntry*/sourceEntry = entry.getValue();
         if (sourceEntry.getKind() == SourceKind.LIBRARY) {
           if (contains(((DartEntry) sourceEntry).getValue(DartEntry.INCLUDED_PARTS), source)) {
             librarySources.add(entry.getKey());
