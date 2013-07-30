@@ -8,7 +8,7 @@ vars = {
   "googlecode_url": "http://%s.googlecode.com/svn",
 
   "gyp_rev": "@1617",
-  "nss_rev": "@199075",
+  "nss_rev": "@209026",
   "co19_rev": "@515",
   "co19_repo": "http://co19.googlecode.com/svn/trunk/co19/",
   "chromium_url": "http://src.chromium.org/svn",
