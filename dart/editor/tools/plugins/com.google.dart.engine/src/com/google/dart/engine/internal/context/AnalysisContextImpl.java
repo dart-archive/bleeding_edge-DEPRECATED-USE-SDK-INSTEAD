@@ -2600,6 +2600,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
               ChangeNoticeImpl notice = getNotice(source);
               notice.setCompilationUnit(unit);
               notice.setErrors(dartCopy.getAllErrors(), lineInfo);
+            } else {
+              // The source has changed without the context being notified. Simulate notification.
+              sourceChanged(source);
             }
           }
         }

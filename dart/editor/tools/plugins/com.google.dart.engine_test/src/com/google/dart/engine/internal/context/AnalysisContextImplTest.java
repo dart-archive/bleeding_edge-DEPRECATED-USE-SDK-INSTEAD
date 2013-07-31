@@ -741,6 +741,31 @@ public class AnalysisContextImplTest extends EngineTestCase {
     fail("Did not finish analysis after " + maxCount + " iterations");
   }
 
+  public void test_performAnalysisTask_modifiedAfterParse() throws Exception {
+    Source source = addSource("/test.dart", "library lib;");
+    long initialTime = source.getModificationStamp();
+    ArrayList<Source> sources = new ArrayList<Source>();
+    sources.add(source);
+    context.setAnalysisPriorityOrder(sources);
+    context.parseCompilationUnit(source);
+    Thread.sleep(1); // Force the modification time to be different.
+    sourceFactory.getContentCache().setContents(source, "library test;");
+    assertTrue(initialTime != source.getModificationStamp());
+    for (int i = 0; i < 4; i++) {
+      ChangeNotice[] notice = context.performAnalysisTask();
+      if (notice == null) {
+        break;
+      }
+    }
+    ChangeNotice[] notice = context.performAnalysisTask();
+    if (notice != null) {
+      fail("performAnalysisTask failed to terminate after analyzing all sources");
+    }
+    assertNotNull(
+        "performAnalysisTask failed to compute an element model",
+        context.getLibraryElement(source));
+  }
+
   public void test_performAnalysisTask_stress() throws Exception {
     Field field = AnalysisContextImpl.class.getDeclaredField("MAX_CACHE_SIZE");
     field.setAccessible(true);
@@ -758,7 +783,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     for (int i = 0; i < sourceCount * 3; i++) {
       ChangeNotice[] notice = context.performAnalysisTask();
       if (notice == null) {
-        return;
+        break;
       }
     }
     ChangeNotice[] notice = context.performAnalysisTask();
