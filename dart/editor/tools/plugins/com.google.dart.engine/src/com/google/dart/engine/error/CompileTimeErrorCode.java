@@ -677,7 +677,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * @param className the name of the class from the overridden method
    */
   INVALID_OVERRIDE_REQUIRED(
-      "Must have at exactly %d required parameters to match the overridden method from '%s'"),
+      "Must have exactly %d required parameters to match the overridden method from '%s'"),
 
   /**
    * 12.10 This: It is a compile-time error if this appears in a top-level function or variable
