@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
-import com.google.dart.tools.core.dart2js.ProcessRunner;
+import com.google.dart.tools.core.utilities.general.ScriptUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -24,7 +24,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -39,12 +38,6 @@ import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -81,43 +74,11 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-
-      ProcessBuilder builder = new ProcessBuilder();
-      builder.redirectErrorStream(true);
-      List<String> args = new ArrayList<String>();
-      args.add(scriptLocation);
-      if (fileLocation != null) {
-        args.add(fileLocation);
+      IStatus status = ScriptUtils.runScript(scriptLocation, fileLocation, monitor);
+      if (status.isOK()) {
+        refreshEditor();
       }
-      builder.command(args);
-
-      ProcessRunner runner = new ProcessRunner(builder);
-
-      try {
-        runner.runSync(monitor);
-      } catch (IOException e) {
-        String message = "Failed to run script " + scriptLocation + e.toString();
-        return new Status(IStatus.CANCEL, DartToolsPlugin.PLUGIN_ID, message, e);
-      }
-
-      StringBuilder stringBuilder = new StringBuilder();
-
-      if (!runner.getStdOut().isEmpty()) {
-        stringBuilder.append(runner.getStdOut().trim() + "\n"); //$NON-NLS-1$
-      }
-
-      int exitCode = runner.getExitCode();
-
-      if (exitCode != 0) {
-        String output = "[" + exitCode + "] " + stringBuilder.toString();
-        String message = "Failed to run script " + scriptLocation + output;
-        DartCore.getConsole().print(message);
-        return new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, message);
-      }
-
-      DartCore.getConsole().print(stringBuilder.toString());
-      refreshEditor();
-      return new Status(IStatus.OK, DartToolsPlugin.PLUGIN_ID, stringBuilder.toString());
+      return status;
     }
 
   }
@@ -127,8 +88,6 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
   private static String F3_KEY = "Ctrl+Shift+F3";
   private static String F4_KEY = "Ctrl+Shift+F4";
   private static String F5_KEY = "Ctrl+Shift+F5";
-
-  private Properties properties;
 
   public RunScriptAction() {
     this(PlatformUI.getWorkbench().getActiveWorkbenchWindow());
@@ -155,7 +114,7 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
     if (scriptName == null || scriptName.isEmpty()) {
 
       console.print("Unable to run script.  No script specified in '"
-          + getPropertiesFile().getAbsolutePath() + "'");
+          + ScriptUtils.getPropertiesFile().getAbsolutePath() + "'");
 
     } else {
 
@@ -202,15 +161,8 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
     }
   }
 
-  protected File getPropertiesFile() {
-    File installDirectory = DartCore.getEclipseInstallationDirectory();
-    File file = new File(installDirectory, "scripts.properties");
-    return file;
-  }
-
   private String getScript(int keyCode) {
-
-    Properties properties = getScriptProperties();
+    Properties properties = ScriptUtils.getScriptProperties();
     String key = null;
     switch (keyCode) {
       case SWT.F1:
@@ -230,22 +182,6 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
         break;
     }
     return properties.getProperty(key);
-  }
-
-  private Properties getScriptProperties() {
-    properties = new Properties();
-    File file = getPropertiesFile();
-
-    if (file.exists()) {
-      try {
-        properties.load(new FileReader(file));
-      } catch (FileNotFoundException e) {
-        DartCore.logError(e);
-      } catch (IOException e) {
-        DartCore.logError(e);
-      }
-    }
-    return properties;
   }
 
   /**
