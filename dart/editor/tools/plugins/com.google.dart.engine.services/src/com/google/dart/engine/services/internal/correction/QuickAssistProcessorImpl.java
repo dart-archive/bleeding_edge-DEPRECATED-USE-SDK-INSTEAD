@@ -341,6 +341,10 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     // prepare expression
     Expression expression = expressionStatement.getExpression();
     int offset = expression.getOffset();
+    // ignore if already assignment
+    if (expression instanceof AssignmentExpression) {
+      return;
+    }
     // prepare expression type
     Type type = expression.getBestType();
     if (type.isVoid()) {

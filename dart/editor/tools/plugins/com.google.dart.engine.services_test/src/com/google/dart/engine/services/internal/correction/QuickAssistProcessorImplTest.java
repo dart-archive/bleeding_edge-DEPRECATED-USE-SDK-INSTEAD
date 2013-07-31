@@ -204,6 +204,18 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assertLinkedProposals("NAME", "list", "bytes2", "readBytes");
   }
 
+  public void test_assignToLocalVariable_alreadyAssignment() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "List<int> readBytes() => <int> [];",
+        "main() {",
+        "  List<int> bytes;",
+        "  bytes = readBytes();",
+        "}",
+        "");
+    assert_assignToLocalVariable(initial, "readBytes();", initial);
+  }
+
   public void test_convertToBlockBody_OK_closure() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
