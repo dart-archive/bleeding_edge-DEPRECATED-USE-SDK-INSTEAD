@@ -622,6 +622,27 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "The selection does not cover a set of statements or an expression. Extend selection to a valid range.");
   }
 
+  public void test_bad_statements_return_andAssignsVariable() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  var v = 0;",
+        "  return 42;",
+        "// end",
+        "  print(v);",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Ambiguous return value: "
+            + "Selected block contains assignment(s) to local variables and return statement.");
+  }
+
   public void test_bad_switchCase() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -2244,6 +2265,60 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "",
         "void res(int a) {",
         "  print(a);",
+        "}",
+        "");
+  }
+
+  public void test_statements_return_last() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  int v = 5;",
+        "  return v + 1;",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  return res();",
+        "// end",
+        "}",
+        "",
+        "int res() {",
+        "  int v = 5;",
+        "  return v + 1;",
+        "}",
+        "");
+  }
+
+  public void test_statements_return_single() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  return 42;",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  return res();",
+        "// end",
+        "}",
+        "",
+        "int res() {",
+        "  return 42;",
         "}",
         "");
   }

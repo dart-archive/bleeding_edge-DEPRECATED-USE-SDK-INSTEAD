@@ -32,6 +32,7 @@ import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.VariableDeclaration;
@@ -146,8 +147,9 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   private ExtractMethodAnalyzer selectionAnalyzer;
 
   private final Set<String> usedNames = Sets.newHashSet();
-  private VariableElement returnVariable;
   private final List<ParameterInfo> parameters = Lists.newArrayList();
+  private Type returnType;
+  private String returnVariableName;
   private ASTNode parentMember;
   private Expression selectionExpression;
 
@@ -177,7 +179,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       }
     }
     if (selectionStatements != null) {
-      return returnVariable != null;
+      return returnType != null;
     }
     return true;
   }
@@ -283,18 +285,22 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         } else {
           StringBuilder sb = new StringBuilder();
           // may be returns value
-          if (returnVariable != null) {
-            String varTypeName = utils.getTypeSource(returnVariable.getType());
-            String originalName = returnVariable.getDisplayName();
-            String occurrenceName = occurence.parameterOldToOccurrenceName.get(originalName);
-            if (varTypeName.equals("dynamic")) {
-              sb.append("var ");
+          if (returnType != null) {
+            String returnTypeName = utils.getTypeSource(returnType);
+            // single variable assignment / return statement
+            if (returnVariableName != null) {
+              String occurrenceName = occurence.parameterOldToOccurrenceName.get(returnVariableName);
+              if (returnTypeName.equals("dynamic")) {
+                sb.append("var ");
+              } else {
+                sb.append(returnTypeName);
+                sb.append(" ");
+              }
+              sb.append(occurrenceName);
+              sb.append(" = ");
             } else {
-              sb.append(varTypeName);
-              sb.append(" ");
+              sb.append("return ");
             }
-            sb.append(occurrenceName);
-            sb.append(" = ");
           }
           // invocation itself
           sb.append(methodName);
@@ -367,8 +373,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           }
           // statements
           if (selectionStatements != null) {
-            if (returnVariable != null) {
-              String returnTypeName = utils.getTypeSource(returnVariable.getType());
+            if (returnType != null) {
+              String returnTypeName = utils.getTypeSource(returnType);
               if (returnTypeName != null && !returnTypeName.equals("dynamic")) {
                 annotations += returnTypeName + " ";
               }
@@ -377,9 +383,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
             }
             declarationSource = annotations + getSignature(methodName) + " {" + eol;
             declarationSource += returnExpressionSource;
-            if (returnVariable != null) {
-              declarationSource += prefix + "  return " + returnVariable.getDisplayName() + ";"
-                  + eol;
+            if (returnVariableName != null) {
+              declarationSource += prefix + "  return " + returnVariableName + ";" + eol;
             }
             declarationSource += prefix + "}";
           }
@@ -853,11 +858,29 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         }
         return null;
       }
-
     });
+    // may be ends with "return" statement
+    if (selectionStatements != null) {
+      Statement lastStatement = selectionStatements.get(selectionStatements.size() - 1);
+      if (lastStatement instanceof ReturnStatement) {
+        Expression expression = ((ReturnStatement) lastStatement).getExpression();
+        if (expression != null) {
+          returnType = expression.getBestType();
+        }
+      }
+    }
     // may be single variable to return
     if (assignedUsedVariables.size() == 1) {
-      returnVariable = assignedUsedVariables.get(0);
+      // we cannot both return variable and have explicit return statement
+      if (returnType != null) {
+        result.addFatalError("Ambiguous return value: "
+            + "Selected block contains assignment(s) to local variables and return statement.");
+        return result;
+      }
+      // prepare to return an assigned variable
+      VariableElement returnVariable = assignedUsedVariables.get(0);
+      returnType = returnVariable.getType();
+      returnVariableName = returnVariable.getDisplayName();
     }
     // fatal, if multiple variables assigned and used after selection
     if (assignedUsedVariables.size() > 1) {
