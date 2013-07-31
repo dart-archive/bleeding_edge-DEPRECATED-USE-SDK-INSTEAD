@@ -125,8 +125,7 @@ public class ConvertMethodToGetterAction extends AbstractRefactoringAction {
           new ConvertMethodToGetterWizard(ltkRefactoring),
           getShell(),
           RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
-          RefactoringSaveHelper.SAVE_ALL);
-      // TODO(scheglov) may be SAVE_NOTHING
+          RefactoringSaveHelper.SAVE_NOTHING);
     } catch (Throwable e) {
       ExceptionHandler.handle(
           e,

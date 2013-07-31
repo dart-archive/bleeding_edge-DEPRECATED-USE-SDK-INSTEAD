@@ -130,10 +130,7 @@ public class RenameSupport {
       wizard.setForcePreviewReview(showPreviewOnly);
       starter.initialize(wizard);
     }
-//  // TODO(scheglov)
-    int saveMode = RefactoringSaveHelper.SAVE_ALL;
-    return starter.activate(ltkRefactoring, parent, saveMode);
-//    return starter.activate(ltkRefactoring, parent, getDartRenameProcessor().getSaveMode());
+    return starter.activate(ltkRefactoring, parent, RefactoringSaveHelper.SAVE_NOTHING);
   }
 
 //  /**
@@ -217,12 +214,10 @@ public class RenameSupport {
     // TODO(scheglov)
 //      RenameSelectionState state = createSelectionState();
 
-//    // TODO(scheglov)
-    int saveMode = RefactoringSaveHelper.SAVE_ALL;
     RefactoringExecutionHelper helper = new RefactoringExecutionHelper(
         ltkRefactoring,
         RefactoringCore.getConditionCheckingFailedSeverity(),
-        saveMode,
+        RefactoringSaveHelper.SAVE_NOTHING,
         parent,
         context);
     helper.perform(true, true);

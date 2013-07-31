@@ -74,7 +74,7 @@ public class InlineMethodAction extends AbstractRefactoringAction {
           new InlineMethodWizard(ltkRefactoring),
           shell,
           RefactoringMessages.InlineMethodAction_dialog_title,
-          RefactoringSaveHelper.SAVE_ALL);
+          RefactoringSaveHelper.SAVE_NOTHING);
       return true;
     } catch (Throwable e) {
       DartToolsPlugin.log(e);

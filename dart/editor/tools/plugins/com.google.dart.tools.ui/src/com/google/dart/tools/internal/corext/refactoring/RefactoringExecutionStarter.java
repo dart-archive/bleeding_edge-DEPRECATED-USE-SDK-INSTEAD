@@ -369,7 +369,7 @@ public final class RefactoringExecutionStarter {
         wizard,
         shell,
         wizard.getWindowTitle(),
-        RefactoringSaveHelper.SAVE_ALL);
+        RefactoringSaveHelper.SAVE_NOTHING);
   }
 
 //  public static void startReplaceInvocationsRefactoring(final ITypeRoot typeRoot, final int offset, final int length, final Shell shell) {

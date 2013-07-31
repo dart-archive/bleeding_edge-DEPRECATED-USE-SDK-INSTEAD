@@ -90,8 +90,7 @@ public class ExtractLocalAction extends AbstractRefactoringAction {
           new ExtractLocalWizard(ltkRefactoring),
           getShell(),
           RefactoringMessages.ExtractLocalAction_dialog_title,
-          RefactoringSaveHelper.SAVE_ALL);
-      // TODO(scheglov) may be SAVE_NOTHING
+          RefactoringSaveHelper.SAVE_NOTHING);
     } catch (Throwable e) {
       ExceptionHandler.handle(
           e,

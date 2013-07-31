@@ -49,7 +49,7 @@ public class MoveSupport {
     RefactoringExecutionHelper helper = new RefactoringExecutionHelper(
         refactoring,
         RefactoringCore.getConditionCheckingFailedSeverity(),
-        RefactoringSaveHelper.SAVE_ALL,
+        RefactoringSaveHelper.SAVE_NOTHING,
         DartToolsPlugin.getActiveWorkbenchShell(),
         DartToolsPlugin.getActiveWorkbenchWindow());
     helper.perform(true, true);
