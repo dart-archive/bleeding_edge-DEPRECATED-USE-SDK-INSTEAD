@@ -409,6 +409,31 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_assignmentToConst_instanceVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static const v = 0;",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  a.v = 1;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ASSIGNMENT_TO_CONST);
+    verify(source);
+  }
+
+  public void test_assignmentToConst_localVariable() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  const x = 0;",
+        "  x = 1;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ASSIGNMENT_TO_CONST);
+    verify(source);
+  }
+
   public void test_assignmentToFinal_instanceVariable() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

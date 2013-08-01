@@ -66,6 +66,15 @@ public enum StaticWarningCode implements ErrorCode {
    * 5 Variables: Attempting to assign to a final variable elsewhere will cause a NoSuchMethodError
    * to be thrown, because no setter is defined for it. The assignment will also give rise to a
    * static warning for the same reason.
+   * <p>
+   * A constant variable is always implicitly final.
+   */
+  ASSIGNMENT_TO_CONST("Constant variables cannot be assigned a value"),
+
+  /**
+   * 5 Variables: Attempting to assign to a final variable elsewhere will cause a NoSuchMethodError
+   * to be thrown, because no setter is defined for it. The assignment will also give rise to a
+   * static warning for the same reason.
    */
   ASSIGNMENT_TO_FINAL("Final variables cannot be assigned a value"),
 

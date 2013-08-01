@@ -1741,11 +1741,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * 
    * @param node the expression to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#ASSIGNMENT_TO_CONST
    * @see StaticWarningCode#ASSIGNMENT_TO_FINAL
    * @see StaticWarningCode#ASSIGNMENT_TO_METHOD
    */
   private boolean checkForAssignmentToFinal(Expression expression) {
-    // prepare LHS element
+    // prepare element
     Element element = null;
     if (expression instanceof Identifier) {
       element = ((Identifier) expression).getElement();
@@ -1753,18 +1754,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (expression instanceof PropertyAccess) {
       element = ((PropertyAccess) expression).getPropertyName().getElement();
     }
-    // check if LHS is assignable
+    // check if element is assignable
+    if (element instanceof PropertyAccessorElement) {
+      PropertyAccessorElement accessor = (PropertyAccessorElement) element;
+      element = accessor.getVariable();
+    }
     if (element instanceof VariableElement) {
-      VariableElement leftVar = (VariableElement) element;
-      if (leftVar.isFinal()) {
-        errorReporter.reportError(StaticWarningCode.ASSIGNMENT_TO_FINAL, expression);
+      VariableElement variable = (VariableElement) element;
+      if (variable.isConst()) {
+        errorReporter.reportError(StaticWarningCode.ASSIGNMENT_TO_CONST, expression);
         return true;
       }
-      return false;
-    }
-    if (element instanceof PropertyAccessorElement) {
-      PropertyAccessorElement leftAccessor = (PropertyAccessorElement) element;
-      if (!leftAccessor.isSetter()) {
+      if (variable.isFinal()) {
         errorReporter.reportError(StaticWarningCode.ASSIGNMENT_TO_FINAL, expression);
         return true;
       }
