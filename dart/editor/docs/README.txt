@@ -4,12 +4,13 @@ Notes about Dart Editor workspace setup, development, build, and deploy.
   Installation
 ====================================
 
-* Install Eclipse 3.7  "Eclipse for RCP and RAP Developers" ("Classic" should work as well)
+* Install Eclipse 3.7 or 3.8  "Eclipse for RCP and RAP Developers" ("Classic" should work as well)
     http://eclipse.org/downloads/
   or, a direct link:
     http://www.eclipse.org/downloads/packages/eclipse-classic-372/indigosr2
+    http://archive.eclipse.org/eclipse/downloads/drops/R-3.8.2-201301310800/
 
-* Install SVN support into Eclipse 3.7
+* Install SVN support into Eclipse
     Subclipse SVN tools 
       from http://subclipse.tigris.org/update_1.6.x
 
