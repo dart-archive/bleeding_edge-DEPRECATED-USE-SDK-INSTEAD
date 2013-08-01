@@ -124,10 +124,11 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       // This may need to be modified or removed 
       // if we enable/set content assist immediate-activation character(s)
 
-      if (".".equals(event.getText())) {
-        sourceChanged(document.get());
-        performAnalysisInBackground();
-      }
+      // TODO (danrubel): Restore this once analysis lock contention has been resolved
+//      if (".".equals(event.getText())) {
+//        sourceChanged(document.get());
+//        performAnalysisInBackground();
+//      }
     }
   };
 
