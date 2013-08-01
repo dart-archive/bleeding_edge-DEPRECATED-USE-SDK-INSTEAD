@@ -87,6 +87,14 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     }
   }
 
+  private class Parameter extends ParameterInfoImpl {
+    final List<SourceRange> ranges = Lists.newArrayList();
+
+    public Parameter(String typeName, String name) {
+      super(typeName, name);
+    }
+  }
+
   /**
    * Generalized version of some source, in which references to the specific variables are replaced
    * with pattern variables, with back mapping from pattern to original variable names.
@@ -148,6 +156,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
 
   private final Set<String> usedNames = Sets.newHashSet();
   private final List<ParameterInfo> parameters = Lists.newArrayList();
+  private final Map<String, Parameter> parametersMap = Maps.newHashMap();
   private Type returnType;
   private String returnVariableName;
   private ASTNode parentMember;
@@ -156,7 +165,6 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   private FunctionExpression selectionFunctionExpression;
   private List<Statement> selectionStatements;
 
-  private final Map<String, List<SourceRange>> selectionParametersToRanges = Maps.newHashMap();
   private final List<Occurrence> occurrences = Lists.newArrayList();
 
   private boolean staticContext;
@@ -290,12 +298,16 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
             // single variable assignment / return statement
             if (returnVariableName != null) {
               String occurrenceName = occurence.parameterOldToOccurrenceName.get(returnVariableName);
-              if (returnTypeName.equals("dynamic")) {
-                sb.append("var ");
-              } else {
-                sb.append(returnTypeName);
-                sb.append(" ");
+              // may be declare variable
+              if (!parametersMap.containsKey(returnVariableName)) {
+                if (returnTypeName.equals("dynamic")) {
+                  sb.append("var ");
+                } else {
+                  sb.append(returnTypeName);
+                  sb.append(" ");
+                }
               }
+              // assign the return value 
               sb.append(occurrenceName);
               sb.append(" = ");
             } else {
@@ -577,17 +589,13 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     String source = utils.getText(selectionRange);
     // prepare ReplaceEdit operations to replace variables with parameters
     List<Edit> replaceEdits = Lists.newArrayList();
-    for (Entry<String, List<SourceRange>> entry : selectionParametersToRanges.entrySet()) {
-      String name = entry.getKey();
-      for (ParameterInfo parameter : parameters) {
-        if (StringUtils.equals(name, parameter.getOldName())) {
-          for (SourceRange range : entry.getValue()) {
-            replaceEdits.add(new Edit(
-                range.getOffset() - selectionRange.getOffset(),
-                range.getLength(),
-                parameter.getNewName()));
-          }
-        }
+    for (Parameter parameter : parametersMap.values()) {
+      List<SourceRange> ranges = parameter.ranges;
+      for (SourceRange range : ranges) {
+        replaceEdits.add(new Edit(
+            range.getOffset() - selectionRange.getOffset(),
+            range.getLength(),
+            parameter.getNewName()));
       }
     }
     // apply replacements
@@ -829,20 +837,16 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
             if (!isDeclaredInSelection(variableElement)) {
               String variableName = variableElement.getDisplayName();
               // add parameter
-              if (!selectionParametersToRanges.containsKey(variableName)) {
-                Type paraType = variableElement.getType();
-                String paraTypeName = utils.getTypeSource(paraType);
-                parameters.add(new ParameterInfoImpl(paraTypeName, variableName));
+              Parameter parameter = parametersMap.get(variableName);
+              if (parameter == null) {
+                Type parameterType = variableElement.getType();
+                String parameterTypeName = utils.getTypeSource(parameterType);
+                parameter = new Parameter(parameterTypeName, variableName);
+                parameters.add(parameter);
+                parametersMap.put(variableName, parameter);
               }
               // add reference to parameter
-              {
-                List<SourceRange> ranges = selectionParametersToRanges.get(variableName);
-                if (ranges == null) {
-                  ranges = Lists.newArrayList();
-                  selectionParametersToRanges.put(variableName, ranges);
-                }
-                ranges.add(nodeRange);
-              }
+              parameter.ranges.add(nodeRange);
             }
             // remember, if assigned and used after selection
             if (isLeftHandOfAssignment(node) && isUsedAfterSelection(variableElement)) {

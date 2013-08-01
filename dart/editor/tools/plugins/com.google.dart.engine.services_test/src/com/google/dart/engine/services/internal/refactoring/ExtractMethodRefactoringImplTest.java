@@ -1894,6 +1894,37 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
+  public void test_statements_assignment() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v;",
+        "// start",
+        "  v = 5;",
+        "// end",
+        "  print(v);",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v;",
+        "// start",
+        "  v = res(v);",
+        "// end",
+        "  print(v);",
+        "}",
+        "",
+        "int res(int v) {",
+        "  v = 5;",
+        "  return v;",
+        "}",
+        "");
+  }
+
   public void test_statements_changeIndentation() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1984,7 +2015,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "myFunctionA() {",
         "  int a = 1;",
         "// start",
-        "  int a = res(a);",
+        "  a = res(a);",
         "// end",
         "  print(a);",
         "}",
@@ -1995,7 +2026,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "}",
         "myFunctionB() {",
         "  int b = 2;",
-        "  int b = res(b);",
+        "  b = res(b);",
         "  print(b);",
         "}",
         "");
