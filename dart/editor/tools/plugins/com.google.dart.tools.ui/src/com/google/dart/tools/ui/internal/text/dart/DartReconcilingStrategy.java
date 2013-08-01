@@ -124,11 +124,9 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       // This may need to be modified or removed 
       // if we enable/set content assist immediate-activation character(s)
 
-      // TODO (danrubel): Restore this once analysis lock contention has been resolved
-//      if (".".equals(event.getText())) {
-//        sourceChanged(document.get());
-//        performAnalysisInBackground();
-//      }
+      if (".".equals(event.getText())) {
+        updateSourceInBackground(true);
+      }
     }
   };
 
@@ -259,8 +257,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    */
   private void dispose() {
     // clear the cached source content to ensure the source will be read from disk
-    sourceChanged(null);
-    performAnalysisInBackground();
+    updateSourceInBackground(false);
     document.removeDocumentListener(documentListener);
     AnalysisWorker.removeListener(analysisListener);
     updateAnalysisPriorityOrder(false);
@@ -344,9 +341,45 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
           if (isOpen) {
             sources.add(0, source);
           }
-          context.setAnalysisPriorityOrder(sources);
+          updateAnalysisPriorityOrderInBackground(sources);
         }
       }
     });
+  }
+
+  /**
+   * Update the order in which sources are analyzed in the context associated with the editor.
+   * 
+   * @param sources the list of sources to be analyzed first (not <code>null</code>, contains no
+   *          <code>null</code>s)
+   */
+  private void updateAnalysisPriorityOrderInBackground(final List<Source> sources) {
+    // TODO (danrubel): Put this back on UI thread once analysis lock contention has been resolved
+    new Thread("updateAnalysisPriorityOrderInBackground") {
+      @Override
+      public void run() {
+        AnalysisContext context = editor.getInputAnalysisContext();
+        if (context != null) {
+          context.setAnalysisPriorityOrder(sources);
+        }
+      };
+    }.start();
+  }
+
+  /**
+   * Update the source being analyzed in the context associated with the editor.
+   * 
+   * @param isOpen {@code true} if the editor is open and the source should be cached or
+   *          {@code false} if the editor is closed and the source should read from disk.
+   */
+  private void updateSourceInBackground(final boolean isOpen) {
+    // TODO (danrubel): Put this back on UI thread once analysis lock contention has been resolved 
+    new Thread("updateSourceInBackground") {
+      @Override
+      public void run() {
+        sourceChanged(isOpen ? document.get() : null);
+        performAnalysisInBackground();
+      }
+    }.start();
   }
 }
