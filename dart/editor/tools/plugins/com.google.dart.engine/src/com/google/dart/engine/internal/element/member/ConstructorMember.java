@@ -43,6 +43,10 @@ public class ConstructorMember extends ExecutableMember implements ConstructorEl
       return baseConstructor;
     }
     FunctionType baseType = baseConstructor.getType();
+    if (baseType == null) {
+      // TODO(brianwilkerson) We need to understand when this can happen.
+      return baseConstructor;
+    }
     Type[] argumentTypes = definingType.getTypeArguments();
     Type[] parameterTypes = definingType.getElement().getType().getTypeArguments();
     FunctionType substitutedType = baseType.substitute(argumentTypes, parameterTypes);
