@@ -612,7 +612,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     }
     CompilationUnit unit = dartEntry.getAnyParsedCompilationUnit();
     if (unit == null) {
-      unit = parseCompilationUnit(source);
+      try {
+        unit = parseCompilationUnit(source);
+      } catch (AnalysisException exception) {
+        return null;
+      }
     }
     return (CompilationUnit) unit.accept(new ASTCloner());
   }

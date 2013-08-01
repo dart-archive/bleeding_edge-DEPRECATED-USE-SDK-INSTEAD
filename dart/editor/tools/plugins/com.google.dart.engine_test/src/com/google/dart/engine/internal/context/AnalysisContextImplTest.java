@@ -335,7 +335,17 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(info);
   }
 
-  public void test_computeResolvableCompilationUnit() throws Exception {
+  public void test_computeResolvableCompilationUnit_exception() throws Exception {
+    Source source = addSourceWithException("/test.dart");
+    assertNull(context.computeResolvableCompilationUnit(source));
+  }
+
+  public void test_computeResolvableCompilationUnit_html() throws Exception {
+    Source source = addSource("/lib.html", "<html></html>");
+    assertNull(context.computeResolvableCompilationUnit(source));
+  }
+
+  public void test_computeResolvableCompilationUnit_valid() throws Exception {
     Source source = addSource("/lib.dart", "library lib;");
     CompilationUnit compilationUnit = context.parseCompilationUnit(source);
     assertNotNull(compilationUnit);
@@ -691,6 +701,16 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertTrue(errors.length > 0);
   }
 
+  public void test_parseCompilationUnit_exception() throws Exception {
+    Source source = addSourceWithException("/test.dart");
+    try {
+      context.parseCompilationUnit(source);
+      fail("Expected AnalysisException");
+    } catch (AnalysisException exception) {
+      // Expected.
+    }
+  }
+
   public void test_parseCompilationUnit_html() throws Exception {
     Source source = addSource("/test.html", "<html></html>");
     assertNull(context.parseCompilationUnit(source));
@@ -720,17 +740,10 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_performAnalysisTask_IOException() throws Exception {
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile("/lib.dart")) {
-      @Override
-      public void getContents(ContentReceiver receiver) throws Exception {
-        throw new IOException("Some random I/O Exception");
-      }
-    };
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
-    context.applyChanges(changeSet);
-
-    // Simulate a typical analysis worker
+    addSourceWithException("/test.dart");
+    //
+    // Simulate a typical analysis worker.
+    //
     int maxCount = 5;
     context.performAnalysisTask();
     for (int count = 0; count < maxCount; count++) {
@@ -860,6 +873,19 @@ public class AnalysisContextImplTest extends EngineTestCase {
   private Source addSource(String fileName, String contents) {
     Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(fileName));
     sourceFactory.setContents(source, contents);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    context.applyChanges(changeSet);
+    return source;
+  }
+
+  private Source addSourceWithException(String fileName) {
+    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(fileName)) {
+      @Override
+      public void getContents(ContentReceiver receiver) throws Exception {
+        throw new IOException("I/O Exception while getting the contents of " + getFullName());
+      }
+    };
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
     context.applyChanges(changeSet);
