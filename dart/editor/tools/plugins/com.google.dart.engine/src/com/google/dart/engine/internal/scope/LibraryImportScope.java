@@ -13,23 +13,12 @@
  */
 package com.google.dart.engine.internal.scope;
 
-import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.FunctionDeclaration;
-import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
-import com.google.dart.engine.ast.MethodDeclaration;
-import com.google.dart.engine.ast.SimpleFormalParameter;
-import com.google.dart.engine.ast.TypeArgumentList;
-import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.TypeParameter;
-import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
-import com.google.dart.engine.error.CompileTimeErrorCode;
-import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
 
@@ -42,51 +31,6 @@ import java.util.ArrayList;
  * @coverage dart.engine.resolver
  */
 public class LibraryImportScope extends Scope {
-  /**
-   * @return {@code true} if the given {@link Identifier} is the part of type annotation.
-   */
-  private static boolean isTypeAnnotation(Identifier identifier) {
-    ASTNode parent = identifier.getParent();
-    if (parent instanceof TypeName) {
-      ASTNode parent2 = parent.getParent();
-      if (parent2 instanceof FunctionDeclaration) {
-        FunctionDeclaration decl = (FunctionDeclaration) parent2;
-        return decl.getReturnType() == parent;
-      }
-      if (parent2 instanceof FunctionTypeAlias) {
-        FunctionTypeAlias decl = (FunctionTypeAlias) parent2;
-        return decl.getReturnType() == parent;
-      }
-      if (parent2 instanceof MethodDeclaration) {
-        MethodDeclaration decl = (MethodDeclaration) parent2;
-        return decl.getReturnType() == parent;
-      }
-      if (parent2 instanceof VariableDeclarationList) {
-        VariableDeclarationList decl = (VariableDeclarationList) parent2;
-        return decl.getType() == parent;
-      }
-      if (parent2 instanceof SimpleFormalParameter) {
-        SimpleFormalParameter decl = (SimpleFormalParameter) parent2;
-        return decl.getType() == parent;
-      }
-      if (parent2 instanceof TypeParameter) {
-        TypeParameter decl = (TypeParameter) parent2;
-        return decl.getBound() == parent;
-      }
-      if (parent2 instanceof TypeArgumentList) {
-        ASTNode parent3 = parent2.getParent();
-        if (parent3 instanceof TypeName) {
-          TypeName typeName = (TypeName) parent3;
-          if ((typeName).getTypeArguments() == parent2) {
-            return isTypeAnnotation(typeName.getName());
-          }
-        }
-      }
-      return false;
-    }
-    return false;
-  }
-
   /**
    * The element representing the library in which this scope is enclosed.
    */
@@ -166,13 +110,11 @@ public class LibraryImportScope extends Scope {
       }
       // TODO (jwren) Change the error message to include a list of all library names instead of
       // just the first two
-      ErrorCode errorCode = isTypeAnnotation(identifier) ? StaticWarningCode.AMBIGUOUS_IMPORT
-          : CompileTimeErrorCode.AMBIGUOUS_IMPORT;
       errorListener.onError(new AnalysisError(
           getSource(),
           identifier.getOffset(),
           identifier.getLength(),
-          errorCode,
+          StaticWarningCode.AMBIGUOUS_IMPORT,
           foundEltName,
           libName1,
           libName2));

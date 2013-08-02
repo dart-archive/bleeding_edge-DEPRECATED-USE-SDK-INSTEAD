@@ -26,10 +26,10 @@ public enum StaticWarningCode implements ErrorCode {
    * 14.1 Imports: If a name <i>N</i> is referenced by a library <i>L</i> and <i>N</i> is introduced
    * into the top level scope <i>L</i> by more than one import then:
    * <ol>
-   * <li>It is a static warning if <i>N</i> is used as a type annotation.
-   * <li>In checked mode, it is a dynamic error if <i>N</i> is used as a type annotation and
-   * referenced during a subtype test.
-   * <li>Otherwise, it is a compile-time error.
+   * <li>A static warning occurs.
+   * <li>If <i>N</i> is referenced as a function, getter or setter, a <i>NoSuchMethodError</i> is
+   * raised.
+   * <li>If <i>N</i> is referenced as a type, it is treated as a malformed type.
    * </ol>
    * 
    * @param ambiguousTypeName the name of the ambiguous type

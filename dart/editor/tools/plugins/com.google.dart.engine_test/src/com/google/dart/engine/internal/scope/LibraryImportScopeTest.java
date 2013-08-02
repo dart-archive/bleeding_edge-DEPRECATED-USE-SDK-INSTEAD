@@ -20,7 +20,6 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
-import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -71,7 +70,7 @@ public class LibraryImportScopeTest extends ResolverTestCase {
       errorListener.assertNoErrors();
 
       Element element = scope.lookup(identifier(typeNameB), importingLibrary);
-      errorListener.assertErrors(CompileTimeErrorCode.AMBIGUOUS_IMPORT);
+      errorListener.assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT);
       assertInstanceOf(MultiplyDefinedElement.class, element);
 
       Element[] conflictingElements = ((MultiplyDefinedElement) element).getConflictingElements();
