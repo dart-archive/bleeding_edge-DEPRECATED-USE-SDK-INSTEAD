@@ -98,6 +98,7 @@ import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
 import static com.google.dart.engine.ast.ASTFactory.simpleFormalParameter;
 import static com.google.dart.engine.ast.ASTFactory.string;
 import static com.google.dart.engine.ast.ASTFactory.superExpression;
+import static com.google.dart.engine.ast.ASTFactory.symbolLiteral;
 import static com.google.dart.engine.ast.ASTFactory.thisExpression;
 import static com.google.dart.engine.ast.ASTFactory.throwExpression;
 import static com.google.dart.engine.ast.ASTFactory.typeName;
@@ -883,6 +884,10 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     Expression node = superExpression();
     assertSame(thisType, analyze(node, thisType));
     listener.assertNoErrors();
+  }
+
+  public void test_visitSymbolLiteral() throws Exception {
+    assertSame(typeProvider.getSymbolType(), analyze(symbolLiteral("a")));
   }
 
   public void test_visitThisExpression() throws Exception {

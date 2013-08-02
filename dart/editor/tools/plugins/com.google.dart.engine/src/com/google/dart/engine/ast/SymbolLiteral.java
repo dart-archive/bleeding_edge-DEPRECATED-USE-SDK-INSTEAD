@@ -15,14 +15,12 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
-import java.util.List;
-
 /**
  * Instances of the class {@code SymbolLiteral} represent a symbol literal expression.
  * 
  * <pre>
  * symbolLiteral ::=
- *     '#' {@link SimpleIdentifier identifier} ('.' {@link SimpleIdentifier identifier})*
+ *     '#' (operator | (identifier ('.' identifier)*))
  * </pre>
  * 
  * @coverage dart.engine.ast
@@ -36,7 +34,7 @@ public class SymbolLiteral extends Literal {
   /**
    * The components of the literal.
    */
-  private NodeList<SimpleIdentifier> components = new NodeList<SimpleIdentifier>(this);
+  private Token[] components;
 
   /**
    * Initialize a newly created symbol literal.
@@ -44,9 +42,9 @@ public class SymbolLiteral extends Literal {
    * @param poundSign the token introducing the literal
    * @param components the components of the literal
    */
-  public SymbolLiteral(Token poundSign, List<SimpleIdentifier> components) {
+  public SymbolLiteral(Token poundSign, Token[] components) {
     this.poundSign = poundSign;
-    this.components.addAll(components);
+    this.components = components;
   }
 
   @Override
@@ -64,13 +62,13 @@ public class SymbolLiteral extends Literal {
    * 
    * @return the components of the literal
    */
-  public NodeList<SimpleIdentifier> getComponents() {
+  public Token[] getComponents() {
     return components;
   }
 
   @Override
   public Token getEndToken() {
-    return components.getEndToken();
+    return components[components.length - 1];
   }
 
   /**
@@ -93,6 +91,6 @@ public class SymbolLiteral extends Literal {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    components.accept(visitor);
+    // There are no children to visit.
   }
 }

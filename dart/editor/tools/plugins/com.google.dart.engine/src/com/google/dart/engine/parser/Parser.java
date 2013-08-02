@@ -4924,24 +4924,26 @@ public class Parser {
    */
   private SymbolLiteral parseSymbolLiteral() {
     Token poundSign = getAndAdvance();
-    List<SimpleIdentifier> components = new ArrayList<SimpleIdentifier>();
+    List<Token> components = new ArrayList<Token>();
     if (matches(TokenType.IDENTIFIER)) {
-      components.add(parseSimpleIdentifier());
+      components.add(getAndAdvance());
       while (matches(TokenType.PERIOD)) {
         advance();
         if (matches(TokenType.IDENTIFIER)) {
-          components.add(parseSimpleIdentifier());
+          components.add(getAndAdvance());
         } else {
           reportError(ParserErrorCode.MISSING_IDENTIFIER);
-          components.add(createSyntheticIdentifier());
+          components.add(createSyntheticToken(TokenType.IDENTIFIER));
           break;
         }
       }
+    } else if (currentToken.isOperator()) {
+      components.add(getAndAdvance());
     } else {
       reportError(ParserErrorCode.MISSING_IDENTIFIER);
-      components.add(createSyntheticIdentifier());
+      components.add(createSyntheticToken(TokenType.IDENTIFIER));
     }
-    return new SymbolLiteral(poundSign, components);
+    return new SymbolLiteral(poundSign, components.toArray(new Token[components.size()]));
   }
 
   /**

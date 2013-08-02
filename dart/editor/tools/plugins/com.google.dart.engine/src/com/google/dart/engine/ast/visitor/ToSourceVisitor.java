@@ -847,7 +847,13 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   @Override
   public Void visitSymbolLiteral(SymbolLiteral node) {
     writer.print("#");
-    visitList(node.getComponents(), ".");
+    Token[] components = node.getComponents();
+    for (int i = 0; i < components.length; i++) {
+      if (i > 0) {
+        writer.print(".");
+      }
+      writer.print(components[i].getLexeme());
+    }
     return null;
   }
 

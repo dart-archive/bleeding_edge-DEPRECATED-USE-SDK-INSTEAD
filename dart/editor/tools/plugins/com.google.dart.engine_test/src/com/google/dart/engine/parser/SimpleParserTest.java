@@ -3984,19 +3984,27 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseSymbolLiteral_multiple() throws Exception {
     SymbolLiteral literal = parse("parseSymbolLiteral", "#a.b.c");
     assertNotNull(literal.getPoundSign());
-    NodeList<SimpleIdentifier> components = literal.getComponents();
-    assertSize(3, components);
-    assertEquals("a", components.get(0).getName());
-    assertEquals("b", components.get(1).getName());
-    assertEquals("c", components.get(2).getName());
+    Token[] components = literal.getComponents();
+    assertLength(3, components);
+    assertEquals("a", components[0].getLexeme());
+    assertEquals("b", components[1].getLexeme());
+    assertEquals("c", components[2].getLexeme());
+  }
+
+  public void test_parseSymbolLiteral_operator() throws Exception {
+    SymbolLiteral literal = parse("parseSymbolLiteral", "#==");
+    assertNotNull(literal.getPoundSign());
+    Token[] components = literal.getComponents();
+    assertLength(1, components);
+    assertEquals("==", components[0].getLexeme());
   }
 
   public void test_parseSymbolLiteral_single() throws Exception {
     SymbolLiteral literal = parse("parseSymbolLiteral", "#a");
     assertNotNull(literal.getPoundSign());
-    NodeList<SimpleIdentifier> components = literal.getComponents();
-    assertSize(1, components);
-    assertEquals("a", components.get(0).getName());
+    Token[] components = literal.getComponents();
+    assertLength(1, components);
+    assertEquals("a", components[0].getLexeme());
   }
 
   public void test_parseThrowExpression() throws Exception {

@@ -39,6 +39,7 @@ import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SymbolLiteral;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.scanner.Token;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -435,11 +436,11 @@ public class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
   public Object visitSymbolLiteral(SymbolLiteral node) {
     // TODO(brianwilkerson) This isn't optimal because a Symbol is not a String.
     StringBuilder builder = new StringBuilder();
-    for (SimpleIdentifier component : node.getComponents()) {
+    for (Token component : node.getComponents()) {
       if (builder.length() > 0) {
         builder.append('.');
       }
-      builder.append(component.getName());
+      builder.append(component.getLexeme());
     }
     return builder.toString();
   }

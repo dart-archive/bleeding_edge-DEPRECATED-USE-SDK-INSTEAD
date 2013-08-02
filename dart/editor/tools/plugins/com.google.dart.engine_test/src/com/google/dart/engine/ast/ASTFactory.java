@@ -15,6 +15,7 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
@@ -985,11 +986,13 @@ public final class ASTFactory {
   }
 
   public static SymbolLiteral symbolLiteral(String... components) {
-    ArrayList<SimpleIdentifier> identifierList = new ArrayList<SimpleIdentifier>();
+    ArrayList<Token> identifierList = new ArrayList<Token>();
     for (String component : components) {
-      identifierList.add(identifier(component));
+      identifierList.add(token(TokenType.IDENTIFIER, component));
     }
-    return new SymbolLiteral(token(TokenType.HASH), identifierList);
+    return new SymbolLiteral(
+        token(TokenType.HASH),
+        identifierList.toArray(new Token[identifierList.size()]));
   }
 
   public static ThisExpression thisExpression() {

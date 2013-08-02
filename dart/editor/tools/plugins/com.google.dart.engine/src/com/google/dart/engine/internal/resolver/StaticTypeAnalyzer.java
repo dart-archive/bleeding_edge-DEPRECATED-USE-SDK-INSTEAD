@@ -54,6 +54,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.SuperExpression;
+import com.google.dart.engine.ast.SymbolLiteral;
 import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TypeArgumentList;
@@ -1302,6 +1303,12 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     } else {
       recordStaticType(node, thisType);
     }
+    return null;
+  }
+
+  @Override
+  public Void visitSymbolLiteral(SymbolLiteral node) {
+    recordStaticType(node, typeProvider.getSymbolType());
     return null;
   }
 
