@@ -59,7 +59,7 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
   /**
    * The current library.
    */
-  private final LibraryElement library;
+  private final LibraryElement currentLibrary;
 
   /**
    * A list of {@link ImportDirective}s that the current library imports, as identifiers are visited
@@ -106,7 +106,7 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
    * @param errorReporter the error reporter
    */
   public ImportsVerifier(LibraryElement library) {
-    this.library = library;
+    this.currentLibrary = library;
     this.unusedImports = new ArrayList<ImportDirective>();
     this.libraryMap = new HashMap<LibraryElement, ArrayList<ImportDirective>>();
     this.namespaceMap = new HashMap<ImportDirective, Namespace>();
@@ -158,20 +158,19 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
               }
             }
             //
-            // Initialize libraryMap
+            // Initialize libraryMap: libraryElement -> importDirective
             //
-            if (!libraryMap.containsKey(libraryElement)) {
-              // This is the first and only import directive that uses this library, map the library
-              // element to the directive.
-              ArrayList<ImportDirective> importList = new ArrayList<ImportDirective>(3);
-              importList.add(importDirective);
-              libraryMap.put(libraryElement, importList);
-            } else {
-              // Then there are multiple import directives that import this library element,
-              // add this import directive to the import list in the libraryMap.
-              ArrayList<ImportDirective> importList = libraryMap.get(libraryElement);
-              importList.add(importDirective);
-            }
+            putIntoLibraryMap(libraryElement, importDirective);
+
+            //
+            // For this new addition to the libraryMap, also recursively add any exports from the
+            // libraryElement
+            //
+            addAdditionalLibrariesForExports(
+                libraryMap,
+                libraryElement,
+                importDirective,
+                new ArrayList<LibraryElement>());
           }
         }
       }
@@ -224,6 +223,22 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * Recursively add any exported library elements into the {@link #libraryMap}.
+   */
+  private void addAdditionalLibrariesForExports(
+      HashMap<LibraryElement, ArrayList<ImportDirective>> map, LibraryElement library,
+      ImportDirective importDirective, ArrayList<LibraryElement> exportPath) {
+    if (exportPath.contains(library)) {
+      return;
+    }
+    for (LibraryElement exportedLibraryElt : library.getExportedLibraries()) {
+      putIntoLibraryMap(exportedLibraryElt, importDirective);
+      exportPath.add(exportedLibraryElt);
+      addAdditionalLibrariesForExports(map, exportedLibraryElt, importDirective, exportPath);
+    }
+  }
+
+  /**
    * Lookup and return the {@link Namespace} from the {@link #namespaceMap}, if the map does not
    * have the computed namespace, compute it and cache it in the map. If the import directive is not
    * resolved or is not resolvable, {@code null} is returned.
@@ -245,6 +260,21 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
     return namespace;
   }
 
+  /**
+   * The {@link #libraryMap} is a mapping between a library elements and a list of import
+   * directives, but when adding these mappings into the {@link #libraryMap}, this method can be
+   * used to simply add the mapping between the library element an an import directive without
+   * needing to check to see if a list needs to be created.
+   */
+  private void putIntoLibraryMap(LibraryElement libraryElement, ImportDirective importDirective) {
+    ArrayList<ImportDirective> importList = libraryMap.get(libraryElement);
+    if (importList == null) {
+      importList = new ArrayList<ImportDirective>(3);
+      libraryMap.put(libraryElement, importList);
+    }
+    importList.add(importDirective);
+  }
+
   private Void visitIdentifier(Element element, String name) {
     if (element == null) {
       return null;
@@ -262,7 +292,7 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
       return null;
     }
     // If the element is declared in the current library, return.
-    if (library.equals(containingLibrary)) {
+    if (currentLibrary.equals(containingLibrary)) {
       return null;
     }
     ArrayList<ImportDirective> importsFromSameLibrary = libraryMap.get(containingLibrary);

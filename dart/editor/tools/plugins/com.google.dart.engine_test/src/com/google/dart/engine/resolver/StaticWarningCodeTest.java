@@ -14,6 +14,7 @@
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
@@ -1032,11 +1033,10 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     addSource("/lib1.dart", "library lib;");
     addSource("/lib2.dart", "library lib;");
     resolve(source);
-    assertErrors(StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME);
-//    assertErrors(
-//        StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME,
-//        HintCode.UNUSED_IMPORT,
-//        HintCode.UNUSED_IMPORT);
+    assertErrors(
+        StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME,
+        HintCode.UNUSED_IMPORT,
+        HintCode.UNUSED_IMPORT);
     verify(source);
   }
 

@@ -28,4 +28,64 @@ public class NonHintCodeTest extends ResolverTestCase {
     assertNoErrors();
     verify(source);
   }
+
+  public void test_unusedImport_export() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';",
+        "Two two;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "export 'lib2.dart';",
+        "class One {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class Two {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_unusedImport_export_infiniteLoop() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';",
+        "Two one;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "export 'lib2.dart';",
+        "class One {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "export 'lib3.dart';",
+        "class Two {}"));
+    addSource("/lib3.dart", createSource(//
+        "library lib3;",
+        "export 'lib2.dart';",
+        "class Three {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_unusedImport_export2() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';",
+        "Two one;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "export 'lib2.dart';",
+        "class One {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "export 'lib3.dart';",
+        "class Two {}"));
+    addSource("/lib3.dart", createSource(//
+        "library lib3;",
+        "class Three {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
 }
