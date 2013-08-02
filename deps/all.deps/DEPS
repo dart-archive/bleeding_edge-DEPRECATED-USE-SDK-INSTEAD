@@ -112,7 +112,7 @@ deps_os = {
 hooks = [
   {
     "pattern": ".",
-    "action": ["python", "dart/compiler/scripts/generate_my_projects.py"],
+    "action": ["python", "dart/tools/compiler_scripts/generate_my_projects.py"],
   },
   {
     "pattern": ".",
