@@ -153,8 +153,12 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
             if (importDirective.getAsToken() != null) {
               SimpleIdentifier prefixIdentifier = importDirective.getPrefix();
               if (prefixIdentifier != null) {
-                PrefixElement prefixElementKey = (PrefixElement) prefixIdentifier.getElement();
-                prefixElementMap.put(prefixElementKey, importDirective);
+                Element element = prefixIdentifier.getElement();
+                if (element instanceof PrefixElement) {
+                  PrefixElement prefixElementKey = (PrefixElement) element;
+                  prefixElementMap.put(prefixElementKey, importDirective);
+                }
+                // TODO (jwren) Can the element ever not be a PrefixElement?
               }
             }
             //
