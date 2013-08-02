@@ -493,9 +493,13 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
    * abstract method.
    * <p>
-   * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
-   * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
-   * corresponding instance member <i>m</i>.
+   * 7.10 Superinterfaces: Let <i>C</i> be a concrete class that does not declare its own
+   * <i>noSuchMethod()</i> method. It is a static warning if the implicit interface of <i>C</i>
+   * includes an instance member <i>m</i> of type <i>F</i> and <i>C</i> does not declare or inherit
+   * a corresponding instance member <i>m</i> of type <i>F'</i> such that <i>F' <: F</i>.
+   * <p>
+   * 7.4 Abstract Instance Members: It is a static warning if an abstract member is declared or
+   * inherited in a concrete class unless that member overrides a concrete one.
    * 
    * @param memberName the name of the first member
    * @param memberName the name of the second member
@@ -510,9 +514,13 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
    * abstract method.
    * <p>
-   * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
-   * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
-   * corresponding instance member <i>m</i>.
+   * 7.10 Superinterfaces: Let <i>C</i> be a concrete class that does not declare its own
+   * <i>noSuchMethod()</i> method. It is a static warning if the implicit interface of <i>C</i>
+   * includes an instance member <i>m</i> of type <i>F</i> and <i>C</i> does not declare or inherit
+   * a corresponding instance member <i>m</i> of type <i>F'</i> such that <i>F' <: F</i>.
+   * <p>
+   * 7.4 Abstract Instance Members: It is a static warning if an abstract member is declared or
+   * inherited in a concrete class unless that member overrides a concrete one.
    * 
    * @param memberName the name of the first member
    * @param memberName the name of the second member
@@ -526,9 +534,13 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
    * abstract method.
    * <p>
-   * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
-   * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
-   * corresponding instance member <i>m</i>.
+   * 7.10 Superinterfaces: Let <i>C</i> be a concrete class that does not declare its own
+   * <i>noSuchMethod()</i> method. It is a static warning if the implicit interface of <i>C</i>
+   * includes an instance member <i>m</i> of type <i>F</i> and <i>C</i> does not declare or inherit
+   * a corresponding instance member <i>m</i> of type <i>F'</i> such that <i>F' <: F</i>.
+   * <p>
+   * 7.4 Abstract Instance Members: It is a static warning if an abstract member is declared or
+   * inherited in a concrete class unless that member overrides a concrete one.
    * 
    * @param memberName the name of the member
    */
@@ -538,9 +550,13 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
    * abstract method.
    * <p>
-   * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
-   * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
-   * corresponding instance member <i>m</i>.
+   * 7.10 Superinterfaces: Let <i>C</i> be a concrete class that does not declare its own
+   * <i>noSuchMethod()</i> method. It is a static warning if the implicit interface of <i>C</i>
+   * includes an instance member <i>m</i> of type <i>F</i> and <i>C</i> does not declare or inherit
+   * a corresponding instance member <i>m</i> of type <i>F'</i> such that <i>F' <: F</i>.
+   * <p>
+   * 7.4 Abstract Instance Members: It is a static warning if an abstract member is declared or
+   * inherited in a concrete class unless that member overrides a concrete one.
    * 
    * @param memberName the name of the first member
    * @param memberName the name of the second member
@@ -553,9 +569,13 @@ public enum StaticWarningCode implements ErrorCode {
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
    * abstract method.
    * <p>
-   * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
-   * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
-   * corresponding instance member <i>m</i>.
+   * 7.10 Superinterfaces: Let <i>C</i> be a concrete class that does not declare its own
+   * <i>noSuchMethod()</i> method. It is a static warning if the implicit interface of <i>C</i>
+   * includes an instance member <i>m</i> of type <i>F</i> and <i>C</i> does not declare or inherit
+   * a corresponding instance member <i>m</i> of type <i>F'</i> such that <i>F' <: F</i>.
+   * <p>
+   * 7.4 Abstract Instance Members: It is a static warning if an abstract member is declared or
+   * inherited in a concrete class unless that member overrides a concrete one.
    * 
    * @param memberName the name of the first member
    * @param memberName the name of the second member

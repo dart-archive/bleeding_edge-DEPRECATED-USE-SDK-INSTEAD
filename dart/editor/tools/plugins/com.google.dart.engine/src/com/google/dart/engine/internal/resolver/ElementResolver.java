@@ -299,7 +299,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * The name of the method that will be invoked if an attempt is made to invoke an undefined method
    * on an object.
    */
-  private static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
+  public static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -802,7 +802,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     if (propagatedElement != null) {
-      ParameterElement[] parameters = computeCorrespondingParameters(argumentList, propagatedElement);
+      ParameterElement[] parameters = computeCorrespondingParameters(
+          argumentList,
+          propagatedElement);
       if (parameters != null) {
         argumentList.setCorrespondingPropagatedParameters(parameters);
       }
@@ -1268,7 +1270,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param executableElement the element that will be invoked with the arguments
    * @return the parameters that correspond to the arguments
    */
-  private ParameterElement[] computeCorrespondingParameters(ArgumentList argumentList, Element element) {
+  private ParameterElement[] computeCorrespondingParameters(ArgumentList argumentList,
+      Element element) {
     if (element instanceof PropertyAccessorElement) {
       //
       // This is an invocation of the call method defined on the value returned by the getter.

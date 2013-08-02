@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.resolver;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.AnalysisError;
@@ -39,6 +40,7 @@ import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
 import static com.google.dart.engine.element.ElementFactory.setterElement;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class InheritanceManagerTest extends EngineTestCase {
@@ -61,6 +63,174 @@ public class InheritanceManagerTest extends EngineTestCase {
   public void setUp() {
     typeProvider = new TestTypeProvider();
     inheritanceManager = createInheritanceManager();
+  }
+
+  public void test_getMapOfMembersInheritedFromClasses_accessor_extends() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String getterName = "g";
+    PropertyAccessorElement getterG = getterElement(getterName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {getterG});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setSupertype(classA.getType());
+    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    assertSame(getterG, map.get(getterName));
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_getMapOfMembersInheritedFromClasses_accessor_implements() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String getterName = "g";
+    PropertyAccessorElement getterG = getterElement(getterName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {getterG});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setInterfaces(new InterfaceType[] {classA.getType()});
+    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    assertNull(map.get(getterName));
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_getMapOfMembersInheritedFromClasses_accessor_with() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String getterName = "g";
+    PropertyAccessorElement getterG = getterElement(getterName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {getterG});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setMixins(new InterfaceType[] {classA.getType()});
+    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    assertSame(getterG, map.get(getterName));
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_getMapOfMembersInheritedFromClasses_method_extends() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement methodM = methodElement(methodName, typeProvider.getIntType());
+    classA.setMethods(new MethodElement[] {methodM});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setSupertype(classA.getType());
+    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    assertSame(methodM, map.get(methodName));
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_getMapOfMembersInheritedFromClasses_method_implements() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement methodM = methodElement(methodName, typeProvider.getIntType());
+    classA.setMethods(new MethodElement[] {methodM});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setInterfaces(new InterfaceType[] {classA.getType()});
+    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    assertNull(map.get(methodName));
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_getMapOfMembersInheritedFromClasses_method_with() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement methodM = methodElement(methodName, typeProvider.getIntType());
+    classA.setMethods(new MethodElement[] {methodM});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setMixins(new InterfaceType[] {classA.getType()});
+    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    assertSame(methodM, map.get(methodName));
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_getMapOfMembersInheritedFromInterfaces_accessor_extends() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String getterName = "g";
+    PropertyAccessorElement getterG = getterElement(getterName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {getterG});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setSupertype(classA.getType());
+    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    assertSame(getterG, map.get(getterName));
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_getMapOfMembersInheritedFromInterfaces_accessor_implements() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String getterName = "g";
+    PropertyAccessorElement getterG = getterElement(getterName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {getterG});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setInterfaces(new InterfaceType[] {classA.getType()});
+    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    assertSame(getterG, map.get(getterName));
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_getMapOfMembersInheritedFromInterfaces_accessor_with() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String getterName = "g";
+    PropertyAccessorElement getterG = getterElement(getterName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {getterG});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setMixins(new InterfaceType[] {classA.getType()});
+    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    assertSame(getterG, map.get(getterName));
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_getMapOfMembersInheritedFromInterfaces_method_extends() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement methodM = methodElement(methodName, typeProvider.getIntType());
+    classA.setMethods(new MethodElement[] {methodM});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setSupertype(classA.getType());
+    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    assertSame(methodM, map.get(methodName));
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_getMapOfMembersInheritedFromInterfaces_method_implements() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement methodM = methodElement(methodName, typeProvider.getIntType());
+    classA.setMethods(new MethodElement[] {methodM});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setInterfaces(new InterfaceType[] {classA.getType()});
+    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    assertSame(methodM, map.get(methodName));
+    assertNoErrors(classA);
+    assertNoErrors(classB);
+  }
+
+  public void test_getMapOfMembersInheritedFromInterfaces_method_with() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    MethodElement methodM = methodElement(methodName, typeProvider.getIntType());
+    classA.setMethods(new MethodElement[] {methodM});
+
+    ClassElementImpl classB = classElement("B");
+    classB.setMixins(new InterfaceType[] {classA.getType()});
+    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    assertSame(methodM, map.get(methodName));
+    assertNoErrors(classA);
+    assertNoErrors(classB);
   }
 
   public void test_lookupInheritance_interface_getter() throws Exception {

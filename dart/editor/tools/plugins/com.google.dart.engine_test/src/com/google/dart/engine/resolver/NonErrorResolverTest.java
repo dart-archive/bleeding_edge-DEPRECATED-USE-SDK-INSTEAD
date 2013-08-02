@@ -1611,6 +1611,51 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_accessor()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get g => 0;",
+        "}",
+        "abstract class B extends A {",
+        "  int get g;",
+        "}",
+        "class C extends B {",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_abstractOverridesConcrete_method()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m(p) {}",
+        "}",
+        "abstract class B extends A {",
+        "  m(p);",
+        "}",
+        "class C extends B {",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  m(p);",
+        "}",
+        "class B extends A {",
+        "  noSuchMethod(invocation) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_nonBoolExpression_functionType() throws Exception {
     Source source = addSource(createSource(//
         "bool makeAssertion() => true;",

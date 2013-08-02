@@ -367,17 +367,21 @@ public class InheritanceManager {
     }
     InterfaceType supertype = classElt.getSupertype();
     ClassElement superclassElement = supertype != null ? supertype.getElement() : null;
+    InterfaceType[] mixins = classElt.getMixins();
     InterfaceType[] interfaces = classElt.getInterfaces();
+
     // If classElt is Object, or the class cannot inherit any members.
-    if ((superclassElement == null || supertype.isObject()) && interfaces.length == 0) {
+    if ((superclassElement == null || supertype.isObject()) && mixins.length == 0
+        && interfaces.length == 0) {
       interfaceLookup.put(classElt, resultMap);
       return resultMap;
     }
+
     // Recursively collect the list of mappings from all of the interface types
     ArrayList<HashMap<String, ExecutableElement>> lookupMaps = new ArrayList<HashMap<String, ExecutableElement>>(
-        interfaces.length + 1);
+        interfaces.length + mixins.length + 1);
 
-    // superclass element
+    // Superclass element
     if (superclassElement != null) {
       if (!visitedInterfaces.contains(superclassElement)) {
         try {
@@ -396,7 +400,19 @@ public class InheritanceManager {
         }
       }
     }
-    //interface elements
+
+    // Mixin elements
+    for (InterfaceType mixinType : mixins) {
+      ClassElement mixinElement = mixinType.getElement();
+      if (mixinElement == null) {
+        continue;
+      }
+      HashMap<String, ExecutableElement> mapWithMixinMembers = new HashMap<String, ExecutableElement>();
+      recordMapWithClassMembers(mapWithMixinMembers, mixinElement);
+      lookupMaps.add(mapWithMixinMembers);
+    }
+
+    // Interface elements
     for (InterfaceType interfaceType : interfaces) {
       ClassElement interfaceElement = interfaceType.getElement();
       if (interfaceElement != null) {
@@ -607,7 +623,8 @@ public class InheritanceManager {
    * Record the passed map with the set of all members (methods, getters and setters) in the class
    * into the passed map.
    * 
-   * @param map some non-{@code null}
+   * @param map some non-{@code null} map to put the methods and accessors from the passed
+   *          {@link ClassElement} into
    * @param classElt the class element that will be recorded into the passed map
    */
   private void recordMapWithClassMembers(HashMap<String, ExecutableElement> map,

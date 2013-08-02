@@ -119,6 +119,7 @@ import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.member.ConstructorMember;
 import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.resolver.ElementResolver;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.scope.Namespace;
@@ -3530,56 +3531,34 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (enclosingClass.isAbstract()) {
       return false;
     }
-    HashSet<ExecutableElement> missingOverrides = new HashSet<ExecutableElement>();
 
     // Store in local sets the set of all method and accessor names:
+    MethodElement[] methods = enclosingClass.getMethods();
+    PropertyAccessorElement[] accessors = enclosingClass.getAccessors();
     HashSet<String> methodsInEnclosingClass = new HashSet<String>();
     HashSet<String> accessorsInEnclosingClass = new HashSet<String>();
-    MethodElement[] methods = enclosingClass.getMethods();
     for (MethodElement method : methods) {
       methodsInEnclosingClass.add(method.getName());
     }
-    PropertyAccessorElement[] accessors = enclosingClass.getAccessors();
     for (PropertyAccessorElement accessor : accessors) {
       accessorsInEnclosingClass.add(accessor.getName());
     }
 
-    // Loop through the set of all executable elements inherited from the superclass chain.
-    HashMap<String, ExecutableElement> membersInheritedFromSuperclasses = inheritanceManager.getMapOfMembersInheritedFromClasses(enclosingClass);
-    for (Entry<String, ExecutableElement> entry : membersInheritedFromSuperclasses.entrySet()) {
-      ExecutableElement executableElt = entry.getValue();
-      if (executableElt instanceof MethodElement) {
-        MethodElement methodElt = (MethodElement) executableElt;
-        // If the method is abstract, then verify that this class has a method which overrides the
-        // abstract method from the superclass.
-        if (methodElt.isAbstract()) {
-          String methodName = entry.getKey();
-          // If an abstract method was inherited from a superclass, but is not overridden in the
-          // subclass, then add the inherited method to the missingOverides set.
-          if (!methodsInEnclosingClass.contains(methodName)) {
-            missingOverrides.add(executableElt);
-          }
-        }
-      } else if (executableElt instanceof PropertyAccessorElement) {
-        PropertyAccessorElement propertyAccessorElt = (PropertyAccessorElement) executableElt;
-        // If the accessor is abstract, then verify that this class has an accessor which overrides
-        // the abstract accessor from the superclass.
-        if (propertyAccessorElt.isAbstract()) {
-          String accessorName = entry.getKey();
-          // If an abstract accessor was inherited from a superclass, but is not overridden in the
-          // subclass, then add the inherited accessor to the missingOverides set.
-          if (!accessorsInEnclosingClass.contains(accessorName)) {
-            missingOverrides.add(executableElt);
-          }
-        }
-      }
+    // If the enclosing class declares the method noSuchMethod(), then return.
+    if (methodsInEnclosingClass.contains(ElementResolver.NO_SUCH_METHOD_METHOD_NAME)) {
+      return false;
     }
 
-    // Loop through the set of all executable elements inherited from the interfaces.
+    HashSet<ExecutableElement> missingOverrides = new HashSet<ExecutableElement>();
+
+    // Loop through the set of all executable elements declared in the implicit interface.
     HashMap<String, ExecutableElement> membersInheritedFromInterfaces = inheritanceManager.getMapOfMembersInheritedFromInterfaces(enclosingClass);
+    HashMap<String, ExecutableElement> membersInheritedFromSuperclasses = inheritanceManager.getMapOfMembersInheritedFromClasses(enclosingClass);
     for (Entry<String, ExecutableElement> entry : membersInheritedFromInterfaces.entrySet()) {
       ExecutableElement executableElt = entry.getValue();
-      // First check to see if this element was declared in the superclass chain.
+
+      // First check to see if this element was declared in the superclass chain, in which case
+      // there is already a concrete implementation.
       ExecutableElement elt = membersInheritedFromSuperclasses.get(executableElt.getName());
       if (elt != null) {
         if (elt instanceof MethodElement && !((MethodElement) elt).isAbstract()) {
@@ -3589,12 +3568,17 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           continue;
         }
       }
+
       if (executableElt instanceof MethodElement) {
         // Verify that this class has a method which overrides the method from the interface.
         String methodName = entry.getKey();
         // If a method was inherited from an interface, but is not implemented by either the class
         // or one of its superclasses, then add the inherited method to the missingOverides set.
-        if (!methodsInEnclosingClass.contains(methodName)) {
+        if (!methodsInEnclosingClass.contains(methodName)
+            && !memberHasConcreteMethodImplementationInSuperclassChain(
+                enclosingClass,
+                methodName,
+                new ArrayList<ClassElement>())) {
           missingOverrides.add(executableElt);
         }
       } else if (executableElt instanceof PropertyAccessorElement) {
@@ -3603,7 +3587,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         // If an accessor was inherited from an interface, but is not implemented by either the
         // class or one of its superclasses, then add the inherited accessor to the missingOverides
         // set.
-        if (!accessorsInEnclosingClass.contains(accessorName)) {
+        if (!accessorsInEnclosingClass.contains(accessorName)
+            && !memberHasConcreteAccessorImplementationInSuperclassChain(
+                enclosingClass,
+                accessorName,
+                new ArrayList<ClassElement>())) {
           missingOverrides.add(executableElt);
         }
       }
@@ -4772,6 +4760,96 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       if (n instanceof MethodDeclaration) {
         MethodDeclaration method = (MethodDeclaration) n;
         return !method.isStatic();
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Return {@code true} iff the passed {@link ClassElement} has a concrete implementation of the
+   * passed accessor name in the superclass chain.
+   */
+  private boolean memberHasConcreteAccessorImplementationInSuperclassChain(
+      ClassElement classElement, String accessorName, ArrayList<ClassElement> superclassChain) {
+    if (superclassChain.contains(classElement)) {
+      return false;
+    } else {
+      superclassChain.add(classElement);
+    }
+    for (PropertyAccessorElement accessor : classElement.getAccessors()) {
+      if (accessor.getName().equals(accessorName)) {
+        if (!accessor.isAbstract()) {
+          return true;
+        }
+      }
+    }
+    for (InterfaceType mixinType : classElement.getMixins()) {
+      if (mixinType != null) {
+        ClassElement mixinElement = mixinType.getElement();
+        if (mixinElement != null) {
+          for (PropertyAccessorElement accessor : mixinElement.getAccessors()) {
+            if (accessor.getName().equals(accessorName)) {
+              if (!accessor.isAbstract()) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+    InterfaceType superType = classElement.getSupertype();
+    if (superType != null) {
+      ClassElement superClassElt = superType.getElement();
+      if (superClassElt != null) {
+        return memberHasConcreteAccessorImplementationInSuperclassChain(
+            superClassElt,
+            accessorName,
+            superclassChain);
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Return {@code true} iff the passed {@link ClassElement} has a concrete implementation of the
+   * passed method name in the superclass chain.
+   */
+  private boolean memberHasConcreteMethodImplementationInSuperclassChain(ClassElement classElement,
+      String methodName, ArrayList<ClassElement> superclassChain) {
+    if (superclassChain.contains(classElement)) {
+      return false;
+    } else {
+      superclassChain.add(classElement);
+    }
+    for (MethodElement method : classElement.getMethods()) {
+      if (method.getName().equals(methodName)) {
+        if (!method.isAbstract()) {
+          return true;
+        }
+      }
+    }
+    for (InterfaceType mixinType : classElement.getMixins()) {
+      if (mixinType != null) {
+        ClassElement mixinElement = mixinType.getElement();
+        if (mixinElement != null) {
+          for (MethodElement method : mixinElement.getMethods()) {
+            if (method.getName().equals(methodName)) {
+              if (!method.isAbstract()) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+    }
+    InterfaceType superType = classElement.getSupertype();
+    if (superType != null) {
+      ClassElement superClassElt = superType.getElement();
+      if (superClassElt != null) {
+        return memberHasConcreteMethodImplementationInSuperclassChain(
+            superClassElt,
+            methodName,
+            superclassChain);
       }
     }
     return false;
