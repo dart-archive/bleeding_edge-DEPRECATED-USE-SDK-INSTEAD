@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
@@ -100,6 +101,11 @@ public interface InternalAnalysisContext extends AnalysisContext {
    * @throws AnalysisException if the public namespace could not be computed
    */
   public Namespace getPublicNamespace(Source source) throws AnalysisException;
+
+  /**
+   * Returns a statistics about this context.
+   */
+  public AnalysisContentStatistics getStatistics();
 
   /**
    * Given a table mapping the source for the libraries represented by the corresponding elements to

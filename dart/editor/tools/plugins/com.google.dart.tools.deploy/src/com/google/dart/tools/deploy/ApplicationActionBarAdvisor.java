@@ -831,6 +831,13 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       menu.add(new AccessibleShowViewAction(window, viewDesc, false));
     }
 
+    // optionally add Analysis view if it's available
+    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(
+        "com.google.dart.dev.util.analysis.AnalysisView"); //$NON-NLS-1$
+    if (viewDesc != null) {
+      menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+    }
+
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_PROBLEMS);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 

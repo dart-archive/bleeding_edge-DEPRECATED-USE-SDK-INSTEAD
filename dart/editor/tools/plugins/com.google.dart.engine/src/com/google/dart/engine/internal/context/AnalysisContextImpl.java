@@ -29,6 +29,7 @@ import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
@@ -96,6 +97,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Instances of the class {@code AnalysisContextImpl} implement an {@link AnalysisContext analysis
@@ -311,6 +313,24 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     public long getModificationTime() {
       return modificationTime;
     }
+  }
+
+  /**
+   * Helper for {@link #getStatistics()}, puts the library-specific state into the given statistics
+   * object.
+   */
+  private static void putStatCacheItem(AnalysisContentStatisticsImpl statistics,
+      DartEntry dartEntry, Source librarySource, DataDescriptor<?> key) {
+    statistics.putCacheItem(key, dartEntry.getState(key, librarySource));
+  }
+
+  /**
+   * Helper for {@link #getStatistics()}, puts the library independent state into the given
+   * statistics object.
+   */
+  private static void putStatCacheItem(AnalysisContentStatisticsImpl statistics, SourceEntry entry,
+      DataDescriptor<?> key) {
+    statistics.putCacheItem(key, entry.getState(key));
   }
 
   /**
@@ -975,6 +995,40 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return sources;
+  }
+
+  @Override
+  public AnalysisContentStatistics getStatistics() {
+    AnalysisContentStatisticsImpl statistics = new AnalysisContentStatisticsImpl();
+    synchronized (cacheLock) {
+      for (Entry<Source, SourceEntry> mapEntry : sourceMap.entrySet()) {
+        SourceEntry entry = mapEntry.getValue();
+        if (entry instanceof DartEntry) {
+          Source source = mapEntry.getKey();
+          DartEntry dartEntry = (DartEntry) entry;
+          // get library independent values
+          putStatCacheItem(statistics, dartEntry, DartEntry.ELEMENT);
+          putStatCacheItem(statistics, dartEntry, DartEntry.EXPORTED_LIBRARIES);
+          putStatCacheItem(statistics, dartEntry, DartEntry.IMPORTED_LIBRARIES);
+          putStatCacheItem(statistics, dartEntry, DartEntry.INCLUDED_PARTS);
+          putStatCacheItem(statistics, dartEntry, DartEntry.IS_CLIENT);
+          putStatCacheItem(statistics, dartEntry, DartEntry.IS_LAUNCHABLE);
+          putStatCacheItem(statistics, dartEntry, DartEntry.PARSE_ERRORS);
+          putStatCacheItem(statistics, dartEntry, DartEntry.PARSED_UNIT);
+          putStatCacheItem(statistics, dartEntry, DartEntry.PUBLIC_NAMESPACE);
+          putStatCacheItem(statistics, dartEntry, DartEntry.SOURCE_KIND);
+          putStatCacheItem(statistics, dartEntry, DartEntry.LINE_INFO);
+          // get library-specific values
+          Source[] librarySources = getLibrariesContaining(source);
+          for (Source librarySource : librarySources) {
+            putStatCacheItem(statistics, dartEntry, librarySource, DartEntry.HINTS);
+            putStatCacheItem(statistics, dartEntry, librarySource, DartEntry.RESOLUTION_ERRORS);
+            putStatCacheItem(statistics, dartEntry, librarySource, DartEntry.RESOLVED_UNIT);
+          }
+        }
+      }
+    }
+    return statistics;
   }
 
   @Override

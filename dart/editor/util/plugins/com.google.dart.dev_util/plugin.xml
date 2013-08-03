@@ -6,15 +6,20 @@
          point="org.eclipse.ui.views">
       <category
             name="Dart Dev"
-            id="com.google.dart.dev.util.view.ast">
+            id="com.google.dart.dev.util.view">
       </category>
       <view
             name="AST"
             icon="icons/class_hi.gif"
-            category="com.google.dart.dev.util.view.ast"
+            category="com.google.dart.dev.util.view"
             class="com.google.dart.dev.util.ast.ASTExplorer"
-            id="com.google.dart.dev.util.ast.ASTExplorer">
-      </view>
+            id="com.google.dart.dev.util.ast.ASTExplorer"/>
+      <view
+            name="Analysis"
+            icon="icons/application_form_magnify.png"
+            category="com.google.dart.dev.util.view"
+            class="com.google.dart.dev.util.analysis.AnalysisView"
+            id="com.google.dart.dev.util.analysis.AnalysisView"/>
    </extension>
 
 </plugin>

@@ -1,6 +1,7 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
@@ -450,6 +451,11 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
     } finally {
       instrumentation.log();
     }
+  }
+
+  @Override
+  public AnalysisContentStatistics getStatistics() {
+    return basis.getStatistics();
   }
 
   @Override
