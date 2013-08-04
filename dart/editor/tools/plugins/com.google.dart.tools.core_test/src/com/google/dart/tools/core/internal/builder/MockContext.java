@@ -15,7 +15,6 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.context.AnalysisErrorInfoImpl;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
-import com.google.dart.engine.internal.context.ChangeNoticeImpl;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -348,7 +347,8 @@ public class MockContext implements AnalysisContext {
 
   @Override
   public ChangeNotice[] performAnalysisTask() {
-    return ChangeNoticeImpl.EMPTY_ARRAY;
+    // indicate no analysis to be performed
+    return null;
   }
 
   @Override
