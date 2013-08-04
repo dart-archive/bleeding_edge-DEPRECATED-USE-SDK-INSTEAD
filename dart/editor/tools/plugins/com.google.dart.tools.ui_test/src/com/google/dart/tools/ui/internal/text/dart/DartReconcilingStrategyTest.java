@@ -108,7 +108,10 @@ public class DartReconcilingStrategyTest extends TestCase {
 
           @Override
           public AnalysisError[] getErrors() {
-            return resolvedInfo.getErrors();
+            if (resolvedInfo != null) {
+              return resolvedInfo.getErrors();
+            }
+            return null;
           }
 
           @Override
