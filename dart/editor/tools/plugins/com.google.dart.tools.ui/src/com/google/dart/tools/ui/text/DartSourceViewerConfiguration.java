@@ -24,6 +24,7 @@ import com.google.dart.tools.ui.internal.text.dart.DartCodeScanner;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProcessor;
 import com.google.dart.tools.ui.internal.text.dart.DartDocDoubleClickStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartDoubleClickSelector;
+import com.google.dart.tools.ui.internal.text.dart.DartReconcilingEditor;
 import com.google.dart.tools.ui.internal.text.dart.DartReconcilingStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartStringAutoIndentStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartStringDoubleClickSelector;
@@ -31,7 +32,6 @@ import com.google.dart.tools.ui.internal.text.dart.SmartSemicolonAutoEditStrateg
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocAutoIndentStrategy;
 import com.google.dart.tools.ui.internal.text.dartdoc.DartDocScanner;
 import com.google.dart.tools.ui.internal.text.dartdoc.LineDocAutoIndentStrategy;
-import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
 import com.google.dart.tools.ui.internal.text.functions.AbstractDartScanner;
 import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
@@ -591,8 +591,8 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
   public IReconciler getReconciler(ISourceViewer sourceViewer) {
     DartX.todo("spelling");
     final ITextEditor editor = getEditor();
-    if (editor instanceof DartEditor) {
-      DartEditor dartEditor = (DartEditor) editor;
+    if (editor instanceof DartReconcilingEditor) {
+      DartReconcilingEditor dartEditor = (DartReconcilingEditor) editor;
       Source source = dartEditor.getInputSource();
       if (source != null) {
         IReconcilingStrategy strategy = new DartReconcilingStrategy(dartEditor, source);

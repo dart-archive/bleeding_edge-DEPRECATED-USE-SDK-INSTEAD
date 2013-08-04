@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.internal.text;
+package com.google.dart.tools.ui.internal.text.dart;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -19,10 +19,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(SemanticHighlightingTest.class);
-    suite.addTest(com.google.dart.tools.ui.internal.text.dart.TestAll.suite());
-    suite.addTest(com.google.dart.tools.ui.internal.text.editor.TestAll.suite());
-    suite.addTest(com.google.dart.tools.ui.internal.text.functions.TestAll.suite());
+    suite.addTestSuite(DartReconcilingStrategyTest.class);
     return suite;
   }
 }

@@ -59,7 +59,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * The editor containing the document with source to be reconciled (not {@code null}).
    */
   // TODO (danrubel): Replace with interface so that html editor can use this strategy
-  private final DartEditor editor;
+  private final DartReconcilingEditor editor;
 
   /**
    * The source being edited (not {@code null}).
@@ -136,12 +136,12 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * @param editor the editor (not {@code null})
    * @param source the source to be reconciled (not {@code null})
    */
-  public DartReconcilingStrategy(DartEditor editor, Source source) {
+  public DartReconcilingStrategy(DartReconcilingEditor editor, Source source) {
     this.editor = editor;
     this.source = source;
 
     // Prioritize analysis when editor becomes active
-    editor.getViewer().getTextWidget().addFocusListener(new FocusListener() {
+    editor.addViewerFocusListener(new FocusListener() {
       @Override
       public void focusGained(FocusEvent e) {
         updateAnalysisPriorityOrder(true);
@@ -153,7 +153,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     });
 
     // Cleanup the receiver when editor is closed
-    editor.getViewer().getTextWidget().addDisposeListener(new DisposeListener() {
+    editor.addViewerDisposeListener(new DisposeListener() {
       @Override
       public void widgetDisposed(DisposeEvent e) {
         dispose();
@@ -161,6 +161,17 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     });
 
     AnalysisWorker.addListener(analysisListener);
+  }
+
+  /**
+   * Cleanup when the editor is closed.
+   */
+  public void dispose() {
+    // clear the cached source content to ensure the source will be read from disk
+    updateSourceInBackground(false);
+    document.removeDocumentListener(documentListener);
+    AnalysisWorker.removeListener(analysisListener);
+    updateAnalysisPriorityOrder(false);
   }
 
   @Override
@@ -240,27 +251,18 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    */
   private boolean applyResolvedUnit() {
     AnalysisContext context = editor.getInputAnalysisContext();
-    Source[] libraries = context.getLibrariesContaining(source);
-    if (libraries != null && libraries.length > 0) {
-      // TODO (danrubel): Handle multiple libraries gracefully
-      CompilationUnit unit = context.getResolvedCompilationUnit(source, libraries[0]);
-      if (unit != null) {
-        applyAnalysisResult(unit);
-        return true;
+    if (context != null) {
+      Source[] libraries = context.getLibrariesContaining(source);
+      if (libraries != null && libraries.length > 0) {
+        // TODO (danrubel): Handle multiple libraries gracefully
+        CompilationUnit unit = context.getResolvedCompilationUnit(source, libraries[0]);
+        if (unit != null) {
+          applyAnalysisResult(unit);
+          return true;
+        }
       }
     }
     return false;
-  }
-
-  /**
-   * Cleanup when the editor is closed.
-   */
-  private void dispose() {
-    // clear the cached source content to ensure the source will be read from disk
-    updateSourceInBackground(false);
-    document.removeDocumentListener(documentListener);
-    AnalysisWorker.removeListener(analysisListener);
-    updateAnalysisPriorityOrder(false);
   }
 
   /**

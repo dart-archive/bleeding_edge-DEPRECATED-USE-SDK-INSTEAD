@@ -100,6 +100,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.VerifyKeyListener;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyEvent;
@@ -1211,6 +1213,16 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     synchronized (fReconcilingListeners) {
       fReconcilingListeners.add(listener);
     }
+  }
+
+  @Override
+  public void addViewerDisposeListener(DisposeListener listener) {
+    getViewer().getTextWidget().addDisposeListener(listener);
+  }
+
+  @Override
+  public void addViewerFocusListener(FocusListener listener) {
+    getViewer().getTextWidget().addFocusListener(listener);
   }
 
   @Override

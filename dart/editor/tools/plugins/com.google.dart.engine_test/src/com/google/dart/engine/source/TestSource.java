@@ -47,6 +47,15 @@ public class TestSource extends FileBasedSource {
     this.contents = contents;
   }
 
+  /**
+   * Initialize a newly created source object with the specified contents.
+   * 
+   * @param contents the contents of the file represented by this source
+   */
+  public TestSource(String contents) {
+    this(null, createFile("/test.dart"), contents);
+  }
+
   @Override
   public void getContents(ContentReceiver receiver) throws Exception {
     receiver.accept(contents, 0L);

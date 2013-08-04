@@ -17,6 +17,7 @@ Require-Bundle: com.google.dart.engine,
  org.junit,
  com.google.dart.engine_test
 Export-Package: com.google.dart.tools.core,
+ com.google.dart.tools.core.internal.builder,
  com.google.dart.tools.core.test,
  com.google.dart.tools.core.test.util,
  com.google.dart.tools.core.testutil

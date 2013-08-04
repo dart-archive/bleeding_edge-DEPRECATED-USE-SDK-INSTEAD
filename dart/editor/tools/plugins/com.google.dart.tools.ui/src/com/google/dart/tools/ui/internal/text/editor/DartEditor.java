@@ -63,6 +63,7 @@ import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
 import com.google.dart.tools.ui.internal.text.ProductProperties;
+import com.google.dart.tools.ui.internal.text.dart.DartReconcilingEditor;
 import com.google.dart.tools.ui.internal.text.dart.hover.SourceViewerInformationControl;
 import com.google.dart.tools.ui.internal.text.editor.saveactions.RemoveTrailingWhitespaceAction;
 import com.google.dart.tools.ui.internal.text.editor.selectionactions.GoToNextPreviousMemberAction;
@@ -228,7 +229,7 @@ import java.util.Map;
  */
 @SuppressWarnings({"unused", "deprecation"})
 public abstract class DartEditor extends AbstractDecoratedTextEditor implements
-    IViewPartInputProvider {
+    IViewPartInputProvider, DartReconcilingEditor {
 
   /**
    * Adapts an options {@link IEclipsePreferences} to
@@ -1934,10 +1935,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     dartSelectionListeners.add(listener);
   }
 
-  /**
-   * Notifies that {@link com.google.dart.engine.ast.CompilationUnit} of this {@link DartEditor} was
-   * resolved.
-   */
+  @Override
   public void applyCompilationUnitElement(com.google.dart.engine.ast.CompilationUnit unit) {
     if (isDisposed()) {
       return;
@@ -1946,11 +1944,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (resolvedUnit == null && unit == null) {
       return;
     }
-    // TODO (danrubel): this needs to be optimized but this approach needs investigation
     // ignore if this unit has already been set
-//    if (resolvedUnit == unit) {
-//      return;
-//    }
+    if (resolvedUnit == unit) {
+      return;
+    }
     // OK, schedule selection update
     resolvedUnit = unit;
     ExecutionUtils.runLogAsync(new RunnableEx() {
@@ -2305,9 +2302,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
-  /**
-   * @return the {@link AnalysisContext} corresponding to this editor, may be {@code null}.
-   */
+  @Override
   public AnalysisContext getInputAnalysisContext() {
     if (inputResourceFile != null) {
       return DartCore.getProjectManager().getContext(inputResourceFile);
@@ -2329,9 +2324,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return unit == null ? null : unit.getElement();
   }
 
-  /**
-   * @return the {@link Project} corresponding to this editor, may be {@code null}.
-   */
+  @Override
   public Project getInputProject() {
     if (inputResourceFile != null) {
       IProject resourceProject = inputResourceFile.getProject();
@@ -2347,9 +2340,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return inputResourceFile;
   }
 
-  /**
-   * @return the {@link Source} corresponding to this editor, may be {@code null}.
-   */
+  @Override
   public Source getInputSource() {
     ProjectManager projectManager = DartCore.getProjectManager();
     // may be workspace IFile
