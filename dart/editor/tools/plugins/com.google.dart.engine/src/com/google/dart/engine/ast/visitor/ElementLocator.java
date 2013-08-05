@@ -103,7 +103,11 @@ public class ElementLocator {
           }
         }
       }
-      return node.getElement();
+      Element element = node.getElement();
+      if (element == null) {
+        element = node.getStaticElement();
+      }
+      return element;
     }
 
     @Override

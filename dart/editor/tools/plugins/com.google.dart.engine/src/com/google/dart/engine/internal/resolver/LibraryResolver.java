@@ -455,6 +455,7 @@ public class LibraryResolver {
                   nameToPrefixMap.put(prefixName, prefix);
                 }
                 importElement.setPrefix(prefix);
+                prefixNode.setStaticElement(prefix);
               }
               directive.setElement(importElement);
               imports.add(importElement);

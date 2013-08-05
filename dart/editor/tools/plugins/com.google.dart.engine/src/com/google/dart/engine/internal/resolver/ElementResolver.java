@@ -1029,7 +1029,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // We ignore identifiers that have already been resolved, such as identifiers representing the
     // name in a declaration.
     //
-    if (node.getElement() != null) {
+    if (node.getStaticElement() != null || node.getElement() != null) {
       return null;
     }
     //
