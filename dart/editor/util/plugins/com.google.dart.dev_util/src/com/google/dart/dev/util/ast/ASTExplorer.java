@@ -475,7 +475,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
    */
   private Element getElement(Object object) {
     if (object instanceof BinaryExpression) {
-      return ((BinaryExpression) object).getElement();
+      return ((BinaryExpression) object).getStaticElement();
     } else if (object instanceof CompilationUnit) {
       return ((CompilationUnit) object).getElement();
     } else if (object instanceof ExportDirective) {
