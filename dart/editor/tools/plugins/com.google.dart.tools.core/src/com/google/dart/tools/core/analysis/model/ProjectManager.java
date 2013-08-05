@@ -80,7 +80,7 @@ public interface ProjectManager extends ContextManager {
    * Answer the project for the specified Eclipse resource
    * 
    * @param resource the Eclipse resource
-   * @return the project (not {@code null})
+   * @return the project, may be {@code null} if resource doesn't exist
    */
   Project getProject(IProject resource);
 

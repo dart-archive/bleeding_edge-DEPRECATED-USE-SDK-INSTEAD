@@ -116,7 +116,7 @@ public interface ContextManager {
    * resource.
    * 
    * @param resource the resource (not {@code null})
-   * @return the resource map (not {@code null})
+   * @return the resource map, may be {@code null} if enclosing project doesn't exist
    */
   ResourceMap getResourceMap(IResource resource);
 

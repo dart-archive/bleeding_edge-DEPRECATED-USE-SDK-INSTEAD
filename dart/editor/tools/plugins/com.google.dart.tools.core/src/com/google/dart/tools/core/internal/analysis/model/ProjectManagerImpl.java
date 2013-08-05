@@ -130,7 +130,11 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     if (resource == null) {
       return null;
     }
-    return getProject(resource.getProject()).getContext(resource);
+    Project project = getProject(resource.getProject());
+    if (project == null) {
+      return null;
+    }
+    return project.getContext(resource);
   }
 
   @Override
@@ -181,12 +185,19 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
-  public Source[] getLibrarySources(IProject project) {
-    return getProject(project).getLibrarySources();
+  public Source[] getLibrarySources(IProject projectResource) {
+    Project project = getProject(projectResource);
+    if (project == null) {
+      return Source.EMPTY_ARRAY;
+    }
+    return project.getLibrarySources();
   }
 
   @Override
   public Project getProject(IProject resource) {
+    if (!resource.exists()) {
+      return null;
+    }
     synchronized (projects) {
       Project result = projects.get(resource);
       if (result == null) {
@@ -218,7 +229,10 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
       IProject prj = childResources[index];
       try {
         if (prj.hasNature(DartCore.DART_PROJECT_NATURE)) {
-          result.add(getProject(childResources[index]));
+          Project project = getProject(childResources[index]);
+          if (project != null) {
+            result.add(project);
+          }
         }
       } catch (CoreException e) {
         // do nothing, just continue
@@ -229,7 +243,11 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
   @Override
   public PubFolder getPubFolder(IResource resource) {
-    return getProject(resource.getProject()).getPubFolder(resource);
+    Project project = getProject(resource.getProject());
+    if (project == null) {
+      return null;
+    }
+    return project.getPubFolder(resource);
   }
 
   @Override
@@ -265,7 +283,11 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
   @Override
   public ResourceMap getResourceMap(IResource resource) {
-    return getProject(resource.getProject()).getResourceMap(resource);
+    Project project = getProject(resource.getProject());
+    if (project == null) {
+      return null;
+    }
+    return project.getResourceMap(resource);
   }
 
   @Override
@@ -468,7 +490,11 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
                 errorInfo.getLineInfo(),
                 errorInfo.getErrors());
           }
-          new AnalysisWorker(getProject(resource.getProject()), context).performAnalysisInBackground();
+          Project project = getProject(resource.getProject());
+          if (project == null) {
+            continue;
+          }
+          new AnalysisWorker(project, context).performAnalysisInBackground();
         }
       }
     }
