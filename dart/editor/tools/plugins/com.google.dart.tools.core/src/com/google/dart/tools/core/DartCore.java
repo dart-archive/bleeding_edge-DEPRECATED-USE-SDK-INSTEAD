@@ -212,10 +212,9 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String LIB_DIRECTORY_NAME = "lib";
 
   /**
-   * Path string for packages directory
+   * Path string for packages directory, uses "/" as path separator, equals "/packages/".
    */
-  public static final String PACKAGES_DIRECTORY_PATH = File.separator + PACKAGES_DIRECTORY_NAME
-      + File.separator;
+  public static final String PACKAGES_DIRECTORY_PATH = "/" + PACKAGES_DIRECTORY_NAME + "/";
 
   /**
    * Path string for packages directory in a url.
@@ -759,10 +758,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return <code>true</code> if the given file is in packages
    */
   public static boolean isContainedInPackages(IFile file) {
-    if (file.getFullPath().toString().contains(DartCore.PACKAGES_DIRECTORY_PATH)) {
-      return true;
-    }
-    return false;
+    return file.getFullPath().toString().contains(DartCore.PACKAGES_DIRECTORY_PATH);
   }
 
   /**
