@@ -83,6 +83,15 @@ public interface InstrumentationBuilder {
   public void log();
 
   /**
+   * Log the data that has been collected. The instrumentation builder should not be used after this
+   * method is invoked. The behavior of any method defined on this interface that is used after this
+   * method is invoked is undefined.
+   * 
+   * @param minTimeToLog if the total elapsed time is less than this, do not record
+   */
+  public void log(int minTimeToLog);
+
+  /**
    * Append the given metric to the data being collected by this builder. The information is
    * declared to contain only metrics data (data that is not user identifiable and does not contain
    * user intellectual property).

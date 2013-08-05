@@ -69,6 +69,11 @@ public class UIInstrumentation {
     }
 
     @Override
+    public void log(int minTimeToLog) {
+      builder.log(minTimeToLog);
+    }
+
+    @Override
     public InstrumentationBuilder metric(String name, boolean value) {
       builder.metric(name, value);
       return this;

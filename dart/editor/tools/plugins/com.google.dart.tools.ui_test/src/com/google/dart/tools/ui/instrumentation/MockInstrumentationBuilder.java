@@ -92,6 +92,11 @@ public class MockInstrumentationBuilder implements InstrumentationBuilder {
   }
 
   @Override
+  public void log(int minTimeToLog) {
+    // ignored
+  }
+
+  @Override
   public InstrumentationBuilder metric(String name, boolean value) {
     metric.put(name, Boolean.toString(value));
     return this;

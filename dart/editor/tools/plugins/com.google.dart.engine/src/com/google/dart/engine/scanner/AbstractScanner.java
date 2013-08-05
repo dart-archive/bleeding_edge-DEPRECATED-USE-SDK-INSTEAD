@@ -152,7 +152,7 @@ public abstract class AbstractScanner {
       return firstToken();
 
     } finally {
-      instrumentation.log();
+      instrumentation.log(2); //Log if over 1ms
 
     }
 

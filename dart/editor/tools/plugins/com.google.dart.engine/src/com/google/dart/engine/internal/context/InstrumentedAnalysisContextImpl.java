@@ -354,7 +354,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
       }
       return ret;
     } finally {
-      instrumentation.log();
+      instrumentation.log(2); //Log if 1ms
     }
   }
 
@@ -438,7 +438,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
       instrumentation.metric("contextId", contextId);
       return basis.getResolvedCompilationUnit(unitSource, librarySource);
     } finally {
-      instrumentation.log();
+      instrumentation.log(2); //Log if over 1ms
     }
   }
 
@@ -449,7 +449,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
       instrumentation.metric("contextId", contextId);
       return basis.getSourceFactory();
     } finally {
-      instrumentation.log();
+      instrumentation.log(2); //Log if over 1ms
     }
   }
 
@@ -533,7 +533,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
       }
       return ret;
     } finally {
-      instrumentation.log();
+      instrumentation.log(2); //Log if over 1ms
     }
   }
 

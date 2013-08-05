@@ -81,6 +81,10 @@ public final class Instrumentation {
     }
 
     @Override
+    public void log(int minTimeToLong) {
+    }
+
+    @Override
     public InstrumentationBuilder metric(String name, boolean value) {
       return this;
     }
