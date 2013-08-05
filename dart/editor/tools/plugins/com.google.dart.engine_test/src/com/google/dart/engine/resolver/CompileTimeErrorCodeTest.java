@@ -3053,6 +3053,26 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_typeAliasCannotReferenceItself_parameterType_typeArgument() throws Exception {
+    Source source = addSource(createSource(//
+    "typedef A(List<A> a);"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    verify(source);
+  }
+
+  public void test_typeAliasCannotReferenceItself_returnClass_withTypeAlias() throws Exception {
+    Source source = addSource(createSource(//
+        "typedef C A();",
+        "typedef A B();",
+        "class C {",
+        "  B a;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    verify(source);
+  }
+
   public void test_typeAliasCannotReferenceItself_returnType() throws Exception {
     Source source = addSource(createSource(//
     "typedef A A();"));
@@ -3069,14 +3089,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(
         CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
         CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
-    verify(source);
-  }
-
-  public void test_typeAliasCannotReferenceItself_typeVariableBounds() throws Exception {
-    Source source = addSource(createSource(//
-    "typedef A<T extends A>();"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
     verify(source);
   }
 

@@ -1123,7 +1123,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * references that does not include a class declaration.
    */
   TYPE_ALIAS_CANNOT_REFERENCE_ITSELF(
-      "Type alias cannot reference itself directly or via other typedefs"),
+      "Type alias can reference itself only via the bounds of its generic parameters"),
 
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T</i> is not a class accessible in the current

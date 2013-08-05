@@ -13,8 +13,6 @@
  */
 package com.google.dart.engine.internal.verifier;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
@@ -106,6 +104,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorWithProperties;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -145,6 +144,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -4281,7 +4281,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForTypeAliasCannotReferenceItself_function(FunctionTypeAlias node) {
     FunctionTypeAliasElement element = node.getElement();
-    if (!hasFunctionTypeAliasSelfReference(element)) {
+    if (!hasTypedefSelfReference(element)) {
       return false;
     }
     errorReporter.reportError(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node);
@@ -4296,7 +4296,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForTypeAliasCannotReferenceItself_mixin(ClassTypeAlias node) {
     ClassElement element = node.getElement();
-    if (!hasClassTypeAliasSelfReference(element, new HashSet<ClassElement>())) {
+    if (!hasTypedefSelfReference(element)) {
       return false;
     }
     errorReporter.reportError(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node);
@@ -4625,92 +4625,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * @return <code>true</code> if given {@link ClassElement} has direct or indirect reference to
-   *         itself using only other typedef {@link ClassElement}s.
-   */
-  private boolean hasClassTypeAliasSelfReference(ClassElement element,
-      HashSet<ClassElement> seenMixins) {
-    if (seenMixins.contains(element)) {
-      return true;
-    }
-    seenMixins.add(element);
-    for (InterfaceType mixin : element.getMixins()) {
-      ClassElement mixinElement = mixin.getElement();
-      if (!mixinElement.isTypedef()) {
-        continue;
-      }
-      if (hasClassTypeAliasSelfReference(mixinElement, seenMixins)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Checks if "target" is referenced by "current".
-   */
-  private boolean hasFunctionTypeAliasReference(Set<FunctionTypeAliasElement> visited,
-      FunctionTypeAliasElement target, Element currentElement) {
-    // only if "current" in function type alias
-    if (!(currentElement instanceof FunctionTypeAliasElement)) {
-      return false;
-    }
-    FunctionTypeAliasElement current = (FunctionTypeAliasElement) currentElement;
-    // found "target"
-    if (Objects.equal(target, current)) {
-      return true;
-    }
-    // prevent recursion
-    if (visited.contains(current)) {
-      return false;
-    }
-    visited.add(current);
-    // check type of "current" function type alias
-    return hasFunctionTypeAliasReference(visited, target, current);
-  }
-
-  /**
-   * Checks if "target" is referenced by "current".
-   */
-  private boolean hasFunctionTypeAliasReference(Set<FunctionTypeAliasElement> visited,
-      FunctionTypeAliasElement target, FunctionTypeAliasElement current) {
-    FunctionType type = current.getType();
-    // prepare Types directly referenced by "current"
-    Set<Type> referencedTypes = Sets.newHashSet();
-    if (type != null) {
-      // type parameters
-      for (TypeVariableElement typeVariable : current.getTypeVariables()) {
-        Type bound = typeVariable.getBound();
-        referencedTypes.add(bound);
-      }
-      // return type
-      referencedTypes.add(type.getReturnType());
-      // parameters
-      for (ParameterElement parameter : type.getParameters()) {
-        referencedTypes.add(parameter.getType());
-      }
-    }
-    // check that referenced types do not have references on "target"
-    for (Type referencedType : referencedTypes) {
-      if (referencedType != null
-          && hasFunctionTypeAliasReference(visited, target, referencedType.getElement())) {
-        return true;
-      }
-    }
-    // no
-    return false;
-  }
-
-  /**
-   * @return <code>true</code> if given {@link FunctionTypeAliasElement} has direct or indirect
-   *         reference to itself using other {@link FunctionTypeAliasElement}s.
-   */
-  private boolean hasFunctionTypeAliasSelfReference(FunctionTypeAliasElement target) {
-    Set<FunctionTypeAliasElement> visited = Sets.newHashSet();
-    return hasFunctionTypeAliasReference(visited, target, target);
-  }
-
-  /**
    * @return {@code true} if the given constructor redirects to itself, directly or indirectly
    */
   private boolean hasRedirectingFactoryConstructorCycle(ConstructorElement element) {
@@ -4727,6 +4641,112 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link Element} has direct or indirect reference to itself
+   *         form anywhere except {@link ClassElement} or type variable bounds.
+   */
+  private boolean hasTypedefSelfReference(final Element target) {
+    final Set<Element> checked = new HashSet<Element>();
+    final List<Element> toCheck = new ArrayList<Element>();
+    toCheck.add(target);
+    boolean firstIteration = true;
+    while (true) {
+      Element current;
+      // get next element
+      while (true) {
+        // may be no more elements to check
+        if (toCheck.isEmpty()) {
+          return false;
+        }
+        // try to get next element
+        current = toCheck.remove(toCheck.size() - 1);
+        if (target.equals(current)) {
+          if (firstIteration) {
+            firstIteration = false;
+            break;
+          } else {
+            return true;
+          }
+        }
+        if (current != null && !checked.contains(current)) {
+          break;
+        }
+      }
+      // check current element
+      current.accept(new GeneralizingElementVisitor<Void>() {
+        private boolean inClass;
+
+        @Override
+        public Void visitClassElement(ClassElement element) {
+          addTypeToCheck(element.getSupertype());
+          for (InterfaceType mixin : element.getMixins()) {
+            addTypeToCheck(mixin);
+          }
+          inClass = !element.isTypedef();
+          try {
+            return super.visitClassElement(element);
+          } finally {
+            inClass = false;
+          }
+        }
+
+        @Override
+        public Void visitExecutableElement(ExecutableElement element) {
+          if (element.isSynthetic()) {
+            return null;
+          }
+          addTypeToCheck(element.getReturnType());
+          return super.visitExecutableElement(element);
+        }
+
+        @Override
+        public Void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+          addTypeToCheck(element.getReturnType());
+          return super.visitFunctionTypeAliasElement(element);
+        }
+
+        @Override
+        public Void visitParameterElement(ParameterElement element) {
+          addTypeToCheck(element.getType());
+          return super.visitParameterElement(element);
+        }
+
+        @Override
+        public Void visitTypeVariableElement(TypeVariableElement element) {
+          // it is OK to use typedef in a type variable
+          return null;
+        }
+
+        @Override
+        public Void visitVariableElement(VariableElement element) {
+          addTypeToCheck(element.getType());
+          return super.visitVariableElement(element);
+        }
+
+        private void addTypeToCheck(Type type) {
+          if (type == null) {
+            return;
+          }
+          Element element = type.getElement();
+          // it is OK to reference target from class
+          if (inClass && target.equals(element)) {
+            return;
+          }
+          // schedule for checking
+          toCheck.add(element);
+          // type arguments
+          if (type instanceof InterfaceType) {
+            InterfaceType interfaceType = (InterfaceType) type;
+            for (Type typeArgument : interfaceType.getTypeArguments()) {
+              addTypeToCheck(typeArgument);
+            }
+          }
+        }
+      });
+      checked.add(current);
+    }
   }
 
   /**
