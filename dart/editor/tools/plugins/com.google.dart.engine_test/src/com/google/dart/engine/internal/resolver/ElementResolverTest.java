@@ -246,7 +246,7 @@ public class ElementResolverTest extends EngineTestCase {
     left.setStaticType(numType);
     BinaryExpression expression = binaryExpression(left, TokenType.PLUS, identifier("j"));
     resolveNode(expression);
-    assertEquals(getMethod(numType, "+"), expression.getElement());
+    assertEquals(getMethod(numType, "+"), expression.getStaticElement());
     listener.assertNoErrors();
   }
 

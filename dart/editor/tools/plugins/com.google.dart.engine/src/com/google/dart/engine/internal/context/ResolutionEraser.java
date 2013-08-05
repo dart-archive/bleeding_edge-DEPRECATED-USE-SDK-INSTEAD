@@ -46,7 +46,7 @@ public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitBinaryExpression(BinaryExpression node) {
     node.setStaticElement(null);
-    node.setElement(null);
+    node.setPropagatedElement(null);
     return super.visitBinaryExpression(node);
   }
 

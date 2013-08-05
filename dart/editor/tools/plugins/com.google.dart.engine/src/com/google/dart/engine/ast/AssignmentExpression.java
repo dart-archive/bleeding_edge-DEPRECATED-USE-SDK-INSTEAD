@@ -80,6 +80,22 @@ public class AssignmentExpression extends Expression {
     return leftHandSide.getBeginToken();
   }
 
+  /**
+   * Return the best element available for this operator. If resolution was able to find a better
+   * element based on type propagation, that element will be returned. Otherwise, the element found
+   * using the result of static analysis will be returned. If resolution has not been performed,
+   * then {@code null} will be returned.
+   * 
+   * @return the best element available for this operator
+   */
+  public MethodElement getBestElement() {
+    MethodElement element = getPropagatedElement();
+    if (element == null) {
+      element = getStaticElement();
+    }
+    return element;
+  }
+
   @Override
   public Token getEndToken() {
     return rightHandSide.getEndToken();

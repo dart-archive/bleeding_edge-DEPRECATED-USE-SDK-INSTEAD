@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast.visitor;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -46,14 +47,18 @@ import com.google.dart.engine.element.LibraryElement;
  * @coverage dart.engine.ast
  */
 public class ElementLocator {
-
   /**
    * Visitor that maps nodes to elements.
    */
   private static final class ElementMapper extends GeneralizingASTVisitor<Element> {
     @Override
+    public Element visitAssignmentExpression(AssignmentExpression node) {
+      return node.getBestElement();
+    }
+
+    @Override
     public Element visitBinaryExpression(BinaryExpression node) {
-      return node.getElement();
+      return node.getBestElement();
     }
 
     @Override
