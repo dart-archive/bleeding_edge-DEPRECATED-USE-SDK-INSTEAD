@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.feedback;
 
+import com.google.dart.engine.utilities.instrumentation.HealthUtils;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.net.NetUtils;
@@ -25,7 +26,6 @@ import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.PlatformUI;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.zip.CRC32;
 
 /**
@@ -41,7 +41,7 @@ public class FeedbackUtils {
     public final int numProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects().length;
     public final int numEditors = getNumberOfOpenDartEditors();
     public final int numThreads = getNumberOfThreads();
-    public final long maxMem = getMaxMem();
+    public final long maxMem = HealthUtils.getMaxMem();
     public final long totalMem = Runtime.getRuntime().totalMemory();
     public final long freeMem = Runtime.getRuntime().freeMemory();
     public final String indexStats;
@@ -131,22 +131,6 @@ public class FeedbackUtils {
       binaryDetails = "- <unable to detect binary type>";
     }
     return DartToolsPlugin.getVersionString() + " (" + getBuildDate() + ") " + binaryDetails;
-  }
-
-  // Copied from org.eclipse.ui.internal.HeapStatus
-  public static long getMaxMem() {
-    long max = Long.MAX_VALUE;
-    try {
-      // Must use reflect to allow compilation against JCL/Foundation
-      Method maxMemMethod = Runtime.class.getMethod("maxMemory", new Class[0]); //$NON-NLS-1$
-      Object o = maxMemMethod.invoke(Runtime.getRuntime(), new Object[0]);
-      if (o instanceof Long) {
-        max = ((Long) o).longValue();
-      }
-    } catch (Exception e) {
-      // ignore if method missing or if there are other failures trying to determine the max
-    }
-    return max;
   }
 
   /**
