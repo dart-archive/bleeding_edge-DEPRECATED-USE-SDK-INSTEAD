@@ -412,7 +412,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
    * @param constructor the constant constructor declaration to validate
    */
   private void validateInitializers(ConstructorDeclaration constructor) {
-    ParameterElement[] parameterElements = constructor.getParameters().getElements();
+    ParameterElement[] parameterElements = constructor.getParameters().getParameterElements();
     NodeList<ConstructorInitializer> initializers = constructor.getInitializers();
     for (ConstructorInitializer initializer : initializers) {
       if (initializer instanceof ConstructorFieldInitializer) {

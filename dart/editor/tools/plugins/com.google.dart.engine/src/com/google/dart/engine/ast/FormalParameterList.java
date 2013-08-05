@@ -105,21 +105,6 @@ public class FormalParameterList extends ASTNode {
     return leftParenthesis;
   }
 
-  /**
-   * Return an array containing the elements representing the parameters in this list. The array
-   * will contain {@code null}s if the parameters in this list have not been resolved.
-   * 
-   * @return the elements representing the parameters in this list
-   */
-  public ParameterElement[] getElements() {
-    int count = parameters.size();
-    ParameterElement[] types = new ParameterElement[count];
-    for (int i = 0; i < count; i++) {
-      types[i] = parameters.get(i).getElement();
-    }
-    return types;
-  }
-
   @Override
   public Token getEndToken() {
     return rightParenthesis;
@@ -143,6 +128,21 @@ public class FormalParameterList extends ASTNode {
    */
   public Token getLeftParenthesis() {
     return leftParenthesis;
+  }
+
+  /**
+   * Return an array containing the elements representing the parameters in this list. The array
+   * will contain {@code null}s if the parameters in this list have not been resolved.
+   * 
+   * @return the elements representing the parameters in this list
+   */
+  public ParameterElement[] getParameterElements() {
+    int count = parameters.size();
+    ParameterElement[] types = new ParameterElement[count];
+    for (int i = 0; i < count; i++) {
+      types[i] = parameters.get(i).getElement();
+    }
+    return types;
   }
 
   /**
