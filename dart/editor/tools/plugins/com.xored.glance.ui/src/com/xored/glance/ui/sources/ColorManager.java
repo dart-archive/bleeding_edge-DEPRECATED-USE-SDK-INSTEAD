@@ -44,7 +44,7 @@ public class ColorManager implements IPropertyChangeListener, IPreferenceConstan
 
   public static IPreferenceStore getStore() {
 //		return ((AbstractUIPlugin) Platform.getPlugin("org.eclipse.ui.editors")).getPreferenceStore();
-    return DartToolsPlugin.getDefault().getPreferenceStore();
+    return DartToolsPlugin.getDefault().getCombinedPreferenceStore();
   }
 
   public static Color lighten(Color color, int delta) {

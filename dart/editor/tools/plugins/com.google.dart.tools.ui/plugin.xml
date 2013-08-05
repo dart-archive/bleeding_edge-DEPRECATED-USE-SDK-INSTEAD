@@ -1937,6 +1937,16 @@
             commandId="org.eclipse.ui.edit.findNext"
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+G"/>
+      <key
+            commandId="org.eclipse.ui.edit.findPrevious"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M2+G"/>
+      <key
+            commandId="org.eclipse.ui.edit.findNext"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+K"/>
       <key
             commandId="org.eclipse.ui.edit.findPrevious"

@@ -19,28 +19,29 @@
 	<extension point="org.eclipse.ui.commands">
 		<command
         categoryId="com.xored.glance.ui.commands"
-        description="Open Glance search panel"
+        description="Open search panel"
         id="com.xored.glance.commands.open"
         name="Open Glance">
   </command>
   <command
         categoryId="com.xored.glance.ui.commands"
-        description="Close Glance search panel"
+        description="Close search panel"
         id="com.xored.glance.commands.close"
         name="Close Glance">
   </command>
   <command
         categoryId="com.xored.glance.ui.commands"
-        description="Show next Glance match"
+        description="Show next match"
         id="com.xored.glance.ui.nextResult"
         name="Next Match">
   </command>
   <command
         categoryId="com.xored.glance.ui.commands"
-        description="Show previous Glance match"
+        description="Show previous match"
         id="com.xored.glance.ui.prevResult"
         name="Previous Match">
   </command>
+  <!-- This command is unbound but is still referenced in code -->
   <command
         categoryId="com.xored.glance.ui.commands"
         description="Return focus back from Glance search panel to control"
@@ -49,7 +50,7 @@
   </command>
   <command
         categoryId="com.xored.glance.ui.commands"
-        description="Clear Glance search history"
+        description="Clear search history"
         id="com.xored.glance.commands.clearHistory"
         name="Clear History">
   </command>
@@ -66,12 +67,14 @@
 			contextId="org.eclipse.ui.contexts.dialogAndWindow"
 			commandId="com.xored.glance.commands.open"
 			schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+	<!--
   <key
         commandId="com.xored.glance.commands.focus"
         contextId="com.xored.glance.ui.context"
         schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
         sequence="M1+F">
   </key>
+  -->
   <key
         commandId="com.xored.glance.commands.close"
         contextId="com.xored.glance.ui.context"
@@ -89,6 +92,18 @@
         contextId="com.xored.glance.ui.context"
         schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
         sequence="M2+ENTER">
+  </key>
+  <key
+        commandId="com.xored.glance.ui.nextResult"
+        contextId="com.xored.glance.ui.context"
+        schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+        sequence="M1+G">
+  </key>
+  <key
+        commandId="com.xored.glance.ui.prevResult"
+        contextId="com.xored.glance.ui.context"
+        schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+        sequence="M1+M2+G">
   </key>
   <!--
   <key

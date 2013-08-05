@@ -25,6 +25,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.PopupDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -55,6 +56,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.internal.texteditor.TextEditorPlugin;
 
 import java.io.IOException;
 import java.net.URL;
@@ -64,8 +66,110 @@ import java.util.List;
 /**
  * @author Yuri Strot
  */
+@SuppressWarnings("restriction")
 public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
     IPropertyChangeListener {
+
+  class SearchSynchronizer {
+
+    private IDialogSettings dialogSettings;
+    private boolean wrapInit;
+    private boolean caseInit;
+    private boolean wholeWordInit;
+    private boolean regExInit;
+    private List<String> findHistory = new ArrayList<String>();
+    private boolean incrementalInit;
+
+    /**
+     * Returns the dialog settings object used to share state between several find/replace dialogs.
+     * 
+     * @return the dialog settings to be used
+     */
+    private IDialogSettings getDialogSettings() {
+      IDialogSettings settings = TextEditorPlugin.getDefault().getDialogSettings();
+      dialogSettings = settings.getSection("org.eclipse.ui.texteditor.FindReplaceDialog");
+      if (dialogSettings == null) {
+        dialogSettings = settings.addNewSection("org.eclipse.ui.texteditor.FindReplaceDialog");
+      }
+      return dialogSettings;
+    }
+
+    private String getFindString() {
+      if (title == null) {
+        return null;
+      }
+      String findString = title.getText();
+      findString = fixItem(findString);
+      return findString;
+    }
+
+    /**
+     * Initializes itself from the dialog settings with the same state as at the previous
+     * invocation.
+     */
+    private void readConfiguration() {
+      IDialogSettings s = getDialogSettings();
+
+      wrapInit = s.get("wrap") == null || s.getBoolean("wrap"); //$NON-NLS-1$ //$NON-NLS-2$
+      caseInit = s.getBoolean("casesensitive"); //$NON-NLS-1$
+      wholeWordInit = s.getBoolean("wholeword"); //$NON-NLS-1$
+      incrementalInit = s.getBoolean("incremental"); //$NON-NLS-1$
+      regExInit = s.getBoolean("isRegEx"); //$NON-NLS-1$
+
+      String[] findHistoryInit = s.getArray("findhistory"); //$NON-NLS-1$
+      if (findHistoryInit != null) {
+        findHistory.clear();
+        for (int i = 0; i < findHistoryInit.length; i++) {
+          findHistory.add(findHistoryInit[i]);
+        }
+      }
+
+      IPreferenceStore preferences = GlancePlugin.getDefault().getPreferenceStore();
+      preferences.setValue(SEARCH_CASE_SENSITIVE, caseInit);
+      preferences.setValue(SEARCH_REGEXP, regExInit);
+      preferences.setValue(SEARCH_WORD_PREFIX, !wholeWordInit);
+    }
+
+    /**
+     * Stores its current configuration in the dialog store.
+     */
+    private void writeConfiguration() {
+      String findString = getFindString();
+      if (findString == null) {
+        return;
+      }
+      IDialogSettings s = getDialogSettings();
+      IPreferenceStore preferences = GlancePlugin.getDefault().getPreferenceStore();
+
+      boolean caseSensitive = preferences.getBoolean(SEARCH_CASE_SENSITIVE);
+      boolean regExp = preferences.getBoolean(SEARCH_REGEXP);
+      boolean wordPrefix = preferences.getBoolean(SEARCH_WORD_PREFIX);
+
+      s.put("wrap", wrapInit); //$NON-NLS-1$
+      s.put("casesensitive", caseSensitive); //$NON-NLS-1$
+      s.put("wholeword", !wordPrefix); //$NON-NLS-1$
+      s.put("incremental", incrementalInit); //$NON-NLS-1$
+      s.put("isRegEx", regExp); //$NON-NLS-1$
+      s.put("selection", ""); //$NON-NLS-1$ (original: fTarget.getSelectionText())
+
+      if (!findHistory.isEmpty() && findString.equals(findHistory.get(0))) {
+        return;
+      }
+
+      int index = findHistory.indexOf(findString);
+      if (index != -1) {
+        findHistory.remove(index);
+      }
+      findHistory.add(0, findString);
+
+      while (findHistory.size() > 8) {
+        findHistory.remove(8);
+      }
+      String[] names = new String[findHistory.size()];
+      findHistory.toArray(names);
+      s.put("findhistory", names); //$NON-NLS-1$
+    }
+  }
 
   private class UpdateInfoThread extends ImageAnimation {
 
@@ -148,6 +252,8 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
 
   private UpdateInfoThread updateInfoThread;
 
+  private SearchSynchronizer searchSynchronizer;
+
   /**
    * @param parent
    * @param style
@@ -155,6 +261,8 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
   public SearchPanel() {
     rule = new SearchRule("");
     getPreferences().addPropertyChangeListener(this);
+    searchSynchronizer = new SearchSynchronizer();
+    searchSynchronizer.readConfiguration();
   }
 
   @Override
@@ -314,6 +422,10 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
         }
       });
     }
+  }
+
+  public void storeSettings() {
+    searchSynchronizer.writeConfiguration();
   }
 
   @Override
@@ -521,8 +633,10 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
   }
 
   protected void updateRule() {
-    rule = new SearchRule(title.getText());
-    fireRuleChanged(rule);
+    if (title != null) {
+      rule = new SearchRule(title.getText());
+      fireRuleChanged(rule);
+    }
   }
 
   private void createIndexing(final ToolBar bar) {
@@ -618,7 +732,7 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
 
   private CheckAction newAction(final IMenuManager menu, final String name, final String label,
       final boolean enable, final String path) {
-    final CheckAction action = new CheckAction(name, label);
+    final CheckAction action = new CheckAction(name, label, this);
     if (path != null) {
       action.setImageDescriptor(GlancePlugin.getImageDescriptor(path));
     }
@@ -658,6 +772,7 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
           }
           title.setText(findString);
           title.setSelection(sel);
+          storeSettings();
         }
       } finally {
         title.addModifyListener(modifyListener);

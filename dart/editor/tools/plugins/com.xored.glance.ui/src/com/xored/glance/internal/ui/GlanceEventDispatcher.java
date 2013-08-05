@@ -45,15 +45,19 @@ public class GlanceEventDispatcher {
     if (commandID == null) {
       return;
     } else if (FOCUS_COMMAND.equals(commandID)) {
-      SearchManager.getIntance().sourceFocus();
+//      SearchManager.getIntance().sourceFocus(); // in case someone has a key binding already
     } else if (NEXT_COMMAND.equals(commandID)) {
       SearchManager.getIntance().findNext();
+      event.doit = false;
     } else if (PREV_COMMAND.equals(commandID)) {
       SearchManager.getIntance().findPrevious();
+      event.doit = false;
     } else if (CLOSE_COMMAND.equals(commandID)) {
       SearchManager.getIntance().close();
+      event.doit = false;
     } else if (CLEAR_COMMAND.equals(commandID)) {
       SearchManager.getIntance().clearHistory();
+      event.doit = false;
     }
   }
 

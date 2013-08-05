@@ -6,19 +6,24 @@
  ******************************************************************************/
 package com.xored.glance.internal.ui.panels;
 
+import com.xored.glance.internal.ui.GlancePlugin;
+import com.xored.glance.ui.panels.SearchPanel;
+
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.preference.IPreferenceStore;
-
-import com.xored.glance.internal.ui.GlancePlugin;
 
 /**
  * @author Yuri Strot
  */
 public class CheckAction extends Action {
 
-  public CheckAction(String name, String label) {
+  private SearchPanel panel;
+  private String name;
+
+  public CheckAction(String name, String label, SearchPanel panel) {
     super(label, AS_CHECK_BOX);
     this.name = name;
+    this.panel = panel;
     setChecked(getStore().getBoolean(name));
   }
 
@@ -29,7 +34,6 @@ public class CheckAction extends Action {
   @Override
   public void run() {
     getStore().setValue(name, isChecked());
+    panel.storeSettings();
   }
-
-  private String name;
 }
