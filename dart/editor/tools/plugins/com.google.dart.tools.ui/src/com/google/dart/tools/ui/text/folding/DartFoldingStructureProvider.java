@@ -48,6 +48,7 @@ import org.eclipse.jface.text.source.projection.IProjectionPosition;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -830,7 +831,9 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
     Token token = scanner.next();
     start = token.getOffset();
     Token comment = token.getPrecedingComments();
-    IDocument doc = dartEditor.getDocumentProvider().getDocument(dartEditor.getEditorInput());
+    IEditorInput editorInput = dartEditor.getEditorInput();
+    IDocumentProvider documentProvider = dartEditor.getDocumentProvider();
+    IDocument doc = documentProvider.getDocument(editorInput);
     while (comment != null) {
       int s = comment.getOffset();
       int l = comment.getLength();
