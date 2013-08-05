@@ -1160,4 +1160,23 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
       }
     }
   }
+
+  /**
+   * Print a list of tokens, separated by the given separator.
+   * 
+   * @param tokens the tokens to be printed
+   * @param separator the separator to be printed between adjacent tokens
+   */
+  private void visitList(Token[] tokens, String separator) {
+    int size = tokens.length;
+    for (int i = 0; i < size; i++) {
+      if ("\n".equals(separator)) {
+        writer.print("\n");
+        indent();
+      } else if (i > 0) {
+        writer.print(separator);
+      }
+      writer.print(tokens[i].getLexeme());
+    }
+  }
 }
