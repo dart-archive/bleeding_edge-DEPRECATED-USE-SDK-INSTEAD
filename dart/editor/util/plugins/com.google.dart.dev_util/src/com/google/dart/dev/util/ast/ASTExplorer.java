@@ -481,7 +481,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
     } else if (object instanceof ExportDirective) {
       return ((ExportDirective) object).getElement();
     } else if (object instanceof FunctionExpressionInvocation) {
-      return ((FunctionExpressionInvocation) object).getElement();
+      return ((FunctionExpressionInvocation) object).getStaticElement();
     } else if (object instanceof ImportDirective) {
       return ((ImportDirective) object).getElement();
     } else if (object instanceof LibraryDirective) {
