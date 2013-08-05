@@ -109,7 +109,12 @@ public class AnalysisWorker {
         } else if (worker.contextManager instanceof ProjectManager) {
           setName("Analyzing SDK");
         }
-        worker.performAnalysis();
+        activeWorker = worker;
+        try {
+          worker.performAnalysis();
+        } finally {
+          activeWorker = null;
+        }
       }
     }
   }
@@ -125,6 +130,11 @@ public class AnalysisWorker {
    * Synchronize against {@link #backgroundQueue} before accessing this field.
    */
   private static BackgroundAnalysisJob backgroundJob = null;
+
+  /**
+   * The currently executing {@link AnalysisWorker}.
+   */
+  private static AnalysisWorker activeWorker = null;
 
   /**
    * Objects to be notified when each compilation unit has been resolved. Contents of this array
@@ -158,6 +168,22 @@ public class AnalysisWorker {
       System.arraycopy(allListeners, 0, newListeners, 0, oldLen);
       newListeners[oldLen] = listener;
       allListeners = newListeners;
+    }
+  }
+
+  /**
+   * @return the currently executing {@link AnalysisWorker}, may be {@code null}.
+   */
+  public static AnalysisWorker getActiveWorker() {
+    return activeWorker;
+  }
+
+  /**
+   * @return the {@link AnalysisWorker}s in the queue, may be empty, but not {@code null}.
+   */
+  public static AnalysisWorker[] getQueueWorkers() {
+    synchronized (backgroundQueue) {
+      return backgroundQueue.toArray(new AnalysisWorker[backgroundQueue.size()]);
     }
   }
 

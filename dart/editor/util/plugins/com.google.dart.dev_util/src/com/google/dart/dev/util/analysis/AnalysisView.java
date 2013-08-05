@@ -9,6 +9,7 @@ import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jface.layout.PixelConverter;
@@ -33,26 +34,6 @@ import java.util.concurrent.TimeUnit;
  * The view to display analysis statistics.
  */
 public class AnalysisView extends ViewPart {
-  private static class AnalysisContentData {
-    private final String name;
-    private final AnalysisContentStatistics statistics;
-
-    public AnalysisContentData(String name, AnalysisContentStatistics statistics) {
-      this.name = name;
-      this.statistics = statistics;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return obj instanceof AnalysisContentData && ((AnalysisContentData) obj).name.equals(name);
-    }
-
-    @Override
-    public int hashCode() {
-      return name.hashCode();
-    }
-  }
-
   private class AnalysisContentProvider implements ITreeContentProvider {
     @Override
     public void dispose() {
@@ -60,8 +41,8 @@ public class AnalysisView extends ViewPart {
 
     @Override
     public Object[] getChildren(Object parentElement) {
-      if (parentElement instanceof AnalysisContentData) {
-        AnalysisContentData contentData = (AnalysisContentData) parentElement;
+      if (parentElement instanceof AnalysisContextData) {
+        AnalysisContextData contentData = (AnalysisContextData) parentElement;
         return contentData.statistics.getCacheRows();
       }
       return null;
@@ -73,7 +54,7 @@ public class AnalysisView extends ViewPart {
         if (contexts == null) {
           return ArrayUtils.EMPTY_OBJECT_ARRAY;
         }
-        return contexts.toArray(new AnalysisContentData[contexts.size()]);
+        return contexts.toArray(new AnalysisContextData[contexts.size()]);
       }
     }
 
@@ -84,7 +65,7 @@ public class AnalysisView extends ViewPart {
 
     @Override
     public boolean hasChildren(Object element) {
-      return element instanceof AnalysisContentData;
+      return element instanceof AnalysisContextData;
     }
 
     @Override
@@ -92,25 +73,92 @@ public class AnalysisView extends ViewPart {
     }
   }
 
-  private static List<AnalysisContentData> getContexts() {
-    List<AnalysisContentData> contexts = Lists.newArrayList();
+  private static class AnalysisContextData {
+    private final String name;
+    private final AnalysisContentStatistics statistics;
+    private final ContextWorkerState workerState;
+
+    public AnalysisContextData(String name, AnalysisContentStatistics statistics,
+        ContextWorkerState workerState) {
+      this.name = name;
+      this.statistics = statistics;
+      this.workerState = workerState;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof AnalysisContextData && ((AnalysisContextData) obj).name.equals(name);
+    }
+
+    @Override
+    public int hashCode() {
+      return name.hashCode();
+    }
+  }
+
+  private static enum ContextWorkerState {
+    NONE {
+      @Override
+      String getNameSuffix() {
+        return "";
+      }
+    },
+    IN_QUEUE {
+      @Override
+      String getNameSuffix() {
+        return " [*]";
+      }
+    },
+    ACTIVE {
+      @Override
+      String getNameSuffix() {
+        return " [!]";
+      }
+    };
+
+    abstract String getNameSuffix();
+  }
+
+  private static void addContext(AnalysisWorker[] queueWorkers, AnalysisWorker activeWorker,
+      List<AnalysisContextData> contexts, String name, AnalysisContext context) {
+    ContextWorkerState workerState = getContextWorkerState(queueWorkers, activeWorker, context);
+    contexts.add(new AnalysisContextData(name, ((InternalAnalysisContext) context).getStatistics(),
+        workerState));
+  }
+
+  private static List<AnalysisContextData> getContexts() {
+    AnalysisWorker[] queueWorkers = AnalysisWorker.getQueueWorkers();
+    AnalysisWorker activeWorker = AnalysisWorker.getActiveWorker();
+    List<AnalysisContextData> contexts = Lists.newArrayList();
     for (Project project : DartCore.getProjectManager().getProjects()) {
       String projectName = project.getResource().getName();
       // default context
       AnalysisContext defaultContext = project.getDefaultContext();
-      contexts.add(new AnalysisContentData(projectName,
-          ((InternalAnalysisContext) defaultContext).getStatistics()));
+      addContext(queueWorkers, activeWorker, contexts, projectName, defaultContext);
       // separate Pub folders
       for (PubFolder pubFolder : project.getPubFolders()) {
         String pubFolderName = projectName + " - " + pubFolder.getResource().getName();
         AnalysisContext context = pubFolder.getContext();
         if (context != defaultContext) {
-          contexts.add(new AnalysisContentData(pubFolderName,
-              ((InternalAnalysisContext) context).getStatistics()));
+          addContext(queueWorkers, activeWorker, contexts, pubFolderName, context);
         }
       }
     }
     return contexts;
+  }
+
+  private static ContextWorkerState getContextWorkerState(AnalysisWorker[] queueWorkers,
+      AnalysisWorker activeWorker, AnalysisContext context) {
+    if (activeWorker != null && activeWorker.getContext() == context) {
+      return ContextWorkerState.ACTIVE;
+    } else {
+      for (AnalysisWorker worker : queueWorkers) {
+        if (worker.getContext() == context) {
+          return ContextWorkerState.IN_QUEUE;
+        }
+      }
+    }
+    return ContextWorkerState.NONE;
   }
 
   private TreeViewer viewer;
@@ -118,7 +166,7 @@ public class AnalysisView extends ViewPart {
   private boolean disposed = false;
 
   private final Object contextsLock = new Object();
-  private List<AnalysisContentData> contexts;
+  private List<AnalysisContextData> contexts;
 
   @Override
   public void createPartControl(Composite parent) {
@@ -134,8 +182,9 @@ public class AnalysisView extends ViewPart {
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
         public String getText(Object element) {
-          if (element instanceof AnalysisContentData) {
-            return ((AnalysisContentData) element).name;
+          if (element instanceof AnalysisContextData) {
+            AnalysisContextData contextData = (AnalysisContextData) element;
+            return contextData.name + contextData.workerState.getNameSuffix();
           }
           if (element instanceof CacheRow) {
             return ((CacheRow) element).getName();
@@ -224,9 +273,9 @@ public class AnalysisView extends ViewPart {
       @Override
       @SuppressWarnings("unchecked")
       public int compare(Viewer viewer, Object e1, Object e2) {
-        if (e1 instanceof AnalysisContentData && e2 instanceof AnalysisContentData) {
-          String name1 = ((AnalysisContentData) e1).name;
-          String name2 = ((AnalysisContentData) e2).name;
+        if (e1 instanceof AnalysisContextData && e2 instanceof AnalysisContextData) {
+          String name1 = ((AnalysisContextData) e1).name;
+          String name2 = ((AnalysisContextData) e2).name;
           return getComparator().compare(name1, name2);
         }
         if (e1 instanceof CacheRow && e2 instanceof CacheRow) {
@@ -305,7 +354,7 @@ public class AnalysisView extends ViewPart {
         }
         // do refresh
         refreshUI();
-        Uninterruptibles.sleepUninterruptibly(250, TimeUnit.MILLISECONDS);
+        Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
       } catch (Throwable e) {
         Uninterruptibles.sleepUninterruptibly(1000, TimeUnit.MILLISECONDS);
       }
