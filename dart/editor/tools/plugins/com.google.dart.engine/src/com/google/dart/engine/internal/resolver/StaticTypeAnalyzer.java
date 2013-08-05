@@ -545,7 +545,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       recordPropagatedType(node, staticPropagatedType);
     }
 
-    ExecutableElement propagatedMethodElement = node.getElement();
+    ExecutableElement propagatedMethodElement = node.getPropagatedElement();
     if (propagatedMethodElement != staticMethodElement) {
       // Record static return type of the propagated element.
       Type propagatedStaticType = computeStaticReturnType(propagatedMethodElement);

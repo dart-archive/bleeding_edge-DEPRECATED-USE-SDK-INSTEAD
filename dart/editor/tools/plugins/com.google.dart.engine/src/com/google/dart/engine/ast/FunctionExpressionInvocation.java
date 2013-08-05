@@ -84,15 +84,19 @@ public class FunctionExpressionInvocation extends Expression {
   }
 
   /**
-   * Return the element associated with the function being invoked based on propagated type
-   * information, or {@code null} if the AST structure has not been resolved or the function could
-   * not be resolved. One common example of the latter case is an expression whose value can change
-   * over time.
+   * Return the best element available for the function being invoked. If resolution was able to
+   * find a better element based on type propagation, that element will be returned. Otherwise, the
+   * element found using the result of static analysis will be returned. If resolution has not been
+   * performed, then {@code null} will be returned.
    * 
-   * @return the element associated with the function being invoked
+   * @return the best element available for this function
    */
-  public ExecutableElement getElement() {
-    return propagatedElement;
+  public ExecutableElement getBestElement() {
+    ExecutableElement element = getPropagatedElement();
+    if (element == null) {
+      element = getStaticElement();
+    }
+    return element;
   }
 
   @Override
@@ -107,6 +111,18 @@ public class FunctionExpressionInvocation extends Expression {
    */
   public Expression getFunction() {
     return function;
+  }
+
+  /**
+   * Return the element associated with the function being invoked based on propagated type
+   * information, or {@code null} if the AST structure has not been resolved or the function could
+   * not be resolved. One common example of the latter case is an expression whose value can change
+   * over time.
+   * 
+   * @return the element associated with the function being invoked
+   */
+  public ExecutableElement getPropagatedElement() {
+    return propagatedElement;
   }
 
   /**
@@ -131,22 +147,22 @@ public class FunctionExpressionInvocation extends Expression {
   }
 
   /**
-   * Set the element associated with the function being invoked based on propagated type information
-   * to the given element.
-   * 
-   * @param element the element to be associated with the function being invoked
-   */
-  public void setElement(ExecutableElement element) {
-    propagatedElement = element;
-  }
-
-  /**
    * Set the expression producing the function being invoked to the given expression.
    * 
    * @param function the expression producing the function being invoked
    */
   public void setFunction(Expression function) {
     function = becomeParentOf(function);
+  }
+
+  /**
+   * Set the element associated with the function being invoked based on propagated type information
+   * to the given element.
+   * 
+   * @param element the element to be associated with the function being invoked
+   */
+  public void setPropagatedElement(ExecutableElement element) {
+    propagatedElement = element;
   }
 
   /**

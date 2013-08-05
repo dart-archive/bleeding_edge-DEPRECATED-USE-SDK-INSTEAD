@@ -91,7 +91,7 @@ public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.setStaticElement(null);
-    node.setElement(null);
+    node.setPropagatedElement(null);
     return super.visitFunctionExpressionInvocation(node);
   }
 
