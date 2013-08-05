@@ -85,6 +85,7 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.ast.ASTCloner;
 import com.google.dart.engine.utilities.collection.ListUtilities;
+import com.google.dart.engine.utilities.io.UriUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
 
@@ -2714,6 +2715,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (uriContent == null) {
       return null;
     }
+    uriContent = UriUtilities.encode(uriContent);
     try {
       new URI(uriContent);
       return sourceFactory.resolveUri(librarySource, uriContent);

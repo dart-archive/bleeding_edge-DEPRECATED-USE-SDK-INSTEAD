@@ -26,6 +26,7 @@ import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.scope.LibraryScope;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.io.UriUtilities;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -288,6 +289,7 @@ public class Library {
     }
     String uriContent = uriLiteral.getStringValue().trim();
     directiveUris.put(directive, uriContent);
+    uriContent = UriUtilities.encode(uriContent);
     try {
       new URI(uriContent);
       Source source = getSource(uriContent);

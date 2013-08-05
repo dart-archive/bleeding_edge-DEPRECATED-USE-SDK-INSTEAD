@@ -53,6 +53,7 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.engine.utilities.io.UriUtilities;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -828,6 +829,7 @@ public class LibraryResolver {
     if (uriContent == null) {
       return null;
     }
+    uriContent = UriUtilities.encode(uriContent);
     try {
       new URI(uriContent);
       return analysisContext.getSourceFactory().resolveUri(librarySource, uriContent);

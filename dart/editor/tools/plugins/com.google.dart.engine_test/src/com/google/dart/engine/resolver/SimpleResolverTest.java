@@ -346,6 +346,21 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_import_spaceInUri() throws Exception {
+    addSource("sub folder/lib.dart", createSource(//
+        "library lib;",
+        "foo() {}"));
+    Source source = addSource("app.dart", createSource(//
+        "import 'sub folder/lib.dart';",
+        "",
+        "main() {",
+        "  foo();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_indexExpression_typeParameters() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
