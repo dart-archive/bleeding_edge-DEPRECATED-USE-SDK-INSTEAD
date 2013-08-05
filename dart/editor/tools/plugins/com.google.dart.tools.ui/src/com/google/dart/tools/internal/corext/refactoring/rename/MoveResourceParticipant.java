@@ -154,7 +154,7 @@ public class MoveResourceParticipant extends MoveParticipant {
     {
       URI sourceUri = sourceFile.getParentFile().toURI();
       URI relative = URIUtilities.relativize(sourceUri, destUri);
-      namePrefix = FilenameUtils.separatorsToUnix(relative.toString());
+      namePrefix = FilenameUtils.separatorsToUnix(relative.getPath());
       if (namePrefix.length() != 0 && !namePrefix.endsWith("/")) {
         namePrefix += "/";
       }

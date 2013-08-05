@@ -262,6 +262,40 @@ public final class MoveResourceParticipantTest extends AbstractDartTest {
             ""));
   }
 
+  public void test_OK_spaceInPath() throws Exception {
+    IFolder destination = testProject.createFolder("sub folder");
+    setProjectFileContent(
+        "A.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library a;",
+            "import 'B.dart';",
+            ""));
+    IFile fileB = setProjectFileContent(
+        "B.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library b;",
+            "import 'A.dart';",
+            ""));
+    // do move
+    buildAndMove(fileB, destination);
+    assertProjectFileContent(
+        "A.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library a;",
+            "import 'sub folder/B.dart';",
+            ""));
+    assertProjectFileContent(
+        "sub folder/B.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library b;",
+            "import '../A.dart';",
+            ""));
+  }
+
   @Override
   protected void setUp() throws Exception {
     testProject = new TestProject();
