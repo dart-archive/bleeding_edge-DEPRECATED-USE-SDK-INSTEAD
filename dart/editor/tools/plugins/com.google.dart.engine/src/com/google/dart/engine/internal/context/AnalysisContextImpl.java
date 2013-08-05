@@ -1006,25 +1006,32 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         if (entry instanceof DartEntry) {
           Source source = mapEntry.getKey();
           DartEntry dartEntry = (DartEntry) entry;
+          SourceKind kind = dartEntry.getValue(DartEntry.SOURCE_KIND);
           // get library independent values
-          putStatCacheItem(statistics, dartEntry, DartEntry.ELEMENT);
-          putStatCacheItem(statistics, dartEntry, DartEntry.EXPORTED_LIBRARIES);
-          putStatCacheItem(statistics, dartEntry, DartEntry.IMPORTED_LIBRARIES);
-          putStatCacheItem(statistics, dartEntry, DartEntry.INCLUDED_PARTS);
-          putStatCacheItem(statistics, dartEntry, DartEntry.IS_CLIENT);
-          putStatCacheItem(statistics, dartEntry, DartEntry.IS_LAUNCHABLE);
           putStatCacheItem(statistics, dartEntry, DartEntry.PARSE_ERRORS);
           putStatCacheItem(statistics, dartEntry, DartEntry.PARSED_UNIT);
-          putStatCacheItem(statistics, dartEntry, DartEntry.PUBLIC_NAMESPACE);
           putStatCacheItem(statistics, dartEntry, DartEntry.SOURCE_KIND);
           putStatCacheItem(statistics, dartEntry, DartEntry.LINE_INFO);
+          if (kind == SourceKind.LIBRARY) {
+            putStatCacheItem(statistics, dartEntry, DartEntry.ELEMENT);
+            putStatCacheItem(statistics, dartEntry, DartEntry.EXPORTED_LIBRARIES);
+            putStatCacheItem(statistics, dartEntry, DartEntry.IMPORTED_LIBRARIES);
+            putStatCacheItem(statistics, dartEntry, DartEntry.INCLUDED_PARTS);
+            putStatCacheItem(statistics, dartEntry, DartEntry.IS_CLIENT);
+            putStatCacheItem(statistics, dartEntry, DartEntry.IS_LAUNCHABLE);
+            // The public namespace isn't computed by performAnalysisTask().
+            //putStatCacheItem(statistics, dartEntry, DartEntry.PUBLIC_NAMESPACE);
+          }
           // get library-specific values
           Source[] librarySources = getLibrariesContaining(source);
           for (Source librarySource : librarySources) {
-            putStatCacheItem(statistics, dartEntry, librarySource, DartEntry.HINTS);
+            // TODO(brianwilkerson) Restore the line below when hints are being computed separately.
+//            putStatCacheItem(statistics, dartEntry, librarySource, DartEntry.HINTS);
             putStatCacheItem(statistics, dartEntry, librarySource, DartEntry.RESOLUTION_ERRORS);
             putStatCacheItem(statistics, dartEntry, librarySource, DartEntry.RESOLVED_UNIT);
           }
+//        } else if (entry instanceof HtmlEntry) {
+//          HtmlEntry htmlEntry = (HtmlEntry) entry;
         }
       }
     }

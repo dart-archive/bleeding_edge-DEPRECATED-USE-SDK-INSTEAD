@@ -77,17 +77,49 @@ public class AnalysisView extends ViewPart {
     private final String name;
     private final AnalysisContentStatistics statistics;
     private final ContextWorkerState workerState;
+    private int errorCount;
+    private int flushedCount;
+    private int inProcessCount;
+    private int invalidCount;
+    private int validCount;
 
     public AnalysisContextData(String name, AnalysisContentStatistics statistics,
         ContextWorkerState workerState) {
       this.name = name;
       this.statistics = statistics;
       this.workerState = workerState;
+      for (CacheRow row : statistics.getCacheRows()) {
+        errorCount += row.getErrorCount();
+        flushedCount += row.getFlushedCount();
+        inProcessCount += row.getInProcessCount();
+        invalidCount += row.getInvalidCount();
+        validCount += row.getValidCount();
+      }
     }
 
     @Override
     public boolean equals(Object obj) {
       return obj instanceof AnalysisContextData && ((AnalysisContextData) obj).name.equals(name);
+    }
+
+    public int getErrorCount() {
+      return errorCount;
+    }
+
+    public int getFlushedCount() {
+      return flushedCount;
+    }
+
+    public int getInProcessCount() {
+      return inProcessCount;
+    }
+
+    public int getInvalidCount() {
+      return invalidCount;
+    }
+
+    public int getValidCount() {
+      return validCount;
     }
 
     @Override
@@ -201,6 +233,9 @@ public class AnalysisView extends ViewPart {
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
         public String getText(Object element) {
+          if (element instanceof AnalysisContextData) {
+            return "" + ((AnalysisContextData) element).getErrorCount();
+          }
           if (element instanceof CacheRow) {
             return "" + ((CacheRow) element).getErrorCount();
           }
@@ -216,6 +251,9 @@ public class AnalysisView extends ViewPart {
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
         public String getText(Object element) {
+          if (element instanceof AnalysisContextData) {
+            return "" + ((AnalysisContextData) element).getFlushedCount();
+          }
           if (element instanceof CacheRow) {
             return "" + ((CacheRow) element).getFlushedCount();
           }
@@ -231,6 +269,9 @@ public class AnalysisView extends ViewPart {
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
         public String getText(Object element) {
+          if (element instanceof AnalysisContextData) {
+            return "" + ((AnalysisContextData) element).getInProcessCount();
+          }
           if (element instanceof CacheRow) {
             return "" + ((CacheRow) element).getInProcessCount();
           }
@@ -246,6 +287,9 @@ public class AnalysisView extends ViewPart {
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
         public String getText(Object element) {
+          if (element instanceof AnalysisContextData) {
+            return "" + ((AnalysisContextData) element).getInvalidCount();
+          }
           if (element instanceof CacheRow) {
             return "" + ((CacheRow) element).getInvalidCount();
           }
@@ -261,6 +305,9 @@ public class AnalysisView extends ViewPart {
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
         public String getText(Object element) {
+          if (element instanceof AnalysisContextData) {
+            return "" + ((AnalysisContextData) element).getValidCount();
+          }
           if (element instanceof CacheRow) {
             return "" + ((CacheRow) element).getValidCount();
           }
