@@ -29,18 +29,14 @@ public class TestAll {
 
     suite.addTest(com.google.dart.tools.core.dart2js.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.dartdoc.TestAll.suite());
-//    suite.addTest(com.google.dart.tools.core.formatter.TestAll.suite());
+    //suite.addTest(com.google.dart.tools.core.formatter.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.generator.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.snapshot.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.html.TestAll.suite());
-//    suite.addTest(com.google.dart.tools.core.indexer.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.TestAll.suite());
-    // suite.addTest(com.google.dart.tools.core.model.TestAll.suite());
+    //suite.addTest(com.google.dart.tools.core.model.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.pub.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.utilities.TestAll.suite());
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      suite.addTest(com.google.dart.tools.core.workingcopy.TestAll.suite());
-    }
     suite.addTest(com.google.dart.tools.core.utilities.dartdoc.TestAll.suite());
     return suite;
   }
