@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.utilities;
 
-import com.google.dart.tools.core.DartCoreDebug;
-
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -23,9 +21,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTest(com.google.dart.tools.core.utilities.general.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.utilities.io.TestAll.suite());
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      suite.addTest(com.google.dart.tools.core.utilities.net.TestAll.suite());
-    }
+    suite.addTest(com.google.dart.tools.core.utilities.net.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.utilities.resource.TestAll.suite());
     return suite;
   }

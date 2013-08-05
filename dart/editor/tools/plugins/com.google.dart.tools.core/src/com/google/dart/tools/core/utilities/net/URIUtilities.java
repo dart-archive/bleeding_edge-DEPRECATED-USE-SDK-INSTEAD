@@ -86,7 +86,7 @@ public final class URIUtilities {
       sb.append(cParts[j]);
     }
 
-    return URI.create(sb.toString());
+    return URI.create(uriEncode(sb.toString()));
   }
 
   /**

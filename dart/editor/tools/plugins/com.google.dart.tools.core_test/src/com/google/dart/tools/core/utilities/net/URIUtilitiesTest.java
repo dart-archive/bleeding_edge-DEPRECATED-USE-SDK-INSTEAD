@@ -20,6 +20,19 @@ import junit.framework.TestCase;
 import java.net.URI;
 
 public class URIUtilitiesTest extends TestCase {
+
+  public void test_relativize_general() {
+    URI url1 = URI.create("file://foo/bar");
+    URI url2 = URI.create("file://foo/bar/baz");
+    assertEquals(URI.create("baz"), URIUtilities.relativize(url1, url2));
+  }
+
+  public void test_relativize_withSpace() {
+    URI url1 = URI.create("file://foo/bar");
+    URI url2 = URI.create("file://foo/bar/woot%20there");
+    assertEquals(URI.create("woot%20there"), URIUtilities.relativize(url1, url2));
+  }
+
   public void test_URIUtilities_makeAbsolute_absolute() throws Exception {
     URI uri = TestUtilities.getLogFile().getAbsoluteFile().toURI();
     assertEquals(uri, URIUtilities.makeAbsolute(uri));
