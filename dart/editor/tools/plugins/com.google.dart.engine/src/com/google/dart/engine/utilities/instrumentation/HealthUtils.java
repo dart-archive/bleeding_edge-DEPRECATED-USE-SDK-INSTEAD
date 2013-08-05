@@ -34,9 +34,14 @@ public class HealthUtils {
 
   }
 
+  /**
+   * Log data about threads to the provided instrumentation builder
+   * 
+   * @param instrumentation builder to log data to
+   */
   public static void logThreads(InstrumentationBuilder instrumentation) {
     java.lang.management.ThreadMXBean th = ManagementFactory.getThreadMXBean();
-    ThreadInfo[] thInfos = th.getThreadInfo(th.getAllThreadIds());
+    ThreadInfo[] thInfos = th.getThreadInfo(th.getAllThreadIds(), Integer.MAX_VALUE);
 
     instrumentation.metric("threads-count", thInfos.length);
 
@@ -53,7 +58,7 @@ public class HealthUtils {
 
       instrumentation.data(
           "Thread-ST",
-          Base64.encodeBytes(thInfo.getStackTrace().toString().getBytes()));
+          Base64.encodeBytes(stackTraceToString(thInfo.getStackTrace()).getBytes()));
 
     }
   }
@@ -91,4 +96,12 @@ public class HealthUtils {
 
   }
 
+  private static String stackTraceToString(StackTraceElement[] elements) {
+    StringBuilder sb = new StringBuilder();
+    for (StackTraceElement element : elements) {
+      sb.append(element.toString());
+      sb.append("\n");
+    }
+    return sb.toString();
+  }
 }
