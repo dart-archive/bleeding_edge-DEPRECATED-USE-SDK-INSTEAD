@@ -539,7 +539,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     IndexExpression node = indexExpression(identifier, resolvedInteger(2));
     MethodElement indexMethod = listType.getElement().getMethods()[0];
     node.setStaticElement(indexMethod);
-    node.setElement(indexMethod);
     assertSame(listType.getTypeArguments()[0], analyze(node));
     listener.assertNoErrors();
   }
@@ -552,7 +551,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     IndexExpression node = indexExpression(identifier, resolvedInteger(2));
     MethodElement indexMethod = listType.getElement().getMethods()[1];
     node.setStaticElement(indexMethod);
-    node.setElement(indexMethod);
     assignmentExpression(node, TokenType.EQ, integer(0));
     assertSame(listType.getTypeArguments()[0], analyze(node));
     listener.assertNoErrors();
@@ -573,7 +571,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     IndexExpression indexExpression = indexExpression(identifier, integer(0));
     MethodElement indexMethod = MethodMember.from(methodElement, listOfIntType);
     indexExpression.setStaticElement(indexMethod);
-    indexExpression.setElement(indexMethod);
     // analyze and assert result of the index expression
     assertSame(intType, analyze(indexExpression));
     listener.assertNoErrors();
@@ -594,7 +591,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     IndexExpression indexExpression = indexExpression(identifier, integer(0));
     MethodElement indexMethod = MethodMember.from(methodElement, listOfIntType);
     indexExpression.setStaticElement(indexMethod);
-    indexExpression.setElement(indexMethod);
     // list[0] should be in a setter context
     assignmentExpression(indexExpression, TokenType.EQ, integer(0));
     // analyze and assert result of the index expression

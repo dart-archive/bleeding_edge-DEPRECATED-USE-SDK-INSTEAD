@@ -706,7 +706,7 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private Element resolve(IndexExpression node, Element... definedElements) {
     resolveNode(node, definedElements);
-    return node.getElement();
+    return node.getStaticElement();
   }
 
   /**

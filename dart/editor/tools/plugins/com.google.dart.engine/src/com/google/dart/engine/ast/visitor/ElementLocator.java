@@ -122,7 +122,7 @@ public class ElementLocator {
 
     @Override
     public Element visitIndexExpression(IndexExpression node) {
-      return node.getElement();
+      return node.getBestElement();
     }
 
     @Override

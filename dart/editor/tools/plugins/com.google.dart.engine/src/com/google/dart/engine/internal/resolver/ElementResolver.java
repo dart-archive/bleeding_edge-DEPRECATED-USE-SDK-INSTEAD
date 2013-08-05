@@ -1534,7 +1534,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     MethodElement propagatedMethod = lookUpMethod(target, propagatedType, methodName);
     // set element
     node.setStaticElement(staticMethod);
-    node.setElement(select(staticMethod, propagatedMethod));
+    node.setPropagatedElement(propagatedMethod);
     // report problem
     if (shouldReportMissingMember(staticType, staticMethod)
         && (strictMode || propagatedType == null || shouldReportMissingMember(
