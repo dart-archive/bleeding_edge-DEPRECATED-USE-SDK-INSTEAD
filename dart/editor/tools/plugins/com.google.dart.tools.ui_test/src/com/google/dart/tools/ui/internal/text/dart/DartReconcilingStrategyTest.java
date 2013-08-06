@@ -314,7 +314,7 @@ public class DartReconcilingStrategyTest extends TestCase {
   Source mockSource = new TestSource(INITIAL_CONTENTS);
   MockContext mockContext = new MockContext();
   Document mockDocument = new Document();
-  DartReconcilingStrategy strategy = new DartReconcilingStrategy(mockEditor, mockSource);
+  DartReconcilingStrategy strategy = new DartReconcilingStrategy(mockEditor);
 
   public void test_dispose() throws Exception {
     mockContext.setContents(mockSource, INITIAL_CONTENTS);
