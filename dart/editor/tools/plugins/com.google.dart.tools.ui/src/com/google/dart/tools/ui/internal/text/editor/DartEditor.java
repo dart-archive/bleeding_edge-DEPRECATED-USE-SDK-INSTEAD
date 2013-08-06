@@ -1356,7 +1356,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (window == getEditorSite().getWorkbenchWindow() && fMarkOccurrenceAnnotations
           && isActivePart()) {
         fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
-        com.google.dart.engine.ast.CompilationUnit unit = getParsedUnit();
+        com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
         if (unit != null) {
           updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, unit);
         }
@@ -1960,6 +1960,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           applyParsedUnitAndSelection(resolvedUnit, true, null);
         }
         fireDartSelectionListeners();
+        // update occurrences
+        fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
+        updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, resolvedUnit);
       }
     });
   }
@@ -2609,7 +2612,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       sourceViewer.revealRange(offset, length);
       sourceViewer.setSelectedRange(offset, length);
       fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
-      updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, getParsedUnit());
+      updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, getInputUnit());
     } finally {
       textWidget.setRedraw(true);
     }
@@ -3685,17 +3688,16 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         ISelection selection = event.getSelection();
         if (selection instanceof ITextSelection) {
           fForcedMarkOccurrencesSelection = selection;
-          updateOccurrenceAnnotations((ITextSelection) selection, getParsedUnit());
+          updateOccurrenceAnnotations((ITextSelection) selection, getInputUnit());
         }
       }
     };
     getSelectionProvider().addSelectionChangedListener(occurrencesResponder);
     if (forceUpdate && getSelectionProvider() != null) {
       fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
-      if (getParsedUnit() != null) {
-        updateOccurrenceAnnotations(
-            (ITextSelection) fForcedMarkOccurrencesSelection,
-            getParsedUnit());
+      com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
+      if (unit != null) {
+        updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, unit);
       }
     }
 
@@ -3824,7 +3826,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
 
     fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
-    updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, getParsedUnit());
+    updateOccurrenceAnnotations((ITextSelection) fForcedMarkOccurrencesSelection, getInputUnit());
     // TODO(scheglov)
     LightNodeElement element = computeHighlightRangeSourceElement(
         parsedUnit,
