@@ -14,10 +14,9 @@
 
 package com.google.dart.tools.debug.core.server;
 
-import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * A utility class for the VM debugger. This normalizes between the url format that the VM expects
@@ -37,11 +36,14 @@ public class VmUtils {
       return null;
     }
 
+    // Use the URI class to convert things like '%20' ==> ' '.
+    URI uri = URI.create(url);
+
     if (url.startsWith(ECLIPSE_FORMAT)) {
-      // Use the URI class to convert things like '%20' ==> ' '.
       // The VM also wants file urls to start with file:///, not file:/.
-      URI uri = URI.create(url);
       url = uri.getScheme() + "://" + uri.getPath();
+    } else {
+      url = uri.getScheme() + ":" + uri.getSchemeSpecificPart();
     }
 
     return url;
@@ -56,17 +58,11 @@ public class VmUtils {
     }
 
     if (url.startsWith(VM_FORMAT)) {
-      try {
-        // Convert things like ' ' to '%20'.
-        // Also, file:/// --> file:/.
-        URI uri = new URI("file", null, url.substring(VM_FORMAT.length() - 1), null);
-        url = uri.toString();
-      } catch (URISyntaxException e) {
-        DartDebugCorePlugin.logError(e);
-      }
+      url = ECLIPSE_FORMAT + url.substring(VM_FORMAT.length());
     }
+
+    url = URIUtilities.uriEncode(url);
 
     return url;
   }
-
 }

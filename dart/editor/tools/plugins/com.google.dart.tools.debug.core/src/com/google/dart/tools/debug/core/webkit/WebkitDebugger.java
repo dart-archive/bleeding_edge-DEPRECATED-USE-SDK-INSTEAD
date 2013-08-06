@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.webkit;
 
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection.Callback;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection.NotificationHandler;
@@ -496,7 +497,7 @@ public class WebkitDebugger extends WebkitDomain {
       }
 
       if (urlRegex != null) {
-        params.put("urlRegex", urlRegex);
+        params.put("urlRegex", URIUtilities.uriEncode(urlRegex));
       }
 
       JSONObject request = new JSONObject();
