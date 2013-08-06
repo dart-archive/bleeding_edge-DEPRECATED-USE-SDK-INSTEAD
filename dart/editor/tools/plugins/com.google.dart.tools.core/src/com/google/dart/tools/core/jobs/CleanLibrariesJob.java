@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.jobs;
 
+import com.google.dart.engine.utilities.instrumentation.HealthUtils;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -41,6 +43,8 @@ public class CleanLibrariesJob extends Job {
 
   @Override
   protected IStatus run(IProgressMonitor monitor) {
+
+    HealthUtils.ReportHealth("CleanLibrariesJob.run");
 
     try {
 

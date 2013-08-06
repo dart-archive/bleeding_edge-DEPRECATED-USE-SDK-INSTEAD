@@ -89,11 +89,14 @@ public class HealthUtils {
   private static void ReportHealthImpl(String reason) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("HealthReport");
 
-    instrumentation.metric("Reason", reason);
+    try {
+      instrumentation.metric("Reason", reason);
 
-    logMemory(instrumentation);
-    logThreads(instrumentation);
-
+      logMemory(instrumentation);
+      logThreads(instrumentation);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   private static String stackTraceToString(StackTraceElement[] elements) {
