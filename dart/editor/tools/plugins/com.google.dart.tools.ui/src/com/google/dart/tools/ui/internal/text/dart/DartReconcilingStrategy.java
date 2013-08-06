@@ -62,11 +62,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private final DartReconcilingEditor editor;
 
   /**
-   * The source being edited (not {@code null}).
-   */
-  private Source source;
-
-  /**
    * The document with source to be reconciled. This is set by the {@link IReconciler} and should
    * not be {@code null}.
    */
@@ -134,11 +129,9 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    * Construct a new instance for the specified editor.
    * 
    * @param editor the editor (not {@code null})
-   * @param source the source to be reconciled (not {@code null})
    */
-  public DartReconcilingStrategy(DartReconcilingEditor editor, Source source) {
+  public DartReconcilingStrategy(DartReconcilingEditor editor) {
     this.editor = editor;
-    this.source = source;
 
     // Prioritize analysis when editor becomes active
     editor.addViewerFocusListener(new FocusListener() {
@@ -180,7 +173,8 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
     if (!applyResolvedUnit()) {
       try {
         AnalysisContext context = editor.getInputAnalysisContext();
-        if (context != null) {
+        Source source = editor.getInputSource();
+        if (context != null && source != null) {
           CompilationUnit unit = context.parseCompilationUnit(source);
           editor.applyCompilationUnitElement(unit);
           performAnalysisInBackground();
@@ -251,7 +245,8 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    */
   private boolean applyResolvedUnit() {
     AnalysisContext context = editor.getInputAnalysisContext();
-    if (context != null) {
+    Source source = editor.getInputSource();
+    if (context != null && source != null) {
       Source[] libraries = context.getLibrariesContaining(source);
       if (libraries != null && libraries.length > 0) {
         // TODO (danrubel): Handle multiple libraries gracefully
@@ -316,7 +311,8 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private void sourceChanged(String code) {
     notifyContextTime = System.currentTimeMillis();
     AnalysisContext context = editor.getInputAnalysisContext();
-    if (context != null) {
+    Source source = editor.getInputSource();
+    if (context != null && source != null) {
       context.setContents(source, code);
     }
   }
@@ -337,7 +333,8 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       public void run() {
         // TODO (danrubel): Revisit when reviewing performance of startup, open, and activate
         AnalysisContext context = editor.getInputAnalysisContext();
-        if (context != null) {
+        Source source = editor.getInputSource();
+        if (context != null && source != null) {
           List<Source> sources = getVisibleSourcesForContext(context);
           sources.remove(source);
           if (isOpen) {

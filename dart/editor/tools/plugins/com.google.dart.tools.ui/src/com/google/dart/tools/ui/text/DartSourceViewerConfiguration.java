@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.text;
 
-import com.google.dart.engine.source.Source;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
@@ -593,16 +592,13 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     final ITextEditor editor = getEditor();
     if (editor instanceof DartReconcilingEditor) {
       DartReconcilingEditor dartEditor = (DartReconcilingEditor) editor;
-      Source source = dartEditor.getInputSource();
-      if (source != null) {
-        IReconcilingStrategy strategy = new DartReconcilingStrategy(dartEditor, source);
-        MonoReconciler reconciler = new MonoReconciler(strategy, true);
-        reconciler.setIsIncrementalReconciler(true);
-        reconciler.setIsAllowedToModifyDocument(false);
-        reconciler.setProgressMonitor(new NullProgressMonitor());
-        reconciler.setDelay(150);
-        return reconciler;
-      }
+      IReconcilingStrategy strategy = new DartReconcilingStrategy(dartEditor);
+      MonoReconciler reconciler = new MonoReconciler(strategy, true);
+      reconciler.setIsIncrementalReconciler(true);
+      reconciler.setIsAllowedToModifyDocument(false);
+      reconciler.setProgressMonitor(new NullProgressMonitor());
+      reconciler.setDelay(150);
+      return reconciler;
     }
     return null;
   }
