@@ -1862,24 +1862,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   }
 
   /*
-   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor# isTabsToSpacesConversionEnabled()
-   */
-  @Override
-  protected boolean isTabsToSpacesConversionEnabled() {
-    DartX.todo("actions");
-    return true;
-    // DartElement element = getInputJavaElement();
-    // DartProject project = element == null ? null
-    // : element.getJavaScriptProject();
-    // String option;
-    // if (project == null)
-    // option = JavaScriptCore.getOption(SPACES_FOR_TABS);
-    // else
-    // option = project.getOption(SPACES_FOR_TABS, true);
-    // return JavaScriptCore.SPACE.equals(option);
-  }
-
-  /*
    * @see org.eclipse.ui.texteditor.AbstractTextEditor#openSaveErrorDialog(java.lang .String,
    * java.lang.String, org.eclipse.core.runtime.CoreException)
    */

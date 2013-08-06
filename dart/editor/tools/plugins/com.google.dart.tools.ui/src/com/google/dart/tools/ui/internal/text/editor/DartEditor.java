@@ -1703,10 +1703,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   private IFile inputResourceFile;
+
   private File inputJavaFile;
   private volatile com.google.dart.engine.ast.CompilationUnit parsedUnit;
   private volatile com.google.dart.engine.ast.CompilationUnit resolvedUnit;
-
   private SourceRange textSelectionRange;
 
   /** Preference key for matching brackets */
@@ -1719,18 +1719,19 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   /** The outline page */
   protected DartOutlinePage fOutlinePage;
+
   /** Outliner context menu Id */
   protected String fOutlinerContextMenuId;
   /**
    * The editor selection changed listener.
    */
   private EditorSelectionChangedListener fEditorSelectionChangedListener;
-
   /** The editor's bracket matcher */
   protected DartPairMatcher fBracketMatcher = new DartPairMatcher(BRACKETS);
 
   /** This editor's encoding support */
   private DefaultEncodingSupport fEncodingSupport;
+
   /** History for structure select action */
   private SelectionHistory fSelectionHistory;
   protected CompositeActionGroup fActionGroups;
@@ -1738,13 +1739,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * The action group for folding.
    */
   private FoldingActionGroup fFoldingGroup;
-
   private CompositeActionGroup fOpenEditorActionGroup;
 
   /**
    * Removes trailing whitespace on editor saves.
    */
   private RemoveTrailingWhitespaceAction removeTrailingWhitespaceAction;
+
   /**
    * Holds the current occurrence annotations.
    */
@@ -1775,7 +1776,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkConstantOccurrences;
-
   /**
    * Tells whether to mark field occurrences in this editor. Only valid if
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
@@ -1787,6 +1787,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkLocalVariableypeOccurrences;
+
   /**
    * Tells whether to mark exception occurrences in this editor. Only valid if
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
@@ -1802,12 +1803,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * this editor. Only valid if {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkBreakContinueTargets;
-
   /**
    * Tells whether to mark implementors in this editor. Only valid if
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkImplementors;
+
   /**
    * The selection used when forcing occurrence marking through code.
    */
@@ -1833,7 +1834,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * This editor's projection support
    */
   private ProjectionSupport fProjectionSupport;
-
   /**
    * This editor's projection model updater
    */
@@ -1893,6 +1893,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private SelectionProvider selectionProvider = new DartSelectionProvider();
 
   private final List<ISelectionChangedListener> dartSelectionListeners = Lists.newArrayList();
+
   private final CaretListener dartSelectionCaretListener = new CaretListener() {
     private boolean caretMovedScheduled = false;
 
@@ -3741,6 +3742,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         || getBoolean(store, preference.getVerticalRulerPreferenceKey())
         || getBoolean(store, preference.getOverviewRulerPreferenceKey())
         || getBoolean(store, preference.getTextPreferenceKey());
+  }
+
+  @Override
+  protected boolean isTabsToSpacesConversionEnabled() {
+    return getPreferenceStore() != null
+        && getPreferenceStore().getBoolean(
+            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS);
   }
 
   @Override

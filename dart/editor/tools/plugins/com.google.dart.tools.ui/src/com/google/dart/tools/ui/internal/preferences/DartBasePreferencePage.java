@@ -51,6 +51,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Button printMarginCheck;
   private Text printMarginText;
   private Button removeTrailingWhitespaceCheck;
+  private Button insertSpacesForTabs;
   private Button enableFolding;
   private Button enableAutoCompletion;
   private Button runPubAutoCheck;
@@ -102,6 +103,9 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     toolsPreferenceStore.setValue(
         PreferenceConstants.EDITOR_REMOVE_TRAILING_WS,
         removeTrailingWhitespaceCheck.getSelection());
+    toolsPreferenceStore.setValue(
+        PreferenceConstants.EDITOR_SPACES_FOR_TABS,
+        insertSpacesForTabs.getSelection());
     handleSave(toolsPreferenceStore);
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
@@ -158,6 +162,12 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     printMarginText = new Text(generalGroup, SWT.BORDER | SWT.SINGLE | SWT.RIGHT);
     printMarginText.setTextLimit(5);
     GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(printMarginText);
+
+    insertSpacesForTabs = createCheckBox(
+        generalGroup,
+        PreferencesMessages.DartBasePreferencePage_insert_spaces_for_tabsDartBasePreferencePage_insert_spaces_for_tabs,
+        PreferencesMessages.DartBasePreferencePage_insert_spaces_for_tabsDartBasePreferencePage_insert_spaces_for_tabs_tooltip);
+    GridDataFactory.fillDefaults().applyTo(insertSpacesForTabs);
 
     enableAutoCompletion = createCheckBox(
         generalGroup,
@@ -237,6 +247,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     removeTrailingWhitespaceCheck.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
     enableAutoCompletion.setSelection(toolsPreferences.getBoolean(PreferenceConstants.CODEASSIST_AUTOACTIVATION));
     enableFolding.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_FOLDING_ENABLED));
+    insertSpacesForTabs.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_SPACES_FOR_TABS));
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {

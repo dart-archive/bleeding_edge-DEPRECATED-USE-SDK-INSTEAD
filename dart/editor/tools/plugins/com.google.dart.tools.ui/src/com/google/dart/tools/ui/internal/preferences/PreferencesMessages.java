@@ -781,6 +781,8 @@ public final class PreferencesMessages extends NLS {
 
   public static String DartBasePreferencePage_groupTitle;
 
+  public static String DartBasePreferencePage_insert_spaces_for_tabsDartBasePreferencePage_insert_spaces_for_tabs;
+  public static String DartBasePreferencePage_insert_spaces_for_tabsDartBasePreferencePage_insert_spaces_for_tabs_tooltip;
   public static String DartBasePreferencePage_Package_Title;
   public static String DartBasePreferencePage_select;
   public static String DartBasePreferencePage_text_font;
