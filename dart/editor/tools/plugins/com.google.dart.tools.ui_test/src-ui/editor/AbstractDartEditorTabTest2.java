@@ -19,6 +19,7 @@ import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.ui.test.HeadlessTestManager;
 import com.google.dart.ui.test.model.Workbench;
 
 import junit.framework.TestCase;
@@ -78,6 +79,8 @@ public class AbstractDartEditorTabTest2 extends TestCase {
   protected ISourceViewer sourceViewer;
 
   protected StyledText textWidget;
+
+  protected HeadlessTestManager headlessTestManager;
 
   /**
    * Asserts that the unit <code>test.dart</code> has the given content.
@@ -170,6 +173,8 @@ public class AbstractDartEditorTabTest2 extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    headlessTestManager = new HeadlessTestManager();
+    headlessTestManager.install();
     waitForWorkbenchWindow();
     if (testProject == null) {
       testProject = new TestProject("sharedEditorTabProject");
@@ -179,6 +184,7 @@ public class AbstractDartEditorTabTest2 extends TestCase {
   @Override
   protected void tearDown() throws Exception {
     Workbench.closeAllEditors();
+    headlessTestManager.uninstall();
     super.tearDown();
   }
 }

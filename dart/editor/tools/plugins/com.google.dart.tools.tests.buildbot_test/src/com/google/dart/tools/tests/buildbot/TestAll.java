@@ -44,7 +44,7 @@ public class TestAll {
 
     // UI
     suite.addTest(com.google.dart.tools.ui.TestAll.suite());
-    //suite.addTest(editor.TestAll.suite());
+    suite.addTest(editor.TestAll.suite());
     //suite.addTest(views.TestAll.suite());
 
     // Web

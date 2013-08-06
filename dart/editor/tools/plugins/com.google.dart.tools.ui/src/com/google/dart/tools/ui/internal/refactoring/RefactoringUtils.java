@@ -82,11 +82,10 @@ public class RefactoringUtils {
       if (pm.isCanceled()) {
         throw new OperationCanceledException();
       }
-      boolean done = AnalysisWorker.waitForBackgroundAnalysis(5);
+      boolean done = AnalysisWorker.waitForBackgroundAnalysis(100);
       if (done) {
         break;
       }
-      Uninterruptibles.sleepUninterruptibly(5, TimeUnit.MILLISECONDS);
     }
   }
 

@@ -21,7 +21,6 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
@@ -64,7 +63,7 @@ public class InlineAction extends AbstractRefactoringAction {
     }
     // complain
     instrumentation.metric("Problem", "No valid selection, showing dialog");
-    MessageDialog.openInformation(
+    MessageDialogHelper.openInformation(
         getShell(),
         RefactoringMessages.InlineAction_dialog_title,
         RefactoringMessages.InlineAction_select);

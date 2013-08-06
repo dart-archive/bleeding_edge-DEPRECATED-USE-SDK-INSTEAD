@@ -154,6 +154,9 @@ public class ExceptionHandler {
 
   private void displayMessageDialog(Throwable t, String exceptionMessage, Shell shell,
       String title, String message) {
+    if (ErrorDialog.AUTOMATED_MODE) {
+      return;
+    }
     StringWriter msg = new StringWriter();
     if (message != null) {
       msg.write(message);

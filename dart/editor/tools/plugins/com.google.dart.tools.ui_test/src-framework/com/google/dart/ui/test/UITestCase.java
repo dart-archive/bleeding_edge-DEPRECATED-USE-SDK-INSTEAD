@@ -25,10 +25,14 @@ import org.eclipse.swt.widgets.Display;
 public class UITestCase extends TestCase {
 
   private final LogWatcher watcher = new LogWatcher();
+  protected HeadlessTestManager headlessTestManager;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+
+    headlessTestManager = new HeadlessTestManager();
+    headlessTestManager.install();
 
     checkThread();
     watcher.start();
@@ -41,6 +45,8 @@ public class UITestCase extends TestCase {
     } finally {
       watcher.stop();
     }
+
+    headlessTestManager.uninstall();
 
     super.tearDown();
   }
