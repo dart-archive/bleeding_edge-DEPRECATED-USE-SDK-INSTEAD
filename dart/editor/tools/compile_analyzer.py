@@ -8,6 +8,7 @@
 # Usage: compile_analyzer.py OPTIONS files
 #
 
+import imp
 import optparse
 import os
 import platform
@@ -16,6 +17,13 @@ import subprocess
 import sys
 
 from os.path import join
+
+def GetUtils():
+  '''Dynamically load the tools/utils.py python module.'''
+  dart_dir = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
+  return imp.load_source('utils', os.path.join(dart_dir, 'tools', 'utils.py'))
+
+utils = GetUtils()
 
 def GetOptions():
   options = optparse.OptionParser(usage='usage: %prog [options] <output>')
@@ -82,7 +90,7 @@ def CreateManifestFile(options):
 
     # version
     print >> output, 'Implementation-Version: %s' % GetDartVersion()
-    
+
 def GetJavacPath():
   if 'JAVA_HOME' in os.environ:
     return join(os.environ['JAVA_HOME'], 'bin', 'javac' + GetExecutableExtension())
@@ -104,24 +112,7 @@ def GetExecutableExtension():
 
 def GetDartVersion():
   # 0.1.2.0_r13661
-  return RunDart("../tools/version.dart")
-
-def RunDart(scriptPath):
-  if sys.platform == 'darwin':
-    pipe = subprocess.Popen(
-          ['../tools/testing/bin/macos/dart', scriptPath],
-          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  elif os.name == 'posix':
-    pipe = subprocess.Popen(
-          ['../tools/testing/bin/linux/dart', scriptPath],
-          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  else:
-    pipe = subprocess.Popen(
-          ['..\\tools\\testing\\bin\\windows\\dart.exe', scriptPath],
-          stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-
-  output = pipe.communicate()
-  return output[0]
+  return utils.GetVersion()
 
 def main():
   (options, args) = GetOptions()
@@ -136,5 +127,5 @@ def main():
   CreateJarFile(options)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
   main()

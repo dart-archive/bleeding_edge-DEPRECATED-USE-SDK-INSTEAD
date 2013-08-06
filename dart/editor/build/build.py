@@ -5,6 +5,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import glob
+import gsutil
+import hashlib
+import imp
 import optparse
 import os
 import re
@@ -12,9 +15,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import gsutil
 import ziputils
-import hashlib
 
 from os.path import join
 
@@ -34,7 +35,12 @@ PLUGINS_BUILD = None
 
 NO_UPLOAD = None
 
-utils = None
+def GetUtils():
+  '''Dynamically load the tools/utils.py python module.'''
+  dart_dir = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
+  return imp.load_source('utils', os.path.join(dart_dir, 'tools', 'utils.py'))
+
+utils = GetUtils()
 
 class AntWrapper(object):
   """A wrapper for ant build invocations"""
@@ -171,26 +177,6 @@ def BuildOptions():
                     action='store')
   return result
 
-
-def GetUtils(toolspath):
-  """Dynamically get the utils module.
-
-  We use a dynamic import for tools/util.py because we derive its location
-  dynamically using sys.argv[0]. This allows us to run this script from
-  different directories.
-
-  Args:
-    toolspath: the path to the tools directory
-
-  Returns:
-    the utils module
-  """
-  global utils
-  sys.path.append(os.path.abspath(toolspath))
-  utils = __import__('utils')
-  return utils
-
-
 def main():
   """Main entry point for the build program."""
   global BUILD_OS
@@ -204,7 +190,6 @@ def main():
   global MILESTONE_BUILD
   global PLUGINS_BUILD
   global NO_UPLOAD
-  global utils
 
   if not sys.argv:
     print 'Script pathname not known, giving up.'
@@ -221,7 +206,6 @@ def main():
   bzip2libpath = os.path.join(thirdpartypath, 'bzip2')
   buildpath = os.path.join(editorpath, 'tools', 'features',
                            'com.google.dart.tools.deploy.feature_releng')
-  utils = GetUtils(toolspath)
   buildos = utils.GuessOS()
 
   BUILD_OS = utils.GuessOS()

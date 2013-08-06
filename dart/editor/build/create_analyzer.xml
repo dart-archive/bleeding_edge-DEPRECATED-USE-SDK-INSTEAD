@@ -12,24 +12,24 @@
 
     <target name="get-version">
         <exec dir="../../tools"
-              executable="testing/bin/windows/dart.exe"
+              executable="python.exe"
               outputproperty="dart.version"
               osfamily="windows">
-            <arg value="version.dart" />
+            <arg value="print_version.py" />
         </exec>
         <exec dir="../../tools"
-              executable="testing/bin/macos/dart"
+              executable="python"
               outputproperty="dart.version"
               osfamily="mac">
-            <arg value="version.dart" />
+            <arg value="print_version.py" />
         </exec>
         <exec dir="../../tools"
-              executable="testing/bin/linux/dart"
+              executable="python"
               outputproperty="dart.version"
               osfamily="unix"
               failonerror="false"
               errorproperty="ignore.prop">
-            <arg value="version.dart" />
+            <arg value="print_version.py" />
         </exec>
 
         <echo message="verison = ${dart.version}" />
