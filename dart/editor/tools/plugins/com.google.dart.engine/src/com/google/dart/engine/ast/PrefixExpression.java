@@ -74,15 +74,19 @@ public class PrefixExpression extends Expression {
   }
 
   /**
-   * Return the element associated with the operator based on the propagated type of the operand, or
-   * {@code null} if the AST structure has not been resolved, if the operator is not user definable,
-   * or if the operator could not be resolved. One example of the latter case is an operator that is
-   * not defined for the type of the operand.
+   * Return the best element available for this operator. If resolution was able to find a better
+   * element based on type propagation, that element will be returned. Otherwise, the element found
+   * using the result of static analysis will be returned. If resolution has not been performed,
+   * then {@code null} will be returned.
    * 
-   * @return the element associated with the operator
+   * @return the best element available for this operator
    */
-  public MethodElement getElement() {
-    return propagatedElement;
+  public MethodElement getBestElement() {
+    MethodElement element = getPropagatedElement();
+    if (element == null) {
+      element = getStaticElement();
+    }
+    return element;
   }
 
   @Override
@@ -109,6 +113,18 @@ public class PrefixExpression extends Expression {
   }
 
   /**
+   * Return the element associated with the operator based on the propagated type of the operand, or
+   * {@code null} if the AST structure has not been resolved, if the operator is not user definable,
+   * or if the operator could not be resolved. One example of the latter case is an operator that is
+   * not defined for the type of the operand.
+   * 
+   * @return the element associated with the operator
+   */
+  public MethodElement getPropagatedElement() {
+    return propagatedElement;
+  }
+
+  /**
    * Return the element associated with the operator based on the static type of the operand, or
    * {@code null} if the AST structure has not been resolved, if the operator is not user definable,
    * or if the operator could not be resolved. One example of the latter case is an operator that is
@@ -118,16 +134,6 @@ public class PrefixExpression extends Expression {
    */
   public MethodElement getStaticElement() {
     return staticElement;
-  }
-
-  /**
-   * Set the element associated with the operator based on the propagated type of the operand to the
-   * given element.
-   * 
-   * @param element the element to be associated with the operator
-   */
-  public void setElement(MethodElement element) {
-    propagatedElement = element;
   }
 
   /**
@@ -146,6 +152,16 @@ public class PrefixExpression extends Expression {
    */
   public void setOperator(Token operator) {
     this.operator = operator;
+  }
+
+  /**
+   * Set the element associated with the operator based on the propagated type of the operand to the
+   * given element.
+   * 
+   * @param element the element to be associated with the operator
+   */
+  public void setPropagatedElement(MethodElement element) {
+    propagatedElement = element;
   }
 
   /**

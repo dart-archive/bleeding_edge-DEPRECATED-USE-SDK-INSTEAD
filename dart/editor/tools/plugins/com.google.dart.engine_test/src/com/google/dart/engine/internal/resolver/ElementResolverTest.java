@@ -495,7 +495,7 @@ public class ElementResolverTest extends EngineTestCase {
     operand.setStaticType(numType);
     PrefixExpression expression = prefixExpression(TokenType.PLUS_PLUS, operand);
     resolveNode(expression);
-    assertEquals(getMethod(numType, "+"), expression.getElement());
+    assertEquals(getMethod(numType, "+"), expression.getStaticElement());
     listener.assertNoErrors();
   }
 

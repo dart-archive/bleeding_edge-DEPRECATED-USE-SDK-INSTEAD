@@ -795,7 +795,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     PrefixExpression node = prefixExpression(TokenType.MINUS, resolvedInteger(0));
     MethodElement minusMethod = getMethod(typeProvider.getNumType(), "-");
     node.setStaticElement(minusMethod);
-    node.setElement(minusMethod);
     assertSame(typeProvider.getNumType(), analyze(node));
     listener.assertNoErrors();
   }
@@ -805,7 +804,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     PrefixExpression node = prefixExpression(TokenType.MINUS_MINUS, resolvedInteger(0));
     MethodElement minusMethod = getMethod(typeProvider.getNumType(), "-");
     node.setStaticElement(minusMethod);
-    node.setElement(minusMethod);
     assertSame(typeProvider.getIntType(), analyze(node));
     listener.assertNoErrors();
   }
@@ -822,7 +820,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     PrefixExpression node = prefixExpression(TokenType.PLUS_PLUS, resolvedInteger(0));
     MethodElement plusMethod = getMethod(typeProvider.getNumType(), "+");
     node.setStaticElement(plusMethod);
-    node.setElement(plusMethod);
     assertSame(typeProvider.getIntType(), analyze(node));
     listener.assertNoErrors();
   }
@@ -832,7 +829,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     PrefixExpression node = prefixExpression(TokenType.TILDE, resolvedInteger(0));
     MethodElement tildeMethod = getMethod(typeProvider.getIntType(), "~");
     node.setStaticElement(tildeMethod);
-    node.setElement(tildeMethod);
     assertSame(typeProvider.getIntType(), analyze(node));
     listener.assertNoErrors();
   }

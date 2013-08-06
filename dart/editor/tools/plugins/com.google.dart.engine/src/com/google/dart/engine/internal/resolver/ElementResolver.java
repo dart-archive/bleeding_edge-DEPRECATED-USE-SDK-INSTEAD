@@ -882,7 +882,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
     Type propagatedType = getPropagatedType(operand);
     MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
-    node.setPropagatedElement(select(staticMethod, propagatedMethod));
+    node.setPropagatedElement(propagatedMethod);
 
     if (shouldReportMissingMember(staticType, staticMethod)
         && (strictMode || propagatedType == null || shouldReportMissingMember(
@@ -965,7 +965,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
       Type propagatedType = getPropagatedType(operand);
       MethodElement propagatedMethod = lookUpMethod(operand, propagatedType, methodName);
-      node.setElement(select(staticMethod, propagatedMethod));
+      node.setPropagatedElement(propagatedMethod);
 
       if (shouldReportMissingMember(staticType, staticMethod)
           && (strictMode || propagatedType == null || shouldReportMissingMember(

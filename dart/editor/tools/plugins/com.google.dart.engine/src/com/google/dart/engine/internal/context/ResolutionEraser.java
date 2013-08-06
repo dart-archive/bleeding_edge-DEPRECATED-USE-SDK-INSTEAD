@@ -119,7 +119,7 @@ public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitPrefixExpression(PrefixExpression node) {
     node.setStaticElement(null);
-    node.setElement(null);
+    node.setPropagatedElement(null);
     return super.visitPrefixExpression(node);
   }
 

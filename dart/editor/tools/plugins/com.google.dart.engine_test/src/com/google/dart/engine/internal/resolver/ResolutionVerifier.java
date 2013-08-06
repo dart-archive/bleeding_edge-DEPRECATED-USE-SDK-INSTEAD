@@ -237,7 +237,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (operandType == null || operandType.isDynamic()) {
       return null;
     }
-    return checkResolved(node, node.getElement(), MethodElement.class);
+    return checkResolved(node, node.getStaticElement(), MethodElement.class);
   }
 
   @Override

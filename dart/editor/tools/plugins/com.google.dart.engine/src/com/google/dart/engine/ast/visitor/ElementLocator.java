@@ -157,7 +157,7 @@ public class ElementLocator {
 
     @Override
     public Element visitPrefixExpression(PrefixExpression node) {
-      return node.getElement();
+      return node.getBestElement();
     }
 
     @Override
