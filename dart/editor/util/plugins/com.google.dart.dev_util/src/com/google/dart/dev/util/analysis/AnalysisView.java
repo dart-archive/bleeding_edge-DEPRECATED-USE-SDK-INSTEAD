@@ -210,7 +210,7 @@ public class AnalysisView extends ViewPart {
       TreeViewerColumn viewerColumn = new TreeViewerColumn(viewer, SWT.RIGHT);
       TreeColumn column = viewerColumn.getColumn();
       column.setText("Item");
-      column.setWidth(pixelConverter.convertWidthInCharsToPixels(75));
+      column.setWidth(pixelConverter.convertWidthInCharsToPixels(50));
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
         public String getText(Object element) {
