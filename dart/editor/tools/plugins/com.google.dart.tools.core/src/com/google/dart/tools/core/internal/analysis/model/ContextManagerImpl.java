@@ -61,6 +61,9 @@ public abstract class ContextManagerImpl implements ContextManager {
   @Override
   public LibraryElement getLibraryElement(IFile file) {
     ResourceMap map = getResourceMap(file);
+    if (map == null) {
+      return null;
+    }
     Source source = map.getSource(file);
     if (source != null) {
       try {
@@ -75,6 +78,9 @@ public abstract class ContextManagerImpl implements ContextManager {
   @Override
   public LibraryElement getLibraryElementOrNull(IFile file) {
     ResourceMap map = getResourceMap(file);
+    if (map == null) {
+      return null;
+    }
     Source source = map.getSource(file);
     if (source != null) {
       return map.getContext().getLibraryElement(source);
@@ -94,12 +100,19 @@ public abstract class ContextManagerImpl implements ContextManager {
 
   @Override
   public Source getSource(IFile file) {
-    return getResourceMap(file).getSource(file);
+    ResourceMap map = getResourceMap(file);
+    if (map == null) {
+      return null;
+    }
+    return map.getSource(file);
   }
 
   @Override
   public SourceKind getSourceKind(IFile file) {
     ResourceMap map = getResourceMap(file);
+    if (map == null) {
+      return SourceKind.UNKNOWN;
+    }
     Source source = map.getSource(file);
     if (source != null) {
       return map.getContext().getKindOf(source);

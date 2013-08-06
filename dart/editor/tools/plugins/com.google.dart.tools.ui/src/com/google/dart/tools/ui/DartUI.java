@@ -779,7 +779,8 @@ public final class DartUI {
       if (context == null) {
         file = (IFile) projectManager.getResource(source);
       } else {
-        file = projectManager.getResourceMap(context).getResource(source);
+        ResourceMap map = projectManager.getResourceMap(context);
+        file = map != null ? map.getResource(source) : null;
       }
       if (file != null) {
         part = EditorUtility.openInEditor(file, activate);

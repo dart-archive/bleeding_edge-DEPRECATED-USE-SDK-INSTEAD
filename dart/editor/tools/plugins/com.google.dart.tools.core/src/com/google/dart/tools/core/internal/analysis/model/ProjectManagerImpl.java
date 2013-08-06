@@ -349,6 +349,9 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   @Override
   public IFile resolvePackageUri(IResource relativeTo, String uri) {
     ResourceMap map = getResourceMap(relativeTo);
+    if (map == null) {
+      return null;
+    }
 
     Source source = map.getContext().getSourceFactory().forUri(uri);
 

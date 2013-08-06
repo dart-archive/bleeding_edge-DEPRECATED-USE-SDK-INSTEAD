@@ -138,8 +138,8 @@ public interface ContextManager {
    * Answer the source for the specified file
    * 
    * @param file the file (not {@code null})
-   * @return the source or {@code null} if the source could not be determned because the location is
-   *         {@code null}
+   * @return the source or {@code null} if the source could not be determined because the location
+   *         is {@code null}
    */
   Source getSource(IFile file);
 
