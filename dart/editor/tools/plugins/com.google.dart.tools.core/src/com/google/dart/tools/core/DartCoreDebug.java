@@ -46,6 +46,7 @@ public class DartCoreDebug {
   public static final boolean PERF_TIMER = isOptionTrue("perf/timer");
   public static final boolean PERF_INDEX = isOptionTrue("perf/index");
   public static final boolean PERF_OS_RESOURCES = isOptionTrue("perf/osResources");
+  public static final boolean PERF_THREAD_CONTENTION_MONIOR = isOptionTrue("perf/threadContentionMonitor");
 
   // Experimental functionality options.
 

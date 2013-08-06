@@ -78,6 +78,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -1445,6 +1446,14 @@ public class DartCore extends Plugin implements DartSdkListener {
 
     CmdLineOptions.setOptions(CmdLineOptions.parseCmdLine(Platform.getApplicationArgs()));
     CmdLineOptions.getOptions().printWarnings();
+
+    if (DartCoreDebug.PERF_THREAD_CONTENTION_MONIOR) {
+      try {
+        java.lang.management.ThreadMXBean th = ManagementFactory.getThreadMXBean();
+        th.setThreadContentionMonitoringEnabled(true);
+      } catch (UnsupportedOperationException e) {
+      }
+    }
 
     AnalysisEngine.getInstance().setLogger(new Logger() {
       @Override
