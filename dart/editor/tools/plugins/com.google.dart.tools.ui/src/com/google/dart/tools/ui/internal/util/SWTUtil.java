@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
+import com.google.common.collect.Maps;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
@@ -56,7 +57,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 
-import java.util.WeakHashMap;
+import java.util.Map;
 
 /**
  * Utility class to simplify access to some SWT resources.
@@ -66,10 +67,9 @@ public class SWTUtil {
   private static final int COMBO_VISIBLE_ITEM_COUNT = 30;
 
   /**
-   * Font cache. A weak reference is used so that fonts may be disposed when no longer needed. Note:
-   * this does not "solve the font problem" since Eclipse code does not always dispose fonts.
+   * Font cache. We use it to don't create multiple copies of the font with the same properties.
    */
-  private static WeakHashMap<String, Font> fontCache = new WeakHashMap<String, Font>();
+  private static Map<String, Font> fontCache = Maps.newHashMap();
 
   /**
    * Propagates changes in {@link JFaceResources} font to the given {@link Control}.

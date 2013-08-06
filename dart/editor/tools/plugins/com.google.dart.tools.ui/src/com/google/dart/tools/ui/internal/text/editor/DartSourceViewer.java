@@ -539,6 +539,22 @@ public class DartSourceViewer extends ProjectionViewer implements IPropertyChang
       fBackspaceManager.uninstall();
       fBackspaceManager = null;
     }
+    if (fBackgroundColor != null) {
+      fBackgroundColor.dispose();
+      fBackgroundColor = null;
+    }
+    if (fForegroundColor != null) {
+      fForegroundColor.dispose();
+      fForegroundColor = null;
+    }
+    if (fSelectionBackgroundColor != null) {
+      fSelectionBackgroundColor.dispose();
+      fSelectionBackgroundColor = null;
+    }
+    if (fSelectionForegroundColor != null) {
+      fSelectionForegroundColor.dispose();
+      fSelectionForegroundColor = null;
+    }
 
     super.handleDispose();
   }

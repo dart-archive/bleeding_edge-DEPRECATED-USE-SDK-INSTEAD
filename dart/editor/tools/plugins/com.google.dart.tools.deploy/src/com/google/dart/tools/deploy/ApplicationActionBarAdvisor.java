@@ -838,6 +838,13 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       menu.add(new AccessibleShowViewAction(window, viewDesc, false));
     }
 
+    // optionally add SWT Leak view if it's available
+    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(
+        "org.eclipse.swt.tools.views.SleakView"); //$NON-NLS-1$
+    if (viewDesc != null) {
+      menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+    }
+
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_PROBLEMS);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
