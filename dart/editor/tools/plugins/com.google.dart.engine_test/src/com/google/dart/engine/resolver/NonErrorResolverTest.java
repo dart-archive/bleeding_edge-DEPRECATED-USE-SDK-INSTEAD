@@ -765,7 +765,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A() {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertErrors(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE);
     verify(source);
   }
 
@@ -775,7 +775,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  final int x;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertErrors(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE);
     verify(source);
   }
 

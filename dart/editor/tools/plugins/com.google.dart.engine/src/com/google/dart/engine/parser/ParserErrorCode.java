@@ -136,6 +136,8 @@ public enum ParserErrorCode implements ErrorCode {
   MULTIPLE_WITH_CLAUSES("Each class definition can have at most one with clause"),
   NAMED_FUNCTION_EXPRESSION("Function expressions cannot be named"),
   NAMED_PARAMETER_OUTSIDE_GROUP("Named parameters must be enclosed in curly braces ('{' and '}')"),
+  NATIVE_CLAUSE_IN_NON_SDK_CODE(
+      "Native clause can only be used in the SDK and code that is loaded through native extensions"),
   NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE(
       "Native functions can only be declared in the SDK and code that is loaded through native extensions"),
   NON_CONSTRUCTOR_FACTORY("Only constructors can be declared to be a 'factory'"),

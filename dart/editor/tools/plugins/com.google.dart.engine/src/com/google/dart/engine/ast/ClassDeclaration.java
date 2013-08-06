@@ -338,6 +338,7 @@ public class ClassDeclaration extends CompilationUnitMember {
     safelyVisitChild(extendsClause, visitor);
     safelyVisitChild(withClause, visitor);
     safelyVisitChild(implementsClause, visitor);
+    safelyVisitChild(nativeClause, visitor);
     getMembers().accept(visitor);
   }
 

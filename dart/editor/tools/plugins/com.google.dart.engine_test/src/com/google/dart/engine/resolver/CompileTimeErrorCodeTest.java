@@ -2132,6 +2132,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nativeClauseInNonSDKCode() throws Exception {
+    // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
+    // through the ErrorVerifier, it is not a CompileTimeErrorCode.
+    Source source = addSource(createSource(//
+    "class A native 'string' {}"));
+    resolve(source);
+    assertErrors(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE);
+    verify(source);
+  }
+
   public void test_nativeFunctionBodyInNonSDKCode_function() throws Exception {
     // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
     // through the ErrorVerifier, it is not a CompileTimeErrorCode.

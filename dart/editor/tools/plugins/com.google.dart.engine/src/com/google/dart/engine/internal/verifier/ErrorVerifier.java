@@ -61,6 +61,7 @@ import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NativeClause;
 import com.google.dart.engine.ast.NativeFunctionBody;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NormalFormalParameter;
@@ -732,6 +733,15 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitMethodInvocation(MethodInvocation node) {
     checkForStaticAccessToInstanceMember(node.getTarget(), node.getMethodName());
     return super.visitMethodInvocation(node);
+  }
+
+  @Override
+  public Void visitNativeClause(NativeClause node) {
+    // TODO(brianwilkerson) Figure out the right rule for when 'native' is allowed.
+    if (!isInSystemLibrary) {
+      errorReporter.reportError(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE, node);
+    }
+    return super.visitNativeClause(node);
   }
 
   @Override
