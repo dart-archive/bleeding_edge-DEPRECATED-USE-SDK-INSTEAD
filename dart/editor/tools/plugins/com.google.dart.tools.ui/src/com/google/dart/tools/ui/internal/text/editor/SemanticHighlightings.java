@@ -30,6 +30,8 @@ import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.NativeClause;
+import com.google.dart.engine.ast.NativeFunctionBody;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -209,6 +211,16 @@ public class SemanticHighlightings {
             }
           }
         }
+        // native
+        {
+          NativeClause nativeClause = clazz.getNativeClause();
+          if (nativeClause != null) {
+            Token keyword = nativeClause.getKeyword();
+            if (keyword != null) {
+              result = addPosition(result, keyword);
+            }
+          }
+        }
       }
       // constructor modifiers
       if (node instanceof ConstructorDeclaration) {
@@ -258,6 +270,13 @@ public class SemanticHighlightings {
           if (keyword != null) {
             result = addPosition(result, keyword);
           }
+        }
+      }
+      // native body
+      if (node instanceof NativeFunctionBody) {
+        Token keyword = ((NativeFunctionBody) node).getNativeToken();
+        if (keyword != null) {
+          result = addPosition(result, keyword);
         }
       }
       // try {} on

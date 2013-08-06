@@ -236,6 +236,25 @@ public class SemanticHighlightingTest extends
     assertNoWordPosition(SemanticHighlightings.BUILT_IN, "implements = 0;");
   }
 
+  public void test_builtIn_native_clause() throws Exception {
+    verifyNoTestUnitErrors = false;
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A native 'B' {",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "native 'B' {");
+  }
+
+  public void test_builtIn_native_functionBody() throws Exception {
+    verifyNoTestUnitErrors = false;
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() native 'z';",
+        "");
+    assertHasWordPosition(SemanticHighlightings.BUILT_IN, "native 'z';");
+  }
+
   public void test_builtIn_on() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
