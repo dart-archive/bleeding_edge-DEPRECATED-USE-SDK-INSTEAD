@@ -147,7 +147,7 @@ public class ElementLocator {
 
     @Override
     public Element visitPostfixExpression(PostfixExpression node) {
-      return node.getElement();
+      return node.getBestElement();
     }
 
     @Override

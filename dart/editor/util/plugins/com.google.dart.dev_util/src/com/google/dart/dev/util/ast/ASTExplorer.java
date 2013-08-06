@@ -491,7 +491,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
     } else if (object instanceof PartOfDirective) {
       return ((PartOfDirective) object).getElement();
     } else if (object instanceof PostfixExpression) {
-      return ((PostfixExpression) object).getElement();
+      return ((PostfixExpression) object).getStaticElement();
     } else if (object instanceof PrefixExpression) {
       return ((PrefixExpression) object).getElement();
     } else if (object instanceof SimpleIdentifier) {
