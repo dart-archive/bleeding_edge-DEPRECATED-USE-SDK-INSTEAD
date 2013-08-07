@@ -312,6 +312,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           nameNode.setToken(token("toString"));
           return null;
         }
+        if (isMethodInClass(node, "getCause", "java.lang.Throwable")) {
+          replaceNode(node, propertyAccess(target, "cause"));
+          return null;
+        }
         if (isMethodInClass(node, "printStackTrace", "java.lang.Throwable")) {
           replaceNode(node, methodInvocation("print", target));
           return null;
@@ -429,6 +433,11 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             || isMethodInClass2(node, "toString(int)", "java.lang.Integer")
             || isMethodInClass2(node, "toString(long)", "java.lang.Long")) {
           replaceNode(node, methodInvocation(args.get(0), "toString"));
+          return null;
+        }
+        if (isMethodInClass2(node, "toString(int,int)", "java.lang.Integer")
+            || isMethodInClass2(node, "toString(long,int)", "java.lang.Long")) {
+          replaceNode(node, methodInvocation(args.get(0), "toRadixString", args.get(1)));
           return null;
         }
         if (isMethodInClass(node, "booleanValue", "java.lang.Boolean")

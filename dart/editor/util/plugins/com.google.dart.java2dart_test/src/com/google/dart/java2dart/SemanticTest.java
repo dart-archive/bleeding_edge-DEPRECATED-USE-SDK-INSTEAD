@@ -442,6 +442,45 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_classInner6() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class A {",
+            "  public class B {",
+            "    public B(int p) {}",
+            "    void test() {",
+            "      outerMethod();",
+            "    }",
+            "  }",
+            "  void outerMethod() {}",
+            "  B test2() {",
+            "    return new B(42);",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // do translate
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  void outerMethod() {",
+            "  }",
+            "  A_B test2() => new A_B(this, 42);",
+            "}",
+            "class A_B {",
+            "  final A A_this;",
+            "  A_B(this.A_this, int p);",
+            "  void test() {",
+            "    A_this.outerMethod();",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_configureRenameField() throws Exception {
     setFileLines(
         "test/A.java",
@@ -689,7 +728,7 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class Test implements Comparable<Test> {",
+            "class Test implements Enum<Test> {",
             "  static final Test EOF = new Test_EOF('EOF', 0, 5);",
             "  static final Test DEF = new Test.con1('DEF', 1);",
             "  static final List<Test> values = [EOF, DEF];",
@@ -736,7 +775,7 @@ public class SemanticTest extends AbstractSemanticTest {
         toString(
             "class Test {",
             "}",
-            "class MyEnum implements Comparable<MyEnum> {",
+            "class MyEnum implements Enum<MyEnum> {",
             "  static final MyEnum ONE = new MyEnum('ONE', 0);",
             "  static final MyEnum TWO = new MyEnum('TWO', 1);",
             "  static final List<MyEnum> values = [ONE, TWO];",
@@ -769,7 +808,7 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class Test implements Comparable<Test> {",
+            "class Test implements Enum<Test> {",
             "  static final Test ONE = new Test('ONE', 0);",
             "  static final Test TWO = new Test('TWO', 1);",
             "  static final List<Test> values = [ONE, TWO];",
@@ -809,7 +848,7 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class Test implements Comparable<Test> {",
+            "class Test implements Enum<Test> {",
             "  static final Test ONE = new Test.con1('ONE', 0);",
             "  static final Test TWO = new Test.withPriority('TWO', 1, 2);",
             "  static final List<Test> values = [ONE, TWO];",
@@ -1695,7 +1734,7 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class A implements Comparable<A> {",
+            "class A implements Enum<A> {",
             "  static final A ONE = new A('ONE', 0);",
             "  static final A TWO = new A('TWO', 1);",
             "  static final List<A> values = [ONE, TWO];",

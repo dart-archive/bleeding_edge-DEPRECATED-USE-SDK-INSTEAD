@@ -617,9 +617,11 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "public class Test {",
         "  public void mainInteger(int p) {",
         "    Integer.toString(p);",
+        "    Integer.toString(p, 16);",
         "  }",
         "  public void mainLong(long p) {",
         "    Long.toString(p);",
+        "    Long.toString(p, 16);",
         "  }",
         "  public void mainDouble(double p) {",
         "    Double.toString(p);",
@@ -633,9 +635,11 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "class Test {",
         "  void mainInteger(int p) {",
         "    p.toString();",
+        "    p.toRadixString(16);",
         "  }",
         "  void mainLong(int p) {",
         "    p.toString();",
+        "    p.toRadixString(16);",
         "  }",
         "  void mainDouble(double p) {",
         "    p.toString();",
@@ -985,6 +989,24 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    sb.length;",
         "    sb.length = 0;",
         "    return sb.toString();",
+        "  }",
+        "}");
+  }
+
+  public void test_Throwable_getCause() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public main(Throwable e) {",
+        "    e.getCause();",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  main(Exception e) {",
+        "    e.cause;",
         "  }",
         "}");
   }

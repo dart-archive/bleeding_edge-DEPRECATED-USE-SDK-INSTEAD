@@ -146,6 +146,10 @@ public class IOSemanticProcessor extends SemanticProcessor {
             nameNode.setToken(token("JavaFile"));
             return null;
           }
+          if (JavaUtils.isTypeNamed(binding, "java.io.IOException")) {
+            nameNode.setToken(token("JavaIOException"));
+            return null;
+          }
         }
         return null;
       }

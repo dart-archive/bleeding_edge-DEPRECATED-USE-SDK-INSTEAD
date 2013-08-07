@@ -489,47 +489,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         typeNameNode = typeName(name);
         // prepare enclosing type
         final ITypeBinding enclosingTypeBinding = getEnclosingTypeBinding(node);
-        final SimpleIdentifier enclosingTypeRef;
-        final AtomicBoolean addEnclosingTypeRef = new AtomicBoolean();
-        {
-          if (enclosingTypeBinding != null) {
-            enclosingTypeRef = identifier(enclosingTypeBinding.getName() + "_this");
-            // add enclosing class references
-            innerClass.accept(new RecursiveASTVisitor<Void>() {
-              @Override
-              public Void visitMethodInvocation(MethodInvocation node) {
-                if (node.getTarget() == null) {
-                  IMethodBinding methodBinding = (IMethodBinding) context.getNodeBinding(node);
-                  if (methodBinding != null
-                      && methodBinding.getDeclaringClass() == enclosingTypeBinding) {
-                    addEnclosingTypeRef.set(true);
-                    node.setTarget(enclosingTypeRef);
-                  }
-                }
-                return super.visitMethodInvocation(node);
-              }
-
-              @Override
-              public Void visitSimpleIdentifier(SimpleIdentifier node) {
-                if (!(node.getParent() instanceof PropertyAccess)
-                    && !(node.getParent() instanceof PrefixedIdentifier)) {
-                  Object binding = context.getNodeBinding(node);
-                  if (binding instanceof IVariableBinding) {
-                    IVariableBinding variableBinding = (IVariableBinding) binding;
-                    if (variableBinding.isField()
-                        && variableBinding.getDeclaringClass() == enclosingTypeBinding) {
-                      addEnclosingTypeRef.set(true);
-                      replaceNode(node.getParent(), node, propertyAccess(enclosingTypeRef, node));
-                    }
-                  }
-                }
-                return super.visitSimpleIdentifier(node);
-              }
-            });
-          } else {
-            enclosingTypeRef = null;
-          }
-        }
+        final SimpleIdentifier enclosingTypeRef = replaceEnclosingClassMemberReferences(
+            innerClass,
+            enclosingTypeBinding);
         // declare referenced final variables
         final String finalName = name;
         anoDeclaration.accept(new ASTVisitor() {
@@ -585,7 +547,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
           @Override
           public boolean visit(AnonymousClassDeclaration node) {
-            if (addEnclosingTypeRef.get()) {
+            if (enclosingTypeRef != null) {
               TypeName parameterTypeName = translateTypeName(enclosingTypeBinding);
               innerClass.getMembers().add(
                   index++,
@@ -730,7 +692,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     {
       List<TypeName> interfaces = Lists.newArrayList();
       // add Comparable
-      interfaces.add(typeName("Comparable", typeName(name)));
+      interfaces.add(typeName("Enum", typeName(name)));
       // add declared interfaces
       if (!node.superInterfaceTypes().isEmpty()) {
         for (Object javaInterface : node.superInterfaceTypes()) {
@@ -1444,16 +1406,16 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.TypeDeclaration node) {
     ITypeBinding binding = node.resolveBinding();
+    ITypeBinding enclosingTypeBinding = binding != null ? binding.getDeclaringClass() : null;
     // prepare name
     SimpleIdentifier name;
     {
       name = translateSimpleName(node.getName());
-      if (binding != null) {
-        ITypeBinding declaringClass = binding.getDeclaringClass();
-        if (declaringClass != null) {
-          context.putInnerClassName(name);
-          name.setToken(token(TokenType.IDENTIFIER, declaringClass.getName() + "_" + name.getName()));
-        }
+      if (enclosingTypeBinding != null) {
+        context.putInnerClassName(name);
+        name.setToken(token(
+            TokenType.IDENTIFIER,
+            enclosingTypeBinding.getName() + "_" + name.getName()));
       }
     }
     // interface
@@ -1515,6 +1477,30 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     context.putNodeBinding(classDeclaration, binding);
     context.putNodeTypeBinding(classDeclaration, binding);
     context.putNodeTypeBinding(name, binding);
+    // may be insert enclosing type reference
+    SimpleIdentifier enclosingTypeRef = replaceEnclosingClassMemberReferences(
+        classDeclaration,
+        enclosingTypeBinding);
+    if (enclosingTypeRef != null) {
+      TypeName enclosingTypeName = translateTypeName(enclosingTypeBinding);
+      classDeclaration.getMembers().add(
+          0,
+          fieldDeclaration(
+              false,
+              Keyword.FINAL,
+              enclosingTypeName,
+              variableDeclaration(enclosingTypeRef)));
+      for (ClassMember member : members) {
+        if (member instanceof ConstructorDeclaration) {
+          ConstructorDeclaration constructor = (ConstructorDeclaration) member;
+          constructor.getParameters().getParameters().add(
+              0,
+              fieldFormalParameter(null, null, enclosingTypeRef));
+          context.getConstructorDescription(constructor).insertEnclosingTypeRef = true;
+        }
+      }
+    }
+    // done
     return done(classDeclaration);
   }
 
@@ -1743,6 +1729,55 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       binding = JavaUtils.getOriginalBinding(binding);
       context.putReference(identifier, binding, JavaUtils.getJdtSignature(binding));
     }
+  }
+
+  private SimpleIdentifier replaceEnclosingClassMemberReferences(final ClassDeclaration innerClass,
+      final ITypeBinding enclosingTypeBinding) {
+    final SimpleIdentifier enclosingTypeRef;
+    final AtomicBoolean addEnclosingTypeRef = new AtomicBoolean();
+    {
+      if (enclosingTypeBinding != null) {
+        enclosingTypeRef = identifier(enclosingTypeBinding.getName() + "_this");
+        // add enclosing class references
+        innerClass.accept(new RecursiveASTVisitor<Void>() {
+          @Override
+          public Void visitMethodInvocation(MethodInvocation node) {
+            if (node.getTarget() == null) {
+              IMethodBinding methodBinding = (IMethodBinding) context.getNodeBinding(node);
+              if (methodBinding != null
+                  && methodBinding.getDeclaringClass() == enclosingTypeBinding) {
+                addEnclosingTypeRef.set(true);
+                node.setTarget(enclosingTypeRef);
+              }
+            }
+            return super.visitMethodInvocation(node);
+          }
+
+          @Override
+          public Void visitSimpleIdentifier(SimpleIdentifier node) {
+            if (!(node.getParent() instanceof PropertyAccess)
+                && !(node.getParent() instanceof PrefixedIdentifier)) {
+              Object binding = context.getNodeBinding(node);
+              if (binding instanceof IVariableBinding) {
+                IVariableBinding variableBinding = (IVariableBinding) binding;
+                if (variableBinding.isField()
+                    && variableBinding.getDeclaringClass() == enclosingTypeBinding) {
+                  addEnclosingTypeRef.set(true);
+                  replaceNode(node.getParent(), node, propertyAccess(enclosingTypeRef, node));
+                }
+              }
+            }
+            return super.visitSimpleIdentifier(node);
+          }
+        });
+      } else {
+        enclosingTypeRef = null;
+      }
+    }
+    if (!addEnclosingTypeRef.get()) {
+      return null;
+    }
+    return enclosingTypeRef;
   }
 
   /**

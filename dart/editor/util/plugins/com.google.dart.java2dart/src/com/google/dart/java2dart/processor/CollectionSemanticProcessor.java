@@ -50,7 +50,6 @@ import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
@@ -190,13 +189,16 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "put", "java.util.Map")) {
-          Assert.isTrue(node.getParent() instanceof ExpressionStatement);
-          IndexExpression indexExpression = indexExpression(target, args.get(0));
-          AssignmentExpression assignment = assignmentExpression(
-              indexExpression,
-              TokenType.EQ,
-              args.get(1));
-          replaceNode(node, assignment);
+          if (node.getParent() instanceof ExpressionStatement) {
+            IndexExpression indexExpression = indexExpression(target, args.get(0));
+            AssignmentExpression assignment = assignmentExpression(
+                indexExpression,
+                TokenType.EQ,
+                args.get(1));
+            replaceNode(node, assignment);
+          } else {
+            replaceNode(node, methodInvocation("javaMapPut", target, args.get(0), args.get(1)));
+          }
           return null;
         }
         if (isMethodInClass(node, "entrySet", "java.util.Map")) {

@@ -87,6 +87,23 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_IOException() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.io.IOException;",
+        "public class Test {",
+        "  public void test(IOException e) {",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(//
+        "class Test {",
+        "  void test(JavaIOException e) {",
+        "  }",
+        "}");
+  }
+
   public void test_URI_create() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

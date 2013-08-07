@@ -671,6 +671,10 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           replaceNode(node.getTarget(), identifier("FileNameUtilities"));
           return null;
         }
+        if (isMethodInClass(node, "encode", "com.google.dart.engine.utilities.io.UriUtilities")) {
+          replaceNode(node, methodInvocation(identifier("Uri"), "encodeFull", args.get(0)));
+          return null;
+        }
         return super.visitMethodInvocation(node);
       }
 

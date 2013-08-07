@@ -101,6 +101,7 @@ public class Context {
     public final List<SuperConstructorInvocation> superInvocations = Lists.newArrayList();
     public final List<InstanceCreationExpression> instanceCreations = Lists.newArrayList();
     public boolean isEnum;
+    public boolean insertEnclosingTypeRef;
     String declName;
 
     public ConstructorDescription(IMethodBinding binding) {
@@ -553,6 +554,14 @@ public class Context {
   /**
    * @return the not <code>null</code> {@link ConstructorDescription}, may be just added.
    */
+  public ConstructorDescription getConstructorDescription(ConstructorDeclaration node) {
+    IMethodBinding binding = constructorToBinding.get(node);
+    return getConstructorDescription(binding);
+  }
+
+  /**
+   * @return the not <code>null</code> {@link ConstructorDescription}, may be just added.
+   */
   public ConstructorDescription getConstructorDescription(IMethodBinding binding) {
     ConstructorDescription description = bindingToConstructor.get(binding);
     if (description == null) {
@@ -690,6 +699,7 @@ public class Context {
       ensureMethodParameterDoesNotHide(dartUniverse);
       new ConstructorSemanticProcessor(this).process(dartUniverse);
       renameConstructors(dartUniverse);
+      insertEnclosingTypeForInstanceCreationArguments(dartUniverse);
     }
     // done
     return dartUniverse;
@@ -908,6 +918,20 @@ public class Context {
       }
     }
     return hierarchyNames;
+  }
+
+  private void insertEnclosingTypeForInstanceCreationArguments(CompilationUnit unit) {
+    unit.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+        IMethodBinding binding = (IMethodBinding) getNodeBinding(node);
+        ConstructorDescription constructorDescription = getConstructorDescription(binding);
+        if (constructorDescription.insertEnclosingTypeRef) {
+          node.getArgumentList().getArguments().add(0, thisExpression());
+        }
+        return super.visitInstanceCreationExpression(node);
+      }
+    });
   }
 
   /**

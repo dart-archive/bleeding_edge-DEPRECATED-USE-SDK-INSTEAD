@@ -509,15 +509,21 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "package test;",
         "import java.util.Map;",
         "public class Test {",
-        "  public void foo(Map<Object, Object> items) {",
+        "  public void testA(Map<Object, Object> items) {",
         "    items.put(this, 42);",
+        "  }",
+        "  public void testB(Map<Object, Object> items) {",
+        "    Object old = items.put(this, 42);",
         "  }",
         "}");
     runProcessor();
     assertFormattedSource(
         "class Test {",
-        "  void foo(Map<Object, Object> items) {",
+        "  void testA(Map<Object, Object> items) {",
         "    items[this] = 42;",
+        "  }",
+        "  void testB(Map<Object, Object> items) {",
+        "    Object old = javaMapPut(items, this, 42);",
         "  }",
         "}");
   }

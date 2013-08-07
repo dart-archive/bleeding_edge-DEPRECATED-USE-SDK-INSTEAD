@@ -239,7 +239,7 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
     assertDartSource(
         "abstract class I {",
         "}",
-        "class Direction implements Comparable<Direction>, I {",
+        "class Direction implements Enum<Direction>, I {",
         "  static final List<Direction> values = [];",
         "  ",
         "  /// The name of this enum constant, as declared in the enum declaration.",

@@ -33,6 +33,7 @@ import com.google.dart.java2dart.processor.JUnitSemanticProcessor;
 import com.google.dart.java2dart.processor.ObjectSemanticProcessor;
 import com.google.dart.java2dart.processor.PropertySemanticProcessor;
 import com.google.dart.java2dart.processor.SemanticProcessor;
+import com.google.dart.java2dart.processor.TypeSemanticProcessor;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
 import static com.google.dart.java2dart.util.ASTFactory.exportDirective;
@@ -92,9 +93,20 @@ public class MainEngine {
     context.addClasspathFile(new File("../../../../third_party/junit/v4_8_2/junit.jar"));
     context.addSourceFolder(engineFolder);
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/utilities/ast"));
-    context.addSourceFiles(new File(
+    // instrumentation
+    context.addSourceFile(new File(
         engineFolder,
-        "com/google/dart/engine/utilities/instrumentation"));
+        "com/google/dart/engine/utilities/instrumentation/Instrumentation.java"));
+    context.addSourceFile(new File(
+        engineFolder,
+        "com/google/dart/engine/utilities/instrumentation/InstrumentationBuilder.java"));
+    context.addSourceFile(new File(
+        engineFolder,
+        "com/google/dart/engine/utilities/instrumentation/InstrumentationLevel.java"));
+    context.addSourceFile(new File(
+        engineFolder,
+        "com/google/dart/engine/utilities/instrumentation/InstrumentationLogger.java"));
+    // other
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/sdk"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/sdk"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/source"));
@@ -125,6 +137,7 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/constant"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/element"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/error"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/hint"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/resolver"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/scope"));
@@ -137,6 +150,13 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/utilities/logging"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/context"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/context"));
+    // utilities/collection
+    context.addSourceFile(new File(
+        engineFolder,
+        "com/google/dart/engine/utilities/collection/BooleanArray.java"));
+    context.addSourceFile(new File(
+        engineFolder,
+        "com/google/dart/engine/utilities/collection/ListUtilities.java"));
     // Tests
     context.addSourceFile(new File(
         engineTestFolder,
@@ -179,6 +199,7 @@ public class MainEngine {
     // run processors
     {
       List<SemanticProcessor> PROCESSORS = ImmutableList.of(
+          new TypeSemanticProcessor(context),
           new ObjectSemanticProcessor(context),
           new CollectionSemanticProcessor(context),
           new IOSemanticProcessor(context),
@@ -210,6 +231,13 @@ public class MainEngine {
       Files.write(
           getFormattedSource(library),
           new File(targetFolder + "/instrumentation.dart"),
+          Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildUtilitiesCollectionLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolder + "/utilities_collection.dart"),
           Charsets.UTF_8);
     }
     {
@@ -324,10 +352,9 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildEngineLibrary();
-      Files.write(
-          getFormattedSource(library),
-          new File(targetFolder + "/engine.dart"),
-          Charsets.UTF_8);
+      String source = getFormattedSource(library);
+      source = replaceSourceFragment(source, "OSUtilities.LINE_SEPARATOR", "'\\n'");
+      Files.write(source, new File(targetFolder + "/engine.dart"), Charsets.UTF_8);
     }
     // Tests
     {
@@ -498,6 +525,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
+    unit.getDirectives().add(importDirective("utilities_collection.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", null, importShowCombinator("Keyword")));
     unit.getDirectives().add(
@@ -571,10 +599,9 @@ public class MainEngine {
   private static CompilationUnit buildEngineLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine"));
-    unit.getDirectives().add(
-        importDirective("dart:collection", null, importShowCombinator("HasNextIterator")));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
+    unit.getDirectives().add(importDirective("utilities_collection.dart", null));
     unit.getDirectives().add(importDirective("instrumentation.dart", null));
     unit.getDirectives().add(importDirective("error.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
@@ -669,13 +696,14 @@ public class MainEngine {
     unit.getDirectives().add(libraryDirective("engine", "parser"));
     unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
-    unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("instrumentation.dart", null));
     unit.getDirectives().add(importDirective("error.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", null));
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
+    unit.getDirectives().add(
+        importDirective("engine.dart", null, importShowCombinator("AnalysisEngine")));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "parser/") || isEnginePath(file, "internal/parser/")
@@ -745,8 +773,8 @@ public class MainEngine {
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "resolver/") || isEnginePath(file, "internal/resolver/")
-          || isEnginePath(file, "internal/builder/") || isEnginePath(file, "internal/scope/")
-          || isEnginePath(file, "internal/verifier/")) {
+          || isEnginePath(file, "internal/builder/") || isEnginePath(file, "internal/hint/")
+          || isEnginePath(file, "internal/scope/") || isEnginePath(file, "internal/verifier/")) {
         unit.getDeclarations().add(member);
       }
     }
@@ -834,9 +862,8 @@ public class MainEngine {
   private static CompilationUnit buildScannerTestLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "scanner_test"));
-    unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_engine_io.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
     unit.getDirectives().add(importDirective(src_package + "source.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
@@ -1009,9 +1036,23 @@ public class MainEngine {
     return unit;
   }
 
+  private static CompilationUnit buildUtilitiesCollectionLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "utilities", "collection"));
+    unit.getDirectives().add(importDirective("java_core.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEnginePath(file, "utilities/collection/")) {
+        addNotRemovedCompiationUnitEntries(unit, entry.getValue());
+      }
+    }
+    return unit;
+  }
+
   private static CompilationUnit buildUtilitiesDartLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "utilities", "dart"));
+    unit.getDirectives().add(importDirective("java_core.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "utilities/dart/ParameterKind")) {
