@@ -58,7 +58,7 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_computeStringValue_emptyInterpolationPrefix() throws Exception {
-    assertEquals("", computeStringValue("'''", true, true));
+    assertEquals("", computeStringValue("'''", true, false));
   }
 
   public void test_computeStringValue_escape_b() throws Exception {
