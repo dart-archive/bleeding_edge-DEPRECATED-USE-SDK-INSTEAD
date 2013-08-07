@@ -30,7 +30,13 @@ import org.eclipse.swt.widgets.Shell;
  * Test for the "Convert Method to Getter" refactoring.
  */
 public final class ConvertMethodToGetterRefactoringTest2 extends AbstractDartEditorTabTest2 {
-  public void test_ok() throws Exception {
+
+  // TODO: this is here so junit doesn't complain about not having tests in this file
+  public void test_placeholder() {
+
+  }
+
+  public void xxx_test_ok() throws Exception {
     openTestEditor(
         "// filler filler filler filler filler filler filler filler filler filler",
         "test() => 123;",
