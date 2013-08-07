@@ -46,6 +46,11 @@ import org.eclipse.ui.texteditor.AbstractTextEditor;
 public class PreferenceConstants {
 
   /**
+   * Default editor tab display width.
+   */
+  public static final int EDITOR_DEFAULT_TAB_WIDTH = 2;
+
+  /**
    * A named preference that controls return type rendering of methods in the UI.
    * <p>
    * Value is of type <code>Boolean</code>: if <code>true</code> return types are rendered
@@ -3362,8 +3367,10 @@ public class PreferenceConstants {
         PreferenceConstants.EDITOR_LINKED_POSITION_COLOR,
         new RGB(121, 121, 121));
 
-    store.setDefault(PreferenceConstants.EDITOR_TAB_WIDTH, 2);
-    store.setDefault(PreferenceConstants.EDITOR_SPACES_FOR_TABS, true);
+    store.setDefault(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH,
+        EDITOR_DEFAULT_TAB_WIDTH);
+    store.setDefault(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS, true);
 
     setDefaultAndFireEvent(
         store,

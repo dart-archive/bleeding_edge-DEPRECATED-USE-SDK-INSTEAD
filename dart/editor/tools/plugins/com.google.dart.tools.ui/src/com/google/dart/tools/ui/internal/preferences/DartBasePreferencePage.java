@@ -30,7 +30,10 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -52,6 +55,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Text printMarginText;
   private Button removeTrailingWhitespaceCheck;
   private Button insertSpacesForTabs;
+  private Text tabDisplaySize;
   private Button enableFolding;
   private Button enableAutoCompletion;
   private Button runPubAutoCheck;
@@ -104,8 +108,17 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferenceConstants.EDITOR_REMOVE_TRAILING_WS,
         removeTrailingWhitespaceCheck.getSelection());
     toolsPreferenceStore.setValue(
-        PreferenceConstants.EDITOR_SPACES_FOR_TABS,
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS,
         insertSpacesForTabs.getSelection());
+
+    String tabWidth = tabDisplaySize.getText();
+    if (tabWidth == null || tabWidth.isEmpty()) {
+      tabWidth = Integer.toString(PreferenceConstants.EDITOR_DEFAULT_TAB_WIDTH);
+    }
+    toolsPreferenceStore.setValue(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH,
+        tabWidth);
+
     handleSave(toolsPreferenceStore);
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
@@ -163,11 +176,42 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     printMarginText.setTextLimit(5);
     GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(printMarginText);
 
+    Label tabDisplayLabel = new Label(generalGroup, SWT.NONE);
+    tabDisplayLabel.setText(PreferencesMessages.DartBasePreferencePage_tab_width);
+
+    tabDisplaySize = new Text(generalGroup, SWT.BORDER | SWT.SINGLE | SWT.RIGHT);
+    tabDisplaySize.setTextLimit(2);
+    GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(tabDisplaySize);
+
+    // Only allow sensible integer values
+    tabDisplaySize.addListener(SWT.Verify, new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        String txt = e.text;
+        // Allow for delete
+        if (txt.isEmpty()) {
+          return;
+        }
+        try {
+          int num = Integer.parseInt(txt);
+          // Valid entry is between 0 and 20
+          if (num >= 0 && num < 20) {
+            return;
+          }
+        } catch (NumberFormatException nfe) {
+          // Error
+        }
+
+        e.doit = false;
+        return;
+      }
+    });
+
     insertSpacesForTabs = createCheckBox(
         generalGroup,
         PreferencesMessages.DartBasePreferencePage_insert_spaces_for_tabsDartBasePreferencePage_insert_spaces_for_tabs,
         PreferencesMessages.DartBasePreferencePage_insert_spaces_for_tabsDartBasePreferencePage_insert_spaces_for_tabs_tooltip);
-    GridDataFactory.fillDefaults().applyTo(insertSpacesForTabs);
+    GridDataFactory.fillDefaults().span(2, 1).applyTo(insertSpacesForTabs);
 
     enableAutoCompletion = createCheckBox(
         generalGroup,
@@ -247,7 +291,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     removeTrailingWhitespaceCheck.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
     enableAutoCompletion.setSelection(toolsPreferences.getBoolean(PreferenceConstants.CODEASSIST_AUTOACTIVATION));
     enableFolding.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_FOLDING_ENABLED));
-    insertSpacesForTabs.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_SPACES_FOR_TABS));
+    insertSpacesForTabs.setSelection(toolsPreferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS));
+    tabDisplaySize.setText(toolsPreferences.getString(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH));
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
@@ -256,5 +301,4 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     }
 
   }
-
 }

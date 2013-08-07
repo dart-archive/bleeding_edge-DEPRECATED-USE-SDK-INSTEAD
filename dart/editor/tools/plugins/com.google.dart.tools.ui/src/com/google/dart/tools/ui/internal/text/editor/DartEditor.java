@@ -2030,6 +2030,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     patchSelectionChangeParticipation();
     getSourceViewer().getTextWidget().addCaretListener(dartSelectionCaretListener);
 
+    // Set tab width
+    IPreferenceStore store = getPreferenceStore();
+    if (store != null) {
+      int tabWidth = store.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH);
+      getSourceViewer().getTextWidget().setTabs(tabWidth);
+    }
+
     fEditorSelectionChangedListener = new EditorSelectionChangedListener();
     fEditorSelectionChangedListener.install(getSelectionProvider());
 
@@ -3466,19 +3473,23 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     String property = event.getProperty();
 
-    if (AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH.equals(property)) {
-      /*
-       * Ignore tab setting since we rely on the formatter preferences. We do this outside the
-       * try-finally block to avoid that EDITOR_TAB_WIDTH is handled by the sub-class
-       * (AbstractDecoratedTextEditor).
-       */
-      return;
-    }
-
     try {
 
       ISourceViewer sourceViewer = getSourceViewer();
       if (sourceViewer == null) {
+        return;
+      }
+
+      if (AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH.equals(property)) {
+        IPreferenceStore store = getPreferenceStore();
+        if (store != null) {
+          sourceViewer.getTextWidget().setTabs(
+              store.getInt(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH));
+        }
+        if (isTabsToSpacesConversionEnabled()) {
+          uninstallTabsToSpacesConverter();
+          installTabsToSpacesConverter();
+        }
         return;
       }
 

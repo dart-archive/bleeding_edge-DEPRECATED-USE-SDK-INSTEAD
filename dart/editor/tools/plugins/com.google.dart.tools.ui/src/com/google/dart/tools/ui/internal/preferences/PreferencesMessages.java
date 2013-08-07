@@ -789,6 +789,7 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_trailing_ws_details;
   public static String DartBasePreferencePage_pub_auto_label;
   public static String DartBasePreferencePage_pub_auto_details;
+  public static String DartBasePreferencePage_tab_width;
   public static String DartBasePreferencePage_trailing_ws_label;
   public static String DartBasePreferencePage_update_group_label;
 
