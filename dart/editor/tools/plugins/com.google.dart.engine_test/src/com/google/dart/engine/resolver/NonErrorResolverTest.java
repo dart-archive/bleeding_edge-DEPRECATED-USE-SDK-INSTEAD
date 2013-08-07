@@ -2480,33 +2480,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_undefinedGetter_noSuchMethod_getter() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  noSuchMethod(invocation) {}",
-        "}",
-        "f() {",
-        "  (new A()).g;",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-  }
-
-  public void test_undefinedGetter_noSuchMethod_getter2() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  noSuchMethod(invocation) {}",
-        "}",
-        "class B {",
-        "  A a = new A();",
-        "  m() {",
-        "    a.g;",
-        "  }",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-  }
-
   public void test_undefinedGetter_typeSubstitution() throws Exception {
     Source source = addSource(createSource(//
         "class A<E> {",
@@ -2531,18 +2504,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
     resolve(source);
     assertNoErrors();
     verify(source);
-  }
-
-  public void test_undefinedIdentifier_noSuchMethod() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  noSuchMethod(invocation) {}",
-        "  f() {",
-        "    var v = a;",
-        "  }",
-        "}"));
-    resolve(source);
-    assertNoErrors();
   }
 
   public void test_undefinedIdentifier_show() throws Exception {
@@ -2576,18 +2537,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
     // A call to verify(source) fails as '(() => null)()' isn't resolved.
   }
 
-  public void test_undefinedMethod_noSuchMethod() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  noSuchMethod(invocation) {}",
-        "}",
-        "f() {",
-        "  (new A()).m();",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-  }
-
   public void test_undefinedOperator_index() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -2610,18 +2559,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
     resolve(source);
     assertNoErrors();
     verify(source);
-  }
-
-  public void test_undefinedSetter_noSuchMethod() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  noSuchMethod(invocation) {}",
-        "}",
-        "f() {",
-        "  (new A()).s = 1;",
-        "}"));
-    resolve(source);
-    assertNoErrors();
   }
 
   public void test_undefinedSuperMethod_field() throws Exception {

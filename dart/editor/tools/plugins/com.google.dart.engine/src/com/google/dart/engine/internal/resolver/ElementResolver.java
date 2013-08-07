@@ -1042,7 +1042,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // TODO(brianwilkerson) Recover from this error.
       if (isConstructorReturnType(node)) {
         resolver.reportError(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
-      } else if (!classDeclaresNoSuchMethod(resolver.getEnclosingClass())) {
+      } else {
         resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, node.getName());
       }
     }
@@ -1210,9 +1210,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           if (enclosingClass == null) {
             return StaticTypeWarningCode.UNDEFINED_FUNCTION;
           } else if (element == null) {
-            if (!classDeclaresNoSuchMethod(enclosingClass)) {
-              return StaticTypeWarningCode.UNDEFINED_METHOD;
-            }
+            return StaticTypeWarningCode.UNDEFINED_METHOD;
           } else {
             return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
           }
@@ -1220,45 +1218,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           Type targetType = getStaticType(target);
           if (targetType == null) {
             return StaticTypeWarningCode.UNDEFINED_FUNCTION;
-          } else if (!targetType.isDynamic() && !classDeclaresNoSuchMethod(targetType.getElement())) {
+          } else if (!targetType.isDynamic()) {
             return StaticTypeWarningCode.UNDEFINED_METHOD;
           }
         }
       }
     }
     return null;
-  }
-
-  /**
-   * Return {@code true} if the given class declares a method named "noSuchMethod" and is not the
-   * class 'Object'.
-   * 
-   * @param element the class being tested
-   * @return {@code true} if the given class declares a method named "noSuchMethod"
-   */
-  private boolean classDeclaresNoSuchMethod(ClassElement classElement) {
-    if (classElement == null) {
-      return false;
-    }
-    MethodElement methodElement = classElement.lookUpMethod(
-        NO_SUCH_METHOD_METHOD_NAME,
-        resolver.getDefiningLibrary());
-    return methodElement != null && methodElement.getEnclosingElement().getSupertype() != null;
-  }
-
-  /**
-   * Return {@code true} if the given element represents a class that declares a method named
-   * "noSuchMethod" and is not the class 'Object'.
-   * 
-   * @param element the element being tested
-   * @return {@code true} if the given element represents a class that declares a method named
-   *         "noSuchMethod"
-   */
-  private boolean classDeclaresNoSuchMethod(Element element) {
-    if (element instanceof ClassElement) {
-      return classDeclaresNoSuchMethod((ClassElement) element);
-    }
-    return false;
   }
 
   /**
@@ -2352,46 +2318,40 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         && (strictMode || propagatedType == null || shouldReportMissingMember(
             propagatedType,
             propagatedElement))) {
-      boolean staticNoSuchMethod = staticType != null
-          && classDeclaresNoSuchMethod(staticType.getElement());
-      boolean propagatedNoSuchMethod = propagatedType != null
-          && classDeclaresNoSuchMethod(propagatedType.getElement());
-      if (!staticNoSuchMethod && (strictMode || !propagatedNoSuchMethod)) {
-        boolean isStaticProperty = isStatic(selectedElement);
-        if (propertyName.inSetterContext()) {
-          if (isStaticProperty) {
-            resolver.reportError(
-                StaticWarningCode.UNDEFINED_SETTER,
-                propertyName,
-                propertyName.getName(),
-                staticType.getDisplayName());
-          } else {
-            resolver.reportError(
-                StaticTypeWarningCode.UNDEFINED_SETTER,
-                propertyName,
-                propertyName.getName(),
-                staticType.getDisplayName());
-          }
-        } else if (propertyName.inGetterContext()) {
-          if (isStaticProperty) {
-            resolver.reportError(
-                StaticWarningCode.UNDEFINED_GETTER,
-                propertyName,
-                propertyName.getName(),
-                staticType.getDisplayName());
-          } else {
-            resolver.reportError(
-                StaticTypeWarningCode.UNDEFINED_GETTER,
-                propertyName,
-                propertyName.getName(),
-                staticType.getDisplayName());
-          }
+      boolean isStaticProperty = isStatic(selectedElement);
+      if (propertyName.inSetterContext()) {
+        if (isStaticProperty) {
+          resolver.reportError(
+              StaticWarningCode.UNDEFINED_SETTER,
+              propertyName,
+              propertyName.getName(),
+              staticType.getDisplayName());
         } else {
           resolver.reportError(
-              StaticWarningCode.UNDEFINED_IDENTIFIER,
+              StaticTypeWarningCode.UNDEFINED_SETTER,
               propertyName,
-              propertyName.getName());
+              propertyName.getName(),
+              staticType.getDisplayName());
         }
+      } else if (propertyName.inGetterContext()) {
+        if (isStaticProperty) {
+          resolver.reportError(
+              StaticWarningCode.UNDEFINED_GETTER,
+              propertyName,
+              propertyName.getName(),
+              staticType.getDisplayName());
+        } else {
+          resolver.reportError(
+              StaticTypeWarningCode.UNDEFINED_GETTER,
+              propertyName,
+              propertyName.getName(),
+              staticType.getDisplayName());
+        }
+      } else {
+        resolver.reportError(
+            StaticWarningCode.UNDEFINED_IDENTIFIER,
+            propertyName,
+            propertyName.getName());
       }
     }
   }
@@ -2527,9 +2487,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private boolean shouldReportMissingMember(Type type, ExecutableElement member) {
     if (member != null || type == null || type.isDynamic()) {
       return false;
-    }
-    if (type instanceof InterfaceType) {
-      return !classDeclaresNoSuchMethod(((InterfaceType) type).getElement());
     }
     return true;
   }
