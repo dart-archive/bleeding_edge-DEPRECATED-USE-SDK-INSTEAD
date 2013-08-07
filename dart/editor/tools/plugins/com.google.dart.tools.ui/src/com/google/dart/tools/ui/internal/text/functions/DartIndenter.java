@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text.functions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.internal.util.CodeFormatterUtil;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
@@ -24,6 +25,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
 /**
  * Uses the {@link com.google.dart.tools.ui.DartHeuristicScanner} to get the indentation level for a
@@ -457,6 +459,18 @@ public class DartIndenter {
   public StringBuffer computeIndentation(int offset, boolean assumeOpeningBrace) {
 
     StringBuffer reference = getReferenceIndentation(offset, assumeOpeningBrace);
+
+    // TODO(pquitslund/messick): a minimal hack to ensure tabs are emitted when they should be
+    // Heuristics for extra indents (after braces, in constructor inits, etc.) 
+    // to be implemented in the overhaul
+    if (reference != null
+        && !DartToolsPlugin.getDefault().getPreferenceStore().getBoolean(
+            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS)) {
+      // Note the hard-wired assumption that indents are 2 spaces
+      // (To be fixed in the re-write)
+      String tabbed = reference.toString().replaceAll("  ", "\t");
+      return new StringBuffer(tabbed);
+    }
 
     // handle special alignment
     if (fAlign != DartHeuristicScanner.NOT_FOUND) {
@@ -930,7 +944,12 @@ public class DartIndenter {
     // add additional indent
     int missing = totalLength - maxCopyLength;
     final int tabs, spaces;
-    if (JavaScriptCore.SPACE.equals(fPrefs.prefTabChar)) {
+
+    if (!DartToolsPlugin.getDefault().getPreferenceStore().getBoolean(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS)) {
+      tabs = tabSize > 0 ? missing / tabSize : 0;
+      spaces = tabSize > 0 ? missing % tabSize : missing;
+    } else if (JavaScriptCore.SPACE.equals(fPrefs.prefTabChar)) {
       tabs = 0;
       spaces = missing;
     } else if (JavaScriptCore.TAB.equals(fPrefs.prefTabChar)) {
