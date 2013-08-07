@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.webkit;
 
 import com.google.dart.tools.debug.core.webkit.WebkitConnection.WebkitConnectionListener;
+import com.google.dart.tools.debug.core.webkit.WebkitConsole.CallFrame;
 import com.google.dart.tools.debug.core.webkit.WebkitConsole.ConsoleListener;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.DebuggerListener;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
@@ -64,7 +65,7 @@ class TestMain {
     // add a console listener
     connection.getConsole().addConsoleListener(new ConsoleListener() {
       @Override
-      public void messageAdded(String message, String url, int line) {
+      public void messageAdded(String message, String url, int line, List<CallFrame> stackTrace) {
         System.out.println("message added: " + message);
       }
 

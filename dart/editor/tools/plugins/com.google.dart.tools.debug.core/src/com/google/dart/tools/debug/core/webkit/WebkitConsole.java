@@ -74,6 +74,10 @@ public class WebkitConsole extends WebkitDomain {
     /** JavaScript script name or url. */
     public String url;
 
+    @Override
+    public String toString() {
+      return functionName + "()";
+    }
   }
 
   public static interface ConsoleListener {
@@ -83,8 +87,9 @@ public class WebkitConsole extends WebkitDomain {
      * @param message
      * @param url an optional parameter indicating the source url
      * @param line line number in the resource that generated this message
+     * @param stackTrace the optional stack trace associated with this message
      */
-    public void messageAdded(String message, String url, int line);
+    public void messageAdded(String message, String url, int line, List<CallFrame> stackTrace);
 
     /**
      * Issued when subsequent message(s) are equal to the previous one(s).
@@ -168,10 +173,15 @@ public class WebkitConsole extends WebkitDomain {
       /** Message source. */
       String source = message.optString("source");
       /** JavaScript stack trace for assertions and error messages. */
-      List<CallFrame> stackTrace = CallFrame.createFrom(message.optJSONArray("stackTrace"));
+      List<CallFrame> stackTrace = null;
+
+      // Only include the stack trace if the log level is "error".
+      if ("error".equals(level)) {
+        stackTrace = CallFrame.createFrom(message.optJSONArray("stackTrace"));
+      }
 
       for (ConsoleListener listener : listeners) {
-        listener.messageAdded(text, url, line);
+        listener.messageAdded(text, url, line, stackTrace);
       }
     } else if (method.equals(MESSAGE_CLEARED)) {
       for (ConsoleListener listener : listeners) {

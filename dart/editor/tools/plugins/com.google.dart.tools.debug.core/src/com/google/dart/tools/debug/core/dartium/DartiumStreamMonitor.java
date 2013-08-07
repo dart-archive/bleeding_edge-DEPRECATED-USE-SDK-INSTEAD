@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 import com.google.dart.tools.debug.core.webkit.WebkitConsole;
+import com.google.dart.tools.debug.core.webkit.WebkitConsole.CallFrame;
 
 import org.eclipse.debug.core.IStreamListener;
 import org.eclipse.debug.core.model.IStreamMonitor;
@@ -34,6 +35,10 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
   private List<IStreamListener> listeners = new ArrayList<IStreamListener>();
 
   private String lastMessage;
+  private String lastUrl;
+  private int lastLine;
+  private List<CallFrame> lastStackTrace;
+
   private StringBuilder buffer = new StringBuilder();
 
   private WebkitConnection connection;
@@ -53,21 +58,36 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
   }
 
   @Override
-  public void messageAdded(final String message, final String url, int line) {
-    String text = message;
-
-    // If we get a failed to load message, also include the url that didn't load.
-    if (message != null && message.startsWith(FAILED_TO_LOAD)) {
-      if (url != null) {
-        text += "\n  " + url;
-      }
-    }
-
-    lastMessage = text;
-
-    text += "\n";
+  public void messageAdded(final String message, final String url, int line,
+      List<CallFrame> stackTrace) {
+    lastMessage = message;
+    lastUrl = url;
+    lastLine = line;
+    lastStackTrace = stackTrace;
 
     if (!shouldIgnoreMessage(message, url)) {
+      String text = message;
+
+      // If we get a failed to load message, also include the url that didn't load.
+      if (message != null && message.startsWith(FAILED_TO_LOAD)) {
+        if (url != null) {
+          text += "\n  " + url;
+        }
+      }
+
+      text += "\n";
+
+      // TODO(devoncarew): add a test to ensure that when an application throws an exception,
+      // we get that back as a payload in a log message.
+      if (stackTrace != null) {
+        //   Rodent.toString (file:///Users/foo.../debuggertest/pets.dart:79:7)
+
+        for (CallFrame frame : stackTrace) {
+          text += "  " + frame.functionName + " (" + frame.url + ":" + frame.lineNumber + ":"
+              + frame.columnNumber + ")\n";
+        }
+      }
+
       buffer.append(text);
 
       for (IStreamListener listener : listeners.toArray(new IStreamListener[listeners.size()])) {
@@ -78,7 +98,7 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
 
   @Override
   public void messageRepeatCountUpdated(int count) {
-    messageAdded(lastMessage);
+    messageAdded(lastMessage, lastUrl, lastLine, lastStackTrace);
   }
 
   @Override
@@ -105,8 +125,8 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
     connection.getConsole().enable();
   }
 
-  void messageAdded(String message) {
-    messageAdded(message, null, -1);
+  protected void messageAdded(String message) {
+    messageAdded(message, null, -1, null);
   }
 
   boolean shouldIgnoreMessage(String message, String url) {
