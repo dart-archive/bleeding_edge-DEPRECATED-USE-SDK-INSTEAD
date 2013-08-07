@@ -58,67 +58,83 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_computeStringValue_emptyInterpolationPrefix() throws Exception {
-    assertEquals("", computeStringValue("'''"));
+    assertEquals("", computeStringValue("'''", true, true));
   }
 
   public void test_computeStringValue_escape_b() throws Exception {
-    assertEquals("\b", computeStringValue("'\\b'"));
+    assertEquals("\b", computeStringValue("'\\b'", true, true));
   }
 
   public void test_computeStringValue_escape_f() throws Exception {
-    assertEquals("\f", computeStringValue("'\\f'"));
+    assertEquals("\f", computeStringValue("'\\f'", true, true));
   }
 
   public void test_computeStringValue_escape_n() throws Exception {
-    assertEquals("\n", computeStringValue("'\\n'"));
+    assertEquals("\n", computeStringValue("'\\n'", true, true));
   }
 
   public void test_computeStringValue_escape_notSpecial() throws Exception {
-    assertEquals(":", computeStringValue("'\\:'"));
+    assertEquals(":", computeStringValue("'\\:'", true, true));
   }
 
   public void test_computeStringValue_escape_r() throws Exception {
-    assertEquals("\r", computeStringValue("'\\r'"));
+    assertEquals("\r", computeStringValue("'\\r'", true, true));
   }
 
   public void test_computeStringValue_escape_t() throws Exception {
-    assertEquals("\t", computeStringValue("'\\t'"));
+    assertEquals("\t", computeStringValue("'\\t'", true, true));
   }
 
   public void test_computeStringValue_escape_u_fixed() throws Exception {
-    assertEquals("\u4321", computeStringValue("'\\u4321'"));
+    assertEquals("\u4321", computeStringValue("'\\u4321'", true, true));
   }
 
   public void test_computeStringValue_escape_u_variable() throws Exception {
-    assertEquals("\u0123", computeStringValue("'\\u{123}'"));
+    assertEquals("\u0123", computeStringValue("'\\u{123}'", true, true));
   }
 
   public void test_computeStringValue_escape_v() throws Exception {
-    assertEquals("\u000B", computeStringValue("'\\v'"));
+    assertEquals("\u000B", computeStringValue("'\\v'", true, true));
   }
 
   public void test_computeStringValue_escape_x() throws Exception {
-    assertEquals("\u00FF", computeStringValue("'\\xFF'"));
+    assertEquals("\u00FF", computeStringValue("'\\xFF'", true, true));
   }
 
   public void test_computeStringValue_noEscape_single() throws Exception {
-    assertEquals("text", computeStringValue("'text'"));
+    assertEquals("text", computeStringValue("'text'", true, true));
   }
 
   public void test_computeStringValue_noEscape_triple() throws Exception {
-    assertEquals("text", computeStringValue("'''text'''"));
+    assertEquals("text", computeStringValue("'''text'''", true, true));
   }
 
   public void test_computeStringValue_raw_single() throws Exception {
-    assertEquals("text", computeStringValue("r'text'"));
+    assertEquals("text", computeStringValue("r'text'", true, true));
   }
 
   public void test_computeStringValue_raw_triple() throws Exception {
-    assertEquals("text", computeStringValue("r'''text'''"));
+    assertEquals("text", computeStringValue("r'''text'''", true, true));
   }
 
   public void test_computeStringValue_raw_withEscape() throws Exception {
-    assertEquals("two\\nlines", computeStringValue("r'two\\nlines'"));
+    assertEquals("two\\nlines", computeStringValue("r'two\\nlines'", true, true));
+  }
+
+  public void test_computeStringValue_triple_internalQuote_first_empty() throws Exception {
+    assertEquals("'", computeStringValue("''''", true, false));
+  }
+
+  public void test_computeStringValue_triple_internalQuote_first_nonEmpty() throws Exception {
+    assertEquals("'text", computeStringValue("''''text", true, false));
+  }
+
+  public void test_computeStringValue_triple_internalQuote_last_empty() throws Exception {
+    assertEquals("", computeStringValue("'''", false, true));
+  }
+
+  public void test_computeStringValue_triple_internalQuote_last_nonEmpty() throws Exception {
+    assertEquals("text", computeStringValue("text'''", false, true));
   }
 
   public void test_constFactory() throws Exception {
@@ -4685,10 +4701,12 @@ public class SimpleParserTest extends ParserTestCase {
    * Invoke the method {@link Parser#computeStringValue(String)} with the given argument.
    * 
    * @param lexeme the argument to the method
+   * @param first {@code true} if this is the first token in a string literal
+   * @param last {@code true} if this is the last token in a string literal
    * @return the result of invoking the method
    * @throws Exception if the method could not be invoked or throws an exception
    */
-  private String computeStringValue(String lexeme) throws Exception {
+  private String computeStringValue(String lexeme, boolean first, boolean last) throws Exception {
     AnalysisErrorListener listener = new AnalysisErrorListener() {
       @Override
       public void onError(AnalysisError event) {
@@ -4697,11 +4715,8 @@ public class SimpleParserTest extends ParserTestCase {
       }
     };
     Parser parser = new Parser(null, listener);
-    return (String) invokeParserMethodImpl(
-        parser,
-        "computeStringValue",
-        new Object[] {lexeme},
-        null);
+    return (String) invokeParserMethodImpl(parser, "computeStringValue", new Object[] {
+        lexeme, first, last}, null);
   }
 
   /**

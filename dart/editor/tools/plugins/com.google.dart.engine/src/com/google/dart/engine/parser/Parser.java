@@ -14,6 +14,7 @@
 package com.google.dart.engine.parser;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.*;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -194,29 +195,41 @@ public class Parser {
    * Compute the content of a string with the given literal representation.
    * 
    * @param lexeme the literal representation of the string
+   * @param first {@code true} if this is the first token in a string literal
+   * @param last {@code true} if this is the last token in a string literal
    * @return the actual value of the string
    */
-  private String computeStringValue(String lexeme) {
-    if (lexeme.startsWith("r\"\"\"") || lexeme.startsWith("r'''")) { //$NON-NLS-1$ //$NON-NLS-2$
-      if (lexeme.length() > 4) {
-        return lexeme.substring(4, lexeme.length() - 3);
-      }
-    } else if (lexeme.startsWith("r\"") || lexeme.startsWith("r'")) { //$NON-NLS-1$ //$NON-NLS-2$
-      if (lexeme.length() > 2) {
-        return lexeme.substring(2, lexeme.length() - 1);
-      }
-    }
+  private String computeStringValue(String lexeme, boolean first, boolean last) {
+    boolean isRaw = false;
     int start = 0;
-    if (lexeme.startsWith("\"\"\"") || lexeme.startsWith("'''")) { //$NON-NLS-1$ //$NON-NLS-2$
-      start += 3;
-    } else if (lexeme.startsWith("\"") || lexeme.startsWith("'")) { //$NON-NLS-1$ //$NON-NLS-2$
-      start += 1;
+    if (first) {
+      if (lexeme.startsWith("r\"\"\"") || lexeme.startsWith("r'''")) { //$NON-NLS-1$ //$NON-NLS-2$
+        isRaw = true;
+        start += 4;
+      } else if (lexeme.startsWith("r\"") || lexeme.startsWith("r'")) { //$NON-NLS-1$ //$NON-NLS-2$
+        isRaw = true;
+        start += 2;
+      } else if (lexeme.startsWith("\"\"\"") || lexeme.startsWith("'''")) { //$NON-NLS-1$ //$NON-NLS-2$
+        start += 3;
+      } else if (lexeme.startsWith("\"") || lexeme.startsWith("'")) { //$NON-NLS-1$ //$NON-NLS-2$
+        start += 1;
+      }
     }
     int end = lexeme.length();
-    if (end > 3 && (lexeme.endsWith("\"\"\"") || lexeme.endsWith("'''"))) { //$NON-NLS-1$ //$NON-NLS-2$
-      end -= 3;
-    } else if (end > 1 && (lexeme.endsWith("\"") || lexeme.endsWith("'"))) { //$NON-NLS-1$ //$NON-NLS-2$
-      end -= 1;
+    if (last) {
+      if (lexeme.endsWith("\"\"\"") || lexeme.endsWith("'''")) { //$NON-NLS-1$ //$NON-NLS-2$
+        end -= 3;
+      } else if (lexeme.endsWith("\"") || lexeme.endsWith("'")) { //$NON-NLS-1$ //$NON-NLS-2$
+        end -= 1;
+      }
+    }
+    if (end - start + 1 < 0) {
+      AnalysisEngine.getInstance().getLogger().logError(
+          "Internal error: computeStringValue(" + lexeme + ", " + first + ", " + last + ")");
+      return "";
+    }
+    if (isRaw) {
+      return lexeme.substring(start, end);
     }
     StringBuilder builder = new StringBuilder(end - start + 1);
     int index = start;
@@ -4749,9 +4762,13 @@ public class Parser {
    */
   private StringInterpolation parseStringInterpolation(Token string) {
     List<InterpolationElement> elements = new ArrayList<InterpolationElement>();
-    elements.add(new InterpolationString(string, computeStringValue(string.getLexeme())));
-    while (matches(TokenType.STRING_INTERPOLATION_EXPRESSION)
-        || matches(TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+    boolean hasMore = matches(TokenType.STRING_INTERPOLATION_EXPRESSION)
+        || matches(TokenType.STRING_INTERPOLATION_IDENTIFIER);
+    elements.add(new InterpolationString(string, computeStringValue(
+        string.getLexeme(),
+        true,
+        !hasMore)));
+    while (hasMore) {
       if (matches(TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         Token openToken = getAndAdvance();
         Expression expression = parseExpression();
@@ -4769,7 +4786,12 @@ public class Parser {
       }
       if (matches(TokenType.STRING)) {
         string = getAndAdvance();
-        elements.add(new InterpolationString(string, computeStringValue(string.getLexeme())));
+        hasMore = matches(TokenType.STRING_INTERPOLATION_EXPRESSION)
+            || matches(TokenType.STRING_INTERPOLATION_IDENTIFIER);
+        elements.add(new InterpolationString(string, computeStringValue(
+            string.getLexeme(),
+            false,
+            !hasMore)));
       }
     }
     return new StringInterpolation(elements);
@@ -4794,7 +4816,10 @@ public class Parser {
           || matches(TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
         strings.add(parseStringInterpolation(string));
       } else {
-        strings.add(new SimpleStringLiteral(string, computeStringValue(string.getLexeme())));
+        strings.add(new SimpleStringLiteral(string, computeStringValue(
+            string.getLexeme(),
+            true,
+            true)));
       }
     }
     if (strings.size() < 1) {
