@@ -60,6 +60,10 @@ class ExpressionEvaluateJob extends Job {
 
   @Override
   protected IStatus run(IProgressMonitor monitor) {
+    if (expression == null || expression.length() == 0) {
+      return Status.OK_STATUS;
+    }
+
     final CountDownLatch latch = new CountDownLatch(1);
     final IWatchExpressionResult[] expResult = new IWatchExpressionResult[1];
     final String[] stringValue = new String[1];

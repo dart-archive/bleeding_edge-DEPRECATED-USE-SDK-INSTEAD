@@ -60,6 +60,17 @@ public class WebkitResult<T> {
       if (obj.isString()) {
         return obj.getValue();
       }
+    } else if (error instanceof String) {
+      return (String) error;
+    }
+
+    // {"message":"Object has too long reference chain(must not be longer than 1000)","code":-32000}
+    if (error instanceof JSONObject) {
+      JSONObject obj = (JSONObject) error;
+
+      if (obj.has("message")) {
+        return obj.optString("message");
+      }
     }
 
     return "";

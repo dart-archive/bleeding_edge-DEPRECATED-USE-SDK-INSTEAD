@@ -14,8 +14,10 @@
 
 package com.google.dart.tools.debug.ui.internal.objectinspector;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.general.AdapterUtilities;
+import com.google.dart.tools.debug.core.util.HistoryList;
+import com.google.dart.tools.debug.core.util.HistoryListListener;
+import com.google.dart.tools.debug.core.util.HistoryListMatcher;
 import com.google.dart.tools.debug.core.util.IDartDebugValue;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.objectinspector.ExpressionEvaluateJob.ExpressionListener;
@@ -23,7 +25,6 @@ import com.google.dart.tools.debug.ui.internal.presentation.DartDebugModelPresen
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.text.editor.DartDocumentSetupParticipant;
-import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SelectionUtil;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
@@ -52,7 +53,8 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
@@ -62,6 +64,7 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.IUndoManagerExtension;
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.TextViewerUndoManager;
 import org.eclipse.jface.text.source.AnnotationModel;
 import org.eclipse.jface.text.source.SourceViewer;
@@ -76,8 +79,11 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -91,66 +97,24 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
-import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.operations.RedoActionHandler;
 import org.eclipse.ui.operations.UndoActionHandler;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
-import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 import org.eclipse.ui.texteditor.IUpdate;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-// TODO: have a keystroke sequence for evaluation
+// TODO: remove statics from the views
 
-// TODO: ctrl-enter to eval and print the selection?
+// TODO: add an 'Inspect Class...' context menu item
 
-// TODO: when there's selected text, a return == evaluate and print
+// TODO: something weird with the title of objects in the inspector
 
-// TODO: code completion
-
-// TODO: forward and back toolbar icons
-
-// TODO: closing the view should clear the history
-
-// TODO: insert the eval'd text w/ right justification
-
-// TODO: insert the eval'd text using italics
-
-// TODO: be able to right-click on an eval area and inspect the associated object
-
-// TODO: insert after the expression being evaluated
-
-// TODO: try and reduce the async apis
-
-// TODO: right click, inspect it action on the value area
-
-// TODO: refactor this class to reduce its complexity
-
-// TODO: the view needs to clear itself when the connection shuts down
-
-// TODO: we really need to populate the tree in a lazy manner
+// TODO: we need to populate the tree in a lazy manner
 
 // TODO: add the ability to navigate to the source code definition
-
-// TODO: add the ability to navigate to the Type object
-
-// TODO: should the view be a pagebookviewpart for multiple debug connections?
-// the tree viewer and the object history should be based on the current connection
-
-// TODO: the properties view and the object histories track the current isolate
-
-// TODO: the text view persists between sessions and isolates
-
-// TODO: the hyperlinks can only be active if the connection is still open and the appropriate
-// isolate is selected
-
-// TODO: use annotations to mark bits of text as object values. we can then hyperlink and style them
-
-// TODO: ITextViewer/TextViewer.changeTextPresentation()
 
 /**
  * The Dart object inspector view.
@@ -184,36 +148,6 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     }
   }
 
-  private class DoItAction extends Action implements IUpdate {
-    public DoItAction() {
-      super("Do It");
-
-      setId(getText());
-    }
-
-    @Override
-    public void run() {
-      Job job = new ExpressionEvaluateJob(
-          getValue(),
-          getExpressionText(),
-          new ExpressionListener() {
-            @Override
-            public void watchEvaluationFinished(IWatchExpressionResult result, String stringValue) {
-              if (result.hasErrors()) {
-                displayError(result);
-              }
-            }
-          });
-
-      job.schedule();
-    }
-
-    @Override
-    public void update() {
-      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
-    }
-  }
-
   private class InspectItAction extends Action implements IUpdate {
     public InspectItAction() {
       super("Inspect It...", DartDebugUIPlugin.getImageDescriptor("obj16/watchlist_view.gif"));
@@ -225,7 +159,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     public void run() {
       Job job = new ExpressionEvaluateJob(
           getValue(),
-          getExpressionText(),
+          getCurrentSelection(),
           new ExpressionListener() {
             @Override
             public void watchEvaluationFinished(IWatchExpressionResult result, String stringValue) {
@@ -242,13 +176,13 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     @Override
     public void update() {
-      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
+      setEnabled(hasActiveConnection() && !getCurrentSelection().isEmpty());
     }
   }
 
   private class PrintItAction extends Action implements IUpdate {
     public PrintItAction() {
-      super("Print It");
+      super("Print It", DartDebugUIPlugin.getImageDescriptor("obj16/variable_tab.gif"));
 
       setId(getText());
     }
@@ -257,14 +191,14 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     public void run() {
       Job job = new ExpressionEvaluateJob(
           getValue(),
-          getExpressionText(),
+          getCurrentSelection(),
           new ExpressionListener() {
             @Override
             public void watchEvaluationFinished(IWatchExpressionResult result, String stringValue) {
               if (result.hasErrors()) {
                 displayError(result);
               } else {
-                appendToTextArea(stringValue);
+                displayResult(stringValue);
               }
             }
           });
@@ -274,7 +208,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     @Override
     public void update() {
-      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
+      setEnabled(hasActiveConnection() && !getCurrentSelection().isEmpty());
     }
   }
 
@@ -313,9 +247,10 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
   private Map<String, IUpdate> textActions = new HashMap<String, IUpdate>();
 
-  private DoItAction doItAction;
   private PrintItAction printItAction;
   private InspectItAction inspectItAction;
+
+  private HistoryList<IValue> historyList = new HistoryList<IValue>();
 
   static Object EXPRESSION_EVAL_JOB_FAMILY = new Object();
 
@@ -385,6 +320,24 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     sourceViewer.setUndoManager(new TextViewerUndoManager(100));
     sourceViewer.getTextWidget().setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
     sourceViewer.getTextWidget().setTabs(2);
+    sourceViewer.getTextWidget().addVerifyKeyListener(new VerifyKeyListener() {
+      @Override
+      public void verifyKey(VerifyEvent e) {
+        // If they hit enter, but were not holding down ctrl or shift, then evaluate.
+        if (e.character == SWT.CR && ((e.stateMask & (SWT.CTRL | SWT.SHIFT)) == 0)) {
+          // Cancel the return char.
+          e.doit = false;
+
+          if (getCurrentSelection().isEmpty()) {
+            evaluateAndPrint(getCurrentLine());
+          } else {
+            evaluateAndPrint(getCurrentSelection());
+          }
+        }
+      }
+    });
+    GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).applyTo(
+        sourceViewer.getControl());
     sourceViewer.getDocument().addDocumentListener(new IDocumentListener() {
       @Override
       public void documentAboutToBeChanged(DocumentEvent event) {
@@ -410,9 +363,6 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     hookContextMenu();
     updateActions();
 
-//    PresentationReconciler presentationReconciler = new PresentationReconciler();
-//    presentationReconciler.install(textViewer);
-
     configureToolBar(getViewSite().getActionBars().getToolBarManager());
 
     sash.setWeights(new int[] {60, 40});
@@ -427,7 +377,20 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
         updateSashOrientation(sash);
       }
     });
+
     updateSashOrientation(sash);
+
+    historyList.addListener(new HistoryListListener<IValue>() {
+      @Override
+      public void historyChanged(IValue current) {
+        Display.getDefault().asyncExec(new Runnable() {
+          @Override
+          public void run() {
+            inspectValueImpl(historyList.getCurrent());
+          }
+        });
+      }
+    });
   }
 
   @Override
@@ -449,7 +412,6 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
       if (event.getKind() == DebugEvent.TERMINATE && event.getSource() instanceof IDebugTarget) {
         syncDebugContext();
 
-        // TOOD: remove this
         handleDebugTargetTerminated((IDebugTarget) event.getSource());
       }
     }
@@ -469,7 +431,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
   @Override
   public void setFocus() {
-    treeViewer.getControl().setFocus();
+    sourceViewer.getControl().setFocus();
   }
 
   protected void addTextAction(ActionFactory actionFactory, int textOperation) {
@@ -502,39 +464,62 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     setStatusLine(null);
   }
 
-  protected void clearViewer() {
-    Display display = Display.getDefault();
-
-    if (display != null) {
-      display.asyncExec(new Runnable() {
-        @Override
-        public void run() {
-          treeViewer.setInput(null);
-        }
-      });
-    }
-  }
-
   protected void configureToolBar(IToolBarManager manager) {
-    manager.add(new EvaluateAction(this));
+    manager.add(HistoryAction.createForwardAction(historyList));
+    manager.add(HistoryAction.createBackAction(historyList));
+    manager.add(new Separator());
+    manager.add(printItAction);
+    manager.add(inspectItAction);
 
     manager.update(true);
   }
 
+  protected void evaluateAndPrint(String expression) {
+    IDartDebugValue value = getValue();
+
+    if (value == null) {
+      return;
+    }
+
+    Job job = new ExpressionEvaluateJob(getValue(), expression, new ExpressionListener() {
+      @Override
+      public void watchEvaluationFinished(IWatchExpressionResult result, String stringValue) {
+        if (result.hasErrors()) {
+          displayError(result);
+        } else {
+          displayResult(stringValue);
+        }
+      }
+    });
+
+    job.schedule();
+  }
+
   protected void fillContextMenu(IMenuManager manager) {
-    manager.add(doItAction);
     manager.add(printItAction);
     manager.add(inspectItAction);
   }
 
-  protected String getExpressionText() {
-    // TODO: if there's a selection, return that; else return the entire text?
-
+  protected String getCurrentSelection() {
     return ((ITextSelection) sourceViewer.getSelection()).getText();
+  }
+
+  protected IAction getInspectItAction() {
+    return inspectItAction;
   }
 
   protected IAction getPrintItAction() {
     return printItAction;
+  }
+
+  protected boolean hasActiveConnection() {
+    IDartDebugValue value = getValue();
+
+    if (value == null) {
+      return false;
+    }
+
+    return !value.getDebugTarget().isTerminated();
   }
 
   protected void initProgressService(IWorkbenchSiteProgressService progressService) {
@@ -542,27 +527,44 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   }
 
   protected void inspectValue(IValue value) {
-    presentation.computeDetail(value, new IValueDetailListener() {
-      @Override
-      public void detailComputed(final IValue value, final String result) {
-        Display.getDefault().asyncExec(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              String typeName = value.getReferenceTypeName();
+    historyList.add(value);
+  }
 
-              treeViewer.setInput(new Object[] {new InspectorVariable(typeName, value)});
-            } catch (DebugException e) {
+  protected void inspectValueImpl(IValue value) {
+    if (value == null) {
+      treeViewer.setInput(new Object[] {});
+    } else {
+      presentation.computeDetail(value, new IValueDetailListener() {
+        @Override
+        public void detailComputed(final IValue value, final String result) {
+          Display.getDefault().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+              try {
+                String typeName = value.getReferenceTypeName();
 
+                treeViewer.setInput(new Object[] {new InspectorVariable(typeName, value)});
+              } catch (DebugException e) {
+
+              }
             }
-          }
-        });
-      }
-    });
+          });
+        }
+      });
+    }
   }
 
   protected void performEvaulation() {
     printItAction.run();
+  }
+
+  protected void removeTerminated() {
+    historyList.removeMatching(new HistoryListMatcher<IValue>() {
+      @Override
+      public boolean matches(IValue value) {
+        return value.getDebugTarget().isTerminated();
+      }
+    });
   }
 
   protected void setStatusLine(String message) {
@@ -586,63 +588,17 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   void updateSashOrientation(SashForm sash) {
     Rectangle r = sash.getBounds();
 
-    int orientation = r.height >= r.width ? SWT.VERTICAL : SWT.HORIZONTAL;
+    int orientation = (r.height * 1.25) >= r.width ? SWT.VERTICAL : SWT.HORIZONTAL;
 
     if (sash.getOrientation() != orientation) {
       sash.setOrientation(orientation);
     }
   }
 
-  private void appendToTextArea(final String result) {
-    // TODO(devoncarew): display the results in italic and right-aligned
-
-    Display.getDefault().asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        IDocument document = sourceViewer.getDocument();
-
-        String insert = result;
-
-        if (insert == null) {
-          insert = "null";
-        }
-
-        try {
-          String current = document.get();
-
-          if (!current.endsWith("\n")) {
-            insert = "\n" + insert;
-          }
-
-          if (!insert.endsWith("\n")) {
-            insert += "\n";
-          }
-
-//          int insertLocation = document.getLength();
-//          int insertLength = insert.length();
-          document.replace(document.getLength(), 0, insert);
-
-//          sourceViewer.getVisualAnnotationModel().getAnnotationIterator();
-//          sourceViewer.getVisualAnnotationModel().getPosition(annotation);
-
-//          IAnnotationModel annotationModel = sourceViewer.getVisualAnnotationModel();
-//          annotationModel.addAnnotation(new Annotation(
-//              "org.eclipse.debug.ui.currentIPEx",
-//              false,
-//              null), new Position(insertLocation, insertLength));
-        } catch (BadLocationException e) {
-          DartDebugUIPlugin.logError(e);
-        }
-      }
-    });
-  }
-
   private void createActions() {
-    doItAction = new DoItAction();
     printItAction = new PrintItAction();
     inspectItAction = new InspectItAction();
 
-    textActions.put(doItAction.getId(), doItAction);
     textActions.put(printItAction.getId(), printItAction);
     textActions.put(inspectItAction.getId(), inspectItAction);
   }
@@ -676,27 +632,60 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     addTextAction(ActionFactory.SELECT_ALL, ITextOperationTarget.SELECT_ALL);
   }
 
-  private IPreferenceStore createPreferenceStore() {
-    List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>();
-
-    stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
-    stores.add(new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()));
-    stores.add(EditorsUI.getPreferenceStore());
-
-    return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
+  private void displayError(final IWatchExpressionResult result) {
+    displayResult(result.getErrorMessages()[0]);
   }
 
-  private void displayError(final IWatchExpressionResult result) {
-    // TODO(devoncarew): what's the best way to display these errors?
-    // TODO(devoncarew) display them inline in the eval area, or print them to the console
-
+  private void displayResult(final String result) {
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
-        getViewSite().getActionBars().getStatusLineManager().setErrorMessage(
-            result.getErrorMessages()[0]);
+        IDocument document = sourceViewer.getDocument();
+
+        String insert = result;
+
+        if (insert == null) {
+          insert = "null";
+        }
+
+        try {
+          String current = document.get();
+
+          insert = "  " + insert;
+
+          if (!current.endsWith("\n")) {
+            insert = "\n" + insert;
+          }
+
+          if (!insert.endsWith("\n")) {
+            insert += "\n";
+          }
+
+          document.replace(document.getLength(), 0, insert);
+          sourceViewer.setSelection(new TextSelection(document.getLength(), 0), true);
+        } catch (BadLocationException e) {
+          DartDebugUIPlugin.logError(e);
+        }
       }
     });
+  }
+
+  private String getCurrentLine() {
+    try {
+      Point sel = sourceViewer.getSelectedRange();
+      IDocument document = sourceViewer.getDocument();
+
+      int line = document.getLineOfOffset(sel.x);
+
+      int startOffset = document.getLineOffset(line);
+      int lineLength = document.getLineLength(line);
+
+      String text = document.get(startOffset, lineLength);
+
+      return text.trim();
+    } catch (BadLocationException ble) {
+      return null;
+    }
   }
 
   private IDebugContextService getDebugContextService() {
@@ -708,7 +697,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     return new DartSourceViewerConfiguration(
         textTools.getColorManager(),
-        createPreferenceStore(),
+        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
         null,
         DartPartitions.DART_PARTITIONING) {
     };
@@ -719,13 +708,15 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     if (input instanceof Object[]) {
       try {
-        IVariable variable = (IVariable) ((Object[]) input)[0];
+        Object[] inputArray = (Object[]) input;
 
-        return (IDartDebugValue) variable.getValue();
+        if (inputArray.length > 0) {
+          IVariable variable = (IVariable) inputArray[0];
+
+          return (IDartDebugValue) variable.getValue();
+        }
       } catch (DebugException e) {
-        // TODO:
 
-        e.printStackTrace();
       }
     }
 
@@ -733,17 +724,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   }
 
   private void handleDebugTargetTerminated(IDebugTarget target) {
-    // TODO:
-
-    Object object = treeViewer.getInput();
-
-    if (object instanceof IValue) {
-      IValue value = (IValue) object;
-
-      if (value.getDebugTarget() == target) {
-        clearViewer();
-      }
-    }
+    removeTerminated();
   }
 
   private void hookContextMenu() {
@@ -773,18 +754,30 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   }
 
   private void syncDebugContext() {
-    // TODO: implement
+    Display display = Display.getDefault();
 
-    Object context = null;
-    ISelection sel = getDebugContextService().getActiveContext();
+    if (display != null) {
+      display.asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          // TODO: implement
 
-    if (sel instanceof IStructuredSelection) {
-      context = ((IStructuredSelection) sel).getFirstElement();
+          Object context = null;
+          ISelection sel = getDebugContextService().getActiveContext();
+
+          if (sel instanceof IStructuredSelection) {
+            context = ((IStructuredSelection) sel).getFirstElement();
+          }
+
+          @SuppressWarnings("unused")
+          IThread isolate = AdapterUtilities.getAdapter(context, IThread.class);
+
+          //System.out.println("current isolate = " + isolate);
+
+          updateActions();
+        }
+      });
     }
-
-    IThread isolate = AdapterUtilities.getAdapter(context, IThread.class);
-
-    System.out.println("current isolate = " + isolate);
   }
 
   private void updateActions() {

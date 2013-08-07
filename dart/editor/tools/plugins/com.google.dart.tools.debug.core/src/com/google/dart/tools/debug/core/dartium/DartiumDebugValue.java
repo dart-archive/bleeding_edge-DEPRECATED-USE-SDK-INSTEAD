@@ -22,6 +22,8 @@ import com.google.dart.tools.debug.core.webkit.WebkitCallback;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 import com.google.dart.tools.debug.core.webkit.WebkitResult;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
@@ -94,16 +96,48 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
   @Override
   public void evaluateExpression(final String expression, final IWatchExpressionListener listener) {
-    // TODO(devoncarew): implement this for dartium
+    String exprText = expression;
 
-    Thread thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        listener.watchEvaluationFinished(WatchExpressionResult.noOp(expression));
-      }
-    });
+    // If they're not trying to access 'this' as an array references, use a period after 'this'.
+    if (!exprText.startsWith("[")) {
+      exprText = "." + exprText;
+    }
 
-    thread.start();
+    try {
+      getConnection().getRuntime().callFunctionOn(
+          value.getObjectId(),
+          "function(){return this" + exprText + ";}",
+          null,
+          false,
+          new WebkitCallback<WebkitRemoteObject>() {
+            @Override
+            public void handleResult(WebkitResult<WebkitRemoteObject> result) {
+              if (result.isError()) {
+                listener.watchEvaluationFinished(WatchExpressionResult.error(
+                    expression,
+                    result.getErrorMessage()));
+              } else if (result.getResult().isUndefined()) {
+                listener.watchEvaluationFinished(WatchExpressionResult.error(
+                    expression,
+                    "undefined"));
+              } else if (result.getResult().isSyntaxError()) {
+                evalOnGlobalContext(expression, result, listener);
+              } else {
+                listener.watchEvaluationFinished(WatchExpressionResult.value(
+                    expression,
+                    new DartiumDebugValue(getTarget(), null, result.getResult())));
+              }
+            }
+          });
+    } catch (IOException e) {
+      listener.watchEvaluationFinished(WatchExpressionResult.exception(
+          expression,
+          new DebugException(new Status(
+              IStatus.ERROR,
+              DartDebugCorePlugin.PLUGIN_ID,
+              e.toString(),
+              e))));
+    }
   }
 
   /**
@@ -129,9 +163,9 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
     if (isListValue()) {
       if (value.getClassName() != null) {
-        return value.getClassName() + "[" + getListLength() + "]";
+        return value.getClassName() + "[" + value.getListLength() + "]";
       } else {
-        return "List[" + getListLength() + "]";
+        return "List[" + value.getListLength() + "]";
       }
     }
 
@@ -186,7 +220,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
   public boolean hasVariables() throws DebugException {
     try {
       if (isListValue()) {
-        return getListLength() > 0;
+        return value.getListLength() > 0;
       } else {
         return value.hasObjectId();
       }
@@ -215,25 +249,40 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     return value.isPrimitive();
   }
 
-  private int getListLength() {
-    // value.getDescription() == "Array[x]"
-
-    String str = value.getDescription();
-
-    int startIndex = str.indexOf('[');
-    int endIndex = str.indexOf(']', startIndex);
-
-    if (startIndex != -1 && endIndex != -1) {
-      String val = str.substring(startIndex + 1, endIndex);
-
-      try {
-        return Integer.parseInt(val);
-      } catch (NumberFormatException nfe) {
-
-      }
+  private void evalOnGlobalContext(final String expression,
+      final WebkitResult<WebkitRemoteObject> originalResult, final IWatchExpressionListener listener) {
+    try {
+      getConnection().getRuntime().evaluate(
+          expression,
+          null,
+          false,
+          new WebkitCallback<WebkitRemoteObject>() {
+            @Override
+            public void handleResult(WebkitResult<WebkitRemoteObject> result) {
+              if (result.isError()) {
+                listener.watchEvaluationFinished(WatchExpressionResult.error(
+                    expression,
+                    originalResult.getErrorMessage()));
+              } else if (result.getResult().isSyntaxError()) {
+                listener.watchEvaluationFinished(WatchExpressionResult.value(
+                    expression,
+                    new DartiumDebugValue(getTarget(), null, originalResult.getResult())));
+              } else {
+                listener.watchEvaluationFinished(WatchExpressionResult.value(
+                    expression,
+                    new DartiumDebugValue(getTarget(), null, result.getResult())));
+              }
+            }
+          });
+    } catch (IOException e) {
+      listener.watchEvaluationFinished(WatchExpressionResult.exception(
+          expression,
+          new DebugException(new Status(
+              IStatus.ERROR,
+              DartDebugCorePlugin.PLUGIN_ID,
+              e.toString(),
+              e))));
     }
-
-    return 0;
   }
 
   private void populate() {
@@ -241,8 +290,12 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
       // TODO(devoncarew): this prevents crashes in the editor and Dartium, but a better
       // solution is needed. That solution will likely involve use of the Runtime.callFunctionOn
       // method. See https://code.google.com/p/dart/issues/detail?id=7794.
-      if (value.isList() && getListLength() > MAX_DISPLAYABLE_LIST_LENGTH) {
+      if (value.isList() && value.getListLength() > MAX_DISPLAYABLE_LIST_LENGTH) {
         variableCollector = VariableCollector.empty();
+//      if (value.isList()) {
+//        variableCollector = VariableCollector.fixed(
+//            getTarget(),
+//            ListSlicer.createValues(getTarget(), value));
       } else {
         variableCollector = VariableCollector.createCollector(
             getTarget(),

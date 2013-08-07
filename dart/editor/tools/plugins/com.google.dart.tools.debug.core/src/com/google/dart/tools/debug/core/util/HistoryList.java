@@ -39,6 +39,11 @@ public class HistoryList<T> {
       throw new IllegalArgumentException("null not allowed");
     }
 
+    // trim off any items past the current pointer
+    while (hasNext()) {
+      list.remove(list.size() - 1);
+    }
+
     list.add(t);
     current = list.size() - 1;
 
@@ -92,6 +97,35 @@ public class HistoryList<T> {
 
   public void removeListener(HistoryListListener<T> listener) {
     listeners.remove(listener);
+  }
+
+  public void removeMatching(HistoryListMatcher<T> matcher) {
+    boolean removedItem = false;
+
+    for (int i = list.size() - 1; i >= 0; i--) {
+      T t = list.get(i);
+
+      if (matcher.matches(t)) {
+        list.remove(i);
+        removedItem = true;
+
+        if (current > i) {
+          // move the current selection left if we deleted to the left of it
+          current--;
+        } else if (current >= list.size()) {
+          // ensure that we don't point past the end of the list
+          current = list.size() - 1;
+        }
+      }
+    }
+
+    if (removedItem) {
+      fireEvent(getCurrent());
+    }
+  }
+
+  public int size() {
+    return list.size();
   }
 
   private void fireEvent(T current) {

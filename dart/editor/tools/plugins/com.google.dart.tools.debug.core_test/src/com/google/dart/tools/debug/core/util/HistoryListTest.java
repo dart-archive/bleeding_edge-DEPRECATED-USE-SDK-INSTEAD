@@ -72,6 +72,41 @@ public class HistoryListTest extends TestCase {
     assertTrue(historyList.hasPrevious());
   }
 
+  public void testRemoveMatching() {
+    historyList.add("a");
+    historyList.add("1");
+    historyList.add("b");
+    historyList.add("1");
+    historyList.add("c");
+    historyList.navigatePrevious();
+    historyList.navigatePrevious();
+
+    assertEquals("b", historyList.getCurrent());
+    assertEquals(5, historyList.size());
+
+    historyList.removeMatching(new HistoryListMatcher<String>() {
+      @Override
+      public boolean matches(String t) {
+        return "1".equals(t);
+      }
+    });
+
+    assertEquals("b", historyList.getCurrent());
+    assertEquals(3, historyList.size());
+    assertTrue(historyList.hasNext());
+
+    historyList.removeMatching(new HistoryListMatcher<String>() {
+      @Override
+      public boolean matches(String t) {
+        return "b".equals(t);
+      }
+    });
+
+    assertEquals("c", historyList.getCurrent());
+    assertEquals(2, historyList.size());
+    assertFalse(historyList.hasNext());
+  }
+
   @Override
   protected void setUp() throws Exception {
     mockListener = new MockListener();

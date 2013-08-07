@@ -70,6 +70,35 @@ public class WebkitRemoteObject {
     return description;
   }
 
+  /**
+   * Return the length of the list if this object is a list.
+   * 
+   * @return
+   */
+  public int getListLength() {
+    // TODO(devoncarew): write a test to notify us when this convention changes
+
+    // Since there is no direct way to obtain the length of an array, use the description from
+    // Dartium to derive the array length. value.getDescription() == "Array[x]"
+
+    String str = getDescription();
+
+    int startIndex = str.indexOf('[');
+    int endIndex = str.indexOf(']', startIndex);
+
+    if (startIndex != -1 && endIndex != -1) {
+      String val = str.substring(startIndex + 1, endIndex);
+
+      try {
+        return Integer.parseInt(val);
+      } catch (NumberFormatException nfe) {
+
+      }
+    }
+
+    return 0;
+  }
+
   public String getObjectId() {
     return objectId;
   }
