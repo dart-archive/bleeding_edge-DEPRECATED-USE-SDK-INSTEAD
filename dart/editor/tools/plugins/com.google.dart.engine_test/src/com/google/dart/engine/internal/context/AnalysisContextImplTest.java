@@ -761,7 +761,9 @@ public class AnalysisContextImplTest extends EngineTestCase {
     sources.add(source);
     context.setAnalysisPriorityOrder(sources);
     context.parseCompilationUnit(source);
-    Thread.sleep(1); // Force the modification time to be different.
+    while (initialTime == System.currentTimeMillis()) {
+      Thread.sleep(1); // Force the modification time to be different.
+    }
     sourceFactory.getContentCache().setContents(source, "library test;");
     assertTrue(initialTime != source.getModificationStamp());
     for (int i = 0; i < 4; i++) {
