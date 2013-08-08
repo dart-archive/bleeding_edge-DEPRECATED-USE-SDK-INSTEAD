@@ -187,7 +187,9 @@ public class TextSearchPage extends SearchPage {
           new UIJob("Displaying search results...") {
             @Override
             public IStatus runInUIThread(IProgressMonitor monitor) {
-              fileSearchPage.setInput(searchResult, fileSearchPage);
+              if (fileSearchPage != null) {
+                fileSearchPage.setInput(searchResult, fileSearchPage);
+              }
               return Status.OK_STATUS;
             }
           }.schedule();
