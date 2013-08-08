@@ -41,6 +41,8 @@ public class CmdLineOptions {
   private static final String PERF = "--perf";
   private static final String TEST = "--test";
 
+  private static final String EXPERIMENTAL = "--experimental";
+
   private static CmdLineOptions globalOptions;
 
   /**
@@ -75,6 +77,8 @@ public class CmdLineOptions {
           options.files.add(new File(args[index]));
           index++;
         }
+      } else if (arg.equals(EXPERIMENTAL)) {
+        options.experimental = true;
       } else if (arg.equals(PERF)) {
         // --perf [<startTime-in-milliseconds>]
         options.measurePerformance = true;
@@ -180,6 +184,7 @@ public class CmdLineOptions {
   private File[] packageRoots = null;
   private File packageOverrideDirectory = null;
   private ArrayList<String> warnings = new ArrayList<String>();
+  private boolean experimental = false;
 
   // use parseCmdLine(...) to construct new options
   private CmdLineOptions() {
@@ -193,6 +198,14 @@ public class CmdLineOptions {
    */
   public boolean getAutoExit() {
     return autoExit;
+  }
+
+  /**
+   * Answer <code>true</code> if {@value #EXPERIMENTAL} is specified on the command line indicating
+   * that the Editor should use experimental code during execution.
+   */
+  public boolean getExperimental() {
+    return experimental;
   }
 
   /**
@@ -238,7 +251,7 @@ public class CmdLineOptions {
   }
 
   /**
-   * Answer {@code true} if the {@value #TEST} is specified on the command line indicating that the
+   * Answer {@code true} if {@value #TEST} is specified on the command line indicating that the
    * Editor should automatically run the Editor's suite of tests.
    */
   public boolean getRunTests() {

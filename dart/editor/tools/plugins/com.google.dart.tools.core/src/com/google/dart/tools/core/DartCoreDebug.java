@@ -50,6 +50,9 @@ public class DartCoreDebug {
 
   // Experimental functionality options.
 
+  public static final boolean EXPERIMENTAL = isOptionTrue("experimental")
+      || CmdLineOptions.getOptions().getExperimental();
+
   public static final boolean ENABLE_ALT_KEY_BINDINGS = isOptionTrue("experimental/altKeyBindings");
   public static final boolean ENABLE_TESTS_VIEW = isOptionTrue("experimental/testsView");
   public static final boolean ENABLE_FORMATTER = isOptionTrue("experimental/formatter");
@@ -92,6 +95,8 @@ public class DartCoreDebug {
     instrumentation.metric("PERF_TIMER", PERF_TIMER);
     instrumentation.metric("PERF_INDEX", PERF_INDEX);
     instrumentation.metric("PERF_OS_RESOURCES", PERF_OS_RESOURCES);
+
+    instrumentation.metric("EXPERIMENTAL", EXPERIMENTAL);
 
     instrumentation.metric("ENABLE_ALT_KEY_BINDINGS", ENABLE_ALT_KEY_BINDINGS);
     instrumentation.metric("ENABLE_TESTS_VIEW", ENABLE_TESTS_VIEW);

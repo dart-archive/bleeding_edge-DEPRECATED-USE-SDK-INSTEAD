@@ -25,6 +25,8 @@ com.google.dart.tools.core/perf/index = false
 com.google.dart.tools.core/perf/osResources = false
 com.google.dart.tools.core/perf/threadContentionMonitor = false
 
+com.google.dart.tools.core/experimental = false
+
 com.google.dart.tools.core/experimental/altKeyBindings = false
 com.google.dart.tools.core/experimental/testsView = false
 com.google.dart.tools.core/experimental/formatter = false
