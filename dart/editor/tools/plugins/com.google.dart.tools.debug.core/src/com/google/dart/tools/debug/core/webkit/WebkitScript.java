@@ -127,6 +127,11 @@ public class WebkitScript {
     return isContentScript;
   }
 
+  public boolean isDataUrl() {
+    // For things like data:application/dart;base64,CiAgICAgICAgaW1wb...3J0ICd==
+    return url.startsWith("data:");
+  }
+
   public boolean isSystemScript() {
     if (url == null) {
       return false;

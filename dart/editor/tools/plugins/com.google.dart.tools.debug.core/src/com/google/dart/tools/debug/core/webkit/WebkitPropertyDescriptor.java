@@ -72,6 +72,12 @@ public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescri
         if (descriptor.value.isDartFunction()) {
           descriptor.enumerable = false;
         }
+
+        // [runtimeType, _Type]
+        if (descriptor.name.equals("runtimeType")
+            && "_Type".equals(descriptor.value.getClassName())) {
+          descriptor.enumerable = false;
+        }
       }
     }
 

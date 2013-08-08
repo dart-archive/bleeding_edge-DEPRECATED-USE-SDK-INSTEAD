@@ -92,11 +92,32 @@ public class DartiumRemoteScriptSourceContainer extends AbstractSourceContainer 
     return getSourceContainerType(TYPE_ID);
   }
 
+  private String convertDataUrl(String url) {
+    // convert data:application/dart;base64,CiAgICAgICAgaW1wb...3J0ICd== to
+    // script:application/dart
+
+    url = url.substring("data".length());
+    url = "script" + url;
+
+    if (url.indexOf(';') != -1) {
+      url = url.substring(0, url.indexOf(';'));
+    }
+
+    if (url.length() > 40) {
+      url = url.substring(0, 40);
+    }
+
+    return url;
+  }
+
   private LocalFileStorage getCreateStorageFor(WebkitScript script) throws IOException {
     if (script.getPrivateData() == null) {
       String url = script.getUrl();
 
-      if (url.indexOf('/') != -1) {
+      if (url.startsWith("data:")) {
+        // For things like data:application/dart;base64,CiAgICAgICAgaW1wb...3J0ICd==
+        url = convertDataUrl(url);
+      } else if (url.indexOf('/') != -1) {
         url = url.substring(url.lastIndexOf('/') + 1);
       } else if (url.indexOf('\\') != -1) {
         url = url.substring(url.lastIndexOf('\\') + 1);
