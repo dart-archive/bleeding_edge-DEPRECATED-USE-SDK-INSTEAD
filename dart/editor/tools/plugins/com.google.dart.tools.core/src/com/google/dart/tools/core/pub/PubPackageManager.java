@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -121,20 +122,29 @@ public class PubPackageManager {
 
     for (int page = 1; page <= pageCount; page++) {
       URLConnection connection = getApiUrl2(page);
-      InputStream is = connection.getInputStream();
+      InputStream is;
+      try {
+        is = connection.getInputStream();
+      } catch (UnknownHostException e) {
+        // No internet connection... just exit
+        break;
+      }
       BufferedReader br = new BufferedReader(new InputStreamReader(is));
-
-      while ((line = br.readLine()) != null && !monitor.isCanceled()) {
-        try {
-          JSONObject object = new JSONObject(line);
-          if (object != null) {
-            pageCount = object.getInt("pages");
-            JSONArray packages = (JSONArray) object.get("packages");
-            jsonArray.put(packages);
+      try {
+        while ((line = br.readLine()) != null && !monitor.isCanceled()) {
+          try {
+            JSONObject object = new JSONObject(line);
+            if (object != null) {
+              pageCount = object.getInt("pages");
+              JSONArray packages = (JSONArray) object.get("packages");
+              jsonArray.put(packages);
+            }
+          } catch (JSONException e) {
+            DartCore.logError(e);
           }
-        } catch (JSONException e) {
-          DartCore.logError(e);
         }
+      } finally {
+        br.close();
       }
       if (monitor.isCanceled()) {
         return Status.CANCEL_STATUS;
