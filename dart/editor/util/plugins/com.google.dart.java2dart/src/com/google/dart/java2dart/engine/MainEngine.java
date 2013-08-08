@@ -368,10 +368,9 @@ public class MainEngine {
     }
     {
       CompilationUnit library = buildScannerTestLibrary();
-      Files.write(
-          getFormattedSource(library),
-          new File(targetTestFolder + "/scanner_test.dart"),
-          Charsets.UTF_8);
+      String source = getFormattedSource(library);
+      source = replaceSourceFragment(source, "${OSUtilities.LINE_SEPARATOR}", "\\n");
+      Files.write(source, new File(targetTestFolder + "/scanner_test.dart"), Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildParserTestLibrary();
@@ -863,7 +862,6 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "scanner_test"));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "java_engine_io.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
     unit.getDirectives().add(importDirective(src_package + "source.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
