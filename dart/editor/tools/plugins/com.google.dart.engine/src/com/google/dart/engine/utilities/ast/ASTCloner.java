@@ -319,7 +319,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
     return new FieldDeclaration(
         clone(node.getDocumentationComment()),
         clone(node.getMetadata()),
-        node.getKeyword(),
+        node.getStaticKeyword(),
         clone(node.getFields()),
         node.getSemicolon());
   }

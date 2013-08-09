@@ -170,7 +170,7 @@ public class SemanticHighlightings {
       // field modifiers
       if (node instanceof FieldDeclaration) {
         FieldDeclaration fieldDecl = (FieldDeclaration) node;
-        Token staticKeyword = fieldDecl.getKeyword();
+        Token staticKeyword = fieldDecl.getStaticKeyword();
         if (staticKeyword != null) {
           result = addPosition(result, staticKeyword);
         }

@@ -383,7 +383,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
   @Override
   public Void visitFieldDeclaration(FieldDeclaration node) {
     visit(node.getDocumentationComment());
-    visit(node.getKeyword(), " ");
+    visit(node.getStaticKeyword(), " ");
     visit(node.getFields());
     writer.print(";");
     return null;

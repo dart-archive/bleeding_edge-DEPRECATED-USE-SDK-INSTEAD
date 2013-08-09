@@ -33,7 +33,7 @@ public class FieldDeclaration extends ClassMember {
   /**
    * The token representing the 'static' keyword, or {@code null} if the fields are not static.
    */
-  private Token keyword;
+  private Token staticKeyword;
 
   /**
    * The fields being declared.
@@ -50,14 +50,14 @@ public class FieldDeclaration extends ClassMember {
    * 
    * @param comment the documentation comment associated with this field
    * @param metadata the annotations associated with this field
-   * @param keyword the token representing the 'static' keyword
+   * @param staticKeyword the token representing the 'static' keyword
    * @param fieldList the fields being declared
    * @param semicolon the semicolon terminating the declaration
    */
-  public FieldDeclaration(Comment comment, List<Annotation> metadata, Token keyword,
+  public FieldDeclaration(Comment comment, List<Annotation> metadata, Token staticKeyword,
       VariableDeclarationList fieldList, Token semicolon) {
     super(comment, metadata);
-    this.keyword = keyword;
+    this.staticKeyword = staticKeyword;
     this.fieldList = becomeParentOf(fieldList);
     this.semicolon = semicolon;
   }
@@ -92,8 +92,8 @@ public class FieldDeclaration extends ClassMember {
    * 
    * @return the token representing the 'static' keyword
    */
-  public Token getKeyword() {
-    return keyword;
+  public Token getStaticKeyword() {
+    return staticKeyword;
   }
 
   /**
@@ -111,7 +111,7 @@ public class FieldDeclaration extends ClassMember {
    * @return {@code true} if the fields are declared to be static
    */
   public boolean isStatic() {
-    return keyword != null;
+    return staticKeyword != null;
   }
 
   /**
@@ -128,8 +128,8 @@ public class FieldDeclaration extends ClassMember {
    * 
    * @param keyword the token representing the 'static' keyword
    */
-  public void setKeyword(Token keyword) {
-    this.keyword = keyword;
+  public void setStaticKeyword(Token keyword) {
+    this.staticKeyword = keyword;
   }
 
   /**
@@ -149,8 +149,8 @@ public class FieldDeclaration extends ClassMember {
 
   @Override
   protected Token getFirstTokenAfterCommentAndMetadata() {
-    if (keyword != null) {
-      return keyword;
+    if (staticKeyword != null) {
+      return staticKeyword;
     }
     return fieldList.getBeginToken();
   }

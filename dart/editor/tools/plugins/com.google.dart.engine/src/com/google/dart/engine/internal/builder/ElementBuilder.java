@@ -747,7 +747,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
       if (inFieldContext) {
         ((FieldElementImpl) variable).setStatic(matches(
-            ((FieldDeclaration) node.getParent().getParent()).getKeyword(),
+            ((FieldDeclaration) node.getParent().getParent()).getStaticKeyword(),
             Keyword.STATIC));
       }
 

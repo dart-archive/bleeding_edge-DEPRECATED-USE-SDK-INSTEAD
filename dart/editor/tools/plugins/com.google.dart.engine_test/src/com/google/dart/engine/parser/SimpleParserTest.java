@@ -859,7 +859,7 @@ public class SimpleParserTest extends ParserTestCase {
     FieldDeclaration field = parse("parseClassMember", new Object[] {"C"}, "p.A f;");
     assertNull(field.getDocumentationComment());
     assertSize(0, field.getMetadata());
-    assertNull(field.getKeyword());
+    assertNull(field.getStaticKeyword());
     VariableDeclarationList list = field.getFields();
     assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.getVariables();
@@ -872,7 +872,7 @@ public class SimpleParserTest extends ParserTestCase {
     FieldDeclaration field = parse("parseClassMember", new Object[] {"C"}, "var get;");
     assertNull(field.getDocumentationComment());
     assertSize(0, field.getMetadata());
-    assertNull(field.getKeyword());
+    assertNull(field.getStaticKeyword());
     VariableDeclarationList list = field.getFields();
     assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.getVariables();
@@ -885,7 +885,7 @@ public class SimpleParserTest extends ParserTestCase {
     FieldDeclaration field = parse("parseClassMember", new Object[] {"C"}, "var operator;");
     assertNull(field.getDocumentationComment());
     assertSize(0, field.getMetadata());
-    assertNull(field.getKeyword());
+    assertNull(field.getStaticKeyword());
     VariableDeclarationList list = field.getFields();
     assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.getVariables();
@@ -898,7 +898,7 @@ public class SimpleParserTest extends ParserTestCase {
     FieldDeclaration field = parse("parseClassMember", new Object[] {"C"}, "var set;");
     assertNull(field.getDocumentationComment());
     assertSize(0, field.getMetadata());
-    assertNull(field.getKeyword());
+    assertNull(field.getStaticKeyword());
     VariableDeclarationList list = field.getFields();
     assertNotNull(list);
     NodeList<VariableDeclaration> variables = list.getVariables();
@@ -2972,7 +2972,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(fields.getKeyword());
     assertEquals(type, fields.getType());
     assertSize(3, fields.getVariables());
-    assertEquals(staticKeyword, declaration.getKeyword());
+    assertEquals(staticKeyword, declaration.getStaticKeyword());
     assertNotNull(declaration.getSemicolon());
   }
 
@@ -2988,7 +2988,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(varKeyword, fields.getKeyword());
     assertNull(fields.getType());
     assertSize(3, fields.getVariables());
-    assertEquals(staticKeyword, declaration.getKeyword());
+    assertEquals(staticKeyword, declaration.getStaticKeyword());
     assertNotNull(declaration.getSemicolon());
   }
 
