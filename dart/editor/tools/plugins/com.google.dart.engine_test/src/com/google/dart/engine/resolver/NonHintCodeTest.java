@@ -50,7 +50,7 @@ public class NonHintCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library L;",
         "import 'lib1.dart';",
-        "Two one;"));
+        "Two two;"));
     addSource("/lib1.dart", createSource(//
         "library lib1;",
         "export 'lib2.dart';",
@@ -72,7 +72,7 @@ public class NonHintCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library L;",
         "import 'lib1.dart';",
-        "Two one;"));
+        "Three three;"));
     addSource("/lib1.dart", createSource(//
         "library lib1;",
         "export 'lib2.dart';",

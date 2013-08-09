@@ -171,7 +171,6 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
             // libraryElement
             //
             addAdditionalLibrariesForExports(
-                libraryMap,
                 libraryElement,
                 importDirective,
                 new ArrayList<LibraryElement>());
@@ -229,16 +228,15 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
   /**
    * Recursively add any exported library elements into the {@link #libraryMap}.
    */
-  private void addAdditionalLibrariesForExports(
-      HashMap<LibraryElement, ArrayList<ImportDirective>> map, LibraryElement library,
+  private void addAdditionalLibrariesForExports(LibraryElement library,
       ImportDirective importDirective, ArrayList<LibraryElement> exportPath) {
     if (exportPath.contains(library)) {
       return;
     }
+    exportPath.add(library);
     for (LibraryElement exportedLibraryElt : library.getExportedLibraries()) {
       putIntoLibraryMap(exportedLibraryElt, importDirective);
-      exportPath.add(exportedLibraryElt);
-      addAdditionalLibrariesForExports(map, exportedLibraryElt, importDirective, exportPath);
+      addAdditionalLibrariesForExports(exportedLibraryElt, importDirective, exportPath);
     }
   }
 
