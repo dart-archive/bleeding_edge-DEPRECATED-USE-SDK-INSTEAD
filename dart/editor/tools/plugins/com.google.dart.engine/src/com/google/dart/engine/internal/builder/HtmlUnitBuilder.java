@@ -246,18 +246,13 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
                   scriptSourcePath);
               script.setScriptSource(scriptSource);
               if (!scriptSource.exists()) {
-                reportError(
+                reportValueError(
                     HtmlWarningCode.URI_DOES_NOT_EXIST,
-                    scriptAttribute.getOffset() + 1,
-                    scriptSourcePath.length(),
+                    scriptAttribute,
                     scriptSourcePath);
               }
             } catch (URISyntaxException exception) {
-              reportError(
-                  HtmlWarningCode.INVALID_URI,
-                  scriptAttribute.getOffset() + 1,
-                  scriptSourcePath.length(),
-                  scriptSourcePath);
+              reportValueError(HtmlWarningCode.INVALID_URI, scriptAttribute, scriptSourcePath);
             }
           }
           scripts.add(script);
@@ -327,5 +322,21 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
         length,
         errorCode,
         arguments));
+  }
+
+  /**
+   * Report an error with the given error code at the location of the value of the given attribute.
+   * Use the given arguments to compose the error message.
+   * 
+   * @param errorCode the error code of the error to be reported
+   * @param offset the offset of the first character to be highlighted
+   * @param length the number of characters to be highlighted
+   * @param arguments the arguments used to compose the error message
+   */
+  private void reportValueError(ErrorCode errorCode, XmlAttributeNode attribute,
+      Object... arguments) {
+    int offset = attribute.getValue().getOffset() + 1;
+    int length = attribute.getValue().getLength() - 2;
+    reportError(errorCode, offset, length, arguments);
   }
 }

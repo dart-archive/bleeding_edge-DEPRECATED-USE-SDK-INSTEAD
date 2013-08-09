@@ -15,16 +15,18 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.error.HtmlWarningCode;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
-import com.google.dart.engine.internal.element.HtmlElementImpl;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.TestSource;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
+import java.util.List;
 
 /**
  * Instances of the class {@code HtmlWarningCodeTest} test the generation of HTML warning codes.
@@ -40,11 +42,22 @@ public class HtmlWarningCodeTest extends EngineTestCase {
    */
   private AnalysisContextImpl context;
 
+  /**
+   * The contents of the 'test.html' file.
+   */
+  private String contents;
+
+  /**
+   * The list of reported errors.
+   */
+  private List<AnalysisError> errors;
+
   public void test_invalidUri() throws Exception {
     verify(createSource(//
         "<html>",
         "<script type='application/dart' src='ht:'/>",
         "</html>"), HtmlWarningCode.INVALID_URI);
+    assertErrorLocation(errors.get(0), "ht:");
   }
 
   public void test_uriDoesNotExist() throws Exception {
@@ -52,6 +65,7 @@ public class HtmlWarningCodeTest extends EngineTestCase {
         "<html>",
         "<script type='application/dart' src='other.dart'/>",
         "</html>"), HtmlWarningCode.URI_DOES_NOT_EXIST);
+    assertErrorLocation(errors.get(0), "other.dart");
   }
 
   @Override
@@ -61,7 +75,17 @@ public class HtmlWarningCodeTest extends EngineTestCase {
     context.setSourceFactory(sourceFactory);
   }
 
-  private HtmlElementImpl verify(String contents, ErrorCode... expectedErrorCodes) throws Exception {
+  private void assertErrorLocation(AnalysisError error, int expectedOffset, int expectedLength) {
+    assertEquals(error.toString(), expectedOffset, error.getOffset());
+    assertEquals(error.toString(), expectedLength, error.getLength());
+  }
+
+  private void assertErrorLocation(AnalysisError error, String expectedString) {
+    assertErrorLocation(error, contents.indexOf(expectedString), expectedString.length());
+  }
+
+  private void verify(String contents, ErrorCode... expectedErrorCodes) throws Exception {
+    this.contents = contents;
     TestSource source = new TestSource(
         sourceFactory.getContentCache(),
         createFile("/test.html"),
@@ -71,11 +95,11 @@ public class HtmlWarningCodeTest extends EngineTestCase {
     context.applyChanges(changeSet);
 
     HtmlUnitBuilder builder = new HtmlUnitBuilder(context);
-    HtmlElementImpl element = builder.buildHtmlElement(source);
+    builder.buildHtmlElement(source);
 
     GatheringErrorListener errorListener = new GatheringErrorListener();
     errorListener.addAll(builder.getErrorListener());
     errorListener.assertErrors(expectedErrorCodes);
-    return element;
+    errors = errorListener.getErrors();
   }
 }
