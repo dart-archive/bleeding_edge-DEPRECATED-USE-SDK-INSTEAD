@@ -1017,6 +1017,30 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_instanceAccessToStaticMember_fromComment() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static m() {}",
+        "}",
+        "/// [A.m]",
+        "main() {",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_instanceAccessToStaticMember_topLevel() throws Exception {
+    Source source = addSource(createSource(//
+        "m() {}",
+        "main() {",
+        "  m();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_instanceMemberAccessFromStatic_fromComment() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

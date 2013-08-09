@@ -57,6 +57,14 @@ public enum StaticTypeWarningCode implements ErrorCode {
   INCONSISTENT_METHOD_INHERITANCE("'%s' is inherited by at least two interfaces inconsistently"),
 
   /**
+   * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does not have an
+   * accessible (3.2) instance member named <i>m</i>.
+   * 
+   * @param memberName the name of the static member
+   */
+  INSTANCE_ACCESS_TO_STATIC_MEMBER("Static member '%s' cannot be accessed using instance access"),
+
+  /**
    * 12.18 Assignment: It is a static type warning if the static type of <i>e</i> may not be
    * assigned to the static type of <i>v</i>. The static type of the expression <i>v = e</i> is the
    * static type of <i>e</i>.

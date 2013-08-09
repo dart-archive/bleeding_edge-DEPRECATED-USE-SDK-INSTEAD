@@ -83,6 +83,71 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_instanceAccessToStaticMember_method_invocation() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static m() {}",
+        "}",
+        "main(A a) {",
+        "  a.m();",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
+    verify(source);
+  }
+
+  public void test_instanceAccessToStaticMember_method_reference() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static m() {}",
+        "}",
+        "main(A a) {",
+        "  a.m;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
+    verify(source);
+  }
+
+  public void test_instanceAccessToStaticMember_propertyAccess_field() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static var f;",
+        "}",
+        "main(A a) {",
+        "  a.f;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
+    verify(source);
+  }
+
+  public void test_instanceAccessToStaticMember_propertyAccess_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static get f => 42;",
+        "}",
+        "main(A a) {",
+        "  a.f;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
+    verify(source);
+  }
+
+  public void test_instanceAccessToStaticMember_propertyAccess_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static set f(x) {}",
+        "}",
+        "main(A a) {",
+        "  a.f = 42;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
+    verify(source);
+  }
+
   public void test_invalidAssignment_compoundAssignment() throws Exception {
     Source source = addSource(createSource(//
         "class byte {",

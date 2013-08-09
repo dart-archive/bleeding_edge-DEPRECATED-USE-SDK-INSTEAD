@@ -571,8 +571,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  static const v = 0;",
         "}",
         "f() {",
-        "  A a = new A();",
-        "  a.v = 1;",
+        "  A.v = 1;",
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.ASSIGNMENT_TO_CONST);

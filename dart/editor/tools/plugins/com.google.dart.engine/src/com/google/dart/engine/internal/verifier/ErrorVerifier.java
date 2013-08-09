@@ -25,6 +25,7 @@ import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.ClassTypeAlias;
+import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
@@ -229,6 +230,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see #visitCatchClause(CatchClause)
    */
   private boolean isInCatchClause;
+
+  /**
+   * This is set to {@code true} iff the visitor is currently visiting children nodes of an
+   * {@link Comment}.
+   */
+  private boolean isInComment;
 
   /**
    * This is set to {@code true} iff the visitor is currently visiting children nodes of an
@@ -464,6 +471,16 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       enclosingClass = outerClassElement;
     }
     return super.visitClassTypeAlias(node);
+  }
+
+  @Override
+  public Void visitComment(Comment node) {
+    isInComment = true;
+    try {
+      return super.visitComment(node);
+    } finally {
+      isInComment = false;
+    }
   }
 
   @Override
@@ -731,7 +748,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
-    checkForStaticAccessToInstanceMember(node.getTarget(), node.getMethodName());
+    Expression target = node.getRealTarget();
+    SimpleIdentifier methodName = node.getMethodName();
+    checkForStaticAccessToInstanceMember(target, methodName);
+    checkForInstanceAccessToStaticMember(target, methodName);
     return super.visitMethodInvocation(node);
   }
 
@@ -761,6 +781,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (!(node.getParent() instanceof Annotation)) {
       checkForStaticAccessToInstanceMember(node.getPrefix(), node.getIdentifier());
+      checkForInstanceAccessToStaticMember(node.getPrefix(), node.getIdentifier());
     }
     return super.visitPrefixedIdentifier(node);
   }
@@ -777,7 +798,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitPropertyAccess(PropertyAccess node) {
     Expression target = node.getRealTarget();
-    checkForStaticAccessToInstanceMember(target, node.getPropertyName());
+    SimpleIdentifier propertyName = node.getPropertyName();
+    checkForStaticAccessToInstanceMember(target, propertyName);
+    checkForInstanceAccessToStaticMember(target, propertyName);
     return super.visitPropertyAccess(node);
   }
 
@@ -3002,6 +3025,50 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     for (AnalysisError error : errors) {
       errorReporter.reportError(error);
     }
+    return true;
+  }
+
+  /**
+   * This checks that if the given "target" is not a type reference then the "name" is reference to
+   * a instance member.
+   * 
+   * @param target the target of the name access to evaluate
+   * @param name the accessed name to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#INSTANCE_ACCESS_TO_STATIC_MEMBER
+   */
+  private boolean checkForInstanceAccessToStaticMember(Expression target, SimpleIdentifier name) {
+    // OK, no target
+    if (target == null) {
+      return false;
+    }
+    // OK, in comment
+    if (isInComment) {
+      return false;
+    }
+    // prepare member Element
+    Element element = name.getElement();
+    if (!(element instanceof ExecutableElement)) {
+      return false;
+    }
+    ExecutableElement executableElement = (ExecutableElement) element;
+    // OK, top-level element
+    if (!(executableElement.getEnclosingElement() instanceof ClassElement)) {
+      return false;
+    }
+    // OK, instance member
+    if (!executableElement.isStatic()) {
+      return false;
+    }
+    // OK, target is a type
+    if (isTypeReference(target)) {
+      return false;
+    }
+    // report problem
+    errorReporter.reportError(
+        StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+        name,
+        name.getName());
     return true;
   }
 
