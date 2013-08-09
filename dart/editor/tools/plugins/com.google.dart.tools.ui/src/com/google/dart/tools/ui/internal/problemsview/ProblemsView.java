@@ -20,6 +20,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
@@ -955,6 +957,24 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
         }
       }
     });
+
+    // Reset focused project when it is deleted.
+    ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
+      @Override
+      public void resourceChanged(IResourceChangeEvent event) {
+        if (safeEquals(event.getResource(), focusedProject)) {
+          Display display = Display.getDefault();
+          if (display != null) {
+            display.asyncExec(new Runnable() {
+              @Override
+              public void run() {
+                focusOn(null);
+              }
+            });
+          }
+        }
+      }
+    }, IResourceChangeEvent.PRE_DELETE);
   }
 
   @Override
