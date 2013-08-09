@@ -784,9 +784,8 @@ public class SemanticHighlightingTest extends
         "  static int field = 0;",
         "}",
         "main() {",
-        "  A a = new A();",
-        "  a.field = 1;",
-        "  print(a.field );",
+        "  A.field = 1;",
+        "  print(A.field );",
         "}",
         "");
     assertHasWordPosition(SemanticHighlightings.STATIC_FIELD, "field = 0;");
