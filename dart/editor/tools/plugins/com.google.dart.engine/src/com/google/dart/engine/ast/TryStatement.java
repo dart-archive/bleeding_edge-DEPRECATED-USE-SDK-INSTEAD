@@ -53,10 +53,10 @@ public class TryStatement extends Statement {
   private Token finallyKeyword;
 
   /**
-   * The finally clause contained in the try statement, or {@code null} if the statement does not
+   * The finally block contained in the try statement, or {@code null} if the statement does not
    * contain a finally clause.
    */
-  private Block finallyClause;
+  private Block finallyBlock;
 
   /**
    * Initialize a newly created try statement.
@@ -65,15 +65,15 @@ public class TryStatement extends Statement {
    * @param body the body of the statement
    * @param catchClauses the catch clauses contained in the try statement
    * @param finallyKeyword the token representing the 'finally' keyword
-   * @param finallyClause the finally clause contained in the try statement
+   * @param finallyBlock the finally block contained in the try statement
    */
   public TryStatement(Token tryKeyword, Block body, List<CatchClause> catchClauses,
-      Token finallyKeyword, Block finallyClause) {
+      Token finallyKeyword, Block finallyBlock) {
     this.tryKeyword = tryKeyword;
     this.body = becomeParentOf(body);
     this.catchClauses.addAll(catchClauses);
     this.finallyKeyword = finallyKeyword;
-    this.finallyClause = becomeParentOf(finallyClause);
+    this.finallyBlock = becomeParentOf(finallyBlock);
   }
 
   @Override
@@ -106,8 +106,8 @@ public class TryStatement extends Statement {
 
   @Override
   public Token getEndToken() {
-    if (finallyClause != null) {
-      return finallyClause.getEndToken();
+    if (finallyBlock != null) {
+      return finallyBlock.getEndToken();
     } else if (finallyKeyword != null) {
       return finallyKeyword;
     } else if (!catchClauses.isEmpty()) {
@@ -117,13 +117,13 @@ public class TryStatement extends Statement {
   }
 
   /**
-   * Return the finally clause contained in the try statement, or {@code null} if the statement does
+   * Return the finally block contained in the try statement, or {@code null} if the statement does
    * not contain a finally clause.
    * 
-   * @return the finally clause contained in the try statement
+   * @return the finally block contained in the try statement
    */
-  public Block getFinallyClause() {
-    return finallyClause;
+  public Block getFinallyBlock() {
+    return finallyBlock;
   }
 
   /**
@@ -155,12 +155,12 @@ public class TryStatement extends Statement {
   }
 
   /**
-   * Set the finally clause contained in the try statement to the given block.
+   * Set the finally block contained in the try statement to the given block.
    * 
-   * @param block the finally clause contained in the try statement
+   * @param block the finally block contained in the try statement
    */
-  public void setFinallyClause(Block block) {
-    finallyClause = becomeParentOf(block);
+  public void setFinallyBlock(Block block) {
+    finallyBlock = becomeParentOf(block);
   }
 
   /**
@@ -185,6 +185,6 @@ public class TryStatement extends Statement {
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(body, visitor);
     catchClauses.accept(visitor);
-    safelyVisitChild(finallyClause, visitor);
+    safelyVisitChild(finallyBlock, visitor);
   }
 }

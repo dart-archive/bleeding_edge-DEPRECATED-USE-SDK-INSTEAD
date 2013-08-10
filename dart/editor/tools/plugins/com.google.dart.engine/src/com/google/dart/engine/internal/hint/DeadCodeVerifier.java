@@ -194,7 +194,7 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitTryStatement(TryStatement node) {
     safelyVisit(node.getBody());
-    safelyVisit(node.getFinallyClause());
+    safelyVisit(node.getFinallyBlock());
     NodeList<CatchClause> catchClauses = node.getCatchClauses();
     int numOfCatchClauses = catchClauses.size();
     ArrayList<Type> visitedTypes = new ArrayList<Type>(numOfCatchClauses);

@@ -4050,7 +4050,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(clause.getStackTraceParameter());
     assertNotNull(clause.getBody());
     assertNull(statement.getFinallyKeyword());
-    assertNull(statement.getFinallyClause());
+    assertNull(statement.getFinallyBlock());
   }
 
   public void test_parseTryStatement_catch_finally() throws Exception {
@@ -4068,7 +4068,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(clause.getStackTraceParameter());
     assertNotNull(clause.getBody());
     assertNotNull(statement.getFinallyKeyword());
-    assertNotNull(statement.getFinallyClause());
+    assertNotNull(statement.getFinallyBlock());
   }
 
   public void test_parseTryStatement_finally() throws Exception {
@@ -4077,7 +4077,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getBody());
     assertSize(0, statement.getCatchClauses());
     assertNotNull(statement.getFinallyKeyword());
-    assertNotNull(statement.getFinallyClause());
+    assertNotNull(statement.getFinallyBlock());
   }
 
   public void test_parseTryStatement_multiple() throws Exception {
@@ -4088,7 +4088,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getBody());
     assertSize(3, statement.getCatchClauses());
     assertNull(statement.getFinallyKeyword());
-    assertNull(statement.getFinallyClause());
+    assertNull(statement.getFinallyBlock());
   }
 
   public void test_parseTryStatement_on() throws Exception {
@@ -4106,7 +4106,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(clause.getStackTraceParameter());
     assertNotNull(clause.getBody());
     assertNull(statement.getFinallyKeyword());
-    assertNull(statement.getFinallyClause());
+    assertNull(statement.getFinallyBlock());
   }
 
   public void test_parseTryStatement_on_catch() throws Exception {
@@ -4124,7 +4124,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(clause.getStackTraceParameter());
     assertNotNull(clause.getBody());
     assertNull(statement.getFinallyKeyword());
-    assertNull(statement.getFinallyClause());
+    assertNull(statement.getFinallyBlock());
   }
 
   public void test_parseTryStatement_on_catch_finally() throws Exception {
@@ -4144,7 +4144,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(clause.getStackTraceParameter());
     assertNotNull(clause.getBody());
     assertNotNull(statement.getFinallyKeyword());
-    assertNotNull(statement.getFinallyClause());
+    assertNotNull(statement.getFinallyBlock());
   }
 
   public void test_parseTypeAlias_class_implementsC() throws Exception {

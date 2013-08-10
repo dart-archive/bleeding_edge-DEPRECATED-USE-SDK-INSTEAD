@@ -881,7 +881,7 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
     writer.print("try ");
     visit(node.getBody());
     visitList(" ", node.getCatchClauses(), " ");
-    visit(" finally ", node.getFinallyClause());
+    visit(" finally ", node.getFinallyBlock());
     return null;
   }
 

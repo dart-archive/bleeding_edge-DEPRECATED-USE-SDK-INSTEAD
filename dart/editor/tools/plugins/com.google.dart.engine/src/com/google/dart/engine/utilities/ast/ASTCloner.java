@@ -801,7 +801,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
         clone(node.getBody()),
         clone(node.getCatchClauses()),
         node.getFinallyKeyword(),
-        clone(node.getFinallyClause()));
+        clone(node.getFinallyBlock()));
   }
 
   @Override
