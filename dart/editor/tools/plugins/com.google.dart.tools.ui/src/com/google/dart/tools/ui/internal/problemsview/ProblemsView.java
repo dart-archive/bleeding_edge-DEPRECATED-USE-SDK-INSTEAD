@@ -14,6 +14,9 @@
 package com.google.dart.tools.ui.internal.problemsview;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.InstrumentedAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -156,27 +159,45 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
     @Override
     public void run() {
-      StringBuilder builder = new StringBuilder();
 
-      for (Object obj : getStructuredSelection().toArray()) {
-        if (obj instanceof IMarker) {
-          IMarker marker = (IMarker) obj;
+      UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ProblemsView.CopyMarkerAction");
 
-          if (builder.length() > 0) {
-            builder.append("\n");
-          }
+      try {
 
-          try {
-            builder.append(marker.getAttribute(IMarker.MESSAGE));
-          } catch (CoreException e) {
+        StringBuilder builder = new StringBuilder();
 
+        for (Object obj : getStructuredSelection().toArray()) {
+          if (obj instanceof IMarker) {
+            IMarker marker = (IMarker) obj;
+
+            if (builder.length() > 0) {
+              builder.append("\n");
+            }
+
+            try {
+              builder.append(marker.getAttribute(IMarker.MESSAGE));
+            } catch (CoreException e) {
+
+            }
           }
         }
+
+        instrumentation.metric("text-length", builder.length());
+
+        if (builder.length() > 0) {
+          instrumentation.data("text", builder.toString());
+          copyToClipboard(builder.toString());
+        }
+
+      } catch (RuntimeException e) {
+        instrumentation.metric("Exception", e.getClass().toString());
+        instrumentation.data("Exception", e.toString());
+        throw e;
+      } finally {
+        instrumentation.log();
+
       }
 
-      if (builder.length() > 0) {
-        copyToClipboard(builder.toString());
-      }
     }
 
     @Override
@@ -459,7 +480,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
-  private class FocusOnProjectAction extends Action {
+  private class FocusOnProjectAction extends InstrumentedAction {
     public FocusOnProjectAction() {
       super("Focus on current project", AS_CHECK_BOX);
 
@@ -470,8 +491,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
 
     @Override
-    public void run() {
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       updateFilters();
+
     }
   }
 
@@ -490,7 +512,23 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
     @Override
     public void run() {
-      openSelectedMarker();
+
+      UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("GoToMarkerAction.run");
+
+      try {
+
+        openSelectedMarker(instrumentation); //This will record the selection, the action needs seperate instrumetnations so we
+        //know that it came from the GotoMarker action
+
+      } catch (RuntimeException e) {
+        instrumentation.metric("Exception", e.getClass().toString());
+        instrumentation.data("Exception", e.toString());
+        throw e;
+      } finally {
+        instrumentation.log();
+
+      }
+
     }
 
     @Override
@@ -504,7 +542,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
-  private class ShowInfosAction extends Action {
+  private class ShowInfosAction extends InstrumentedAction {
     public ShowInfosAction() {
       super("Show informational messages", AS_CHECK_BOX);
 
@@ -517,8 +555,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
 
     @Override
-    public void run() {
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       updateFilters();
+
     }
   }
 
@@ -815,7 +854,20 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     tableViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
-        openSelectedMarker();
+
+        UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ProblemView.doubleClick");
+        try {
+
+          openSelectedMarker(instrumentation);
+        } catch (RuntimeException e) {
+          instrumentation.metric("Exception", e.getClass().toString());
+          instrumentation.data("Exception", e.toString());
+          throw e;
+
+        } finally {
+          instrumentation.log();
+        }
+
       }
     });
     tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -1309,29 +1361,39 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     return preferences;
   }
 
-  private void openSelectedMarker() {
+  private void openSelectedMarker(UIInstrumentationBuilder instrumentation) {
     ISelection sel = tableViewer.getSelection();
 
-    if (sel instanceof IStructuredSelection) {
-      Object element = ((IStructuredSelection) sel).getFirstElement();
+    try {
+      instrumentation.record(sel);
 
-      if (element instanceof IMarker) {
-        IMarker marker = (IMarker) element;
+      if (sel instanceof IStructuredSelection) {
+        Object element = ((IStructuredSelection) sel).getFirstElement();
 
-        if (marker.getResource() instanceof IFile) {
-          try {
-            IDE.openEditor(getViewSite().getPage(), marker);
-          } catch (PartInitException e) {
-            ErrorDialog.openError(
-                getSite().getShell(),
-                "Error Opening Marker",
-                "Unable to open an editor for the given marker: " + e.getClass().getSimpleName(),
-                new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, e.toString(), e));
+        if (element instanceof IMarker) {
+          IMarker marker = (IMarker) element;
 
-            DartToolsPlugin.log(e);
+          if (marker.getResource() instanceof IFile) {
+            try {
+              IDE.openEditor(getViewSite().getPage(), marker);
+            } catch (PartInitException e) {
+              ErrorDialog.openError(
+                  getSite().getShell(),
+                  "Error Opening Marker",
+                  "Unable to open an editor for the given marker: " + e.getClass().getSimpleName(),
+                  new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, e.toString(), e));
+
+              DartToolsPlugin.log(e);
+            }
           }
         }
       }
+
+    } catch (RuntimeException e) {
+      instrumentation.metric("Exception", e.getClass().toString());
+      instrumentation.data("Exception", e.toString());
+      throw e;
+
     }
   }
 
