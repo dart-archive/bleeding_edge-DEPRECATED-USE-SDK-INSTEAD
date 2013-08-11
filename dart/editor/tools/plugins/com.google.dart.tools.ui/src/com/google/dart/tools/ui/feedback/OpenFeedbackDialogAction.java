@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.feedback;
 
+import com.google.dart.engine.utilities.instrumentation.HealthUtils;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.jface.action.Action;
@@ -70,6 +71,8 @@ public class OpenFeedbackDialogAction extends Action implements IShellProvider {
 
   @Override
   public void run() {
+    HealthUtils.ReportHealth("FeedbackDialog.ctor");
+
     Image screenshot = null;
     if (SCREEN_CAPTURE_ENABLED) {
       screenshot = captureScreen();
