@@ -68,6 +68,11 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private IDocument document;
 
   /**
+   * The display in which the editor is visible.
+   */
+  private final Display display;
+
+  /**
    * The time when the context was last notified of a source change.
    */
   private volatile long notifyContextTime;
@@ -103,7 +108,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   /**
    * Listen for changes to the source to clear the cached AST and record the last modification time.
    */
-  final IDocumentListener documentListener = new IDocumentListener() {
+  private final IDocumentListener documentListener = new IDocumentListener() {
     @Override
     public void documentAboutToBeChanged(DocumentEvent event) {
     }
@@ -114,7 +119,6 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       editor.applyCompilationUnitElement(null);
 
       // Start analysis immediately if "." pressed to improve code completion response
-      // TODO (danrubel): do the same for ctrl-space ?
 
       // This may need to be modified or removed 
       // if we enable/set content assist immediate-activation character(s)
@@ -132,6 +136,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    */
   public DartReconcilingStrategy(DartReconcilingEditor editor) {
     this.editor = editor;
+    this.display = Display.getDefault();
 
     // Prioritize analysis when editor becomes active
     editor.addViewerFocusListener(new FocusListener() {
@@ -262,30 +267,36 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
   /**
    * Answer the list of sources associated with the specified context that are open and visible.
+   * This method blocks until the information can be retrieved on the UI thread.
    * 
    * @param context the context (not {@code null})
    * @return a list of sources (not {@code null}, contains no {@code null}s)
    */
-  private List<Source> getVisibleSourcesForContext(AnalysisContext context) {
-    ArrayList<Source> sources = new ArrayList<Source>();
-    IWorkbench workbench = PlatformUI.getWorkbench();
-    for (IWorkbenchWindow window : workbench.getWorkbenchWindows()) {
-      for (IWorkbenchPage page : window.getPages()) {
-        IEditorReference[] allEditors = page.getEditorReferences();
-        for (IEditorReference editorRef : allEditors) {
-          IEditorPart part = editorRef.getEditor(false);
-          if (part instanceof DartEditor) {
-            DartEditor otherEditor = (DartEditor) part;
-            if (otherEditor.getInputAnalysisContext() == context && otherEditor.isVisible()) {
-              Source otherSource = otherEditor.getInputSource();
-              if (otherSource != null) {
-                sources.add(otherSource);
+  private List<Source> getVisibleSourcesForContext(final AnalysisContext context) {
+    final ArrayList<Source> sources = new ArrayList<Source>();
+    display.syncExec(new Runnable() {
+      @Override
+      public void run() {
+        IWorkbench workbench = PlatformUI.getWorkbench();
+        for (IWorkbenchWindow window : workbench.getWorkbenchWindows()) {
+          for (IWorkbenchPage page : window.getPages()) {
+            IEditorReference[] allEditors = page.getEditorReferences();
+            for (IEditorReference editorRef : allEditors) {
+              IEditorPart part = editorRef.getEditor(false);
+              if (part instanceof DartEditor) {
+                DartEditor otherEditor = (DartEditor) part;
+                if (otherEditor.getInputAnalysisContext() == context && otherEditor.isVisible()) {
+                  Source otherSource = otherEditor.getInputSource();
+                  if (otherSource != null) {
+                    sources.add(otherSource);
+                  }
+                }
               }
             }
           }
         }
       }
-    }
+    });
     return sources;
   }
 
@@ -306,7 +317,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   /**
    * Clear the cached compilation unit and notify the context that the source has changed.
    * 
-   * @param code the new source code (not {@code null})
+   * @param code the new source code or {@code null} if the source should be pulled from disk
    */
   private void sourceChanged(String code) {
     notifyContextTime = System.currentTimeMillis();
@@ -328,41 +339,30 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    *          from the priority list.
    */
   private void updateAnalysisPriorityOrder(final boolean isOpen) {
-    Display.getDefault().asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        // TODO (danrubel): Revisit when reviewing performance of startup, open, and activate
-        AnalysisContext context = editor.getInputAnalysisContext();
-        Source source = editor.getInputSource();
-        if (context != null && source != null) {
-          List<Source> sources = getVisibleSourcesForContext(context);
-          sources.remove(source);
-          if (isOpen) {
-            sources.add(0, source);
-          }
-          updateAnalysisPriorityOrderInBackground(sources);
-        }
+    // TODO (danrubel): Revisit when reviewing performance of startup, open, and activate
+    AnalysisContext context = editor.getInputAnalysisContext();
+    Source source = editor.getInputSource();
+    if (context != null && source != null) {
+      final List<Source> sources = getVisibleSourcesForContext(context);
+      sources.remove(source);
+      if (isOpen) {
+        sources.add(0, source);
       }
-    });
-  }
-
-  /**
-   * Update the order in which sources are analyzed in the context associated with the editor.
-   * 
-   * @param sources the list of sources to be analyzed first (not <code>null</code>, contains no
-   *          <code>null</code>s)
-   */
-  private void updateAnalysisPriorityOrderInBackground(final List<Source> sources) {
-    // TODO (danrubel): Put this back on UI thread once analysis lock contention has been resolved
-    new Thread("updateAnalysisPriorityOrderInBackground") {
-      @Override
-      public void run() {
-        AnalysisContext context = editor.getInputAnalysisContext();
-        if (context != null) {
-          context.setAnalysisPriorityOrder(sources);
-        }
-      };
-    }.start();
+      // TODO (danrubel): Keep this off the UI thread until lock contention has been resolved
+      if (Display.getCurrent() == null) {
+        context.setAnalysisPriorityOrder(sources);
+      } else {
+        new Thread("updateAnalysisPriorityOrder") {
+          @Override
+          public void run() {
+            AnalysisContext context = editor.getInputAnalysisContext();
+            if (context != null) {
+              context.setAnalysisPriorityOrder(sources);
+            }
+          };
+        }.start();
+      }
+    }
   }
 
   /**
@@ -372,7 +372,7 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
    *          {@code false} if the editor is closed and the source should read from disk.
    */
   private void updateSourceInBackground(final boolean isOpen) {
-    // TODO (danrubel): Put this back on UI thread once analysis lock contention has been resolved 
+    // TODO (danrubel): Keep this off the UI thread until lock contention has been resolved
     new Thread("updateSourceInBackground") {
       @Override
       public void run() {
