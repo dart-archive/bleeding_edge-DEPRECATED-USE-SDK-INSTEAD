@@ -46,16 +46,16 @@ public class MapLiteral extends TypedLiteral {
   /**
    * Initialize a newly created map literal.
    * 
-   * @param modifier the const modifier associated with this literal
+   * @param constKeyword the token representing the 'const' keyword
    * @param typeArguments the type argument associated with this literal, or {@code null} if no type
    *          arguments were declared
    * @param leftBracket the left curly bracket
    * @param entries the entries in the map
    * @param rightBracket the right curly bracket
    */
-  public MapLiteral(Token modifier, TypeArgumentList typeArguments, Token leftBracket,
+  public MapLiteral(Token constKeyword, TypeArgumentList typeArguments, Token leftBracket,
       List<MapLiteralEntry> entries, Token rightBracket) {
-    super(modifier, typeArguments);
+    super(constKeyword, typeArguments);
     this.leftBracket = leftBracket;
     this.entries.addAll(entries);
     this.rightBracket = rightBracket;
@@ -68,7 +68,7 @@ public class MapLiteral extends TypedLiteral {
 
   @Override
   public Token getBeginToken() {
-    Token token = getModifier();
+    Token token = getConstKeyword();
     if (token != null) {
       return token;
     }

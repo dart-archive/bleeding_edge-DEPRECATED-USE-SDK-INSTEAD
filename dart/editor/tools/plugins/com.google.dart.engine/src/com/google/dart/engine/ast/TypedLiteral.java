@@ -29,10 +29,9 @@ import com.google.dart.engine.scanner.Token;
  */
 public abstract class TypedLiteral extends Literal {
   /**
-   * The const modifier associated with this literal, or {@code null} if the literal is not a
-   * constant.
+   * The token representing the 'const' keyword, or {@code null} if the literal is not a constant.
    */
-  private Token modifier;
+  private Token constKeyword;
 
   /**
    * The type argument associated with this literal, or {@code null} if no type arguments were
@@ -43,22 +42,22 @@ public abstract class TypedLiteral extends Literal {
   /**
    * Initialize a newly created typed literal.
    * 
-   * @param modifier the const modifier associated with this literal
+   * @param constKeyword the token representing the 'const' keyword
    * @param typeArguments the type argument associated with this literal, or {@code null} if no type
    *          arguments were declared
    */
-  public TypedLiteral(Token modifier, TypeArgumentList typeArguments) {
-    this.modifier = modifier;
+  public TypedLiteral(Token constKeyword, TypeArgumentList typeArguments) {
+    this.constKeyword = constKeyword;
     this.typeArguments = becomeParentOf(typeArguments);
   }
 
   /**
-   * Return the const modifier associated with this literal.
+   * Return the token representing the 'const' keyword.
    * 
-   * @return the const modifier associated with this literal
+   * @return the token representing the 'const' keyword
    */
-  public Token getModifier() {
-    return modifier;
+  public Token getConstKeyword() {
+    return constKeyword;
   }
 
   /**
@@ -72,12 +71,12 @@ public abstract class TypedLiteral extends Literal {
   }
 
   /**
-   * Set the modifiers associated with this literal to the given modifiers.
+   * Set the token representing the 'const' keyword to the given keyword.
    * 
-   * @param modifiers the modifiers associated with this literal
+   * @param keyword the token representing the 'const' keyword
    */
-  public void setModifier(Token modifier) {
-    this.modifier = modifier;
+  public void setConstKeyword(Token keyword) {
+    this.constKeyword = keyword;
   }
 
   /**

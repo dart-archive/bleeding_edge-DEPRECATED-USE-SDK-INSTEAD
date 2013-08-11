@@ -150,7 +150,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
-    if (node.getModifier() != null) {
+    if (node.getConstKeyword() != null) {
       for (Expression element : node.getElements()) {
         validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
       }
@@ -161,7 +161,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitMapLiteral(MapLiteral node) {
     super.visitMapLiteral(node);
-    boolean isConst = node.getModifier() != null;
+    boolean isConst = node.getConstKeyword() != null;
     boolean reportEqualKeys = true;
     HashSet<Object> keys = new HashSet<Object>();
     ArrayList<Expression> invalidKeys = new ArrayList<Expression>();

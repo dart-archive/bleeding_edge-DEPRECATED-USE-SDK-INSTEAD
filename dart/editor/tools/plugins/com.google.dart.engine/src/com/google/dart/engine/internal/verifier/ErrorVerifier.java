@@ -677,7 +677,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitListLiteral(ListLiteral node) {
-    if (node.getModifier() != null) {
+    if (node.getConstKeyword() != null) {
       TypeArgumentList typeArguments = node.getTypeArguments();
       if (typeArguments != null) {
         NodeList<TypeName> arguments = typeArguments.getArguments();
@@ -699,7 +699,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       NodeList<TypeName> arguments = typeArguments.getArguments();
       if (arguments.size() != 0) {
         checkForInvalidTypeArgumentForKey(arguments);
-        if (node.getModifier() != null) {
+        if (node.getConstKeyword() != null) {
           checkForInvalidTypeArgumentInConstTypedLiteral(
               arguments,
               CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
@@ -3262,7 +3262,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Type listElementType = typeArguments.get(0).getType();
     // Prepare problem to report.
     ErrorCode errorCode;
-    if (node.getModifier() != null) {
+    if (node.getConstKeyword() != null) {
       errorCode = CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE;
     } else {
       errorCode = StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE;
@@ -3301,7 +3301,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     // Prepare problem to report.
     ErrorCode keyErrorCode;
     ErrorCode valueErrorCode;
-    if (node.getModifier() != null) {
+    if (node.getConstKeyword() != null) {
       keyErrorCode = CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE;
       valueErrorCode = CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE;
     } else {
@@ -3787,7 +3787,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForNonConstMapAsExpressionStatement(MapLiteral node) {
     // "const"
-    if (node.getModifier() != null) {
+    if (node.getConstKeyword() != null) {
       return false;
     }
     // has type arguments

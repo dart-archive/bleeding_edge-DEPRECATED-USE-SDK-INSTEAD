@@ -591,8 +591,8 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
 
   @Override
   public Void visitListLiteral(ListLiteral node) {
-    if (node.getModifier() != null) {
-      writer.print(node.getModifier().getLexeme());
+    if (node.getConstKeyword() != null) {
+      writer.print(node.getConstKeyword().getLexeme());
       writer.print(' ');
     }
     visit(node.getTypeArguments(), " ");
@@ -604,8 +604,8 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
 
   @Override
   public Void visitMapLiteral(MapLiteral node) {
-    if (node.getModifier() != null) {
-      writer.print(node.getModifier().getLexeme());
+    if (node.getConstKeyword() != null) {
+      writer.print(node.getConstKeyword().getLexeme());
       writer.print(' ');
     }
     visit(node.getTypeArguments(), " ");

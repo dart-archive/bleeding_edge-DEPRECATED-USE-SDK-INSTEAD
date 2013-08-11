@@ -1834,7 +1834,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseConstExpression_listLiteral_typed() throws Exception {
     ListLiteral literal = parse("parseConstExpression", "const <A> []");
-    assertNotNull(literal.getModifier());
+    assertNotNull(literal.getConstKeyword());
     assertNotNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
     assertSize(0, literal.getElements());
@@ -1843,7 +1843,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseConstExpression_listLiteral_untyped() throws Exception {
     ListLiteral literal = parse("parseConstExpression", "const []");
-    assertNotNull(literal.getModifier());
+    assertNotNull(literal.getConstKeyword());
     assertNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
     assertSize(0, literal.getElements());
@@ -3078,7 +3078,7 @@ public class SimpleParserTest extends ParserTestCase {
     Token token = token(Keyword.CONST);
     TypeArgumentList typeArguments = null;
     ListLiteral literal = parse("parseListLiteral", new Object[] {token, typeArguments}, "[]");
-    assertEquals(token, literal.getModifier());
+    assertEquals(token, literal.getConstKeyword());
     assertEquals(typeArguments, literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
     assertSize(0, literal.getElements());
@@ -3089,7 +3089,7 @@ public class SimpleParserTest extends ParserTestCase {
     Token token = token(Keyword.CONST);
     TypeArgumentList typeArguments = null;
     ListLiteral literal = parse("parseListLiteral", new Object[] {token, typeArguments}, "[ ]");
-    assertEquals(token, literal.getModifier());
+    assertEquals(token, literal.getConstKeyword());
     assertEquals(typeArguments, literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
     assertSize(0, literal.getElements());
@@ -3098,7 +3098,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseListLiteral_multiple() throws Exception {
     ListLiteral literal = parse("parseListLiteral", new Object[] {null, null}, "[1, 2, 3]");
-    assertNull(literal.getModifier());
+    assertNull(literal.getConstKeyword());
     assertNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
     assertSize(3, literal.getElements());
@@ -3107,7 +3107,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseListLiteral_single() throws Exception {
     ListLiteral literal = parse("parseListLiteral", new Object[] {null, null}, "[1]");
-    assertNull(literal.getModifier());
+    assertNull(literal.getConstKeyword());
     assertNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
     assertSize(1, literal.getElements());
@@ -3116,7 +3116,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseListOrMapLiteral_list_noType() throws Exception {
     ListLiteral literal = parse("parseListOrMapLiteral", new Object[] {null}, "[1]");
-    assertNull(literal.getModifier());
+    assertNull(literal.getConstKeyword());
     assertNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
     assertSize(1, literal.getElements());
@@ -3125,7 +3125,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseListOrMapLiteral_list_type() throws Exception {
     ListLiteral literal = parse("parseListOrMapLiteral", new Object[] {null}, "<int> [1]");
-    assertNull(literal.getModifier());
+    assertNull(literal.getConstKeyword());
     assertNotNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
     assertSize(1, literal.getElements());
@@ -3134,7 +3134,7 @@ public class SimpleParserTest extends ParserTestCase {
 
   public void test_parseListOrMapLiteral_map_noType() throws Exception {
     MapLiteral literal = parse("parseListOrMapLiteral", new Object[] {null}, "{'1' : 1}");
-    assertNull(literal.getModifier());
+    assertNull(literal.getConstKeyword());
     assertNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
     assertSize(1, literal.getEntries());
@@ -3146,7 +3146,7 @@ public class SimpleParserTest extends ParserTestCase {
         "parseListOrMapLiteral",
         new Object[] {null},
         "<String, int> {'1' : 1}");
-    assertNull(literal.getModifier());
+    assertNull(literal.getConstKeyword());
     assertNotNull(literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
     assertSize(1, literal.getEntries());
@@ -3173,7 +3173,7 @@ public class SimpleParserTest extends ParserTestCase {
     Token token = token(Keyword.CONST);
     TypeArgumentList typeArguments = typeArgumentList(typeName("String"), typeName("int"));
     MapLiteral literal = parse("parseMapLiteral", new Object[] {token, typeArguments}, "{}");
-    assertEquals(token, literal.getModifier());
+    assertEquals(token, literal.getConstKeyword());
     assertEquals(typeArguments, literal.getTypeArguments());
     assertNotNull(literal.getLeftBracket());
     assertSize(0, literal.getEntries());

@@ -545,7 +545,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
   @Override
   public ListLiteral visitListLiteral(ListLiteral node) {
     return new ListLiteral(
-        node.getModifier(),
+        node.getConstKeyword(),
         clone(node.getTypeArguments()),
         node.getLeftBracket(),
         clone(node.getElements()),
@@ -555,7 +555,7 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
   @Override
   public MapLiteral visitMapLiteral(MapLiteral node) {
     return new MapLiteral(
-        node.getModifier(),
+        node.getConstKeyword(),
         clone(node.getTypeArguments()),
         node.getLeftBracket(),
         clone(node.getEntries()),

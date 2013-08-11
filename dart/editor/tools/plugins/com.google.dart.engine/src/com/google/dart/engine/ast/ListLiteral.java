@@ -46,16 +46,16 @@ public class ListLiteral extends TypedLiteral {
   /**
    * Initialize a newly created list literal.
    * 
-   * @param modifier the const modifier associated with this literal
+   * @param constKeyword the token representing the 'const' keyword
    * @param typeArguments the type argument associated with this literal, or {@code null} if no type
    *          arguments were declared
    * @param leftBracket the left square bracket
    * @param elements the expressions used to compute the elements of the list
    * @param rightBracket the right square bracket
    */
-  public ListLiteral(Token modifier, TypeArgumentList typeArguments, Token leftBracket,
+  public ListLiteral(Token constKeyword, TypeArgumentList typeArguments, Token leftBracket,
       List<Expression> elements, Token rightBracket) {
-    super(modifier, typeArguments);
+    super(constKeyword, typeArguments);
     this.leftBracket = leftBracket;
     this.elements.addAll(elements);
     this.rightBracket = rightBracket;
@@ -68,7 +68,7 @@ public class ListLiteral extends TypedLiteral {
 
   @Override
   public Token getBeginToken() {
-    Token token = getModifier();
+    Token token = getConstKeyword();
     if (token != null) {
       return token;
     }
