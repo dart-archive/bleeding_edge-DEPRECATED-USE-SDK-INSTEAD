@@ -112,6 +112,19 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
 
     /**
+     * Flush any AST structures being maintained by this state.
+     */
+    public void flushAstStructures() {
+      if (resolvedUnitState == CacheState.VALID) {
+        resolvedUnitState = CacheState.FLUSHED;
+        resolvedUnit = null;
+      }
+      if (nextState != null) {
+        nextState.flushAstStructures();
+      }
+    }
+
+    /**
      * Invalidate all of the resolution information associated with the compilation unit.
      */
     public void invalidateAllResolutionInformation() {
@@ -290,6 +303,17 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    */
   public DartEntryImpl() {
     super();
+  }
+
+  /**
+   * Flush any AST structures being maintained by this entry.
+   */
+  public void flushAstStructures() {
+    if (parsedUnitState == CacheState.VALID) {
+      parsedUnitState = CacheState.FLUSHED;
+      parsedUnit = null;
+    }
+    resolutionState.flushAstStructures();
   }
 
   @Override
