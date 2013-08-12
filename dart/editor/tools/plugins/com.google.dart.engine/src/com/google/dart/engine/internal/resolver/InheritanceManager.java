@@ -386,7 +386,31 @@ public class InheritanceManager {
       if (!visitedInterfaces.contains(superclassElement)) {
         try {
           visitedInterfaces.add(superclassElement);
-          lookupMaps.add(computeInterfaceLookupMap(superclassElement, visitedInterfaces));
+
+          //
+          // Recursively compute the map for the supertype.
+          //
+          HashMap<String, ExecutableElement> map = computeInterfaceLookupMap(
+              superclassElement,
+              visitedInterfaces);
+
+          //
+          // Add any members from the supertype into the map as well.
+          //
+          MethodElement[] methods = supertype.getMethods();
+          for (MethodElement method : methods) {
+            if (method.isAccessibleIn(library) && !method.isStatic()) {
+              map.put(method.getName(), method);
+            }
+          }
+          PropertyAccessorElement[] accessors = supertype.getAccessors();
+          for (PropertyAccessorElement accessor : accessors) {
+            if (accessor.isAccessibleIn(library) && !accessor.isStatic()) {
+              map.put(accessor.getName(), accessor);
+            }
+          }
+
+          lookupMaps.add(map);
         } finally {
           visitedInterfaces.remove(superclassElement);
         }
@@ -419,7 +443,31 @@ public class InheritanceManager {
         if (!visitedInterfaces.contains(interfaceElement)) {
           try {
             visitedInterfaces.add(interfaceElement);
-            lookupMaps.add(computeInterfaceLookupMap(interfaceElement, visitedInterfaces));
+
+            //
+            // Recursively compute the map for the interfaces.
+            //
+            HashMap<String, ExecutableElement> map = computeInterfaceLookupMap(
+                interfaceElement,
+                visitedInterfaces);
+
+            //
+            // And add any members from the interface into the map as well.
+            //
+            MethodElement[] methods = interfaceType.getMethods();
+            for (MethodElement method : methods) {
+              if (method.isAccessibleIn(library) && !method.isStatic()) {
+                map.put(method.getName(), method);
+              }
+            }
+            PropertyAccessorElement[] accessors = interfaceType.getAccessors();
+            for (PropertyAccessorElement accessor : accessors) {
+              if (accessor.isAccessibleIn(library) && !accessor.isStatic()) {
+                map.put(accessor.getName(), accessor);
+              }
+            }
+
+            lookupMaps.add(map);
           } finally {
             visitedInterfaces.remove(interfaceElement);
           }
@@ -438,84 +486,24 @@ public class InheritanceManager {
       interfaceLookup.put(classElt, resultMap);
       return resultMap;
     }
+    //
     // Union all of the maps together, grouping the ExecutableElements into sets.
+    //
     HashMap<String, HashSet<ExecutableElement>> unionMap = new HashMap<String, HashSet<ExecutableElement>>();
     for (HashMap<String, ExecutableElement> lookupMap : lookupMaps) {
       for (Entry<String, ExecutableElement> entry : lookupMap.entrySet()) {
         String key = entry.getKey();
-        if (!unionMap.containsKey(key)) {
-          HashSet<ExecutableElement> set = new HashSet<ExecutableElement>(4);
-          set.add(entry.getValue());
+        HashSet<ExecutableElement> set = unionMap.get(key);
+        if (set == null) {
+          set = new HashSet<ExecutableElement>(4);
           unionMap.put(key, set);
-        } else {
-          unionMap.get(key).add(entry.getValue());
         }
+        set.add(entry.getValue());
       }
     }
-    // Next loop through all of the members in the interfaces themselves, adding them to the unionMap
-    // supertype
-    if (superclassElement != null) {
-      MethodElement[] methods = superclassElement.getMethods();
-      for (MethodElement method : methods) {
-        if (method.isAccessibleIn(library) && !method.isStatic()) {
-          String key = method.getName();
-          if (!unionMap.containsKey(key)) {
-            HashSet<ExecutableElement> set = new HashSet<ExecutableElement>(4);
-            set.add(method);
-            unionMap.put(key, set);
-          } else {
-            unionMap.get(key).add(method);
-          }
-        }
-      }
-      PropertyAccessorElement[] accessors = superclassElement.getAccessors();
-      for (PropertyAccessorElement accessor : accessors) {
-        if (accessor.isAccessibleIn(library) && !accessor.isStatic()) {
-          String key = accessor.getName();
-          if (!unionMap.containsKey(key)) {
-            HashSet<ExecutableElement> set = new HashSet<ExecutableElement>(4);
-            set.add(accessor);
-            unionMap.put(key, set);
-          } else {
-            unionMap.get(key).add(accessor);
-          }
-        }
-      }
-    }
-
-    // interfaces
-    for (InterfaceType interfaceType : interfaces) {
-      ClassElement interfaceElement = interfaceType.getElement();
-      if (interfaceElement != null) {
-        MethodElement[] methods = interfaceElement.getMethods();
-        for (MethodElement method : methods) {
-          if (method.isAccessibleIn(library) && !method.isStatic()) {
-            String key = method.getName();
-            if (!unionMap.containsKey(key)) {
-              HashSet<ExecutableElement> set = new HashSet<ExecutableElement>(4);
-              set.add(method);
-              unionMap.put(key, set);
-            } else {
-              unionMap.get(key).add(method);
-            }
-          }
-        }
-        PropertyAccessorElement[] accessors = interfaceElement.getAccessors();
-        for (PropertyAccessorElement accessor : accessors) {
-          if (accessor.isAccessibleIn(library) && !accessor.isStatic()) {
-            String key = accessor.getName();
-            if (!unionMap.containsKey(key)) {
-              HashSet<ExecutableElement> set = new HashSet<ExecutableElement>(4);
-              set.add(accessor);
-              unionMap.put(key, set);
-            } else {
-              unionMap.get(key).add(accessor);
-            }
-          }
-        }
-      }
-    }
+    //
     // Loop through the entries in the union map, adding them to the resultMap appropriately.
+    //
     for (Entry<String, HashSet<ExecutableElement>> entry : unionMap.entrySet()) {
       String key = entry.getKey();
       HashSet<ExecutableElement> set = entry.getValue();
@@ -663,4 +651,5 @@ public class InheritanceManager {
     }
     errorSet.add(new AnalysisError(classElt.getSource(), offset, length, errorCode, arguments));
   }
+
 }

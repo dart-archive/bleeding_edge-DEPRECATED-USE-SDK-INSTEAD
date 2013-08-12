@@ -120,6 +120,7 @@ import com.google.dart.engine.internal.constant.ValidResult;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.member.ConstructorMember;
+import com.google.dart.engine.internal.element.member.ParameterMember;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.ElementResolver;
 import com.google.dart.engine.internal.resolver.InheritanceManager;
@@ -508,8 +509,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForRedirectingConstructorErrorCodes(node);
       checkForMultipleSuperInitializers(node);
       checkForRecursiveConstructorRedirect(node);
-      checkForRecursiveFactoryRedirect(node);
-      checkForAllRedirectConstructorErrorCodes(node);
+      if (!checkForRecursiveFactoryRedirect(node)) {
+        checkForAllRedirectConstructorErrorCodes(node);
+      }
       checkForUndefinedConstructorInInitializerImplicit(node);
       checkForRedirectToNonConstConstructor(node);
       checkForReturnInGenerativeConstructor(node);
@@ -1304,7 +1306,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     for (ParameterElement parameterElt : overriddenPEs) {
       if (parameterElt.getParameterKind().isOptional()) {
-        overriddenParameterElts.add((ParameterElementImpl) parameterElt);
+        if (parameterElt instanceof ParameterElementImpl) {
+          overriddenParameterElts.add((ParameterElementImpl) parameterElt);
+        } else if (parameterElt instanceof ParameterMember) {
+          overriddenParameterElts.add((ParameterElementImpl) ((ParameterMember) parameterElt).getBaseElement());
+        }
       }
     }
     //

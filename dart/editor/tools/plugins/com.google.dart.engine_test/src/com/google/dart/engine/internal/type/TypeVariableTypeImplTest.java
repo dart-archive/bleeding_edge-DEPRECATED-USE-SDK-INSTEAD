@@ -19,8 +19,26 @@ import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.getObject;
 
 public class TypeVariableTypeImplTest extends EngineTestCase {
+  public void fail_isMoreSpecificThan_typeArguments_object() {
+    TypeVariableElementImpl element = new TypeVariableElementImpl(identifier("E"));
+    TypeVariableTypeImpl type = new TypeVariableTypeImpl(element);
+
+    // E << Object
+    assertTrue(type.isMoreSpecificThan(getObject().getType()));
+  }
+
+  public void fail_isMoreSpecificThan_typeArguments_self() {
+    TypeVariableElementImpl element = new TypeVariableElementImpl(identifier("E"));
+    TypeVariableTypeImpl type = new TypeVariableTypeImpl(element);
+
+    // E << E
+    assertTrue(type.isMoreSpecificThan(type));
+  }
+
   public void test_creation() {
     assertNotNull(new TypeVariableTypeImpl(new TypeVariableElementImpl(identifier("E"))));
   }
@@ -29,6 +47,18 @@ public class TypeVariableTypeImplTest extends EngineTestCase {
     TypeVariableElementImpl element = new TypeVariableElementImpl(identifier("E"));
     TypeVariableTypeImpl type = new TypeVariableTypeImpl(element);
     assertEquals(element, type.getElement());
+  }
+
+  public void test_isMoreSpecificThan_typeArguments_upperBound() {
+    ClassElementImpl classS = classElement("A");
+
+    TypeVariableElementImpl typeVarT = new TypeVariableElementImpl(identifier("T"));
+    typeVarT.setBound(classS.getType());
+    TypeVariableTypeImpl typeVarTypeT = new TypeVariableTypeImpl(typeVarT);
+
+    // <T extends S>
+    // T << S
+    assertTrue(typeVarTypeT.isMoreSpecificThan(classS.getType()));
   }
 
   public void test_substitute_equal() {

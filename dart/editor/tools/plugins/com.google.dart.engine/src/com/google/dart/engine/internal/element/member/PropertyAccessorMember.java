@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.element.member;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.type.FunctionType;
@@ -113,6 +114,36 @@ public class PropertyAccessorMember extends ExecutableMember implements Property
   @Override
   public boolean isSetter() {
     return getBaseElement().isSetter();
+  }
+
+  @Override
+  public String toString() {
+    PropertyAccessorElement baseElement = getBaseElement();
+    ParameterElement[] parameters = getParameters();
+    FunctionType type = getType();
+    StringBuilder builder = new StringBuilder();
+    if (isGetter()) {
+      builder.append("get ");
+    } else {
+      builder.append("set ");
+    }
+    builder.append(baseElement.getEnclosingElement().getDisplayName());
+    builder.append(".");
+    builder.append(baseElement.getDisplayName());
+    builder.append("(");
+    int parameterCount = parameters.length;
+    for (int i = 0; i < parameterCount; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      builder.append(parameters[i]).toString();
+    }
+    builder.append(")");
+    if (type != null) {
+      builder.append(" -> ");
+      builder.append(type.getReturnType());
+    }
+    return builder.toString();
   }
 
   @Override

@@ -1022,6 +1022,104 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_inconsistentMethodInheritance_accessors_typeVariables_diamond() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class F<E> extends B<E> {}",
+        "class D<E> extends F<E> {",
+        "  external E get g;",
+        "}",
+        "abstract class C<E> {",
+        "  E get g;",
+        "}",
+        "abstract class B<E> implements C<E> {",
+        "  E get g { return null; }",
+        "}",
+        "class A<E> extends B<E> implements D<E> {",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_inconsistentMethodInheritance_accessors_typeVariables1() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A<E> {",
+        "  E get x;",
+        "}",
+        "abstract class B<E> {",
+        "  E get x;",
+        "}",
+        "class C<E> implements A<E>, B<E> {",
+        "  E get x => 1;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_inconsistentMethodInheritance_accessors_typeVariables2() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A<E> {",
+        "  E get x {return 1;}",
+        "}",
+        "class B<E> {",
+        "  E get x {return 1;}",
+        "}",
+        "class C<E> extends A<E> implements B<E> {",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_inconsistentMethodInheritance_methods_typeVariables1() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<E> {",
+        "  x(E e) {}",
+        "}",
+        "class B<E> {",
+        "  x(E e) {}",
+        "}",
+        "class C<E> implements A<E>, B<E> {",
+        "  x(E e) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_inconsistentMethodInheritance_methods_typeVariables2() throws Exception {
+    Source source = addSource(createSource(//
+        "class A<E> {",
+        "  x(E e) {}",
+        "}",
+        "class B<E> {",
+        "  x(E e) {}",
+        "}",
+        "class C<E> extends A<E> implements B<E> {",
+        "  x(E e) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_inconsistentMethodInheritance_simple() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  x();",
+        "}",
+        "abstract class B {",
+        "  x();",
+        "}",
+        "class C implements A, B {",
+        "  x() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_initializingFormalForNonExistantField() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

@@ -825,18 +825,18 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
 
-    InterfaceType supertype = elementT.getSupertype();
+    InterfaceType supertype = getSuperclass();
     // The type is Object, return false.
     if (supertype != null && ((InterfaceTypeImpl) supertype).isSubtypeOf(typeS, visitedClasses)) {
       return true;
     }
-    InterfaceType[] interfaceTypes = elementT.getInterfaces();
+    InterfaceType[] interfaceTypes = getInterfaces();
     for (InterfaceType interfaceType : interfaceTypes) {
       if (((InterfaceTypeImpl) interfaceType).isSubtypeOf(typeS, visitedClasses)) {
         return true;
       }
     }
-    InterfaceType[] mixinTypes = elementT.getMixins();
+    InterfaceType[] mixinTypes = getMixins();
     for (InterfaceType mixinType : mixinTypes) {
       if (((InterfaceTypeImpl) mixinType).isSubtypeOf(typeS, visitedClasses)) {
         return true;
