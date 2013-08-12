@@ -353,6 +353,16 @@
    </extension>
 
    <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="Source not available"
+            icon="icons/obj16/dart.png"
+            class="com.google.dart.tools.debug.ui.internal.presentation.DartSourceNotFoundEditor"
+            id="com.google.dart.tools.debug.ui.internal.presentation.DartSourceNotFoundEditor">
+      </editor>
+   </extension>
+   
+   <extension
       point="org.eclipse.ui.commands">
        <command
             categoryId="org.eclipse.ui.category.window"
