@@ -367,6 +367,11 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (errorCode == CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
         addFix_createConstructorSuperExplicit();
       }
+      if (errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION) {
+        addFix_importLibrary_withFunction();
+        addFix_undefinedFunction_useSimilar();
+        addFix_undefinedFunction_create();
+      }
       if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
         addFix_createPart();
       }
@@ -407,11 +412,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
         addFix_removeParentheses_inGetterInvocation();
       }
-      if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
-        addFix_importLibrary_withFunction();
-        addFix_undefinedFunction_useSimilar();
-        addFix_undefinedFunction_create();
-      }
       if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
         addFix_undefinedMethod_useSimilar();
         addFix_undefinedMethod_create();
@@ -441,6 +441,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     return errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
         || errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
         || errorCode == CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
+        || errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION
         || errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST
         || errorCode == ParserErrorCode.EXPECTED_TOKEN
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
@@ -454,7 +455,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN
         || errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER
         || errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION
-        || errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION
         || errorCode == StaticTypeWarningCode.UNDEFINED_METHOD;
   }
 

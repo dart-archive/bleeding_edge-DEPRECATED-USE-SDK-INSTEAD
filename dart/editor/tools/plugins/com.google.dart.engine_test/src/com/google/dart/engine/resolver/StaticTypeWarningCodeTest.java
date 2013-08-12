@@ -672,15 +672,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_undefinedFunction() throws Exception {
-    Source source = addSource(createSource(//
-        "void f() {",
-        "  g();",
-        "}"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_FUNCTION);
-  }
-
   public void test_undefinedGetter() throws Exception {
     Source source = addSource(createSource(//
         "class T {}",

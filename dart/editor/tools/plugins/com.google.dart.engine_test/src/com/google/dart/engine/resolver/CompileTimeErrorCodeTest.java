@@ -132,6 +132,23 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_ambiguousImport_function() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "g() { return f(); }"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "f() {}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "f() {}"));
+    resolve(source);
+    assertErrors(
+        StaticWarningCode.AMBIGUOUS_IMPORT,
+        StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+  }
+
   public void test_argumentDefinitionTestNonParameter() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
@@ -3166,6 +3183,24 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT);
     verify(source);
+  }
+
+  public void test_undefinedFunction() throws Exception {
+    Source source = addSource(createSource(//
+        "void f() {",
+        "  g();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.UNDEFINED_FUNCTION);
+  }
+
+  public void test_undefinedFunction_hasImportPrefix() throws Exception {
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as f;",
+        "main() { return f(); }"));
+    addSource("/lib.dart", "library lib;");
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.UNDEFINED_FUNCTION, HintCode.UNUSED_IMPORT);
   }
 
   public void test_undefinedNamedParameter() throws Exception {

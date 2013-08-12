@@ -15,7 +15,6 @@ package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.HintCode;
-import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
@@ -186,21 +185,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "class N {}"));
     resolve(source);
     assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT, CompileTimeErrorCode.EXTENDS_NON_CLASS);
-  }
-
-  public void test_ambiguousImport_function() throws Exception {
-    Source source = addSource(createSource(//
-        "import 'lib1.dart';",
-        "import 'lib2.dart';",
-        "g() { return f(); }"));
-    addSource("/lib1.dart", createSource(//
-        "library lib1;",
-        "f() {}"));
-    addSource("/lib2.dart", createSource(//
-        "library lib2;",
-        "f() {}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT, StaticTypeWarningCode.UNDEFINED_FUNCTION);
   }
 
   public void test_ambiguousImport_implements() throws Exception {

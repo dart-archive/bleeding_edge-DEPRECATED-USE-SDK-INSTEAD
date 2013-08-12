@@ -1149,6 +1149,16 @@ public enum CompileTimeErrorCode implements ErrorCode {
       "The class '%s' does not have a default generative constructor"),
 
   /**
+   * 12.14.3 Unqualified Invocation: If there exists a lexically visible declaration named
+   * <i>id</i>, let <i>f<sub>id</sub></i> be the innermost such declaration. Then: [skip].
+   * Otherwise, <i>i</i> is equivalent to <b>this</b>.<i>id</i>(<i>a<sub>1</sub></i>; ...
+   * <i>x<sub>n+k</sub></i> : <i>a<sub>n+k</sub></i>).
+   * 
+   * @param methodName the name of the method that is undefined
+   */
+  UNDEFINED_FUNCTION("The function '%s' is not defined"),
+
+  /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
    * must have a corresponding named parameter in the set {<i>p<sub>n+1</sub></i> ...
    * <i>p<sub>n+k</sub></i>} or a static warning occurs.

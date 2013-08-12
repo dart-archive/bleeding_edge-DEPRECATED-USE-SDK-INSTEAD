@@ -172,14 +172,6 @@ public enum StaticTypeWarningCode implements ErrorCode {
   TYPE_ARGUMENT_NOT_MATCHING_BOUNDS("'%s' does not extend '%s'"),
 
   /**
-   * Specification reference needed. This is equivalent to {@link #UNDEFINED_METHOD}, but for
-   * top-level functions.
-   * 
-   * @param methodName the name of the method that is undefined
-   */
-  UNDEFINED_FUNCTION("The function '%s' is not defined"),
-
-  /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is a static type
    * warning if <i>T</i> does not have a getter named <i>m</i>.
    * 

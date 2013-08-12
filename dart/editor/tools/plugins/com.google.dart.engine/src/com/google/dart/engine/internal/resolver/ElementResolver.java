@@ -818,9 +818,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
           methodName,
           methodName.getName());
-    } else if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
+    } else if (errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION) {
       resolver.reportError(
-          StaticTypeWarningCode.UNDEFINED_FUNCTION,
+          CompileTimeErrorCode.UNDEFINED_FUNCTION,
           methodName,
           methodName.getName());
     } else if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
@@ -1166,6 +1166,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return the error code that should be reported
    */
   private ErrorCode checkForInvocationError(Expression target, Element element) {
+    // Prefix is not declared, instead "prefix.id" are declared.
+    if (element instanceof PrefixElement) {
+      element = null;
+    }
     if (element instanceof PropertyAccessorElement) {
       //
       // This is really a function expression invocation.
@@ -1207,17 +1211,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       } else {
         if (target == null) {
           ClassElement enclosingClass = resolver.getEnclosingClass();
-          if (enclosingClass == null) {
-            return StaticTypeWarningCode.UNDEFINED_FUNCTION;
-          } else if (element == null) {
-            return StaticTypeWarningCode.UNDEFINED_METHOD;
+          if (element == null) {
+            if (enclosingClass == null) {
+              return CompileTimeErrorCode.UNDEFINED_FUNCTION;
+            } else {
+              return StaticTypeWarningCode.UNDEFINED_METHOD;
+            }
           } else {
             return StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION;
           }
         } else {
           Type targetType = getStaticType(target);
           if (targetType == null) {
-            return StaticTypeWarningCode.UNDEFINED_FUNCTION;
+            return CompileTimeErrorCode.UNDEFINED_FUNCTION;
           } else if (!targetType.isDynamic()) {
             return StaticTypeWarningCode.UNDEFINED_METHOD;
           }
