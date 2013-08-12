@@ -11,7 +11,7 @@ vars = {
 
   "gyp_rev": "@1495",
   "nss_rev": "@209026",
-  "nss_pkcs12_rev" : "@xxxxx",
+  "nss_pkcs12_rev" : "@26000",
 
   "co19_rev": "@515",
   "co19_repo": "http://co19.googlecode.com/svn/trunk/co19/",

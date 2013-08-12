@@ -32,7 +32,7 @@ vars = {
   "json_rev" : "@19997",
   "junit_rev" : "@19997",
   "mockito_rev" : "@19997",
-  "nss_pkcs12_rev" : "@xxxxx",
+  "nss_pkcs12_rev" : "@26000",
   "snakeyaml_rev" : "@19997",
   "stripjar_rev" : "@20110",
   "d8_rev" : "@22234",
