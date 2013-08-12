@@ -32,6 +32,8 @@ import com.google.dart.tools.ui.actions.OpenExternalDartdocAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
@@ -615,38 +617,59 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   }
 
   protected void handleDoubleClick(DoubleClickEvent event) {
-    IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
-    for (Object element : selection.toArray()) {
-      if (treeViewer.isExpandable(element)) {
-        treeViewer.setExpandedState(element, !treeViewer.getExpandedState(element));
-      }
 
-      if (element instanceof IFile) {
-        try {
-          IFile file = (IFile) element;
-          String editorId = IDE.getEditorDescriptor(file).getId();
-          if (DartUI.ID_CU_EDITOR.equals(editorId)) {
-            // Gracefully degrade by opening a simpler text editor on too complex files.
-            if (isTooComplexDartFile(file)) {
-              editorId = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("FilesView.handleDoubleClick");
+
+    try {
+
+      IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
+
+      instrumentation.record(selection);
+
+      for (Object element : selection.toArray()) {
+        if (treeViewer.isExpandable(element)) {
+          treeViewer.setExpandedState(element, !treeViewer.getExpandedState(element));
+        }
+
+        if (element instanceof IFile) {
+          try {
+            IFile file = (IFile) element;
+            instrumentation.data("FileName", file.getName());
+
+            String editorId = IDE.getEditorDescriptor(file).getId();
+            if (DartUI.ID_CU_EDITOR.equals(editorId)) {
+              // Gracefully degrade by opening a simpler text editor on too complex files.
+              if (isTooComplexDartFile(file)) {
+                instrumentation.metric("isTooComplexDartFile", true);
+                editorId = EditorsUI.DEFAULT_TEXT_EDITOR_ID;
+              }
             }
+            getViewSite().getPage().openEditor(new FileEditorInput(file), editorId);
+          } catch (PartInitException e) {
+            DartToolsPlugin.log(e);
           }
-          getViewSite().getPage().openEditor(new FileEditorInput(file), editorId);
-        } catch (PartInitException e) {
-          DartToolsPlugin.log(e);
-        }
-      } else if (element instanceof IFileStore) {
-        try {
+        } else if (element instanceof IFileStore) {
+          try {
 
-          IFileInfo info = ((IFileStore) element).fetchInfo();
-          if (!info.isDirectory()) {
-            IDE.openEditorOnFileStore(getViewSite().getPage(), (IFileStore) element);
+            IFileInfo info = ((IFileStore) element).fetchInfo();
+            instrumentation.data("FileStoreName", info.getName());
+
+            if (!info.isDirectory()) {
+              IDE.openEditorOnFileStore(getViewSite().getPage(), (IFileStore) element);
+            }
+
+          } catch (PartInitException e) {
+            DartToolsPlugin.log(e);
           }
-
-        } catch (PartInitException e) {
-          DartToolsPlugin.log(e);
         }
       }
+    } catch (RuntimeException e) {
+      instrumentation.metric("Exception", e.getClass().toString());
+      instrumentation.data("Exception", e.toString());
+      throw e;
+    } finally {
+      instrumentation.log();
+
     }
   }
 
