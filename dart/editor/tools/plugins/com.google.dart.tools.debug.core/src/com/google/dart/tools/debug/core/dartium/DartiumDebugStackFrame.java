@@ -360,6 +360,11 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     getThread().terminate();
   }
 
+  @Override
+  public String toString() {
+    return getShortName();
+  }
+
   protected String getActualLocationPath() {
     String scriptId = webkitFrame.getLocation().getScriptId();
 

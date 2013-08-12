@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.ui.internal.presentation;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
 import com.google.dart.tools.debug.core.server.ServerDebugValue;
+import com.google.dart.tools.debug.core.source.DartNoSourceFoundElement;
 import com.google.dart.tools.debug.core.util.IDartDebugVariable;
 import com.google.dart.tools.debug.core.util.IDartStackFrame;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
@@ -139,6 +140,10 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
       return DART_EDITOR_ID;
     }
 
+    if (input instanceof DartSourceNotFoundEditorInput) {
+      return DartSourceNotFoundEditor.EDITOR_ID;
+    }
+
     return null;
   }
 
@@ -160,6 +165,10 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
       } catch (CoreException e) {
         DartUtil.logError(e);
       }
+    }
+
+    if (element instanceof DartNoSourceFoundElement) {
+      return new DartSourceNotFoundEditorInput((DartNoSourceFoundElement) element);
     }
 
     return null;

@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.debug.core.source;
 
+import com.google.dart.tools.core.utilities.general.AdapterUtilities;
 
+import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.sourcelookup.AbstractSourceLookupDirector;
 import org.eclipse.debug.core.sourcelookup.ISourceLookupParticipant;
 
@@ -29,8 +31,22 @@ public class DartSourceLookupDirector extends AbstractSourceLookupDirector {
   }
 
   @Override
+  public Object getSourceElement(Object element) {
+    Object sourceElement = super.getSourceElement(element);
+
+    if (sourceElement == null) {
+      ILaunch launch = AdapterUtilities.getAdapter(element, ILaunch.class);
+
+      if (launch != null) {
+        return new DartNoSourceFoundElement(launch, element.toString());
+      }
+    }
+
+    return sourceElement;
+  }
+
+  @Override
   public void initializeParticipants() {
     addParticipants(new ISourceLookupParticipant[] {new DartSourceLookupParticipant()});
   }
-
 }
