@@ -33,6 +33,8 @@ import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.PreferenceConstants;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
 import org.eclipse.core.filesystem.EFS;
@@ -104,30 +106,53 @@ public class EditorUtility {
       @Override
       public void run() {
 
+        int count = 0;
+
+        UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("EditorUtility.closeOrphanedEditors");
+
         try {
 
-          IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-          IEditorReference[] refs = activePage.getEditorReferences();
+          try {
 
-          for (IEditorReference ref : refs) {
+            IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+            IEditorReference[] refs = activePage.getEditorReferences();
 
-            IEditorInput input = ref.getEditorInput();
+            for (IEditorReference ref : refs) {
 
-            if (input instanceof FileEditorInput) {
+              IEditorInput input = ref.getEditorInput();
 
-              IFile file = ((FileEditorInput) input).getFile();
+              if (input instanceof FileEditorInput) {
 
-              if (!file.exists()) {
-                activePage.closeEditors(new IEditorReference[] {ref}, false);
+                IFile file = ((FileEditorInput) input).getFile();
+
+                if (!file.exists()) {
+                  instrumentation.data("EditorReference-toClose", ref.getName());
+                  instrumentation.data("EditorReference-toClose", file.getName());
+
+                  activePage.closeEditors(new IEditorReference[] {ref}, false);
+                  count++;
+
+                }
+
               }
 
             }
 
+          } catch (Throwable th) {
+            DartToolsPlugin.log(th);
           }
 
-        } catch (Throwable th) {
-          DartToolsPlugin.log(th);
+          instrumentation.metric("EditorsClosed", count);
+
+        } catch (RuntimeException e) {
+          instrumentation.metric("Exception", e.getClass().toString());
+          instrumentation.data("Exception", e.toString());
+          throw e;
+        } finally {
+          instrumentation.log();
+
         }
+
       }
     });
 
@@ -507,30 +532,49 @@ public class EditorUtility {
    * @throws PartInitException if the editor could not be opened or the input element is not valid
    */
   public static IEditorPart openInTextEditor(IFile file, boolean activate) throws PartInitException {
-    if (file == null) {
-      throwPartInitException(DartEditorMessages.EditorUtility_file_must_not_be_null);
+
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("EditorUtility.openInTextEditor");
+    try {
+
+      if (file == null) {
+        instrumentation.metric("Problem", "file is null");
+        throwPartInitException(DartEditorMessages.EditorUtility_file_must_not_be_null);
+      }
+
+      instrumentation.data("FileName", file.getName());
+      instrumentation.data("FilePath", file.getFullPath().toOSString());
+
+      IWorkbenchPage p = DartToolsPlugin.getActivePage();
+      if (p == null) {
+        instrumentation.metric("Problem", "no active workbench page");
+        throwPartInitException(DartEditorMessages.EditorUtility_no_active_WorkbenchPage);
+      }
+
+      IEditorDescriptor desc = IDE.getEditorDescriptor(file, true);
+
+      if (desc.getId() == IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID) {
+        IEditorRegistry editorReg = PlatformUI.getWorkbench().getEditorRegistry();
+
+        desc = editorReg.findEditor(EditorsUI.DEFAULT_TEXT_EDITOR_ID);
+      }
+
+      IEditorPart editorPart = IDE.openEditor(
+          p,
+          file,
+          maybeSwapDefaultEditorDescriptor(desc.getId()),
+          activate);
+      initializeHighlightRange(editorPart);
+      return editorPart;
+
+    } catch (RuntimeException e) {
+      instrumentation.metric("Exception", e.getClass().toString());
+      instrumentation.data("Exception", e.toString());
+      throw e;
+    } finally {
+      instrumentation.log();
+
     }
 
-    IWorkbenchPage p = DartToolsPlugin.getActivePage();
-    if (p == null) {
-      throwPartInitException(DartEditorMessages.EditorUtility_no_active_WorkbenchPage);
-    }
-
-    IEditorDescriptor desc = IDE.getEditorDescriptor(file, true);
-
-    if (desc.getId() == IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID) {
-      IEditorRegistry editorReg = PlatformUI.getWorkbench().getEditorRegistry();
-
-      desc = editorReg.findEditor(EditorsUI.DEFAULT_TEXT_EDITOR_ID);
-    }
-
-    IEditorPart editorPart = IDE.openEditor(
-        p,
-        file,
-        maybeSwapDefaultEditorDescriptor(desc.getId()),
-        activate);
-    initializeHighlightRange(editorPart);
-    return editorPart;
   }
 
   /**
@@ -838,64 +882,109 @@ public class EditorUtility {
 
   private static IEditorPart openInEditor(IEditorInput input, String editorID, boolean activate)
       throws PartInitException {
-    Assert.isNotNull(input);
-    Assert.isNotNull(editorID);
 
-    IWorkbenchPage p = DartToolsPlugin.getActivePage();
-    if (p == null) {
-      throwPartInitException(DartEditorMessages.EditorUtility_no_active_WorkbenchPage);
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("EditorUtility.openInEditor-IEditorInput");
+    try {
+
+      Assert.isNotNull(input);
+      Assert.isNotNull(editorID);
+
+      instrumentation.data("Name", input.getName());
+      instrumentation.data("EditorID", editorID);
+      instrumentation.metric("activate", activate);
+
+      IWorkbenchPage p = DartToolsPlugin.getActivePage();
+      if (p == null) {
+        throwPartInitException(DartEditorMessages.EditorUtility_no_active_WorkbenchPage);
+      }
+
+      IEditorPart editorPart = p.openEditor(input, editorID, activate);
+      initializeHighlightRange(editorPart);
+      return editorPart;
+    } catch (RuntimeException e) {
+      instrumentation.metric("Exception", e.getClass().toString());
+      instrumentation.data("Exception", e.toString());
+      throw e;
+    } finally {
+      instrumentation.log();
     }
-
-    IEditorPart editorPart = p.openEditor(input, editorID, activate);
-    initializeHighlightRange(editorPart);
-    return editorPart;
   }
 
   private static IEditorPart openInEditor(IFile file, boolean activate) throws PartInitException {
-    if (file == null) {
-      throwPartInitException(DartEditorMessages.EditorUtility_file_must_not_be_null);
+
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("EditorUtility.openInEditor-IFile");
+    try {
+
+      if (file == null) {
+        throwPartInitException(DartEditorMessages.EditorUtility_file_must_not_be_null);
+      }
+
+      instrumentation.data("FileName", file.getName());
+      instrumentation.data("FilePath", file.getFullPath().toOSString());
+      instrumentation.metric("activate", activate);
+
+      IWorkbenchPage p = DartToolsPlugin.getActivePage();
+      if (p == null) {
+        throwPartInitException(DartEditorMessages.EditorUtility_no_active_WorkbenchPage);
+      }
+
+      IEditorDescriptor desc = IDE.getEditorDescriptor(file, true);
+
+      IEditorPart editorPart = IDE.openEditor(
+          p,
+          file,
+          maybeSwapDefaultEditorDescriptor(desc.getId()),
+          activate);
+      initializeHighlightRange(editorPart);
+      return editorPart;
+    } catch (RuntimeException e) {
+      instrumentation.metric("Exception", e.getClass().toString());
+      instrumentation.data("Exception", e.toString());
+      throw e;
+    } finally {
+      instrumentation.log();
     }
-
-    IWorkbenchPage p = DartToolsPlugin.getActivePage();
-    if (p == null) {
-      throwPartInitException(DartEditorMessages.EditorUtility_no_active_WorkbenchPage);
-    }
-
-    IEditorDescriptor desc = IDE.getEditorDescriptor(file, true);
-
-    IEditorPart editorPart = IDE.openEditor(
-        p,
-        file,
-        maybeSwapDefaultEditorDescriptor(desc.getId()),
-        activate);
-    initializeHighlightRange(editorPart);
-    return editorPart;
   }
 
   @SuppressWarnings("unused")
   private static IEditorPart openInEditor(URI file, boolean activate) throws PartInitException {
-    if (file == null) {
-      throwPartInitException(DartEditorMessages.EditorUtility_file_must_not_be_null);
-    }
 
-    IWorkbenchPage p = DartToolsPlugin.getActivePage();
-    if (p == null) {
-      throwPartInitException(DartEditorMessages.EditorUtility_no_active_WorkbenchPage);
-    }
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("EditorUtility.openInEditor-URI");
+    try {
 
-    IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(
-        file.getPath());
-    if (desc == null) {
-      throwPartInitException(DartEditorMessages.EditorUtility_cantFindEditor + file.toString());
-    }
+      if (file == null) {
+        throwPartInitException(DartEditorMessages.EditorUtility_file_must_not_be_null);
+      }
 
-    IEditorPart editorPart = IDE.openEditor(
-        p,
-        file,
-        maybeSwapDefaultEditorDescriptor(desc.getId()),
-        activate);
-    initializeHighlightRange(editorPart);
-    return editorPart;
+      instrumentation.data("File", file.getPath());
+      instrumentation.metric("activate", activate);
+
+      IWorkbenchPage p = DartToolsPlugin.getActivePage();
+      if (p == null) {
+        throwPartInitException(DartEditorMessages.EditorUtility_no_active_WorkbenchPage);
+      }
+
+      IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(
+          file.getPath());
+      if (desc == null) {
+        throwPartInitException(DartEditorMessages.EditorUtility_cantFindEditor + file.toString());
+      }
+
+      IEditorPart editorPart = IDE.openEditor(
+          p,
+          file,
+          maybeSwapDefaultEditorDescriptor(desc.getId()),
+          activate);
+      initializeHighlightRange(editorPart);
+      return editorPart;
+    } catch (RuntimeException e) {
+      instrumentation.metric("Exception", e.getClass().toString());
+      instrumentation.data("Exception", e.toString());
+      throw e;
+    } finally {
+      instrumentation.log();
+
+    }
   }
 
   private static void throwPartInitException(String message) throws PartInitException {
