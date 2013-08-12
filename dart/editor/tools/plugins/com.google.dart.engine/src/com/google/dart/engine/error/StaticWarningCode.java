@@ -372,6 +372,39 @@ public enum StaticWarningCode implements ErrorCode {
       "Parameters cannot override default values, this method overrides '%s.%s' where this positional parameter has a different value"),
 
   /**
+   * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
+   * instance member <i>m2</i> and <i>m1</i> does not declare all the named parameters declared by
+   * <i>m2</i>.
+   * 
+   * @param paramCount the number of named parameters in the overridden member
+   * @param className the name of the class from the overridden method
+   */
+  INVALID_OVERRIDE_NAMED(
+      "Missing the named parameter '%s' to match the overridden method from '%s'"),
+
+  /**
+   * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
+   * instance member <i>m2</i> and <i>m1</i> has fewer optional positional parameters than
+   * <i>m2</i>.
+   * 
+   * @param paramCount the number of positional parameters in the overridden member
+   * @param className the name of the class from the overridden method
+   */
+  INVALID_OVERRIDE_POSITIONAL(
+      "Must have at least %d optional parameters to match the overridden method from '%s'"),
+
+  /**
+   * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
+   * instance member <i>m2</i> and <i>m1</i> has a different number of required parameters than
+   * <i>m2</i>.
+   * 
+   * @param paramCount the number of required parameters in the overridden member
+   * @param className the name of the class from the overridden method
+   */
+  INVALID_OVERRIDE_REQUIRED(
+      "Must have exactly %d required parameters to match the overridden method from '%s'"),
+
+  /**
    * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a setter <i>m2</i> and the
    * type of <i>m1</i> is not a subtype of the type of <i>m2</i>.
    * 

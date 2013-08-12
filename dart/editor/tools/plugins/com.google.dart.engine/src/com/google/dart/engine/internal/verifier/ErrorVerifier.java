@@ -1146,7 +1146,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     // CTEC.INVALID_OVERRIDE_REQUIRED, CTEC.INVALID_OVERRIDE_POSITIONAL and CTEC.INVALID_OVERRIDE_NAMED
     if (overridingNormalPT.length != overriddenNormalPT.length) {
       errorReporter.reportError(
-          CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED,
+          StaticWarningCode.INVALID_OVERRIDE_REQUIRED,
           errorNameTarget,
           overriddenNormalPT.length,
           overriddenExecutable.getEnclosingElement().getDisplayName());
@@ -1154,7 +1154,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     if (overridingPositionalPT.length < overriddenPositionalPT.length) {
       errorReporter.reportError(
-          CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL,
+          StaticWarningCode.INVALID_OVERRIDE_POSITIONAL,
           errorNameTarget,
           overriddenPositionalPT.length,
           overriddenExecutable.getEnclosingElement().getDisplayName());
@@ -1170,7 +1170,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         // The overridden method expected the overriding method to have overridingParamName,
         // but it does not.
         errorReporter.reportError(
-            CompileTimeErrorCode.INVALID_OVERRIDE_NAMED,
+            StaticWarningCode.INVALID_OVERRIDE_NAMED,
             errorNameTarget,
             overriddenParamName,
             overriddenExecutable.getEnclosingElement().getDisplayName());

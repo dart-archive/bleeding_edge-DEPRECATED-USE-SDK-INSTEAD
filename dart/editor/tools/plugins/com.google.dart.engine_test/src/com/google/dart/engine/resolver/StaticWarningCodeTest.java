@@ -1325,6 +1325,58 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidOverrideNamed_fewerNamedParameters() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m({a, b}) {}",
+        "}",
+        "class B extends A {",
+        "  m({a}) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_OVERRIDE_NAMED);
+    verify(source);
+  }
+
+  public void test_invalidOverrideNamed_missingNamedParameter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m({a, b}) {}",
+        "}",
+        "class B extends A {",
+        "  m({a, c}) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_OVERRIDE_NAMED);
+    verify(source);
+  }
+
+  public void test_invalidOverridePositional() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m([a, b]) {}",
+        "}",
+        "class B extends A {",
+        "  m([a]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_OVERRIDE_POSITIONAL);
+    verify(source);
+  }
+
+  public void test_invalidOverrideRequired() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m(a) {}",
+        "}",
+        "class B extends A {",
+        "  m(a, b) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.INVALID_OVERRIDE_REQUIRED);
+    verify(source);
+  }
+
   public void test_invalidSetterOverrideNormalParamType() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

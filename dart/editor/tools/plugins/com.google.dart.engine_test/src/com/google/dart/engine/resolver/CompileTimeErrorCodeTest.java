@@ -1714,58 +1714,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     // no verify() call, "B" is not resolved
   }
 
-  public void test_invalidOverrideNamed_fewerNamedParameters() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m({a, b}) {}",
-        "}",
-        "class B extends A {",
-        "  m({a}) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_NAMED);
-    verify(source);
-  }
-
-  public void test_invalidOverrideNamed_missingNamedParameter() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m({a, b}) {}",
-        "}",
-        "class B extends A {",
-        "  m({a, c}) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_NAMED);
-    verify(source);
-  }
-
-  public void test_invalidOverridePositional() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m([a, b]) {}",
-        "}",
-        "class B extends A {",
-        "  m([a]) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_POSITIONAL);
-    verify(source);
-  }
-
-  public void test_invalidOverrideRequired() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m(a) {}",
-        "}",
-        "class B extends A {",
-        "  m(a, b) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_OVERRIDE_REQUIRED);
-    verify(source);
-  }
-
   public void test_invalidReferenceToThis_factoryConstructor() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
