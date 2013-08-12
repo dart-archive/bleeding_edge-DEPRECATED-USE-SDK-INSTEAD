@@ -429,6 +429,18 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_argumentTypeNotAssignable_invocation_functionTypes_optional() throws Exception {
+    Source source = addSource(createSource(//
+        "void acceptFunNumOptBool(void funNumOptBool([bool b])) {}",
+        "void funNumBool(bool b) {}",
+        "main() {",
+        "  acceptFunNumOptBool(funNumBool);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    verify(source);
+  }
+
   public void test_argumentTypeNotAssignable_invocation_generic() throws Exception {
     Source source = addSource(createSource(//
         "class A<T> {",

@@ -276,6 +276,11 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @Override
+  public boolean isAssignableTo(Type type) {
+    return this.isSubtypeOf(type);
+  }
+
+  @Override
   public boolean isSubtypeOf(Type type) {
     // trivial base cases
     if (type == null) {

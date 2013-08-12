@@ -86,6 +86,18 @@ public class FunctionTypeImplTest extends EngineTestCase {
     type.hashCode();
   }
 
+  public void test_isAssignableTo_normalAndPositionalArgs() {
+    // ([a]) -> void <: (a) -> void
+    ClassElement a = classElement("A");
+    FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s", new ClassElement[] {a}).getType();
+    assertTrue(t.isSubtypeOf(s));
+    assertFalse(s.isSubtypeOf(t));
+    // assignable iff subtype
+    assertTrue(t.isAssignableTo(s));
+    assertFalse(s.isAssignableTo(t));
+  }
+
   public void test_isSubtypeOf_baseCase_classFunction() {
     // () -> void <: Function
     ClassElementImpl functionElement = classElement("Function");
