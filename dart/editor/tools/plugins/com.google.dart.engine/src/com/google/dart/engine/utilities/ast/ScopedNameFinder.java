@@ -129,7 +129,7 @@ public class ScopedNameFinder extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitFunctionExpression(FunctionExpression node) {
-    if (immediateChild != node.getParameters()) {
+    if (node.getParameters() != null && immediateChild != node.getParameters()) {
       addParameters(node.getParameters().getParameters());
     }
     return super.visitFunctionExpression(node);
