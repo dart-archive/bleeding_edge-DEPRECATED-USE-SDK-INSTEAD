@@ -1124,6 +1124,24 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAssignment_defaultValue_named() throws Exception {
+    Source source = addSource(createSource(//
+        "f({String x: '0'}) {",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invalidAssignment_defaultValue_optional() throws Exception {
+    Source source = addSource(createSource(//
+        "f([String x = '0']) {",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invalidAssignment_toDynamic() throws Exception {
     Source source = addSource(createSource(//
         "f() {",

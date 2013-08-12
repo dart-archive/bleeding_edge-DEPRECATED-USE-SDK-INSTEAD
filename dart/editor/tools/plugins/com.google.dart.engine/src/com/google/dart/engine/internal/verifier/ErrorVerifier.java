@@ -525,6 +525,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    checkForInvalidAssignment(node.getIdentifier(), node.getDefaultValue());
+    return super.visitDefaultFormalParameter(node);
+  }
+
+  @Override
   public Void visitDoStatement(DoStatement node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitDoStatement(node);

@@ -165,6 +165,24 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAssignment_defaultValue_named() throws Exception {
+    Source source = addSource(createSource(//
+        "f({String x: 0}) {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
+  public void test_invalidAssignment_defaultValue_optional() throws Exception {
+    Source source = addSource(createSource(//
+        "f([String x = 0]) {",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
   public void test_invalidAssignment_instanceVariable() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
