@@ -712,6 +712,22 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_defaultValueInFunctionTypedParameter_named() throws Exception {
+    Source source = addSource(createSource(//
+    "f(g({p: null})) {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER);
+    verify(source);
+  }
+
+  public void test_defaultValueInFunctionTypedParameter_optional() throws Exception {
+    Source source = addSource(createSource(//
+    "f(g([p = null])) {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER);
+    verify(source);
+  }
+
   public void test_duplicateConstructorName_named() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

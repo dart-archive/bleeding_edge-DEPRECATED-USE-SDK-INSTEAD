@@ -50,6 +50,7 @@ import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
+import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
@@ -272,6 +273,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * {@link ConstructorInitializer}.
    */
   private boolean isInConstructorInitializer;
+
+  /**
+   * This is set to {@code true} iff the visitor is currently visiting a
+   * {@link FunctionTypedFormalParameter}.
+   */
+  private boolean isInFunctionTypedFormalParameter;
 
   /**
    * This is set to {@code true} iff the visitor is currently visiting a static method. By "method"
@@ -527,6 +534,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
     checkForInvalidAssignment(node.getIdentifier(), node.getDefaultValue());
+    checkForDefaultValueInFunctionTypedParameter(node);
     return super.visitDefaultFormalParameter(node);
   }
 
@@ -636,6 +644,17 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     checkForDefaultValueInFunctionTypeAlias(node);
     checkForTypeAliasCannotReferenceItself_function(node);
     return super.visitFunctionTypeAlias(node);
+  }
+
+  @Override
+  public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    boolean old = isInFunctionTypedFormalParameter;
+    isInFunctionTypedFormalParameter = true;
+    try {
+      return super.visitFunctionTypedFormalParameter(node);
+    } finally {
+      isInFunctionTypedFormalParameter = old;
+    }
   }
 
   @Override
@@ -2472,6 +2491,28 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return result;
+  }
+
+  /**
+   * This verifies that the given default formal parameter is not part of a function typed
+   * parameter.
+   * 
+   * @param node the default formal parameter to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER
+   */
+  private boolean checkForDefaultValueInFunctionTypedParameter(DefaultFormalParameter node) {
+    // OK, not in a function typed parameter.
+    if (!isInFunctionTypedFormalParameter) {
+      return false;
+    }
+    // OK, no default value.
+    if (node.getDefaultValue() == null) {
+      return false;
+    }
+    // Report problem.
+    errorReporter.reportError(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER, node);
+    return true;
   }
 
   /**

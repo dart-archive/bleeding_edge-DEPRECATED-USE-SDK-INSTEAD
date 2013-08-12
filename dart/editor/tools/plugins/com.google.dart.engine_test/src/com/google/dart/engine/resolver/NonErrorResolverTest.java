@@ -544,6 +544,22 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_defaultValueInFunctionTypedParameter_named() throws Exception {
+    Source source = addSource(createSource(//
+    "f(g({p})) {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_defaultValueInFunctionTypedParameter_optional() throws Exception {
+    Source source = addSource(createSource(//
+    "f(g([p])) {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_duplicateDefinition_emptyName() throws Exception {
     // Note: This code has two FunctionElements '() {}' with an empty name, this tests that the
     // empty string is not put into the scope (more than once).

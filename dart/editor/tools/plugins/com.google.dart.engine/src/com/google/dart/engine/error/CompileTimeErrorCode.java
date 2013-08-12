@@ -287,6 +287,14 @@ public enum CompileTimeErrorCode implements ErrorCode {
   DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS("Default values aren't allowed in typedefs"),
 
   /**
+   * 6.2.1 Required Formals: By means of a function signature that names the parameter and describes
+   * its type as a function type. It is a compile-time error if any default values are specified in
+   * the signature of such a function type.
+   */
+  DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER(
+      "Default values aren't allowed in function type parameters"),
+
+  /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name
    * declared in the same scope.
    */
