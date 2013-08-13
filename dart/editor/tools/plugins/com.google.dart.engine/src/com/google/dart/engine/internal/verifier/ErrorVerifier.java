@@ -504,6 +504,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       enclosingFunction = node.getElement();
       isEnclosingConstructorConst = node.getConstKeyword() != null;
       checkForConstConstructorWithNonFinalField(node);
+      checkForConstConstructorWithNonConstSuper(node);
       checkForConflictingConstructorNameAndMember(node);
       checkForAllFinalInitializedErrorCodes(node);
       checkForRedirectingConstructorErrorCodes(node);
@@ -2280,7 +2281,57 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * This verifies that the passed constructor declaration is 'const' then there are no non-final
+   * This verifies that if the passed constructor declaration is 'const' then there are no
+   * invocations of non-'const' super constructors.
+   * 
+   * @param node the constructor declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
+   */
+  private boolean checkForConstConstructorWithNonConstSuper(ConstructorDeclaration node) {
+    if (!isEnclosingConstructorConst) {
+      return false;
+    }
+    // OK, const factory, checked elsewhere
+    if (node.getFactoryKeyword() != null) {
+      return false;
+    }
+    // try to find and check super constructor invocation
+    for (ConstructorInitializer initializer : node.getInitializers()) {
+      if (initializer instanceof SuperConstructorInvocation) {
+        SuperConstructorInvocation superInvocation = (SuperConstructorInvocation) initializer;
+        ConstructorElement element = superInvocation.getElement();
+        if (element.isConst()) {
+          return false;
+        }
+        errorReporter.reportError(
+            CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
+            superInvocation);
+        return true;
+      }
+    }
+    // no explicit super constructor invocation, check default constructor
+    InterfaceType supertype = enclosingClass.getSupertype();
+    if (supertype == null) {
+      return false;
+    }
+    if (supertype.isObject()) {
+      return false;
+    }
+    ConstructorElement unnamedConstructor = supertype.getElement().getUnnamedConstructor();
+    if (unnamedConstructor == null) {
+      return false;
+    }
+    if (unnamedConstructor.isConst()) {
+      return false;
+    }
+    // default constructor is not 'const', report problem
+    errorReporter.reportError(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, node);
+    return true;
+  }
+
+  /**
+   * This verifies that if the passed constructor declaration is 'const' then there are no non-final
    * instance variable.
    * 
    * @param node the constructor declaration to evaluate

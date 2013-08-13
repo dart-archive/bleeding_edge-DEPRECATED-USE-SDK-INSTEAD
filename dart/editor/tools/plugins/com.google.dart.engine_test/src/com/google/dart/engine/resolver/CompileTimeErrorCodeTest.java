@@ -329,6 +329,32 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constConstructorWithNonConstSuper_explicit() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A();",
+        "}",
+        "class B extends A {",
+        "  const B(): super();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER);
+    verify(source);
+  }
+
+  public void test_constConstructorWithNonConstSuper_implicit() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A();",
+        "}",
+        "class B extends A {",
+        "  const B();",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER);
+    verify(source);
+  }
+
   public void test_constConstructorWithNonFinalField_mixin() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -351,7 +377,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const B();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
+    assertErrors(
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
+        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER);
     verify(source);
   }
 

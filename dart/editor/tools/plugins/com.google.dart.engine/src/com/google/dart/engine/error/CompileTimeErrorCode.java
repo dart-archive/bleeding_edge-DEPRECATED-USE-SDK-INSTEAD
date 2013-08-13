@@ -136,6 +136,14 @@ public enum CompileTimeErrorCode implements ErrorCode {
   CONST_CONSTRUCTOR_THROWS_EXCEPTION("'const' constructors cannot throw exceptions"),
 
   /**
+   * 7.6.3 Constant Constructors: The superinitializer that appears, explicitly or implicitly, in
+   * the initializer list of a constant constructor must specify a constant constructor of the
+   * superclass of the immediately enclosing class or a compile-time error occurs.
+   */
+  CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER(
+      "Constant constructor cannot call non-constant super constructor"),
+
+  /**
    * 7.6.3 Constant Constructors: It is a compile-time error if a constant constructor is declared
    * by a class that has a non-final instance variable.
    * <p>

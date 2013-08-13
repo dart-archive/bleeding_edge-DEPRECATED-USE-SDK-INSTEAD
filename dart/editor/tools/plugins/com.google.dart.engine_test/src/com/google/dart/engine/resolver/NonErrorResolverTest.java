@@ -357,6 +357,22 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constConstructorWithNonConstSuper_redirectingFactory() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A();",
+        "}",
+        "class B implements C {",
+        "  const B();",
+        "}",
+        "class C extends A {",
+        "  const factory C() = B;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_constConstructorWithNonFinalField_finalInstanceVar() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
