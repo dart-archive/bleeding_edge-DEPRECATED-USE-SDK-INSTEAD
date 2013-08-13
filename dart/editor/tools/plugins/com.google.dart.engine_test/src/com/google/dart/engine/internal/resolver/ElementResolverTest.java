@@ -564,6 +564,14 @@ public class ElementResolverTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
+  public void test_visitSimpleIdentifier_dynamic() throws Exception {
+    SimpleIdentifier node = identifier("dynamic");
+    resolve(node);
+    assertSame(typeProvider.getDynamicType().getElement(), node.getStaticElement());
+    assertSame(typeProvider.getTypeType(), node.getStaticType());
+    listener.assertNoErrors();
+  }
+
   public void test_visitSimpleIdentifier_lexicalScope() throws Exception {
     SimpleIdentifier node = identifier("i");
     VariableElementImpl element = localVariableElement(node);

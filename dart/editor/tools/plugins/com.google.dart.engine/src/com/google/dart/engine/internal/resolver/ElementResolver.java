@@ -290,6 +290,16 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private boolean strictMode;
 
   /**
+   * The type representing the type 'dynamic'.
+   */
+  private Type dynamicType;
+
+  /**
+   * The type representing the type 'type'.
+   */
+  private Type typeType;
+
+  /**
    * The name of the method that can be implemented by a class to allow its instances to be invoked
    * as if they were a function.
    */
@@ -309,6 +319,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   public ElementResolver(ResolverVisitor resolver) {
     this.resolver = resolver;
     strictMode = resolver.getDefiningLibrary().getContext().getAnalysisOptions().getStrictMode();
+    dynamicType = resolver.getTypeProvider().getDynamicType();
+    typeType = resolver.getTypeProvider().getTypeType();
   }
 
   @Override
@@ -1030,6 +1042,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // name in a declaration.
     //
     if (node.getStaticElement() != null || node.getElement() != null) {
+      return null;
+    }
+    //
+    // The name dynamic denotes a Type object even though dynamic is not a class.
+    //
+    if (node.getName().equals(dynamicType.getName())) {
+      recordResolution(node, dynamicType.getElement());
+      node.setStaticType(typeType);
       return null;
     }
     //

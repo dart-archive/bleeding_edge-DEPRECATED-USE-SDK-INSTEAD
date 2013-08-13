@@ -597,6 +597,16 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_dynamicIdentifier() throws Exception {
+    Source source = addSource(createSource(//
+        "main() {",
+        "  var v = dynamic;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_exportOfNonLibrary_libraryDeclared() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
