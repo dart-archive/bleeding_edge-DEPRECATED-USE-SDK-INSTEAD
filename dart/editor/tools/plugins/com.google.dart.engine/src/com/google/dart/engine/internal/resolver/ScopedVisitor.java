@@ -25,6 +25,7 @@ import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionDeclarationStatement;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.IfStatement;
@@ -40,9 +41,11 @@ import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -155,7 +158,9 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   public Void visitBlock(Block node) {
     Scope outerScope = nameScope;
     try {
-      nameScope = new EnclosedScope(nameScope);
+      EnclosedScope enclosedScope = new EnclosedScope(nameScope);
+      hideNamesDefinedInBlock(enclosedScope, node);
+      nameScope = enclosedScope;
       super.visitBlock(node);
     } finally {
       nameScope = outerScope;
@@ -564,5 +569,27 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
       labelScope = new LabelScope(labelScope, labelName, labelElement);
     }
     return outerScope;
+  }
+
+  /**
+   * Marks the local declarations of the given {@link Block} hidden in the enclosing scope.
+   * According to the scoping rules name is hidden if block defines it, but name is defined after
+   * its declaration statement.
+   */
+  private void hideNamesDefinedInBlock(EnclosedScope scope, Block block) {
+    for (Statement statement : block.getStatements()) {
+      if (statement instanceof VariableDeclarationStatement) {
+        VariableDeclarationStatement vds = (VariableDeclarationStatement) statement;
+        for (VariableDeclaration variableDeclaration : vds.getVariables().getVariables()) {
+          Element element = variableDeclaration.getElement();
+          scope.hide(element);
+        }
+      }
+      if (statement instanceof FunctionDeclarationStatement) {
+        FunctionDeclarationStatement fds = (FunctionDeclarationStatement) statement;
+        Element element = fds.getFunctionDeclaration().getElement();
+        scope.hide(element);
+      }
+    }
   }
 }

@@ -18,6 +18,9 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Instances of the class {@code EnclosedScope} implement a scope that is lexically enclosed in
  * another scope.
@@ -29,6 +32,13 @@ public class EnclosedScope extends Scope {
    * The scope in which this scope is lexically enclosed.
    */
   private Scope enclosingScope;
+
+  /**
+   * A set of names that will be defined in this scope, but right now are not defined. However
+   * according to the scoping rules these names are hidden, even if they were defined in an outer
+   * scope.
+   */
+  private Set<String> hiddenNames = new HashSet<String>();
 
   /**
    * Initialize a newly created scope enclosed within another scope.
@@ -50,6 +60,21 @@ public class EnclosedScope extends Scope {
   }
 
   /**
+   * Hides the name of the given element in this scope. If there is already an element with the
+   * given name defined in an outer scope, then it will become unavailable.
+   * 
+   * @param element the element to be hidden in this scope
+   */
+  public void hide(Element element) {
+    if (element != null) {
+      String name = element.getName();
+      if (name != null && !name.isEmpty()) {
+        hiddenNames.add(name);
+      }
+    }
+  }
+
+  /**
    * Return the scope in which this scope is lexically enclosed.
    * 
    * @return the scope in which this scope is lexically enclosed
@@ -63,6 +88,9 @@ public class EnclosedScope extends Scope {
     Element element = localLookup(name, referencingLibrary);
     if (element != null) {
       return element;
+    }
+    if (hiddenNames.contains(name)) {
+      return null;
     }
     return enclosingScope.lookup(identifier, name, referencingLibrary);
   }
