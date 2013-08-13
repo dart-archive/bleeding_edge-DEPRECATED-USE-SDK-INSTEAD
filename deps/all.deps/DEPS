@@ -23,6 +23,7 @@ vars = {
   "chrome_rev" : "@19997",
   "commons-io_rev" : "@19997",
   "commons-lang_rev" : "@19997",
+  "d8_rev" : "@26048",
   "eclipse_rev" : "@19997",
   "fest_rev" : "@19997",
   "firefox_jsshell_rev" : "@25263",
@@ -35,7 +36,6 @@ vars = {
   "nss_pkcs12_rev" : "@26000",
   "snakeyaml_rev" : "@19997",
   "stripjar_rev" : "@20110",
-  "d8_rev" : "@22234",
   "WebCore_rev" : "@25845",
   "weberknecht_rev" : "@19997",
 }
