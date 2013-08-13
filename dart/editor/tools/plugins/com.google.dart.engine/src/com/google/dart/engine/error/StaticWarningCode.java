@@ -301,7 +301,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @see #INVALID_METHOD_OVERRIDE_RETURN_TYPE
    */
   INVALID_GETTER_OVERRIDE_RETURN_TYPE(
-      "The return type '%s' is not assignable to '%s' as required from getter it is overriding from '%s'"),
+      "The return type '%s' is not assignable to '%s' as required by the getter it is overriding from '%s'"),
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -313,7 +313,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param className the name of the class where the overridden method is declared
    */
   INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE(
-      "The parameter type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
+      "The parameter type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'"),
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -338,7 +338,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @param className the name of the class where the overridden method is declared
    */
   INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE(
-      "The parameter type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
+      "The parameter type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'"),
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
@@ -351,7 +351,7 @@ public enum StaticWarningCode implements ErrorCode {
    * @see #INVALID_GETTER_OVERRIDE_RETURN_TYPE
    */
   INVALID_METHOD_OVERRIDE_RETURN_TYPE(
-      "The return type '%s' is not assignable to '%s' as required from method it is overriding from '%s'"),
+      "The return type '%s' is not assignable to '%s' as required by the method it is overriding from '%s'"),
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
