@@ -23,7 +23,6 @@ import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
-import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
@@ -103,10 +102,8 @@ class AnalyzerImpl {
 
     // create SourceFactory
     SourceFactory sourceFactory;
-    ContentCache contentCache = new ContentCache();
     if (packageDirectory != null) {
       sourceFactory = new SourceFactory(
-          contentCache,
           new DartUriResolver(sdk),
           new FileUriResolver(),
           new PackageUriResolver(packageDirectory.getAbsoluteFile()));
@@ -128,7 +125,7 @@ class AnalyzerImpl {
     // analyze the given file
     sourceFile = sourceFile.getAbsoluteFile();
     UriKind uriKind = getUriKind(sourceFile);
-    Source librarySource = new FileBasedSource(contentCache, sourceFile, uriKind);
+    Source librarySource = new FileBasedSource(sourceFactory.getContentCache(), sourceFile, uriKind);
     LibraryElement library = context.computeLibraryElement(librarySource);
     context.resolveCompilationUnit(librarySource, library);
 
