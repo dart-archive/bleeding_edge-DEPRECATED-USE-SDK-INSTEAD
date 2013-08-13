@@ -837,7 +837,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       ArrayList<Source> librarySources = new ArrayList<Source>();
       for (Map.Entry<Source, SourceEntry> entry : sourceMap.entrySet()) {
-        /*SourceEntry*/sourceEntry = entry.getValue();
+        sourceEntry = entry.getValue();
         if (sourceEntry.getKind() == SourceKind.LIBRARY) {
           if (contains(((DartEntry) sourceEntry).getValue(DartEntry.INCLUDED_PARTS), source)) {
             librarySources.add(entry.getKey());
@@ -2719,7 +2719,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       return null;
     }
     String uriContent = uriLiteral.getStringValue().trim();
-    if (uriContent == null) {
+    if (uriContent == null || uriContent.isEmpty()) {
       return null;
     }
     uriContent = UriUtilities.encode(uriContent);
