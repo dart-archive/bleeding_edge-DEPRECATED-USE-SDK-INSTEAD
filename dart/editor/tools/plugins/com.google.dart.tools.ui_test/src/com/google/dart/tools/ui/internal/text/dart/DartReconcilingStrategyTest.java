@@ -250,6 +250,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     public void applyCompilationUnitElement(CompilationUnit unit) {
       appliedUnit = unit;
       if (appliedLatch != null) {
+        assertTrue(appliedLatch.getCount() > 0);
         appliedLatch.countDown();
       }
     }
