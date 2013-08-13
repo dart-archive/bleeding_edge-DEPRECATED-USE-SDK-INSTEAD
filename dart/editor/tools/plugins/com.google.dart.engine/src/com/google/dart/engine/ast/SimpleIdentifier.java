@@ -13,7 +13,15 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
+import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
@@ -230,7 +238,7 @@ public class SimpleIdentifier extends Identifier {
    * @param element the element to be associated with this identifier
    */
   public void setElement(Element element) {
-    propagatedElement = element;
+    propagatedElement = validateElement(element);
   }
 
   /**
@@ -240,7 +248,7 @@ public class SimpleIdentifier extends Identifier {
    * @param element the element to be associated with this identifier
    */
   public void setStaticElement(Element element) {
-    staticElement = element;
+    staticElement = validateElement(element);
   }
 
   /**
@@ -255,5 +263,64 @@ public class SimpleIdentifier extends Identifier {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     // There are no children to visit.
+  }
+
+  /**
+   * Return the given element if it is an appropriate element based on the parent of this
+   * identifier, or {@code null} if it is not appropriate.
+   * 
+   * @param element the element to be associated with this identifier
+   * @return the element to be associated with this identifier
+   */
+  private Element validateElement(ASTNode parent, Class<? extends Element> expectedClass,
+      Element element) {
+    if (!expectedClass.isInstance(element)) {
+      AnalysisEngine.getInstance().getLogger().logInformation(
+          "Internal error: attempting to set the name of a " + parent.getClass().getName()
+              + " to a " + element.getClass().getName(),
+          new Exception());
+      return null;
+    }
+    return element;
+  }
+
+  /**
+   * Return the given element if it is an appropriate element based on the parent of this
+   * identifier, or {@code null} if it is not appropriate.
+   * 
+   * @param element the element to be associated with this identifier
+   * @return the element to be associated with this identifier
+   */
+  private Element validateElement(Element element) {
+    if (element == null) {
+      return null;
+    }
+    ASTNode parent = getParent();
+    if (parent instanceof ClassDeclaration && ((ClassDeclaration) parent).getName() == this) {
+      return validateElement(parent, ClassElement.class, element);
+    } else if (parent instanceof ClassTypeAlias && ((ClassTypeAlias) parent).getName() == this) {
+      return validateElement(parent, ClassElement.class, element);
+    } else if (parent instanceof DeclaredIdentifier
+        && ((DeclaredIdentifier) parent).getIdentifier() == this) {
+      return validateElement(parent, LocalVariableElement.class, element);
+    } else if (parent instanceof FormalParameter
+        && ((FormalParameter) parent).getIdentifier() == this) {
+      return validateElement(parent, ParameterElement.class, element);
+    } else if (parent instanceof FunctionDeclaration
+        && ((FunctionDeclaration) parent).getName() == this) {
+      return validateElement(parent, ExecutableElement.class, element);
+    } else if (parent instanceof FunctionTypeAlias
+        && ((FunctionTypeAlias) parent).getName() == this) {
+      return validateElement(parent, FunctionTypeAliasElement.class, element);
+    } else if (parent instanceof MethodDeclaration
+        && ((MethodDeclaration) parent).getName() == this) {
+      return validateElement(parent, ExecutableElement.class, element);
+    } else if (parent instanceof TypeParameter && ((TypeParameter) parent).getName() == this) {
+      return validateElement(parent, TypeVariableElement.class, element);
+    } else if (parent instanceof VariableDeclaration
+        && ((VariableDeclaration) parent).getName() == this) {
+      return validateElement(parent, VariableElement.class, element);
+    }
+    return element;
   }
 }

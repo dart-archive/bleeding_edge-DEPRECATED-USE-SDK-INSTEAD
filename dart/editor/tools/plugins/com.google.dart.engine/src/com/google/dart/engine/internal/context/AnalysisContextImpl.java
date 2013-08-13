@@ -635,6 +635,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     if (unit == null) {
       try {
         unit = parseCompilationUnit(source);
+        if (unit == null) {
+          return null;
+        }
       } catch (AnalysisException exception) {
         return null;
       }
@@ -1535,24 +1538,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
             if (attribute.getName().getLexeme().equalsIgnoreCase(ATTRIBUTE_SRC)) {
               scriptAttribute = attribute;
             } else if (attribute.getName().getLexeme().equalsIgnoreCase(ATTRIBUTE_TYPE)) {
-              if (attribute.getText().equalsIgnoreCase(TYPE_DART)) {
+              String text = attribute.getText();
+              if (text != null && text.equalsIgnoreCase(TYPE_DART)) {
                 isDartScript = true;
               }
             }
           }
           if (isDartScript && scriptAttribute != null) {
-            try {
-              URI uri = new URI(null, null, scriptAttribute.getText(), null);
-              String fileName = uri.getPath();
-              Source librarySource = sourceFactory.resolveUri(htmlSource, fileName);
-              if (librarySource.exists()) {
-                libraries.add(librarySource);
+            String text = scriptAttribute.getText();
+            if (text != null) {
+              try {
+                URI uri = new URI(null, null, text, null);
+                String fileName = uri.getPath();
+                Source librarySource = sourceFactory.resolveUri(htmlSource, fileName);
+                if (librarySource != null && librarySource.exists()) {
+                  libraries.add(librarySource);
+                }
+              } catch (Exception exception) {
+                AnalysisEngine.getInstance().getLogger().logInformation(
+                    "Invalid URI ('" + text + "') in script tag in '" + htmlSource.getFullName()
+                        + "'",
+                    exception);
               }
-            } catch (Exception exception) {
-              AnalysisEngine.getInstance().getLogger().logInformation(
-                  "Invalid URL ('" + scriptAttribute.getText() + "') in script tag in '"
-                      + htmlSource.getFullName() + "'",
-                  exception);
             }
           }
         }
