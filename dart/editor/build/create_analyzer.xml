@@ -137,25 +137,25 @@
     </target>
 
 
-    <target name="createSdkIndex" depends="analyzer">
+    <!-- target name="createSdkIndex" depends="analyzer">
         <property name="index.file" value="${build.dir}/sdk.index" />
 
         <java jar="${build.dir}/dartanalyzer.jar" fork="true" failonerror="true">
-            <arg value="--dart-sdk" />
+            <arg value="-dart-sdk" />
             <arg file="../../sdk" />
-            <arg value="--create-sdk-index" />
+            <arg value="-create-sdk-index" />
             <arg file="${index.file}" />
         </java>
 
         <length file="${index.file}" property="index.file.length" />
         <echo message="Wrote ${index.file}, ${index.file.length} bytes." />
-    </target>
+    </target -->
 
 
-    <target name="analyzer-opt" depends="analyzer, createSdkIndex">
+    <target name="analyzer-opt" depends="analyzer">
         <!-- add sdk elements -->
         <zip destfile="${build.dir}/dartanalyzer-index.jar">
-            <zipfileset file="${index.file}" prefix="meta" />
+            <!-- zipfileset file="${index.file}" prefix="meta" / -->
             <zipfileset src="${build.dir}/dartanalyzer.jar" />
         </zip>
 
