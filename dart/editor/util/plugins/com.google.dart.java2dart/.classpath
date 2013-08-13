@@ -3,14 +3,14 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/com.google.dart.engine"/>
-	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.core.contenttype_3.4.200.v20120523-2004.jar"/>
-	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.core.jobs_3.5.200.v20120521-2346.jar"/>
-	<classpathentry exported="true" kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.core.runtime_3.8.0.v20120521-2346.jar" sourcepath="third_party/eclipse/3.8.1/plugins/org.eclipse.core.runtime.source_3.8.0.v20120521-2346.jar"/>
-	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.core.resources_3.8.1.v20120802-154922.jar" sourcepath="third_party/eclipse/3.8.1/plugins/org.eclipse.core.resources.source_3.8.1.v20120802-154922.jar"/>
-	<classpathentry exported="true" kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.equinox.common_3.6.100.v20120522-1841.jar"/>
-	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.equinox.preferences_3.5.0.v20120522-1841.jar"/>
-	<classpathentry exported="true" kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.jdt.core_3.8.2.v20120814-155456.jar" sourcepath="third_party/eclipse/3.8.1/plugins/org.eclipse.jdt.core.source_3.8.2.v20120814-155456.jar"/>
-	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.osgi_3.8.1.v20120830-144521.jar"/>
+	<classpathentry exported="true" kind="lib" path="third_party/eclipse/3.8.2/plugins/org.eclipse.core.contenttype_3.4.200.v20120523-2004.jar"/>
+	<classpathentry exported="true" kind="lib" path="third_party/eclipse/3.8.2/plugins/org.eclipse.core.jobs_3.5.200.v20120521-2346.jar"/>
+	<classpathentry exported="true" kind="lib" path="third_party/eclipse/3.8.2/plugins/org.eclipse.core.runtime_3.8.0.v20120521-2346.jar" sourcepath="third_party/eclipse/3.8.2/plugins/org.eclipse.core.runtime.source_3.8.0.v20120521-2346.jar"/>
+	<classpathentry exported="true" kind="lib" path="third_party/eclipse/3.8.2/plugins/org.eclipse.core.resources_3.8.1.v20121114-124432.jar" sourcepath="third_party/eclipse/3.8.2/plugins/org.eclipse.core.resources.source_3.8.1.v20121114-124432.jar"/>
+	<classpathentry exported="true" kind="lib" path="third_party/eclipse/3.8.2/plugins/org.eclipse.equinox.common_3.6.100.v20120522-1841.jar"/>
+	<classpathentry exported="true" kind="lib" path="third_party/eclipse/3.8.2/plugins/org.eclipse.equinox.preferences_3.5.1.v20121031-182809.jar"/>
+	<classpathentry exported="true" kind="lib" path="third_party/eclipse/3.8.2/plugins/org.eclipse.jdt.core_3.8.3.v20130121-145325.jar" sourcepath="third_party/eclipse/3.8.2/plugins/org.eclipse.jdt.core.source_3.8.3.v20130121-145325.jar"/>
+	<classpathentry exported="true" kind="lib" path="third_party/eclipse/3.8.2/plugins/org.eclipse.osgi_3.8.2.v20130124-134944.jar"/>
 	<classpathentry exported="true" kind="lib" path="third_party/commons-io/2.4/commons-io-2.4.jar" sourcepath="third_party/commons-io/2.4/commons-io-2.4-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="third_party/commons-lang/3.1/commons-lang3-3.1.jar" sourcepath="third_party/commons-lang/3.1/commons-lang3-3.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="third_party/guava/r13/guava-13.0.1.jar" sourcepath="third_party/guava/r13/guava-13.0.1-sources.jar"/>
