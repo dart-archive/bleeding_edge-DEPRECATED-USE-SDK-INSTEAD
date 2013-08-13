@@ -1,32 +1,5 @@
-/7zip
-/android_tools
-/apache_ant
-/apache_compress
-/args4j
-/bzip2
-/chrome
-/chrome_api
-/commons-io
-/commons-lang
-/cygwin
-/d8
-/drt_resources
-/eclipse
-/fest
-/firefox_jsshell
-/gsutil
-/guava
-/gyp
-/hamcrest
-/json
-/junit
-/mockito
-/net_nss
-/nss
-/snakeyaml
-/stripjar
-/sqlite
-/v8
-/WebCore
-/weberknecht
-/zlib
+# ignore everything
+*
+# except for items in the pkg directory and self
+!.gitignore
+!pkg
