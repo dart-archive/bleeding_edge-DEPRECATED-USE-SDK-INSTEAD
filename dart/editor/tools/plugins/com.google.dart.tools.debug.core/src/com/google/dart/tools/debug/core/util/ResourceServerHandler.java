@@ -336,9 +336,10 @@ class ResourceServerHandler implements Runnable {
     }
   }
 
-  private void addStandardResponseHeaders(HttpResponse response) {
+  private HttpResponse addStandardResponseHeaders(HttpResponse response) {
     response.headers.put("Server", "Dart Editor v" + DartCore.getVersion());
     response.headers.put("Connection", "close");
+    return response;
   }
 
   /**
@@ -357,6 +358,10 @@ class ResourceServerHandler implements Runnable {
     return parentFile == null ? true : canServeFile(parentFile);
   }
 
+  private HttpResponse createErrorResponse() {
+    return createErrorResponse("");
+  }
+
   private HttpResponse createErrorResponse(String message) {
     HttpResponse response = new HttpResponse();
 
@@ -368,9 +373,7 @@ class ResourceServerHandler implements Runnable {
         + "</body></html>";
     response.headers.put(CONTENT_LENGTH, Integer.toString(response.responseBodyText.length()));
 
-    addStandardResponseHeaders(response);
-
-    return response;
+    return addStandardResponseHeaders(response);
   }
 
   private HttpResponse createGETResponse(HttpHeader header) throws IOException {
@@ -533,13 +536,12 @@ class ResourceServerHandler implements Runnable {
 
     if ("/log".equals(file)) {
       handleLoggingPost(str);
+
+      return addStandardResponseHeaders(new HttpResponse());
+    } else {
+      // 404 NOT FOUND
+      return createErrorResponse();
     }
-
-    HttpResponse response = new HttpResponse();
-
-    addStandardResponseHeaders(response);
-
-    return response;
   }
 
   private HttpResponse createRedirectResponse(IResource mappedFile) {
