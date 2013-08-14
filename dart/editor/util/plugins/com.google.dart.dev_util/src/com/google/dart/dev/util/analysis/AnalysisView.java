@@ -22,6 +22,9 @@ import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TreeColumn;
@@ -129,26 +132,7 @@ public class AnalysisView extends ViewPart {
   }
 
   private static enum ContextWorkerState {
-    NONE {
-      @Override
-      String getNameSuffix() {
-        return "";
-      }
-    },
-    IN_QUEUE {
-      @Override
-      String getNameSuffix() {
-        return " [*]";
-      }
-    },
-    ACTIVE {
-      @Override
-      String getNameSuffix() {
-        return " [!]";
-      }
-    };
-
-    abstract String getNameSuffix();
+    NONE, IN_QUEUE, ACTIVE;
   }
 
   private static void addContext(AnalysisWorker[] queueWorkers, AnalysisWorker activeWorker,
@@ -197,6 +181,10 @@ public class AnalysisView extends ViewPart {
   private long lastToggleTime = 0;
   private boolean disposed = false;
 
+  private Font boldFont = null;
+  private Font italicFont = null;
+  private Color redColor = null;
+
   private final Object contextsLock = new Object();
   private List<AnalysisContextData> contexts;
 
@@ -213,10 +201,23 @@ public class AnalysisView extends ViewPart {
       column.setWidth(pixelConverter.convertWidthInCharsToPixels(50));
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
+        public Font getFont(Object element) {
+          if (element instanceof AnalysisContextData) {
+            AnalysisContextData contextData = (AnalysisContextData) element;
+            if (contextData.workerState == ContextWorkerState.ACTIVE) {
+              return getBoldFont();
+            } else if (contextData.workerState == ContextWorkerState.IN_QUEUE) {
+              return getItalicFont();
+            }
+          }
+          return null;
+        }
+
+        @Override
         public String getText(Object element) {
           if (element instanceof AnalysisContextData) {
             AnalysisContextData contextData = (AnalysisContextData) element;
-            return contextData.name + contextData.workerState.getNameSuffix();
+            return contextData.name;
           }
           if (element instanceof CacheRow) {
             return ((CacheRow) element).getName();
@@ -286,6 +287,18 @@ public class AnalysisView extends ViewPart {
       column.setWidth(pixelConverter.convertWidthInCharsToPixels(15));
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
+        public Color getBackground(Object element) {
+          if (element instanceof AnalysisContextData) {
+            AnalysisContextData contextData = (AnalysisContextData) element;
+            if (contextData.getInvalidCount() > 0
+                && contextData.workerState == ContextWorkerState.NONE) {
+              return getRedColor();
+            }
+          }
+          return null;
+        }
+
+        @Override
         public String getText(Object element) {
           if (element instanceof AnalysisContextData) {
             return "" + ((AnalysisContextData) element).getInvalidCount();
@@ -353,12 +366,52 @@ public class AnalysisView extends ViewPart {
 
   @Override
   public void dispose() {
+    if (boldFont != null) {
+      boldFont.dispose();
+      boldFont = null;
+    }
+    if (italicFont != null) {
+      italicFont.dispose();
+      italicFont = null;
+    }
+    if (redColor != null) {
+      redColor.dispose();
+      redColor = null;
+    }
     disposed = true;
     super.dispose();
   }
 
   @Override
   public void setFocus() {
+  }
+
+  private Font getBoldFont() {
+    if (boldFont == null) {
+      Font defaultFont = viewer.getTree().getFont();
+      FontData defaultData = defaultFont.getFontData()[0];
+      FontData boldData = new FontData(defaultData.getName(), defaultData.getHeight(), SWT.BOLD);
+      boldFont = new Font(defaultFont.getDevice(), boldData);
+    }
+    return boldFont;
+  }
+
+  private Font getItalicFont() {
+    if (italicFont == null) {
+      Font defaultFont = viewer.getTree().getFont();
+      FontData defaultData = defaultFont.getFontData()[0];
+      FontData boldData = new FontData(defaultData.getName(), defaultData.getHeight(), SWT.ITALIC);
+      italicFont = new Font(defaultFont.getDevice(), boldData);
+    }
+    return italicFont;
+  }
+
+  private Color getRedColor() {
+    if (redColor == null) {
+      Font defaultFont = viewer.getTree().getFont();
+      redColor = new Color(defaultFont.getDevice(), 255, 223, 223);
+    }
+    return redColor;
   }
 
   private void refreshUI() {
