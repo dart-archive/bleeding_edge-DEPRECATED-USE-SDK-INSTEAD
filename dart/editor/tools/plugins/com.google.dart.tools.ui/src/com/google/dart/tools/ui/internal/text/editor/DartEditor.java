@@ -734,66 +734,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   protected class FormatElementAction extends Action implements IUpdate {
 
-    /*
-     *
-     */
     FormatElementAction() {
       setEnabled(isEditorInputModifiable());
     }
 
     @Override
     public void run() {
-
-      final DartSourceViewer viewer = (DartSourceViewer) getSourceViewer();
-      if (viewer.isEditable()) {
-
-        final Point selection = viewer.rememberSelection();
-        try {
-          viewer.setRedraw(false);
-
-          final String type = TextUtilities.getContentType(
-              viewer.getDocument(),
-              DartPartitions.DART_PARTITIONING,
-              selection.x,
-              true);
-          if (type.equals(IDocument.DEFAULT_CONTENT_TYPE) && selection.y == 0) {
-
-            try {
-              final Object elem = getElementAt(selection.x, true);
-
-              if (elem instanceof DartElement) {
-                DartElement element = (DartElement) elem;
-                if (element.exists()) {
-
-                  final int kind = element.getElementType();
-                  if (kind == DartElement.TYPE || kind == DartElement.METHOD) {
-
-                    final SourceReference reference = (SourceReference) element;
-                    final SourceRange range = reference.getSourceRange();
-
-                    if (range != null) {
-                      viewer.setSelectedRange(range.getOffset(), range.getLength());
-                      viewer.doOperation(ISourceViewer.FORMAT);
-                    }
-                  }
-                }
-              }
-
-            } catch (DartModelException exception) {
-              // Should not happen
-            }
-          } else {
-            viewer.setSelectedRange(selection.x, 1);
-            viewer.doOperation(ISourceViewer.FORMAT);
-          }
-        } catch (BadLocationException exception) {
-          // Can not happen
-        } finally {
-
-          viewer.setRedraw(true);
-          viewer.restoreSelection();
-        }
-      }
+      //TODO (pquitslund): implement format action hooks
     }
 
     @Override
