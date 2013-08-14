@@ -22,6 +22,7 @@ import java.util.Map;
  */
 public class VmIsolate {
   private int id;
+  private boolean paused = true;
 
   private Map<Integer, String> classNameMap = new HashMap<Integer, String>();
 
@@ -59,6 +60,14 @@ public class VmIsolate {
   @Override
   public int hashCode() {
     return getId();
+  }
+
+  public boolean isPaused() {
+    return paused;
+  }
+
+  public void setPaused(boolean value) {
+    paused = value;
   }
 
   @Override

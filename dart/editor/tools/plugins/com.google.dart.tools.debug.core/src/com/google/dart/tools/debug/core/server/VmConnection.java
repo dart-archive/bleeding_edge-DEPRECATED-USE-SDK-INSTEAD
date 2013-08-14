@@ -99,11 +99,6 @@ public class VmConnection {
   private VmLocation currentLocation;
   private boolean isStepping;
 
-  /**
-   * A set of the currently paused isolates.
-   */
-  Set<VmIsolate> pausedIsolates = new HashSet<VmIsolate>();
-
   public VmConnection(String host, int port) {
     this.host = host;
     this.port = port;
@@ -318,7 +313,7 @@ public class VmConnection {
 
   public void getLibraries(VmIsolate isolate, final VmCallback<List<VmLibraryRef>> callback)
       throws IOException {
-    if (isIsolatePaused(isolate)) {
+    if (isolate.isPaused()) {
       sendSimpleCommand("getLibraries", isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject result) throws JSONException {
@@ -613,10 +608,10 @@ public class VmConnection {
    * @throws IOException
    */
   public VmInterruptResult interruptConditionally(VmIsolate isolate) throws IOException {
-    if (!isIsolatePaused(isolate)) {
+    if (!isolate.isPaused()) {
       interrupt(isolate);
 
-      pausedIsolates.add(isolate);
+      isolate.setPaused(true);
 
       return VmInterruptResult.createResumeResult(this, isolate);
     } else {
@@ -675,7 +670,7 @@ public class VmConnection {
    */
   public void setBreakpoint(final VmIsolate isolate, final String url, final int line,
       final VmCallback<VmBreakpoint> callback) throws IOException {
-    if (!isIsolatePaused(isolate)) {
+    if (!isolate.isPaused()) {
       throw new IOException("attempt to set breakpoint on a running isolate");
     }
 
@@ -852,10 +847,6 @@ public class VmConnection {
     }
 
     callbackMap.clear();
-  }
-
-  protected boolean isIsolatePaused(VmIsolate isolate) {
-    return pausedIsolates.contains(isolate);
   }
 
   protected void processJson(final JSONObject result) {
@@ -1177,7 +1168,7 @@ public class VmConnection {
         VmValue exception = VmValue.createFrom(isolate, params.optJSONObject("exception"));
         VmLocation location = VmLocation.createFrom(isolate, params.optJSONObject("location"));
 
-        pausedIsolates.add(isolate);
+        isolate.setPaused(true);
 
         sendDelayedDebuggerPaused(PausedReason.parse(reason), isolate, location, exception);
       } else if (eventName.equals(EVENT_BREAKPOINTRESOLVED)) {
@@ -1196,7 +1187,7 @@ public class VmConnection {
         String reason = params.optString("reason", null);
         int isolateId = params.optInt("id", -1);
 
-        VmIsolate isolate = getCreateIsolate(isolateId);
+        final VmIsolate isolate = getCreateIsolate(isolateId);
 
         if ("created".equals(reason)) {
           for (VmListener listener : listeners) {
@@ -1207,7 +1198,7 @@ public class VmConnection {
             listener.isolateShutdown(isolate);
           }
 
-          pausedIsolates.remove(isolate);
+          isolate.setPaused(false);
 
           isolateMap.remove(isolate.getId());
         }
@@ -1318,7 +1309,7 @@ public class VmConnection {
         VmResult<String> response = VmResult.createFrom(result);
 
         if (!response.isError()) {
-          pausedIsolates.remove(isolate);
+          isolate.setPaused(false);
 
           notifyDebuggerResumed(isolate);
         }
