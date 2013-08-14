@@ -71,10 +71,14 @@ public class InheritanceManagerTest extends EngineTestCase {
     PropertyAccessorElement getterG = getterElement(getterName, false, typeProvider.getIntType());
     classA.setAccessors(new PropertyAccessorElement[] {getterG});
 
-    ClassElementImpl classB = classElement("B");
-    classB.setSupertype(classA.getType());
-    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    assertSame(getterG, map.get(getterName));
+    ClassElementImpl classB = classElement("B", classA.getType());
+
+    HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+
+    assertSize(5, mapA);
+    assertSize(6, mapB);
+    assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -87,8 +91,13 @@ public class InheritanceManagerTest extends EngineTestCase {
 
     ClassElementImpl classB = classElement("B");
     classB.setInterfaces(new InterfaceType[] {classA.getType()});
-    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    assertNull(map.get(getterName));
+
+    HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+
+    assertSize(5, mapA);
+    assertSize(5, mapB);
+    assertNull(mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -101,8 +110,13 @@ public class InheritanceManagerTest extends EngineTestCase {
 
     ClassElementImpl classB = classElement("B");
     classB.setMixins(new InterfaceType[] {classA.getType()});
-    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    assertSame(getterG, map.get(getterName));
+
+    HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+
+    assertSize(5, mapA);
+    assertSize(6, mapB);
+    assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -115,8 +129,13 @@ public class InheritanceManagerTest extends EngineTestCase {
 
     ClassElementImpl classB = classElement("B");
     classB.setSupertype(classA.getType());
-    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    assertSame(methodM, map.get(methodName));
+
+    HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+
+    assertSize(5, mapA);
+    assertSize(6, mapB);
+    assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -129,8 +148,13 @@ public class InheritanceManagerTest extends EngineTestCase {
 
     ClassElementImpl classB = classElement("B");
     classB.setInterfaces(new InterfaceType[] {classA.getType()});
-    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    assertNull(map.get(methodName));
+
+    HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+
+    assertSize(5, mapA);
+    assertSize(5, mapB);
+    assertNull(mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -143,8 +167,13 @@ public class InheritanceManagerTest extends EngineTestCase {
 
     ClassElementImpl classB = classElement("B");
     classB.setMixins(new InterfaceType[] {classA.getType()});
-    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
-    assertSame(methodM, map.get(methodName));
+
+    HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
+    HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
+
+    assertSize(5, mapA);
+    assertSize(6, mapB);
+    assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -155,10 +184,14 @@ public class InheritanceManagerTest extends EngineTestCase {
     PropertyAccessorElement getterG = getterElement(getterName, false, typeProvider.getIntType());
     classA.setAccessors(new PropertyAccessorElement[] {getterG});
 
-    ClassElementImpl classB = classElement("B");
-    classB.setSupertype(classA.getType());
-    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    assertSame(getterG, map.get(getterName));
+    ClassElementImpl classB = classElement("B", classA.getType());
+
+    HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+
+    assertSize(5, mapA);
+    assertSize(6, mapB);
+    assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -171,8 +204,13 @@ public class InheritanceManagerTest extends EngineTestCase {
 
     ClassElementImpl classB = classElement("B");
     classB.setInterfaces(new InterfaceType[] {classA.getType()});
-    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    assertSame(getterG, map.get(getterName));
+
+    HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+
+    assertSize(5, mapA);
+    assertSize(6, mapB);
+    assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -185,8 +223,13 @@ public class InheritanceManagerTest extends EngineTestCase {
 
     ClassElementImpl classB = classElement("B");
     classB.setMixins(new InterfaceType[] {classA.getType()});
-    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    assertSame(getterG, map.get(getterName));
+
+    HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+
+    assertSize(5, mapA);
+    assertSize(6, mapB);
+    assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -197,10 +240,14 @@ public class InheritanceManagerTest extends EngineTestCase {
     MethodElement methodM = methodElement(methodName, typeProvider.getIntType());
     classA.setMethods(new MethodElement[] {methodM});
 
-    ClassElementImpl classB = classElement("B");
-    classB.setSupertype(classA.getType());
-    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    assertSame(methodM, map.get(methodName));
+    ClassElementImpl classB = classElement("B", classA.getType());
+
+    HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+
+    assertSize(5, mapA);
+    assertSize(6, mapB);
+    assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -213,8 +260,13 @@ public class InheritanceManagerTest extends EngineTestCase {
 
     ClassElementImpl classB = classElement("B");
     classB.setInterfaces(new InterfaceType[] {classA.getType()});
-    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    assertSame(methodM, map.get(methodName));
+
+    HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+
+    assertSize(5, mapA);
+    assertSize(6, mapB);
+    assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }
@@ -227,8 +279,13 @@ public class InheritanceManagerTest extends EngineTestCase {
 
     ClassElementImpl classB = classElement("B");
     classB.setMixins(new InterfaceType[] {classA.getType()});
-    HashMap<String, ExecutableElement> map = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
-    assertSame(methodM, map.get(methodName));
+
+    HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
+    HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
+
+    assertSize(5, mapA);
+    assertSize(6, mapB);
+    assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
   }

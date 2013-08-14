@@ -263,15 +263,12 @@ public class InheritanceManager {
         return resultMap;
       }
       // put the members from the superclass
-      recordMapWithClassMembers(resultMap, superclassElt);
+      recordMapWithClassMembers(resultMap, supertype);
     }
 
     InterfaceType[] mixins = classElt.getMixins();
     for (int i = mixins.length - 1; i >= 0; i--) {
-      ClassElement mixinElement = mixins[i].getElement();
-      if (mixinElement != null) {
-        recordMapWithClassMembers(resultMap, mixinElement);
-      }
+      recordMapWithClassMembers(resultMap, mixins[i]);
     }
 
     classLookup.put(classElt, resultMap);
@@ -370,13 +367,6 @@ public class InheritanceManager {
     InterfaceType[] mixins = classElt.getMixins();
     InterfaceType[] interfaces = classElt.getInterfaces();
 
-    // If classElt is Object, or the class cannot inherit any members.
-    if ((superclassElement == null || supertype.isObject()) && mixins.length == 0
-        && interfaces.length == 0) {
-      interfaceLookup.put(classElt, resultMap);
-      return resultMap;
-    }
-
     // Recursively collect the list of mappings from all of the interface types
     ArrayList<HashMap<String, ExecutableElement>> lookupMaps = new ArrayList<HashMap<String, ExecutableElement>>(
         interfaces.length + mixins.length + 1);
@@ -393,6 +383,7 @@ public class InheritanceManager {
           HashMap<String, ExecutableElement> map = computeInterfaceLookupMap(
               superclassElement,
               visitedInterfaces);
+          map = new HashMap<String, ExecutableElement>(map);
 
           //
           // Add any members from the supertype into the map as well.
@@ -427,12 +418,8 @@ public class InheritanceManager {
 
     // Mixin elements
     for (InterfaceType mixinType : mixins) {
-      ClassElement mixinElement = mixinType.getElement();
-      if (mixinElement == null) {
-        continue;
-      }
       HashMap<String, ExecutableElement> mapWithMixinMembers = new HashMap<String, ExecutableElement>();
-      recordMapWithClassMembers(mapWithMixinMembers, mixinElement);
+      recordMapWithClassMembers(mapWithMixinMembers, mixinType);
       lookupMaps.add(mapWithMixinMembers);
     }
 
@@ -450,6 +437,7 @@ public class InheritanceManager {
             HashMap<String, ExecutableElement> map = computeInterfaceLookupMap(
                 interfaceElement,
                 visitedInterfaces);
+            map = new HashMap<String, ExecutableElement>(map);
 
             //
             // And add any members from the interface into the map as well.
@@ -486,6 +474,7 @@ public class InheritanceManager {
       interfaceLookup.put(classElt, resultMap);
       return resultMap;
     }
+
     //
     // Union all of the maps together, grouping the ExecutableElements into sets.
     //
@@ -501,6 +490,7 @@ public class InheritanceManager {
         set.add(entry.getValue());
       }
     }
+
     //
     // Loop through the entries in the union map, adding them to the resultMap appropriately.
     //
@@ -608,22 +598,21 @@ public class InheritanceManager {
   }
 
   /**
-   * Record the passed map with the set of all members (methods, getters and setters) in the class
+   * Record the passed map with the set of all members (methods, getters and setters) in the type
    * into the passed map.
    * 
    * @param map some non-{@code null} map to put the methods and accessors from the passed
    *          {@link ClassElement} into
-   * @param classElt the class element that will be recorded into the passed map
+   * @param type the type that will be recorded into the passed map
    */
-  private void recordMapWithClassMembers(HashMap<String, ExecutableElement> map,
-      ClassElement classElt) {
-    MethodElement[] methods = classElt.getMethods();
+  private void recordMapWithClassMembers(HashMap<String, ExecutableElement> map, InterfaceType type) {
+    MethodElement[] methods = type.getMethods();
     for (MethodElement method : methods) {
       if (method.isAccessibleIn(library) && !method.isStatic()) {
         map.put(method.getName(), method);
       }
     }
-    PropertyAccessorElement[] accessors = classElt.getAccessors();
+    PropertyAccessorElement[] accessors = type.getAccessors();
     for (PropertyAccessorElement accessor : accessors) {
       if (accessor.isAccessibleIn(library) && !accessor.isStatic()) {
         map.put(accessor.getName(), accessor);

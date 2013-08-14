@@ -1075,7 +1075,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   /**
    * This checks the passed executable element against override-error codes.
    * 
-   * @param executableElement the {@link ExecutableElement} to evaluate
+   * @param executableElement a non-null {@link ExecutableElement} to evaluate
    * @param parameters the parameters of the executable element
    * @param errorNameTarget the node to report problems on
    * @return {@code true} if and only if an error code is generated on the passed node
@@ -1096,7 +1096,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     String executableElementName = executableElement.getName();
     ExecutableElement overriddenExecutable = inheritanceManager.lookupInheritance(
         enclosingClass,
-        executableElement.getName());
+        executableElementName);
 
     boolean isGetter = false;
     boolean isSetter = false;
