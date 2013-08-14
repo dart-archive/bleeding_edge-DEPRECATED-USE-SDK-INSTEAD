@@ -124,6 +124,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public void clearSource(AnalysisContext context, Source source) {
+    context = unwrapContext(context);
     Map<Source, Set<ElementRelationKey>> sourceToKeys = contextToSourceToKeys.get(context);
     Set<ElementRelationKey> keys = sourceToKeys != null ? sourceToKeys.get(source) : null;
     // remove locations within given Source

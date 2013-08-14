@@ -147,6 +147,27 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
 
   private Location location = mockLocation(elementC);
 
+  public void test_clearSource_instrumented() throws Exception {
+    Location locationB = mockLocation(elementB);
+    Location locationC = mockLocation(elementC);
+    // record: [B -> A] and [C -> A]
+    {
+      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(elementA, relationship, locationC);
+      assertEquals(2, store.internalGetLocationCount());
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertLocations(locations, locationB, locationC);
+    }
+    // clear B, 1 relation and 1 location left
+    InstrumentedAnalysisContextImpl iContextA = mock(InstrumentedAnalysisContextImpl.class);
+    when(iContextA.getBasis()).thenReturn(contextA);
+    store.clearSource(iContextA, sourceB);
+    assertEquals(1, store.internalGetLocationCount());
+    assertEquals(1, store.internalGetLocationCount(contextA));
+    Location[] locations = store.getRelationships(elementA, relationship);
+    assertLocations(locations, locationC);
+  }
+
   public void test_getRelationships_hasOne() throws Exception {
     store.recordRelationship(elementA, relationship, location);
     Location[] locations = store.getRelationships(elementA, relationship);
@@ -336,6 +357,27 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     }
     // remove B, 1 relation and 1 location left
     store.removeSource(contextA, sourceB);
+    assertEquals(1, store.internalGetLocationCount());
+    assertEquals(1, store.internalGetLocationCount(contextA));
+    Location[] locations = store.getRelationships(elementA, relationship);
+    assertLocations(locations, locationC);
+  }
+
+  public void test_removeSource_withRelationship_instrumented() throws Exception {
+    Location locationB = mockLocation(elementB);
+    Location locationC = mockLocation(elementC);
+    // record: [B -> A] and [C -> A]
+    {
+      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(elementA, relationship, locationC);
+      assertEquals(2, store.internalGetLocationCount());
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertLocations(locations, locationB, locationC);
+    }
+    // remove B, 1 relation and 1 location left
+    InstrumentedAnalysisContextImpl iContextA = mock(InstrumentedAnalysisContextImpl.class);
+    when(iContextA.getBasis()).thenReturn(contextA);
+    store.removeSource(iContextA, sourceB);
     assertEquals(1, store.internalGetLocationCount());
     assertEquals(1, store.internalGetLocationCount(contextA));
     Location[] locations = store.getRelationships(elementA, relationship);
