@@ -191,7 +191,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
 
     createInfoSection(top, scrolledForm, toolkit);
     Composite right = toolkit.createComposite(top);
-    right.setLayout(new GridLayout());
+    GridLayoutFactory.fillDefaults().applyTo(right);
     GridData griData = new GridData(SWT.FILL, SWT.TOP, false, false);
     griData.widthHint = 350;
     right.setLayoutData(griData);

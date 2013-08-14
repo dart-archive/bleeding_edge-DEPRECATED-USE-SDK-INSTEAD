@@ -138,6 +138,8 @@ public class SampleHelper {
         @Override
         public void run(IProgressMonitor monitor) throws InvocationTargetException,
             InterruptedException {
+          monitor.beginTask("Opening sample...", IProgressMonitor.UNKNOWN);
+
           openSample(
               description,
               new File(description.directory, description.file),
