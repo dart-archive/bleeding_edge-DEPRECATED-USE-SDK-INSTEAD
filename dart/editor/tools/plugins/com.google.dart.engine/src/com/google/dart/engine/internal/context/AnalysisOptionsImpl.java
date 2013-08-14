@@ -24,7 +24,7 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
    * A flag indicating whether analysis is to use strict mode. In strict mode, error reporting is
    * based exclusively on the static type information.
    */
-  private boolean strictMode = false;
+  private boolean strictMode = true;
 
   /**
    * A flag indicating whether analysis is to generate hint results (e.g. type inference based
