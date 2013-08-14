@@ -46,6 +46,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 public class DartReconcilingStrategyTest extends TestCase {
@@ -225,7 +226,7 @@ public class DartReconcilingStrategyTest extends TestCase {
    * Mock editor for testing {@link DartReconcilingStrategy}
    */
   private final class MockEditor implements DartReconcilingEditor {
-    private CountDownLatch appliedLatch = null;
+    private Semaphore applied = null;
     private CompilationUnit appliedUnit = null;
     private DisposeListener disposeListener = null;
     private FocusListener focusListener = null;
@@ -249,14 +250,13 @@ public class DartReconcilingStrategyTest extends TestCase {
     @Override
     public void applyCompilationUnitElement(CompilationUnit unit) {
       appliedUnit = unit;
-      if (appliedLatch != null) {
-        assertTrue(appliedLatch.getCount() > 0);
-        appliedLatch.countDown();
+      if (applied != null) {
+        applied.release();
       }
     }
 
     public void expectApply() {
-      appliedLatch = new CountDownLatch(1);
+      applied = new Semaphore(0);
       appliedUnit = null;
     }
 
@@ -285,16 +285,15 @@ public class DartReconcilingStrategyTest extends TestCase {
       return mockSource.getShortName();
     }
 
-    public CompilationUnit waitForApply(long milliseconds, boolean expectAnother) {
-      if (appliedLatch == null) {
+    public CompilationUnit waitForApply(long milliseconds) {
+      if (applied == null) {
         throw new IllegalStateException("Call expectApply");
       }
       try {
-        assertTrue(appliedLatch.await(milliseconds, TimeUnit.MILLISECONDS));
+        assertTrue(applied.tryAcquire(milliseconds, TimeUnit.MILLISECONDS));
       } catch (InterruptedException e) {
-        assertEquals(0, appliedLatch.getCount());
+        assertTrue(applied.tryAcquire());
       }
-      appliedLatch = expectAnother ? new CountDownLatch(1) : null;
       return appliedUnit;
     }
   }
@@ -336,10 +335,10 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     strategy.initialReconcile();
 
-    assertNotNull(mockEditor.waitForApply(5000, true));
+    assertNotNull(mockEditor.waitForApply(5000));
     CompilationUnit unit = mockContext.waitForResolution(mockSource, 15000);
     assertNotNull(unit);
-    unit = mockEditor.waitForApply(5000, false);
+    unit = mockEditor.waitForApply(5000);
     assertNotNull(unit);
     List<Source> priorityOrder = mockContext.waitForSetPriorityOrder(15000);
     assertEquals(1, priorityOrder.size());
@@ -362,10 +361,10 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     strategy.initialReconcile();
 
-    assertNotNull(mockEditor.waitForApply(5000, true));
+    assertNotNull(mockEditor.waitForApply(5000));
     CompilationUnit unit = mockContext.waitForResolution(mockSource, 15000);
     assertNotNull(unit);
-    unit = mockEditor.waitForApply(5000, false);
+    unit = mockEditor.waitForApply(5000);
     assertNotNull(unit);
     List<Source> priorityOrder = mockContext.waitForSetPriorityOrder(15000);
     assertEquals(1, priorityOrder.size());
@@ -385,7 +384,7 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     strategy.initialReconcile();
 
-    assertSame(unit, mockEditor.waitForApply(5000, false));
+    assertSame(unit, mockEditor.waitForApply(5000));
     List<Source> priorityOrder = mockContext.waitForSetPriorityOrder(5000);
     assertEquals(1, priorityOrder.size());
     assertSame(mockSource, priorityOrder.get(0));
@@ -421,15 +420,15 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     mockEditor.expectApply();
     strategy.initialReconcile();
-    assertNotNull(mockEditor.waitForApply(5000, false));
+    assertNotNull(mockEditor.waitForApply(5000));
 
     mockEditor.expectApply();
     mockDocument.replace(0, 0, newText);
-    assertNull(mockEditor.waitForApply(5000, false));
+    assertNull(mockEditor.waitForApply(5000));
 
     mockEditor.expectApply();
     strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
-    CompilationUnit unit = mockEditor.waitForApply(5000, false);
+    CompilationUnit unit = mockEditor.waitForApply(5000);
     assertNotNull(unit);
   }
 
@@ -452,15 +451,15 @@ public class DartReconcilingStrategyTest extends TestCase {
 
     mockEditor.expectApply();
     strategy.initialReconcile();
-    assertNotNull(mockEditor.waitForApply(5000, false));
+    assertNotNull(mockEditor.waitForApply(5000));
 
     mockEditor.expectApply();
     mockDocument.replace(0, 0, newText);
-    assertNull(mockEditor.waitForApply(5000, false));
+    assertNull(mockEditor.waitForApply(5000));
 
     mockEditor.expectApply();
     strategy.reconcile(new Region(0, newText.length()));
-    CompilationUnit unit = mockEditor.waitForApply(5000, false);
+    CompilationUnit unit = mockEditor.waitForApply(5000);
     assertNotNull(unit);
   }
 
