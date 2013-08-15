@@ -62,7 +62,7 @@ def HtmlConvert(infile, compiler):
       jsname = '%s.%s.js' % (testname, compiler)
       outname = os.path.join(outdir, jsname)
       Compile(dartname, outname, compiler)
-      script = '<script type="text/javascript" src="%s" defer>' % jsname
+      script = '<script type="text/javascript" src="%s">' % jsname
       outfile.write(re.sub(pattern, script, line))
     else:
       outfile.write(line)
