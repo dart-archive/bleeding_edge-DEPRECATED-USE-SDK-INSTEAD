@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.builder;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
@@ -68,6 +69,11 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
   private RecordingErrorListener errorListener;
 
   /**
+   * The modification time of the source for which an element is being built.
+   */
+  private long modificationStamp;
+
+  /**
    * The line information associated with the source for which an element is being built, or
    * {@code null} if we are not building an element.
    */
@@ -110,18 +116,23 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
    * @return the HTML element that was built
    * @throws AnalysisException if the analysis could not be performed
    */
+  @VisibleForTesting
   public HtmlElementImpl buildHtmlElement(Source source) throws AnalysisException {
-    return buildHtmlElement(source, context.parseHtmlUnit(source));
+    return buildHtmlElement(source, source.getModificationStamp(), context.parseHtmlUnit(source));
   }
 
   /**
    * Build the HTML element for the given source.
    * 
    * @param source the source describing the compilation unit
+   * @param modificationStamp the modification time of the source for which an element is being
+   *          built
    * @param unit the AST structure representing the HTML
    * @throws AnalysisException if the analysis could not be performed
    */
-  public HtmlElementImpl buildHtmlElement(Source source, HtmlUnit unit) throws AnalysisException {
+  public HtmlElementImpl buildHtmlElement(Source source, long modificationStamp, HtmlUnit unit)
+      throws AnalysisException {
+    this.modificationStamp = modificationStamp;
     lineInfo = context.computeLineInfo(source);
     HtmlElementImpl result = new HtmlElementImpl(context, source.getShortName());
     result.setSource(source);
@@ -227,6 +238,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
             LibraryResolver resolver = new LibraryResolver(context);
             LibraryElementImpl library = (LibraryElementImpl) resolver.resolveEmbeddedLibrary(
                 htmlSource,
+                modificationStamp,
                 unit,
                 true);
             script.setScriptLibrary(library);

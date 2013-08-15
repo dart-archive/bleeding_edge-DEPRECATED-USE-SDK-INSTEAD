@@ -193,7 +193,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public CompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException {
+  public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException {
     return basis.computeResolvableCompilationUnit(source);
   }
 

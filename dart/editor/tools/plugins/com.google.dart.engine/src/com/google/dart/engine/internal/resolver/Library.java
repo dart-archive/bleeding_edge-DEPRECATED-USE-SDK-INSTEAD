@@ -23,6 +23,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.context.ResolvableCompilationUnit;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.scope.LibraryScope;
 import com.google.dart.engine.source.Source;
@@ -92,7 +93,7 @@ public class Library {
    * A table mapping the sources for the compilation units in this library to their corresponding
    * AST structures.
    */
-  private HashMap<Source, CompilationUnit> astMap = new HashMap<Source, CompilationUnit>();
+  private HashMap<Source, ResolvableCompilationUnit> astMap = new HashMap<Source, ResolvableCompilationUnit>();
 
   /**
    * The library scope used when resolving elements within this library's compilation units.
@@ -127,12 +128,12 @@ public class Library {
    * @throws AnalysisException if an AST structure could not be created for the compilation unit
    */
   public CompilationUnit getAST(Source source) throws AnalysisException {
-    CompilationUnit unit = astMap.get(source);
-    if (unit == null) {
-      unit = analysisContext.computeResolvableCompilationUnit(source);
-      astMap.put(source, unit);
+    ResolvableCompilationUnit holder = astMap.get(source);
+    if (holder == null) {
+      holder = analysisContext.computeResolvableCompilationUnit(source);
+      astMap.put(source, holder);
     }
-    return unit;
+    return holder.getCompilationUnit();
   }
 
   /**
@@ -271,6 +272,22 @@ public class Library {
   }
 
   /**
+   * Return the modification stamp associated with the given source.
+   * 
+   * @param source the source representing the compilation unit whose AST is to be returned
+   * @return the AST structure associated with the given source
+   * @throws AnalysisException if an AST structure could not be created for the compilation unit
+   */
+  public long getModificationStamp(Source source) throws AnalysisException {
+    ResolvableCompilationUnit holder = astMap.get(source);
+    if (holder == null) {
+      holder = analysisContext.computeResolvableCompilationUnit(source);
+      astMap.put(source, holder);
+    }
+    return holder.getModificationStamp();
+  }
+
+  /**
    * Return the result of resolving the URI of the given URI-based directive against the URI of the
    * library, or {@code null} if the URI is not valid. If the URI is not valid, report the error.
    * 
@@ -324,10 +341,12 @@ public class Library {
    * Set the AST structure associated with the defining compilation unit for this library to the
    * given AST structure.
    * 
+   * @param modificationStamp the modification time of the source from which the compilation unit
+   *          was created
    * @param unit the AST structure associated with the defining compilation unit for this library
    */
-  public void setDefiningCompilationUnit(CompilationUnit unit) {
-    astMap.put(librarySource, unit);
+  public void setDefiningCompilationUnit(long modificationStamp, CompilationUnit unit) {
+    astMap.put(librarySource, new ResolvableCompilationUnit(modificationStamp, unit));
   }
 
   /**

@@ -155,13 +155,15 @@ public class LibraryResolver {
    * 
    * @param librarySource the source specifying the defining compilation unit of the library to be
    *          resolved
+   * @param modificationStamp the time stamp of the source from which the compilation unit was
+   *          created
    * @param unit the compilation unit representing the embedded library
    * @param fullAnalysis {@code true} if a full analysis should be performed
    * @return the element representing the resolved library
    * @throws AnalysisException if the library could not be resolved for some reason
    */
-  public LibraryElement resolveEmbeddedLibrary(Source librarySource, CompilationUnit unit,
-      boolean fullAnalysis) throws AnalysisException {
+  public LibraryElement resolveEmbeddedLibrary(Source librarySource, long modificationStamp,
+      CompilationUnit unit, boolean fullAnalysis) throws AnalysisException {
 
     InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.LibraryResolver.resolveEmbeddedLibrary");
     try {
@@ -170,7 +172,7 @@ public class LibraryResolver {
       //
       // Create the objects representing the library being resolved and the core library.
       //
-      Library targetLibrary = createLibrary(librarySource, unit);
+      Library targetLibrary = createLibrary(librarySource, modificationStamp, unit);
       coreLibrary = libraryMap.get(coreLibrarySource);
       if (coreLibrary == null) {
         // This will be true unless the library being analyzed is the core library.
@@ -696,13 +698,16 @@ public class LibraryResolver {
    * with the given source.
    * 
    * @param librarySource the source of the library's defining compilation unit
+   * @param modificationStamp the modification time of the source from which the compilation unit
+   *          was created
+   * @param unit the compilation unit that defines the library
    * @return the library object that was created
    * @throws AnalysisException if the library source is not valid
    */
-  private Library createLibrary(Source librarySource, CompilationUnit unit)
+  private Library createLibrary(Source librarySource, long modificationStamp, CompilationUnit unit)
       throws AnalysisException {
     Library library = new Library(analysisContext, errorListener, librarySource);
-    library.setDefiningCompilationUnit(unit);
+    library.setDefiningCompilationUnit(modificationStamp, unit);
     libraryMap.put(librarySource, library);
     return library;
   }

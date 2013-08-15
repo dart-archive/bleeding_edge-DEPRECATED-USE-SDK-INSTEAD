@@ -131,7 +131,7 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   }
 
   @Override
-  public CompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException {
+  public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException {
     if (source.isInSystemLibrary()) {
       return sdkAnalysisContext.computeResolvableCompilationUnit(source);
     } else {

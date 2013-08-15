@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.context;
 
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
@@ -69,7 +68,7 @@ public interface InternalAnalysisContext extends AnalysisContext {
    * @return the AST structure representing the content of the source
    * @throws AnalysisException if the analysis could not be performed
    */
-  public CompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException;
+  public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException;
 
   /**
    * Initialize the specified context by removing the specified sources from the receiver and adding

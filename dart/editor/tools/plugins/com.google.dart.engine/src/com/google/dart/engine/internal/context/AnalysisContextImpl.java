@@ -626,7 +626,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
-  public CompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException {
+  public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
+      throws AnalysisException {
     DartEntry dartEntry = getReadableDartEntry(source);
     if (dartEntry == null) {
       return null;
@@ -634,7 +635,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     CompilationUnit unit = dartEntry.getAnyParsedCompilationUnit();
     if (unit == null) {
       try {
-        unit = parseCompilationUnit(source);
+        dartEntry = internalParseDart(source);
+        unit = dartEntry.getAnyParsedCompilationUnit();
         if (unit == null) {
           return null;
         }
@@ -642,7 +644,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         return null;
       }
     }
-    return (CompilationUnit) unit.accept(new ASTCloner());
+    return new ResolvableCompilationUnit(
+        dartEntry.getModificationTime(),
+        (CompilationUnit) unit.accept(new ASTCloner()));
   }
 
   @Override
@@ -1198,7 +1202,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 DartSdk.DART_CORE);
             LibraryElement coreElement = computeLibraryElement(coreLibrarySource);
             TypeProvider typeProvider = new TypeProviderImpl(coreElement);
-            CompilationUnit unitAST = computeResolvableCompilationUnit(unitSource);
+            ResolvableCompilationUnit resolvableUnit = computeResolvableCompilationUnit(unitSource);
+            CompilationUnit unitAST = resolvableUnit.getCompilationUnit();
             //
             // Resolve names in declarations.
             //
@@ -2363,7 +2368,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       resultTime = htmlEntry.getModificationTime();
       HtmlUnitBuilder builder = new HtmlUnitBuilder(this);
-      element = builder.buildHtmlElement(source, unit);
+      element = builder.buildHtmlElement(source, resultTime, unit);
       resolutionErrors = builder.getErrorListener().getErrors(source);
     } catch (AnalysisException exception) {
       thrownException = exception;
