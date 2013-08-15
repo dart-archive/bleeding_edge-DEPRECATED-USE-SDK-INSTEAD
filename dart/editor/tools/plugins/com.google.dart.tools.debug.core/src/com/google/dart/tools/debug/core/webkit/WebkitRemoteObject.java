@@ -41,7 +41,7 @@ public class WebkitRemoteObject {
     return remoteObject;
   }
 
-  private String className;
+  String className;
 
   private String description;
 
@@ -63,7 +63,23 @@ public class WebkitRemoteObject {
   }
 
   public String getClassName() {
-    return className;
+    if (className != null) {
+      return className;
+    }
+
+    if (isString()) {
+      return "String";
+    }
+
+    if (isBoolean()) {
+      return "bool";
+    }
+
+    if (isNumber()) {
+      return "num";
+    }
+
+    return null;
   }
 
   public String getDescription() {
@@ -134,6 +150,10 @@ public class WebkitRemoteObject {
 
   public boolean hasObjectId() {
     return getObjectId() != null;
+  }
+
+  public boolean isBoolean() {
+    return "boolean".equals(type);
   }
 
   public boolean isDartFunction() {

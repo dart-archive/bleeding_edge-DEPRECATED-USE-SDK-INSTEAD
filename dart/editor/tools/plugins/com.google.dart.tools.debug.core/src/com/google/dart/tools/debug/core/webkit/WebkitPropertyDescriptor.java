@@ -78,6 +78,11 @@ public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescri
             && "_Type".equals(descriptor.value.getClassName())) {
           descriptor.enumerable = false;
         }
+
+        // Patch up the className for the @staticFields property.
+        if (STATIC_FIELDS.equals(descriptor.name)) {
+          descriptor.value.className = "Type";
+        }
       }
     }
 

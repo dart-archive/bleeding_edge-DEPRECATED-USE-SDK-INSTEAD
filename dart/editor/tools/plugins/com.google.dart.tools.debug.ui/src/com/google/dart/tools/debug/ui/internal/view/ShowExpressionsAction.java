@@ -34,7 +34,7 @@ public class ShowExpressionsAction extends Action {
   public synchronized void run() {
     try {
       PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
-          DartExpressionView.VIEW_ID);
+          "org.eclipse.debug.ui.ExpressionView");
     } catch (PartInitException e) {
       DartUtil.logError(e);
     }

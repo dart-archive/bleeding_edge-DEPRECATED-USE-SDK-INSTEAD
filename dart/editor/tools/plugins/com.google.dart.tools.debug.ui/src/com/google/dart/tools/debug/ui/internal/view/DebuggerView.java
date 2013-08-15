@@ -74,8 +74,6 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     }
   }
 
-  private static final boolean ENABLE_WEB_INSPECTOR = false;
-
   public static final String ID = "com.google.dart.tools.debug.debuggerView";
 
   private static final String SASH_WEIGHTS = "sashWeights";
@@ -89,7 +87,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
   private static Image NOT_CONNECTED_IMAGE;
 
   private ShowBreakpointsAction showBreakpointsAction;
-  //private ShowWebInspectorAction showWebInspectorAction;
+  private ShowExpressionsAction showExpressionsAction;
 
   private TreeModelViewer treeViewer;
   private IPreferenceStore preferences;
@@ -225,9 +223,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     manager.removeAll();
 
     manager.add(showBreakpointsAction);
-    if (ENABLE_WEB_INSPECTOR) {
-      //manager.add(showWebInspectorAction);
-    }
+    manager.add(showExpressionsAction);
     manager.add(new Separator());
     manager.add(new ToggleLogicalStructureAction(variablesView));
     manager.add(new ToggleUseSourceMapsAction(this));
@@ -242,10 +238,8 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     showBreakpointsAction = new ShowBreakpointsAction();
     setAction("showBreakpointsAction", showBreakpointsAction);
 
-    if (ENABLE_WEB_INSPECTOR) {
-//      showWebInspectorAction = new ShowWebInspectorAction();
-//      setAction("showWebInspectorAction", showWebInspectorAction);
-    }
+    showExpressionsAction = new ShowExpressionsAction();
+    setAction("showExpressionsAction", showExpressionsAction);
   }
 
   @Override

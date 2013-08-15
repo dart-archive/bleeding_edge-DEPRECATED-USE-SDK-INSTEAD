@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.ui.internal.objectinspector;
 
+import com.google.dart.engine.utilities.instrumentation.Base64;
 import com.google.dart.tools.core.utilities.general.AdapterUtilities;
 import com.google.dart.tools.debug.core.util.HistoryList;
 import com.google.dart.tools.debug.core.util.HistoryListListener;
@@ -24,6 +25,8 @@ import com.google.dart.tools.debug.ui.internal.objectinspector.ExpressionEvaluat
 import com.google.dart.tools.debug.ui.internal.presentation.DartDebugModelPresentation;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.editor.DartDocumentSetupParticipant;
 import com.google.dart.tools.ui.internal.util.SelectionUtil;
 import com.google.dart.tools.ui.text.DartPartitions;
@@ -157,19 +160,30 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     @Override
     public void run() {
-      Job job = new ExpressionEvaluateJob(
-          getValue(),
-          getCurrentSelection(),
-          new ExpressionListener() {
-            @Override
-            public void watchEvaluationFinished(IWatchExpressionResult result, String stringValue) {
-              if (result.hasErrors()) {
-                displayError(result);
-              } else {
-                inspectAsync(result.getValue());
-              }
+      String selection = getCurrentSelection();
+
+      final UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(getClass());
+      Document document = new Document(selection);
+      instrumentation.record(new TextSelection(document, 0, document.getLength()));
+
+      Job job = new ExpressionEvaluateJob(getValue(), selection, new ExpressionListener() {
+        @Override
+        public void watchEvaluationFinished(IWatchExpressionResult result, String stringValue) {
+          try {
+            if (result.hasErrors()) {
+              displayError(result);
+            } else {
+              inspectAsync(result.getValue());
+              instrumentation.data(
+                  "InspectResult",
+                  Base64.encodeBytes(String.valueOf(result.getValue()).getBytes()));
             }
-          });
+            instrumentation.metric("Evaluate", "Completed");
+          } finally {
+            instrumentation.log();
+          }
+        }
+      });
 
       job.schedule();
     }
@@ -189,19 +203,31 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
 
     @Override
     public void run() {
-      Job job = new ExpressionEvaluateJob(
-          getValue(),
-          getCurrentSelection(),
-          new ExpressionListener() {
-            @Override
-            public void watchEvaluationFinished(IWatchExpressionResult result, String stringValue) {
-              if (result.hasErrors()) {
-                displayError(result);
-              } else {
-                displayResult(stringValue);
-              }
+      String selection = getCurrentSelection();
+
+      final UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(getClass());
+      Document document = new Document(selection);
+      instrumentation.record(new TextSelection(document, 0, document.getLength()));
+
+      Job job = new ExpressionEvaluateJob(getValue(), selection, new ExpressionListener() {
+        @Override
+        public void watchEvaluationFinished(IWatchExpressionResult result, String stringValue) {
+          try {
+            if (result.hasErrors()) {
+              displayError(result);
+            } else {
+              displayResult(stringValue);
+              instrumentation.data(
+                  "EvaluateResult",
+                  Base64.encodeBytes(String.valueOf(result.getValue()).getBytes()));
             }
-          });
+
+            instrumentation.metric("Evaluate", "Completed");
+          } finally {
+            instrumentation.log();
+          }
+        }
+      });
 
       job.schedule();
     }
@@ -301,6 +327,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
         toggleExpansion(event.getSelection());
       }
     });
+    getSite().setSelectionProvider(treeViewer);
 
     TreeViewerColumn nameColumn = new TreeViewerColumn(treeViewer, SWT.LEFT);
     nameColumn.setLabelProvider(new NameLabelProvider());

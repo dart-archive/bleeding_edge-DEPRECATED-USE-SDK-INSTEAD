@@ -46,7 +46,11 @@ public class InspectorVariable extends DebugElement implements IDartDebugVariabl
 
   @Override
   public String getName() throws DebugException {
-    return typeName;
+    if (typeName != null) {
+      return "Instance of " + typeName;
+    } else {
+      return "";
+    }
   }
 
   @Override

@@ -171,6 +171,11 @@ public class WebkitScript {
         url = "dart:" + url;
       }
     }
+
+    // Strip off any url get parameters.
+    if (url != null && url.indexOf('?') != -1) {
+      url = url.substring(0, url.indexOf('?'));
+    }
   }
 
 }

@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.ui.internal.objectinspector;
 
+import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -28,12 +29,12 @@ import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 
 /**
- * Open an object inspector on the given object selection.
+ * Open an object inspector on the given object's class.
  */
-public class OpenInspectorAction implements IObjectActionDelegate {
+public class OpenClassInspectorAction implements IObjectActionDelegate {
   private ISelection selection;
 
-  public OpenInspectorAction() {
+  public OpenClassInspectorAction() {
 
   }
 
@@ -42,26 +43,33 @@ public class OpenInspectorAction implements IObjectActionDelegate {
     if (selection != null) {
       UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(getClass());
 
+      Object obj = SelectionUtil.getSingleElement(selection);
+
       try {
         instrumentation.record(selection);
-
-        Object obj = SelectionUtil.getSingleElement(selection);
 
         if (obj instanceof IVariable) {
           IVariable variable = (IVariable) obj;
 
-          try {
-            ObjectInspectorView.inspect(variable.getValue());
-          } catch (DebugException e) {
-            DartDebugUIPlugin.logError(e);
-          }
-        } else if (obj instanceof IValue) {
-          IValue value = (IValue) obj;
+          obj = variable.getValue();
+        }
 
-          ObjectInspectorView.inspect(value);
+        if (obj instanceof DartiumDebugValue) {
+          DartiumDebugValue value = (DartiumDebugValue) obj;
+
+          IValue classValue = value.getClassValue();
+
+          if (classValue != null) {
+            ObjectInspectorView.inspect(classValue);
+          }
+        } else {
+          // TODO(devoncarew): handle ServerDebugValue
+
         }
 
         instrumentation.metric("Inspect", "Completed");
+      } catch (DebugException e) {
+        DartDebugUIPlugin.logError(e);
       } finally {
         instrumentation.log();
       }

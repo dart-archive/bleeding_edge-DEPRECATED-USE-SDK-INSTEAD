@@ -728,12 +728,12 @@
    <!-- debugger variables object contributions -->
    
    <extension point="org.eclipse.ui.popupMenus">
-      <objectContribution
+      <!-- objectContribution
          id="com.google.dart.tools.debug.ui.openServerDeclarationContribution"
          objectClass="com.google.dart.tools.debug.core.server.ServerDebugVariable">
          <action
             id="com.google.dart.tools.debug.ui.internal.inspector.OpenInspectorAction"
-            label="Inspect Object..."
+            label="Inspect Instance..."
             icon="icons/obj16/watchlist_view.gif"
             menubarPath="additions"
             class="com.google.dart.tools.debug.ui.internal.objectinspector.OpenInspectorAction"
@@ -741,23 +741,35 @@
          </action>
       </objectContribution>
       <objectContribution
-         id="com.google.dart.tools.debug.ui.openServerDeclarationContribution"
+         id="com.google.dart.tools.debug.ui.openServerDeclarationContribution2"
          objectClass="com.google.dart.tools.debug.core.server.ServerDebugValue">
          <action
             id="com.google.dart.tools.debug.ui.internal.inspector.OpenInspectorAction"
-            label="Inspect Object..."
+            label="Inspect Instance..."
             icon="icons/obj16/watchlist_view.gif"
             menubarPath="additions"
             class="com.google.dart.tools.debug.ui.internal.objectinspector.OpenInspectorAction"
             enablesFor="1">
          </action>
+      </objectContribution -->
+      <objectContribution
+         id="com.google.dart.tools.debug.ui.openDartiumClassContribution"
+         objectClass="com.google.dart.tools.debug.core.dartium.DartiumDebugVariable">
+         <action
+            id="com.google.dart.tools.debug.ui.internal.inspector.OpenClassInspectorAction"
+            label="Inspect Type..."
+            icon="icons/obj16/watchlist_view.gif"
+            menubarPath="additions"
+            class="com.google.dart.tools.debug.ui.internal.objectinspector.OpenClassInspectorAction"
+            enablesFor="1">
+         </action>
       </objectContribution>
       <objectContribution
-         id="com.google.dart.tools.debug.ui.openServerDeclarationContribution"
+         id="com.google.dart.tools.debug.ui.openDartiumDeclarationContribution"
          objectClass="com.google.dart.tools.debug.core.dartium.DartiumDebugVariable">
          <action
             id="com.google.dart.tools.debug.ui.internal.inspector.OpenInspectorAction"
-            label="Inspect Object..."
+            label="Inspect Instance..."
             icon="icons/obj16/watchlist_view.gif"
             menubarPath="additions"
             class="com.google.dart.tools.debug.ui.internal.objectinspector.OpenInspectorAction"
@@ -765,11 +777,23 @@
          </action>
       </objectContribution>
       <objectContribution
-         id="com.google.dart.tools.debug.ui.openServerDeclarationContribution"
+         id="com.google.dart.tools.debug.ui.openDartiumClassContribution2"
+         objectClass="com.google.dart.tools.debug.core.dartium.DartiumDebugValue">
+         <action
+            id="com.google.dart.tools.debug.ui.internal.inspector.OpenClassInspectorAction"
+            label="Inspect Type..."
+            icon="icons/obj16/watchlist_view.gif"
+            menubarPath="additions"
+            class="com.google.dart.tools.debug.ui.internal.objectinspector.OpenClassInspectorAction"
+            enablesFor="1">
+         </action>
+      </objectContribution>
+      <objectContribution
+         id="com.google.dart.tools.debug.ui.openDartiumDeclarationContribution2"
          objectClass="com.google.dart.tools.debug.core.dartium.DartiumDebugValue">
          <action
             id="com.google.dart.tools.debug.ui.internal.inspector.OpenInspectorAction"
-            label="Inspect Object..."
+            label="Inspect Instance..."
             icon="icons/obj16/watchlist_view.gif"
             menubarPath="additions"
             class="com.google.dart.tools.debug.ui.internal.objectinspector.OpenInspectorAction"
@@ -780,13 +804,13 @@
       
    <!-- extension point="org.eclipse.ui.popupMenus">
       <objectContribution
-         id="com.google.dart.tools.debug.ui.openServerDeclarationContribution"
+         id="com.google.dart.tools.debug.ui.openServerTypeContribution"
          objectClass="com.google.dart.tools.debug.core.server.ServerDebugVariable">
          <action
             id="com.google.dart.tools.debug.ui.openServerDeclarationAction"
-            label="Open Declaration"
+            label="Open Object Type"
             menubarPath="additions"
-            class="com.google.dart.tools.debug.ui.internal.util.OpenServerVariableDeclaration"
+            class="com.google.dart.tools.debug.ui.internal.server.OpenServerVariableTypeAction"
             enablesFor="1">
          </action>
       </objectContribution>

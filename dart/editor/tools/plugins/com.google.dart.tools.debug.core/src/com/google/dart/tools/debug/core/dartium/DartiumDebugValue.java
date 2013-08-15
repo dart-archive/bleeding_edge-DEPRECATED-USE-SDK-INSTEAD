@@ -19,6 +19,7 @@ import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IDartDebugValue;
 import com.google.dart.tools.debug.core.webkit.WebkitCallback;
+import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 import com.google.dart.tools.debug.core.webkit.WebkitResult;
 
@@ -55,11 +56,6 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
     this.variable = variable;
     this.value = value;
-
-    // Change to a mode where we only request values that we're going to use.
-//    if (!value.isList()) {
-//      populate();
-//    }
   }
 
   public void computeDetail(final ValueCallback callback) {
@@ -141,6 +137,30 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
   }
 
   /**
+   * Return the special '@staticFields' property on this object that represents the static fields.
+   * 
+   * @return
+   * @throws DebugException
+   */
+  public IValue getClassValue() {
+    if (variableCollector == null) {
+      populate();
+    }
+
+    try {
+      for (WebkitPropertyDescriptor property : variableCollector.getWebkitProperties()) {
+        if (WebkitPropertyDescriptor.STATIC_FIELDS.equals(property.getName())) {
+          return new DartiumDebugValue(getTarget(), null, property.getValue());
+        }
+      }
+    } catch (InterruptedException e) {
+
+    }
+
+    return null;
+  }
+
+  /**
    * @return a user-consumable string for the value object
    * @throws DebugException
    */
@@ -169,29 +189,12 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
       }
     }
 
-    try {
-      return getReferenceTypeName();
-    } catch (DebugException e) {
-      return value.getClassName();
-    }
+    return value.getDescription();
   }
 
   @Override
-  public String getReferenceTypeName() throws DebugException {
+  public String getReferenceTypeName() {
     return value.getClassName();
-
-    // TODO(devocarew): Pavel populated the className field - remove all references to the
-    // synthetic @classInfo field
-
-//    try {
-//      // The special property @classInfo contains the class name. We need to populate the
-//      // variable information before we attempt to retrieve the class name.
-//      getVariables();
-//
-//      return DebuggerUtils.demangleVmName(getConnection().getDebugger().getClassNameSync(value));
-//    } catch (Throwable t) {
-//      throw createDebugException(t);
-//    }
   }
 
   @Override
