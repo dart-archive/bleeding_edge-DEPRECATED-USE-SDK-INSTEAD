@@ -55,8 +55,6 @@ import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.io.UriUtilities;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -826,16 +824,11 @@ public class LibraryResolver {
       return null;
     }
     String uriContent = uriLiteral.getStringValue().trim();
-    if (uriContent == null) {
+    if (uriContent == null || uriContent.isEmpty()) {
       return null;
     }
     uriContent = UriUtilities.encode(uriContent);
-    try {
-      new URI(uriContent);
-      return analysisContext.getSourceFactory().resolveUri(librarySource, uriContent);
-    } catch (URISyntaxException exception) {
-      return null;
-    }
+    return analysisContext.getSourceFactory().resolveUri(librarySource, uriContent);
   }
 
   /**

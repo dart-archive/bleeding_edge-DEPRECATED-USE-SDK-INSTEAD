@@ -292,7 +292,7 @@ public class Library {
     uriContent = UriUtilities.encode(uriContent);
     try {
       new URI(uriContent);
-      Source source = getSource(uriContent);
+      Source source = analysisContext.getSourceFactory().resolveUri(librarySource, uriContent);
       if (source == null || !source.exists()) {
         errorListener.onError(new AnalysisError(
             librarySource,
@@ -372,19 +372,5 @@ public class Library {
   @Override
   public String toString() {
     return librarySource.getShortName();
-  }
-
-  /**
-   * Return the result of resolving the given URI against the URI of the library, or {@code null} if
-   * the URI is not valid.
-   * 
-   * @param uri the URI to be resolved
-   * @return the result of resolving the given URI against the URI of the library
-   */
-  private Source getSource(String uri) {
-    if (uri == null) {
-      return null;
-    }
-    return analysisContext.getSourceFactory().resolveUri(librarySource, uri);
   }
 }

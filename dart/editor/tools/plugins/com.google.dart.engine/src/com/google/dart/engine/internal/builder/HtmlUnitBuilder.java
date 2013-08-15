@@ -37,6 +37,7 @@ import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.io.UriUtilities;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.engine.utilities.source.LineInfo.Location;
 
@@ -240,12 +241,15 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
           ExternalHtmlScriptElementImpl script = new ExternalHtmlScriptElementImpl(node);
           if (scriptSourcePath != null) {
             try {
+              scriptSourcePath = UriUtilities.encode(scriptSourcePath);
+              // Force an exception to be thrown if the URI is invalid so that we can report the
+              // problem.
               new URI(scriptSourcePath);
               Source scriptSource = context.getSourceFactory().resolveUri(
                   htmlSource,
                   scriptSourcePath);
               script.setScriptSource(scriptSource);
-              if (!scriptSource.exists()) {
+              if (scriptSource == null || !scriptSource.exists()) {
                 reportValueError(
                     HtmlWarningCode.URI_DOES_NOT_EXIST,
                     scriptAttribute,

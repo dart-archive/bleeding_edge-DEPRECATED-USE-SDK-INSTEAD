@@ -113,7 +113,7 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
         if (fullName.startsWith("/lib", fullNameIndex - 4)) {
           String relativePubspecPath = path.substring(0, pathIndex + 3).concat(PUBSPEC_YAML);
           Source pubspecSource = context.getSourceFactory().resolveUri(source, relativePubspecPath);
-          if (pubspecSource.exists()) {
+          if (pubspecSource != null && pubspecSource.exists()) {
             // Files inside the lib directory hierarchy should not reference files outside
             errorReporter.reportError(
                 PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
@@ -159,7 +159,7 @@ public class PubVerifier extends RecursiveASTVisitor<Void> {
     Source source = getSource(uriLiteral);
     String relativePubspecPath = path.substring(0, pathIndex).concat(PUBSPEC_YAML);
     Source pubspecSource = context.getSourceFactory().resolveUri(source, relativePubspecPath);
-    if (!pubspecSource.exists()) {
+    if (pubspecSource == null || !pubspecSource.exists()) {
       return false;
     }
     String fullName = getSourceFullName(source);
