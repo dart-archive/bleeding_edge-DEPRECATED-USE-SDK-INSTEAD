@@ -5,7 +5,10 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContentStatistics.CacheRow;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
+import com.google.dart.engine.internal.index.IndexImpl;
+import com.google.dart.engine.internal.index.operation.OperationQueue;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -30,6 +33,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.part.ViewPart;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -426,6 +430,21 @@ public class AnalysisView extends ViewPart {
           return;
         }
         viewer.refresh();
+
+        Index index = DartCore.getProjectManager().getIndex();
+        if (index instanceof IndexImpl) {
+          try {
+            Field field = IndexImpl.class.getDeclaredField("queue");
+            field.setAccessible(true);
+            OperationQueue queue = (OperationQueue) field.get(index);
+            setContentDescription("Index: queue size = " + queue.size() + "; statistics = "
+                + index.getStatistics());
+          } catch (Exception exception) {
+            setContentDescription("Index: statistics = " + index.getStatistics());
+          }
+        } else {
+          setContentDescription("Index: statistics = " + index.getStatistics());
+        }
       }
     });
   }
