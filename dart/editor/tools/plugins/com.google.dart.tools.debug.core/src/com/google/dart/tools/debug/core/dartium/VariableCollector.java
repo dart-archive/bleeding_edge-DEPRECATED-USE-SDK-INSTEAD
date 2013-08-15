@@ -116,11 +116,21 @@ class VariableCollector {
     return new VariableCollector(null, 0);
   }
 
+  public static VariableCollector fixed(DartiumDebugTarget target, List<IVariable> variables) {
+    return new VariableCollector(target, variables);
+  }
+
   private DartiumDebugTarget target;
   private DartiumDebugVariable parentVariable;
 
   private CountDownLatch latch;
-  private List<DartiumDebugVariable> variables = new ArrayList<DartiumDebugVariable>();
+  private List<IVariable> variables = new ArrayList<IVariable>();
+  private List<WebkitPropertyDescriptor> webkitProperties = new ArrayList<WebkitPropertyDescriptor>();
+
+  public VariableCollector(DartiumDebugTarget target, List<IVariable> variables) {
+    this.target = target;
+    this.variables.addAll(variables);
+  }
 
   private VariableCollector(DartiumDebugTarget target, int work) {
     this(target, work, null);
@@ -139,6 +149,12 @@ class VariableCollector {
     return variables.toArray(new IVariable[variables.size()]);
   }
 
+  public List<WebkitPropertyDescriptor> getWebkitProperties() throws InterruptedException {
+    latch.await();
+
+    return webkitProperties;
+  }
+
   private void collectFields(WebkitResult<WebkitPropertyDescriptor[]> results, boolean shouldSort,
       boolean collectStatics) {
     boolean gettingStaticFields = false;
@@ -149,6 +165,8 @@ class VariableCollector {
       if (shouldSort) {
         properties = sort(properties);
       }
+
+      webkitProperties = Arrays.asList(properties);
 
       for (WebkitPropertyDescriptor descriptor : properties) {
         if (descriptor.isEnumerable()) {
@@ -162,11 +180,12 @@ class VariableCollector {
             variables.add(variable);
           }
         } else {
-          if (parentVariable != null && collectStatics) {
-            if (WebkitPropertyDescriptor.STATIC_FIELDS.equals(descriptor.getName())) {
-              gettingStaticFields = collectStaticFields(descriptor.getValue(), latch);
-            }
-          }
+          // Static fields are now shown using the object inspector (Inspect Type...).
+//          if (parentVariable != null && collectStatics) {
+//            if (WebkitPropertyDescriptor.STATIC_FIELDS.equals(descriptor.getName())) {
+//              gettingStaticFields = collectStaticFields(descriptor.getValue(), latch);
+//            }
+//          }
         }
       }
     }
@@ -176,6 +195,7 @@ class VariableCollector {
     }
   }
 
+  @SuppressWarnings("unused")
   private boolean collectStaticFields(final WebkitRemoteObject classInfo, final CountDownLatch latch) {
     try {
       target.getConnection().getRuntime().getProperties(
