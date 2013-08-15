@@ -4,14 +4,16 @@
 //
 // Dart test program for testing native extensions.
 
-import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-Future copyFileToDirectory(Path file, Path directory) {
-  String src = file.toNativePath();
-  String dst = directory.toNativePath();
+import "package:expect/expect.dart";
+import "package:path/path.dart";
+
+Future copyFileToDirectory(String file, String directory) {
+  String src = file;
+  String dst = directory;
   switch (Platform.operatingSystem) {
     case 'linux':
     case 'macos':
@@ -23,25 +25,26 @@ Future copyFileToDirectory(Path file, Path directory) {
   }
 }
 
-Path getNativeLibraryPath(Path buildDirectory) {
+String getNativeLibraryPath(String buildDirectory) {
   switch (Platform.operatingSystem) {
     case 'linux':
-      return buildDirectory.append('lib.target/libsample_extension.so');
+      return join(buildDirectory, 'lib.target', 'libsample_extension.so');
     case 'macos':
-      return buildDirectory.append('libsample_extension.dylib');
+      return join(buildDirectory, 'libsample_extension.dylib');
     case 'windows':
-      return buildDirectory.append('sample_extension.dll');
+      return join(buildDirectory, 'sample_extension.dll');
     default:
       Expect.fail('Unknown operating system ${Platform.operatingSystem}');
   }
 }
 
 void main() {
-  Path scriptDirectory = new Path(Platform.script).directoryPath;
-  Path buildDirectory = new Path(Platform.executable).directoryPath;
+  String scriptDirectory = dirname(Platform.script);
+  String buildDirectory = dirname(Platform.executable);
   Directory tempDirectory = new Directory('').createTempSync();
-  Path testDirectory = new Path(tempDirectory.path);
-  Path sourceDirectory = scriptDirectory.append('../../../sample_extension');
+  String testDirectory = tempDirectory.path;
+  String sourceDirectory =
+      join(scriptDirectory, '..', '..', '..', 'sample_extension');
 
   // Copy sample_extension shared library, sample_extension dart files and
   // sample_extension tests to the temporary test directory.
@@ -50,16 +53,15 @@ void main() {
                                'sample_asynchronous_extension.dart',
                                'test_sample_synchronous_extension.dart',
                                'test_sample_asynchronous_extension.dart'],
-    (file) => copyFileToDirectory(sourceDirectory.append(file), testDirectory)
+    (file) => copyFileToDirectory(join(sourceDirectory, file), testDirectory)
   ))
 
   .then((_) => Future.forEach(['test_sample_synchronous_extension.dart',
                                'test_sample_asynchronous_extension.dart'],
-    (test) => Process.run(Platform.executable,
-                          [testDirectory.append(test).toNativePath()])
+    (test) => Process.run(Platform.executable, [join(testDirectory, test)])
     .then((ProcessResult result) {
       if (result.exitCode != 0) {
-        print('Failing test: ${sourceDirectory.append(test).toNativePath()}');
+        print('Failing test: ${join(sourceDirectory, test)}');
         print('Failing process stdout: ${result.stdout}');
         print('Failing process stderr: ${result.stderr}');
         print('End failing process stderr');

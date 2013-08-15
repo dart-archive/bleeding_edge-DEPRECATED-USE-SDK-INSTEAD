@@ -14,36 +14,32 @@ void main() {
   });
 
   if (fullBuild || dartFilesChanged || args.isEmpty) {
-    copyDirectory(directory('packages'), directory('app/packages'));
+    copyDirectory(new Uri.file('packages/'), new Uri.file('app/packages/'));
   }
 }
 
-Path directory(String path) => new Path(path);
+void copyDirectory(Uri src, Uri dest) {
+  Directory srcDir = new Directory(src.toFilePath());
 
-void copyDirectory(Path srcDirPath, Path destDirPath) {
-  Directory srcDir = new Directory.fromPath(srcDirPath);
-  
   for (FileSystemEntity entity in srcDir.listSync()) {
-    String name = new Path(entity.path).filename;
-    
+    String name = new Uri.file(entity.path).pathSegments.last;
+
     if (entity is File) {
-      copyFile(srcDirPath.join(new Path(name)), destDirPath);
+      copyFile(src.resolve(name), dest);
     } else {
-      copyDirectory(
-          srcDirPath.join(new Path(name)),
-          destDirPath.join(new Path(name)));
+      copyDirectory(src.resolve("$name/"), dest.resolve("$name/"));
     }
   }
 }
 
-void copyFile(Path srcFilePath, Path destDirPath) {
-  File srcFile = new File.fromPath(srcFilePath);
-  File destFile = new File.fromPath(
-      destDirPath.join(new Path(srcFilePath.filename)));
-  
-  if (!destFile.existsSync() || srcFile.lastModifiedSync() != destFile.lastModifiedSync()) {
-    new Directory.fromPath(destDirPath).createSync(recursive: true);
-    
+void copyFile(Uri src, Uri dest) {
+  File srcFile = new File(src.toFilePath());
+  File destFile = new File(dest.resolve(src.pathSegments.last).toFilePath());
+
+  if (!destFile.existsSync() ||
+      srcFile.lastModifiedSync() != destFile.lastModifiedSync()) {
+    new Directory(dest.toFilePath()).createSync(recursive: true);
+
     destFile.writeAsBytesSync(srcFile.readAsBytesSync());
   }
 }
