@@ -65,7 +65,8 @@ public class DefaultDebugUIHelper extends DebugUIHelper {
 
         String title = _title;
         String message = "The debugger connection has been closed by DevTools.\n\n"
-            + "Do you want to re-connect? (DevTools must be closed first)";
+            + "DevTools only supports one connected debugger (e.g. Editor or Chrome DevTools) at a "
+            + "time. Do you want to re-connect? (DevTools must be closed first)";
 
         Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 
