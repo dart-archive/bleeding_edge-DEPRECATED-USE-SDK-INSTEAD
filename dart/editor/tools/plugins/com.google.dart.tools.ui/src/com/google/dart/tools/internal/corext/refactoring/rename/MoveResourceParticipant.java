@@ -44,6 +44,7 @@ import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -169,7 +170,11 @@ public class MoveResourceParticipant extends MoveParticipant {
   }
 
   private void addTextEdit(Source source, String groupName, TextEdit textEdit) {
-    TextChange change = changeManager.get(source);
+    IResource resource = DartCore.getProjectManager().getResource(source);
+    TextChange change = getTextChange(resource);
+    if (change == null) {
+      change = changeManager.get(source);
+    }
     TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
   }
 

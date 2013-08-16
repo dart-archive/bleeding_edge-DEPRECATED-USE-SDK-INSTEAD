@@ -23,7 +23,6 @@ import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -38,22 +37,19 @@ public final class MoveResourceParticipantTest extends AbstractDartTest {
   /**
    * Waits for background build and moves the given {@link IFile}.
    */
-  private static void buildAndMove(IFile file, IFolder destination) throws Exception {
+  private static void buildAndMove(IFolder destination, IFile... files) throws Exception {
     RefactoringUtils.waitReadyForRefactoring(new NullProgressMonitor());
-    moveFile(file, destination);
+    moveFile(destination, files);
   }
 
   /**
    * Moves given {@link IFile}.
    */
-  private static void moveFile(IFile file, IFolder destination) throws Exception {
+  private static void moveFile(IFolder destination, IFile... files) throws Exception {
     IProgressMonitor pm = new NullProgressMonitor();
     RefactoringStatus status = new RefactoringStatus();
     // create Refactoring
-    Refactoring refactoring = MoveSupport.createMoveRefactoring(
-        status,
-        new IResource[] {file},
-        destination);
+    Refactoring refactoring = MoveSupport.createMoveRefactoring(status, files, destination);
     // execute Refactoring
     status.merge(refactoring.checkAllConditions(pm));
     Change change = refactoring.createChange(pm);
@@ -94,12 +90,48 @@ public final class MoveResourceParticipantTest extends AbstractDartTest {
             "import 'dart:io';",
             ""));
     // do move
-    buildAndMove(fileA, destination);
+    buildAndMove(destination, fileA);
     assertProjectFileContent(
         "aaa/A.dart",
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "import 'dart:io';",
+            ""));
+  }
+
+  /**
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=12492
+   */
+  public void test_OK_multipleAtOnce() throws Exception {
+    IFolder destination = testProject.createFolder("aaa");
+    IFile fileA = setProjectFileContent(
+        "lib_a.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib_a;",
+            "class A {}"));
+    IFile fileB = setProjectFileContent(
+        "lib_b.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib_b;",
+            "class B {}"));
+    setProjectFileContent(
+        "main.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'lib_a.dart';",
+            "import 'lib_b.dart';",
+            ""));
+    // do move
+    buildAndMove(destination, fileA, fileB);
+    assertProjectFileContent(
+        "main.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'aaa/lib_a.dart';",
+            "import 'aaa/lib_b.dart';",
             ""));
   }
 
@@ -112,7 +144,7 @@ public final class MoveResourceParticipantTest extends AbstractDartTest {
             "library a;",
             ""));
     // do move
-    buildAndMove(fileA, destination);
+    buildAndMove(destination, fileA);
     assertProjectFileContent(
         "aaa/A.dart",
         makeSource(
@@ -138,7 +170,7 @@ public final class MoveResourceParticipantTest extends AbstractDartTest {
             "import 'A.dart';",
             ""));
     // do move
-    buildAndMove(fileB, destination);
+    buildAndMove(destination, fileB);
     assertProjectFileContent(
         "A.dart",
         makeSource(
@@ -177,7 +209,7 @@ public final class MoveResourceParticipantTest extends AbstractDartTest {
             "import 'A.dart';",
             ""));
     // do move
-    buildAndMove(fileB, destination);
+    buildAndMove(destination, fileB);
     assertProjectFileContent(
         "aaa/bbb/A.dart",
         makeSource(
@@ -211,7 +243,7 @@ public final class MoveResourceParticipantTest extends AbstractDartTest {
             "void foo() {}",
             ""));
     // do move
-    buildAndMove(fileB, destination);
+    buildAndMove(destination, fileB);
     assertProjectFileContent(
         "A.dart",
         makeSource(
@@ -245,7 +277,7 @@ public final class MoveResourceParticipantTest extends AbstractDartTest {
             "part 'A.dart';",
             ""));
     // do move
-    buildAndMove(fileB, destination);
+    buildAndMove(destination, fileB);
     assertProjectFileContent(
         "A.dart",
         makeSource(
@@ -279,7 +311,7 @@ public final class MoveResourceParticipantTest extends AbstractDartTest {
             "import 'A.dart';",
             ""));
     // do move
-    buildAndMove(fileB, destination);
+    buildAndMove(destination, fileB);
     assertProjectFileContent(
         "A.dart",
         makeSource(
