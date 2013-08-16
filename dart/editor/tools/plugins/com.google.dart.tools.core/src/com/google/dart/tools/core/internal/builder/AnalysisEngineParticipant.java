@@ -81,6 +81,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
     }
 
     final ProjectUpdater updater = new ProjectUpdater();
+    final IndexUpdater indexUpdater = new IndexUpdater(projectManager.getIndex());
 
     // Traverse resources specified by the build event
     event.traverse(new BuildVisitor() {
@@ -92,6 +93,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         }
         DeltaProcessor processor = createProcessor(project);
         processor.addDeltaListener(updater);
+        processor.addDeltaListener(indexUpdater);
         processor.traverse(delta);
         return false;
       }
@@ -104,6 +106,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         }
         DeltaProcessor processor = createProcessor(project);
         processor.addDeltaListener(updater);
+        processor.addDeltaListener(indexUpdater);
         processor.traverse(resource);
         return false;
       }

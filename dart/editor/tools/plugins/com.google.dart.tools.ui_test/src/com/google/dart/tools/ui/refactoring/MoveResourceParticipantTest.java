@@ -103,6 +103,36 @@ public final class MoveResourceParticipantTest extends AbstractDartTest {
    * <p>
    * https://code.google.com/p/dart/issues/detail?id=12492
    */
+  public void test_OK_moveSeveralTimes() throws Exception {
+    IFolder binFolder = testProject.createFolder("bin");
+    IFolder subFolder = testProject.createFolder("bin/sub");
+    IFile libFile = setProjectFileContent(
+        "bin/sub/lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;",
+            "class A {}"));
+    IFile mainFile = setProjectFileContent(
+        "bin/main.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'sub/lib.dart';",
+            ""));
+    // do move
+    buildAndMove(subFolder, mainFile);
+    buildAndMove(binFolder, libFile);
+    assertProjectFileContent(
+        "bin/sub/main.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import '../lib.dart';",
+            ""));
+  }
+
+  /**
+   * <p>
+   * https://code.google.com/p/dart/issues/detail?id=12492
+   */
   public void test_OK_multipleAtOnce() throws Exception {
     IFolder destination = testProject.createFolder("aaa");
     IFile fileA = setProjectFileContent(
