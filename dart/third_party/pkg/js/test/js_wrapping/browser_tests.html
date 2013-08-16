@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Some Tests</title>
+  <style type="text/css">
+    .unittest-table { font-family: monospace; border: 1px; }
+    .unittest-pass { background: #6b3;}
+    .unittest-fail { background: #d55;}
+    .unittest-error { background: #a11;}
+    .unittest-xml-log {opacity:0; color: white;}
+    .test-area { display: none; }
+    body { overflow: visible; }
+  </style>
+</head>
+<body>
+  <h1>Loading and running tests</h1>
+<script>
+
+function Person(firstname, lastname){
+  this.firstname = firstname;
+  this.lastname = lastname;
+  this.father = null;
+  this.children = [];
+};
+Person.prototype.sayHello = function() { return "Hello, I'm " + this.firstname + " " + this.lastname; };
+
+</script>
+  <script type="application/dart" src="browser_tests.dart"></script>
+  <script src="packages/browser/dart.js"></script>
+  <script src="packages/browser/interop.js"></script>
+</body>
+</html>
