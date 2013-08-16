@@ -391,16 +391,46 @@ public final class DartDocUtilities {
   private static String convertListItems(String[] lines) {
     StringBuffer buf = new StringBuffer();
 
+    boolean wasCode = false;
     for (String line : lines) {
-      if (line.startsWith("  ")) {
-        buf.append("<li>" + line + "</li>");
-      } else {
+      // code block
+      if (line.startsWith("    ")) {
+        buf.append("<pre>");
+        if (wasCode) {
+          buf.append("\n");
+        }
         buf.append(line);
+        buf.append("</pre>");
+        wasCode = true;
+        continue;
       }
-
+      wasCode = false;
+      // empty line
+      if (line.isEmpty()) {
+        buf.append("\n\n");
+        continue;
+      }
+      // unordered list item
+      if (line.startsWith("* ")) {
+        buf.append("<li>" + line.substring(2) + "</li>\n");
+        continue;
+      }
+      // ordered list
+      {
+        line = line.trim();
+        int i = 0;
+        while (i < line.length() && Character.isDigit(line.charAt(i))) {
+          i++;
+        }
+        if (i < line.length() && line.charAt(i) == '.') {
+          buf.append("<pre>    </pre>" + line + "<br>");
+          continue;
+        }
+      }
+      // text line
+      buf.append(line);
       buf.append("\n");
     }
-
     return buf.toString();
   }
 

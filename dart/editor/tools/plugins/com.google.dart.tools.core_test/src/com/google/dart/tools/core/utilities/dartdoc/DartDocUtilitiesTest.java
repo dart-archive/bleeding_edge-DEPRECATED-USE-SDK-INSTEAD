@@ -74,6 +74,23 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
     assertEquals("A", DartDocUtilities.getTextSummary(element));
   }
 
+  public void test_codeBlock() throws Exception {
+    ASTNode id = findNodeIn("A {", createSource(//
+        "/**",
+        " * Example:",
+        " *",
+        " *     var v1 = new A();",
+        " *     var v2 = new A();",
+        " *",
+        " * Done.",
+        " */",
+        "class A { }"));
+    Element element = ElementLocator.locate(id);
+    assertEquals("Example:\n<br><br>\n\n"
+        + "<pre>    var v1 = new A();</pre><pre>\n    var v2 = new A();</pre>"
+        + "\n<br><br>\nDone.\n", DartDocUtilities.getDartDocAsHtml(element));
+  }
+
   public void test_cons_named_text_summary() throws Exception {
     ASTNode id = findNodeIn("A.named", createSource(//
         "class A { ",
@@ -144,6 +161,24 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
     assertEquals("List<String> x()", DartDocUtilities.getTextSummary(element));
   }
 
+  public void test_orderedList() throws Exception {
+    ASTNode id = findNodeIn("A {", createSource(//
+        "/**",
+        " * Example:",
+        " *",
+        " * 1. aaa",
+        " * 2. bbb",
+        " * 3. ccc",
+        " *",
+        " * Done.",
+        " */",
+        "class A { }"));
+    Element element = ElementLocator.locate(id);
+    assertEquals("Example:\n<br><br>\n\n"
+        + "<pre>    </pre>1. aaa<br><pre>    </pre>2. bbb<br><pre>    </pre>3. ccc<br>"
+        + "\n<br><br>\nDone.\n", DartDocUtilities.getDartDocAsHtml(element));
+  }
+
   public void test_param__with_default_value_text_summary() throws Exception {
     ASTNode id = findNodeIn("foo", createSource(//
         "class A { ",
@@ -160,6 +195,24 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
         "}"));
     Element element = ElementLocator.locate(id);
     assertEquals("String x", DartDocUtilities.getTextSummary(element));
+  }
+
+  public void test_unorderedList() throws Exception {
+    ASTNode id = findNodeIn("A {", createSource(//
+        "/**",
+        " * Example:",
+        " *",
+        " * * aaa",
+        " * * bbb",
+        " * * ccc",
+        " *",
+        " * Done.",
+        " */",
+        "class A { }"));
+    Element element = ElementLocator.locate(id);
+    assertEquals(
+        "Example:\n<br><br>\n\n<li>aaa</li>\n<li>bbb</li>\n<li>ccc</li>\n<br><br>\n\nDone.\n",
+        DartDocUtilities.getDartDocAsHtml(element));
   }
 
   public void test_var_text() throws Exception {
