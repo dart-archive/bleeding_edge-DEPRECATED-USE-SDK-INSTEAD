@@ -21,8 +21,6 @@ import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
-import com.google.dart.engine.ast.NullLiteral;
-import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
@@ -49,15 +47,7 @@ public class NewSelectionConverter {
     if (context == null) {
       return null;
     }
-    ASTNode node = context.getCoveredNode();
-    while (node != null) {
-      Element element = ElementLocator.locate(node);
-      if (element != null) {
-        return element;
-      }
-      node = node.getParent();
-    }
-    return null;
+    return context.getCoveredElement();
   }
 
   /**
@@ -75,20 +65,11 @@ public class NewSelectionConverter {
     }
 
     ASTNode node = new NodeLocator(caret).searchWithin(cu);
-
-    // Don't traverse parents when mapping String or Null literals
-    if (node instanceof StringLiteral || node instanceof NullLiteral) {
-      return ElementLocator.locate(node);
+    if (node == null) {
+      return null;
     }
 
-    while (node != null) {
-      Element element = ElementLocator.locate(node);
-      if (element != null) {
-        return element;
-      }
-      node = node.getParent();
-    }
-    return null;
+    return ElementLocator.locate(node);
   }
 
   /**
