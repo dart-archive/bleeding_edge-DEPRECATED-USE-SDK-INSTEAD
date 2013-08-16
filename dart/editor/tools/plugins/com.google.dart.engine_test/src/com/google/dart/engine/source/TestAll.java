@@ -23,6 +23,7 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ContentCacheTest.class);
     suite.addTestSuite(DartUriResolverTest.class);
+    suite.addTestSuite(ExplicitPackageUriResolverTest.class);
     suite.addTestSuite(FileUriResolverTest.class);
     suite.addTestSuite(PackageUriResolverTest.class);
     suite.addTestSuite(DirectoryBasedSourceContainerTest.class);

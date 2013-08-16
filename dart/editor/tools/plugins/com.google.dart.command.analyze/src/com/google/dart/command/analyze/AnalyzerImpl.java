@@ -24,6 +24,7 @@ import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
+import com.google.dart.engine.source.ExplicitPackageUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.PackageUriResolver;
@@ -43,7 +44,7 @@ import java.util.Set;
  * Scans, parses, and analyzes a library.
  */
 class AnalyzerImpl {
-  private static final HashMap<File, DartSdk> sdkMap = new HashMap<File, DartSdk>();
+  private static final HashMap<File, DirectoryBasedDartSdk> sdkMap = new HashMap<File, DirectoryBasedDartSdk>();
 
   private static ErrorSeverity getMaxErrorSeverity(List<AnalysisError> errors) {
     ErrorSeverity status = ErrorSeverity.NONE;
@@ -60,8 +61,8 @@ class AnalyzerImpl {
   /**
    * @return the new or cached instance of the {@link DartSdk} with the given directory.
    */
-  private static DartSdk getSdk(File sdkDirectory) {
-    DartSdk sdk = sdkMap.get(sdkDirectory);
+  private static DirectoryBasedDartSdk getSdk(File sdkDirectory) {
+    DirectoryBasedDartSdk sdk = sdkMap.get(sdkDirectory);
     if (sdk == null) {
       sdk = new DirectoryBasedDartSdk(sdkDirectory);
       sdkMap.put(sdkDirectory, sdk);
@@ -70,7 +71,7 @@ class AnalyzerImpl {
   }
 
   private AnalyzerOptions options;
-  private DartSdk sdk;
+  private DirectoryBasedDartSdk sdk;
 
   public AnalyzerImpl(AnalyzerOptions options) {
     this.options = options;
@@ -102,7 +103,13 @@ class AnalyzerImpl {
 
     // create SourceFactory
     SourceFactory sourceFactory;
-    if (packageDirectory != null) {
+
+    if (options.getUsePackageMap()) {
+      sourceFactory = new SourceFactory(
+          new DartUriResolver(sdk),
+          new FileUriResolver(),
+          new ExplicitPackageUriResolver(sdk, getPubDir(sourceFile)));
+    } else if (packageDirectory != null) {
       sourceFactory = new SourceFactory(
           new DartUriResolver(sdk),
           new FileUriResolver(),
@@ -218,6 +225,34 @@ class AnalyzerImpl {
   }
 
   /**
+   * Return a directory containing a pubspec.yaml file. The search location starts at the parent of
+   * the given source file and continues up the tree. If no pub directory is found, return the cwd.
+   * 
+   * @param sourceFile the starting location
+   * @return a directory containing a pubspec.yaml file, or the cwd if no such directory is found
+   */
+  private File getPubDir(File sourceFile) {
+    // we are going to ask parent file, so get absolute path
+    sourceFile = sourceFile.getAbsoluteFile();
+
+    // look in the containing directories
+    File dir = sourceFile.getParentFile();
+
+    while (dir != null) {
+      File pubspecFile = new File(dir, "pubspec.yaml");
+
+      if (pubspecFile.exists()) {
+        return dir;
+      }
+
+      dir = dir.getParentFile();
+    }
+
+    // Else, return the cwd.
+    return new File(System.getProperty("user.dir"));
+  }
+
+  /**
    * Returns the {@link UriKind} for the given input file. Usually {@link UriKind#FILE_URI}, but if
    * the given file is located in the "lib" directory of the {@link #sdk}, then returns
    * {@link UriKind#DART_URI}.
@@ -225,7 +260,7 @@ class AnalyzerImpl {
   private UriKind getUriKind(File file) {
     // may be file in SDK
     if (sdk instanceof DirectoryBasedDartSdk) {
-      DirectoryBasedDartSdk directoryBasedSdk = (DirectoryBasedDartSdk) sdk;
+      DirectoryBasedDartSdk directoryBasedSdk = sdk;
       String sdkLibPath = directoryBasedSdk.getLibraryDirectory().getPath() + File.separator;
       if (file.getPath().startsWith(sdkLibPath)) {
         return UriKind.DART_URI;

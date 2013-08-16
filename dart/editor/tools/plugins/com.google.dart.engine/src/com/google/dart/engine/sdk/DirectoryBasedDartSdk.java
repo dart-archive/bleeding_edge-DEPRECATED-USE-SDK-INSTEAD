@@ -134,6 +134,16 @@ public class DirectoryBasedDartSdk implements DartSdk {
   private static final String LIBRARIES_FILE = "libraries.dart"; //$NON-NLS-1$
 
   /**
+   * The name of the pub executable on windows.
+   */
+  private static final String PUB_EXECUTABLE_NAME_WIN = "pub.bat"; //$NON-NLS-1$
+
+  /**
+   * The name of the pub executable on non-windows operating systems.
+   */
+  private static final String PUB_EXECUTABLE_NAME = "pub"; //$NON-NLS-1$
+
+  /**
    * The name of the file within the SDK directory that contains the revision number of the SDK.
    */
   private static final String REVISION_FILE_NAME = "revision"; //$NON-NLS-1$
@@ -289,6 +299,19 @@ public class DirectoryBasedDartSdk implements DartSdk {
     return new File(sdkDirectory, LIB_DIRECTORY_NAME);
   }
 
+  /**
+   * Return the file containing the Pub executable, or {@code null} if it does not exist.
+   * 
+   * @return the file containing the Pub executable
+   */
+  public File getPubExecutable() {
+    String pubBinaryName = OSUtilities.isWindows() ? PUB_EXECUTABLE_NAME_WIN : PUB_EXECUTABLE_NAME;
+
+    File file = new File(new File(sdkDirectory, BIN_DIRECTORY_NAME), pubBinaryName);
+
+    return file.exists() ? file : null;
+  }
+
   @Override
   public SdkLibrary[] getSdkLibraries() {
     return libraryMap.getSdkLibraries();
@@ -342,7 +365,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
   public File getVmExecutable() {
     synchronized (this) {
       if (vmExecutable == null) {
-        File file = new File(new File(sdkDirectory, BIN_DIRECTORY_NAME), getBinaryName());
+        File file = new File(new File(sdkDirectory, BIN_DIRECTORY_NAME), getVmBinaryName());
         if (file.exists()) {
           vmExecutable = file;
         }
@@ -395,19 +418,6 @@ public class DirectoryBasedDartSdk implements DartSdk {
   }
 
   /**
-   * Return the name of the file containing the VM executable.
-   * 
-   * @return the name of the file containing the VM executable
-   */
-  private String getBinaryName() {
-    if (OSUtilities.isWindows()) {
-      return VM_EXECUTABLE_NAME_WIN;
-    } else {
-      return VM_EXECUTABLE_NAME;
-    }
-  }
-
-  /**
    * Return the name of the file containing the Dartium executable.
    * 
    * @return the name of the file containing the Dartium executable
@@ -419,6 +429,19 @@ public class DirectoryBasedDartSdk implements DartSdk {
       return DARTIUM_EXECUTABLE_NAME_MAC;
     } else {
       return DARTIUM_EXECUTABLE_NAME_LINUX;
+    }
+  }
+
+  /**
+   * Return the name of the file containing the VM executable.
+   * 
+   * @return the name of the file containing the VM executable
+   */
+  private String getVmBinaryName() {
+    if (OSUtilities.isWindows()) {
+      return VM_EXECUTABLE_NAME_WIN;
+    } else {
+      return VM_EXECUTABLE_NAME;
     }
   }
 

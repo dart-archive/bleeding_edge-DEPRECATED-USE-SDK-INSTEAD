@@ -136,6 +136,9 @@ public class AnalyzerOptions {
   usage = "The path to the package root")
   private File packageRootPath = null;
 
+  @Option(name = "--use-package-map")
+  private boolean usePackageMap = false;
+
   @Option(name = "--show-package-warnings",//
   usage = "Show warnings from package: imports")
   private boolean showPackageWarnings = false;
@@ -222,6 +225,16 @@ public class AnalyzerOptions {
    */
   public String getSourceFile() {
     return sourceFile;
+  }
+
+  /**
+   * Return whether package: urls should be resolved by querying pub for a package map. This uses
+   * pub's list-package-dirs command.
+   * 
+   * @return whether to use an alternative package resolver
+   */
+  public boolean getUsePackageMap() {
+    return usePackageMap;
   }
 
   /**
