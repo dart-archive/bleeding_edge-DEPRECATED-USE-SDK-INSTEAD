@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2013, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -27,7 +27,7 @@ import com.google.dart.engine.type.Type;
 /**
  * Instances of the class {@code TypeProviderImpl} provide access to types defined by the language
  * by looking for those types in the element model for the core library.
- * 
+ *
  * @coverage dart.engine.resolver
  */
 public class TypeProviderImpl implements TypeProvider {
@@ -72,6 +72,11 @@ public class TypeProviderImpl implements TypeProvider {
   private InterfaceType mapType;
 
   /**
+   * The type representing the type 'Null'.
+   */
+  private InterfaceType nullType;
+
+  /**
    * The type representing the built-in type 'num'.
    */
   private InterfaceType numType;
@@ -103,7 +108,7 @@ public class TypeProviderImpl implements TypeProvider {
 
   /**
    * Initialize a newly created type provider to provide the types defined in the given library.
-   * 
+   *
    * @param coreLibrary the element representing the core library (dart:core).
    */
   public TypeProviderImpl(LibraryElement coreLibrary) {
@@ -151,6 +156,11 @@ public class TypeProviderImpl implements TypeProvider {
   }
 
   @Override
+  public InterfaceType getNullType() {
+    return nullType;
+  }
+
+  @Override
   public InterfaceType getNumType() {
     return numType;
   }
@@ -183,7 +193,7 @@ public class TypeProviderImpl implements TypeProvider {
   /**
    * Return the type with the given name from the given namespace, or {@code null} if there is no
    * class with the given name.
-   * 
+   *
    * @param namespace the namespace in which to search for the given name
    * @param typeName the name of the type being searched for
    * @return the type that was found
@@ -199,7 +209,7 @@ public class TypeProviderImpl implements TypeProvider {
 
   /**
    * Initialize the types provided by this type provider from the given library.
-   * 
+   *
    * @param library the library containing the definitions of the core types
    */
   private void initializeFrom(LibraryElement library) {
@@ -212,6 +222,7 @@ public class TypeProviderImpl implements TypeProvider {
     intType = getType(namespace, "int");
     listType = getType(namespace, "List");
     mapType = getType(namespace, "Map");
+    nullType = getType(namespace, "Null");
     numType = getType(namespace, "num");
     objectType = getType(namespace, "Object");
     stackTraceType = getType(namespace, "StackTrace");
