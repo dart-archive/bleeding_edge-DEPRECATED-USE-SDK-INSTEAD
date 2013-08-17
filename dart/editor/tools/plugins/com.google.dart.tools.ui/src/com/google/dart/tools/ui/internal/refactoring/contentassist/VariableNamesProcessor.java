@@ -30,7 +30,6 @@ import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.swt.graphics.Image;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 @SuppressWarnings("deprecation")
 public class VariableNamesProcessor implements IContentAssistProcessor,
@@ -45,7 +44,6 @@ public class VariableNamesProcessor implements IContentAssistProcessor,
 
   public VariableNamesProcessor(String[] tempNameProposals) {
     fTempNameProposals = tempNameProposals.clone();
-    Arrays.sort(fTempNameProposals);
     fImageRegistry = DartToolsPlugin.getImageDescriptorRegistry();
     fProposalImageDescriptor = DartPluginImages.DESC_OBJS_LOCAL_VARIABLE;
 
