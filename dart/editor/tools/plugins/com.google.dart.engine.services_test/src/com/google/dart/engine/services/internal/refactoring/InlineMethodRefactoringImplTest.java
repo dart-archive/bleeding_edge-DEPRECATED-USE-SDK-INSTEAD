@@ -19,6 +19,7 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.refactoring.ExtractLocalRefactoring;
 import com.google.dart.engine.services.refactoring.InlineMethodRefactoring;
+import com.google.dart.engine.services.refactoring.InlineMethodRefactoring.Mode;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 
@@ -830,6 +831,63 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     // check
     assertFalse(refactoring.requiresPreview());
+  }
+
+  public void test_requiresPreview_multipleSites_const() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a) {}",
+        "var topLevelVar = 0;",
+        "int func() => topLevelVar++;",
+        "main() {",
+        "  test(func());",
+        "  test(42);",
+        "}");
+    selection = findOffset("test(42");
+    createRefactoring();
+    // single site - no preview
+    assertFalse(refactoring.requiresPreview());
+    // force inline all - require preview
+    refactoring.setCurrentMode(Mode.INLINE_ALL);
+    assertTrue(refactoring.requiresPreview());
+    // single site - no preview
+    refactoring.setCurrentMode(Mode.INLINE_SINGLE);
+    assertFalse(refactoring.requiresPreview());
+  }
+
+  public void test_requiresPreview_multipleSites_declaration() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a) {}",
+        "var topLevelVar = 0;",
+        "int func() => topLevelVar++;",
+        "main() {",
+        "  test(func());",
+        "  test(42);",
+        "}");
+    selection = findOffset("test(a");
+    createRefactoring();
+    // all sites checked - require preview
+    assertTrue(refactoring.requiresPreview());
+  }
+
+  public void test_requiresPreview_multipleSites_invocation() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a) {}",
+        "var topLevelVar = 0;",
+        "int func() => topLevelVar++;",
+        "main() {",
+        "  test(func());",
+        "  test(42);",
+        "}");
+    selection = findOffset("test(func()");
+    createRefactoring();
+    // single site with preview
+    assertTrue(refactoring.requiresPreview());
+    // force inline all, still preview required
+    refactoring.setCurrentMode(Mode.INLINE_ALL);
+    assertTrue(refactoring.requiresPreview());
   }
 
   public void test_requiresPreview_true_getter() throws Exception {

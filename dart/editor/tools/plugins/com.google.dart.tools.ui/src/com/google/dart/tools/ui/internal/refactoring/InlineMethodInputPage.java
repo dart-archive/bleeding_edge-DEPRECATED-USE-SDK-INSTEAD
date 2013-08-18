@@ -19,6 +19,7 @@ import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 import org.eclipse.ltk.ui.refactoring.UserInputWizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -126,5 +127,6 @@ public class InlineMethodInputPage extends UserInputWizardPage {
 
   private void changeRefactoring(InlineMethodRefactoring.Mode mode) {
     fRefactoring.setCurrentMode(mode);
+    ((RefactoringWizard) getWizard()).setForcePreviewReview(fRefactoring.requiresPreview());
   }
 }

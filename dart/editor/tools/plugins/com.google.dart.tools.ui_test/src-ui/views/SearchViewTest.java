@@ -16,6 +16,7 @@ package views;
 import com.google.common.base.Joiner;
 import com.google.dart.tools.search.internal.ui.SearchView;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 import com.google.dart.ui.test.Condition;
 import com.google.dart.ui.test.internal.runtime.ConditionHandler;
 import com.google.dart.ui.test.model.Workbench;
@@ -28,6 +29,8 @@ import static com.google.dart.ui.test.util.UiContext2.waitForActionEnabled;
 
 import editor.AbstractDartEditorTabTest2;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Tree;
@@ -38,6 +41,7 @@ import org.eclipse.swt.widgets.TreeItem;
  */
 public final class SearchViewTest extends AbstractDartEditorTabTest2 {
   private static final View VIEW = Workbench.View.SEARCH;
+  private static final IProgressMonitor NULL_PM = new NullProgressMonitor();
 
   /**
    * Function to force formatter to put every string on separate line.
@@ -107,6 +111,7 @@ public final class SearchViewTest extends AbstractDartEditorTabTest2 {
   }
 
   private void findReferences(String pattern) throws Exception {
+    RefactoringUtils.waitReadyForRefactoring(NULL_PM);
     selectOffset(pattern);
     // run action
     IAction action = getEditorAction(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);

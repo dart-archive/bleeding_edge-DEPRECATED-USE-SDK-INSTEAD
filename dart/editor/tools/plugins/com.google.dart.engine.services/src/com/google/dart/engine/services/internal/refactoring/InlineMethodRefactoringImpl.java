@@ -106,15 +106,14 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
    * Processor for single {@link SearchMatch} reference to {@link #methodElement}.
    */
   private class ReferenceProcessor {
-    private final RefactoringStatus result;
     private final Source refSource;
     private final CorrectionUtils refUtils;
     private final ASTNode node;
     private final SourceRange refLineRange;
     private final String refPrefix;
+    private boolean argsHaveSideEffect;
 
-    ReferenceProcessor(RefactoringStatus result, SearchMatch reference) throws Exception {
-      this.result = result;
+    ReferenceProcessor(SearchMatch reference) throws Exception {
       // prepare SourceChange to update
       Element refElement = reference.getElement();
       refSource = refElement.getSource();
@@ -128,25 +127,49 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       refPrefix = refUtils.getNodePrefix(refStatement);
     }
 
-    void process() throws Exception {
+    public void updateRequiresPreviewFlag() {
+      if (!shouldProcess()) {
+        return;
+      }
+      requiresPreview |= argsHaveSideEffect;
+    }
+
+    void checkForSideEffects() throws Exception {
+      ASTNode nodeParent = node.getParent();
+      // may be invocation of inline method
+      if (nodeParent instanceof MethodInvocation) {
+        MethodInvocation invocation = (MethodInvocation) nodeParent;
+        List<Expression> arguments = invocation.getArgumentList().getArguments();
+        argsHaveSideEffect = hasSideEffect(arguments);
+      } else {
+        if (methodElement instanceof PropertyAccessorElement) {
+          // prepare arguments
+          List<Expression> arguments = Lists.newArrayList();
+          if (((SimpleIdentifier) node).inSetterContext()) {
+            arguments.add(((AssignmentExpression) nodeParent.getParent()).getRightHandSide());
+          }
+          // check arguments
+          argsHaveSideEffect = hasSideEffect(arguments);
+        }
+      }
+    }
+
+    void process(RefactoringStatus status) throws Exception {
       ASTNode nodeParent = node.getParent();
       // may be only single place should be inlined
-      if (currentMode == Mode.INLINE_SINGLE) {
-        SourceRange parentRange = rangeNode(nodeParent);
-        if (!parentRange.contains(context.getSelectionOffset())) {
-          return;
-        }
+      if (!shouldProcess()) {
+        return;
       }
       // may be invocation of inline method
       if (nodeParent instanceof MethodInvocation) {
         MethodInvocation invocation = (MethodInvocation) nodeParent;
         Expression target = invocation.getTarget();
         List<Expression> arguments = invocation.getArgumentList().getArguments();
-        inlineMethodBody(invocation, invocation.isCascaded(), target, arguments);
+        inlineMethodBody(status, invocation, invocation.isCascaded(), target, arguments);
       } else {
         // cannot inline reference to method: var v = new A().method;
         if (methodElement instanceof MethodElement) {
-          result.addFatalError(
+          status.addFatalError(
               "Cannot inline class method reference.",
               RefactoringStatusContext.create(node));
           return;
@@ -172,7 +195,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
             arguments.add(((AssignmentExpression) nodeParent.getParent()).getRightHandSide());
           }
           // inline body
-          inlineMethodBody(nodeParent, cascade, target, arguments);
+          inlineMethodBody(status, nodeParent, cascade, target, arguments);
           return;
         }
         // not invocation, just reference to function
@@ -193,10 +216,8 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       }
     }
 
-    private void inlineMethodBody(ASTNode methodUsage, boolean cascaded, Expression target,
-        List<Expression> arguments) {
-      boolean argsHaveSideEffect = hasSideEffect(arguments);
-      requiresPreview |= argsHaveSideEffect;
+    private void inlineMethodBody(RefactoringStatus status, ASTNode methodUsage, boolean cascaded,
+        Expression target, List<Expression> arguments) {
       // prepare change
       SourceChange refChange;
       if (argsHaveSideEffect) {
@@ -206,7 +227,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       }
       // we don't support cascade
       if (cascaded) {
-        result.addError(
+        status.addError(
             "Cannot inline cascade invocation.",
             RefactoringStatusContext.create(methodUsage));
       }
@@ -242,6 +263,14 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         Edit edit = new Edit(refLineRange, "");
         refChange.addEdit("Replace all references to method with statements", edit);
       }
+    }
+
+    private boolean shouldProcess() {
+      if (currentMode == Mode.INLINE_SINGLE) {
+        SourceRange parentRange = rangeNode(node);
+        return parentRange.contains(context.getSelectionOffset());
+      }
+      return true;
     }
   }
 
@@ -325,7 +354,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   private SourceChangeManager safeManager;
   private SourceChangeManager previewManager;
   private Mode initialMode;
-  private List<SearchMatch> references;
+  private List<ReferenceProcessor> referenceProcessors = Lists.newArrayList();
   private boolean requiresPreview;
 
   private Mode currentMode;
@@ -356,6 +385,10 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     pm.beginTask("Checking final conditions", 5);
     RefactoringStatus result = new RefactoringStatus();
     try {
+      // prepare changes
+      for (ReferenceProcessor processor : referenceProcessors) {
+        processor.process(result);
+      }
       // delete method
       if (deleteSource && currentMode == Mode.INLINE_ALL) {
         SourceRange methodRange = rangeNode(methodNode);
@@ -390,11 +423,19 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         previewManager = new SourceChangeManager();
         requiresPreview = false;
         // find references
-        references = context.getSearchEngine().searchReferences(methodElement, null, null);
-        // replace all references
+        List<SearchMatch> references = context.getSearchEngine().searchReferences(
+            methodElement,
+            null,
+            null);
+        // prepare reference processors
+        referenceProcessors.clear();
         for (SearchMatch reference : references) {
-          new ReferenceProcessor(result, reference).process();
+          ReferenceProcessor processor = new ReferenceProcessor(reference);
+          referenceProcessors.add(processor);
+          processor.checkForSideEffects();
         }
+        // update preview flag
+        updateRequiresPreviewFlag();
       }
       pm.worked(1);
       // done
@@ -453,6 +494,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   @Override
   public void setCurrentMode(Mode currentMode) {
     this.currentMode = currentMode;
+    updateRequiresPreviewFlag();
   }
 
   @Override
@@ -796,6 +838,13 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       return RefactoringStatus.createFatalErrorStatus("Cannot inline method without body.");
     }
     return result;
+  }
+
+  private void updateRequiresPreviewFlag() {
+    requiresPreview = false;
+    for (ReferenceProcessor processor : referenceProcessors) {
+      processor.updateRequiresPreviewFlag();
+    }
   }
 
 }
