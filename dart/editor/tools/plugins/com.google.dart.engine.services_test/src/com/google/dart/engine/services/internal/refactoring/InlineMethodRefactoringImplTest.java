@@ -804,6 +804,67 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "}");
   }
 
+  public void test_requiresPreview_false_literals() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b, c, d, e, f) {}",
+        "main() {",
+        "  test(true, 1.0, 2, null, 'simple', 'adj' 'strings');",
+        "}");
+    selection = findOffset("test(a, ");
+    createRefactoring();
+    // check
+    assertFalse(refactoring.requiresPreview());
+  }
+
+  public void test_requiresPreview_false_variables() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b, c) {}",
+        "var topLevelVar;",
+        "main(p) {",
+        "  int localVar;",
+        "  test(localVar, p, topLevelVar);",
+        "}");
+    selection = findOffset("test(a, ");
+    createRefactoring();
+    // check
+    assertFalse(refactoring.requiresPreview());
+  }
+
+  public void test_requiresPreview_true_getter() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a) {}",
+        "var topLevelVar;",
+        "class A {",
+        "  int f = 0;",
+        "  get p => f++;",
+        "  main() {",
+        "  test(p);",
+        "  }",
+        "}");
+    selection = findOffset("test(a");
+    createRefactoring();
+    // check
+    assertTrue(refactoring.requiresPreview());
+  }
+
+  public void test_requiresPreview_true_invocation() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a) {}",
+        "var topLevelVar = 0;",
+        "int func() => topLevelVar++;",
+        "main() {",
+        "  test(func());",
+        "}");
+    selection = findOffset("test(a");
+    createRefactoring();
+    // check
+    assertTrue(refactoring.requiresPreview());
+  }
+
   public void test_singleExpression_oneUsage() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

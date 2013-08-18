@@ -15,16 +15,14 @@ package com.google.dart.tools.ui.internal.refactoring.reorg;
 
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
+import com.google.dart.tools.ui.internal.refactoring.ServiceRefactoring;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
-
-import org.eclipse.ltk.core.refactoring.Refactoring;
 
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
 public class RenameFieldWizard extends RenameRefactoringWizard {
-
-  public RenameFieldWizard(Refactoring refactoring) {
+  public RenameFieldWizard(ServiceRefactoring refactoring) {
     super(
         refactoring,
         RefactoringMessages.RenameFieldWizard_defaultPageTitle,

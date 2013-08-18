@@ -15,16 +15,14 @@ package com.google.dart.tools.ui.internal.refactoring.reorg;
 
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
+import com.google.dart.tools.ui.internal.refactoring.ServiceRefactoring;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
-
-import org.eclipse.ltk.core.refactoring.Refactoring;
 
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
 public class RenameClassTypeAliasWizard extends RenameRefactoringWizard {
-
-  public RenameClassTypeAliasWizard(Refactoring refactoring) {
+  public RenameClassTypeAliasWizard(ServiceRefactoring refactoring) {
     super(
         refactoring,
         RefactoringMessages.RenameFunctionTypeAliasWizard_defaultPageTitle,

@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.CompositeChange;
+import com.google.dart.engine.services.change.MergeCompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionImage;
 import com.google.dart.engine.services.correction.CorrectionKind;
@@ -36,7 +37,9 @@ import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrect
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.ltk.core.refactoring.TextEditBasedChangeGroup;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.text.edits.MultiTextEdit;
@@ -53,6 +56,8 @@ import java.util.Map;
  * Test for {@link ServiceUtils}.
  */
 public class ServiceUtilsTest extends AbstractDartTest {
+  private final IProgressMonitor NULL_PM = new NullProgressMonitor();
+
   public void test_createCoreException() throws Exception {
     Throwable e = new Throwable("msg");
     CoreException coreException = ServiceUtils.createCoreException(e);
@@ -78,6 +83,32 @@ public class ServiceUtilsTest extends AbstractDartTest {
     assertEquals("My composite change", ltkChange.getName());
     org.eclipse.ltk.core.refactoring.Change[] ltkChanges = ltkChange.getChildren();
     assertThat(ltkChanges).hasSize(2);
+  }
+
+  public void test_toLTK_Change_MergeCompositeChange() throws Exception {
+    IFile testFile = testProject.setFileContent("test.dart", "012345");
+    Source source = createFileSource(testFile);
+    // fill SourceChange
+    SourceChange sourceChangeA = new SourceChange("My change A", source);
+    SourceChange sourceChangeB = new SourceChange("My change B", source);
+    sourceChangeA.addEdit(new Edit(0, 0, "a"));
+    sourceChangeB.addEdit(new Edit(2, 0, "b"));
+    CompositeChange compositeChangeA = new CompositeChange("A", sourceChangeA);
+    CompositeChange compositeChangeB = new CompositeChange("B", sourceChangeB);
+    MergeCompositeChange margeChange = new MergeCompositeChange(
+        "My composite change",
+        compositeChangeA,
+        compositeChangeB);
+    // toLTK
+    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils.toLTK(margeChange);
+    org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = (org.eclipse.ltk.core.refactoring.CompositeChange) ltkChange_;
+    assertEquals("My composite change", ltkChange.getName());
+    org.eclipse.ltk.core.refactoring.Change[] ltkChanges = ltkChange.getChildren();
+    assertThat(ltkChanges).hasSize(2);
+    //
+    ltkChange.perform(NULL_PM);
+    String newContent = testProject.getFileString(testFile);
+    assertEquals("a01b2345", newContent);
   }
 
   public void test_toLTK_Change_SourceChange() throws Exception {

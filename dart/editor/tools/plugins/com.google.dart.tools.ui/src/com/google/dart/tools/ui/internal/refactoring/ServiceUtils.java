@@ -14,10 +14,12 @@
 
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.common.collect.Maps;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.CreateFileChange;
+import com.google.dart.engine.services.change.MergeCompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.ChangeCorrectionProposal;
 import com.google.dart.engine.services.correction.CorrectionImage;
@@ -34,6 +36,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
+import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
@@ -42,6 +45,7 @@ import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
@@ -89,8 +93,21 @@ public class ServiceUtils {
           fileChange.getFile(),
           fileChange.getContent());
     }
+    // may be MergeCompositeChange
+    if (change instanceof MergeCompositeChange) {
+      MergeCompositeChange mergeChange = (MergeCompositeChange) change;
+      return toLTK(mergeChange);
+    }
     // should be CompositeChange
     CompositeChange compositeChange = (CompositeChange) change;
+    return toLTK(compositeChange);
+  }
+
+  /**
+   * @return the LTK change for the given Services {@link CompositeChange}.
+   */
+  public static org.eclipse.ltk.core.refactoring.CompositeChange toLTK(
+      CompositeChange compositeChange) {
     org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = new org.eclipse.ltk.core.refactoring.CompositeChange(
         compositeChange.getName());
     for (Change child : compositeChange.getChildren()) {
@@ -112,6 +129,26 @@ public class ServiceUtils {
       }
     }
     return null;
+  }
+
+  /**
+   * @return the LTK change for the given Services {@link CompositeChange}.
+   */
+  public static org.eclipse.ltk.core.refactoring.Change toLTK(MergeCompositeChange mergeChange) {
+    CompositeChange pChange = mergeChange.getPreviewChange();
+    CompositeChange eChange = mergeChange.getExecuteChange();
+    final org.eclipse.ltk.core.refactoring.CompositeChange previewChange = toLTK(pChange);
+    final org.eclipse.ltk.core.refactoring.CompositeChange executeChange = toLTK(eChange);
+    return new org.eclipse.ltk.core.refactoring.CompositeChange(
+        mergeChange.getName(),
+        new org.eclipse.ltk.core.refactoring.Change[] {previewChange, executeChange}) {
+      @Override
+      public org.eclipse.ltk.core.refactoring.Change perform(IProgressMonitor pm)
+          throws CoreException {
+        mergeTextChanges(executeChange, previewChange);
+        return executeChange.perform(pm);
+      }
+    };
   }
 
   /**
@@ -249,6 +286,43 @@ public class ServiceUtils {
    */
   private static IStatus createRuntimeStatus(Throwable e) {
     return new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(), e.getMessage(), e);
+  }
+
+  /**
+   * Merges {@link TextChange}s from "newCompositeChange" into "existingCompositeChange".
+   */
+
+  private static void mergeTextChanges(
+      org.eclipse.ltk.core.refactoring.CompositeChange existingCompositeChange,
+      org.eclipse.ltk.core.refactoring.CompositeChange newCompositeChange) {
+    // [element -> Change map] in CompositeChange
+    Map<Object, org.eclipse.ltk.core.refactoring.Change> elementChanges = Maps.newHashMap();
+    for (org.eclipse.ltk.core.refactoring.Change change : existingCompositeChange.getChildren()) {
+      Object modifiedElement = change.getModifiedElement();
+      elementChanges.put(modifiedElement, change);
+    }
+    // merge new changes into CompositeChange
+    for (org.eclipse.ltk.core.refactoring.Change newChange : newCompositeChange.getChildren()) {
+      // ignore if disabled (in preview UI)
+      if (!newChange.isEnabled()) {
+        continue;
+      }
+      // prepare existing TextChange
+      Object modifiedElement = newChange.getModifiedElement();
+      org.eclipse.ltk.core.refactoring.Change existingChange = elementChanges.get(modifiedElement);
+      // add TextEditChangeGroup from new TextChange
+      if (existingChange instanceof TextChange && newChange instanceof TextChange) {
+        TextChange newTextChange = (TextChange) newChange;
+        TextEdit edit = newTextChange.getEdit();
+        if (edit != null) {
+          TextEdit existingEdit = ((TextChange) existingChange).getEdit();
+          TextChangeCompatibility.insert(existingEdit, edit);
+        }
+      } else {
+        newCompositeChange.remove(newChange);
+        existingCompositeChange.add(newChange);
+      }
+    }
   }
 
   private static TextEdit toLTK(Edit edit) {

@@ -167,16 +167,23 @@ public class TestProject {
   }
 
   /**
-   * @return the {@link String} content of the {@link IFile} with given path.
+   * @return the {@link String} content of the {@link IFile}.
    */
-  public String getFileString(String path) throws Exception {
-    IFile file = getFile(path);
+  public String getFileString(IFile file) throws Exception {
     Reader reader = new InputStreamReader(file.getContents(), file.getCharset());
     try {
       return CharStreams.toString(reader);
     } finally {
       reader.close();
     }
+  }
+
+  /**
+   * @return the {@link String} content of the {@link IFile} with given path.
+   */
+  public String getFileString(String path) throws Exception {
+    IFile file = getFile(path);
+    return getFileString(file);
   }
 
   /**

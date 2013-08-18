@@ -16,17 +16,17 @@ package com.google.dart.tools.ui.internal.refactoring.reorg;
 import com.google.dart.tools.internal.corext.refactoring.tagging.INameUpdating;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
+import com.google.dart.tools.ui.internal.refactoring.ServiceRefactoring;
+import com.google.dart.tools.ui.internal.refactoring.ServiceRefactoringWizard;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
-import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameRefactoringWizard extends RefactoringWizard {
+public class RenameRefactoringWizard extends ServiceRefactoringWizard {
 
   private final String fInputPageDescription;
   private final String fPageContextHelpId;
@@ -67,7 +67,7 @@ public class RenameRefactoringWizard extends RefactoringWizard {
    */
   public static final String FIELD_RENAME_SETTER = "renameSetter"; //$NON-NLS-1$
 
-  public RenameRefactoringWizard(Refactoring refactoring, String defaultPageTitle,
+  public RenameRefactoringWizard(ServiceRefactoring refactoring, String defaultPageTitle,
       String inputPageDescription, ImageDescriptor inputPageImageDescriptor,
       String pageContextHelpId) {
     super(refactoring, DIALOG_BASED_USER_INTERFACE);

@@ -47,4 +47,10 @@ public interface Refactoring {
    * @return the human readable name of this {@link Refactoring}.
    */
   String getRefactoringName();
+
+  /**
+   * @return {@code true} if the {@link Change} created by refactoring may be unsafe, so we want
+   *         user to review the change to ensure that he understand it.
+   */
+  boolean requiresPreview();
 }

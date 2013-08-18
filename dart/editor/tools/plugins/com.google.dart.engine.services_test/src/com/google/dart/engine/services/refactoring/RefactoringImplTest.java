@@ -89,4 +89,11 @@ public class RefactoringImplTest extends AbstractDartTest {
     // no NPE
     refactoring.checkAllConditions(null);
   }
+
+  public void test_requiresPreview() throws Exception {
+    Refactoring refactoring = mock(RefactoringImpl.class);
+    when(refactoring.requiresPreview()).thenCallRealMethod();
+    // not required by default
+    assertFalse(refactoring.requiresPreview());
+  }
 }

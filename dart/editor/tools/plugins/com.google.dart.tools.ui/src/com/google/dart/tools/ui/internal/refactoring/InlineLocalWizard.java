@@ -3,14 +3,13 @@ package com.google.dart.tools.ui.internal.refactoring;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
-import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class InlineLocalWizard extends RefactoringWizard {
+public class InlineLocalWizard extends ServiceRefactoringWizard {
 
   private static class InlineLocalInputPage extends MessageWizardPage {
 

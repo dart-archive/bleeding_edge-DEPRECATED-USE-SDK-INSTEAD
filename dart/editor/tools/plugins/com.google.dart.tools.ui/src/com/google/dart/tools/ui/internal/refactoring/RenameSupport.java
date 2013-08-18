@@ -47,7 +47,7 @@ public class RenameSupport {
 
   //  private final org.eclipse.ltk.core.refactoring.Refactoring fRefactoring;
 //  private final RenameRefactoring refactoring;
-  private final org.eclipse.ltk.core.refactoring.Refactoring ltkRefactoring;
+  private final ServiceRefactoring ltkRefactoring;
 
 //  private RefactoringStatus fPreCheckStatus;
 

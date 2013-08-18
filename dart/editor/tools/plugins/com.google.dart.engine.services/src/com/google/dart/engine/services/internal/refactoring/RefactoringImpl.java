@@ -50,4 +50,9 @@ public abstract class RefactoringImpl implements Refactoring {
     pm.done();
     return result;
   }
+
+  @Override
+  public boolean requiresPreview() {
+    return false;
+  }
 }

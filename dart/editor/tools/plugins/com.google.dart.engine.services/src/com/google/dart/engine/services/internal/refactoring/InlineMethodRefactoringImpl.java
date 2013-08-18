@@ -19,24 +19,31 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
+import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.SymbolLiteral;
 import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
@@ -56,6 +63,7 @@ import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.CompositeChange;
+import com.google.dart.engine.services.change.MergeCompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.change.SourceChangeManager;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils;
@@ -99,7 +107,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
    */
   private class ReferenceProcessor {
     private final RefactoringStatus result;
-    private final SourceChange refChange;
+    private final Source refSource;
     private final CorrectionUtils refUtils;
     private final ASTNode node;
     private final SourceRange refLineRange;
@@ -109,8 +117,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       this.result = result;
       // prepare SourceChange to update
       Element refElement = reference.getElement();
-      Source refSource = refElement.getSource();
-      refChange = changeManager.get(refSource);
+      refSource = refElement.getSource();
       // prepare CorrectionUtils
       CompilationUnit refUnit = CorrectionUtils.getResolvedUnit(refElement);
       refUtils = new CorrectionUtils(refUnit);
@@ -179,6 +186,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
           source = source.trim();
         }
         // do insert
+        SourceChange refChange = safeManager.get(refSource);
         SourceRange range = rangeNode(node);
         Edit edit = new Edit(range, source);
         refChange.addEdit("Replace all references to method with statements", edit);
@@ -187,6 +195,15 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
 
     private void inlineMethodBody(ASTNode methodUsage, boolean cascaded, Expression target,
         List<Expression> arguments) {
+      boolean argsHaveSideEffect = hasSideEffect(arguments);
+      requiresPreview |= argsHaveSideEffect;
+      // prepare change
+      SourceChange refChange;
+      if (argsHaveSideEffect) {
+        refChange = previewManager.get(refSource);
+      } else {
+        refChange = safeManager.get(refSource);
+      }
       // we don't support cascade
       if (cascaded) {
         result.addError(
@@ -304,8 +321,12 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   }
 
   private final AssistContext context;
-  private final SourceChangeManager changeManager = new SourceChangeManager();
+
+  private SourceChangeManager safeManager;
+  private SourceChangeManager previewManager;
   private Mode initialMode;
+  private List<SearchMatch> references;
+  private boolean requiresPreview;
 
   private Mode currentMode;
   private boolean deleteSource;
@@ -335,20 +356,11 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     pm.beginTask("Checking final conditions", 5);
     RefactoringStatus result = new RefactoringStatus();
     try {
-      // find references
-      List<SearchMatch> references = context.getSearchEngine().searchReferences(
-          methodElement,
-          null,
-          null);
-      // replace all references
-      for (SearchMatch reference : references) {
-        new ReferenceProcessor(result, reference).process();
-      }
       // delete method
       if (deleteSource && currentMode == Mode.INLINE_ALL) {
         SourceRange methodRange = rangeNode(methodNode);
         SourceRange linesRange = methodUtils.getLinesRange(methodRange);
-        SourceChange change = changeManager.get(methodElement.getSource());
+        SourceChange change = safeManager.get(methodElement.getSource());
         change.addEdit("Remove method declaration", new Edit(linesRange, ""));
       }
     } finally {
@@ -360,7 +372,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   @Override
   public RefactoringStatus checkInitialConditions(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
-    pm.beginTask("Checking initial conditions", 2);
+    pm.beginTask("Checking initial conditions", 3);
     try {
       RefactoringStatus result = new RefactoringStatus();
       // prepare method information
@@ -371,6 +383,19 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       pm.worked(1);
       // analyze method body
       result.merge(prepareMethodParts());
+      pm.worked(1);
+      // process references
+      {
+        safeManager = new SourceChangeManager();
+        previewManager = new SourceChangeManager();
+        requiresPreview = false;
+        // find references
+        references = context.getSearchEngine().searchReferences(methodElement, null, null);
+        // replace all references
+        for (SearchMatch reference : references) {
+          new ReferenceProcessor(result, reference).process();
+        }
+      }
       pm.worked(1);
       // done
       return result;
@@ -383,9 +408,19 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
     try {
-      CompositeChange compositeChange = new CompositeChange(getRefactoringName());
-      compositeChange.add(changeManager.getChanges());
-      return compositeChange;
+      SourceChange[] safeChanges = safeManager.getChanges();
+      SourceChange[] previewChanges = previewManager.getChanges();
+      if (previewChanges.length == 0) {
+        CompositeChange compositeChange = new CompositeChange(getRefactoringName());
+        compositeChange.add(safeChanges);
+        return compositeChange;
+      } else {
+        CompositeChange safeChange = new CompositeChange("(Safe changes)");
+        CompositeChange previewChange = new CompositeChange("(Has arguments with side-effects)");
+        safeChange.add(safeChanges);
+        previewChange.add(previewChanges);
+        return new MergeCompositeChange(getRefactoringName(), previewChange, safeChange);
+      }
     } finally {
       pm.done();
     }
@@ -408,6 +443,11 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     } else {
       return "Inline Function";
     }
+  }
+
+  @Override
+  public boolean requiresPreview() {
+    return requiresPreview;
   }
 
   @Override
@@ -611,6 +651,45 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     }
     // done
     return result;
+  }
+
+  /**
+   * @return {@code true} if we can prove that the given {@link Expression} has no side effects.
+   */
+  private boolean hasSideEffect(Expression e) {
+    if (e instanceof BooleanLiteral || e instanceof DoubleLiteral || e instanceof IntegerLiteral
+        || e instanceof NullLiteral || e instanceof SimpleStringLiteral
+        || e instanceof AdjacentStrings || e instanceof SymbolLiteral) {
+      return false;
+    }
+    if (e instanceof SimpleIdentifier) {
+      SimpleIdentifier identifier = (SimpleIdentifier) e;
+      Element element = identifier.getElement();
+      if (element instanceof VariableElement) {
+        return false;
+      }
+      if (element instanceof PropertyAccessorElement) {
+        return !element.isSynthetic();
+      }
+    }
+    if (e instanceof BinaryExpression) {
+      BinaryExpression binary = (BinaryExpression) e;
+      return hasSideEffect(binary.getLeftOperand()) || hasSideEffect(binary.getRightOperand());
+    }
+    return true;
+  }
+
+  /**
+   * @return {@code true} if we can prove that all of the given {@link Expression} have no side
+   *         effects.
+   */
+  private boolean hasSideEffect(List<Expression> arguments) {
+    for (Expression argument : arguments) {
+      if (hasSideEffect(argument)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

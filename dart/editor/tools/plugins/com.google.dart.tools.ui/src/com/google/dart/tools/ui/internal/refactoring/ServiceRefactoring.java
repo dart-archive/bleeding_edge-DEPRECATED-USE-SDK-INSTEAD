@@ -78,4 +78,12 @@ public class ServiceRefactoring extends org.eclipse.ltk.core.refactoring.Refacto
   public String getName() {
     return refactoring.getRefactoringName();
   }
+
+  /**
+   * @return {@code true} if the {@link Change} created by refactoring may be unsafe, so we want
+   *         user to review the change to ensure that he understand it.
+   */
+  public boolean requiresPreview() {
+    return refactoring.requiresPreview();
+  }
 }
