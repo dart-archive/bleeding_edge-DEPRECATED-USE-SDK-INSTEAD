@@ -1782,18 +1782,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invalidTypeArgumentForKey() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  m() {",
-        "    return const <int, int>{};",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_FOR_KEY);
-    verify(source);
-  }
-
   public void test_invalidTypeArgumentInConstList() throws Exception {
     Source source = addSource(createSource(//
         "class A<E> {",

@@ -636,12 +636,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   INVALID_REFERENCE_TO_THIS("Invalid reference to 'this' expression"),
 
   /**
-   * 12.7 Maps: It is a compile-time error if the first type argument to a map literal is not
-   * String.
-   */
-  INVALID_TYPE_ARGUMENT_FOR_KEY("The first type argument to a map literal must be 'String'"),
-
-  /**
    * 12.6 Lists: It is a compile time error if the type argument of a constant list literal includes
    * a type parameter.
    * 

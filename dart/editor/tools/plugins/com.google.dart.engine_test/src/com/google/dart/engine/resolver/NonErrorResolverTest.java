@@ -1500,6 +1500,18 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidTypeArgumentForKey() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  m() {",
+        "    return const <int, int>{};",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invalidTypeArgumentInConstList() throws Exception {
     Source source = addSource(createSource(//
         "class A<E> {",

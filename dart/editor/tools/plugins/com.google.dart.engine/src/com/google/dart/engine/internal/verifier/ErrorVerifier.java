@@ -726,7 +726,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (typeArguments != null) {
       NodeList<TypeName> arguments = typeArguments.getArguments();
       if (arguments.size() != 0) {
-        checkForInvalidTypeArgumentForKey(arguments);
         if (node.getConstKeyword() != null) {
           checkForInvalidTypeArgumentInConstTypedLiteral(
               arguments,
@@ -3299,24 +3298,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean checkForInvalidReferenceToThis(ThisExpression node) {
     if (!isThisInValidContext(node)) {
       errorReporter.reportError(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, node);
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Checks to ensure that first type argument to a map literal must be the 'String' type.
-   * 
-   * @param arguments a non-{@code null}, non-empty {@link TypeName} node list from the respective
-   *          {@link MapLiteral}
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#INVALID_TYPE_ARGUMENT_FOR_KEY
-   */
-  private boolean checkForInvalidTypeArgumentForKey(NodeList<TypeName> arguments) {
-    TypeName firstArgument = arguments.get(0);
-    Type firstArgumentType = firstArgument.getType();
-    if (firstArgumentType != null && !firstArgumentType.equals(typeProvider.getStringType())) {
-      errorReporter.reportError(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_FOR_KEY, firstArgument);
       return true;
     }
     return false;
