@@ -25,6 +25,7 @@ import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.CreateFileChange;
+import com.google.dart.engine.services.change.MergeCompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils;
@@ -83,6 +84,16 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
         return sourceChange;
       }
     }
+    // may be MergeCompositeChange
+    if (change instanceof MergeCompositeChange) {
+      MergeCompositeChange mergeChange = (MergeCompositeChange) change;
+      SourceChange executeChange = getSourceChange(mergeChange.getExecuteChange(), source);
+      SourceChange previewChange = getSourceChange(mergeChange.getPreviewChange(), source);
+      if (executeChange == null || previewChange == null) {
+        return null;
+      }
+      return mergeSourceChanges(executeChange, previewChange);
+    }
     // may be CompositeChange
     if (change instanceof CompositeChange) {
       CompositeChange compositeChange = (CompositeChange) change;
@@ -104,6 +115,24 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
     String sourceCode = CorrectionUtils.getSourceContent(source);
     List<Edit> sourceEdits = change.getEdits();
     return CorrectionUtils.applyReplaceEdits(sourceCode, sourceEdits);
+  }
+
+  /**
+   * Returns new {@link SourceChange} that consists of the merged {@link Edit}s from the given
+   * {@link SourceChange}. Note, that edit groups are not supported.
+   */
+  private static SourceChange mergeSourceChanges(SourceChange executeChange,
+      SourceChange previewChange) {
+    List<Edit> edits = executeChange.getEdits();
+    List<Edit> edits2 = previewChange.getEdits();
+    SourceChange merged = new SourceChange(executeChange.getName(), executeChange.getSource());
+    for (Edit edit : edits) {
+      merged.addEdit(edit);
+    }
+    for (Edit edit : edits2) {
+      merged.addEdit(edit);
+    }
+    return merged;
   }
 
   protected final ProgressMonitor pm = new NullProgressMonitor();

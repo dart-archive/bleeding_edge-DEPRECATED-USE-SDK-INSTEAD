@@ -112,7 +112,6 @@ public class RenameSupport {
           null,
           null,
           null);
-      wizard.setForcePreviewReview(showPreviewOnly);
       starter.initialize(wizard);
     } else {
       starter = new RenameUserInterfaceStarter();

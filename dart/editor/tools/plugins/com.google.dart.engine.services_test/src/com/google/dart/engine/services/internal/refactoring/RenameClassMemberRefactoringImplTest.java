@@ -411,6 +411,34 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "  c.newName();",
         "  d.newName();",
         "}");
+    assertFalse(refactoring.requiresPreview());
+  }
+
+  public void test_createChange_MethodElement_potential() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "}",
+        "main(var a) {",
+        "  a.test();",
+        "  new A().test();",
+        "}");
+    // configure refactoring
+    createRenameRefactoring("test() {}");
+    assertEquals("Rename Method", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  newName() {}",
+        "}",
+        "main(var a) {",
+        "  a.newName();",
+        "  new A().newName();",
+        "}");
+    assertTrue(refactoring.requiresPreview());
   }
 
   public void test_createChange_multipleUnits() throws Exception {

@@ -15,6 +15,7 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.CompositeChange;
@@ -50,6 +51,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.ltk.core.refactoring.TextChange;
+import org.eclipse.ltk.core.refactoring.TextEditChangeGroup;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MalformedTreeException;
@@ -58,9 +60,11 @@ import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Utilities to create LTK wrapper around Engine Services objects.
@@ -291,7 +295,6 @@ public class ServiceUtils {
   /**
    * Merges {@link TextChange}s from "newCompositeChange" into "existingCompositeChange".
    */
-
   private static void mergeTextChanges(
       org.eclipse.ltk.core.refactoring.CompositeChange existingCompositeChange,
       org.eclipse.ltk.core.refactoring.CompositeChange newCompositeChange) {
@@ -312,11 +315,26 @@ public class ServiceUtils {
       org.eclipse.ltk.core.refactoring.Change existingChange = elementChanges.get(modifiedElement);
       // add TextEditChangeGroup from new TextChange
       if (existingChange instanceof TextChange && newChange instanceof TextChange) {
+        TextChange existingTextChange = (TextChange) existingChange;
+        TextEdit existingTextEdit = existingTextChange.getEdit();
         TextChange newTextChange = (TextChange) newChange;
-        TextEdit edit = newTextChange.getEdit();
-        if (edit != null) {
-          TextEdit existingEdit = ((TextChange) existingChange).getEdit();
-          TextChangeCompatibility.insert(existingEdit, edit);
+        // remember TextEdit(s) disabled in preview UI
+        Set<TextEdit> disabledTextEdits = Sets.newHashSet();
+        for (TextEditChangeGroup group : newTextChange.getTextEditChangeGroups()) {
+          if (!group.isEnabled()) {
+            Collections.addAll(disabledTextEdits, group.getTextEdits());
+          }
+        }
+        // merge not disabled TextEdit(s)
+        TextEdit newTextEdit = newTextChange.getEdit();
+        if (newTextEdit != null) {
+          for (TextEdit childTextEdit : newTextEdit.getChildren()) {
+            if (disabledTextEdits.contains(childTextEdit)) {
+              continue;
+            }
+            childTextEdit.getParent().removeChild(childTextEdit);
+            TextChangeCompatibility.insert(existingTextEdit, childTextEdit);
+          }
         }
       } else {
         newCompositeChange.remove(newChange);

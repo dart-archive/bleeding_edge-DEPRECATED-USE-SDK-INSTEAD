@@ -95,12 +95,12 @@ public class ServiceUtilsTest extends AbstractDartTest {
     sourceChangeB.addEdit(new Edit(2, 0, "b"));
     CompositeChange compositeChangeA = new CompositeChange("A", sourceChangeA);
     CompositeChange compositeChangeB = new CompositeChange("B", sourceChangeB);
-    MergeCompositeChange margeChange = new MergeCompositeChange(
+    MergeCompositeChange mergeChange = new MergeCompositeChange(
         "My composite change",
         compositeChangeA,
         compositeChangeB);
     // toLTK
-    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils.toLTK(margeChange);
+    org.eclipse.ltk.core.refactoring.Change ltkChange_ = ServiceUtils.toLTK(mergeChange);
     org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = (org.eclipse.ltk.core.refactoring.CompositeChange) ltkChange_;
     assertEquals("My composite change", ltkChange.getName());
     org.eclipse.ltk.core.refactoring.Change[] ltkChanges = ltkChange.getChildren();
