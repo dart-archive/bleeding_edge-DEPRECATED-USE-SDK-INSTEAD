@@ -57,12 +57,19 @@ public class InheritanceManagerTest extends EngineTestCase {
   /**
    * The inheritance manager being tested.
    */
-  InheritanceManager inheritanceManager;
+  private InheritanceManager inheritanceManager;
+
+  /**
+   * The number of members that Object implements (as determined by {@link TestTypeProvider}).
+   */
+  private int numOfMembersInObject;
 
   @Override
   public void setUp() {
     typeProvider = new TestTypeProvider();
     inheritanceManager = createInheritanceManager();
+    InterfaceType objectType = typeProvider.getObjectType();
+    numOfMembersInObject = objectType.getMethods().length + objectType.getAccessors().length;
   }
 
   public void test_getMapOfMembersInheritedFromClasses_accessor_extends() throws Exception {
@@ -76,8 +83,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
     HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
 
-    assertSize(5, mapA);
-    assertSize(6, mapB);
+    assertSize(numOfMembersInObject, mapA);
+    assertSize(numOfMembersInObject + 1, mapB);
     assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
@@ -95,8 +102,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
     HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
 
-    assertSize(5, mapA);
-    assertSize(5, mapB);
+    assertSize(numOfMembersInObject, mapA);
+    assertSize(numOfMembersInObject, mapB);
     assertNull(mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
@@ -114,8 +121,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
     HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
 
-    assertSize(5, mapA);
-    assertSize(6, mapB);
+    assertSize(numOfMembersInObject, mapA);
+    assertSize(numOfMembersInObject + 1, mapB);
     assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
@@ -133,8 +140,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
     HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
 
-    assertSize(5, mapA);
-    assertSize(6, mapB);
+    assertSize(numOfMembersInObject, mapA);
+    assertSize(numOfMembersInObject + 1, mapB);
     assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
@@ -152,8 +159,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
     HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
 
-    assertSize(5, mapA);
-    assertSize(5, mapB);
+    assertSize(numOfMembersInObject, mapA);
+    assertSize(numOfMembersInObject, mapB);
     assertNull(mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
@@ -171,8 +178,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromClasses(classB);
     HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromClasses(classA);
 
-    assertSize(5, mapA);
-    assertSize(6, mapB);
+    assertSize(numOfMembersInObject, mapA);
+    assertSize(numOfMembersInObject + 1, mapB);
     assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
@@ -189,8 +196,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
     HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
 
-    assertSize(5, mapA);
-    assertSize(6, mapB);
+    assertSize(numOfMembersInObject, mapA);
+    assertSize(numOfMembersInObject + 1, mapB);
     assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
@@ -208,8 +215,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
     HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
 
-    assertSize(5, mapA);
-    assertSize(6, mapB);
+    assertSize(numOfMembersInObject, mapA);
+    assertSize(numOfMembersInObject + 1, mapB);
     assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
@@ -227,8 +234,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
     HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
 
-    assertSize(5, mapA);
-    assertSize(6, mapB);
+    assertSize(numOfMembersInObject, mapA);
+    assertSize(numOfMembersInObject + 1, mapB);
     assertSame(getterG, mapB.get(getterName));
     assertNoErrors(classA);
     assertNoErrors(classB);
@@ -245,8 +252,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
     HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
 
-    assertSize(5, mapA);
-    assertSize(6, mapB);
+    assertSize(numOfMembersInObject, mapA);
+    assertSize(numOfMembersInObject + 1, mapB);
     assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
@@ -264,8 +271,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
     HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
 
-    assertSize(5, mapA);
-    assertSize(6, mapB);
+    assertSize(numOfMembersInObject, mapA);
+    assertSize(numOfMembersInObject + 1, mapB);
     assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
@@ -283,8 +290,8 @@ public class InheritanceManagerTest extends EngineTestCase {
     HashMap<String, ExecutableElement> mapB = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classB);
     HashMap<String, ExecutableElement> mapA = inheritanceManager.getMapOfMembersInheritedFromInterfaces(classA);
 
-    assertSize(5, mapA);
-    assertSize(6, mapB);
+    assertSize(numOfMembersInObject, mapA);
+    assertSize(numOfMembersInObject + 1, mapB);
     assertSame(methodM, mapB.get(methodName));
     assertNoErrors(classA);
     assertNoErrors(classB);
