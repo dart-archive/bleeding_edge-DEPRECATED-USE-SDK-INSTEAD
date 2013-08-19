@@ -23,7 +23,7 @@ vars = {
   "chrome_rev" : "@19997",
   "commons-io_rev" : "@19997",
   "commons-lang_rev" : "@19997",
-  "d8_rev" : "@26048",
+  "d8_rev" : "@26311",
   "eclipse_rev" : "@26068",
   "fest_rev" : "@19997",
   "firefox_jsshell_rev" : "@25263",
