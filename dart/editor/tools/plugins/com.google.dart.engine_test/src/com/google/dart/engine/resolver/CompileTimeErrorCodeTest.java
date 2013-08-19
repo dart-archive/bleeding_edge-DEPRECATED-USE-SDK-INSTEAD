@@ -1124,17 +1124,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_fieldInitializedInInitializerAndDeclaration_final() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  final int x = 0;",
-        "  A() : x = 1 {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION);
-    verify(source);
-  }
-
   public void test_fieldInitializedInParameterAndInitializer() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -1226,38 +1215,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR);
-    verify(source);
-  }
-
-  /**
-   * This test doesn't test the FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR code, but tests the
-   * FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION code instead. It is provided here to show
-   * coverage over all of the permutations of initializers in constructor declarations.
-   * <p>
-   * Note: FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION covers a subset of
-   * FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR, since it more specific, we use it instead of
-   * the broader code
-   */
-  public void test_finalInitializedInDeclarationAndConstructor_initializers() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  final x = 0;",
-        "  A() : x = 0 {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION);
-    verify(source);
-  }
-
-  public void test_finalInitializedInDeclarationAndConstructor_initializingFormal()
-      throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  final x = 0;",
-        "  A(this.x) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR);
     verify(source);
   }
 

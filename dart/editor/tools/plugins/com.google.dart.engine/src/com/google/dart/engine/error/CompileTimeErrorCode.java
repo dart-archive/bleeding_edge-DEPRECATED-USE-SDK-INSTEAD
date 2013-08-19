@@ -412,29 +412,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time
-   * error if <i>k</i>'s initializer list contains an initializer for a final variable <i>f</i>
-   * whose declaration includes an initialization expression.
-   */
-  FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION(
-      "Values cannot be set in the constructor if they are final, and have already been set"),
-
-  /**
-   * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time
    * error if <i>k</i>'s initializer list contains an initializer for a variable that is initialized
    * by means of an initializing formal of <i>k</i>.
    */
   FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER(
       "Fields cannot be initialized in both the parameter list and the initializers"),
-
-  /**
-   * 5 Variables: It is a compile-time error if a final instance variable that has been initialized
-   * at its point of declaration is also initialized in a constructor.
-   * 
-   * @param name the name of the field in question
-   */
-  // TODO (jwren) only a subset of these are being caught
-  FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR(
-      "'%s' is final and was given a value when it was declared, so it cannot be set to a new value"),
 
   /**
    * 5 Variables: It is a compile-time error if a final instance variable that has is initialized by

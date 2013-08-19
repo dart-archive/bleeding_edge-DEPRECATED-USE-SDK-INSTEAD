@@ -1001,7 +1001,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
           if (fieldElement.isFinal() || fieldElement.isConst()) {
             errorReporter.reportError(
-                CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+                StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
                 formalParameter.getIdentifier(),
                 fieldElement.getDisplayName());
             foundError = true;
@@ -1036,7 +1036,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
             if (fieldElement.isFinal() || fieldElement.isConst()) {
               errorReporter.reportError(
-                  CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+                  StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
                   fieldName);
               foundError = true;
             }

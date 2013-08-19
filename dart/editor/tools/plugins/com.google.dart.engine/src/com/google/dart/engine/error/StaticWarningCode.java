@@ -212,6 +212,23 @@ public enum StaticWarningCode implements ErrorCode {
   EXTRA_POSITIONAL_ARGUMENTS("%d positional arguments expected, but %d found"),
 
   /**
+   * 5. Variables: It is a static warning if a final instance variable that has been initialized at
+   * its point of declaration is also initialized in a constructor.
+   */
+  FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION(
+      "Values cannot be set in the constructor if they are final, and have already been set"),
+
+  /**
+   * 5. Variables: It is a static warning if a final instance variable that has been initialized at
+   * its point of declaration is also initialized in a constructor.
+   * 
+   * @param name the name of the field in question
+   */
+  // TODO (jwren) only a subset of these are being caught
+  FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR(
+      "'%s' is final and was given a value when it was declared, so it cannot be set to a new value"),
+
+  /**
    * 7.6.1 Generative Constructors: Execution of an initializer of the form <b>this</b>.<i>v</i> =
    * <i>e</i> proceeds as follows: First, the expression <i>e</i> is evaluated to an object
    * <i>o</i>. Then, the instance variable <i>v</i> of the object denoted by this is bound to
