@@ -36,7 +36,7 @@ vars = {
   "nss_pkcs12_rev" : "@26000",
   "snakeyaml_rev" : "@19997",
   "stripjar_rev" : "@20110",
-  "WebCore_rev" : "@25845",
+  "WebCore_rev" : "@26378",
   "weberknecht_rev" : "@19997",
 }
 
