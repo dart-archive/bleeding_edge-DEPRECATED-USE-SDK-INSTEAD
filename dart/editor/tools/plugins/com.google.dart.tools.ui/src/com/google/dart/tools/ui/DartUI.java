@@ -24,6 +24,7 @@ import com.google.dart.tools.core.analysis.model.ResourceMap;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
+import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
 import com.google.dart.tools.ui.dialogs.TypeSelectionExtension;
 import com.google.dart.tools.ui.internal.SharedImages;
 import com.google.dart.tools.ui.internal.dialogs.FilteredTypesSelectionDialog;
@@ -718,6 +719,7 @@ public final class DartUI {
    */
   public static IEditorPart openInEditor(Element element) throws DartModelException,
       PartInitException {
+    element = DartElementUtil.getVariableIfSyntheticAccessor(element);
     return openInEditor(element, true, true);
   }
 

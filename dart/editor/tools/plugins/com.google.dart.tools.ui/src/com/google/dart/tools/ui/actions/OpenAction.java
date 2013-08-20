@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.actions;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
-import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -105,8 +104,6 @@ public class OpenAction extends AbstractDartSelectionAction {
       getShell().getDisplay().beep();
       return;
     }
-    // tweak
-    element = DartElementUtil.getVariableIfSyntheticAccessor(element);
     // do open
     try {
       DartUI.openInEditor(element);

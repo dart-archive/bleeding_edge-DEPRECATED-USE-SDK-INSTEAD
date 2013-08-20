@@ -814,6 +814,7 @@ public abstract class AbstractInformationControl extends PopupDialog implements
       } catch (CoreException ex) {
         DartToolsPlugin.log(ex);
       }
+      dispose();
     }
   }
 

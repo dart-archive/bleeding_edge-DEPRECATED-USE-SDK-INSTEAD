@@ -20,6 +20,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.util.HierarchyUtils;
@@ -49,6 +50,9 @@ public class TypeHierarchyContentProvider implements ITreeContentProvider {
       @Override
       public Void visitElement(Element element) {
         if (element instanceof ConstructorElement) {
+          return null;
+        }
+        if (element.isSynthetic()) {
           return null;
         }
         if (element == type) {
@@ -135,10 +139,12 @@ public class TypeHierarchyContentProvider implements ITreeContentProvider {
         return;
       }
       Element inputElement = (Element) inputObject;
-      if (inputElement instanceof ExecutableElement
-          && inputElement.getEnclosingElement() instanceof ClassElement) {
-        memberName = inputElement.getDisplayName();
-        inputObject = inputElement.getEnclosingElement();
+      if (inputElement.getEnclosingElement() instanceof ClassElement) {
+        if (inputElement instanceof ExecutableElement
+            || inputElement instanceof PropertyInducingElement) {
+          memberName = inputElement.getDisplayName();
+          inputObject = inputElement.getEnclosingElement();
+        }
       }
       if (inputObject instanceof ClassElement) {
         ClassElement inputClass = (ClassElement) inputObject;
