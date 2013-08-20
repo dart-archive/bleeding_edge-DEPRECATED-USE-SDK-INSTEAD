@@ -37,6 +37,7 @@ import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
 import com.google.dart.tools.ui.internal.text.functions.DartCommentScanner;
 import com.google.dart.tools.ui.internal.text.functions.DartElementProvider;
 import com.google.dart.tools.ui.internal.text.functions.DartMultilineStringScanner;
+import com.google.dart.tools.ui.internal.text.functions.DartOutlineElementProvider;
 import com.google.dart.tools.ui.internal.text.functions.DartOutlineInformationControl;
 import com.google.dart.tools.ui.internal.text.functions.DartPresentationReconciler;
 import com.google.dart.tools.ui.internal.text.functions.HTMLAnnotationHover;
@@ -517,7 +518,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     }
     presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
     presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
-    IInformationProvider provider = new DartElementProvider(getEditor(), doCodeResolve);
+    IInformationProvider provider = new DartOutlineElementProvider(getEditor());
     presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
     presenter.setInformationProvider(provider, DartPartitions.DART_DOC);
     presenter.setInformationProvider(provider, DartPartitions.DART_MULTI_LINE_COMMENT);
