@@ -347,7 +347,7 @@
           <echo message="setting up target Eclipse @{eclipse} (@{arch}) in @{location}" />
           <mkdir dir="@{location}/eclipse" />
           <copy todir="@{location}/eclipse">
-              <fileset dir="${build.thirdparty}/eclipse/3.7.0" />
+              <fileset dir="${build.thirdparty}/eclipse/3.8.2" />
           </copy>
         </sequential>
     </macrodef>
