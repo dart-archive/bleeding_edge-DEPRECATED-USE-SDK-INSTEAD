@@ -88,4 +88,24 @@ public class NonHintCodeTest extends ResolverTestCase {
     assertNoErrors();
     verify(source);
   }
+
+  public void test_unusedImport_prefix_topLevelFunction() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart' hide topLevelFunction;",
+        "import 'lib1.dart' as one show topLevelFunction;",
+        "class A {",
+        "  static void x() {",
+        "    One o;",
+        "    one.topLevelFunction();",
+        "  }",
+        "}"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class One {}",
+        "topLevelFunction() {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
 }

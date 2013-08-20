@@ -3161,7 +3161,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() { return f(); }"));
     addSource("/lib.dart", "library lib;");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.UNDEFINED_FUNCTION, HintCode.UNUSED_IMPORT);
+    assertErrors(CompileTimeErrorCode.UNDEFINED_FUNCTION);
   }
 
   public void test_undefinedNamedParameter() throws Exception {

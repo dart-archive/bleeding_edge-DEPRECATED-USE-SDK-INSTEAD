@@ -288,11 +288,15 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
         visitIdentifier(elt, name);
       }
       return null;
+    } else if (element instanceof PrefixElement) {
+      unusedImports.remove(prefixElementMap.get(element));
+      return null;
     }
     LibraryElement containingLibrary = element.getLibrary();
     if (containingLibrary == null) {
       return null;
     }
+
     // If the element is declared in the current library, return.
     if (currentLibrary.equals(containingLibrary)) {
       return null;
