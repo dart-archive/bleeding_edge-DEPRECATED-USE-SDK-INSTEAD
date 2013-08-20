@@ -706,7 +706,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     }
     if (e instanceof SimpleIdentifier) {
       SimpleIdentifier identifier = (SimpleIdentifier) e;
-      Element element = identifier.getElement();
+      Element element = identifier.getBestElement();
       if (element instanceof VariableElement) {
         return false;
       }
@@ -757,7 +757,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     }
     SimpleIdentifier selectedIdentifier = (SimpleIdentifier) selectedNode;
     // prepare selected ExecutableElement
-    Element selectedElement = selectedIdentifier.getElement();
+    Element selectedElement = selectedIdentifier.getBestElement();
     if (!(selectedElement instanceof ExecutableElement)) {
       return RefactoringStatus.createFatalErrorStatus("Method declaration or reference must be selected to activate this refactoring.");
     }

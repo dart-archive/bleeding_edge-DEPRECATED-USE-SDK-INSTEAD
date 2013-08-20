@@ -143,14 +143,14 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       LocalVariableElementImpl exception = new LocalVariableElementImpl(exceptionParameter);
 
       currentHolder.addLocalVariable(exception);
-      exceptionParameter.setElement(exception);
+      exceptionParameter.setStaticElement(exception);
 
       SimpleIdentifier stackTraceParameter = node.getStackTraceParameter();
       if (stackTraceParameter != null) {
         LocalVariableElementImpl stackTrace = new LocalVariableElementImpl(stackTraceParameter);
 
         currentHolder.addLocalVariable(stackTrace);
-        stackTraceParameter.setElement(stackTrace);
+        stackTraceParameter.setStaticElement(stackTrace);
       }
     }
     return super.visitCatchClause(node);
@@ -192,7 +192,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
     functionTypesToFix = null;
     currentHolder.addType(element);
-    className.setElement(element);
+    className.setStaticElement(element);
     holder.validate();
     return null;
   }
@@ -223,7 +223,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
     functionTypesToFix = null;
     currentHolder.addType(element);
-    className.setElement(element);
+    className.setStaticElement(element);
     holder.validate();
     return null;
   }
@@ -259,7 +259,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         element.setNameOffset(returnType.getOffset());
       }
     } else {
-      constructorName.setElement(element);
+      constructorName.setStaticElement(element);
     }
     holder.validate();
     return null;
@@ -279,7 +279,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setFinal(matches(keyword, Keyword.FINAL));
 
     currentHolder.addLocalVariable(element);
-    variableName.setElement(element);
+    variableName.setStaticElement(element);
     return super.visitDeclaredIdentifier(node);
   }
 
@@ -319,7 +319,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
 
     currentHolder.addParameter(parameter);
-    parameterName.setElement(parameter);
+    parameterName.setStaticElement(parameter);
     node.getParameter().accept(this);
     holder.validate();
     return null;
@@ -347,7 +347,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       parameter.setParameterKind(node.getKind());
 
       currentHolder.addParameter(parameter);
-      parameterName.setElement(parameter);
+      parameterName.setStaticElement(parameter);
     }
     //
     // The children of this parameter include any parameters defined on the type of this parameter.
@@ -392,7 +392,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
         currentHolder.addFunction(element);
         expression.setElement(element);
-        functionName.setElement(element);
+        functionName.setStaticElement(element);
       } else {
         SimpleIdentifier propertyNameNode = node.getName();
         if (propertyNameNode == null) {
@@ -420,7 +420,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
           field.setGetter(getter);
 
           currentHolder.addAccessor(getter);
-          propertyNameNode.setElement(getter);
+          propertyNameNode.setStaticElement(getter);
         } else {
           PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(propertyNameNode);
           setter.setFunctions(holder.getFunctions());
@@ -435,7 +435,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
           field.setFinal(false);
 
           currentHolder.addAccessor(setter);
-          propertyNameNode.setElement(setter);
+          propertyNameNode.setStaticElement(setter);
         }
       }
       holder.validate();
@@ -497,7 +497,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setType(type);
 
     currentHolder.addTypeAlias(element);
-    aliasName.setElement(element);
+    aliasName.setStaticElement(element);
     holder.validate();
     return null;
   }
@@ -510,7 +510,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       parameter.setParameterKind(node.getKind());
 
       currentHolder.addParameter(parameter);
-      parameterName.setElement(parameter);
+      parameterName.setStaticElement(parameter);
     }
     //
     // The children of this parameter include any parameters defined on the type of this parameter.
@@ -530,7 +530,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       LabelElementImpl element = new LabelElementImpl(labelName, onSwitchStatement, false);
 
       currentHolder.addLabel(element);
-      labelName.setElement(element);
+      labelName.setStaticElement(element);
     }
     return super.visitLabeledStatement(node);
   }
@@ -564,7 +564,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       element.setStatic(isStatic);
 
       currentHolder.addMethod(element);
-      methodName.setElement(element);
+      methodName.setStaticElement(element);
     } else {
       SimpleIdentifier propertyNameNode = node.getName();
       String propertyName = propertyNameNode.getName();
@@ -590,7 +590,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         field.setGetter(getter);
 
         currentHolder.addAccessor(getter);
-        propertyNameNode.setElement(getter);
+        propertyNameNode.setStaticElement(getter);
       } else {
         PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(propertyNameNode);
         setter.setFunctions(holder.getFunctions());
@@ -607,7 +607,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         field.setFinal(false);
 
         currentHolder.addAccessor(setter);
-        propertyNameNode.setElement(setter);
+        propertyNameNode.setStaticElement(setter);
       }
     }
     holder.validate();
@@ -624,7 +624,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       parameter.setParameterKind(node.getKind());
 
       currentHolder.addParameter(parameter);
-      parameterName.setElement(parameter);
+      parameterName.setStaticElement(parameter);
     }
     return super.visitSimpleFormalParameter(node);
   }
@@ -642,7 +642,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       LabelElementImpl element = new LabelElementImpl(labelName, false, true);
 
       currentHolder.addLabel(element);
-      labelName.setElement(element);
+      labelName.setStaticElement(element);
     }
     return super.visitSwitchCase(node);
   }
@@ -654,7 +654,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       LabelElementImpl element = new LabelElementImpl(labelName, false, true);
 
       currentHolder.addLabel(element);
-      labelName.setElement(element);
+      labelName.setStaticElement(element);
     }
     return super.visitSwitchDefault(node);
   }
@@ -668,7 +668,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setType(type);
 
     currentHolder.addTypeVariable(element);
-    parameterName.setElement(element);
+    parameterName.setStaticElement(element);
     return super.visitTypeParameter(node);
   }
 
@@ -691,7 +691,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       element = field;
 
       currentHolder.addField(field);
-      fieldName.setElement(field);
+      fieldName.setStaticElement(field);
     } else if (inFunction) {
       SimpleIdentifier variableName = node.getName();
       LocalVariableElementImpl variable;
@@ -708,7 +708,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       variable.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
 
       currentHolder.addLocalVariable(variable);
-      variableName.setElement(element);
+      variableName.setStaticElement(element);
     } else {
       SimpleIdentifier variableName = node.getName();
       TopLevelVariableElementImpl variable;
@@ -720,7 +720,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       element = variable;
 
       currentHolder.addTopLevelVariable(variable);
-      variableName.setElement(element);
+      variableName.setStaticElement(element);
     }
 
     element.setConst(isConst);

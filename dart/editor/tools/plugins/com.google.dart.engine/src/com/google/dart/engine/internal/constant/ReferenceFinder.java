@@ -50,7 +50,7 @@ public class ReferenceFinder extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.getElement();
+    Element element = node.getStaticElement();
     if (element instanceof PropertyAccessorElement) {
       element = ((PropertyAccessorElement) element).getVariable();
     }

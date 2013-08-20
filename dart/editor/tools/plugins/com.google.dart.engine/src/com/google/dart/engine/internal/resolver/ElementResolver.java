@@ -203,7 +203,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
 
     @Override
-    public Element getElement() {
+    public Element getBestElement() {
       return null;
     }
 
@@ -215,6 +215,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     @Override
     public String getName() {
       return name;
+    }
+
+    @Override
+    public Element getPropagatedElement() {
+      return null;
     }
 
     @Override
@@ -436,14 +441,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             || !element.getLibrary().equals(resolver.getDefiningLibrary())) {
           // TODO(brianwilkerson) Report this error?
         }
-        recordResolution(simpleIdentifier, element);
+        simpleIdentifier.setStaticElement(element);
         if (node.getNewKeyword() != null) {
           if (element instanceof ClassElement) {
             ConstructorElement constructor = ((ClassElement) element).getUnnamedConstructor();
             if (constructor == null) {
               // TODO(brianwilkerson) Report this error.
             } else {
-              recordResolution(simpleIdentifier, constructor);
+              simpleIdentifier.setStaticElement(constructor);
             }
           } else {
             // TODO(brianwilkerson) Report this error.
@@ -459,13 +464,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 //        resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
       } else {
         if (element instanceof PrefixElement) {
-          recordResolution(prefix, element);
+          prefix.setStaticElement(element);
           // TODO(brianwilkerson) The prefix needs to be resolved to the element for the import that
           // defines the prefix, not the prefix's element.
 
           // TODO(brianwilkerson) Report this error?
           element = resolver.getNameScope().lookup(identifier, resolver.getDefiningLibrary());
-          recordResolution(name, element);
+          name.setStaticElement(element);
           return null;
         }
         LibraryElement library = element.getLibrary();
@@ -476,7 +481,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         } else if (!library.equals(resolver.getDefiningLibrary())) {
           // TODO(brianwilkerson) Report this error.
         }
-        recordResolution(name, element);
+        name.setStaticElement(element);
         if (node.getNewKeyword() == null) {
           if (element instanceof ClassElement) {
             Element memberElement = lookupGetterOrMethod(
@@ -494,7 +499,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             if (memberElement == null) {
 //              reportGetterOrSetterNotFound(prefixedIdentifier, name, element.getDisplayName());
             } else {
-              recordResolution(name, memberElement);
+              name.setStaticElement(memberElement);
             }
           } else {
             // TODO(brianwilkerson) Report this error.
@@ -505,7 +510,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             if (constructor == null) {
               // TODO(brianwilkerson) Report this error.
             } else {
-              recordResolution(name, constructor);
+              name.setStaticElement(constructor);
             }
           } else {
             // TODO(brianwilkerson) Report this error.
@@ -525,13 +530,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // set redirected factory constructor
       ConstructorName redirectedNode = node.getRedirectedConstructor();
       if (redirectedNode != null) {
-        ConstructorElement redirectedElement = redirectedNode.getElement();
+        ConstructorElement redirectedElement = redirectedNode.getStaticElement();
         constructorElement.setRedirectedConstructor(redirectedElement);
       }
       // set redirected generate constructor
       for (ConstructorInitializer initializer : node.getInitializers()) {
         if (initializer instanceof RedirectingConstructorInvocation) {
-          ConstructorElement redirectedElement = ((RedirectingConstructorInvocation) initializer).getElement();
+          ConstructorElement redirectedElement = ((RedirectingConstructorInvocation) initializer).getStaticElement();
           constructorElement.setRedirectedConstructor(redirectedElement);
         }
       }
@@ -545,7 +550,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     SimpleIdentifier fieldName = node.getFieldName();
     ClassElement enclosingClass = resolver.getEnclosingClass();
     FieldElement fieldElement = ((ClassElementImpl) enclosingClass).getField(fieldName.getName());
-    recordResolution(fieldName, fieldElement);
+    fieldName.setStaticElement(fieldElement);
     if (fieldElement == null || fieldElement.isSynthetic()) {
       resolver.reportError(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD, node, fieldName);
     } else if (fieldElement.isStatic()) {
@@ -583,10 +588,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else {
       constructor = interfaceType.lookUpConstructor(name.getName(), definingLibrary);
       name.setStaticElement(constructor);
-      name.setElement(constructor);
     }
     node.setStaticElement(constructor);
-    node.setElement(constructor);
     return null;
   }
 
@@ -708,7 +711,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       String prefixName = prefixNode.getName();
       for (PrefixElement prefixElement : resolver.getDefiningLibrary().getPrefixes()) {
         if (prefixElement.getDisplayName().equals(prefixName)) {
-          recordResolution(prefixNode, prefixElement);
+          prefixNode.setStaticElement(prefixElement);
           break;
         }
       }
@@ -752,9 +755,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ConstructorElement invokedConstructor = node.getConstructorName().getElement();
+    ConstructorElement invokedConstructor = node.getConstructorName().getStaticElement();
     node.setStaticElement(invokedConstructor);
-    node.setElement(invokedConstructor);
     ArgumentList argumentList = node.getArgumentList();
     ParameterElement[] parameters = resolveArgumentsToParameters(
         node.isConst(),
@@ -787,17 +789,16 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     SimpleIdentifier methodName = node.getMethodName();
     Expression target = node.getRealTarget();
-    Element staticElement;
-    Element propagatedElement;
     if (target instanceof SuperExpression && !isSuperInValidContext((SuperExpression) target)) {
       return null;
     }
+    Element staticElement;
+    Element propagatedElement;
     if (target == null) {
       staticElement = resolveInvokedElement(methodName);
       propagatedElement = null;
     } else {
-      Type targetType = getStaticType(target);
-      staticElement = resolveInvokedElement(target, targetType, methodName);
+      staticElement = resolveInvokedElement(target, getStaticType(target), methodName);
       propagatedElement = resolveInvokedElement(target, getPropagatedType(target), methodName);
     }
     staticElement = convertSetterToGetter(staticElement);
@@ -805,7 +806,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     // Record the results.
     //
-    recordResolution(methodName, staticElement, propagatedElement);
+    methodName.setStaticElement(staticElement);
+    methodName.setPropagatedElement(propagatedElement);
     ArgumentList argumentList = node.getArgumentList();
     if (staticElement != null) {
       ParameterElement[] parameters = computeCorrespondingParameters(argumentList, staticElement);
@@ -916,7 +918,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     // First, check to see whether the prefix is really a prefix.
     //
-    Element prefixElement = prefix.getElement();
+    Element prefixElement = prefix.getStaticElement();
     if (prefixElement instanceof PrefixElement) {
       Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
       if (element == null) {
@@ -938,7 +940,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
       // TODO(brianwilkerson) The prefix needs to be resolved to the element for the import that
       // defines the prefix, not the prefix's element.
-      recordResolution(identifier, element);
+      identifier.setStaticElement(element);
       // Validate annotation element.
       if (node.getParent() instanceof Annotation) {
         Annotation annotation = (Annotation) node.getParent();
@@ -951,7 +953,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // May be annotation, resolve invocation of "const" constructor.
     if (node.getParent() instanceof Annotation) {
       Annotation annotation = (Annotation) node.getParent();
-      resolveAnnotationElement(annotation, prefixElement, node.getIdentifier());
+      resolveAnnotationElement(annotation, prefixElement, identifier);
     }
 
     //
@@ -1023,7 +1025,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     }
     if (name != null) {
-      recordResolution(name, element);
+      name.setStaticElement(element);
     }
     node.setStaticElement(element);
     node.setElement(element);
@@ -1041,14 +1043,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // We ignore identifiers that have already been resolved, such as identifiers representing the
     // name in a declaration.
     //
-    if (node.getStaticElement() != null || node.getElement() != null) {
+    if (node.getStaticElement() != null) {
       return null;
     }
     //
     // The name dynamic denotes a Type object even though dynamic is not a class.
     //
     if (node.getName().equals(dynamicType.getName())) {
-      recordResolution(node, dynamicType.getElement());
+      node.setStaticElement(dynamicType.getElement());
       node.setStaticType(typeType);
       return null;
     }
@@ -1067,7 +1069,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
 
-    recordResolution(node, element);
+    node.setStaticElement(element);
 
     //
     // Validate annotation element.
@@ -1118,7 +1120,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     if (name != null) {
-      recordResolution(name, element);
+      name.setStaticElement(element);
     }
     node.setStaticElement(element);
     node.setElement(element);
@@ -1145,7 +1147,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   public Void visitTypeParameter(TypeParameter node) {
     TypeName bound = node.getBound();
     if (bound != null) {
-      TypeVariableElementImpl variable = (TypeVariableElementImpl) node.getName().getElement();
+      TypeVariableElementImpl variable = (TypeVariableElementImpl) node.getName().getStaticElement();
       if (variable != null) {
         variable.setBound(bound.getType());
       }
@@ -1765,7 +1767,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         if (labelElement == null) {
           resolver.reportError(CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, labelNode.getName());
         } else {
-          recordResolution(labelNode, labelElement);
+          labelNode.setStaticElement(labelElement);
         }
       }
     }
@@ -1985,33 +1987,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     return operator;
   }
 
-  /**
-   * Record the fact that the given AST node was resolved to the given element.
-   * 
-   * @param node the AST node that was resolved
-   * @param element the element to which the AST node was resolved
-   */
-  private void recordResolution(SimpleIdentifier node, Element element) {
-    node.setStaticElement(element);
-    node.setElement(element);
-  }
-
-  /**
-   * Record the fact that the given AST node was resolved to the given elements.
-   * 
-   * @param node the AST node that was resolved
-   * @param staticElement the element to which the AST node was resolved using static type
-   *          information
-   * @param propagatedElement the element to which the AST node was resolved using propagated type
-   *          information
-   * @return the element that was associated with the node
-   */
-  private void recordResolution(SimpleIdentifier node, Element staticElement,
-      Element propagatedElement) {
-    node.setStaticElement(staticElement);
-    node.setElement(propagatedElement == null ? staticElement : propagatedElement);
-  }
-
   private void resolveAnnotationConstructorInvocationArguments(Annotation annotation,
       ConstructorElement constructor) {
     ArgumentList argumentList = annotation.getArguments();
@@ -2075,7 +2050,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // record element
       annotation.setElement(constructor);
       if (nameNode != null) {
-        recordResolution(nameNode, constructor);
+        nameNode.setStaticElement(constructor);
       }
       // resolve arguments
       resolveAnnotationConstructorInvocationArguments(annotation, constructor);
@@ -2157,7 +2132,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           resolver.reportError(errorCode, nameNode, name);
         } else {
           resolvedParameters[i] = element;
-          recordResolution(nameNode, element);
+          nameNode.setStaticElement(element);
         }
         if (!usedNames.add(name)) {
           resolver.reportError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, name);
@@ -2210,7 +2185,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       for (SimpleIdentifier name : names) {
         Element element = namespace.get(name.getName());
         if (element != null) {
-          name.setElement(element);
+          name.setStaticElement(element);
         }
       }
     }
@@ -2240,7 +2215,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
       return element;
     } else if (target instanceof SimpleIdentifier) {
-      Element targetElement = ((SimpleIdentifier) target).getElement();
+      Element targetElement = ((SimpleIdentifier) target).getStaticElement();
       if (targetElement instanceof PrefixElement) {
         //
         // Look to see whether the name of the method is really part of a prefixed identifier for an
@@ -2329,7 +2304,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // Error was already reported in validateAnnotationElement().
     if (target.getParent().getParent() instanceof Annotation) {
       if (staticElement != null) {
-        recordResolution(propertyName, staticElement);
+        propertyName.setStaticElement(staticElement);
       }
       return;
     }
@@ -2337,13 +2312,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
     Type propagatedType = getPropagatedType(target);
     ExecutableElement propagatedElement = resolveProperty(target, propagatedType, propertyName);
-    Element selectedElement = select(staticElement, propagatedElement);
-    propertyName.setElement(selectedElement);
+    propertyName.setPropagatedElement(propagatedElement);
 
     if (shouldReportMissingMember(staticType, staticElement)
         && (strictMode || propagatedType == null || shouldReportMissingMember(
             propagatedType,
             propagatedElement))) {
+      Element selectedElement = select(staticElement, propagatedElement);
       boolean isStaticProperty = isStatic(selectedElement);
       if (propertyName.inSetterContext()) {
         if (isStaticProperty) {
@@ -2459,17 +2434,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private ExecutableElement select(ExecutableElement staticElement,
       ExecutableElement propagatedElement) {
     return propagatedElement != null ? propagatedElement : staticElement;
-  }
-
-  /**
-   * Return the propagated method if it is not {@code null}, or the static method if it is.
-   * 
-   * @param staticMethod the method computed using static type information
-   * @param propagatedMethod the method computed using propagated type information
-   * @return the more specific of the two methods
-   */
-  private MethodElement select(MethodElement staticMethod, MethodElement propagatedMethod) {
-    return propagatedMethod != null ? propagatedMethod : staticMethod;
   }
 
   /**

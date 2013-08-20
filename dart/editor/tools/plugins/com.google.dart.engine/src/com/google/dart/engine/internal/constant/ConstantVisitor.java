@@ -180,7 +180,7 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
       // TODO(brianwilkerson) Figure out which error to report.
       return error(node, null);
     }
-    ConstructorElement constructor = node.getElement();
+    ConstructorElement constructor = node.getStaticElement();
     if (constructor != null && constructor.isConst()) {
       node.getArgumentList().accept(this);
       return ValidResult.RESULT_OBJECT;
@@ -238,7 +238,7 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
 
   @Override
   public EvaluationResultImpl visitMethodInvocation(MethodInvocation node) {
-    Element element = node.getMethodName().getElement();
+    Element element = node.getMethodName().getStaticElement();
     if (element instanceof FunctionElement) {
       FunctionElement function = (FunctionElement) element;
       if (function.getName().equals("identical")) {
@@ -280,7 +280,7 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
   public EvaluationResultImpl visitPrefixedIdentifier(PrefixedIdentifier node) {
     // validate prefix
     SimpleIdentifier prefixNode = node.getPrefix();
-    Element prefixElement = prefixNode.getElement();
+    Element prefixElement = prefixNode.getStaticElement();
     if (!(prefixElement instanceof PrefixElement)) {
       EvaluationResultImpl prefixResult = prefixNode.accept(this);
       if (!(prefixResult instanceof ValidResult)) {
@@ -288,7 +288,7 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
       }
     }
     // validate prefixed identifier
-    return getConstantValue(node, node.getElement());
+    return getConstantValue(node, node.getStaticElement());
   }
 
   @Override
@@ -311,12 +311,12 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
 
   @Override
   public EvaluationResultImpl visitPropertyAccess(PropertyAccess node) {
-    return getConstantValue(node, node.getPropertyName().getElement());
+    return getConstantValue(node, node.getPropertyName().getStaticElement());
   }
 
   @Override
   public EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
-    return getConstantValue(node, node.getElement());
+    return getConstantValue(node, node.getStaticElement());
   }
 
   @Override

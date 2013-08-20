@@ -83,7 +83,7 @@ public class FunctionTypeAlias extends TypeAlias {
 
   @Override
   public FunctionTypeAliasElement getElement() {
-    return name != null ? (FunctionTypeAliasElement) name.getElement() : null;
+    return name != null ? (FunctionTypeAliasElement) name.getStaticElement() : null;
   }
 
   /**

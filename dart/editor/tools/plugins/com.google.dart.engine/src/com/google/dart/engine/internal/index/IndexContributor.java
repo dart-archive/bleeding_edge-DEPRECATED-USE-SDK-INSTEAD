@@ -110,7 +110,8 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     if (node.getParent() instanceof PrefixedIdentifier) {
       PrefixedIdentifier propertyAccess = (PrefixedIdentifier) node.getParent();
       SimpleIdentifier qualifier = propertyAccess.getPrefix();
-      if (qualifier instanceof SimpleIdentifier && qualifier.getElement() instanceof LibraryElement) {
+      if (qualifier instanceof SimpleIdentifier
+          && qualifier.getStaticElement() instanceof LibraryElement) {
         return qualifier.getName();
       }
     }
@@ -374,7 +375,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitConstructorName(ConstructorName node) {
-    ConstructorElement element = node.getElement();
+    ConstructorElement element = node.getStaticElement();
     Location location;
     if (node.getName() != null) {
       int start = node.getPeriod().getOffset();
@@ -441,7 +442,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.getMethodName();
-    Element element = name.getElement();
+    Element element = name.getBestElement();
     if (element instanceof MethodElement) {
       Location location = createLocation(name);
       Relationship relationship;
@@ -484,7 +485,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       return null;
     }
     // prepare information
-    Element element = node.getElement();
+    Element element = node.getBestElement();
     // qualified name reference
     recordQualifiedMemberReference(node, element, nameElement, location);
     // stop if already handled
@@ -532,7 +533,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    ConstructorElement element = node.getElement();
+    ConstructorElement element = node.getStaticElement();
     Location location;
     if (node.getConstructorName() != null) {
       int start = node.getPeriod().getOffset();
@@ -656,7 +657,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   private boolean isAlreadyHandledName(SimpleIdentifier node) {
     ASTNode parent = node.getParent();
     if (parent instanceof MethodInvocation) {
-      Element element = node.getElement();
+      Element element = node.getStaticElement();
       if (element instanceof MethodElement || element instanceof FunctionElement) {
         return ((MethodInvocation) parent).getMethodName() == node;
       }
@@ -678,7 +679,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    * top-level element and not qualified with import prefix.
    */
   private void recordImportElementReferenceWithoutPrefix(SimpleIdentifier node) {
-    Element element = node.getElement();
+    Element element = node.getStaticElement();
     if (element != null && element.getEnclosingElement() instanceof CompilationUnitElement
         && !isIdentifierInPrefixedIdentifier(node)) {
       LibraryElement importLibraryElement = element.getLibrary();
@@ -738,7 +739,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     if (superNode != null) {
       Identifier superName = superNode.getName();
       if (superName != null) {
-        Element superElement = superName.getElement();
+        Element superElement = superName.getStaticElement();
         recordRelationship(superElement, relationship, createLocation(superNode));
       }
     }

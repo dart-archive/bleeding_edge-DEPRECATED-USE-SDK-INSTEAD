@@ -305,7 +305,7 @@ public class ElementBuilderTest extends EngineTestCase {
     assertLength(0, constructor.getLabels());
     assertLength(0, constructor.getLocalVariables());
     assertLength(0, constructor.getParameters());
-    assertSame(constructor, constructorDeclaration.getName().getElement());
+    assertSame(constructor, constructorDeclaration.getName().getStaticElement());
     assertSame(constructor, constructorDeclaration.getElement());
   }
 

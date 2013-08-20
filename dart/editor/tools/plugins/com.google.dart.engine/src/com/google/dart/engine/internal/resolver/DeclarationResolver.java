@@ -173,7 +173,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
         enclosingExecutable = enclosingClass.getUnnamedConstructor();
       } else {
         enclosingExecutable = enclosingClass.getNamedConstructor(constructorName.getName());
-        constructorName.setElement(enclosingExecutable);
+        constructorName.setStaticElement(enclosingExecutable);
       }
       node.setElement((ConstructorElement) enclosingExecutable);
       return super.visitConstructorDeclaration(node);
@@ -262,7 +262,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
         PropertyAccessorElement accessor = find(enclosingUnit.getAccessors(), functionName);
         if (((KeywordToken) property).getKeyword() == Keyword.SET) {
           accessor = accessor.getVariable().getSetter();
-          functionName.setElement(accessor);
+          functionName.setStaticElement(accessor);
         }
         enclosingExecutable = accessor;
       }
@@ -364,12 +364,12 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
             enclosingClass.getMethods(),
             nameOfMethod,
             methodName.getOffset());
-        methodName.setElement(enclosingExecutable);
+        methodName.setStaticElement(enclosingExecutable);
       } else {
         PropertyAccessorElement accessor = find(enclosingClass.getAccessors(), methodName);
         if (((KeywordToken) property).getKeyword() == Keyword.SET) {
           accessor = accessor.getVariable().getSetter();
-          methodName.setElement(accessor);
+          methodName.setStaticElement(accessor);
         }
         enclosingExecutable = accessor;
       }
@@ -533,7 +533,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
    */
   private <E extends Element> E find(E[] elements, SimpleIdentifier identifier) {
     E element = find(elements, identifier.getName(), identifier.getOffset());
-    identifier.setElement(element);
+    identifier.setStaticElement(element);
     return element;
   }
 
@@ -622,6 +622,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
     }
     ParameterElement element = parameters == null ? null : find(parameters, parameterName);
     if (element == null) {
+      @SuppressWarnings("resource")
       PrintStringWriter writer = new PrintStringWriter();
       writer.println("Invalid state found in the Analysis Engine:");
       writer.println("DeclarationResolver.getElementForParameter() is visiting a parameter that "

@@ -875,8 +875,8 @@ public class IndexContributorTest extends AbstractDartTest {
     VariableElement vElement = findElement("v;");
     LibraryElement libraryElement = mock(LibraryElement.class);
     ClassElement classElement = mock(ClassElement.class);
-    findSimpleIdentifier("MyClass v;").setElement(classElement);
-    findSimpleIdentifier("pref.MyClass").setElement(libraryElement);
+    findSimpleIdentifier("MyClass v;").setStaticElement(classElement);
+    findSimpleIdentifier("pref.MyClass").setStaticElement(libraryElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1440,7 +1440,7 @@ public class IndexContributorTest extends AbstractDartTest {
     // set elements
     Element mainElement = findElement("main() {");
     PropertyAccessorElement fooElement = findElement("foo(x) {}");
-    findSimpleIdentifier("foo = 42").setElement(fooElement);
+    findSimpleIdentifier("foo = 42").setStaticElement(fooElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify

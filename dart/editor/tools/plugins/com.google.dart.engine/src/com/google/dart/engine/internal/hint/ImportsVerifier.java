@@ -153,7 +153,7 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
             if (importDirective.getAsToken() != null) {
               SimpleIdentifier prefixIdentifier = importDirective.getPrefix();
               if (prefixIdentifier != null) {
-                Element element = prefixIdentifier.getElement();
+                Element element = prefixIdentifier.getStaticElement();
                 if (element instanceof PrefixElement) {
                   PrefixElement prefixElementKey = (PrefixElement) element;
                   prefixElementMap.put(prefixElementKey, importDirective);
@@ -207,7 +207,7 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
     // lookup the associated ImportDirective in prefixElementMap and remove it from the
     // unusedImports list.
     SimpleIdentifier prefixIdentifier = node.getPrefix();
-    Element element = prefixIdentifier.getElement();
+    Element element = prefixIdentifier.getStaticElement();
     if (element instanceof PrefixElement) {
       unusedImports.remove(prefixElementMap.get(element));
       return null;
@@ -218,7 +218,7 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
-    return visitIdentifier(node.getElement(), node.getName());
+    return visitIdentifier(node.getStaticElement(), node.getName());
   }
 
   void setInDefiningCompilationUnit(boolean inDefiningCompilationUnit) {

@@ -81,7 +81,7 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
         ASTNode coveringNode = context.getCoveringNode();
         if (coveringNode instanceof SimpleIdentifier) {
           SimpleIdentifier coveringIdentifier = (SimpleIdentifier) coveringNode;
-          Element element = coveringIdentifier.getElement();
+          Element element = coveringIdentifier.getBestElement();
           if (element instanceof LocalVariableElement) {
             variableElement = (LocalVariableElement) element;
             variableNode = utils.findNode(

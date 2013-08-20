@@ -759,7 +759,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     Type boolType = typeProvider.getBoolType();
     PropertyAccessorElementImpl getter = getterElement("b", false, boolType);
     PrefixedIdentifier node = identifier("a", "b");
-    node.getIdentifier().setElement(getter);
+    node.getIdentifier().setStaticElement(getter);
     assertSame(boolType, analyze(node));
     listener.assertNoErrors();
   }
@@ -769,7 +769,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     FieldElementImpl field = fieldElement("b", false, false, false, boolType);
     PropertyAccessorElement setter = field.getSetter();
     PrefixedIdentifier node = identifier("a", "b");
-    node.getIdentifier().setElement(setter);
+    node.getIdentifier().setStaticElement(setter);
     assertSame(boolType, analyze(node));
     listener.assertNoErrors();
   }
@@ -778,7 +778,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     VariableElementImpl variable = localVariableElement("b");
     variable.setType(typeProvider.getBoolType());
     PrefixedIdentifier node = identifier("a", "b");
-    node.getIdentifier().setElement(variable);
+    node.getIdentifier().setStaticElement(variable);
     assertSame(typeProvider.getBoolType(), analyze(node));
     listener.assertNoErrors();
   }
@@ -837,7 +837,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     Type boolType = typeProvider.getBoolType();
     PropertyAccessorElementImpl getter = getterElement("b", false, boolType);
     PropertyAccess node = propertyAccess(identifier("a"), "b");
-    node.getPropertyName().setElement(getter);
+    node.getPropertyName().setStaticElement(getter);
     assertSame(boolType, analyze(node));
     listener.assertNoErrors();
   }
@@ -847,7 +847,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     FieldElementImpl field = fieldElement("b", false, false, false, boolType);
     PropertyAccessorElement setter = field.getSetter();
     PropertyAccess node = propertyAccess(identifier("a"), "b");
-    node.getPropertyName().setElement(setter);
+    node.getPropertyName().setStaticElement(setter);
     assertSame(boolType, analyze(node));
     listener.assertNoErrors();
   }
@@ -944,7 +944,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   private Type analyze(FormalParameter node) {
     node.accept(analyzer);
-    return ((ParameterElement) node.getIdentifier().getElement()).getType();
+    return ((ParameterElement) node.getIdentifier().getStaticElement()).getType();
   }
 
   /**
@@ -1075,7 +1075,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
       ParameterElementImpl element = new ParameterElementImpl(parameter.getIdentifier());
       element.setParameterKind(parameter.getKind());
       element.setType(typeProvider.getDynamicType());
-      parameter.getIdentifier().setElement(element);
+      parameter.getIdentifier().setStaticElement(element);
       parameterElements.add(element);
     }
     FunctionExpression node = functionExpression(parameters, body);
@@ -1121,7 +1121,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     SimpleIdentifier identifier = identifier(variableName);
     VariableElementImpl element = localVariableElement(identifier);
     element.setType(type);
-    identifier.setElement(element);
+    identifier.setStaticElement(element);
     identifier.setStaticType(type);
     return identifier;
   }
@@ -1134,10 +1134,10 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   private void setType(FormalParameter parameter, Type type) {
     SimpleIdentifier identifier = parameter.getIdentifier();
-    Element element = identifier.getElement();
+    Element element = identifier.getStaticElement();
     if (!(element instanceof ParameterElement)) {
       element = new ParameterElementImpl(identifier);
-      identifier.setElement(element);
+      identifier.setStaticElement(element);
     }
     ((ParameterElementImpl) element).setType(type);
   }

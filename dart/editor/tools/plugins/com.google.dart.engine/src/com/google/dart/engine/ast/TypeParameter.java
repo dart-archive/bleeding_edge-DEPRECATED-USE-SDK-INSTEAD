@@ -80,7 +80,7 @@ public class TypeParameter extends Declaration {
 
   @Override
   public TypeVariableElement getElement() {
-    return name != null ? (TypeVariableElement) name.getElement() : null;
+    return name != null ? (TypeVariableElement) name.getStaticElement() : null;
   }
 
   @Override

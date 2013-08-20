@@ -114,7 +114,7 @@ public class ClassTypeAlias extends TypeAlias {
 
   @Override
   public ClassElement getElement() {
-    return name != null ? (ClassElement) name.getElement() : null;
+    return name != null ? (ClassElement) name.getStaticElement() : null;
   }
 
   /**

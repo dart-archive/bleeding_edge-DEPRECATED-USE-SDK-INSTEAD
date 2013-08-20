@@ -91,9 +91,9 @@ public class ElementLocator {
         if (returnType == node) {
           SimpleIdentifier name = decl.getName();
           if (name != null) {
-            return name.getElement();
+            return name.getBestElement();
           }
-          Element element = node.getElement();
+          Element element = node.getBestElement();
           if (element instanceof ClassElement) {
             return ((ClassElement) element).getUnnamedConstructor();
           }
@@ -108,7 +108,7 @@ public class ElementLocator {
           }
         }
       }
-      Element element = node.getElement();
+      Element element = node.getBestElement();
       if (element == null) {
         element = node.getStaticElement();
       }
@@ -127,7 +127,7 @@ public class ElementLocator {
 
     @Override
     public Element visitInstanceCreationExpression(InstanceCreationExpression node) {
-      return node.getElement();
+      return node.getStaticElement();
     }
 
     @Override
@@ -142,7 +142,7 @@ public class ElementLocator {
 
     @Override
     public Element visitMethodInvocation(MethodInvocation node) {
-      return node.getMethodName().getElement();
+      return node.getMethodName().getBestElement();
     }
 
     @Override
@@ -152,7 +152,7 @@ public class ElementLocator {
 
     @Override
     public Element visitPrefixedIdentifier(PrefixedIdentifier node) {
-      return node.getElement();
+      return node.getBestElement();
     }
 
     @Override

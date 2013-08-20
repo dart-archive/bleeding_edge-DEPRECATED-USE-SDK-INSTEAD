@@ -382,7 +382,7 @@ public class CorrectionUtils {
    *         <code>null</code> in the other case.
    */
   public static VariableElement getLocalOrParameterVariableElement(SimpleIdentifier node) {
-    Element element = node.getElement();
+    Element element = node.getStaticElement();
     if (element instanceof LocalVariableElement) {
       return (LocalVariableElement) element;
     }
@@ -397,7 +397,7 @@ public class CorrectionUtils {
    *         local variable, or <code>null</code> in the other case.
    */
   public static LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
-    Element element = node.getElement();
+    Element element = node.getStaticElement();
     if (element instanceof LocalVariableElement) {
       return (LocalVariableElement) element;
     }
@@ -451,7 +451,7 @@ public class CorrectionUtils {
    *         parameter, or <code>null</code> in the other case.
    */
   public static ParameterElement getParameterElement(SimpleIdentifier node) {
-    Element element = node.getElement();
+    Element element = node.getStaticElement();
     if (element instanceof ParameterElement) {
       return (ParameterElement) element;
     }
@@ -517,7 +517,7 @@ public class CorrectionUtils {
    *         to property, or <code>null</code> in the other case.
    */
   public static PropertyAccessorElement getPropertyAccessorElement(SimpleIdentifier node) {
-    Element element = node.getElement();
+    Element element = node.getStaticElement();
     if (element instanceof PropertyAccessorElement) {
       return (PropertyAccessorElement) element;
     }

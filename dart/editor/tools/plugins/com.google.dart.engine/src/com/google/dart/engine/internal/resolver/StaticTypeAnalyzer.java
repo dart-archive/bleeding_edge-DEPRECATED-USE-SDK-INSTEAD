@@ -315,10 +315,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
         }
         overrideType = propagatedType;
       }
-      VariableElement element = resolver.getOverridableElement(node.getLeftHandSide());
-      if (element != null) {
-        resolver.override(element, overrideType);
-      }
+      resolver.override(node.getLeftHandSide(), overrideType);
     } else {
       ExecutableElement staticMethodElement = node.getStaticElement();
       Type staticType = computeStaticReturnType(staticMethodElement);
@@ -838,9 +835,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier methodNameNode = node.getMethodName();
     Element staticMethodElement = methodNameNode.getStaticElement();
-    if (staticMethodElement == null) {
-      staticMethodElement = methodNameNode.getElement();
-    }
 
     // Record static return type of the static element.
     Type staticStaticType = computeStaticReturnType(staticMethodElement);
@@ -907,7 +901,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     } else if (methodName.equals("query")) {
       Expression target = node.getRealTarget();
       if (target == null) {
-        Element methodElement = methodNameNode.getElement();
+        Element methodElement = methodNameNode.getBestElement();
         if (methodElement != null) {
           LibraryElement library = methodElement.getLibrary();
           if (isHtmlLibrary(library)) {
@@ -952,7 +946,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
         recordPropagatedType(node, returnType);
       }
     } else {
-      Element propagatedElement = methodNameNode.getElement();
+      Element propagatedElement = methodNameNode.getPropagatedElement();
       if (propagatedElement != staticMethodElement) {
         // Record static return type of the propagated element.
         Type propagatedStaticType = computeStaticReturnType(propagatedElement);
@@ -1048,7 +1042,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefixedIdentifier = node.getIdentifier();
-    Element element = prefixedIdentifier.getElement();
+    Element element = prefixedIdentifier.getStaticElement();
     Type staticType = dynamicType;
     if (element instanceof ClassElement) {
       if (isNotTypeLiteral(node)) {
@@ -1075,7 +1069,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     }
     recordStaticType(prefixedIdentifier, staticType);
     recordStaticType(node, staticType);
-
+    // TODO(brianwilkerson) I think we want to repeat the logic above using the propagated element
+    // to get another candidate for the propagated type.
     Type propagatedType = overrideManager.getType(element);
     if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
       recordPropagatedType(prefixedIdentifier, propagatedType);
@@ -1163,7 +1158,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitPropertyAccess(PropertyAccess node) {
     SimpleIdentifier propertyName = node.getPropertyName();
-    Element element = propertyName.getElement();
+    Element element = propertyName.getStaticElement();
     Type staticType = dynamicType;
     if (element instanceof MethodElement) {
       staticType = ((MethodElement) element).getType();
@@ -1175,7 +1170,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     }
     recordStaticType(propertyName, staticType);
     recordStaticType(node, staticType);
-
+    // TODO(brianwilkerson) I think we want to repeat the logic above using the propagated element
+    // to get another candidate for the propagated type.
     Type propagatedType = overrideManager.getType(element);
     if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
       recordPropagatedType(node, propagatedType);
@@ -1237,7 +1233,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.getElement();
+    Element element = node.getStaticElement();
     Type staticType = dynamicType;
     if (element instanceof ClassElement) {
       if (isNotTypeLiteral(node)) {
@@ -1267,7 +1263,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       staticType = dynamicType;
     }
     recordStaticType(node, staticType);
-
+    // TODO(brianwilkerson) I think we want to repeat the logic above using the propagated element
+    // to get another candidate for the propagated type.
     Type propagatedType = overrideManager.getType(element);
     if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
       recordPropagatedType(node, propagatedType);
@@ -1344,7 +1341,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       Type rightType = initializer.getBestType();
       SimpleIdentifier name = node.getName();
       recordPropagatedType(name, rightType);
-      VariableElement element = (VariableElement) name.getElement();
+      VariableElement element = (VariableElement) name.getStaticElement();
       if (element != null) {
         resolver.override(element, rightType);
       }

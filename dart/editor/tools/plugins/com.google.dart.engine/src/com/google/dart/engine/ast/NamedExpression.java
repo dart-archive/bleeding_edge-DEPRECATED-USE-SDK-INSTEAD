@@ -68,7 +68,7 @@ public class NamedExpression extends Expression {
    * @return the element representing the parameter being named by this expression
    */
   public ParameterElement getElement() {
-    Element element = name.getLabel().getElement();
+    Element element = name.getLabel().getStaticElement();
     if (element instanceof ParameterElement) {
       return (ParameterElement) element;
     }

@@ -136,7 +136,7 @@ public class ConstantValueComputerTest extends ResolverTestCase {
 
   private void validate(boolean shouldBeValid, VariableDeclarationList declarationList) {
     for (VariableDeclaration declaration : declarationList.getVariables()) {
-      VariableElementImpl element = (VariableElementImpl) declaration.getName().getElement();
+      VariableElementImpl element = (VariableElementImpl) declaration.getElement();
       assertNotNull(element);
       EvaluationResultImpl result = element.getEvaluationResult();
       if (shouldBeValid) {

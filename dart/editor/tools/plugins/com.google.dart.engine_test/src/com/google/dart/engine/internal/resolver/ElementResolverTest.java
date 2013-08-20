@@ -271,7 +271,7 @@ public class ElementResolverTest extends EngineTestCase {
     classA.setConstructors(new ConstructorElement[] {constructor});
     ConstructorName name = constructorName(typeName(classA), constructorName);
     resolveNode(name);
-    assertSame(constructor, name.getElement());
+    assertSame(constructor, name.getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -282,7 +282,7 @@ public class ElementResolverTest extends EngineTestCase {
     classA.setConstructors(new ConstructorElement[] {constructor});
     ConstructorName name = constructorName(typeName(classA), constructorName);
     resolveNode(name);
-    assertSame(constructor, name.getElement());
+    assertSame(constructor, name.getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -314,7 +314,7 @@ public class ElementResolverTest extends EngineTestCase {
     classA.setFields(new FieldElement[] {fieldElement(fieldName, false, false, false, intType)});
 
     FieldFormalParameter parameter = fieldFormalParameter(fieldName);
-    parameter.getIdentifier().setElement(fieldFormalParameter(parameter.getIdentifier()));
+    parameter.getIdentifier().setStaticElement(fieldFormalParameter(parameter.getIdentifier()));
 
     resolveInClass(parameter, classA);
     assertSame(intType, parameter.getElement().getType());
@@ -370,10 +370,10 @@ public class ElementResolverTest extends EngineTestCase {
     ConstructorElement constructor = constructorElement(classA, constructorName);
     classA.setConstructors(new ConstructorElement[] {constructor});
     ConstructorName name = constructorName(typeName(classA), constructorName);
-    name.setElement(constructor);
+    name.setStaticElement(constructor);
     InstanceCreationExpression creation = instanceCreationExpression(Keyword.NEW, name);
     resolveNode(creation);
-    assertSame(constructor, creation.getElement());
+    assertSame(constructor, creation.getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -384,10 +384,10 @@ public class ElementResolverTest extends EngineTestCase {
     classA.setConstructors(new ConstructorElement[] {constructor});
 
     ConstructorName name = constructorName(typeName(classA), constructorName);
-    name.setElement(constructor);
+    name.setStaticElement(constructor);
     InstanceCreationExpression creation = instanceCreationExpression(Keyword.NEW, name);
     resolveNode(creation);
-    assertSame(constructor, creation.getElement());
+    assertSame(constructor, creation.getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -401,16 +401,16 @@ public class ElementResolverTest extends EngineTestCase {
     classA.setConstructors(new ConstructorElement[] {constructor});
 
     ConstructorName name = constructorName(typeName(classA), constructorName);
-    name.setElement(constructor);
+    name.setStaticElement(constructor);
     InstanceCreationExpression creation = instanceCreationExpression(
         Keyword.NEW,
         name,
         namedExpression(parameterName, integer(0)));
     resolveNode(creation);
-    assertSame(constructor, creation.getElement());
+    assertSame(constructor, creation.getStaticElement());
     assertSame(
         parameter,
-        ((NamedExpression) creation.getArgumentList().getArguments().get(0)).getName().getLabel().getElement());
+        ((NamedExpression) creation.getArgumentList().getArguments().get(0)).getName().getLabel().getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -421,7 +421,7 @@ public class ElementResolverTest extends EngineTestCase {
     String methodName = "abs";
     MethodInvocation invocation = methodInvocation(left, methodName);
     resolveNode(invocation);
-    assertSame(getMethod(numType, methodName), invocation.getMethodName().getElement());
+    assertSame(getMethod(numType, methodName), invocation.getMethodName().getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -441,10 +441,10 @@ public class ElementResolverTest extends EngineTestCase {
         methodName,
         namedExpression(parameterName, integer(0)));
     resolveNode(invocation);
-    assertSame(method, invocation.getMethodName().getElement());
+    assertSame(method, invocation.getMethodName().getStaticElement());
     assertSame(
         parameter,
-        ((NamedExpression) invocation.getArgumentList().getArguments().get(0)).getName().getLabel().getElement());
+        ((NamedExpression) invocation.getArgumentList().getArguments().get(0)).getName().getLabel().getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -463,12 +463,12 @@ public class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier target = identifier("a");
     VariableElementImpl variable = localVariableElement(target);
     variable.setType(dynamicType);
-    target.setElement(variable);
+    target.setStaticElement(variable);
     target.setStaticType(dynamicType);
     PrefixedIdentifier identifier = identifier(target, identifier("b"));
     resolveNode(identifier);
-    assertNull(identifier.getElement());
-    assertNull(identifier.getIdentifier().getElement());
+    assertNull(identifier.getStaticElement());
+    assertNull(identifier.getIdentifier().getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -480,12 +480,12 @@ public class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier target = identifier("a");
     VariableElementImpl variable = localVariableElement(target);
     variable.setType(classA.getType());
-    target.setElement(variable);
+    target.setStaticElement(variable);
     target.setStaticType(classA.getType());
     PrefixedIdentifier identifier = identifier(target, identifier(getterName));
     resolveNode(identifier);
-    assertSame(getter, identifier.getElement());
-    assertSame(getter, identifier.getIdentifier().getElement());
+    assertSame(getter, identifier.getStaticElement());
+    assertSame(getter, identifier.getIdentifier().getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -508,7 +508,7 @@ public class ElementResolverTest extends EngineTestCase {
     target.setStaticType(classA.getType());
     PropertyAccess access = propertyAccess(target, getterName);
     resolveNode(access);
-    assertSame(getter, access.getPropertyName().getElement());
+    assertSame(getter, access.getPropertyName().getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -537,7 +537,7 @@ public class ElementResolverTest extends EngineTestCase {
         formalParameterList(),
         expressionFunctionBody(access));
     resolveNode(access);
-    assertSame(getter, access.getPropertyName().getElement());
+    assertSame(getter, access.getPropertyName().getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -551,7 +551,7 @@ public class ElementResolverTest extends EngineTestCase {
     PropertyAccess access = propertyAccess(target, setterName);
     assignmentExpression(access, TokenType.EQ, integer(0));
     resolveNode(access);
-    assertSame(setter, access.getPropertyName().getElement());
+    assertSame(setter, access.getPropertyName().getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -560,7 +560,7 @@ public class ElementResolverTest extends EngineTestCase {
     String fieldName = "NAN";
     SimpleIdentifier node = identifier(fieldName);
     resolveInClass(node, doubleType.getElement());
-    assertEquals(getGetter(doubleType, fieldName), node.getElement());
+    assertEquals(getGetter(doubleType, fieldName), node.getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -589,7 +589,7 @@ public class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier node = identifier(fieldName);
     assignmentExpression(node, TokenType.EQ, integer(0L));
     resolveInClass(node, classA);
-    Element element = node.getElement();
+    Element element = node.getStaticElement();
     assertInstanceOf(PropertyAccessorElement.class, element);
     assertTrue(((PropertyAccessorElement) element).isSetter());
     listener.assertNoErrors();
@@ -629,7 +629,7 @@ public class ElementResolverTest extends EngineTestCase {
     assertEquals(superConstructor, invocation.getElement());
     assertSame(
         parameter,
-        ((NamedExpression) invocation.getArgumentList().getArguments().get(0)).getName().getLabel().getElement());
+        ((NamedExpression) invocation.getArgumentList().getArguments().get(0)).getName().getLabel().getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -673,7 +673,7 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private Element resolve(BreakStatement statement, LabelElementImpl labelElement) {
     resolveStatement(statement, labelElement);
-    return statement.getLabel().getElement();
+    return statement.getLabel().getStaticElement();
   }
 
   /**
@@ -686,7 +686,7 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private Element resolve(ContinueStatement statement, LabelElementImpl labelElement) {
     resolveStatement(statement, labelElement);
-    return statement.getLabel().getElement();
+    return statement.getLabel().getStaticElement();
   }
 
   /**
@@ -700,7 +700,7 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private Element resolve(Identifier node, Element... definedElements) {
     resolveNode(node, definedElements);
-    return node.getElement();
+    return node.getStaticElement();
   }
 
   /**

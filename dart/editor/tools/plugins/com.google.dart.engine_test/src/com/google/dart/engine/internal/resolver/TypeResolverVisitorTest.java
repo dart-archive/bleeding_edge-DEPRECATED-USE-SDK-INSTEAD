@@ -140,7 +140,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     // catch (e)
     CatchClause clause = catchClause("e");
     SimpleIdentifier exceptionParameter = clause.getExceptionParameter();
-    exceptionParameter.setElement(new LocalVariableElementImpl(exceptionParameter));
+    exceptionParameter.setStaticElement(new LocalVariableElementImpl(exceptionParameter));
     resolve(clause, typeProvider.getObjectType(), null);
     listener.assertNoErrors();
   }
@@ -149,9 +149,9 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     // catch (e, s)
     CatchClause clause = catchClause("e", "s");
     SimpleIdentifier exceptionParameter = clause.getExceptionParameter();
-    exceptionParameter.setElement(new LocalVariableElementImpl(exceptionParameter));
+    exceptionParameter.setStaticElement(new LocalVariableElementImpl(exceptionParameter));
     SimpleIdentifier stackTraceParameter = clause.getStackTraceParameter();
-    stackTraceParameter.setElement(new LocalVariableElementImpl(stackTraceParameter));
+    stackTraceParameter.setStaticElement(new LocalVariableElementImpl(stackTraceParameter));
     resolve(clause, typeProvider.getObjectType(), typeProvider.getStackTraceType());
     listener.assertNoErrors();
   }
@@ -162,7 +162,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     TypeName exceptionType = typeName(exceptionElement);
     CatchClause clause = catchClause(exceptionType, "e");
     SimpleIdentifier exceptionParameter = clause.getExceptionParameter();
-    exceptionParameter.setElement(new LocalVariableElementImpl(exceptionParameter));
+    exceptionParameter.setStaticElement(new LocalVariableElementImpl(exceptionParameter));
     resolve(clause, exceptionElement.getType(), null, exceptionElement);
     listener.assertNoErrors();
   }
@@ -171,12 +171,12 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     // on E catch (e, s)
     ClassElement exceptionElement = classElement("E");
     TypeName exceptionType = typeName(exceptionElement);
-    ((SimpleIdentifier) exceptionType.getName()).setElement(exceptionElement);
+    ((SimpleIdentifier) exceptionType.getName()).setStaticElement(exceptionElement);
     CatchClause clause = catchClause(exceptionType, "e", "s");
     SimpleIdentifier exceptionParameter = clause.getExceptionParameter();
-    exceptionParameter.setElement(new LocalVariableElementImpl(exceptionParameter));
+    exceptionParameter.setStaticElement(new LocalVariableElementImpl(exceptionParameter));
     SimpleIdentifier stackTraceParameter = clause.getStackTraceParameter();
-    stackTraceParameter.setElement(new LocalVariableElementImpl(stackTraceParameter));
+    stackTraceParameter.setStaticElement(new LocalVariableElementImpl(stackTraceParameter));
     resolve(clause, exceptionElement.getType(), typeProvider.getStackTraceType(), exceptionElement);
     listener.assertNoErrors();
   }
@@ -197,7 +197,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
         extendsClause,
         withClause,
         implementsClause);
-    declaration.getName().setElement(elementA);
+    declaration.getName().setStaticElement(elementA);
 
     resolveNode(declaration, elementA, elementB, elementC, elementD);
     assertSame(elementB.getType(), elementA.getSupertype());
@@ -225,7 +225,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
         typeName(elementB),
         withClause,
         implementsClause);
-    alias.getName().setElement(elementA);
+    alias.getName().setStaticElement(elementA);
 
     resolveNode(alias, elementA, elementB, elementC, elementD);
     assertSame(elementB.getType(), elementA.getSupertype());
@@ -243,14 +243,14 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     TypeName intTypeName = typeName("int");
     String innerParameterName = "a";
     SimpleFormalParameter parameter = simpleFormalParameter(innerParameterName);
-    parameter.getIdentifier().setElement(requiredParameter(innerParameterName));
+    parameter.getIdentifier().setStaticElement(requiredParameter(innerParameterName));
     String outerParameterName = "p";
     FormalParameter node = fieldFormalParameter(
         null,
         intTypeName,
         outerParameterName,
         formalParameterList(parameter));
-    node.getIdentifier().setElement(requiredParameter(outerParameterName));
+    node.getIdentifier().setStaticElement(requiredParameter(outerParameterName));
     Type parameterType = resolve(node, intType.getElement());
     assertInstanceOf(FunctionType.class, parameterType);
     FunctionType functionType = (FunctionType) parameterType;
@@ -262,7 +262,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
   public void test_visitFieldFormalParameter_noType() throws Exception {
     String parameterName = "p";
     FormalParameter node = fieldFormalParameter(Keyword.VAR, null, parameterName);
-    node.getIdentifier().setElement(requiredParameter(parameterName));
+    node.getIdentifier().setStaticElement(requiredParameter(parameterName));
     assertSame(typeProvider.getDynamicType(), resolve(node));
     listener.assertNoErrors();
   }
@@ -272,7 +272,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     TypeName intTypeName = typeName("int");
     String parameterName = "p";
     FormalParameter node = fieldFormalParameter(null, intTypeName, parameterName);
-    node.getIdentifier().setElement(requiredParameter(parameterName));
+    node.getIdentifier().setStaticElement(requiredParameter(parameterName));
     assertSame(intType, resolve(node, intType.getElement()));
     listener.assertNoErrors();
   }
@@ -280,7 +280,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
   public void test_visitSimpleFormalParameter_noType() throws Exception {
     // p
     FormalParameter node = simpleFormalParameter("p");
-    node.getIdentifier().setElement(new ParameterElementImpl(identifier("p")));
+    node.getIdentifier().setStaticElement(new ParameterElementImpl(identifier("p")));
     assertSame(typeProvider.getDynamicType(), resolve(node));
     listener.assertNoErrors();
   }
@@ -292,7 +292,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     FormalParameter node = simpleFormalParameter(typeName(intElement), "p");
     SimpleIdentifier identifier = node.getIdentifier();
     ParameterElementImpl element = new ParameterElementImpl(identifier);
-    identifier.setElement(element);
+    identifier.setStaticElement(element);
     assertSame(intType, resolve(node, intElement));
     listener.assertNoErrors();
   }
@@ -376,7 +376,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
    */
   private Type resolve(FormalParameter node, Element... definedElements) {
     resolveNode(node, definedElements);
-    return ((ParameterElement) node.getIdentifier().getElement()).getType();
+    return ((ParameterElement) node.getIdentifier().getStaticElement()).getType();
   }
 
   /**

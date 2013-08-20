@@ -147,7 +147,7 @@ public class ClassDeclaration extends CompilationUnitMember {
 
   @Override
   public ClassElement getElement() {
-    return name != null ? (ClassElement) name.getElement() : null;
+    return name != null ? (ClassElement) name.getStaticElement() : null;
   }
 
   @Override

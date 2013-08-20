@@ -1065,7 +1065,7 @@ public final class ASTFactory {
    */
   public static TypeName typeName(ClassElement element, TypeName... arguments) {
     SimpleIdentifier name = identifier(element.getName());
-    name.setElement(element);
+    name.setStaticElement(element);
     TypeName typeName = typeName(name, arguments);
     typeName.setType(element.getType());
     return typeName;

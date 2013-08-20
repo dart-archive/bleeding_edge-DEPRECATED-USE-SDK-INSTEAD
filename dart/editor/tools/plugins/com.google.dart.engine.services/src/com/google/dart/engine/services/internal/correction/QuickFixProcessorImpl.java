@@ -1090,7 +1090,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         targetSource = targetElement.getSource();
         // may be static
         if (target instanceof Identifier) {
-          staticModifier = ((Identifier) target).getElement().getKind() == ElementKind.CLASS;
+          staticModifier = ((Identifier) target).getBestElement().getKind() == ElementKind.CLASS;
         }
         // prepare insert offset
         ClassDeclaration targetClass = CorrectionUtils.getResolvedNode(targetElement);

@@ -169,10 +169,7 @@ public class ResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
-    VariableElement element = getOverridableElement(node.getExpression());
-    if (element != null) {
-      override(element, node.getType().getType());
-    }
+    override(node.getExpression(), node.getType().getType());
     return null;
   }
 
@@ -435,7 +432,7 @@ public class ResolverVisitor extends ScopedVisitor {
     ExecutableElement outerFunction = enclosingFunction;
     try {
       SimpleIdentifier functionName = node.getName();
-      enclosingFunction = (ExecutableElement) functionName.getElement();
+      enclosingFunction = (ExecutableElement) functionName.getStaticElement();
       super.visitFunctionDeclaration(node);
     } finally {
       enclosingFunction = outerFunction;
@@ -717,25 +714,67 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Return the element associated with the given expression whose type can be overridden, or
-   * {@code null} if there is no element whose type can be overridden.
+   * Return the propagated element associated with the given expression whose type can be
+   * overridden, or {@code null} if there is no element whose type can be overridden.
    * 
    * @param expression the expression with which the element is associated
    * @return the element associated with the given expression
    */
-  protected VariableElement getOverridableElement(Expression expression) {
+  protected VariableElement getOverridablePropagatedElement(Expression expression) {
     Element element = null;
     if (expression instanceof SimpleIdentifier) {
-      element = ((SimpleIdentifier) expression).getElement();
+      element = ((SimpleIdentifier) expression).getPropagatedElement();
     } else if (expression instanceof PrefixedIdentifier) {
-      element = ((PrefixedIdentifier) expression).getElement();
+      element = ((PrefixedIdentifier) expression).getPropagatedElement();
     } else if (expression instanceof PropertyAccess) {
-      element = ((PropertyAccess) expression).getPropertyName().getElement();
+      element = ((PropertyAccess) expression).getPropertyName().getPropagatedElement();
     }
     if (element instanceof VariableElement) {
       return (VariableElement) element;
     }
     return null;
+  }
+
+  /**
+   * Return the static element associated with the given expression whose type can be overridden, or
+   * {@code null} if there is no element whose type can be overridden.
+   * 
+   * @param expression the expression with which the element is associated
+   * @return the element associated with the given expression
+   */
+  protected VariableElement getOverridableStaticElement(Expression expression) {
+    Element element = null;
+    if (expression instanceof SimpleIdentifier) {
+      element = ((SimpleIdentifier) expression).getStaticElement();
+    } else if (expression instanceof PrefixedIdentifier) {
+      element = ((PrefixedIdentifier) expression).getStaticElement();
+    } else if (expression instanceof PropertyAccess) {
+      element = ((PropertyAccess) expression).getPropertyName().getStaticElement();
+    }
+    if (element instanceof VariableElement) {
+      return (VariableElement) element;
+    }
+    return null;
+  }
+
+  /**
+   * If it is appropriate to do so, override the current type of the static and propagated elements
+   * associated with the given expression with the given type. Generally speaking, it is appropriate
+   * if the given type is more specific than the current type.
+   * 
+   * @param expression the expression used to access the static and propagated elements whose types
+   *          might be overridden
+   * @param potentialType the potential type of the elements
+   */
+  protected void override(Expression expression, Type potentialType) {
+    VariableElement element = getOverridableStaticElement(expression);
+    if (element != null) {
+      override(element, potentialType);
+    }
+    element = getOverridablePropagatedElement(expression);
+    if (element != null) {
+      override(element, potentialType);
+    }
   }
 
   /**
@@ -970,10 +1009,7 @@ public class ResolverVisitor extends ScopedVisitor {
     } else if (condition instanceof IsExpression) {
       IsExpression is = (IsExpression) condition;
       if (is.getNotOperator() != null) {
-        VariableElement element = getOverridableElement(is.getExpression());
-        if (element != null) {
-          override(element, is.getType().getType());
-        }
+        override(is.getExpression(), is.getType().getType());
       }
     } else if (condition instanceof PrefixExpression) {
       PrefixExpression prefix = (PrefixExpression) condition;
@@ -1011,10 +1047,7 @@ public class ResolverVisitor extends ScopedVisitor {
     } else if (condition instanceof IsExpression) {
       IsExpression is = (IsExpression) condition;
       if (is.getNotOperator() == null) {
-        VariableElement element = getOverridableElement(is.getExpression());
-        if (element != null) {
-          override(element, is.getType().getType());
-        }
+        override(is.getExpression(), is.getType().getType());
       }
     } else if (condition instanceof PrefixExpression) {
       PrefixExpression prefix = (PrefixExpression) condition;

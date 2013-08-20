@@ -127,10 +127,10 @@ public class AnalysisContextImplTest extends EngineTestCase {
     CompilationUnit partUnit = context.resolveCompilationUnit(partSource, librarySource);
     TopLevelVariableDeclaration declaration = (TopLevelVariableDeclaration) libraryUnit.getDeclarations().get(
         0);
-    Element declarationElement = declaration.getVariables().getVariables().get(0).getName().getElement();
+    Element declarationElement = declaration.getVariables().getVariables().get(0).getElement();
     TopLevelVariableDeclaration use = (TopLevelVariableDeclaration) partUnit.getDeclarations().get(
         0);
-    Element useElement = ((SimpleIdentifier) use.getVariables().getVariables().get(0).getInitializer()).getElement();
+    Element useElement = ((SimpleIdentifier) use.getVariables().getVariables().get(0).getInitializer()).getStaticElement();
     assertSame(declarationElement, ((PropertyAccessorElement) useElement).getVariable());
   }
 

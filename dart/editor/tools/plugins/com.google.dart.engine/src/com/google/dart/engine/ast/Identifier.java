@@ -40,14 +40,14 @@ public abstract class Identifier extends Expression {
   }
 
   /**
-   * Return the element associated with this identifier based on propagated type information, or
-   * {@code null} if the AST structure has not been resolved or if this identifier could not be
-   * resolved. One example of the latter case is an identifier that is not defined within the scope
-   * in which it appears.
+   * Return the best element available for this operator. If resolution was able to find a better
+   * element based on type propagation, that element will be returned. Otherwise, the element found
+   * using the result of static analysis will be returned. If resolution has not been performed,
+   * then {@code null} will be returned.
    * 
-   * @return the element associated with this identifier
+   * @return the best element available for this operator
    */
-  public abstract Element getElement();
+  public abstract Element getBestElement();
 
   /**
    * Return the lexical representation of the identifier.
@@ -55,6 +55,16 @@ public abstract class Identifier extends Expression {
    * @return the lexical representation of the identifier
    */
   public abstract String getName();
+
+  /**
+   * Return the element associated with this identifier based on propagated type information, or
+   * {@code null} if the AST structure has not been resolved or if this identifier could not be
+   * resolved. One example of the latter case is an identifier that is not defined within the scope
+   * in which it appears.
+   * 
+   * @return the element associated with this identifier
+   */
+  public abstract Element getPropagatedElement();
 
   /**
    * Return the element associated with this identifier based on static type information, or

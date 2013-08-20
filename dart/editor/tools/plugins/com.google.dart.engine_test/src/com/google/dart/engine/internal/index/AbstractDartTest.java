@@ -249,7 +249,7 @@ public class AbstractDartTest extends TestCase {
    */
   @SuppressWarnings("unchecked")
   protected final <T extends Element> T findElement(String search) {
-    Element element = findSimpleIdentifier(search).getElement();
+    Element element = findSimpleIdentifier(search).getBestElement();
     assertNotNull(element);
     return (T) element;
   }
@@ -274,7 +274,7 @@ public class AbstractDartTest extends TestCase {
    */
   @SuppressWarnings("unchecked")
   protected final <T extends Element> T findIdentifierElement(String search) {
-    return (T) findIdentifier(search).getElement();
+    return (T) findIdentifier(search).getBestElement();
   }
 
   /**

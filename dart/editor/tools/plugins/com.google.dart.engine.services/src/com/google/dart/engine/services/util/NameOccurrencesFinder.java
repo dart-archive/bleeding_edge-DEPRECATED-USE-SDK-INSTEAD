@@ -30,10 +30,10 @@ import java.util.Set;
 public class NameOccurrencesFinder extends RecursiveASTVisitor<Void> {
 
   public static Collection<ASTNode> findIn(SimpleIdentifier ident, ASTNode root) {
-    if (ident == null || ident.getElement() == null) {
+    if (ident == null || ident.getBestElement() == null) {
       return new HashSet<ASTNode>(0);
     }
-    NameOccurrencesFinder finder = new NameOccurrencesFinder(ident.getElement());
+    NameOccurrencesFinder finder = new NameOccurrencesFinder(ident.getBestElement());
     root.accept(finder);
     return finder.getMatches();
   }
@@ -103,7 +103,7 @@ public class NameOccurrencesFinder extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.getElement();
+    Element element = node.getBestElement();
     if (element == null) {
       return null;
     }

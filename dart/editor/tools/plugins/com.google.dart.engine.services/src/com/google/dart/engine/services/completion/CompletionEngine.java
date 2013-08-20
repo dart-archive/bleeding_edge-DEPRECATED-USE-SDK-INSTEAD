@@ -174,7 +174,7 @@ public class CompletionEngine {
 
     public void addAll(Collection<SimpleIdentifier> values) {
       for (SimpleIdentifier id : values) {
-        mergeName(id.getElement());
+        mergeName(id.getBestElement());
       }
     }
 
@@ -1317,7 +1317,7 @@ public class CompletionEngine {
             "".toString(); // TODO This currently is just a place-holder for a breakpoint.
           } else {
             // { new Cla!ss.cons() }
-            Element element = identifier.getElement();
+            Element element = identifier.getBestElement();
             if (element instanceof ClassElement) {
               namedConstructorReference((ClassElement) element, identifier);
             }
@@ -1692,10 +1692,10 @@ public class CompletionEngine {
     Expression expr = node.getTarget();
     if (expr instanceof SimpleIdentifier) {
       SimpleIdentifier ident = (SimpleIdentifier) expr;
-      if (ident.getElement() instanceof PrefixElement) {
+      if (ident.getBestElement() instanceof PrefixElement) {
         prefixedAccess(ident, node.getMethodName());
         return;
-      } else if (ident.getElement() instanceof ClassElement) {
+      } else if (ident.getBestElement() instanceof ClassElement) {
         state.areInstanceReferencesProhibited = true;
         state.areStaticReferencesProhibited = false;
       } else {
@@ -1713,7 +1713,7 @@ public class CompletionEngine {
 
   void dispatchPrefixAnalysis(PrefixedIdentifier node, SimpleIdentifier identifier) {
     SimpleIdentifier receiverName = node.getPrefix();
-    Element receiver = receiverName.getElement();
+    Element receiver = receiverName.getBestElement();
     if (receiver == null) {
       prefixedAccess(receiverName, identifier);
       return;
@@ -2544,7 +2544,7 @@ public class CompletionEngine {
 
         @Override
         public Void visitSimpleIdentifier(SimpleIdentifier node) {
-          Element elem = node.getElement();
+          Element elem = node.getBestElement();
           if (elem != null && elem.getKind() == ElementKind.GETTER) {
             PropertyAccessorElement accessor = (PropertyAccessorElement) elem;
             if (accessor.isSynthetic()) {

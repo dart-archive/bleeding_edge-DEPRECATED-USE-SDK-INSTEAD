@@ -77,7 +77,7 @@ public class DeclaredIdentifier extends Declaration {
     if (identifier == null) {
       return null;
     }
-    return (LocalVariableElement) identifier.getElement();
+    return (LocalVariableElement) identifier.getStaticElement();
   }
 
   @Override

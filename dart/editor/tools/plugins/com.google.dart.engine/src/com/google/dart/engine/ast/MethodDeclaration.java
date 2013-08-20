@@ -137,7 +137,7 @@ public class MethodDeclaration extends ClassMember {
    */
   @Override
   public ExecutableElement getElement() {
-    return name != null ? (ExecutableElement) name.getElement() : null;
+    return name != null ? (ExecutableElement) name.getStaticElement() : null;
   }
 
   @Override

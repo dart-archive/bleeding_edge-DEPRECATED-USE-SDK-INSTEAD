@@ -31,7 +31,7 @@ public class ConstantFinderTest extends EngineTestCase {
     VariableDeclaration declaration = variableDeclaration("v", integer(0));
     SimpleIdentifier name = declaration.getName();
     VariableElement element = localVariableElement(name);
-    name.setElement(element);
+    name.setStaticElement(element);
     variableDeclarationList(Keyword.CONST, declaration);
     ConstantFinder finder = new ConstantFinder();
     declaration.accept(finder);
@@ -44,7 +44,7 @@ public class ConstantFinderTest extends EngineTestCase {
     VariableDeclaration declaration = variableDeclaration("v");
     SimpleIdentifier name = declaration.getName();
     VariableElement element = localVariableElement(name);
-    name.setElement(element);
+    name.setStaticElement(element);
     variableDeclarationList(Keyword.CONST, declaration);
     ConstantFinder finder = new ConstantFinder();
     declaration.accept(finder);
@@ -57,7 +57,7 @@ public class ConstantFinderTest extends EngineTestCase {
     VariableDeclaration declaration = variableDeclaration("v", integer(0));
     SimpleIdentifier name = declaration.getName();
     VariableElement element = localVariableElement(name);
-    name.setElement(element);
+    name.setStaticElement(element);
     variableDeclarationList(null, declaration);
     ConstantFinder finder = new ConstantFinder();
     declaration.accept(finder);

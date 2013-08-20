@@ -92,7 +92,7 @@ public class FunctionDeclaration extends CompilationUnitMember {
 
   @Override
   public ExecutableElement getElement() {
-    return name != null ? (ExecutableElement) name.getElement() : null;
+    return name != null ? (ExecutableElement) name.getStaticElement() : null;
   }
 
   @Override

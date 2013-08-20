@@ -767,7 +767,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getLocalOrParameterVariableElement_local() throws Exception {
     LocalVariableElement element = mock(LocalVariableElement.class);
     SimpleIdentifier identifier = ASTFactory.identifier("name");
-    identifier.setElement(element);
+    identifier.setStaticElement(element);
     // check
     assertSame(element, CorrectionUtils.getLocalOrParameterVariableElement(identifier));
   }
@@ -775,7 +775,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getLocalOrParameterVariableElement_method() throws Exception {
     Element element = mock(MethodElement.class);
     SimpleIdentifier identifier = ASTFactory.identifier("name");
-    identifier.setElement(element);
+    identifier.setStaticElement(element);
     // check
     assertSame(null, CorrectionUtils.getLocalOrParameterVariableElement(identifier));
   }
@@ -783,7 +783,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getLocalOrParameterVariableElement_parameter() throws Exception {
     ParameterElement element = mock(ParameterElement.class);
     SimpleIdentifier identifier = ASTFactory.identifier("name");
-    identifier.setElement(element);
+    identifier.setStaticElement(element);
     // check
     assertSame(element, CorrectionUtils.getLocalOrParameterVariableElement(identifier));
   }
@@ -791,7 +791,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getLocalVariableElement_local() throws Exception {
     LocalVariableElement element = mock(LocalVariableElement.class);
     SimpleIdentifier identifier = ASTFactory.identifier("name");
-    identifier.setElement(element);
+    identifier.setStaticElement(element);
     // check
     assertSame(element, CorrectionUtils.getLocalVariableElement(identifier));
   }
@@ -799,7 +799,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getLocalVariableElement_parameter() throws Exception {
     ParameterElement element = mock(ParameterElement.class);
     SimpleIdentifier identifier = ASTFactory.identifier("name");
-    identifier.setElement(element);
+    identifier.setStaticElement(element);
     // check
     assertSame(null, CorrectionUtils.getLocalVariableElement(identifier));
   }
@@ -948,7 +948,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getParameterElement_local() throws Exception {
     LocalVariableElement element = mock(LocalVariableElement.class);
     SimpleIdentifier identifier = ASTFactory.identifier("name");
-    identifier.setElement(element);
+    identifier.setStaticElement(element);
     // check
     assertSame(null, CorrectionUtils.getParameterElement(identifier));
   }
@@ -956,7 +956,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getParameterElement_parameter() throws Exception {
     ParameterElement element = mock(ParameterElement.class);
     SimpleIdentifier identifier = ASTFactory.identifier("name");
-    identifier.setElement(element);
+    identifier.setStaticElement(element);
     // check
     assertSame(element, CorrectionUtils.getParameterElement(identifier));
   }
@@ -1076,7 +1076,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getPropertyAccessorElement_accessor() throws Exception {
     PropertyAccessorElement element = mock(PropertyAccessorElement.class);
     SimpleIdentifier identifier = ASTFactory.identifier("name");
-    identifier.setElement(element);
+    identifier.setStaticElement(element);
     // check
     assertSame(element, CorrectionUtils.getPropertyAccessorElement(identifier));
   }
@@ -1084,7 +1084,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getPropertyAccessorElement_local() throws Exception {
     LocalVariableElement element = mock(LocalVariableElement.class);
     SimpleIdentifier identifier = ASTFactory.identifier("name");
-    identifier.setElement(element);
+    identifier.setStaticElement(element);
     // check
     assertSame(null, CorrectionUtils.getPropertyAccessorElement(identifier));
   }

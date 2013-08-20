@@ -358,7 +358,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     EvaluationResultImpl result = expression.accept(new ConstantVisitor() {
       @Override
       public EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
-        Element element = node.getElement();
+        Element element = node.getStaticElement();
         for (ParameterElement parameterElement : parameterElements) {
           if (parameterElement == element && parameterElement != null) {
             Type type = parameterElement.getType();

@@ -90,7 +90,7 @@ public class VariableDeclaration extends Declaration {
 
   @Override
   public VariableElement getElement() {
-    return name != null ? (VariableElement) name.getElement() : null;
+    return name != null ? (VariableElement) name.getStaticElement() : null;
   }
 
   @Override

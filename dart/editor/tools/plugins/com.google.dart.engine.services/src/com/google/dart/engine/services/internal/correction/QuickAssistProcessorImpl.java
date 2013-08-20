@@ -502,7 +502,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       return;
     }
     // should be "isEmpty"
-    Element propertyElement = isEmptyIdentifier.getElement();
+    Element propertyElement = isEmptyIdentifier.getBestElement();
     if (propertyElement == null || !"isEmpty".equals(propertyElement.getName())) {
       return;
     }
@@ -688,7 +688,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       return;
     }
     // prepare "declaration" statement
-    Element element = ((SimpleIdentifier) node).getElement();
+    Element element = ((SimpleIdentifier) node).getStaticElement();
     if (element == null) {
       return;
     }

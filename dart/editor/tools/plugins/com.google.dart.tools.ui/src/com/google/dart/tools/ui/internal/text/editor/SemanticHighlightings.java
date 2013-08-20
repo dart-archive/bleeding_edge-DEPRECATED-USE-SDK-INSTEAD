@@ -333,7 +333,7 @@ public class SemanticHighlightings {
         }
       }
       // highlight type name in declaration and use
-      if (node.getElement() instanceof ClassElement) {
+      if (node.getStaticElement() instanceof ClassElement) {
         return true;
       }
       // no
@@ -360,7 +360,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      Element element = node.getElement();
+      Element element = node.getStaticElement();
       return element instanceof ConstructorElement;
     }
 
@@ -468,7 +468,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      Element element = node.getElement();
+      Element element = node.getBestElement();
       return isDeprecatedElement(element);
     }
 
@@ -569,7 +569,7 @@ public class SemanticHighlightings {
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
       // should be variable
-      Element element = node.getElement();
+      Element element = node.getStaticElement();
       if (!(element instanceof VariableElement)) {
         return false;
       }
@@ -611,7 +611,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      Element element = node.getElement();
+      Element element = node.getBestElement();
       return element instanceof PropertyInducingElement
           || element instanceof PropertyAccessorElement;
     }
@@ -641,7 +641,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      Element element = node.getElement();
+      Element element = node.getStaticElement();
       return element instanceof FunctionElement;
     }
 
@@ -700,7 +700,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      Element element = node.getElement();
+      Element element = node.getStaticElement();
       return element instanceof PrefixElement;
     }
 
@@ -754,7 +754,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      Element element = node.getElement();
+      Element element = node.getStaticElement();
       return ElementKind.of(element) == ElementKind.LOCAL_VARIABLE;
     }
 
@@ -843,7 +843,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      Element element = node.getElement();
+      Element element = node.getBestElement();
       return element instanceof MethodElement;
     }
 
@@ -895,7 +895,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      Element element = node.getElement();
+      Element element = node.getStaticElement();
       return ElementKind.of(element) == ElementKind.PARAMETER;
     }
 
@@ -962,7 +962,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      Element element = node.getElement();
+      Element element = node.getStaticElement();
       if (element instanceof PropertyInducingElement) {
         return ((PropertyInducingElement) element).isStatic();
       }
@@ -1022,7 +1022,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      Element element = node.getElement();
+      Element element = node.getStaticElement();
       if (element instanceof MethodElement) {
         return ((MethodElement) element).isStatic();
       }
@@ -1054,7 +1054,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      return node.getElement() instanceof TypeVariableElement;
+      return node.getStaticElement() instanceof TypeVariableElement;
     }
 
     @Override

@@ -41,7 +41,7 @@ public abstract class FormalParameter extends ASTNode {
     if (identifier == null) {
       return null;
     }
-    return (ParameterElement) identifier.getElement();
+    return (ParameterElement) identifier.getStaticElement();
   }
 
   /**

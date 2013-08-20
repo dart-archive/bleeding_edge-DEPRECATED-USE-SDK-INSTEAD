@@ -83,7 +83,7 @@ public class ExtractMethodAnalyzer extends StatementAnalyzer {
         invalidSelection("Cannot extract the name part of a declaration.");
       }
       // method name
-      Element element = node.getElement();
+      Element element = node.getBestElement();
       if (element instanceof FunctionElement || element instanceof MethodElement) {
         invalidSelection("Cannot extract a single method name.");
       }

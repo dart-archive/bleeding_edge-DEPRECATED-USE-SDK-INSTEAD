@@ -31,7 +31,7 @@ public class ReferenceFinderTest extends EngineTestCase {
     DirectedGraph<VariableElement> referenceGraph = new DirectedGraph<VariableElement>();
     ReferenceFinder finder = new ReferenceFinder(head, referenceGraph);
     SimpleIdentifier identifier = identifier("v2");
-    identifier.setElement(tail);
+    identifier.setStaticElement(tail);
     identifier.accept(finder);
     Set<VariableElement> tails = referenceGraph.getTails(head);
     assertSize(1, tails);
@@ -44,7 +44,7 @@ public class ReferenceFinderTest extends EngineTestCase {
     DirectedGraph<VariableElement> referenceGraph = new DirectedGraph<VariableElement>();
     ReferenceFinder finder = new ReferenceFinder(head, referenceGraph);
     SimpleIdentifier identifier = identifier("v2");
-    identifier.setElement(tail);
+    identifier.setStaticElement(tail);
     identifier.accept(finder);
     Set<VariableElement> tails = referenceGraph.getTails(head);
     assertSize(0, tails);

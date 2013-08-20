@@ -53,6 +53,11 @@ public class LibraryIdentifier extends Identifier {
     return components.getBeginToken();
   }
 
+  @Override
+  public Element getBestElement() {
+    return getStaticElement();
+  }
+
   /**
    * Return the components of the identifier.
    * 
@@ -60,11 +65,6 @@ public class LibraryIdentifier extends Identifier {
    */
   public NodeList<SimpleIdentifier> getComponents() {
     return components;
-  }
-
-  @Override
-  public Element getElement() {
-    return null;
   }
 
   @Override
@@ -85,6 +85,11 @@ public class LibraryIdentifier extends Identifier {
       builder.append(identifier.getName());
     }
     return builder.toString();
+  }
+
+  @Override
+  public Element getPropagatedElement() {
+    return null;
   }
 
   @Override

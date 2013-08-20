@@ -169,7 +169,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (prefix == null) {
       return null;
     }
-    return checkResolved(prefix, prefix.getElement(), PrefixElement.class);
+    return checkResolved(prefix, prefix.getStaticElement(), PrefixElement.class);
   }
 
   @Override
@@ -224,7 +224,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (prefixType == null || prefixType.isDynamic()) {
       return null;
     }
-    return checkResolved(node, node.getElement());
+    return checkResolved(node, node.getStaticElement());
   }
 
   @Override
@@ -267,7 +267,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
         }
       }
     }
-    return checkResolved(node, node.getElement());
+    return checkResolved(node, node.getStaticElement());
   }
 
   private Void checkResolved(ASTNode node, Element element) {

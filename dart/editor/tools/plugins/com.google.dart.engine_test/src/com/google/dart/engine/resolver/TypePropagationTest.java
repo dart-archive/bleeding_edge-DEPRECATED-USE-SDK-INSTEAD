@@ -515,7 +515,6 @@ public class TypePropagationTest extends ResolverTestCase {
         "}"));
     LibraryElement library = resolve(source);
     assertErrors(StaticTypeWarningCode.UNDEFINED_METHOD);
-    verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(2);
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
@@ -523,7 +522,7 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) ((Block) ifStatement.getThenStatement()).getStatements().get(
         0);
     MethodInvocation invocation = (MethodInvocation) statement.getExpression();
-    assertNotNull(invocation.getMethodName().getElement());
+    assertNotNull(invocation.getMethodName().getPropagatedElement());
   }
 
   public void test_is_while() throws Exception {

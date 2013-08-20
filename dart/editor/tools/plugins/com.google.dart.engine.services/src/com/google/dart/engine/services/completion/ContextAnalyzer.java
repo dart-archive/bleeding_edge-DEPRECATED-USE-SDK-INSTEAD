@@ -144,7 +144,7 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (node == completionNode || node.getIdentifier() == completionNode) {
-      Element element = node.getPrefix().getElement();
+      Element element = node.getPrefix().getBestElement();
       if (!(element instanceof ClassElement)) {
         state.prohibitsStaticReferences();
       } else {

@@ -145,7 +145,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
         exceptionType = getType(exceptionTypeName);
       }
       recordType(exception, exceptionType);
-      Element element = exception.getElement();
+      Element element = exception.getStaticElement();
       if (element instanceof VariableElementImpl) {
         ((VariableElementImpl) element).setType(exceptionType);
       } else {
@@ -251,7 +251,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     super.visitFieldFormalParameter(node);
-    Element element = node.getIdentifier().getElement();
+    Element element = node.getIdentifier().getStaticElement();
     if (element instanceof ParameterElementImpl) {
       ParameterElementImpl parameter = (ParameterElementImpl) element;
       FormalParameterList parameterList = node.getParameters();
@@ -299,7 +299,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     super.visitFunctionTypedFormalParameter(node);
-    Element element = node.getIdentifier().getElement();
+    Element element = node.getIdentifier().getStaticElement();
     if (element instanceof ParameterElementImpl) {
       setFunctionTypedParameterType(
           (ParameterElementImpl) element,
@@ -347,7 +347,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     } else {
       declaredType = getType(typeName);
     }
-    Element element = node.getIdentifier().getElement();
+    Element element = node.getIdentifier().getStaticElement();
     if (element instanceof ParameterElement) {
       ((ParameterElementImpl) element).setType(declaredType);
     } else {
@@ -614,7 +614,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     } else {
       declaredType = getType(typeName);
     }
-    Element element = node.getName().getElement();
+    Element element = node.getName().getStaticElement();
     if (element instanceof VariableElement) {
       ((VariableElementImpl) element).setType(declaredType);
       if (element instanceof PropertyInducingElement) {
@@ -670,12 +670,13 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @return the class element that represents the class
    */
   private ClassElementImpl getClassElement(SimpleIdentifier identifier) {
+    // TODO(brianwilkerson) Seems like we should be using ClassDeclaration.getElement().
     if (identifier == null) {
       // TODO(brianwilkerson) Report this
       // Internal error: We should never build a class declaration without a name.
       return null;
     }
-    Element element = identifier.getElement();
+    Element element = identifier.getStaticElement();
     if (!(element instanceof ClassElementImpl)) {
       // TODO(brianwilkerson) Report this
       // Internal error: Failed to create an element for a class declaration.
@@ -694,7 +695,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
   private ParameterElement[] getElements(FormalParameterList parameterList) {
     ArrayList<ParameterElement> elements = new ArrayList<ParameterElement>();
     for (FormalParameter parameter : parameterList.getParameters()) {
-      ParameterElement element = (ParameterElement) parameter.getIdentifier().getElement();
+      ParameterElement element = (ParameterElement) parameter.getIdentifier().getStaticElement();
       // TODO(brianwilkerson) Understand why the element would be null.
       if (element != null) {
         elements.add(element);
@@ -922,6 +923,10 @@ public class TypeResolverVisitor extends ScopedVisitor {
           interfaces,
           CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
           CompileTimeErrorCode.IMPLEMENTS_DYNAMIC);
+      if (classElement != null) {
+        classElement.setInterfaces(interfaceTypes);
+      }
+      // TODO(brianwilkerson) Move the following checks to ErrorVerifier.
       TypeName[] typeNames = interfaces.toArray(new TypeName[interfaces.size()]);
       boolean[] detectedRepeatOnIndex = new boolean[typeNames.length];
       for (int i = 0; i < detectedRepeatOnIndex.length; i++) {
@@ -930,21 +935,18 @@ public class TypeResolverVisitor extends ScopedVisitor {
       for (int i = 0; i < typeNames.length; i++) {
         TypeName typeName = typeNames[i];
         if (!detectedRepeatOnIndex[i]) {
+          Element element = typeName.getName().getStaticElement();
           for (int j = i + 1; j < typeNames.length; j++) {
-            Element element = typeName.getName().getElement();
             TypeName typeName2 = typeNames[j];
             Identifier identifier2 = typeName2.getName();
             String name2 = identifier2.getName();
-            Element element2 = identifier2.getElement();
+            Element element2 = identifier2.getStaticElement();
             if (element != null && element.equals(element2)) {
               detectedRepeatOnIndex[j] = true;
               reportError(CompileTimeErrorCode.IMPLEMENTS_REPEATED, typeName2, name2);
             }
           }
         }
-      }
-      if (classElement != null) {
-        classElement.setInterfaces(interfaceTypes);
       }
     }
   }
@@ -999,16 +1001,13 @@ public class TypeResolverVisitor extends ScopedVisitor {
     if (element != null) {
       if (typeName instanceof SimpleIdentifier) {
         ((SimpleIdentifier) typeName).setStaticElement(element);
-        ((SimpleIdentifier) typeName).setElement(element);
       } else if (typeName instanceof PrefixedIdentifier) {
         PrefixedIdentifier identifier = (PrefixedIdentifier) typeName;
         identifier.getIdentifier().setStaticElement(element);
-        identifier.getIdentifier().setElement(element);
         SimpleIdentifier prefix = identifier.getPrefix();
         Element prefixElement = getNameScope().lookup(prefix, getDefiningLibrary());
         if (prefixElement != null) {
           prefix.setStaticElement(prefixElement);
-          prefix.setElement(prefixElement);
         }
       }
     }

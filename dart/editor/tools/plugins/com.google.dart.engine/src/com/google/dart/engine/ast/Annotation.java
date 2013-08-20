@@ -138,7 +138,7 @@ public class Annotation extends ASTNode {
       return element;
     }
     if (name != null) {
-      return name.getElement();
+      return name.getStaticElement();
     }
     return null;
   }

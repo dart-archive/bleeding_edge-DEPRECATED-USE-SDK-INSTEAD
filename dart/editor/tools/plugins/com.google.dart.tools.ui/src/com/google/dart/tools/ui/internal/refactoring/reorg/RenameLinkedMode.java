@@ -304,7 +304,7 @@ public class RenameLinkedMode {
       nameNode.getRoot().accept(new RecursiveASTVisitor<Void>() {
         @Override
         public Void visitSimpleIdentifier(SimpleIdentifier node) {
-          Element element = node.getElement();
+          Element element = node.getBestElement();
           element = getCanonicalElement(element);
           if (Objects.equal(element, fDartElement)) {
             sameNodes.add(node);
@@ -506,7 +506,7 @@ public class RenameLinkedMode {
       return;
     }
     nameNode = (SimpleIdentifier) selectedNode;
-    fDartElement = nameNode.getElement();
+    fDartElement = nameNode.getBestElement();
     fDartElement = getCanonicalElement(fDartElement);
   }
 

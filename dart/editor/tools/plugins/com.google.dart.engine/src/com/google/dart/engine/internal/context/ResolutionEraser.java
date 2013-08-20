@@ -133,7 +133,7 @@ public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     node.setStaticElement(null);
-    node.setElement(null);
+    node.setPropagatedElement(null);
     return super.visitSimpleIdentifier(node);
   }
 

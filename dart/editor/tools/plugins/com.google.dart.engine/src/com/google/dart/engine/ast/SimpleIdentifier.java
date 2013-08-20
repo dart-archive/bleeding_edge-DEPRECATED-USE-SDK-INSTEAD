@@ -78,7 +78,10 @@ public class SimpleIdentifier extends Identifier {
   }
 
   @Override
-  public Element getElement() {
+  public Element getBestElement() {
+    if (propagatedElement == null) {
+      return staticElement;
+    }
     return propagatedElement;
   }
 
@@ -90,6 +93,11 @@ public class SimpleIdentifier extends Identifier {
   @Override
   public String getName() {
     return token.getLexeme();
+  }
+
+  @Override
+  public Element getPropagatedElement() {
+    return propagatedElement;
   }
 
   @Override
@@ -237,7 +245,7 @@ public class SimpleIdentifier extends Identifier {
    * 
    * @param element the element to be associated with this identifier
    */
-  public void setElement(Element element) {
+  public void setPropagatedElement(Element element) {
     propagatedElement = validateElement(element);
   }
 

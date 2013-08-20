@@ -175,10 +175,10 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
       Scope outerScope = nameScope;
       try {
         nameScope = new EnclosedScope(nameScope);
-        nameScope.define(exception.getElement());
+        nameScope.define(exception.getStaticElement());
         SimpleIdentifier stackTrace = node.getStackTraceParameter();
         if (stackTrace != null) {
-          nameScope.define(stackTrace.getElement());
+          nameScope.define(stackTrace.getStaticElement());
         }
         super.visitCatchClause(node);
       } finally {
@@ -391,7 +391,7 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
       for (SwitchMember member : node.getMembers()) {
         for (Label label : member.getLabels()) {
           SimpleIdentifier labelName = label.getLabel();
-          LabelElement labelElement = (LabelElement) labelName.getElement();
+          LabelElement labelElement = (LabelElement) labelName.getStaticElement();
           labelScope = new LabelScope(labelScope, labelName.getName(), labelElement);
         }
       }
@@ -565,7 +565,7 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
     for (Label label : labels) {
       SimpleIdentifier labelNameNode = label.getLabel();
       String labelName = labelNameNode.getName();
-      LabelElement labelElement = (LabelElement) labelNameNode.getElement();
+      LabelElement labelElement = (LabelElement) labelNameNode.getStaticElement();
       labelScope = new LabelScope(labelScope, labelName, labelElement);
     }
     return outerScope;

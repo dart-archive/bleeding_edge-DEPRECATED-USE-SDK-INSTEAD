@@ -242,7 +242,7 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
     } else if (parent instanceof ConstructorFieldInitializer
         && node == ((ConstructorFieldInitializer) parent).getFieldName()) {
       return null;
-    } else if (node.getElement() instanceof PrefixElement) {
+    } else if (node.getStaticElement() instanceof PrefixElement) {
       // Prefixes don't have a type.
       return null;
     }

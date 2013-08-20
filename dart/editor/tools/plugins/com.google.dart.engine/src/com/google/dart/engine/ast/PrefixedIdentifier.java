@@ -68,11 +68,11 @@ public class PrefixedIdentifier extends Identifier {
   }
 
   @Override
-  public Element getElement() {
+  public Element getBestElement() {
     if (identifier == null) {
       return null;
     }
-    return identifier.getElement();
+    return identifier.getBestElement();
   }
 
   @Override
@@ -110,6 +110,14 @@ public class PrefixedIdentifier extends Identifier {
    */
   public SimpleIdentifier getPrefix() {
     return prefix;
+  }
+
+  @Override
+  public Element getPropagatedElement() {
+    if (identifier == null) {
+      return null;
+    }
+    return identifier.getPropagatedElement();
   }
 
   @Override
