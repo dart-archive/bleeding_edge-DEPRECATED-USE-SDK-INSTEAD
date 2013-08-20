@@ -1060,6 +1060,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Element element = resolveSimpleIdentifier(node);
     if (isFactoryConstructorReturnType(node) && element != resolver.getEnclosingClass()) {
       resolver.reportError(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
+    } else if (isConstructorReturnType(node) && element != resolver.getEnclosingClass()) {
+      resolver.reportError(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
+      element = null;
     } else if (element == null || (element instanceof PrefixElement && !isValidAsPrefix(node))) {
       // TODO(brianwilkerson) Recover from this error.
       if (isConstructorReturnType(node)) {

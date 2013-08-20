@@ -737,7 +737,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "class B extends A {",
         "  int x;",
-        "  A(this.x) : super();",
+        "  B(this.x) : super();",
         "}"));
     resolve(source);
     assertNoErrors();
