@@ -9,71 +9,19 @@ BSD-style license that can be found in the LICENSE file.
     <meta charset="utf-8">
   </head>
 <body>
-<element name="editable-label" extends="div" apply-author-styles>
+<polymer-element name="editable-label" attributes="value">
   <template>
-    <template if="!editing">
-      <label class='edit-label' on-double-click="edit()">{{value}}</label>
+    <template bind if="{{!editing}}">
+      <label class='edit-label' on-double-click="edit">{{value}}</label>
     </template>
-    <template if="editing">
-      <form on-submit="update($event)">
-        <input id="edit" class="edit {{editing ? 'editing' : ''}}"
-               on-blur="update($event)"
-               on-key-up="maybeCancel($event)">
+    <template bind if="{{editing}}">
+      <form on-submit="update">
+        <input id="edit" class="edit editing"
+               on-blur="update" on-key-up="maybeCancel">
       </form>
     </template>
   </template>
-  <script type="application/dart">
-  import 'dart:html';
-  import 'package:web_ui/web_ui.dart';
-
-  /**
-   * Label whose [value] can be edited by double clicking. When editing, it
-   * displays a form and input element, otherwise it displays the label. You
-   * can enable two-way binding like this:
-   *
-   *     <editable-label bind-value="dartAsignableValue">
-   *     </editable-label>
-   */
-  @observable
-  class EditableLabel extends WebComponent {
-    bool editing;
-    String value;
-
-    InputElement get _editBox => getShadowRoot("editable-label").query('#edit');
-
-    void created() {
-      super.created();
-      editing = false;
-      value = '';
-    }
-
-    void edit() {
-      editing = true;
-
-      // This causes _editBox to be inserted.
-      deliverChangesSync();
-
-      // For IE and Firefox: use .focus(), then reset the value to move the
-      // cursor to the end.
-      _editBox.focus();
-      _editBox.value = '';
-      _editBox.value = value;
-    }
-
-    void update(Event e) {
-      e.preventDefault(); // don't submit the form
-      if (!editing) return; // bail if user canceled
-      value = _editBox.value;
-      editing = false;
-    }
-
-    void maybeCancel(KeyEvent e) {
-      if (e.keyCode == KeyCode.ESC) {
-        editing = false;
-      }
-    }
-  }
-  </script>
-</element>
+  <script type="application/dart" src="editable_label.dart"></script>
+</polymer-element>
 </body>
 </html>

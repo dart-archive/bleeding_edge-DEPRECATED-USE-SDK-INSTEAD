@@ -14,22 +14,19 @@ single item is present in the todo list.
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <link rel="import" href="../web/app.html">
   <link rel="stylesheet" href="../web/base.css">
-  <script src="packages/web_ui/testing/testing.js"></script>
+  <script src="packages/polymer/testing/testing.js"></script>
   <title>Dart • TodoMVC</title>
 </head><body>
   <todo-app></todo-app>
   <script type="application/dart">
-import 'dart:async';
 import 'dart:html';
-import 'package:web_ui/web_ui.dart';
+import 'package:polymer/polymer.dart';
 import '../web/model.dart';
 
 main() {
-  Timer.run(() {
-    app.todos.add(new Todo('hola'));
-    deliverChangesSync();
-    window.postMessage('done', '*');
-  });
+  appModel.todos.add(new Todo('hola'));
+  performMicrotaskCheckpoint();
+  window.postMessage('done', '*');
 }
   </script>
 </body>

@@ -10,7 +10,7 @@ BSD-style license that can be found in the LICENSE file.
   <link rel="import" href="editable_label.html">
 </head>
 <body>
-<element name="todo-row" extends="li" apply-author-styles>
+<polymer-element name="todo-row" extends="li" attributes="todo">
   <template>
     <style scoped>
 .todo-item {
@@ -28,7 +28,7 @@ BSD-style license that can be found in the LICENSE file.
 TODO(jmesserly): the ".todo-item label" selector does not work with real
 ShadowRoot because it crosses the shadow boundary.
 */
-.todo-item.completed editable-label {
+.todo-item.completed [is=editable-label] {
   color: #a9a9a9;
   text-decoration: line-through;
 }
@@ -122,27 +122,13 @@ ShadowRoot because it crosses the shadow boundary.
   }
 }
     </style>
-    <div class="todo-item {{_editingClass}} {{_completedClass}}">
-      <input class="toggle" type="checkbox" bind-checked="todo.done">
-      <editable-label id="label" bind-value="todo.task"></editable-label>
-      <button class="destroy" on-click="app.todos.remove(todo)"></button>
+    <div class="todo-item">
+      <input class="toggle" type="checkbox" checked="{{todo.done}}">
+      <editable-label id="label" value="{{todo.task}}"></editable-label>
+      <button class="destroy" on-click="removeTodo"></button>
     </div>
   </template>
-  <script type="application/dart">
-  import 'package:web_ui/web_ui.dart';
-  import 'model.dart';
-
-  @observable
-  class TodoRow extends WebComponent {
-    Todo todo;
-
-    ScopedCssMapper get css => getScopedCss("todo-row");
-
-    bool get editing => getShadowRoot("todo-row").query('#label').xtag.editing;
-    String get _completedClass => todo.done ? css['.completed'] : '';
-    String get _editingClass => editing ? css['.editing'] : '';
-  }
-  </script>
-</element>
+  <script type="application/dart" src="todo_row.dart"></script>
+</polymer-element>
 </body>
 </html>

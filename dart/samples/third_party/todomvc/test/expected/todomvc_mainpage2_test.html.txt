@@ -1,136 +1,377 @@
 Content-Type: text/plain
-layer at (0,0) size 800x600
-  RenderView at (0,0) size 800x600
-layer at (0,0) size 800x491
-  RenderBlock {HTML} at (0,0) size 800x491
-    RenderBody {BODY} at (125,130) size 550x345 [color=#4D4D4D] [bgcolor=#EAEAEA]
-      RenderBlock (anonymous) at (0,0) size 550x0
-        RenderInline {SPAN} at (0,0) size 0x0
-          RenderText {#text} at (0,0) size 0x0
-      RenderBlock (anonymous) at (0,0) size 550x122
-      RenderBlock (anonymous) at (0,162) size 550x0
-        RenderInline {SPAN} at (0,0) size 0x0
-          RenderText {#text} at (0,0) size 0x0
-      RenderBlock (anonymous) at (0,187) size 550x158
-        RenderBlock {FOOTER} at (0,0) size 550x158 [color=#A6A6A6]
-          RenderBlock {P} at (0,0) size 550x22
-            RenderText {#text} at (135,2) size 280x18
-              text run at (135,2) width 280: "Double-click to edit a todo."
-          RenderBlock {P} at (0,38) size 550x22
-            RenderText {#text} at (160,2) size 130x18
-              text run at (160,2) width 130: "Credits: the "
-            RenderInline {A} at (0,0) size 40x18
-              RenderText {#text} at (290,2) size 40x18
-                text run at (290,2) width 40: "Dart"
-            RenderText {#text} at (330,2) size 60x18
-              text run at (330,2) width 60: " team."
-          RenderBlock {P} at (0,76) size 550x44
-            RenderText {#text} at (25,2) size 170x18
-              text run at (25,2) width 170: "Learn more about "
-            RenderInline {A} at (0,0) size 210x18
-              RenderText {#text} at (195,2) size 210x18
-                text run at (195,2) width 210: "Dart + Web Components"
-            RenderText {#text} at (405,2) size 40x18
-              text run at (405,2) width 10: " "
-              text run at (415,2) width 30: "or "
-            RenderInline {A} at (0,0) size 285x40
-              RenderText {#text} at (445,2) size 285x40
-                text run at (445,2) width 80: "view the"
-                text run at (240,24) width 60: "source"
-            RenderText {#text} at (300,24) size 10x18
-              text run at (300,24) width 10: "."
-          RenderBlock {P} at (0,136) size 550x22
-            RenderText {#text} at (195,2) size 80x18
-              text run at (195,2) width 80: "Part of "
-            RenderInline {A} at (0,0) size 70x18
-              RenderText {#text} at (275,2) size 70x18
-                text run at (275,2) width 70: "TodoMVC"
-            RenderText {#text} at (345,2) size 10x18
-              text run at (345,2) width 10: "."
-      RenderBlock (anonymous) at (0,361) size 550x0
-        RenderInline {SPAN} at (0,0) size 0x0
-          RenderText {#text} at (0,0) size 0x0
-        RenderText {#text} at (0,0) size 0x0
-        RenderText {#text} at (0,0) size 0x0
-layer at (125,130) size 550x122
-  RenderBlock (relative positioned) {SECTION} at (0,0) size 550x122 [bgcolor=#FFFFFFE6] [border: (1px solid #CCCCCC)]
-    RenderBlock {HEADER} at (1,1) size 548x69
-      RenderBlock {FORM} at (0,15) size 548x54
-        RenderText {#text} at (0,0) size 0x0
-layer at (166,131) size 4x120
-  RenderBlock (positioned) at (41,1) size 4x120 [border: none (1px solid #F5D6D6) none (1px solid #F5D6D6)]
-    RenderText at (0,0) size 0x0
-layer at (126,24) size 548x22
-  RenderBlock (positioned) {H1} at (1,-106) size 548x23 [color=#FFFFFF4C]
-    RenderText {#text} at (249,2) size 50x18
-      text run at (249,2) width 50: "todos"
-layer at (126,259) size 548x23 layerType: background only
-layer at (126,151) size 548x100
-  RenderBlock (positioned) zI: -1 at (0,-108) size 548x100
-    RenderText zI: -1 at (0,0) size 0x0
-layer at (126,259) size 548x23 layerType: foreground only
-  RenderBlock (positioned) zI: 1 {FOOTER} at (1,129) size 548x23 [color=#777777]
-    RenderBlock (floating) {SPAN} at (15,0) size 10x23
-      RenderInline {STRONG} at (0,0) size 10x18
-        RenderText {#text} at (0,3) size 10x18
-          text run at (0,3) width 10: "1"
-layer at (126,259) size 548x23
-  RenderBlock (positioned) {UL} at (0,0) size 548x23
-    RenderInline {LI} at (0,0) size 44x18
-      RenderText {#text} at (0,0) size 0x0
-      RenderInline {A} at (0,0) size 30x18 [color=#83756F]
-        RenderText {#text} at (170,3) size 30x18
-          text run at (170,3) width 30: "All"
-      RenderText {#text} at (202,2) size 10x18
-        text run at (202,2) width 10: " "
-    RenderText {#text} at (0,0) size 0x0
-    RenderInline {LI} at (0,0) size 74x18
-      RenderText {#text} at (0,0) size 0x0
-      RenderInline {A} at (0,0) size 60x18 [color=#83756F]
-        RenderText {#text} at (214,2) size 60x18
-          text run at (214,2) width 60: "Active"
-      RenderText {#text} at (276,2) size 10x18
-        text run at (276,2) width 10: " "
-    RenderText {#text} at (0,0) size 0x0
-    RenderInline {LI} at (0,0) size 94x18
-      RenderText {#text} at (0,0) size 0x0
-      RenderInline {A} at (0,0) size 90x18 [color=#83756F]
-        RenderText {#text} at (288,2) size 90x18
-          text run at (288,2) width 90: "Completed"
-      RenderText {#text} at (0,0) size 0x0
-    RenderText {#text} at (0,0) size 0x0
-layer at (126,131) size 548x16
-  RenderBlock (positioned) zI: 2 at (1,1) size 548x16 [border: none (1px solid #6C615C) none]
-    RenderText zI: 2 at (0,0) size 0x0
-layer at (126,146) size 548x54
-  RenderTextControl zI: 2 {INPUT} at (0,0) size 548x54 [bgcolor=#00000005]
-layer at (186,162) size 472x22
-  RenderBlock {DIV} at (60,16) size 472x22 [color=#A9A9A9]
-    RenderText {#text} at (0,1) size 220x19
-      text run at (0,1) width 220: "What needs to be done?"
-layer at (186,162) size 472x22
-  RenderBlock {DIV} at (60,16) size 472x22
-layer at (126,200) size 548x51
-  RenderBlock (relative positioned) zI: 2 {SECTION} at (1,70) size 548x51 [border: (1px dotted #ADADAD) none]
-    RenderBlock {UL} at (0,1) size 548x50
-      RenderListItem {LI} at (0,0) size 548x50
-layer at (115,148) size 65x41
-  RenderBlock (positioned) {INPUT} at (-11,-52) size 65x41 [color=#000000]
-    RenderInline (generated) at (0,0) size 67x38 [color=#D9D9D9]
-      RenderText at (25,0) size 17x31
-        text run at (25,0) width 17: "\x{BB}"
-layer at (126,201) size 548x50
-  RenderBlock (relative positioned) {DIV} at (0,0) size 548x50 [border: none (1px dotted #CCCCCC) none]
-    RenderBlock {DIV} at (0,0) size 548x49
-      RenderBlock {LABEL} at (60,15) size 40x19
-        RenderText {#text} at (0,0) size 40x18
-          text run at (0,0) width 40: "hola"
-      RenderText {#text} at (0,0) size 0x0
-      RenderText {#text} at (0,0) size 0x0
-      RenderText {#text} at (0,0) size 0x0
-layer at (126,201) size 40x49
-  RenderBlock (positioned) {INPUT} at (0,0) size 40x49 [color=#000000]
-    RenderInline (generated) at (0,0) size 18x22 [color=#D9D9D9]
-      RenderText at (11,10) size 18x22
-        text run at (11,10) width 18: "\x{2714}"
-caret: position 0 of child 0 {DIV} of {#document-fragment} of child 1 {INPUT} of child 3 {FORM} of child 1 {HEADER} of child 1 {SECTION} of child 1 {SPAN} of body
+<html lang="en"><head><style>template { display: none; }</style>
+<!--
+This test runs the TodoMVC app and evaluates that it renders correctly if a
+single item is present in the todo list.
+-->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  
+  <link rel="stylesheet" href="../../../web/base.css">
+  <script src="../../packages/polymer/testing/testing.js"></script>
+  <title>Dart • TodoMVC</title>
+<style>template,
+thead[template],
+tbody[template],
+tfoot[template],
+th[template],
+tr[template],
+td[template],
+caption[template],
+colgroup[template],
+col[template],
+option[template] {
+  display: none;
+}</style></head><body><polymer-element name="todo-row" extends="li" attributes="todo">
+  <template>
+    <style scoped="">
+.todo-item {
+  position: relative;
+  font-size: 24px;
+  border-bottom: 1px dotted #ccc;
+}
+
+.todo-item.editing {
+  border-bottom: none;
+  padding: 0;
+}
+
+/*
+TODO(jmesserly): the ".todo-item label" selector does not work with real
+ShadowRoot because it crosses the shadow boundary.
+*/
+.todo-item.completed [is=editable-label] {
+  color: #a9a9a9;
+  text-decoration: line-through;
+}
+
+.todo-item .toggle {
+  text-align: center;
+  width: 40px;
+  /* auto, since non-WebKit browsers don't support input styling */
+  height: auto;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  border: none; /* Mobile Safari */
+  -webkit-appearance: none;
+  /*-moz-appearance: none;*/
+  -ms-appearance: none;
+  -o-appearance: none;
+  appearance: none;
+}
+
+.todo-item .toggle:after {
+  content: '✔';
+  line-height: 43px; /* 40 + a couple of pixels visual adjustment */
+  font-size: 20px;
+  color: #d9d9d9;
+  text-shadow: 0 -1px 0 #bfbfbf;
+}
+
+.todo-item .toggle:checked:after {
+  color: #85ada7;
+  text-shadow: 0 1px 0 #669991;
+  bottom: 1px;
+  position: relative;
+}
+.todo-item .destroy {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 10px;
+  bottom: 0;
+  width: 40px;
+  height: 40px;
+  margin: auto 0;
+  font-size: 22px;
+  color: #a88a8a;
+  -webkit-transition: all 0.2s;
+  -moz-transition: all 0.2s;
+  -ms-transition: all 0.2s;
+  -o-transition: all 0.2s;
+  transition: all 0.2s;
+}
+
+.todo-item .destroy:hover {
+  text-shadow: 0 0 1px #000,
+         0 0 10px rgba(199, 107, 107, 0.8);
+  -webkit-transform: scale(1.3);
+  -moz-transform: scale(1.3);
+  -ms-transform: scale(1.3);
+  -o-transform: scale(1.3);
+  transform: scale(1.3);
+}
+
+.todo-item .destroy:after {
+  content: '✖';
+}
+
+.todo-item:hover .destroy {
+  display: block;
+}
+
+.todo-item.editing .destroy,
+.todo-item.editing .toggle {
+  display: none;
+}
+
+.todo-item.editing:last-child {
+  margin-bottom: -1px;
+}
+
+/*
+  Hack to remove background from Mobile Safari.
+  Can't use it globally since it destroys checkboxes in Firefox and Opera
+*/
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  .todo-item .toggle {
+    background: none;
+  }
+  #todo-item .toggle {
+    height: 40px;
+  }
+}
+    </style>
+    <div class="todo-item">
+      <input class="toggle" type="checkbox" checked="{{todo.done}}">
+      <editable-label id="label" value="{{todo.task}}"></editable-label>
+      <button class="destroy" on-click="removeTodo"></button>
+    </div>
+  </template>
+  
+</polymer-element>
+<polymer-element name="todo-app">
+<template>
+  <section id="todoapp">
+    <header id="header">
+      <h1 class="title">todos</h1>
+      <form on-submit="addTodo">
+        <input id="new-todo" placeholder="What needs to be done?" autofocus="" on-change="addTodo">
+      </form>
+    </header>
+    <section id="main">
+      <input id="toggle-all" type="checkbox" checked="{{app.allChecked}}">
+      <label for="toggle-all"></label>
+      <ul id="todo-list">
+        <template repeat="{{app.visibleTodos}}">
+          <li is="todo-row" todo="{{}}"></li>
+        </template>
+      </ul>
+    </section>
+    <template bind="" if="{{app.todos.length &gt; 0}}">
+      <footer id="footer">
+        <span id="todo-count"><strong>{{app.remaining}}</strong></span>
+        <ul is="router-options" id="filters">
+          <li> <a href="#/">All</a> </li>
+          <li> <a href="#/active">Active</a> </li>
+          <li> <a href="#/completed">Completed</a> </li>
+        </ul>
+        <template bind="" if="{{app.hasCompleteTodos}}">
+          <button id="clear-completed" on-click="clear">
+            Clear completed ({{app.doneCount}})
+          </button>
+        </template>
+      </footer>
+    </template>
+  </section>
+  <footer id="info">
+    <p>Double-click to edit a todo.</p>
+    <p>Credits: the <a href="http://www.dartlang.org">Dart</a> team.</p>
+    <p>
+      Learn more about
+      <a href="https://www.dartlang.org/articles/dart-web-components/">Dart + Web Components</a>
+      or
+      <a href="https://github.com/dart-lang/web-ui/tree/master/example/todomvc">view the source</a>.
+    </p>
+    <p>Part of <a href="http://todomvc.com">TodoMVC</a>.</p>
+  </footer>
+</template>
+
+</polymer-element>
+<polymer-element name="router-options" extends="ul">
+  <template><content></content></template>
+  
+</polymer-element>
+<polymer-element name="editable-label" attributes="value">
+  <template>
+    <template bind="" if="{{!editing}}">
+      <label class="edit-label" on-double-click="edit">{{value}}</label>
+    </template>
+    <template bind="" if="{{editing}}">
+      <form on-submit="update">
+        <input id="edit" class="edit editing" on-blur="update" on-key-up="maybeCancel">
+      </form>
+    </template>
+  </template>
+  
+</polymer-element>
+
+  <todo-app><shadow-root>
+  <section id="todoapp">
+    <header id="header">
+      <h1 class="title">todos</h1>
+      <form on-submit="addTodo">
+        <input id="new-todo" placeholder="What needs to be done?" autofocus="" on-change="addTodo">
+      </form>
+    </header>
+    <section id="main">
+      <input id="toggle-all" type="checkbox">
+      <label for="toggle-all"></label>
+      <ul id="todo-list">
+        <template repeat="{{app.visibleTodos}}"></template>
+          <li is="todo-row" todo="{{}}"><shadow-root>
+    <style scoped="">
+.todo-item {
+  position: relative;
+  font-size: 24px;
+  border-bottom: 1px dotted #ccc;
+}
+
+.todo-item.editing {
+  border-bottom: none;
+  padding: 0;
+}
+
+/*
+TODO(jmesserly): the ".todo-item label" selector does not work with real
+ShadowRoot because it crosses the shadow boundary.
+*/
+.todo-item.completed [is=editable-label] {
+  color: #a9a9a9;
+  text-decoration: line-through;
+}
+
+.todo-item .toggle {
+  text-align: center;
+  width: 40px;
+  /* auto, since non-WebKit browsers don't support input styling */
+  height: auto;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  border: none; /* Mobile Safari */
+  -webkit-appearance: none;
+  /*-moz-appearance: none;*/
+  -ms-appearance: none;
+  -o-appearance: none;
+  appearance: none;
+}
+
+.todo-item .toggle:after {
+  content: '✔';
+  line-height: 43px; /* 40 + a couple of pixels visual adjustment */
+  font-size: 20px;
+  color: #d9d9d9;
+  text-shadow: 0 -1px 0 #bfbfbf;
+}
+
+.todo-item .toggle:checked:after {
+  color: #85ada7;
+  text-shadow: 0 1px 0 #669991;
+  bottom: 1px;
+  position: relative;
+}
+.todo-item .destroy {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 10px;
+  bottom: 0;
+  width: 40px;
+  height: 40px;
+  margin: auto 0;
+  font-size: 22px;
+  color: #a88a8a;
+  -webkit-transition: all 0.2s;
+  -moz-transition: all 0.2s;
+  -ms-transition: all 0.2s;
+  -o-transition: all 0.2s;
+  transition: all 0.2s;
+}
+
+.todo-item .destroy:hover {
+  text-shadow: 0 0 1px #000,
+         0 0 10px rgba(199, 107, 107, 0.8);
+  -webkit-transform: scale(1.3);
+  -moz-transform: scale(1.3);
+  -ms-transform: scale(1.3);
+  -o-transform: scale(1.3);
+  transform: scale(1.3);
+}
+
+.todo-item .destroy:after {
+  content: '✖';
+}
+
+.todo-item:hover .destroy {
+  display: block;
+}
+
+.todo-item.editing .destroy,
+.todo-item.editing .toggle {
+  display: none;
+}
+
+.todo-item.editing:last-child {
+  margin-bottom: -1px;
+}
+
+/*
+  Hack to remove background from Mobile Safari.
+  Can't use it globally since it destroys checkboxes in Firefox and Opera
+*/
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  .todo-item .toggle {
+    background: none;
+  }
+  #todo-item .toggle {
+    height: 40px;
+  }
+}
+    </style>
+    <div class="todo-item">
+      <input class="toggle" type="checkbox">
+      <editable-label id="label" value="{{todo.task}}"><shadow-root>
+    <template bind="" if="{{!editing}}"></template>
+      <label class="edit-label" on-double-click="edit">hola</label>
+    
+    <template bind="" if="{{editing}}"></template>
+  </shadow-root></editable-label>
+      <button class="destroy" on-click="removeTodo"></button>
+    </div>
+  </shadow-root></li>
+        
+      </ul>
+    </section>
+    <template bind="" if="{{app.todos.length &gt; 0}}"></template>
+      <footer id="footer">
+        <span id="todo-count"><strong>1</strong></span>
+        <ul is="router-options" id="filters"><shadow-root><content></content></shadow-root>
+          <li> <a href="#/" class="selected">All</a> </li>
+          <li> <a href="#/active" class="">Active</a> </li>
+          <li> <a href="#/completed" class="">Completed</a> </li>
+        </ul>
+        <template bind="" if="{{app.hasCompleteTodos}}"></template>
+      </footer>
+    
+  </section>
+  <footer id="info">
+    <p>Double-click to edit a todo.</p>
+    <p>Credits: the <a href="http://www.dartlang.org">Dart</a> team.</p>
+    <p>
+      Learn more about
+      <a href="https://www.dartlang.org/articles/dart-web-components/">Dart + Web Components</a>
+      or
+      <a href="https://github.com/dart-lang/web-ui/tree/master/example/todomvc">view the source</a>.
+    </p>
+    <p>Part of <a href="http://todomvc.com">TodoMVC</a>.</p>
+  </footer>
+</shadow-root></todo-app>
+  
+
+
+<script type="text/javascript" src="packages/shadow_dom/shadow_dom.debug.js"></script>
+<script type="application/dart" src="todomvc_mainpage2_test.html_bootstrap.dart"></script></body></html>

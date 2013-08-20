@@ -4,8 +4,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:web_ui/component_build.dart';
+import 'package:polymer/component_build.dart';
 
 void main() {
-  build(new Options().arguments, ['web/index.html']);
+  var args = new Options().arguments.toList()..addAll(['--', '--deploy']);
+  build(args, ['web/index.html']);
 }

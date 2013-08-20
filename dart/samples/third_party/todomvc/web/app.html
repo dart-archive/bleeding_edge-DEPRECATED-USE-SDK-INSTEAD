@@ -11,37 +11,35 @@ BSD-style license that can be found in the LICENSE file.
   <link rel="import" href="todo_row.html">
 </head>
 <body>
-<element name="todo-app" apply-author-styles>
+<polymer-element name="todo-app">
 <template>
   <section id="todoapp">
     <header id="header">
       <h1 class='title'>todos</h1>
-      <form on-submit="addTodo($event)">
+      <form on-submit="addTodo">
         <input id="new-todo" placeholder="What needs to be done?" autofocus
-               on-change="addTodo($event)">
+               on-change="addTodo">
       </form>
     </header>
     <section id="main">
-      <input id="toggle-all" type="checkbox" bind-checked="app.allChecked">
+      <input id="toggle-all" type="checkbox" checked="{{app.allChecked}}">
       <label for="toggle-all"></label>
       <ul id="todo-list">
-        <template iterate="x in app.todos">
-          <template if="viewModel.isVisible(x)">
-            <todo-row todo="{{x}}"></todo-row>
-          </template>
+        <template repeat="{{app.visibleTodos}}">
+          <li is="todo-row" todo="{{}}"></li>
         </template>
       </ul>
     </section>
-    <template if="app.todos.length > 0">
+    <template bind if="{{app.todos.length > 0}}">
       <footer id="footer">
         <span id="todo-count"><strong>{{app.remaining}}</strong></span>
-        <router-options id="filters">
+        <ul is="router-options" id="filters">
           <li> <a href="#/">All</a> </li>
           <li> <a href="#/active">Active</a> </li>
           <li> <a href="#/completed">Completed</a> </li>
-        </router-options>
-        <template if="app.doneCount > 0">
-          <button id="clear-completed" on-click="app.clearDone()">
+        </ul>
+        <template bind if="{{app.hasCompleteTodos}}">
+          <button id="clear-completed" on-click="clear">
             Clear completed ({{app.doneCount}})
           </button>
         </template>
@@ -60,21 +58,7 @@ BSD-style license that can be found in the LICENSE file.
     <p>Part of <a href="http://todomvc.com">TodoMVC</a>.</p>
   </footer>
 </template>
-<script type="application/dart">
-import 'dart:html';
-import 'model.dart';
-import 'package:web_ui/web_ui.dart';
-
-class TodoApp extends WebComponent {
-  void addTodo(Event e) {
-    e.preventDefault(); // don't submit the form
-    var input = query('#new-todo');
-    if (input.value == '') return;
-    app.todos.add(new Todo(input.value));
-    input.value = '';
-  }
-}
-</script>
-</element>
+<script type="application/dart" src="app.dart"></script>
+</polymer-element>
 </body>
 </html>

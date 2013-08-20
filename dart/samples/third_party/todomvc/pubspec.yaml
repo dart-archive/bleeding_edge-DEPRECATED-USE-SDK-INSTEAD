@@ -1,6 +1,5 @@
 name: todomvc
-description: TodoMVC built with the Dart Web UI package
-version: 0.13.0
+description: TodoMVC built with the polymer.dart package
+version: 0.14.0
 dependencies:
-  browser: any
-  web_ui: any
+  polymer: any

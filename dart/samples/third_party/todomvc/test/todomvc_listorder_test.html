@@ -18,42 +18,40 @@ wrong order when using lists and ifs together.
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <link rel="import" href="../web/app.html">
   <link rel="stylesheet" href="../web/base.css">
-  <script src="packages/web_ui/testing/testing.js"></script>
+  <script src="packages/polymer/testing/testing.js"></script>
   <title>Dart • TodoMVC</title>
-</head><body>
+</head>
+<body>
   <todo-app></todo-app>
   <script type="application/dart">
-import 'dart:async';
 import 'dart:html';
+import 'package:polymer/polymer.dart';
 import 'package:unittest/unittest.dart';
-import 'package:web_ui/web_ui.dart';
-import 'package:web_ui/observe/html.dart';
 import '../web/model.dart';
 
 main() {
-  useShadowDom = false;
+  appModel.todos.add(new Todo('one (unchecked)'));
+  appModel.todos.add(new Todo('two (checked)')..done = true);
+  appModel.todos.add(new Todo('three (unchecked)'));
 
-  Timer.run(() {
-    app.todos.add(new Todo('one (unchecked)'));
-    app.todos.add(new Todo('two (checked)')..done = true);
-    app.todos.add(new Todo('three (unchecked)'));
-    locationHash = '#/';
+  var root = query('todo-app').xtag.shadowRoot;
 
-    deliverChangesSync();
-    expect(queryAll('#todo-list li[is=todo-row]').length, 3);
+  windowLocation.hash = '#/';
+  performMicrotaskCheckpoint();
 
-    locationHash = '#/active';
-    deliverChangesSync();
-    expect(queryAll('#todo-list li[is=todo-row]').length, 2);
+  expect(root.queryAll('#todo-list li[is=todo-row]').length, 3);
+  windowLocation.hash = '#/active';
+  performMicrotaskCheckpoint();
 
-    locationHash = '#/completed';
-    deliverChangesSync();
-    expect(queryAll('#todo-list li[is=todo-row]').length, 1);
+  expect(root.queryAll('#todo-list li[is=todo-row]').length, 2);
+  windowLocation.hash = '#/completed';
+  performMicrotaskCheckpoint();
 
-    locationHash = '#/';
-    deliverChangesSync();
-    window.postMessage('done', '*');
-  });
+  expect(root.queryAll('#todo-list li[is=todo-row]').length, 1);
+  windowLocation.hash = '#/';
+  performMicrotaskCheckpoint();
+
+  window.postMessage('done', '*');
 }
   </script>
 </body>

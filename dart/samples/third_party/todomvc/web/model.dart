@@ -4,45 +4,63 @@
 
 library model;
 
-import 'package:web_ui/observe.dart';
-import 'package:web_ui/observe/html.dart';
+import 'package:polymer/polymer.dart';
 
-@observable
-class ViewModel {
-  bool isVisible(Todo todo) => todo != null &&
-      ((showIncomplete && !todo.done) || (showDone && todo.done));
+final appModel = new AppModel._();
 
-  bool get showIncomplete => locationHash != '#/completed';
-
-  bool get showDone => locationHash != '#/active';
-}
-
-final ViewModel viewModel = new ViewModel();
-
-// The real model:
-
-@observable
-class AppModel {
+class AppModel extends ObservableBase {
   final ObservableList<Todo> todos = new ObservableList<Todo>();
+  @observable int doneCount;
+  @observable int remaining;
+  @observable List<Todo> visibleTodos;
+  @observable bool hasCompleteTodos;
 
-  bool get allChecked => todos.length > 0 && todos.every((t) => t.done);
+  bool _allChecked;
 
-  set allChecked(bool value) => todos.forEach((t) { t.done = value; });
+  AppModel._() {
+    new ListPathObserver(todos, 'done').changes.listen(_updateTodoDone);
+    windowLocation.changes.listen(_updateVisibleTodos);
+    _updateTodoDone(null);
+  }
 
-  int get doneCount =>
-      todos.fold(0, (count, t) => count + (t.done ? 1 : 0));
+  _updateTodoDone(_) {
+    // TODO(jmesserly): we should try using Polymer Expressions and filters
+    // instead of computing so many things.
+    doneCount = todos.fold(0, (count, t) => count + (t.done ? 1 : 0));
+    hasCompleteTodos = doneCount > 0;
+    remaining = todos.length - doneCount;
 
-  int get remaining => todos.length - doneCount;
+    _allChecked = notifyPropertyChange(const Symbol('allChecked'),
+        _allChecked, todos.length > 0 && remaining == 0);
+
+    _updateVisibleTodos(_);
+  }
+
+  _updateVisibleTodos(_) {
+    bool filterDone = null;
+    if (windowLocation.hash == '#/completed') {
+      filterDone = true;
+    } else if (windowLocation.hash == '#/active') {
+      filterDone = false;
+    }
+
+    visibleTodos = todos.where(
+        (t) => filterDone == null || t.done == filterDone)
+        .toList(growable: false);
+  }
+
+  // TODO(jmesserly): the @observable here is temporary.
+  bool get allChecked => _allChecked;
+  set allChecked(bool value) {
+    todos.forEach((t) { t.done = value; });
+  }
 
   void clearDone() => todos.removeWhere((t) => t.done);
 }
 
-final AppModel app = new AppModel();
-
-@observable
-class Todo {
-  String task;
-  bool done = false;
+class Todo extends ObservableBase {
+  @observable String task;
+  @observable bool done = false;
 
   Todo(this.task);
 

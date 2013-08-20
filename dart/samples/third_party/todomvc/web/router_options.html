@@ -9,45 +9,9 @@ BSD-style license that can be found in the LICENSE file.
     <meta charset="utf-8">
   </head>
 <body>
-<element name="router-options" extends="ul" apply-author-styles>
+<polymer-element name="router-options" extends="ul">
   <template><content></content></template>
-  <script type="application/dart">
-  import 'dart:html';
-  import 'package:web_ui/web_ui.dart';
-  import 'package:web_ui/observe/html.dart';
-
-  /**
-   * Given a set of child links to this page, this will add the "selected" CSS
-   * class to the link that matches window.location.hash.
-   *
-   * For example, if the current window.location.hash is "#/completed" and we
-   * have a tag like `<a href="#/completed">` it will get the class
-   * `class="selected"`, and other links will have that CSS class removed.
-   */
-  class RouterOptions extends WebComponent {
-
-    var _stopWatcher;
-
-    void inserted() {
-      super.inserted();
-
-      var anchors = this.queryAll('a');
-
-      _stopWatcher = watchAndInvoke(() => locationHash, (e) {
-        var hash = e.newValue;
-        if (hash == '') hash = '#/';
-        for (var a in anchors) {
-          updateCssClass(a, a.hash == hash, 'selected');
-        }
-      });
-    }
-
-    void removed() {
-      _stopWatcher();
-      super.removed();
-    }
-  }
-  </script>
-</element>
+  <script type="application/dart" src="router_options.dart"></script>
+</polymer-element>
 </body>
 </html>

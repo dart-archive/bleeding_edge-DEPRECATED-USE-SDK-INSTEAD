@@ -3,8 +3,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-import 'package:web_ui/testing/render_test.dart';
+import 'package:polymer/testing/content_shell_test.dart';
 import 'package:unittest/compact_vm_config.dart';
 
 void main() {
