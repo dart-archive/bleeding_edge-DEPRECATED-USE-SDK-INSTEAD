@@ -1779,6 +1779,19 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidReferenceToThis_superInitializer() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  A(var x) {}",
+        "}",
+        "class B extends A {",
+        "  B() : super(this);",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    verify(source);
+  }
+
   public void test_invalidReferenceToThis_topLevelFunction() throws Exception {
     Source source = addSource("f() { return this; }");
     resolve(source);

@@ -4936,7 +4936,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         ConstructorDeclaration constructor = (ConstructorDeclaration) n;
         return constructor.getFactoryKeyword() == null;
       }
-      if (n instanceof ConstructorFieldInitializer) {
+      if (n instanceof ConstructorInitializer) {
         return false;
       }
       if (n instanceof MethodDeclaration) {
