@@ -19,6 +19,7 @@ import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.pub.PubMessages;
 import com.google.dart.tools.core.pub.RunPubJob;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -35,12 +36,8 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -75,14 +72,7 @@ public class RunPublishAction extends RunPubAction {
       link.addSelectionListener(new SelectionAdapter() {
         @Override
         public void widgetSelected(SelectionEvent e) {
-          try {
-            PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(
-                new URL(e.text));
-          } catch (PartInitException ex) {
-
-          } catch (MalformedURLException ex) {
-
-          }
+          ExternalBrowserUtil.openInExternalBrowser(e.text);
         }
       });
       composite.pack();

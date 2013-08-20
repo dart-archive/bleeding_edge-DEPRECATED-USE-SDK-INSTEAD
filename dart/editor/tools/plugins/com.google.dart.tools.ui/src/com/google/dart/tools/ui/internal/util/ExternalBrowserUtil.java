@@ -14,15 +14,7 @@
 
 package com.google.dart.tools.ui.internal.util;
 
-import com.google.dart.tools.ui.DartToolsPlugin;
-
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.browser.IWebBrowser;
-import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
-
-import java.net.MalformedURLException;
-import java.net.URL;
+import org.eclipse.swt.program.Program;
 
 /**
  * This class provides utility methods for external browsers.
@@ -30,8 +22,7 @@ import java.net.URL;
 public class ExternalBrowserUtil {
 
   /**
-   * Given some valid {@link String} url, this method opens the link in the external browser that
-   * the {@link PlatformUI} can find.
+   * Given some valid {@link String} url, this method opens the link in default external browser.
    * 
    * @param url some url to open in an external browser, if <code>null</code> is passed, this method
    *          does nothing
@@ -40,15 +31,21 @@ public class ExternalBrowserUtil {
     if (url == null || url.isEmpty()) {
       return;
     }
-    IWorkbenchBrowserSupport support = PlatformUI.getWorkbench().getBrowserSupport();
-    try {
-      IWebBrowser browser = support.getExternalBrowser();
-      browser.openURL(new URL(url));
-    } catch (MalformedURLException e) {
-      DartToolsPlugin.log(e);
-    } catch (PartInitException e) {
-      DartToolsPlugin.log(e);
-    }
+    Program.launch(url);
+    // FIXME(scheglov) this code allows some configuration, but does not work on Linux.
+    // See https://code.google.com/p/dart/issues/detail?id=12560
+    // If restore this code, restore also JavaDoc:
+//    * Given some valid {@link String} url, this method opens the link in the external browser that
+//    * the {@link PlatformUI} can find.
+//    IWorkbenchBrowserSupport support = PlatformUI.getWorkbench().getBrowserSupport();
+//    try {
+//      IWebBrowser browser = support.getExternalBrowser();
+//      browser.openURL(new URL(url));
+//    } catch (MalformedURLException e) {
+//      DartToolsPlugin.log(e);
+//    } catch (PartInitException e) {
+//      DartToolsPlugin.log(e);
+//    }
   }
 
 }
