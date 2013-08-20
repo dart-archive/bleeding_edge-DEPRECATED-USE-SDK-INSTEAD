@@ -121,7 +121,7 @@ public class RunScriptAction extends InstrumentedSelectionDispatchAction {
       console.print("Running script '" + scriptName + "'...\n");
 
       IFile file = null;
-      if (!selection.isEmpty()) {
+      if (selection != null && !selection.isEmpty()) {
         IWorkbenchPage page = DartToolsPlugin.getActivePage();
         if (page == null) {
           instrumentation.metric("Problem", "Page was null");
