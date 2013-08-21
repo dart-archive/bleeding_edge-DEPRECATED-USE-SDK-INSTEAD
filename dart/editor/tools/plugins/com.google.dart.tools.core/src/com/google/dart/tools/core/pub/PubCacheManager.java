@@ -102,6 +102,9 @@ public class PubCacheManager {
     return INSTANCE;
   }
 
+  // keeps track of packages last updated
+  private Map<String, String> currentPackages;
+
   public HashMap<String, Object> getLocalPackages() {
     synchronized (pubUsedPackages) {
       HashMap<String, Object> copy = new HashMap<String, Object>(pubUsedPackages);
@@ -114,7 +117,10 @@ public class PubCacheManager {
   }
 
   public void updatePackagesList(int delay, Map<String, String> packages) {
-    new FillPubCacheList("update installed packages", packages).schedule(delay);
+    if (currentPackages == null || !currentPackages.equals(packages)) {
+      currentPackages = packages;
+      new FillPubCacheList("update installed packages", packages).schedule(delay);
+    }
   }
 
   protected IProject[] getProjects() {
