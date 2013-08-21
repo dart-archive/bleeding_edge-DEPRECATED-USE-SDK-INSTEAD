@@ -45,7 +45,6 @@ class EditableLabel extends PolymerElement with ObservableMixin {
   }
 }
 
-@polymerInitMethod
-void _init() {
+void main() {
   registerPolymerElement('editable-label', () => new EditableLabel());
 }
