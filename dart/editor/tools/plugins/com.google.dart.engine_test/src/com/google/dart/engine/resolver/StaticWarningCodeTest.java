@@ -2211,4 +2211,16 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors(StaticWarningCode.UNDEFINED_NAMED_PARAMETER);
     // no verify(), 'c' is not resolved
   }
+
+  public void test_undefinedSetter() throws Exception {
+    Source source1 = addSource("lib.dart", "");
+    Source source2 = addSource("lib2.dart", createSource(//
+        "import 'lib.dart' as lib;",
+        "void f() {",
+        "  lib.gg = null;",
+        "}"));
+    resolve(source1);
+    resolve(source2);
+    assertErrors(StaticWarningCode.UNDEFINED_SETTER);
+  }
 }
