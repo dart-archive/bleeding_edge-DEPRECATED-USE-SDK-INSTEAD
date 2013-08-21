@@ -1283,7 +1283,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     // fCorrectionCommands.deregisterCommands();
     // fCorrectionCommands = null;
     // }
-
+    fReconcilingListeners = new ListenerList(ListenerList.IDENTITY);
     super.dispose();
   }
 
