@@ -202,7 +202,9 @@ public class CompletionEngine {
       addNamesDefinedByTypes(allSuperTypes(classElement));
       // Collect names defined by subtypes separately so they can be identified later.
       NameCollector potentialMatchCollector = new NameCollector();
-      potentialMatchCollector.addNamesDefinedByTypes(allSubtypes(classElement));
+      if (!classElement.getType().isObject()) {
+        potentialMatchCollector.addNamesDefinedByTypes(allSubtypes(classElement));
+      }
       potentialMatches = new HashSet<Element>(potentialMatchCollector.uniqueNames.size());
       for (List<Element> matches : potentialMatchCollector.uniqueNames.values()) {
         for (Element match : matches) {

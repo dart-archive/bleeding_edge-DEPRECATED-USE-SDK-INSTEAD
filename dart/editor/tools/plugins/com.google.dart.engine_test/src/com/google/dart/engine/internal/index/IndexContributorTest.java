@@ -556,6 +556,25 @@ public class IndexContributorTest extends AbstractDartTest {
         new ExpectedLocation(classElementB, findOffset("A {} // 2"), "A"));
   }
 
+  public void test_isExtendedBy_ClassDeclaration_Object() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {} // 1",
+        "");
+    // prepare elements
+    ClassElement classElementA = findElement("A {} // 1");
+    ClassElement classElementObject = classElementA.getSupertype().getElement();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        classElementObject,
+        IndexConstants.IS_EXTENDED_BY,
+        new ExpectedLocation(classElementA, findOffset("A {} // 1"), ""));
+  }
+
   public void test_isExtendedBy_ClassTypeAlias() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

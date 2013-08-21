@@ -80,6 +80,7 @@ import com.google.dart.engine.index.LocationWithData;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.collection.IntStack;
 
@@ -304,6 +305,15 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
         if (extendsClause != null) {
           TypeName superclassNode = extendsClause.getSuperclass();
           recordSuperType(superclassNode, IndexConstants.IS_EXTENDED_BY);
+        } else {
+          InterfaceType superType = element.getSupertype();
+          if (superType != null) {
+            ClassElement objectElement = superType.getElement();
+            recordRelationship(
+                objectElement,
+                IndexConstants.IS_EXTENDED_BY,
+                createLocation(node.getName().getOffset(), 0, null));
+          }
         }
       }
       {
