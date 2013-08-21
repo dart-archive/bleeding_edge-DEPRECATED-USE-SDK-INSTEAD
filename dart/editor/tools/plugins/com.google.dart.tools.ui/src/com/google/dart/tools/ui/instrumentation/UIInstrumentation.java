@@ -10,6 +10,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPartReference;
+import org.eclipse.ui.IWorkbenchWindow;
 
 /**
  * The class {@code EclipseInstrumentation} wrappers and augments {@link Instrumentation} and
@@ -204,10 +207,50 @@ public class UIInstrumentation {
     }
 
     @Override
+    public void record(IWorkbenchPage page) {
+
+      if (page == null) {
+        metric("page", "null");
+        return;
+      }
+
+      metric("type", page.getClass().toString());
+      data("label", page.getLabel());
+      record(page.getSelection());
+    }
+
+    @Override
+    public void record(IWorkbenchPartReference part) {
+
+      if (part == null) {
+        metric("part", "null");
+        return;
+      }
+
+      metric("type", part.getClass().toString());
+      data("id", part.getId());
+      data("partName", part.getPartName());
+      data("pageTitle", part.getTitle());
+      metric("isDirty", part.isDirty());
+    }
+
+    @Override
+    public void record(IWorkbenchWindow window) {
+
+      if (window == null) {
+        metric("window", "null");
+        return;
+      }
+
+      metric("type", window.getClass().toString());
+    }
+
+    @Override
     public InstrumentationBuilder record(Throwable exception) {
       builder.record(exception);
       return this;
     }
+
   }
 
   /**

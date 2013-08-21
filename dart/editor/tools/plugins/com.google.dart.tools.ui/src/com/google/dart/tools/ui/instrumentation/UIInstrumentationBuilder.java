@@ -8,6 +8,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPartReference;
+import org.eclipse.ui.IWorkbenchWindow;
 
 /**
  * Instances of {@code UIInstrumentationBuilder} are a drop in replacement for
@@ -66,4 +69,26 @@ public interface UIInstrumentationBuilder extends InstrumentationBuilder {
    * @param selection the selection (may be {@code null})
    */
   void record(ITextSelection selection);
+
+  /**
+   * Append information about the workbench page
+   * 
+   * @param page the page (may be {@code null})
+   */
+  void record(IWorkbenchPage page);
+
+  /**
+   * Append information about the workbench part
+   * 
+   * @param part the part (may be {@code null})
+   */
+  void record(IWorkbenchPartReference part);
+
+  /**
+   * Append information about the workbench window
+   * 
+   * @param window the window (may be {@code null})
+   */
+  void record(IWorkbenchWindow window);
+
 }

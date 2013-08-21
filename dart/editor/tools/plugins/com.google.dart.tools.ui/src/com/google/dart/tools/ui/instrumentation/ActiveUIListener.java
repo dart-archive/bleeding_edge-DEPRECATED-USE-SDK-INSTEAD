@@ -30,58 +30,127 @@ public class ActiveUIListener implements IWindowListener, IPageListener, IPartLi
   @Override
   public void pageActivated(IWorkbenchPage page) {
     page.addPartListener(this);
-    log("page activated " + page);
+
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "pageActivated");
+      instrumentation.record(page);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void pageClosed(IWorkbenchPage page) {
     page.removePartListener(this);
-    log("page closed " + page);
+
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "pageClosed");
+      instrumentation.record(page);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void pageOpened(IWorkbenchPage page) {
-    log("page opened " + page);
+
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "pageOpened");
+      instrumentation.record(page);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void partActivated(IWorkbenchPartReference partRef) {
-    log("part activated " + partRef);
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "partActivated");
+      instrumentation.record(partRef);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void partBroughtToTop(IWorkbenchPartReference partRef) {
-    log("part on top " + partRef);
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "partBroughtToTop");
+      instrumentation.record(partRef);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void partClosed(IWorkbenchPartReference partRef) {
-    log("part closed " + partRef);
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "partClosed");
+      instrumentation.record(partRef);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void partDeactivated(IWorkbenchPartReference partRef) {
-    log("part deactivated " + partRef);
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "partDeactivated");
+      instrumentation.record(partRef);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void partHidden(IWorkbenchPartReference partRef) {
-    log("part hidden " + partRef);
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "partHidden");
+      instrumentation.record(partRef);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void partInputChanged(IWorkbenchPartReference partRef) {
-    log("part input changed " + partRef);
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "partInputChanged");
+      instrumentation.record(partRef);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void partOpened(IWorkbenchPartReference partRef) {
-    log("part opened " + partRef);
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "partOpened");
+      instrumentation.record(partRef);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void partVisible(IWorkbenchPartReference partRef) {
-    log("part visible " + partRef);
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "partVisible");
+      instrumentation.record(partRef);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   /**
@@ -107,27 +176,51 @@ public class ActiveUIListener implements IWindowListener, IPageListener, IPartLi
   @Override
   public void windowActivated(IWorkbenchWindow window) {
     window.addPageListener(this);
-    log("window activated " + window);
+
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "windowActivated");
+      instrumentation.record(window);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void windowClosed(IWorkbenchWindow window) {
     window.removePageListener(this);
-    log("window closed " + window);
+
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "windowClosed");
+      instrumentation.record(window);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void windowDeactivated(IWorkbenchWindow window) {
     window.removePageListener(this);
-    log("window deactivated " + window);
+
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "windowDeactivated");
+      instrumentation.record(window);
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override
   public void windowOpened(IWorkbenchWindow window) {
-    log("window opened " + window);
-  }
 
-  private void log(String message) {
-    System.out.println(message);
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("ActiveUIListener");
+    try {
+      instrumentation.metric("Action", "windowOpened");
+      instrumentation.record(window);
+    } finally {
+      instrumentation.log();
+    }
   }
 }
