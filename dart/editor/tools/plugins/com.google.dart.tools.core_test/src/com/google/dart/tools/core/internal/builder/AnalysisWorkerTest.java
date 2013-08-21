@@ -37,6 +37,9 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 public class AnalysisWorkerTest extends TestCase {
 
@@ -105,6 +108,71 @@ public class AnalysisWorkerTest extends TestCase {
   private boolean completeCalled = false;
   private boolean resolvedCalledBeforeComplete = false;
   private final Listener listener = new Listener();
+
+  public void test_pauseBackgroundAnalysis() throws Exception {
+    final Semaphore analysisPerformed = new Semaphore(0);
+    worker = new AnalysisWorker(project, context, manager, markerManager) {
+      @Override
+      public void performAnalysis() {
+        analysisPerformed.release();
+      }
+    };
+
+    // Pause background analysis
+    assertTrue(AnalysisWorker.waitForBackgroundAnalysis(10000));
+    AnalysisWorker.pauseBackgroundAnalysis();
+    try {
+
+      // Assert background analysis is not being performed
+      addLibrary();
+      worker.performAnalysisInBackground();
+      assertTrue(AnalysisWorker.waitForBackgroundAnalysis(10000));
+      assertEquals(0, analysisPerformed.availablePermits());
+
+    } finally {
+      // Resume background analysis and assert it is being performed.
+      AnalysisWorker.resumeBackgroundAnalysis();
+    }
+    assertTrue(analysisPerformed.tryAcquire(1000, TimeUnit.MILLISECONDS));
+  }
+
+  public void test_pauseBackgroundAnalysis_inProgress() throws Exception {
+    final CountDownLatch analysisStarted = new CountDownLatch(1);
+    final CountDownLatch resumeAnalysis = new CountDownLatch(1);
+    worker = new AnalysisWorker(project, context, manager, markerManager) {
+      @Override
+      public void performAnalysis() {
+        analysisStarted.countDown();
+        try {
+          resumeAnalysis.await();
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+        super.performAnalysis();
+      }
+    };
+
+    // Begin background analysis
+    addLibrary();
+    worker.performAnalysisInBackground();
+    assertTrue(analysisStarted.await(10000, TimeUnit.MILLISECONDS));
+
+    // Pause background analysis
+    AnalysisWorker.pauseBackgroundAnalysis();
+    try {
+      resumeAnalysis.countDown();
+
+      // Assert background analysis is not being performed
+      assertTrue(AnalysisWorker.waitForBackgroundAnalysis(10000));
+      assertFalse(completeCalled);
+
+    } finally {
+      // Resume background analysis and assert it is being performed.
+      AnalysisWorker.resumeBackgroundAnalysis();
+    }
+    assertTrue(AnalysisWorker.waitForBackgroundAnalysis(10000));
+    assertTrue(completeCalled);
+  }
 
   public void test_performAnalysis() throws Exception {
     worker = new AnalysisWorker(project, context, manager, markerManager);
