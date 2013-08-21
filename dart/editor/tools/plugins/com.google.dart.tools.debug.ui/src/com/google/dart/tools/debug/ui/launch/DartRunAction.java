@@ -61,10 +61,6 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
     return false;
   }
 
-  public DartRunAction() {
-    this(null, false);
-  }
-
   public DartRunAction(IWorkbenchWindow window) {
     this(window, false);
   }
@@ -92,7 +88,7 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
 
     // run last launch if user has checked the Run last action menu option
     if (runLastLaunch) {
-      DartRunLastAction runLastAction = new DartRunLastAction();
+      DartRunLastAction runLastAction = new DartRunLastAction(window);
       runLastAction.run();
       return;
     }

@@ -32,10 +32,6 @@ import java.util.List;
  */
 public class DartRunLastAction extends DartRunAbstractAction {
 
-  public DartRunLastAction() {
-    this(null, false);
-  }
-
   public DartRunLastAction(IWorkbenchWindow window) {
     this(window, false);
   }
