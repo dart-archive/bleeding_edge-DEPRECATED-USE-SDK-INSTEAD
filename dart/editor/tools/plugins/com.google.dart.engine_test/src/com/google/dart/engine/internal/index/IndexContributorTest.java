@@ -1404,6 +1404,102 @@ public class IndexContributorTest extends AbstractDartTest {
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
+  public void test_isReferencedByQualified_MethodElement_operator_binary() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator +(other) => this;",
+        "}",
+        "main(A a) {",
+        "  print(a + 42);",
+        "  a += 42;",
+        "  ++a;",
+        "  a++;",
+        "}");
+    // set elements
+    Element mainElement = findElement("main(A a");
+    MethodElement operatorElement = findElement("+(other");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        operatorElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, findOffset("+ 42);"), "+"));
+    assertRecordedRelation(
+        relations,
+        operatorElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, findOffset("+= 42;"), "+="));
+    assertRecordedRelation(
+        relations,
+        operatorElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, findOffset("++a;"), "++"));
+    assertRecordedRelation(
+        relations,
+        operatorElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, findOffset("++;"), "++"));
+  }
+
+  public void test_isReferencedByQualified_MethodElement_operator_index() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator [](i) => null;",
+        "  operator []=(i, v) {}",
+        "}",
+        "main(A a) {",
+        "  print(a[0]);",
+        "  a[1] = 42;",
+        "}");
+    // set elements
+    Element mainElement = findElement("main(A a");
+    MethodElement readElement = findElement("[]");
+    MethodElement writeElement = findElement("[]=");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        readElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, findOffset("[0]);"), "["));
+    assertRecordedRelation(
+        relations,
+        writeElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, findOffset("[1] = 42"), "["));
+  }
+
+  public void test_isReferencedByQualified_MethodElement_operator_prefix() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A operator ~() => this;",
+        "}",
+        "main(A a) {",
+        "  print(~a);",
+        "}");
+    // set elements
+    Element mainElement = findElement("main(A a");
+    MethodElement operatorElement = findElement("~(");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        operatorElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, findOffset("~a);"), "~"));
+    assertNoRecordedRelation(relations, operatorElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
   public void test_isReferencedByQualified_PropertyAccessorElement_method_getter() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

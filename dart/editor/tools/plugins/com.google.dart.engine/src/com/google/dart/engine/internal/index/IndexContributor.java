@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -33,11 +34,14 @@ import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
+import com.google.dart.engine.ast.PostfixExpression;
+import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -74,6 +78,7 @@ import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.LocationWithData;
 import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.collection.IntStack;
@@ -267,6 +272,28 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
+  public Void visitAssignmentExpression(AssignmentExpression node) {
+    MethodElement element = node.getBestElement();
+    if (element instanceof MethodElement) {
+      Token operator = node.getOperator();
+      Location location = createLocation(operator);
+      recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
+    }
+    return super.visitAssignmentExpression(node);
+  }
+
+  @Override
+  public Void visitBinaryExpression(BinaryExpression node) {
+    MethodElement element = node.getBestElement();
+    if (element instanceof MethodElement) {
+      Token operator = node.getOperator();
+      Location location = createLocation(operator);
+      recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
+    }
+    return super.visitBinaryExpression(node);
+  }
+
+  @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
     ClassElement element = node.getElement();
     enterScope(element);
@@ -429,6 +456,17 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
+  public Void visitIndexExpression(IndexExpression node) {
+    MethodElement element = node.getBestElement();
+    if (element instanceof MethodElement) {
+      Token operator = node.getLeftBracket();
+      Location location = createLocation(operator);
+      recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
+    }
+    return super.visitIndexExpression(node);
+  }
+
+  @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement element = node.getElement();
     enterScope(element);
@@ -473,6 +511,28 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     Location location = createLocation(node.getLibraryName());
     recordRelationship(node.getElement(), IndexConstants.IS_REFERENCED_BY, location);
     return null;
+  }
+
+  @Override
+  public Void visitPostfixExpression(PostfixExpression node) {
+    MethodElement element = node.getBestElement();
+    if (element instanceof MethodElement) {
+      Token operator = node.getOperator();
+      Location location = createLocation(operator);
+      recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
+    }
+    return super.visitPostfixExpression(node);
+  }
+
+  @Override
+  public Void visitPrefixExpression(PrefixExpression node) {
+    MethodElement element = node.getBestElement();
+    if (element instanceof MethodElement) {
+      Token operator = node.getOperator();
+      Location location = createLocation(operator);
+      recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
+    }
+    return super.visitPrefixExpression(node);
   }
 
   @Override
@@ -640,6 +700,13 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   private Location createLocation(int offset, int length, String prefix) {
     Element element = peekElement();
     return new Location(element, offset, length, prefix);
+  }
+
+  /**
+   * @return the {@link Location} representing location of the {@link Token}.
+   */
+  private Location createLocation(Token token) {
+    return createLocation(token.getOffset(), token.getLength(), null);
   }
 
   /**
