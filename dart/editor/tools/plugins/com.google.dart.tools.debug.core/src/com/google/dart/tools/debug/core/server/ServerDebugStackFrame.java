@@ -30,6 +30,7 @@ import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IRegisterGroup;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
+import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.core.model.IWatchExpressionListener;
 
@@ -99,13 +100,51 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
   @Override
   public IVariable findVariable(String varName) throws DebugException {
-    IVariable[] variables = getVariables();
-
-    for (int i = 0; i < variables.length; i++) {
-      IVariable var = variables[i];
-
+    // search in locals
+    for (IVariable var : getVariables()) {
       if (var.getName().equals(varName)) {
         return var;
+      }
+    }
+
+    // search in instance variables
+    IVariable thisVar = getThisVariable();
+
+    if (thisVar != null) {
+      IValue thisValue = thisVar.getValue();
+
+      for (IVariable var : thisValue.getVariables()) {
+        if (var.getName().equals(varName)) {
+          return var;
+        }
+      }
+
+      // search statics for an instance method
+      // TODO(devoncarew):
+//      if (thisValue instanceof ServerDebugValue) {
+//        IValue classValue = ((ServerDebugValue) thisValue).getClassValue();
+//
+//        if (classValue != null) {
+//          for (IVariable var : classValue.getVariables()) {
+//            if (var.getName().equals(varName)) {
+//              return var;
+//            }
+//          }
+//        }
+//      }
+    } else {
+      // TODO(devoncarew): search in statics in a class function
+
+    }
+
+    // search globals
+    IVariable globalVar = getGlobalVariable();
+
+    if (globalVar != null) {
+      for (IVariable var : globalVar.getValue().getVariables()) {
+        if (var.getName().equals(varName)) {
+          return var;
+        }
       }
     }
 
@@ -293,6 +332,30 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     newLocals.addAll(locals);
 
     locals = newLocals;
+  }
+
+  protected IVariable getGlobalVariable() throws DebugException {
+    for (IVariable var : getVariables()) {
+      if (var instanceof ServerDebugVariable) {
+        if (((ServerDebugVariable) var).isLibraryObject()) {
+          return var;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  protected IVariable getThisVariable() throws DebugException {
+    for (IVariable var : getVariables()) {
+      if (var instanceof ServerDebugVariable) {
+        if (((ServerDebugVariable) var).isThisObject()) {
+          return var;
+        }
+      }
+    }
+
+    return null;
   }
 
   protected VmCallFrame getVmFrame() {

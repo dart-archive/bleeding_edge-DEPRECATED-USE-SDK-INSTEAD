@@ -25,12 +25,14 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationCont
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.RGB;
 
 /**
  * A rich label provider for debug variables and values.
  */
 @SuppressWarnings("restriction")
 public class DartiumVariableLabelProvider extends VariableLabelProvider {
+  private final static boolean TWEAK_DARTIUM_MAP_KEY_NAMES = true;
 
   @Override
   protected FontData getFontData(TreePath elementPath, IPresentationContext presentationContext,
@@ -38,7 +40,7 @@ public class DartiumVariableLabelProvider extends VariableLabelProvider {
     FontData fontData = super.getFontData(elementPath, presentationContext, columnId);
 
     // Show static variables in italics.
-    if (columnId.endsWith("_NAME")) {
+    if (columnId != null && columnId.endsWith("_NAME")) {
       if (elementPath.getLastSegment() instanceof DartiumDebugVariable && fontData != null) {
         DartiumDebugVariable variable = (DartiumDebugVariable) elementPath.getLastSegment();
 
@@ -49,6 +51,27 @@ public class DartiumVariableLabelProvider extends VariableLabelProvider {
     }
 
     return fontData;
+  }
+
+  @Override
+  protected RGB getForeground(TreePath elementPath, IPresentationContext presentationContext,
+      String columnId) throws CoreException {
+    RGB rgb = super.getForeground(elementPath, presentationContext, columnId);
+
+    // Dartium sends us map keys as if they were object properties - we tweak their display a bit.
+    if (TWEAK_DARTIUM_MAP_KEY_NAMES) {
+      if (columnId != null && columnId.endsWith("_NAME")) {
+        if (elementPath.getLastSegment() instanceof DartiumDebugVariable) {
+          DartiumDebugVariable variable = (DartiumDebugVariable) elementPath.getLastSegment();
+
+          if (variable.getName().startsWith(":")) {
+            rgb = new RGB(0x66, 0x66, 0x66);
+          }
+        }
+      }
+    }
+
+    return rgb;
   }
 
   @Override
@@ -69,10 +92,16 @@ public class DartiumVariableLabelProvider extends VariableLabelProvider {
     if (variable instanceof DartiumDebugVariable) {
       DartiumDebugVariable dartiumVariable = (DartiumDebugVariable) variable;
 
+      // Dartium sends us map keys as if they were object properties - we tweak their display a bit.
+      if (TWEAK_DARTIUM_MAP_KEY_NAMES) {
+        if (variable.getName().startsWith(":")) {
+          return "[" + dartiumVariable.getDisplayName().substring(1) + "]";
+        }
+      }
+
       return dartiumVariable.getDisplayName();
     } else {
       return super.getVariableName(variable, context);
     }
   }
-
 }

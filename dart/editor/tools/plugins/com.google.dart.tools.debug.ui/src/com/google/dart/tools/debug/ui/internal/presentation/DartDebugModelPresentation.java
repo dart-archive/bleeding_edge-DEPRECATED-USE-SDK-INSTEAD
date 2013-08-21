@@ -181,6 +181,10 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
       DartiumDebugValue dartiumValue = (DartiumDebugValue) value;
 
       valueString = getValueText(dartiumValue);
+    } else if (value instanceof ServerDebugValue) {
+      ServerDebugValue debugValue = (ServerDebugValue) value;
+
+      valueString = debugValue.getDetailValue();
     } else if (value != null) {
       valueString = value.getValueString();
 

@@ -23,13 +23,14 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 
 /**
- * The IVariable implementation of the Dartium Debug Element
+ * The IVariable implementation of the Dartium Debug Element.
  */
 public class DartiumDebugVariable extends DartiumDebugElement implements IDartDebugVariable {
   private WebkitPropertyDescriptor descriptor;
 
   private DartiumDebugVariable parent;
   private DartiumDebugValue value;
+
   private boolean isSpecialObject;
   private boolean isStatic;
   private boolean isLibraryObject;
@@ -100,7 +101,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
   public IValue getValue() throws DebugException {
     try {
       if (value == null) {
-        value = new DartiumDebugValue(getTarget(), this, descriptor.getValue());
+        value = DartiumDebugValue.create(getTarget(), this, descriptor.getValue());
       }
 
       return value;

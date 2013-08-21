@@ -41,6 +41,16 @@ public class WebkitRemoteObject {
     return remoteObject;
   }
 
+  public static WebkitRemoteObject createNull() {
+    WebkitRemoteObject obj = new WebkitRemoteObject();
+
+    obj.type = "object";
+    obj.subtype = "null";
+    obj.description = "null";
+
+    return obj;
+  }
+
   String className;
 
   private String description;

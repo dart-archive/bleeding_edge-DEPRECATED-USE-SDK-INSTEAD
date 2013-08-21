@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 /**
- * The IValue implementation of Dartium Debug element
+ * The IValue implementation of Dartium Debug element.
  */
 public class DartiumDebugValue extends DartiumDebugElement implements IValue, IDartDebugValue,
     IExpressionEvaluator {
@@ -43,14 +43,21 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     public void detailComputed(String stringValue);
   }
 
-  private static final int MAX_DISPLAYABLE_LIST_LENGTH = 2000;
+  static DartiumDebugValue create(DartiumDebugTarget target, DartiumDebugVariable variable,
+      WebkitRemoteObject value) {
+    if (value.isList()) {
+      return new DartiumDebugIndexedValue(target, variable, value);
+    } else {
+      return new DartiumDebugValue(target, variable, value);
+    }
+  }
 
   private DartiumDebugVariable variable;
-  private WebkitRemoteObject value;
+  protected WebkitRemoteObject value;
 
   private VariableCollector variableCollector;
 
-  public DartiumDebugValue(DartiumDebugTarget target, DartiumDebugVariable variable,
+  protected DartiumDebugValue(DartiumDebugTarget target, DartiumDebugVariable variable,
       WebkitRemoteObject value) {
     super(target);
 
@@ -239,7 +246,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
   @Override
   public boolean isListValue() {
-    return value.isList();
+    return false;
   }
 
   @Override
@@ -290,21 +297,10 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
   private void populate() {
     if (value.hasObjectId()) {
-      // TODO(devoncarew): this prevents crashes in the editor and Dartium, but a better
-      // solution is needed. That solution will likely involve use of the Runtime.callFunctionOn
-      // method. See https://code.google.com/p/dart/issues/detail?id=7794.
-      if (value.isList() && value.getListLength() > MAX_DISPLAYABLE_LIST_LENGTH) {
-        variableCollector = VariableCollector.empty();
-//      if (value.isList()) {
-//        variableCollector = VariableCollector.fixed(
-//            getTarget(),
-//            ListSlicer.createValues(getTarget(), value));
-      } else {
-        variableCollector = VariableCollector.createCollector(
-            getTarget(),
-            variable,
-            Collections.singletonList(value));
-      }
+      variableCollector = VariableCollector.createCollector(
+          getTarget(),
+          variable,
+          Collections.singletonList(value));
     } else {
       variableCollector = VariableCollector.empty();
     }

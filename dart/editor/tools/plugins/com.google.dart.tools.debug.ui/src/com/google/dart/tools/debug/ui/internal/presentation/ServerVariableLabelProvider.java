@@ -38,7 +38,7 @@ public class ServerVariableLabelProvider extends VariableLabelProvider {
     FontData fontData = super.getFontData(elementPath, presentationContext, columnId);
 
     // Show static variables in italics.
-    if (columnId.endsWith("_NAME")) {
+    if (columnId != null && columnId.endsWith("_NAME")) {
       if (elementPath.getLastSegment() instanceof ServerDebugVariable && fontData != null) {
         ServerDebugVariable variable = (ServerDebugVariable) elementPath.getLastSegment();
 

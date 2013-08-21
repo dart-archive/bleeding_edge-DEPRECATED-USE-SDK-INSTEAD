@@ -23,8 +23,10 @@ import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextHoverExtension;
 import org.eclipse.jface.text.ITextHoverExtension2;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
@@ -32,8 +34,11 @@ import org.eclipse.jface.text.Region;
 /**
  * Hover text for variables while debugging.
  */
-public class DartDebugHover implements ITextHover, ITextHoverExtension2 {
+public class DartDebugHover implements ITextHover, ITextHoverExtension, ITextHoverExtension2 {
   private static DartDebugModelPresentation presentation = new DartDebugModelPresentation();
+
+  // TODO(devoncarew): turn this off when the rich tooltip support is fixed
+  private static boolean USE_PLAIN_TOOLTIP = true;
 
   private static String convertNewLines(String str) {
     if (str == null) {
@@ -92,6 +97,15 @@ public class DartDebugHover implements ITextHover, ITextHoverExtension2 {
   }
 
   @Override
+  public IInformationControlCreator getHoverControlCreator() {
+    if (USE_PLAIN_TOOLTIP) {
+      return null;
+    } else {
+      return DebugTooltipControlCreator.newControlCreator();
+    }
+  }
+
+  @Override
   public String getHoverInfo(ITextViewer textViewer, IRegion hoverRegion) {
     Object object = getHoverInfo2(textViewer, hoverRegion);
 
@@ -121,7 +135,11 @@ public class DartDebugHover implements ITextHover, ITextHoverExtension2 {
             IVariable variable = resolver.findVariable(variableName);
 
             if (variable != null) {
-              return variable;
+              if (USE_PLAIN_TOOLTIP) {
+                return getVariableText(variable);
+              } else {
+                return variable;
+              }
             }
           } catch (DebugException e) {
             return null;
@@ -137,7 +155,55 @@ public class DartDebugHover implements ITextHover, ITextHoverExtension2 {
 
   @Override
   public IRegion getHoverRegion(ITextViewer textViewer, int offset) {
-    return new Region(offset, 0);
+    return findWord(textViewer.getDocument(), offset);
+  }
+
+  private IRegion findWord(IDocument document, int offset) {
+    int start = -2;
+    int end = -1;
+
+    try {
+
+      int pos = offset;
+      char c;
+
+      while (pos >= 0) {
+        c = document.getChar(pos);
+        if (!Character.isUnicodeIdentifierPart(c)) {
+          break;
+        }
+        --pos;
+      }
+
+      start = pos;
+
+      pos = offset;
+      int length = document.getLength();
+
+      while (pos < length) {
+        c = document.getChar(pos);
+        if (!Character.isUnicodeIdentifierPart(c)) {
+          break;
+        }
+        ++pos;
+      }
+
+      end = pos;
+
+    } catch (BadLocationException x) {
+    }
+
+    if (start >= -1 && end > -1) {
+      if (start == offset && end == offset) {
+        return new Region(offset, 0);
+      } else if (start == offset) {
+        return new Region(start, end - start);
+      } else {
+        return new Region(start + 1, end - start - 1);
+      }
+    }
+
+    return null;
   }
 
   private IStackFrame getFrame() {

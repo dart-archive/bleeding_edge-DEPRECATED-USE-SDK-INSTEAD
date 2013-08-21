@@ -26,6 +26,15 @@ import org.json.JSONObject;
 public class WebkitPropertyDescriptor implements Comparable<WebkitPropertyDescriptor> {
   public static final String STATIC_FIELDS = "@staticFields";
 
+  public static WebkitPropertyDescriptor createIndexProperty(int index, WebkitRemoteObject value) {
+    WebkitPropertyDescriptor descriptor = new WebkitPropertyDescriptor();
+
+    descriptor.name = "[" + index + "]";
+    descriptor.value = value;
+
+    return descriptor;
+  }
+
   public static WebkitPropertyDescriptor createObjectDescriptor(WebkitRemoteObject thisObject,
       String name) {
     WebkitPropertyDescriptor descriptor = new WebkitPropertyDescriptor();

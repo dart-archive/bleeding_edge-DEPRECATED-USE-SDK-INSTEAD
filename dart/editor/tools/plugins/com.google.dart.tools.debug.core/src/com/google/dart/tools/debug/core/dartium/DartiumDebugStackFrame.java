@@ -138,7 +138,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
                       result.getError().toString()));
                 }
               } else {
-                IValue value = new DartiumDebugValue(getTarget(), null, result.getResult());
+                IValue value = DartiumDebugValue.create(getTarget(), null, result.getResult());
 
                 listener.watchEvaluationFinished(WatchExpressionResult.value(expression, value));
               }
@@ -151,13 +151,51 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
   @Override
   public IVariable findVariable(String varName) throws DebugException {
-    IVariable[] variables = getVariables();
-
-    for (int i = 0; i < variables.length; i++) {
-      IVariable var = variables[i];
-
+    // search in locals
+    for (IVariable var : getVariables()) {
       if (var.getName().equals(varName)) {
         return var;
+      }
+    }
+
+    // search in instance variables
+    IVariable thisVar = getThisVariable();
+
+    if (thisVar != null) {
+      IValue thisValue = thisVar.getValue();
+
+      for (IVariable var : thisValue.getVariables()) {
+        if (var.getName().equals(varName)) {
+          return var;
+        }
+      }
+
+      // search statics for an instance method
+      if (thisValue instanceof DartiumDebugValue) {
+        IValue classValue = ((DartiumDebugValue) thisValue).getClassValue();
+
+        if (classValue != null) {
+          for (IVariable var : classValue.getVariables()) {
+            if (var.getName().equals(varName)) {
+              return var;
+            }
+          }
+        }
+      }
+    } else {
+      // TODO(devoncarew): search in statics in a class function
+      // This will require a change to the WIP protocol.
+
+    }
+
+    // search globals
+    IVariable globalVar = getGlobalVariable();
+
+    if (globalVar != null) {
+      for (IVariable var : globalVar.getValue().getVariables()) {
+        if (var.getName().equals(varName)) {
+          return var;
+        }
       }
     }
 
@@ -399,6 +437,18 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     return null;
   }
 
+  protected IVariable getGlobalVariable() throws DebugException {
+    for (IVariable var : getVariables()) {
+      if (var instanceof DartiumDebugVariable) {
+        if (((DartiumDebugVariable) var).isLibraryObject()) {
+          return var;
+        }
+      }
+    }
+
+    return null;
+  }
+
   protected String getMappedLocationPath() {
     SourceMapManager.SourceLocation targetLocation = getMappedLocation();
 
@@ -412,6 +462,18 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     }
 
     return targetLocation.file.getLocation().toPortableString();
+  }
+
+  protected IVariable getThisVariable() throws DebugException {
+    for (IVariable var : getVariables()) {
+      if (var instanceof DartiumDebugVariable) {
+        if (((DartiumDebugVariable) var).isThisObject()) {
+          return var;
+        }
+      }
+    }
+
+    return null;
   }
 
   /**

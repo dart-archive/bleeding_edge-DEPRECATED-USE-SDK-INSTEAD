@@ -20,8 +20,11 @@ import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 
 import org.eclipse.jface.text.DefaultTextHover;
+import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextHoverExtension;
+import org.eclipse.jface.text.ITextHoverExtension2;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -35,10 +38,8 @@ import java.util.List;
  * register themselves using {@link #addContributer(ITextHover)} and they will be invoked before the
  * default dart doc hover tool tip.
  */
-public class DartTextHover extends DefaultTextHover {
-  private CompilationUnitEditor editor;
-  private DartSourceViewerConfiguration sourceViewerConfiguration;
-
+public class DartTextHover extends DefaultTextHover implements ITextHoverExtension,
+    ITextHoverExtension2 {
   private static List<ITextHover> hoverContributors = new ArrayList<ITextHover>();
 
   /**
@@ -59,6 +60,12 @@ public class DartTextHover extends DefaultTextHover {
     hoverContributors.remove(hoverContributor);
   }
 
+  private CompilationUnitEditor editor;
+
+  private DartSourceViewerConfiguration sourceViewerConfiguration;
+
+  private ITextHover lastReturnedHover;
+
   public DartTextHover(ITextEditor editor, ISourceViewer sourceViewer,
       DartSourceViewerConfiguration sourceViewerConfiguration) {
     super(sourceViewer);
@@ -70,54 +77,78 @@ public class DartTextHover extends DefaultTextHover {
     this.sourceViewerConfiguration = sourceViewerConfiguration;
   }
 
+  @Override
+  public IInformationControlCreator getHoverControlCreator() {
+    if (lastReturnedHover instanceof ITextHoverExtension) {
+      return ((ITextHoverExtension) lastReturnedHover).getHoverControlCreator();
+    } else {
+      return null;
+    }
+  }
+
   @SuppressWarnings("deprecation")
   @Override
   public String getHoverInfo(ITextViewer textViewer, IRegion region) {
+    // Return any annotation info - i.e. errors and warnings.
     String annotationHover = super.getHoverInfo(textViewer, region);
 
     if (annotationHover != null) {
       return escapeHtmlEntities(annotationHover);
     }
 
-    if (editor == null) {
-      return null;
+    // Check through the contributed hover providers.
+    for (ITextHover hoverContributer : hoverContributors) {
+      String hoverText = hoverContributer.getHoverInfo(textViewer, region);
+
+      if (hoverText != null) {
+        lastReturnedHover = hoverContributer;
+
+        return hoverText;
+      }
     }
 
-    if (hoverContributors.size() > 0) {
-      // return the first non null string from the contributors
-      for (ITextHover hoverContributer : hoverContributors) {
+    // Check for a dartdoc contribution.
+    return getDartDocHover(region);
+  }
+
+  @Override
+  public Object getHoverInfo2(ITextViewer textViewer, IRegion region) {
+    // Overridden from ITextHoverExtension2. We try and return the richest help available; this
+    // means trying to call getHoverInfo2() on any contributors, and falling back on getHoverInfo().
+    lastReturnedHover = null;
+
+    // Return any annotation info - i.e. errors and warnings.
+    String annotationHover = super.getHoverInfo(textViewer, region);
+
+    if (annotationHover != null) {
+      return escapeHtmlEntities(annotationHover);
+    }
+
+    // Check through the contributed hover providers.
+    for (ITextHover hoverContributer : hoverContributors) {
+      if (hoverContributer instanceof ITextHoverExtension2) {
+        Object hoverInfo = ((ITextHoverExtension2) hoverContributer).getHoverInfo2(
+            textViewer,
+            region);
+
+        if (hoverInfo != null) {
+          lastReturnedHover = hoverContributer;
+
+          return hoverInfo;
+        }
+      } else {
         String hoverText = hoverContributer.getHoverInfo(textViewer, region);
+
         if (hoverText != null) {
+          lastReturnedHover = hoverContributer;
+
           return hoverText;
         }
       }
     }
 
-    Element element = NewSelectionConverter.getElementAtOffset(editor, region.getOffset());
-
-    if (element != null) {
-
-      String textSummary = DartDocUtilities.getTextSummaryAsHtml(element);
-
-      if (textSummary != null) {
-
-        StringBuffer docs = new StringBuffer();
-        docs.append("<b>" + textSummary + "</b>");
-
-        String dartdoc = DartDocUtilities.getDartDocAsHtml(element);
-
-        if (dartdoc != null) {
-          docs.append("<br><br>");
-          docs.append(dartdoc);
-        }
-
-        return docs.toString().trim();
-      }
-
-    }
-
-    return null;
-
+    // Check for a dartdoc contribution.
+    return getDartDocHover(region);
   }
 
   @Override
@@ -129,6 +160,36 @@ public class DartTextHover extends DefaultTextHover {
     str = str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 
     return str;
+  }
+
+  /**
+   * Return the associated DartDoc hover, if any.
+   */
+  private String getDartDocHover(IRegion region) {
+    if (editor != null) {
+      Element element = NewSelectionConverter.getElementAtOffset(editor, region.getOffset());
+
+      if (element != null) {
+        String textSummary = DartDocUtilities.getTextSummaryAsHtml(element);
+
+        if (textSummary != null) {
+
+          StringBuffer docs = new StringBuffer();
+          docs.append("<b>" + textSummary + "</b>");
+
+          String dartdoc = DartDocUtilities.getDartDocAsHtml(element);
+
+          if (dartdoc != null) {
+            docs.append("<br><br>");
+            docs.append(dartdoc);
+          }
+
+          return docs.toString().trim();
+        }
+      }
+    }
+
+    return null;
   }
 
 }
