@@ -36,6 +36,9 @@ public class PubspecModelTest extends TestCase {
       + "description: A sample web application \ndependencies: \n  browser: any"
       + "  webui: \n    git: git://github.com/webui";
 
+  private static final String YAML_NO_ERRORS2 = "name: Yes\n"
+      + "description: A sample command-line application\n#dependencies: \n#  browser: any";
+
   // Assert dependency can be added/removed to model
   public void test_addDependency() {
     PubspecModel pubspecModel = new PubspecModel(null);
@@ -126,6 +129,13 @@ public class PubspecModelTest extends TestCase {
     pubspecModel.setValuesFromString(PubYamlUtilsTest.pubspecYamlString2);
     assertEquals("web_components", pubspecModel.getName());
     assertEquals(">=1.2.3 <2.0.0", pubspecModel.getSdkVersion());
+  }
+
+  public void test_initialize3() {
+    PubspecModel pubspecModel = new PubspecModel(null);
+    pubspecModel.setValuesFromString(YAML_NO_ERRORS2);
+    assertEquals("Yes", pubspecModel.getName());
+
   }
 
 }

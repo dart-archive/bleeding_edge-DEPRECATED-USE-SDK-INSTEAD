@@ -47,4 +47,5 @@ Export-Package: com.google.common.annotations,
  org.yaml.snakeyaml.nodes,
  org.yaml.snakeyaml.parser,
  org.yaml.snakeyaml.representer,
+ org.yaml.snakeyaml.resolver,
  org.yaml.snakeyaml.scanner

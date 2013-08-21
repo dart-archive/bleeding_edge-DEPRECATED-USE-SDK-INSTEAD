@@ -20,7 +20,9 @@ import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.introspector.PropertyUtils;
@@ -31,6 +33,7 @@ import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.SequenceNode;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
+import org.yaml.snakeyaml.resolver.Resolver;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.beans.IntrospectionException;
@@ -51,6 +54,23 @@ import java.util.regex.Pattern;
  * @coverage dart.tools.core.utilities
  */
 public class PubYamlUtils {
+
+  /**
+   * Resolver to avoid parsing to implicit types, instead parse as string
+   */
+  private static class CustomResolver extends Resolver {
+
+    /*
+     * do not resolve float and timestamp, boolean and int
+     */
+    @Override
+    protected void addImplicitResolvers() {
+      addImplicitResolver(Tag.NULL, NULL, "~nN\0");
+      addImplicitResolver(Tag.NULL, EMPTY, null);
+      addImplicitResolver(Tag.VALUE, VALUE, "=");
+      addImplicitResolver(Tag.MERGE, MERGE, "<");
+    }
+  }
 
   /**
    * To skip empty and null values in the {@link PubYamlObject} while writing out the yaml string
@@ -395,7 +415,11 @@ public class PubYamlUtils {
    */
   @SuppressWarnings("unchecked")
   public static Map<String, Object> parsePubspecYamlToMap(String contents) throws ScannerException {
-    Yaml yaml = new Yaml();
+    Yaml yaml = new Yaml(
+        new Constructor(),
+        new Representer(),
+        new DumperOptions(),
+        new CustomResolver());
     Map<String, Object> map = (Map<String, Object>) yaml.load(contents);
     return map;
   }
