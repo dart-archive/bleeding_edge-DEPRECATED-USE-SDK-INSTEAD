@@ -203,6 +203,20 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         findRangeIdentifier("newName() {} // marker"));
   }
 
+  public void test_checkInitialConditions_operator() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator -(other) => this;",
+        "}");
+    createRenameRefactoring("-(other)");
+    // check status
+    assertRefactoringStatus(
+        refactoring.checkInitialConditions(pm),
+        RefactoringStatusSeverity.FATAL,
+        "Cannot rename operator.");
+  }
+
   public void test_checkNewName_FieldElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

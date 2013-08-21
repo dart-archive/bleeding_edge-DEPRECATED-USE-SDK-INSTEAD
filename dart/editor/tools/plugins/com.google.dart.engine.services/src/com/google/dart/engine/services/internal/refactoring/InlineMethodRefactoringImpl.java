@@ -414,6 +414,10 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         return result;
       }
       pm.worked(1);
+      // may be operator
+      if (methodElement.isOperator()) {
+        return RefactoringStatus.createFatalErrorStatus("Cannot inline operator.");
+      }
       // analyze method body
       result.merge(prepareMethodParts());
       pm.worked(1);

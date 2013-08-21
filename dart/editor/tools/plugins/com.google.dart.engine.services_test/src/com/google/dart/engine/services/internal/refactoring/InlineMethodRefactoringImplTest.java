@@ -123,6 +123,21 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "Method declaration or reference must be selected to activate this refactoring.");
   }
 
+  public void test_bad_operator() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator -(other) => this;",
+        "}");
+    selection = findOffset("-(other)");
+    createRefactoring();
+    // error
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Cannot inline operator.");
+  }
+
   public void test_bad_severalReturns() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

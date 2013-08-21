@@ -74,6 +74,9 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @Override
   public RefactoringStatus checkInitialConditions(ProgressMonitor pm) throws Exception {
+    if (element instanceof MethodElement && ((MethodElement) element).isOperator()) {
+      return RefactoringStatus.createFatalErrorStatus("Cannot rename operator.");
+    }
     preparePotentialMatchers();
     return super.checkInitialConditions(pm);
   }
