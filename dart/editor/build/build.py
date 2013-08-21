@@ -758,8 +758,7 @@ def RunEditorTests(buildout, buildos):
       zipper.UnZip(tempDir)
 
       editorExecutable = GetEditorExecutable(join(tempDir, 'dart'))
-      args = [editorExecutable, '--test', '--auto-exit',
-              '-data', join(tempDir, 'workspace')]
+      args = [editorExecutable, '--test']
       if sys.platform == 'linux2':
         args = ['xvfb-run', '-a'] + args
       # this can hang if a 32 bit jvm is not available on windows...
