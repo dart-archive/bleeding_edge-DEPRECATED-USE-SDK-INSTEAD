@@ -896,6 +896,33 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_duplicateDefinitionInheritance_instanceGetter_staticGetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  int get x => 0;",
+        "}",
+        "class B extends A {",
+        "  static int get x => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
+    verify(source);
+  }
+
+  public void test_duplicateDefinitionInheritance_instanceGetterAbstract_staticGetter()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  int get x;",
+        "}",
+        "class B extends A {",
+        "  static int get x => 0;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
+    verify(source);
+  }
+
   public void test_duplicateDefinitionInheritance_instanceMethod_staticMethod() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -917,6 +944,33 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "abstract class B extends A {",
         "  static x() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
+    verify(source);
+  }
+
+  public void test_duplicateDefinitionInheritance_instanceSetter_staticSetter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  set x(value) {}",
+        "}",
+        "class B extends A {",
+        "  static set x(value) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
+    verify(source);
+  }
+
+  public void test_duplicateDefinitionInheritance_instanceSetterAbstract_staticSetter()
+      throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A {",
+        "  set x(value);",
+        "}",
+        "class B extends A {",
+        "  static set x(value) {}",
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);

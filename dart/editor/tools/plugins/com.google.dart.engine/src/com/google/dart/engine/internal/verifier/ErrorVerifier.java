@@ -2583,11 +2583,17 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     boolean hasProblem = false;
-    for (MethodElement method : enclosingClass.getMethods()) {
-      if (!method.isStatic()) {
+    for (ExecutableElement member : enclosingClass.getMethods()) {
+      if (!member.isStatic()) {
         continue;
       }
-      hasProblem |= checkForDuplicateDefinitionInheritance(method);
+      hasProblem |= checkForDuplicateDefinitionInheritance(member);
+    }
+    for (ExecutableElement member : enclosingClass.getAccessors()) {
+      if (!member.isStatic()) {
+        continue;
+      }
+      hasProblem |= checkForDuplicateDefinitionInheritance(member);
     }
     return hasProblem;
   }
