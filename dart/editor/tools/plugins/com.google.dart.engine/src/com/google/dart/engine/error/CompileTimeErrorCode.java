@@ -353,7 +353,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 
    * @param uri the uri pointing to a library
    */
-  EXPORT_INTERNAL_LIBRARY("The library %s is internal and cannot be exported"),
+  EXPORT_INTERNAL_LIBRARY("The library '%s' is internal and cannot be exported"),
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
@@ -529,7 +529,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 
    * @param uri the uri pointing to a library
    */
-  IMPORT_INTERNAL_LIBRARY("The library %s is internal and cannot be imported"),
+  IMPORT_INTERNAL_LIBRARY("The library '%s' is internal and cannot be imported"),
 
   /**
    * 14.1 Imports: It is a compile-time error if the compilation unit found at the specified URI is

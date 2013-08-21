@@ -489,7 +489,7 @@ public enum StaticWarningCode implements ErrorCode {
    * assigned to <i>S</i>.
    */
   MISMATCHED_GETTER_AND_SETTER_TYPES(
-      "The parameter type for setter '%s' is %s which is not assignable to its getter (of type %s)"),
+      "The parameter type for setter '%s' is '%s' which is not assignable to its getter (of type '%s')"),
 
   /**
    * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an abstract class and
