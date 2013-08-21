@@ -9,6 +9,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.index.IndexImpl;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -432,19 +433,26 @@ public class AnalysisView extends ViewPart {
         viewer.refresh();
 
         Index index = DartCore.getProjectManager().getIndex();
+        @SuppressWarnings("resource")
+        PrintStringWriter msg = new PrintStringWriter();
         if (index instanceof IndexImpl) {
           try {
             Field field = IndexImpl.class.getDeclaredField("queue");
             field.setAccessible(true);
             OperationQueue queue = (OperationQueue) field.get(index);
-            setContentDescription("Index: queue size = " + queue.size() + "; statistics = "
+            msg.print("Index: queue size = " + queue.size() + "; statistics = "
                 + index.getStatistics());
           } catch (Exception exception) {
-            setContentDescription("Index: statistics = " + index.getStatistics());
+            msg.print("Index: statistics = " + index.getStatistics());
           }
         } else {
-          setContentDescription("Index: statistics = " + index.getStatistics());
+          msg.print("Index: statistics = " + index.getStatistics());
         }
+        int pauseCount = AnalysisWorker.getPauseCount();
+        if (pauseCount > 0) {
+          msg.print(" >>> PAUSED[" + pauseCount + "]");
+        }
+        setContentDescription(msg.toString());
       }
     });
   }

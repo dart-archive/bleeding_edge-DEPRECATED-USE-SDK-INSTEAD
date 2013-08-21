@@ -188,6 +188,16 @@ public class AnalysisWorker {
   }
 
   /**
+   * Answer the number of times {@link #pauseBackgroundAnalysis()} has been called without a
+   * balancing call to {@link #resumeBackgroundAnalysis()}.
+   */
+  public static int getPauseCount() {
+    synchronized (backgroundQueue) {
+      return pauseCount;
+    }
+  }
+
+  /**
    * @return the {@link AnalysisWorker}s in the queue, may be empty, but not {@code null}.
    */
   public static AnalysisWorker[] getQueueWorkers() {
@@ -261,6 +271,7 @@ public class AnalysisWorker {
           }
         } else {
           instrumentation.metric("Problem", "resume-called-before-pause");
+          DartCore.logError(new RuntimeException("Resume called before pause"));
         }
       }
     } finally {

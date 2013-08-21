@@ -18,6 +18,7 @@ import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
@@ -33,7 +34,7 @@ import com.google.dart.tools.core.mock.MockProject;
 import com.google.dart.tools.core.mock.MockWorkspace;
 import com.google.dart.tools.core.mock.MockWorkspaceRoot;
 
-import junit.framework.TestCase;
+import org.eclipse.core.runtime.IStatus;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-public class AnalysisWorkerTest extends TestCase {
+public class AnalysisWorkerTest extends AbstractDartCoreTest {
 
   private final class Listener implements AnalysisListener {
     final Object lock = new Object();
@@ -233,6 +234,11 @@ public class AnalysisWorkerTest extends TestCase {
     assertEquals(project, analyzedProjects.get(0));
   }
 
+  public void test_resumeBeforePause() throws Exception {
+    AnalysisWorker.resumeBackgroundAnalysis();
+    LOG.assertEntries(IStatus.ERROR);
+  }
+
   public void test_stop() throws Exception {
     worker = new AnalysisWorker(project, context, manager, markerManager);
 
@@ -276,7 +282,10 @@ public class AnalysisWorkerTest extends TestCase {
   protected void tearDown() throws Exception {
     AnalysisWorker.removeListener(listener);
     // Ensure worker is not analyzing
-    worker.stop();
+    if (worker != null) {
+      worker.stop();
+      worker = null;
+    }
   }
 
   private MockFile addLibrary() {
