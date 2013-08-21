@@ -323,10 +323,12 @@ public abstract class SearchMatchPage extends SearchPage {
    */
   private static class LinePosition {
     private final Position position;
+    private final Position positionSrc;
     private final ReferenceKind kind;
 
     public LinePosition(Position position, ReferenceKind kind) {
       this.position = position;
+      this.positionSrc = new Position(position.offset, position.length);
       this.kind = kind;
     }
   }
@@ -455,8 +457,8 @@ public abstract class SearchMatchPage extends SearchPage {
         for (LinePosition linePosition : item.positions) {
           Styler style = linePosition.kind == ReferenceKind.WRITE
               ? ColoringLabelProvider.HIGHLIGHT_WRITE_STYLE : ColoringLabelProvider.HIGHLIGHT_STYLE;
-          int styleOffset = linePosition.position.offset - item.line.start;
-          int styleLength = linePosition.position.length;
+          int styleOffset = linePosition.positionSrc.offset - item.line.start;
+          int styleLength = linePosition.positionSrc.length;
           styledText.setStyle(styleOffset, styleLength, style);
         }
         return styledText;
