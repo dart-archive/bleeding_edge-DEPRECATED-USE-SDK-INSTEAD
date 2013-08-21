@@ -102,6 +102,7 @@ public class DartReconcilingStrategyTest extends TestCase {
     private Source resolvedSource = null;
     private CompilationUnit resolvedUnit = null;
     private int flushCount = 0;
+    private int sourceChangedCount = 0;
 
     private final AnalysisListener backgroundAnalysisListener = new AnalysisListener() {
       @Override
@@ -165,6 +166,10 @@ public class DartReconcilingStrategyTest extends TestCase {
       return priorityOrder;
     }
 
+    public int getSourceChangedCount() {
+      return sourceChangedCount;
+    }
+
     @Override
     public ChangeNotice[] performAnalysisTask() {
       if (performAnalysisTaskTime == 0) {
@@ -189,6 +194,14 @@ public class DartReconcilingStrategyTest extends TestCase {
         priorityOrder = sources;
         priorityOrderLatch.countDown();
       }
+    }
+
+    @Override
+    public void setContents(Source source, String contents) {
+      if (source == mockSource) {
+        sourceChangedCount++;
+      }
+      super.setContents(source, contents);
     }
 
     public CompilationUnit waitForResolution(Source source, long milliseconds) {
@@ -308,7 +321,12 @@ public class DartReconcilingStrategyTest extends TestCase {
   Source mockSource = new TestSource(mockCache, createFile("/test.dart"), INITIAL_CONTENTS);
   MockContext mockContext = new MockContext();
   Document mockDocument = new Document(INITIAL_CONTENTS);
-  DartReconcilingStrategy strategy = new DartReconcilingStrategy(mockEditor);
+  DartReconcilingStrategy strategy = new DartReconcilingStrategy(mockEditor) {
+    @Override
+    public void reconcile(DirtyRegion dirtyRegion, org.eclipse.jface.text.IRegion subRegion) {
+      super.reconcile(dirtyRegion, subRegion);
+    };
+  };
 
   /**
    * Assert reconciler clears cached contents when disposed
@@ -444,6 +462,36 @@ public class DartReconcilingStrategyTest extends TestCase {
     strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
 
     // test infrastructure asserts no exceptions
+  }
+
+  /**
+   * Assert that multiple document changes in quick succession only result in a single analysis
+   */
+  public void test_reconcileDirtyRegionIRegion_twice() throws Exception {
+    String newText = "//comment\n";
+
+    mockEditor.expectApply();
+    strategy.initialReconcile();
+    assertNotNull(mockEditor.waitForApply(5000));
+
+    mockDocument.replace(0, 0, newText);
+    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
+    assertEquals(1, mockContext.getSourceChangedCount());
+
+    mockDocument.replace(0, 0, newText);
+    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
+    assertEquals(2, mockContext.getSourceChangedCount());
+
+    mockDocument.replace(0, 0, newText);
+    mockDocument.replace(0, 0, newText);
+    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
+    assertEquals(3, mockContext.getSourceChangedCount());
+    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
+    assertEquals(3, mockContext.getSourceChangedCount());
+
+    mockDocument.replace(0, 0, newText);
+    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
+    assertEquals(4, mockContext.getSourceChangedCount());
   }
 
   public void test_reconcileIRegion() throws Exception {

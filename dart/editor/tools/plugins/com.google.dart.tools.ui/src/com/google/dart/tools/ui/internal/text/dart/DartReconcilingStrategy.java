@@ -83,6 +83,13 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
   private volatile long sourceChangedTime;
 
   /**
+   * Flag indicating that a document change has occurred, but analysis context has not been
+   * notified. This is used to prevent a flurry rapid fire of document changes from triggering a
+   * flurry of delayed analysis requests.
+   */
+  private volatile boolean analysisNeeded = false;
+
+  /**
    * Listen for analysis results for the source being edited and update the editor.
    */
   private final AnalysisListener analysisListener = new AnalysisListener() {
@@ -125,6 +132,8 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
 
       if (".".equals(event.getText())) {
         updateSourceInBackground(true);
+      } else {
+        analysisNeeded = true;
       }
     }
   };
@@ -205,8 +214,13 @@ public class DartReconcilingStrategy implements IReconcilingStrategy, IReconcili
       } else {
         // region was deleted
       }
-      sourceChanged(document.get());
-      performAnalysisInBackground();
+      if (analysisNeeded) {
+        analysisNeeded = false;
+        sourceChanged(document.get());
+        performAnalysisInBackground();
+      } else {
+        instrumentation.data("AnalysisNeeded", false);
+      }
     } finally {
       instrumentation.log();
     }
