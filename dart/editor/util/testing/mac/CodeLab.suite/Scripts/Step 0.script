@@ -1,0 +1,53 @@
+Run "open codelab file search"
+TypeText enter
+Wait 5
+TypeText rightArrow
+WaitFor 30, "pubspec lock"
+TypeText downArrow,downArrow,downArrow,downArrow,downArrow
+TypeText rightArrow
+TypeText downArrow,downArrow,downArrow,downArrow,downArrow
+(*Run "check problems"*)
+Click "run button"
+WaitFor 10,"browser right arrow button"
+Click (Text:"Untitled",CaseSensitive:"yes")
+Click "plus file"
+Click "red stripe"
+Click "delete file X"
+Click (Text:"master/io",CaseSensitive:"yes")
+TypeText commandKey,c
+RightClick "dart writer icon"
+RightClick (Text:"Close Tab",CaseSensitive:"yes")
+TypeText commandKey,t
+TypeText commandKey,v
+TypeText enter
+Click (Text:"Chromium",CaseSensitive:"yes")
+Click (Text:"Quit Chromium",CaseSensitive:"yes")
+RightClick (Text:"index.html",CaseSensitive:"yes")
+Click (Text:"Run as JavaScript",CaseSensitive:"yes")
+Wait 2
+WaitFor 10,"plus file"
+Click (Text:"Untitled",CaseSensitive:"yes")
+TypeText CommandKey,w
+Wait 1
+TypeText CommandKey,Tab
+Wait 1
+DoubleClick (Text:"app.dart",CaseSensitive:"yes")
+DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes")) + (-80,0)
+Click "run button"
+WaitFor 10,"debug line indicator"
+Click (Text:"top-level",CaseSensitive:"yes")
+TypeText rightArrow
+Wait 1
+Click "step into icon"
+Wait 2
+Click "step out icon"
+Wait 2
+Click "step over icon"
+Wait 2
+Click (Text:"top-level",CaseSensitive:"yes")
+TypeText rightArrow
+DoubleClick (Text:"ObservableList",CaseSensitive:"yes")
+Click "stop debug button"
+DoubleClick (ImageLocation(Text:"void createDocument",CaseSensitive:"yes")) + (-80,0)
+RightClick (Text:"io-2013-codelab-finished",CaseSensitive:"yes")
+Click (Text:"Close Folder")

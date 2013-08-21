@@ -1,0 +1,28 @@
+Click(Text:"web")
+RightClick "sample project"
+Click (Text:"Close Folder")
+Wait 2
+TypeText CommandKey,o
+Wait 2
+Click "dart folder icon"
+Wait 2
+Click "sample folder icon"
+Wait 1
+TypeText enter
+Wait 2
+Click "dart sdk"
+Wait 1
+RightClick "sample project"
+Click(Text:"Delete")
+TypeText enter
+Wait 2
+TypeText CommandKey,o
+TypeText enter
+Wait 1
+TypeText enter
+TypeText downArrow
+TypeText downArrow
+TypeText downArrow
+TypeText downArrow
+TypeText enter (* expand web *)
+TypeText downArrow

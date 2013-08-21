@@ -1,0 +1,20 @@
+Click(Text:"Tools",CaseSensitive:"Yes")
+Click(Text:"Welcome Page",CaseSensitive:"Yes")
+Click "time icon"
+Wait 3
+Click "run button"
+Wait 5
+Click "localhost"
+WaitFor 6, "current time"
+Click "current time"
+Wait 1
+TypeText CommandKey,w
+Wait 1
+TypeText CommandKey,Tab
+Run "check problems"
+RightClick "time project" (* select project and show context menu *)
+Click(Text:"Delete",CaseSensitive:"Yes") (* delete it *)
+WaitFor 0.5, "info icon" (* wait for the Delete Resources confirmation *)
+Click(Text:"Delete project contents") (* select the option to clear disk *)
+Wait 0.2
+TypeText enter

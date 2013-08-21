@@ -1,0 +1,19 @@
+TypeText downArrow,downArrow,rightArrow,rightArrow
+DoubleClick(Text:"rseT",CaseSensitive:"yes")
+Wait 2
+TypeText rightArrow
+RightClick(Text:"rseT",CaseSensitive:"yes")
+Click(Text:"Rename")
+Wait 1
+TypeText rightArrow
+TypeText backspace, backspace
+TypeText backspace, backspace
+Wait 1
+TypeText "String"
+Wait 1
+TypeText enter
+Wait 3
+DoubleClick (Text:"sample.dart")
+Put EveryImageLocation((Text:"seStr", CaseSensitive:"Yes"))
+if the number of items in the result is not 2
+then throw "Rename failed"

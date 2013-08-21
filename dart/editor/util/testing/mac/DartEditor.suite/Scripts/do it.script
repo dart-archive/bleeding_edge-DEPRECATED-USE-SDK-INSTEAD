@@ -1,0 +1,15 @@
+(* Run all tests *)
+Set the ImageDoctor to Auto
+(*Run "launch editor"*)
+Run "create sample"
+Run "completion"
+Run "do file edit"
+Run "rename reverseText"
+Run "reopen"
+Run "create clock"
+Run "launch clock"
+Run "search box"
+Run "delete clock"
+Run "delete sample"
+(*Run "terminate editor"*)
+

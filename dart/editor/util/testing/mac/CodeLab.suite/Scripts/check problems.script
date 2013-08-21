@@ -1,0 +1,5 @@
+Wait 2
+ClIck (600,500)
+Wait 1
+Click "problems tab"
+WaitFor 1,"empty problems"

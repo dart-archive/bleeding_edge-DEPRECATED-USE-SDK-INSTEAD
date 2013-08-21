@@ -1,0 +1,180 @@
+(* Need to start with focus in Files view *)
+Run "open codelab file search"
+TypeText downArrow, downArrow, downArrow, downArrow, downArrow
+TypeText enter
+Wait 5
+TypeText rightArrow
+WaitFor 30, "pubspec lock"
+Click "pubspec lock"
+TypeText downArrow,downArrow,downArrow,rightArrow
+Wait 1
+RightClick "lib expando"
+Click (Text:"New File",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94)
+TypeText "storage"
+TypeText enter
+Wait 5
+DoubleClick (Text:"for later",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+TypeText downArrow,enter
+TypeText commandKey,a
+TypeText commandKey,c
+TypeText commandKey,w
+TypeText commandKey,a
+TypeText commandKey,v
+TypeText upArrow,upArrow,upArrow,upArrow
+Wait 1
+TypeText optionKey,o (* Navigate to saveDocument() *)
+TypeText upArrow,upArrow,upArrow,upArrow
+TypeText enter
+TypeText downArrow,downArrow,leftArrow,enter
+TypeText {{
+window.localStorage[doc.id] = doc.toJson();
+}}
+TypeText downArrow,downArrow,downArrow,leftArrow,enter
+TypeText {{
+if (!_storedIds.contains(doc.id)
+}}
+TypeText rightArrow
+TypeText {{
+ {
+_storedIds.add(doc.id);
+}}
+TypeText downArrow,downArrow,downArrow
+TypeText commandKey,rightArrow
+TypeText enter
+TypeText {{
+window.localStorage[DOCUMENT_ID_KEY] = JSON.stringify(_storedIds);
+}}
+TypeText downArrow,downArrow,downArrow,downArrow,downArrow
+TypeText enter
+TypeText {{
+_storedIds.remove(doc.id);
+window.localStorage.remove(doc.id);
+window.localStorage[DOCUMENT_ID_KEY] = JSON.stringify(_storedIds);
+}}
+TypeText optionKey,o
+TypeText downArrow, downArrow
+TypeText enter
+TypeText downArrow
+TypeText commandKey,rightArrow
+TypeText enter
+TypeText {{
+if (window.localStorage[DOCUMENT_ID_KEY] != null) {
+_storedIds = JSON.parse(window.localStorage[DOCUMENT_ID_KEY]
+}}
+TypeText rightArrow
+TypeText ";"
+TypeText downArrow,downArrow,downArrow
+TypeText commandKey,rightArrow
+TypeText enter
+TypeText {{
+return _storedIds.map(_fetchDocument);
+}}
+TypeText optionKey,o
+TypeText downArrow,downArrow
+TypeText enter
+TypeText downArrow
+TypeText commandKey,rightArrow
+TypeText enter
+TypeText {{
+return new Document.fromJson(window.localStorage[id]
+}}
+TypeText rightArrow
+TypeText ";"
+TypeText commandKey,s
+Wait 5
+DoubleClick "index html icon"
+Wait 2
+TypeText commandKey,f
+TypeText "save the active"
+TypeText escape
+TypeText downArrow
+TypeText commandKey,rightArrow
+TypeText backspace
+TypeText enter
+TypeText tab
+TypeText {{
+on-key-up="saveDocument(activeDocument)" />
+}}
+TypeText downArrow,downArrow,downArrow,downArrow
+TypeText commandKey,f
+TypeText ".content"
+TypeText escape
+TypeText rightArrow,rightArrow
+TypeText enter
+TypeText tab
+TypeText {{
+on-key-up="saveDocument(activeDocument)"
+}}
+TypeText commandKey,s
+Wait 5
+DoubleClick (Text:"app.dart",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+TypeText commandKey,f
+TypeText "Import storage"
+TypeText escape
+TypeText downArrow
+TypeText {{
+import 'package:writer/storage.dart';
+}}
+TypeText enter
+Wait 1
+TypeText optionKey,o
+TypeText downArrow,downArrow,downArrow,downArrow
+TypeText downArrow,downArrow,downArrow,downArrow
+TypeText downArrow
+TypeText enter
+TypeText downArrow
+TypeText downArrow
+TypeText tab
+TypeText {{
+documents.addAll(fetchDocuments()
+}}
+TypeText rightArrow
+TypeText ";"
+TypeText enter
+TypeText optionKey,o
+TypeText upArrow,upArrow,upArrow
+TypeText enter
+TypeText downArrow,downArrow,downArrow
+TypeText commandKey,rightArrow
+TypeText enter
+TypeText {{
+removeDocument(doc);
+}}
+TypeText commandKey,s
+Wait 30 (* Puzzle: why is analysis so slow? *)
+RightClick (Text:"index.html",CaseSensitive:"yes")
+Click (Text:"Run in Dartium",CaseSensitive:"yes")
+Wait 2
+WaitFor 10,"browser right arrow button"
+WaitFor 10, "filter box"
+DoubleClick (ImageLocation("plus file") + (300,0))
+Wait 1
+TypeText "abunai"
+TypeText tab
+TypeText "doko deshou ka"
+Wait 1
+Click "plus file"
+Wait 2
+DoubleClick (ImageLocation("plus file") + (300,0))
+Wait 1
+TypeText "tabemono"
+TypeText tab
+TypeText "sake sakee sakeen"
+Wait 1
+Click (Text:"Chromium",CaseSensitive:"yes")
+Click (Text:"Quit Chromium",CaseSensitive:"yes")
+Wait 30
+RightClick (Text:"index.html",CaseSensitive:"yes")
+Click (Text:"Run in Dartium",CaseSensitive:"yes")
+Wait 2
+WaitFor 10,"browser right arrow button"
+WaitFor 10, "filter box"
+WaitFor 10, (Text:"tabemono",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+Click (Text:"tabemono",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+Click "delete file X"
+Click "red stripe"
+Click "delete file X"
+Click (Text:"Chromium",CaseSensitive:"yes")
+Click (Text:"Quit Chromium",CaseSensitive:"yes")
+RightClick (Text:"2013",CaseSensitive:"yes",dpi:94)
+Click (Text:"Close Folder")

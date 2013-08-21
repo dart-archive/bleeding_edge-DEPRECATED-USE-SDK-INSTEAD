@@ -1,0 +1,5 @@
+Click(Text:"File", CaseSensitive:"Yes") (* menu File>New Application *)
+Click(Text:"New Application", CaseSensitive:"Yes")
+TypeText "sample" (* enter project name *)
+TypeText return (* fire off creation and analysis *)
+WaitFor 5.0, "pubspec lock" (* confirm file creation *)

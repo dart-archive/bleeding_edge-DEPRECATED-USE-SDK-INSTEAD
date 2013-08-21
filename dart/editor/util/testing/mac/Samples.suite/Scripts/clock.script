@@ -1,0 +1,19 @@
+Click(Text:"Tools",CaseSensitive:"Yes")
+Click(Text:"Welcome Page",CaseSensitive:"Yes")
+Click "clock icon"
+Wait 6
+Click "run button"
+WaitFor 2, "browser right arrow button"
+Click "browser right arrow button"
+WaitFor 20,"clock title"
+Click "clock title"
+Click (Text:"Chromium",CaseSensitive:"yes")
+Click (Text:"Quit Chromium",CaseSensitive:"yes")
+Run "check problems"
+Click(Text:"web") (* ensure project not selected for image matching *)
+RightClick "clock project" (* select project and show context menu *)
+Click(Text:"Delete",CaseSensitive:"Yes") (* delete it *)
+WaitFor 0.5, "info icon" (* wait for the Delete Resources confirmation *)
+Click(Text:"Delete project contents") (* select the option to clear disk *)
+Wait 0.2
+TypeText enter

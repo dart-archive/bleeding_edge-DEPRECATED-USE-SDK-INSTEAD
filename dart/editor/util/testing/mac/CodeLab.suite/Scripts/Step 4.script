@@ -1,0 +1,93 @@
+(* Need to start with focus in Files view *)
+Run "open codelab file search"
+TypeText downArrow, downArrow, downArrow, downArrow
+TypeText enter
+Wait 5
+TypeText rightArrow
+WaitFor 30, "pubspec lock"
+Click "pubspec lock"
+TypeText downArrow,downArrow,downArrow,rightArrow
+Wait 1
+RightClick "lib expando"
+Click (Text:"New File",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94)
+TypeText "search"
+TypeText enter
+Wait 2
+DoubleClick (Text:"for later",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+TypeText downArrow,enter
+TypeText commandKey,a
+TypeText commandKey,c
+TypeText commandKey,w
+TypeText commandKey,a
+TypeText commandKey,v
+TypeText upArrow,upArrow,upArrow,upArrow
+Wait 1
+TypeText {{
+@observable
+String searchFilter = '';
+}}
+Wait 1
+TypeText downArrow,downArrow,downArrow
+Wait 1
+TypeText {{
+bool matchesSearchFilter(Document doc) {
+if (searchFilter.isEmpty) {
+return true;
+}}
+TypeText downArrow,enter
+TypeText enter
+TypeText {{
+return doc.title.toLowerCase().contains(searchFilter.toLowerCase()
+}}
+TypeText rightArrow
+TypeText {{
+ ||
+doc.content.toLowerCase().contains(searchFilter.toLowerCase()
+}}
+TypeText rightArrow
+TypeText ";"
+TypeText commandKey,s
+Wait 5
+DoubleClick (Text:"app.dart",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94)
+Wait 2
+Click (Text:"Import search.dart",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94)
+Wait 1
+TypeText downArrow
+TypeText {{
+import 'package:writer/search.dart';
+}}
+TypeText enter
+TypeText commandKey,s
+Wait 5
+DoubleClick "index html icon"
+Click (Text:"a input box",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94)
+TypeText downArrow,leftArrow,enter
+TypeText {{
+<input type="text" placeholder="Filter documents..." bind-value="searchFilter">
+}}
+Click (Text:"Hide docu",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94)
+TypeText downArrow,leftArrow,enter
+TypeText {{
+<template if="matchesSearchFilter(doc)">
+}}
+Click (Text:"<x-docu",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",dpi:94)
+TypeText commandKey,rightArrow (* end of line on Mac *)
+TypeText enter
+TypeText {{
+</template>
+}}
+Wait 2
+TypeText commandKey,s
+Wait 30 (* Puzzle: why is analysis so slow? *)
+RightClick (Text:"index.html",CaseSensitive:"yes")
+Click (Text:"Run in Dartium",CaseSensitive:"yes")
+Wait 2
+WaitFor 10,"browser right arrow button"
+WaitFor 10, "filter box"
+Click "filter box"
+TypeText ("Untitled")
+Click (Text:"Chromium",CaseSensitive:"yes")
+Click (Text:"Quit Chromium",CaseSensitive:"yes")
+TypeText escape
+RightClick (Text:"2013",CaseSensitive:"yes",dpi:94)
+Click (Text:"Close Folder")

@@ -1,0 +1,22 @@
+Click "run button"
+WaitFor 10, "browser right arrow button"
+Click "browser right arrow button"
+WaitFor 20,"clock title"
+Click "clock title"
+Click (Text:"Chromium",CaseSensitive:"yes")
+Click (Text:"Quit Chromium",CaseSensitive:"yes")
+DoubleClick (Text:"void main",CaseSensitive:"yes")
+Wait 0.4
+TypeText downArrow
+Wait 0.4
+TypeText rightArrow,rightArrow
+Wait 0.4
+TypeText "x"
+Wait 0.5
+TypeText CommandKey,s
+Wait 5
+TypeText CommandKey,r
+WaitFor 2, (Text:"Breaking on exception",CaseSensitive:"yes")
+DoubleClick (Text:"Breaking on exception",CaseSensitive:"yes")
+Click "html close"
+Click "stop debug button"

@@ -1,0 +1,9 @@
+Click(Text:"Tools",CaseSensitive:"Yes")
+Click(Text:"Welcome Page",CaseSensitive:"Yes")
+TypeText CommandKey,o
+WaitFor 2, "file search icon"
+Click "homedir icon"
+Click "file search icon"
+TypeText "codelab"
+TypeText enter
+Click(Text:"finished",CaseSensitive:"yes")

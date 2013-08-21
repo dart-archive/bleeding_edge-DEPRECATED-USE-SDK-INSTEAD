@@ -1,0 +1,24 @@
+Click "search icon"
+TypeText "clock"
+Click "ClockNumber class"
+Click "clock project" (* just to ensure numbers.dart is not selected *)
+Wait 1
+Click "numbers tab"
+TypeText CommandKey,3
+Wait 0.4
+TypeText "str"
+Click "String core"
+Click "string tab"
+TypeText CommandKey,3
+Wait 0.4
+TypeText "foo"
+Wait 0.4
+TypeText return
+DoubleClick "web expando"
+DoubleClick "clock match"
+WaitFor 1,"footer close tag"
+Click "search close"
+TypeText CommandKey,ShiftKey,w
+Click(Text:"Tools",CaseSensitive:"Yes")
+Click(Text:"Welcome Page",CaseSensitive:"Yes")
+DoubleClick "dart sdk"

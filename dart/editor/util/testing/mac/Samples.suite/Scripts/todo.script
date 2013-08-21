@@ -1,0 +1,26 @@
+Click(Text:"Tools",CaseSensitive:"Yes")
+Click(Text:"Welcome Page",CaseSensitive:"Yes")
+Click "todo icon"
+WaitFor 60, "pubspec lock"
+Click "run button"
+WaitFor 6, "browser right arrow button"
+Click "browser right arrow button"
+WaitFor 20,"todo title"
+Click "todo title"
+Click (Text:"needs to",CaseSensitive:"yes")
+Wait 0.5
+TypeText "something"
+Wait 0.5
+TypeText enter
+Wait 0.5
+Click "check mark"
+Click (Text:"Chromium",CaseSensitive:"yes")
+Click (Text:"Quit Chromium",CaseSensitive:"yes")
+Run "check problems"
+Click(Text:"web") (* ensure project not selected for image matching *)
+RightClick "todo project" (* select project and show context menu *)
+Click(Text:"Delete",CaseSensitive:"Yes") (* delete it *)
+WaitFor 0.5, "info icon" (* wait for the Delete Resources confirmation *)
+Click(Text:"Delete project contents") (* select the option to clear disk *)
+Wait 0.2
+TypeText enter

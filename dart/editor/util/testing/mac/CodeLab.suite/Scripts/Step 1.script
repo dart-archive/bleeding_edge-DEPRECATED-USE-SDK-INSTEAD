@@ -1,0 +1,61 @@
+Run "open codelab file search"
+TypeText downArrow
+TypeText enter
+Wait 5
+TypeText rightArrow
+WaitFor 30, "pubspec lock"
+TypeText downArrow,downArrow,downArrow,downArrow,downArrow
+TypeText rightArrow
+TypeText downArrow,downArrow,downArrow,downArrow
+Run "check problems"
+RightClick (Text:"index.html")
+Click (Text:"Run in Dartium")
+WaitFor 10,"browser right arrow button"
+DoubleClick "lib expando"
+TypeText downArrow
+TypeText enter
+(*
+put (325,250) into TopLeft
+put (700,280) into BottomRight
+set the SearchRectangle to (TopLeft,BottomRight)
+*)
+Click (Text:"Import the Web UI",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",Contrast:"yes")
+set the SearchRectangle to ()
+TypeText downArrow
+TypeText "import 'package:web_ui/web_ui.dart';"
+TypeText enter
+Click (Text:"Mark the class",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no",Contrast:"yes")
+TypeText downArrow, rightArrow, upArrow
+TypeText enter
+TypeText upArrow
+TypeText "@observable"
+TypeText commandKey,f
+TypeText "STEP 1"
+TypeText escape
+TypeText downArrow
+TypeText backspace,backspace
+repeat 10 times
+	TypeText downArrow
+end repeat
+TypeText deleteKey,deleteKey
+TypeText commandKey,s
+Wait 10
+DoubleClick (Text:"index.html",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no")
+TypeText commandKey,f
+TypeText "STEP 1"
+TypeText escape
+TypeText downArrow,leftArrow
+TypeText enter
+TypeText "{{activeDocument.wordCount}}"
+TypeText commandKey,s
+Wait 2
+Click "run button"
+WaitFor 10,"browser right arrow button"
+Click (Text:"Try typing",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no")
+TypeText downArrow,enter
+TypeText "Lorem ipsum dolor sit amet"
+Click (Text:"10 words")
+Click (Text:"Chromium",CaseSensitive:"yes")
+Click (Text:"Quit Chromium",CaseSensitive:"yes")
+RightClick (Text:"2013",CaseSensitive:"yes",dpi:94)
+Click (Text:"Close Folder")

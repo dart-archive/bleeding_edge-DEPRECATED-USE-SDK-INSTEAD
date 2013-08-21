@@ -1,0 +1,138 @@
+(* Need to start with focus in Files view *)
+Run "open codelab file search"
+TypeText downArrow, downArrow, downArrow, downArrow, downArrow, downArrow
+TypeText enter
+Wait 5
+TypeText rightArrow
+WaitFor 30, "pubspec lock"
+Click "pubspec lock"
+TypeText downArrow,downArrow,downArrow,rightArrow
+Wait 1
+DoubleClick "index html icon"
+TypeText commandKey,f
+TypeText "Add viewport"
+TypeText escape
+TypeText commandKey,rightArrow
+TypeText enter
+TypeText {{
+<meta name="viewport"
+}}
+TypeText enter,tab
+TypeText {{
+content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+}}
+TypeText commandKey,s
+Click "lib expando"
+TypeText downArrow,downArrow,downArrow,downArrow
+TypeText enter
+TypeText commandKey,f
+TypeText "STEP 6"
+TypeText escape
+TypeText downArrow,downArrow,downArrow
+TypeText {{
+@media all and (max-width: 500px) {
+body {
+overflow: hidden;
+}
+#sidebar .touched .item {
+background-color:rgba(250, 150, 150, .8);
+-webkit-transition: all .7s cubic-bezier(.65,-0.50,.76,1.32);
+-moz-transition: all .7s cubic-bezier(.65,-0.50,.76,1.32);
+transition: all .7s cubic-bezier(.65,-0.50,.76,1.32);
+}
+}}
+Wait 5
+TypeText enter
+TypeText shiftKey,optionKey,leftArrow
+TypeText {{
+#sidebar {
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+width: 100%;
+-webkit-transition: -webkit-transform 0.3s ease-in-out;
+-moz-transition: -moz-transform 0.3s ease-in-out;
+transition: transform 0.3s ease-in-out;
+-webkit-transform: translate3d(-20%, 0, 0);
+-moz-transform: translate3d(-20%, 0, 0);
+transform: translate3d(-20%, 0, 0);
+}
+}}
+Wait 5
+TypeText enter
+TypeText shiftKey,optionKey,leftArrow
+TypeText {{
+#sidebar.active {
+-webkit-transform: translate3d(0, 0, 0);
+-moz-transform: translate3d(0, 0, 0);
+transform: translate3d(0, 0, 0);
+}
+}}
+Wait 5
+TypeText enter
+TypeText shiftKey,optionKey,leftArrow
+TypeText {{
+#sidebar .item.active .delete {
+opacity: .7;
+}
+#main {
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+-webkit-transition: -webkit-transform 0.3s ease-in-out;
+-moz-transition: -moz-transform 0.3s ease-in-out;
+transition: transform 0.3s ease-in-out;
+-webkit-transform: translate3d(100%, 0, 0);
+-moz-transform: translate3d(100%, 0, 0);
+transform: translate3d(100%, 0, 0);
+}
+}}
+Wait 5
+TypeText enter
+TypeText shiftKey,optionKey,leftArrow
+TypeText {{
+#main.active {
+-webkit-transform: translate3d(0, 0, 0);
+-moz-transform: translate3d(0, 0, 0);
+transform: translate3d(0, 0, 0);
+}
+#main .title button {
+display: block;
+}
+#main .title .input-wrap {
+margin-left: 40px;
+}
+/* Let's not go there. It is a silly place. */
+}}
+Wait 5
+TypeText enter
+TypeText shiftKey,optionKey,leftArrow
+TypeText {{
+#main:only-of-type {
+-moz-transition: none;
+-webkit-transition: none;
+transition: none;
+}
+#main:only-of-type button {
+display: none;
+}
+#main:only-of-type .title .input-wrap {
+margin-left: 0;
+}
+}
+}}
+Wait 5
+TypeText commandKey,s
+Wait 30
+RightClick (Text:"index.html",CaseSensitive:"yes")
+Click (Text:"Run in Dartium",CaseSensitive:"yes")
+Wait 2
+WaitFor 10,"browser right arrow button"
+WaitFor 10, "filter box"
+(* Resize browser, add notes, navigate *)
+Click (Text:"Chromium",CaseSensitive:"yes")
+Click (Text:"Quit Chromium",CaseSensitive:"yes")
+RightClick (Text:"2013",CaseSensitive:"yes",dpi:94)
+Click (Text:"Close Folder")

@@ -1,0 +1,16 @@
+(* Check basic completion and type-specific completion *)
+Click (Text:").text;", CaseSensitive:"Yes") (* select middle of unique text region *)
+Click (Text:").text;", CaseSensitive:"Yes") (* select middle of unique text region *)
+Wait 1
+TypeText rightArrow
+TypeText rightArrow
+TypeText rightArrow (* moved to completion point *)
+TypeText "." (* auto-activate completion *)
+WaitFor 0.5, (Text:"hashCode -> int") (* check for accessor inherited from Object *)
+TypeText escape (* dismiss proposal list *)
+TypeText ControlKey,space (* manually request completion *)
+WaitFor 0.5, (Text:"isEmpty -> bool") (* check for type-specific member *)
+TypeText escape (* dismiss proposal list *)
+Click(Text:"File", CaseSensitive:"Yes")
+Click(Text:"Revert", CaseSensitive:"Yes") (* revert to saved *)
+Wait 4

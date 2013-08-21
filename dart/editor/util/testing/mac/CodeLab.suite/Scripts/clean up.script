@@ -1,0 +1,13 @@
+(* If the debugger is running, stop it *)
+Put ImageFound("stop debug button") into res
+if res then
+	Click "stop debug button"
+end if
+(* Close the project folder, discarding changes *)
+RightClick (Text:"2013",CaseSensitive:"yes",dpi:94)
+Click (Text:"Close Folder")
+Wait 0.5
+Put ImageFound("info icon") into res
+if res then
+	TypeText enter
+end if

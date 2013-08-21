@@ -1,0 +1,7 @@
+Click(Text:"web") (* ensure project not selected for image matching *)
+RightClick "sample project" (* select project and show context menu *)
+Click(Text:"Delete",CaseSensitive:"Yes") (* delete it *)
+WaitFor 0.5, "info icon" (* wait for the Delete Resources confirmation *)
+Click(Text:"Delete project contents") (* select the option to clear disk *)
+Wait 0.2
+TypeText enter

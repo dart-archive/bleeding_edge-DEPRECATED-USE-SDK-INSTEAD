@@ -1,0 +1,2 @@
+Click(Text:"Dart Editor",CaseSensitive:"Yes")
+Click(Text:"Quit Dart Editor",CaseSensitive:"Yes")

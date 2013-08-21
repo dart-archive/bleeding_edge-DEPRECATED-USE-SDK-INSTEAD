@@ -1,0 +1,37 @@
+Set the ImageDoctor to Auto
+RunWithNewResults "Step 0"
+put the result into Outcome
+if the status of Outcome is not "Success" then
+	log Outcome
+else
+	set TestList to ("Step 1","Step 2","Step 3","Step 4","Step 5","Step 6")
+	repeat with each testScript of TestList
+		RunWithNewResults testScript
+		put the result into Outcome
+		put testScript & ":" && status of Outcome && Return after currentReport
+		if the status of Outcome is "Failure" then
+			run "clean up"
+		end if
+	end repeat
+	Log "Final Results"
+	repeat with each line of currentReport
+		log it
+	end Repeat
+end if
+
+(*
+Set the ImageDoctor to Auto
+Run "Step 0"
+Wait 5
+Run "Step 1"
+Wait 5
+Run "Step 2"
+Wait 5
+Run "Step 3"
+Wait 5
+Run "Step 4"
+Wait 5
+Run "Step 5"
+Wait 5
+Run "Step 6"
+*)

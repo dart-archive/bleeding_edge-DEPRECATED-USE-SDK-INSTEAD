@@ -1,0 +1,9 @@
+DoubleClick(Text:"other.dart") (* activate editor *)
+TypeText upArrow
+TypeText upArrow
+TypeText upArrow (* now at top of file *)
+TypeText "part of lib;" (* add part-of directive *)
+TypeText enter
+TypeText CommandKey,s (* save *)
+WaitFor 2,"empty problems" (* verify problem is resolved *)
+Wait 2

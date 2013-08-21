@@ -1,0 +1,132 @@
+(* Need to start with focus in Files view *)
+Run "open codelab file search"
+TypeText downArrow, downArrow, downArrow
+TypeText enter
+Wait 5
+TypeText rightArrow
+WaitFor 30, "pubspec lock"
+Click "pubspec lock"
+TypeText downArrow,downArrow,downArrow,rightArrow
+Wait 1
+DoubleClick (Text:"app.dart")
+Wait 2
+Click (Text:"observed list",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+TypeText downArrow
+TypeText {{
+final List<Document> documents = toObservable([]
+}}
+TypeText rightArrow,";"
+TypeText enter
+Click (Text:"mainClass",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+TypeText downArrow,downArrow,downArrow
+TypeText {{
+void createDocument() {
+// Create a new document.
+var doc = new Document('Untitled', ''
+}}
+TypeText rightArrow
+TypeText {{
+;
+documents.add(doc);
+selectDocument(doc);
+}}
+TypeText downArrow,downArrow,downArrow,downArrow
+TypeText {{
+void deleteDocument(Document doc) {
+documents.remove(doc);
+
+// STEP 5: Also delete from local storage.
+}}
+TypeText downArrow,downArrow,downArrow,downArrow
+TypeText {{
+void selectDocument(Document doc, {bool markActive: false}) {
+if (documents.isEmpty) {
+activeDocument = null;
+} else if (doc != null && documents.contains(doc) && doc != activeDocument) {
+// Change active document.
+activeDocument = doc;
+} else if (activeDocument != null && documents.contains(activeDocument)
+}}
+TypeText rightArrow
+TypeText {{
+{
+// Stay on the active document and display the editing window.
+contentActive = markActive && doc == activeDocument;
+} else {
+// Fall back to the last document.
+activeDocument = documents.last;
+}}
+TypeText commandKey,s
+Wait 5
+TypeText downArrow,downArrow,downArrow,downArrow,downArrow
+TypeText downArrow,downArrow,downArrow,downArrow,tab
+TypeText {{
+if (documents.isEmpty) createDocument();
+}}
+TypeText rightArrow,enter
+TypeText downArrow, leftArrow, enter, upArrow,tab
+TypeText {{
+selectDocument(documents.first);
+}}
+TypeText commandKey,s
+Wait 5
+DoubleClick (Text:"index.html",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+Click (Text:"Add a button",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+TypeText downArrow,backspace,enter
+TypeText {{
+<button on-click="createDocument()">+</button>
+}}
+Click (Text:"Iterate over",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+TypeText downArrow,backspace,enter
+TypeText {{
+<template iterate="doc in documents">
+
+<!-- STEP 4: Hide documents that don't match search filter. -->
+
+<!-- Our custom document element! -->
+<x-document-item doc="{{doc}}"></x-document-item>
+</template>
+}}
+Wait 1
+TypeText shiftKey,downArrow,downArrow,downArrow
+Wait 5
+TypeText commandKey,x
+TypeText commandKey,s
+DoubleClick "document item icon"
+Wait 2
+Click (Text:"Class}}",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+TypeText rightArrow,rightArrow,rightArrow,rightArrow,rightArrow,rightArrow,backspace
+TypeText enter,tab
+TypeText {{
+on-click="app.selectDocument(doc, markActive: true)">
+}}
+TypeText downArrow,downArrow,downArrow,downArrow,downArrow
+TypeText enter
+TypeText {{
+<button class="delete" on-click="app.deleteDocument(doc)">&times;</button>
+}}
+TypeText commandKey,s
+Wait 30 (* Puzzle: why is analysis so slow? *)
+RightClick (Text:"index.html",CaseSensitive:"yes")
+Click (Text:"Run in Dartium",CaseSensitive:"yes")
+Wait 2
+WaitFor 10,"browser right arrow button"
+WaitFor 10, "red stripe"
+Wait 2
+Click "plus file"
+Wait 2
+DoubleClick (ImageLocation("plus file") + (300,0))
+Wait 1
+TypeText "Test"
+TypeText tab
+Wait 1
+TypeText "Dart writer writing"
+Click (Text:"Untitled")
+Wait 1
+Click "delete file X"
+Wait 1
+Click "delete file X"
+Click (Text:"Chromium",CaseSensitive:"yes")
+Click (Text:"Quit Chromium",CaseSensitive:"yes")
+RightClick (Text:"2013",CaseSensitive:"yes",dpi:94)
+Click (Text:"Close Folder")

@@ -1,0 +1,117 @@
+Run "open codelab file search"
+TypeText downArrow, downArrow
+TypeText enter
+Wait 5
+TypeText rightArrow
+WaitFor 30, "pubspec lock"
+Click "pubspec lock"
+TypeText downArrow,downArrow,downArrow,rightArrow
+RightClick "index html icon"
+Click (Text:"New File",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no")
+TypeText "document_item.html", enter
+Wait 2
+DoubleClick (Text:"for later",CaseSensitive:"yes",IgnoreSpaces:"yes",IgnoreUnderscores:"yes",dpi:94)
+TypeText downArrow,enter
+TypeText commandKey,a
+TypeText commandKey,c
+TypeText commandKey,w
+TypeText commandKey,a
+TypeText commandKey,v
+TypeText upArrow,upArrow,upArrow
+Wait 1
+TypeText {{
+<element name="x-document-item" constructor="DocumentItem" extends="div" apply-author-styles>
+<!-- STEP 2: Define the DOM template for our custom element -->
+<template>
+</template>
+<!-- STEP 2: Add the script tag that defines this component's behaviour. -->
+<script type="application/dart">
+</script>
+</element>
+}}
+Wait 1
+Click (Text:"<template",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no")
+TypeText rightArrow,rightArrow,rightArrow,rightArrow,rightArrow,rightArrow
+TypeText enter
+Wait 1
+TypeText {{
+<!-- STEP 3: On click, select the document. -->
+<div class="item {{isActiveClass}}">
+<div class="title">{{title}}</div>
+<div class="modified">{{modified}}</div>
+<!-- STEP 3: Add delete button. -->
+</div>
+}}
+WaitFor 10,(Text:"application/dart",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no")
+Wait 10 (* Puzzle: why is this needed? *)
+DoubleClick (Text:"application/dart",CaseSensitive:"yes",IgnoreSpaces:"no",IgnoreUnderscores:"no")
+Wait 2
+TypeText rightArrow,rightArrow,rightArrow,rightArrow,rightArrow,rightArrow,rightArrow,rightArrow
+TypeText enter
+Wait 1
+TypeText {{
+import 'package:web_ui/web_ui.dart';
+import 'package:writer/document.dart';
+import 'app.dart' as app;
+/**
+* This Dart class defines the behavior and
+* state of the custom element.
+*/
+class DocumentItem extends WebComponent {
+  Document doc;
+
+String get title => doc.title.isEmpty ? 'Untitled' : doc.title;
+
+String get modified => dateFormat.format(doc.modified);
+
+String get isActiveClass => doc == app.activeDocument ? 'active' : '';
+}
+}}
+Wait 1
+TypeText commandKey,s
+Wait 5
+DoubleClick (Text:"index.html")
+TypeText commandKey,f
+TypeText "component"
+TypeText escape
+TypeText downArrow, tab
+Wait 1
+TypeText {{
+<link rel="import" href="document_item.html">
+}}
+Wait 5
+TypeText commandKey,f
+TypeText "sidebar"
+TypeText escape
+TypeText downArrow, tab
+Wait 1
+TypeText {{
+ <section id="sidebar" class="{{sidebarClass}}">
+ <div class="toolbar">
+<!-- STEP 3: Add a button to create a new document. -->
+<div class="input-wrap">
+<!-- STEP 4: Add a input box to filter documents. -->
+</div>
+</div>
+<!-- Documents list -->
+<div class="items">
+<!-- STEP 3: Iterate over list of documents. -->
+<!-- STEP 2: Add the active document to the sidebar. -->
+<x-document-item doc="{{activeDocument}}"></x-document-item>
+</div>
+<!-- Also check out dartlang.org! -->
+<div class="footer">
+<a href="https://github.com/dart-lang/io-2013-dart-codelab">View Source</a>
+</div>
+</section>
+}}
+Wait 1
+TypeText commandKey,s
+Wait 30 (* Puzzle: why is analysis so slow? *)
+Click "run button"
+WaitFor 10,"browser right arrow button"
+WaitFor 10, "red stripe"
+Click (Text:"Chromium",CaseSensitive:"yes")
+Click (Text:"Quit Chromium",CaseSensitive:"yes")
+RightClick (Text:"2013",CaseSensitive:"yes",dpi:94)
+Click (Text:"Close Folder")

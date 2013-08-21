@@ -1,0 +1,4 @@
+(* Assumes DartEditor icon is highlighted from previous run *)
+DoubleClick "DartEditor icon"
+Wait 10 (* give it plenty of time to start *)
+Click(Text:"Allo") (* dismiss the Allow network connections query *)
