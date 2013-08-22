@@ -129,6 +129,10 @@ public class RunPubJob extends Job {
       if (exitCode != 0) {
         String output = "[" + exitCode + "] " + stringBuilder.toString();
         String message = NLS.bind(PubMessages.RunPubJob_failed, command, output);
+        if (command.equals(INSTALL_COMMAND)) {
+          message += "\n** Warning: Application may fail to run since packages did not get installed."
+              + "Try running pub install again. **";
+        }
         return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, message);
       }
 
