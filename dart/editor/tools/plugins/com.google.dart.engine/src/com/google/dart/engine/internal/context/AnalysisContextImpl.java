@@ -630,18 +630,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       throws AnalysisException {
     DartEntry dartEntry = getReadableDartEntry(source);
     if (dartEntry == null) {
-      return null;
+      throw new AnalysisException("computeResolvableCompilationUnit for non-Dart: "
+          + source.getFullName());
     }
     CompilationUnit unit = dartEntry.getAnyParsedCompilationUnit();
     if (unit == null) {
-      try {
-        dartEntry = internalParseDart(source);
-        unit = dartEntry.getAnyParsedCompilationUnit();
-        if (unit == null) {
-          return null;
-        }
-      } catch (AnalysisException exception) {
-        return null;
+      dartEntry = internalParseDart(source);
+      unit = dartEntry.getAnyParsedCompilationUnit();
+      if (unit == null) {
+        throw new AnalysisException(
+            "Internal error: computeResolvableCompilationUnit could not parse "
+                + source.getFullName());
       }
     }
     return new ResolvableCompilationUnit(
