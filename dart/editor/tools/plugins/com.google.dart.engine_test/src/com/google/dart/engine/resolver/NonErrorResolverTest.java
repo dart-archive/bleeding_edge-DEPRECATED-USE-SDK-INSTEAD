@@ -2755,6 +2755,20 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_undefinedSetter_importWithPrefix() throws Exception {
+    addSource("/lib.dart", createSource(//
+        "library lib;",
+        "set y(int value) {}"));
+    Source source = addSource(createSource(//
+        "import 'lib.dart' as x;",
+        "main() {",
+        "  x.y = 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_undefinedSuperMethod_field() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
