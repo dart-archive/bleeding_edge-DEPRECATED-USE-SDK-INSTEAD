@@ -48,7 +48,8 @@ public class TextSearchProvider extends OmniProposalProvider implements IShellPr
 
   @Override
   public OmniElement[] getElements(String pattern) {
-    return new TextSearchElement[] {new TextSearchElement(this)};
+    return new OmniElement[] {
+        new WhoDeclaresElement(this), new WhoUsesElement(this), new TextSearchElement(this)};
   }
 
   @Override

@@ -60,6 +60,24 @@ import java.util.Set;
  */
 public class FindReferencesAction extends AbstractDartSelectionAction {
   /**
+   * Shows "Search" view with references to non-local elements with given name.
+   */
+  public static void searchNameUses(final String name) {
+    try {
+      SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
+      view.showPage(new SearchMatchPage(view, "Searching for references...") {
+        @Override
+        protected List<SearchMatch> runQuery() {
+          SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
+          return searchEngine.searchQualifiedMemberReferences(name, null, null);
+        }
+      });
+    } catch (Throwable e) {
+      ExceptionHandler.handle(e, "Find references", "Exception during search.");
+    }
+  }
+
+  /**
    * @return {@code true} if given {@link DartSelection} looks valid.
    */
   private static boolean isValidSelection(DartSelection selection) {

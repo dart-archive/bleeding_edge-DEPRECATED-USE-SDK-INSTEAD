@@ -18,6 +18,8 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -36,6 +38,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -44,6 +47,37 @@ import java.util.List;
  * @coverage dart.editor.ui.search
  */
 public class FindDeclarationsAction extends AbstractDartSelectionAction {
+  /**
+   * Asks {@link SearchView} to execute query and display results.
+   */
+  public static void doSearch(final String name) {
+    try {
+      final SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
+      SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
+      view.showPage(new SearchMatchPage(view, "Searching for declarations...") {
+        @Override
+        protected List<SearchMatch> runQuery() {
+          List<SearchMatch> declarations = searchEngine.searchDeclarations(name, null, null);
+          for (Iterator<SearchMatch> iter = declarations.iterator(); iter.hasNext();) {
+            SearchMatch searchMatch = iter.next();
+            Element declaringElement = searchMatch.getElement();
+            Element enclosingElement = declaringElement.getEnclosingElement();
+            // OK, top-level or class member
+            if (enclosingElement instanceof CompilationUnitElement
+                || enclosingElement instanceof ClassElement) {
+              continue;
+            }
+            // local element, remove
+            iter.remove();
+          }
+          return declarations;
+        }
+      });
+    } catch (Throwable e) {
+      ExceptionHandler.handle(e, "Find Declarations", "Exception during search.");
+    }
+  }
+
   static boolean isInvocationNameOrPropertyAccessSelected(DartSelection selection) {
     ASTNode node = getSelectionNode(selection);
     if (!(node instanceof SimpleIdentifier)) {
@@ -129,23 +163,5 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         this,
         DartHelpContextIds.FIND_DECLARATIONS_IN_WORKSPACE_ACTION);
-  }
-
-  /**
-   * Asks {@link SearchView} to execute query and display results.
-   */
-  private void doSearch(final String name) {
-    try {
-      final SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
-      SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
-      view.showPage(new SearchMatchPage(view, "Searching for declarations...") {
-        @Override
-        protected List<SearchMatch> runQuery() {
-          return searchEngine.searchDeclarations(name, null, null);
-        }
-      });
-    } catch (Throwable e) {
-      ExceptionHandler.handle(e, getText(), "Exception during search.");
-    }
   }
 }

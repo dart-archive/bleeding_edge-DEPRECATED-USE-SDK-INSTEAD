@@ -29,6 +29,7 @@ import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExtendsClause;
+import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
@@ -434,6 +435,17 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       recordLibraryReference(node, expLibrary);
     }
     return super.visitExportDirective(node);
+  }
+
+  @Override
+  public Void visitFormalParameter(FormalParameter node) {
+    ParameterElement element = node.getElement();
+    enterScope(element);
+    try {
+      return super.visitFormalParameter(node);
+    } finally {
+      exitScope();
+    }
   }
 
   @Override

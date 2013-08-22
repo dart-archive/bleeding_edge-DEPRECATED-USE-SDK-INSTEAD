@@ -849,6 +849,7 @@ public class IndexContributorTest extends AbstractDartTest {
     // prepare elements
     Element functionElement = findElement("topLevelFunction(");
     VariableElement vElement = findElement("v;");
+    ParameterElement pElement = findElement("p) {");
     ClassElement classElementA = findElement("A {");
     // index
     index.visitCompilationUnit(testUnit);
@@ -858,7 +859,7 @@ public class IndexContributorTest extends AbstractDartTest {
         relations,
         classElementA,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(functionElement, findOffset("A p)"), "A"));
+        new ExpectedLocation(pElement, findOffset("A p)"), "A"));
     assertRecordedRelation(
         relations,
         classElementA,
@@ -917,8 +918,8 @@ public class IndexContributorTest extends AbstractDartTest {
         "}");
     // prepare elements
     VariableElement vElement = findElement("v;");
-    Element functionElement = findElement("topLevelFunction(");
     ClassElement classElementB = findElement("B =");
+    ParameterElement pElement = findElement("p) {");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -927,7 +928,7 @@ public class IndexContributorTest extends AbstractDartTest {
         relations,
         classElementB,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(functionElement, findOffset("B p)"), "B"));
+        new ExpectedLocation(pElement, findOffset("B p)"), "B"));
     assertRecordedRelation(
         relations,
         classElementB,
@@ -989,8 +990,8 @@ public class IndexContributorTest extends AbstractDartTest {
         "}",
         "");
     // prepare elements
-    Element constructorElement = findNode("A(this.", ConstructorDeclaration.class).getElement();
     FieldElement fieldElement = findElement("field;");
+    ParameterElement fieldParameterElement = findElement("field) {");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -999,7 +1000,7 @@ public class IndexContributorTest extends AbstractDartTest {
         relations,
         fieldElement,
         IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new ExpectedLocation(constructorElement, findOffset("field) {}"), "field"));
+        new ExpectedLocation(fieldParameterElement, findOffset("field) {}"), "field"));
   }
 
   public void test_isReferencedBy_FunctionElement() throws Exception {
@@ -1261,7 +1262,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "main2(A p) {",
         "}");
     // prepare elements
-    Element mainElement = findElement("main2(");
+    ParameterElement pElement = findElement("p) {");
     FunctionTypeAliasElement classElementA = findElement("A();");
     // index
     index.visitCompilationUnit(testUnit);
@@ -1271,7 +1272,7 @@ public class IndexContributorTest extends AbstractDartTest {
         relations,
         classElementA,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, findOffset("A p)"), "A"));
+        new ExpectedLocation(pElement, findOffset("A p)"), "A"));
   }
 
   public void test_isReferencedBy_typeInVariableList() throws Exception {

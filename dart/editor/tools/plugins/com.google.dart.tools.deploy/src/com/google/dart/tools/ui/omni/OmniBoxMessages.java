@@ -35,6 +35,8 @@ public class OmniBoxMessages extends NLS {
   public static String TextSearchElement_occurences;
   public static String TextSearchProvider_label;
   public static String TextSearch_taskName;
+  public static String WhoDeclaresElement_label;
+  public static String WhoUsesElement_label;
 
   static {
     NLS.initializeMessages(BUNDLE_NAME, OmniBoxMessages.class);
