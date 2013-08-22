@@ -1471,10 +1471,16 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       if (!(mixinType instanceof InterfaceType)) {
         continue;
       }
-      ClassElement mixinElement = ((InterfaceType) mixinType).getElement();
-      problemReported |= checkForMixinDeclaresConstructor(mixinName, mixinElement);
-      problemReported |= checkForMixinInheritsNotFromObject(mixinName, mixinElement);
-      problemReported |= checkForMixinReferencesSuper(mixinName, mixinElement);
+      if (checkForExtendsOrImplementsDisallowedClass(
+          mixinName,
+          CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS)) {
+        problemReported = true;
+      } else {
+        ClassElement mixinElement = ((InterfaceType) mixinType).getElement();
+        problemReported |= checkForMixinDeclaresConstructor(mixinName, mixinElement);
+        problemReported |= checkForMixinInheritsNotFromObject(mixinName, mixinElement);
+        problemReported |= checkForMixinReferencesSuper(mixinName, mixinElement);
+      }
     }
     return problemReported;
   }
