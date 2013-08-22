@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.jobs;
 
 import com.google.dart.engine.utilities.instrumentation.HealthUtils;
+import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -52,6 +53,9 @@ public class CleanLibrariesJob extends Job {
 
       IWorkspace workspace = ResourcesPlugin.getWorkspace();
       IWorkspaceRoot root = workspace.getRoot();
+
+      // Clear stale error messages from the console
+      DartCore.getConsole().clear();
 
       // Refresh the workspace.
       root.refreshLocal(IResource.DEPTH_INFINITE, subMonitor.newChild(50));
