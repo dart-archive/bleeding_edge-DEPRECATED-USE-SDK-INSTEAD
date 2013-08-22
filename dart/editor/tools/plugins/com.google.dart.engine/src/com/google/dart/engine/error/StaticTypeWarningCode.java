@@ -61,6 +61,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * accessible (3.2) instance member named <i>m</i>.
    * 
    * @param memberName the name of the static member
+   * @see UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER
    */
   INSTANCE_ACCESS_TO_STATIC_MEMBER("Static member '%s' cannot be accessed using instance access"),
 
@@ -227,6 +228,17 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * @param typeName the resolved type name that the method lookup is happening on
    */
   UNDEFINED_SUPER_METHOD("There is no such method '%s' in '%s'"),
+
+  /**
+   * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does not have an
+   * accessible (3.2) instance member named <i>m</i>.
+   * <p>
+   * This is a specialization of {@link #INSTANCE_ACCESS_TO_STATIC_MEMBER} that is used when we are
+   * able to find the name defined in a supertype. It exists to provide a more informative error
+   * message.
+   */
+  UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER(
+      "Static members from supertypes must be qualified by the name of the defining type"),
 
   /**
    * 15.8 Parameterized Types: It is a static type warning if <i>G</i> is not a generic type with

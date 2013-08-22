@@ -900,20 +900,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_implicitThisReferenceInInitializer_staticField_superClass() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  static var f;",
-        "}",
-        "class B extends A {",
-        "  var v;",
-        "  B() : v = f;",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-    verify(source);
-  }
-
   public void test_implicitThisReferenceInInitializer_staticField_thisClass() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

@@ -779,6 +779,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     SimpleIdentifier methodName = node.getMethodName();
     checkForStaticAccessToInstanceMember(target, methodName);
     checkForInstanceAccessToStaticMember(target, methodName);
+    if (target == null) {
+      checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
+    }
     return super.visitMethodInvocation(node);
   }
 
@@ -864,6 +867,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     checkForReferenceToDeclaredVariableInInitializer(node);
     checkForImplicitThisReferenceInInitializer(node);
+    if (!isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
+      checkForUnqualifiedReferenceToNonLocalStaticMember(node);
+    }
     return super.visitSimpleIdentifier(node);
   }
 
@@ -3139,7 +3145,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   /**
    * This checks that if the given "target" is not a type reference then the "name" is reference to
-   * a instance member.
+   * an instance member.
    * 
    * @param target the target of the name access to evaluate
    * @param name the accessed name to evaluate
@@ -4612,6 +4618,37 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This checks that if the given name is a reference to a static member it is defined in the
+   * enclosing class rather than in a superclass.
+   * 
+   * @param name the name to be evaluated
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER
+   */
+  private boolean checkForUnqualifiedReferenceToNonLocalStaticMember(SimpleIdentifier name) {
+    Element element = name.getStaticElement();
+    if (element == null || element instanceof TypeVariableElement) {
+      return false;
+    }
+    Element enclosingElement = element.getEnclosingElement();
+    if (!(enclosingElement instanceof ClassElement)) {
+      return false;
+    }
+    if ((element instanceof MethodElement && !((MethodElement) element).isStatic())
+        || (element instanceof PropertyAccessorElement && !((PropertyAccessorElement) element).isStatic())) {
+      return false;
+    }
+    if (enclosingElement == enclosingClass) {
+      return false;
+    }
+    errorReporter.reportError(
+        StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+        name,
+        name.getName());
+    return true;
+  }
+
+  /**
    * This verifies the passed operator-method declaration, has correct number of parameters.
    * <p>
    * This method assumes that the method declaration was tested to be an operator declaration before
@@ -4949,6 +4986,33 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         MethodDeclaration method = (MethodDeclaration) n;
         return !method.isStatic();
       }
+    }
+    return false;
+  }
+
+  /**
+   * Return {@code true} if the given identifier is in a location where it is allowed to resolve to
+   * a static member of a supertype.
+   * 
+   * @param node the node being tested
+   * @return {@code true} if the given identifier is in a location where it is allowed to resolve to
+   *         a static member of a supertype
+   */
+  private boolean isUnqualifiedReferenceToNonLocalStaticMemberAllowed(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      return true;
+    }
+    ASTNode parent = node.getParent();
+    if (parent instanceof ConstructorName || parent instanceof MethodInvocation
+        || parent instanceof PropertyAccess || parent instanceof SuperConstructorInvocation) {
+      return true;
+    }
+    if (parent instanceof PrefixedIdentifier
+        && ((PrefixedIdentifier) parent).getIdentifier() == node) {
+      return true;
+    }
+    if (parent instanceof Annotation && ((Annotation) parent).getConstructorName() == node) {
+      return true;
     }
     return false;
   }

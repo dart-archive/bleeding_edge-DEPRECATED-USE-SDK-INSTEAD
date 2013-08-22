@@ -620,7 +620,7 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "Cannot inline method without body.");
   }
 
-  public void test_method_qualifiedUnvocation_instanceField() throws Exception {
+  public void test_method_qualifiedInvocation_instanceField() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -661,7 +661,8 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
-  public void test_method_qualifiedUnvocation_staticField() throws Exception {
+  public void test_method_qualifiedInvocation_staticField() throws Exception {
+    verifyNoTestUnitErrors = false;
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",

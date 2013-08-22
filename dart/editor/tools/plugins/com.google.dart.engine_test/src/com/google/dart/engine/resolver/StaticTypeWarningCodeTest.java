@@ -789,6 +789,51 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD);
   }
 
+  public void test_unqualifiedReferenceToNonLocalStaticMember_getter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static int get a => 0;",
+        "}",
+        "class B extends A {",
+        "  int b() {",
+        "    return a;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER);
+    verify(source);
+  }
+
+  public void test_unqualifiedReferenceToNonLocalStaticMember_method() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static void a() {}",
+        "}",
+        "class B extends A {",
+        "  void b() {",
+        "    a();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER);
+    verify(source);
+  }
+
+  public void test_unqualifiedReferenceToNonLocalStaticMember_setter() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static set a(x) {}",
+        "}",
+        "class B extends A {",
+        "  b(y) {",
+        "    a = y;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER);
+    verify(source);
+  }
+
   public void test_wrongNumberOfTypeArguments_tooFew() throws Exception {
     Source source = addSource(createSource(//
         "class A<E, F> {}",
