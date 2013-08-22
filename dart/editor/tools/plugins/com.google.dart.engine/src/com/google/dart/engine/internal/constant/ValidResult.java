@@ -277,7 +277,9 @@ public class ValidResult extends EvaluationResultImpl {
     if (!isAnyNum() || !leftOperand.isAnyNum()) {
       return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     }
-    if (isSomeNum() || leftOperand.isSomeNum()) {
+    if (isSomeInt() || leftOperand.isSomeInt()) {
+      return RESULT_INT;
+    } else if (isSomeNum() || leftOperand.isSomeNum()) {
       return RESULT_NUM;
     }
     Object leftValue = leftOperand.getValue();
@@ -721,7 +723,9 @@ public class ValidResult extends EvaluationResultImpl {
     if (!isAnyNum() || !leftOperand.isAnyNum()) {
       return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     }
-    if (isSomeNum() || leftOperand.isSomeNum()) {
+    if (isSomeInt() || leftOperand.isSomeInt()) {
+      return RESULT_INT;
+    } else if (isSomeNum() || leftOperand.isSomeNum()) {
       return RESULT_NUM;
     }
     Object leftValue = leftOperand.getValue();
@@ -796,7 +800,9 @@ public class ValidResult extends EvaluationResultImpl {
     if (!isAnyNum() || !leftOperand.isAnyNum()) {
       return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     }
-    if (isSomeNum() || leftOperand.isSomeNum()) {
+    if (isSomeInt() || leftOperand.isSomeInt()) {
+      return RESULT_INT;
+    } else if (isSomeNum() || leftOperand.isSomeNum()) {
       return RESULT_NUM;
     }
     Object leftValue = leftOperand.getValue();
@@ -894,7 +900,9 @@ public class ValidResult extends EvaluationResultImpl {
     if (!isAnyNum() || !leftOperand.isAnyNum()) {
       return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     }
-    if (isSomeNum() || leftOperand.isSomeNum()) {
+    if (isSomeInt() || leftOperand.isSomeInt()) {
+      return RESULT_INT;
+    } else if (isSomeNum() || leftOperand.isSomeNum()) {
       return RESULT_NUM;
     }
     Object leftValue = leftOperand.getValue();
