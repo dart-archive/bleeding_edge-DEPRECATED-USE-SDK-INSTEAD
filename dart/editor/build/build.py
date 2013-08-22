@@ -760,8 +760,12 @@ def RunEditorTests(buildout, buildos):
       editorExecutable = GetEditorExecutable(join(tempDir, 'dart'))
       args = [editorExecutable, '--test', '--auto-exit',
               '-data', join(tempDir, 'workspace')]
-      if sys.platform == 'linux2':
-        args = ['xvfb-run', '-a'] + args
+
+      # Issue 12638. Enable this as soon as we can run editor tests in xvfb
+      # again.
+      ##if sys.platform == 'linux2':
+      ##  args = ['xvfb-run', '-a'] + args
+
       # this can hang if a 32 bit jvm is not available on windows...
       if subprocess.call(args, shell=IsWindows()):
         BuildStepFailure()
