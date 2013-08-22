@@ -337,12 +337,22 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_computeResolvableCompilationUnit_exception() throws Exception {
     Source source = addSourceWithException("/test.dart");
-    assertNull(context.computeResolvableCompilationUnit(source));
+    try {
+      context.computeResolvableCompilationUnit(source);
+      fail("Expected AnalysisException");
+    } catch (AnalysisException exception) {
+      // Expected
+    }
   }
 
   public void test_computeResolvableCompilationUnit_html() throws Exception {
     Source source = addSource("/lib.html", "<html></html>");
-    assertNull(context.computeResolvableCompilationUnit(source));
+    try {
+      context.computeResolvableCompilationUnit(source);
+      fail("Expected AnalysisException");
+    } catch (AnalysisException exception) {
+      // Expected
+    }
   }
 
   public void test_computeResolvableCompilationUnit_valid() throws Exception {
