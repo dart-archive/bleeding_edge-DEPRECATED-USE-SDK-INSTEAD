@@ -15,15 +15,21 @@ package com.google.dart.tools.search.internal.ui;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ClassMemberElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.services.util.HierarchyUtils;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
@@ -45,6 +51,7 @@ import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Finds references of the selected {@link Element} in the workspace.
@@ -158,14 +165,56 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
         }
 
         private List<SearchMatch> findElementReferences() {
-          return searchEngine.searchReferences(searchElement, null, null);
+          Element[] refElements;
+          if (searchElement instanceof ClassMemberElement) {
+            // field or method
+            ClassMemberElement member = (ClassMemberElement) searchElement;
+            Set<ClassMemberElement> hierarchyMembers = HierarchyUtils.getHierarchyMembers(
+                searchEngine,
+                member);
+            refElements = hierarchyMembers.toArray(new ClassMemberElement[hierarchyMembers.size()]);
+          } else if (searchElement.getEnclosingElement() instanceof ClassElement
+              && searchElement instanceof PropertyAccessorElement) {
+            // class property accessor
+            PropertyAccessorElement accessor = (PropertyAccessorElement) searchElement;
+            ClassMemberElement property = (ClassMemberElement) accessor.getVariable();
+            Set<ClassMemberElement> hierarchyMembers = HierarchyUtils.getHierarchyMembers(
+                searchEngine,
+                property);
+            Set<PropertyAccessorElement> hierarchyAccessors = Sets.newHashSet();
+            for (ClassMemberElement hierarchyMember : hierarchyMembers) {
+              if (hierarchyMember instanceof FieldElement) {
+                FieldElement hierarchyField = (FieldElement) hierarchyMember;
+                if (accessor.isGetter()) {
+                  hierarchyAccessors.add(hierarchyField.getGetter());
+                } else if (accessor.isSetter()) {
+                  hierarchyAccessors.add(hierarchyField.getSetter());
+                }
+              }
+            }
+            refElements = hierarchyAccessors.toArray(new PropertyAccessorElement[hierarchyAccessors.size()]);
+          } else {
+            // some other element
+            refElements = new Element[] {searchElement};
+          }
+          // find references to "refElements"
+          List<SearchMatch> references = Lists.newArrayList();
+          for (Element refElement : refElements) {
+            references.addAll(searchEngine.searchReferences(refElement, null, null));
+          }
+          return references;
         }
 
         private List<SearchMatch> findUnresolvedNameReferences() {
-          // only methods and fields may have potential references
           if (searchElement != null) {
+            // only class members may have potential references
+            if (!(searchElement.getEnclosingElement() instanceof ClassElement)) {
+              return ImmutableList.of();
+            }
+            // check kind
             ElementKind elementKind = searchElement.getKind();
-            if (elementKind != ElementKind.METHOD && elementKind != ElementKind.FIELD) {
+            if (elementKind != ElementKind.METHOD && elementKind != ElementKind.FIELD
+                && elementKind != ElementKind.GETTER && elementKind != ElementKind.SETTER) {
               return ImmutableList.of();
             }
           }

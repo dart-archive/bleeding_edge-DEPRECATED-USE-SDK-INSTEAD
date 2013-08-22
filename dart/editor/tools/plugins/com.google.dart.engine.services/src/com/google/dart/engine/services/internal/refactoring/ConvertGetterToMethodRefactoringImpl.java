@@ -128,7 +128,7 @@ public class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl implem
   private Set<Element> getHierarchyMethods() {
     ClassElement enclosingClass = (ClassElement) element.getEnclosingElement();
     // prepare super/sub-classes
-    List<ClassElement> superClasses = HierarchyUtils.getSuperClasses(enclosingClass);
+    Set<ClassElement> superClasses = HierarchyUtils.getSuperClasses(enclosingClass);
     Set<ClassElement> subClasses = HierarchyUtils.getSubClasses(searchEngine, enclosingClass);
     // full hierarchy
     Set<ClassElement> hierarchyClasses = Sets.newHashSet();

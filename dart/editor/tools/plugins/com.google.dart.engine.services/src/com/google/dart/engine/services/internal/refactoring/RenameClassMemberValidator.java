@@ -45,7 +45,7 @@ class RenameClassMemberValidator {
   private final ClassElement elementClass;
   private final String oldName;
   private final String newName;
-  private List<ClassElement> superClasses;
+  private Set<ClassElement> superClasses;
   private Set<ClassElement> subClasses;
   private Set<ClassElement> hierarchyClasses;
   Set<Element> renameElements = Sets.newHashSet();

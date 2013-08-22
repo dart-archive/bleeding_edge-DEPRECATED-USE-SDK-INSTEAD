@@ -15,6 +15,7 @@
 package com.google.dart.engine.services.util;
 
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ClassMemberElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
@@ -24,10 +25,23 @@ import com.google.dart.engine.services.internal.refactoring.RefactoringImplTest;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 public class HierarchyUtilsTest extends RefactoringImplTest {
+  private static void removeObjectMembers(List<Element> members) {
+    for (Iterator<Element> iter = members.iterator(); iter.hasNext();) {
+      Element element = iter.next();
+      if (element.getEnclosingElement() instanceof ClassElement) {
+        ClassElement clazz = (ClassElement) element.getEnclosingElement();
+        if (clazz.getSupertype() == null) {
+          iter.remove();
+        }
+      }
+    }
+  }
+
   public void test_getDirectMembers() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -43,9 +57,8 @@ public class HierarchyUtilsTest extends RefactoringImplTest {
         "  mb2() {}",
         "}",
         "");
-    CompilationUnitElement unitElement = testUnit.getElement();
-    ClassElement classA = (ClassElement) CorrectionUtils.getChildren(unitElement, "A").get(0);
-    ClassElement classB = (ClassElement) CorrectionUtils.getChildren(unitElement, "B").get(0);
+    ClassElement classA = getClassElement("A");
+    ClassElement classB = getClassElement("B");
     // A
     {
       List<Element> members = HierarchyUtils.getDirectMembers(classA, false);
@@ -66,6 +79,104 @@ public class HierarchyUtilsTest extends RefactoringImplTest {
     }
   }
 
+  public void test_getHierarchyMembers_fields() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A { int foo; }",
+        "class B extends A { get foo => null; }",
+        "class C extends B { set foo(x) {} }",
+        "class D { int foo; }",
+        "");
+    FieldElement fieldA = getFieldElement("A", "foo");
+    FieldElement fieldB = getFieldElement("B", "foo");
+    FieldElement fieldC = getFieldElement("C", "foo");
+    // A
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, fieldA);
+      assertThat(members).containsOnly(fieldA, fieldB, fieldC);
+    }
+    // B
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, fieldB);
+      assertThat(members).containsOnly(fieldA, fieldB, fieldC);
+    }
+    // C
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, fieldC);
+      assertThat(members).containsOnly(fieldA, fieldB, fieldC);
+    }
+  }
+
+  public void test_getHierarchyMembers_methods() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A { foo() {} }",
+        "class B extends A { foo() {} }",
+        "class C extends B { foo() {} }",
+        "class D { foo() {} }",
+        "class E extends D { foo() {} }",
+        "");
+    MethodElement methodA = getMethodElement("A", "foo");
+    MethodElement methodB = getMethodElement("B", "foo");
+    MethodElement methodC = getMethodElement("C", "foo");
+    MethodElement methodD = getMethodElement("D", "foo");
+    MethodElement methodE = getMethodElement("E", "foo");
+    // A
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, methodA);
+      assertThat(members).containsOnly(methodA, methodB, methodC);
+    }
+    // B
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, methodB);
+      assertThat(members).containsOnly(methodA, methodB, methodC);
+    }
+    // C
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, methodC);
+      assertThat(members).containsOnly(methodA, methodB, methodC);
+    }
+    // D
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, methodD);
+      assertThat(members).containsOnly(methodD, methodE);
+    }
+    // E
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, methodE);
+      assertThat(members).containsOnly(methodD, methodE);
+    }
+  }
+
+  public void test_getHierarchyMembers_withInterfaces() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A { foo() {} }",
+        "class B implements A { foo() {} }",
+        "abstract class C implements A { }",
+        "class D extends C { foo() {} }",
+        "class E { foo() {} }",
+        "");
+    MethodElement methodA = getMethodElement("A", "foo");
+    MethodElement methodB = getMethodElement("B", "foo");
+    MethodElement methodD = getMethodElement("D", "foo");
+    // A
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, methodA);
+      assertThat(members).containsOnly(methodA, methodB, methodD);
+    }
+    // B
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, methodB);
+      assertThat(members).containsOnly(methodA, methodB, methodD);
+    }
+    // C
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, methodD);
+      assertThat(members).containsOnly(methodA, methodB, methodD);
+    }
+  }
+
   public void test_getMembers() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -81,12 +192,12 @@ public class HierarchyUtilsTest extends RefactoringImplTest {
         "  mb2() {}",
         "}",
         "");
-    CompilationUnitElement unitElement = testUnit.getElement();
-    ClassElement classA = (ClassElement) CorrectionUtils.getChildren(unitElement, "A").get(0);
-    ClassElement classB = (ClassElement) CorrectionUtils.getChildren(unitElement, "B").get(0);
+    ClassElement classA = getClassElement("A");
+    ClassElement classB = getClassElement("B");
     // A
     {
       List<Element> members = HierarchyUtils.getMembers(classA, false);
+      removeObjectMembers(members);
       assertThat(members).hasSize(2);
       assertThat(members.get(0)).isInstanceOf(FieldElement.class);
       assertEquals("ma1", members.get(0).getDisplayName());
@@ -96,6 +207,7 @@ public class HierarchyUtilsTest extends RefactoringImplTest {
     // B
     {
       List<Element> members = HierarchyUtils.getMembers(classB, false);
+      removeObjectMembers(members);
       assertThat(members).hasSize(4);
       // mb1
       assertThat(members.get(0)).isInstanceOf(FieldElement.class);
@@ -122,13 +234,12 @@ public class HierarchyUtilsTest extends RefactoringImplTest {
         "class M {}",
         "class E extends A with M {}",
         "");
-    CompilationUnitElement unitElement = testUnit.getElement();
-    ClassElement classA = (ClassElement) CorrectionUtils.getChildren(unitElement, "A").get(0);
-    ClassElement classB = (ClassElement) CorrectionUtils.getChildren(unitElement, "B").get(0);
-    ClassElement classC = (ClassElement) CorrectionUtils.getChildren(unitElement, "C").get(0);
-    ClassElement classD = (ClassElement) CorrectionUtils.getChildren(unitElement, "D").get(0);
-    ClassElement classE = (ClassElement) CorrectionUtils.getChildren(unitElement, "E").get(0);
-    ClassElement classM = (ClassElement) CorrectionUtils.getChildren(unitElement, "M").get(0);
+    ClassElement classA = getClassElement("A");
+    ClassElement classB = getClassElement("B");
+    ClassElement classC = getClassElement("C");
+    ClassElement classD = getClassElement("D");
+    ClassElement classE = getClassElement("E");
+    ClassElement classM = getClassElement("M");
     // A
     {
       Set<ClassElement> subs = HierarchyUtils.getSubClasses(searchEngine, classA);
@@ -160,43 +271,79 @@ public class HierarchyUtilsTest extends RefactoringImplTest {
         "class D extends B implements A {}",
         "class M {}",
         "class E extends A with M {}",
+        "class F implements A {}",
         "");
-    CompilationUnitElement unitElement = testUnit.getElement();
-    ClassElement classA = (ClassElement) CorrectionUtils.getChildren(unitElement, "A").get(0);
-    ClassElement classB = (ClassElement) CorrectionUtils.getChildren(unitElement, "B").get(0);
-    ClassElement classC = (ClassElement) CorrectionUtils.getChildren(unitElement, "C").get(0);
-    ClassElement classD = (ClassElement) CorrectionUtils.getChildren(unitElement, "D").get(0);
-    ClassElement classE = (ClassElement) CorrectionUtils.getChildren(unitElement, "E").get(0);
+    ClassElement classA = getClassElement("A");
+    ClassElement classB = getClassElement("B");
+    ClassElement classC = getClassElement("C");
+    ClassElement classD = getClassElement("D");
+    ClassElement classE = getClassElement("E");
+    ClassElement classF = getClassElement("F");
+    ClassElement objectElement = classA.getSupertype().getElement();
     // Object
     {
-      ClassElement objectElement = classA.getSupertype().getElement();
-      List<ClassElement> supers = HierarchyUtils.getSuperClasses(objectElement);
+      Set<ClassElement> supers = HierarchyUtils.getSuperClasses(objectElement);
       assertThat(supers).containsOnly();
     }
     // A
     {
-      List<ClassElement> supers = HierarchyUtils.getSuperClasses(classA);
-      assertThat(supers).containsOnly();
+      Set<ClassElement> supers = HierarchyUtils.getSuperClasses(classA);
+      assertThat(supers).containsOnly(objectElement);
     }
     // B
     {
-      List<ClassElement> supers = HierarchyUtils.getSuperClasses(classB);
-      assertThat(supers).containsOnly(classA);
+      Set<ClassElement> supers = HierarchyUtils.getSuperClasses(classB);
+      assertThat(supers).containsOnly(objectElement, classA);
     }
     // C
     {
-      List<ClassElement> supers = HierarchyUtils.getSuperClasses(classC);
-      assertThat(supers).containsOnly(classA, classB);
+      Set<ClassElement> supers = HierarchyUtils.getSuperClasses(classC);
+      assertThat(supers).containsOnly(objectElement, classA, classB);
     }
     // D
     {
-      List<ClassElement> supers = HierarchyUtils.getSuperClasses(classD);
-      assertThat(supers).containsOnly(classA, classB);
+      Set<ClassElement> supers = HierarchyUtils.getSuperClasses(classD);
+      assertThat(supers).containsOnly(objectElement, classA, classB);
     }
     // E
     {
-      List<ClassElement> supers = HierarchyUtils.getSuperClasses(classE);
-      assertThat(supers).containsOnly(classA);
+      Set<ClassElement> supers = HierarchyUtils.getSuperClasses(classE);
+      assertThat(supers).containsOnly(objectElement, classA);
     }
+    // F
+    {
+      Set<ClassElement> supers = HierarchyUtils.getSuperClasses(classF);
+      assertThat(supers).containsOnly(objectElement, classA);
+    }
+  }
+
+  /**
+   * @return the existing {@link ClassElement} form "testUnit".
+   */
+  private ClassElement getClassElement(String name) {
+    CompilationUnitElement unitElement = testUnit.getElement();
+    return (ClassElement) CorrectionUtils.getChildren(unitElement, name).get(0);
+  }
+
+  /**
+   * @return the existing {@link FieldElement}.
+   */
+  private FieldElement getFieldElement(String className, String fieldName) {
+    ClassElement classElement = getClassElement(className);
+    for (FieldElement fieldElement : classElement.getFields()) {
+      if (fieldElement.getName().equals(fieldName)) {
+        return fieldElement;
+      }
+    }
+    fail("Not found: " + fieldName);
+    return null;
+  }
+
+  /**
+   * @return the existing {@link MethodElement}.
+   */
+  private MethodElement getMethodElement(String className, String methodName) {
+    ClassElement classElement = getClassElement(className);
+    return classElement.getMethod(methodName);
   }
 }
