@@ -1913,6 +1913,20 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_nonConstantValueInInitializer_namedArgument() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  final a;",
+        "  const A({this.a});",
+        "}",
+        "class B extends A {",
+        "  const B({b}) : super(a: b);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_nonConstCaseExpression() throws Exception {
     Source source = addSource(createSource(//
         "f(Type t) {",

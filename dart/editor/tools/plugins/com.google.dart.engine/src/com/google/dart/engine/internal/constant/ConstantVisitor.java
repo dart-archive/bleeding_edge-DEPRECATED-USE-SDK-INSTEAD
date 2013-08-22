@@ -28,6 +28,7 @@ import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MapLiteral;
 import com.google.dart.engine.ast.MapLiteralEntry;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.ParenthesizedExpression;
@@ -258,6 +259,11 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
     }
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
+  }
+
+  @Override
+  public EvaluationResultImpl visitNamedExpression(NamedExpression node) {
+    return node.getExpression().accept(this);
   }
 
   @Override
