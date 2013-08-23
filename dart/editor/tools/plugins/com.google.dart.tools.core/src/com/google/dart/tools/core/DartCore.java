@@ -269,6 +269,11 @@ public class DartCore extends Plugin implements DartSdkListener {
   private static ProjectManager projectManager;
 
   /**
+   * Used to synchronize access to {@link #projectManager}.
+   */
+  private static final Object projectManagerLock = new Object();
+
+  /**
    * Add the given listener to the list of objects that are listening for changes to Dart elements.
    * Has no effect if an identical listener is already registered.
    * <p>
@@ -591,11 +596,13 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return the manager (not {@code null})
    */
   public static ProjectManager getProjectManager() {
-    if (projectManager == null) {
-      projectManager = new ProjectManagerImpl(
-          ResourcesPlugin.getWorkspace().getRoot(),
-          DartSdkManager.getManager().getNewSdk(),
-          DartIgnoreManager.getInstance());
+    synchronized (projectManagerLock) {
+      if (projectManager == null) {
+        projectManager = new ProjectManagerImpl(
+            ResourcesPlugin.getWorkspace().getRoot(),
+            DartSdkManager.getManager().getNewSdk(),
+            DartIgnoreManager.getInstance());
+      }
     }
     return projectManager;
   }
