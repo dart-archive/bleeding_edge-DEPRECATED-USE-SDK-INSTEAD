@@ -124,6 +124,7 @@ import java.util.List;
  */
 @SuppressWarnings("restriction")
 public class ProblemsView extends ViewPart implements MarkersChangeService.MarkerChangeListener {
+
   static class TypeLabelProvider extends ColumnLabelProvider {
     @Override
     public Color getBackground(Object element) {
@@ -542,6 +543,15 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
+  private final class PageSelectionListener implements ISelectionListener {
+    @Override
+    public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+      if (part != ProblemsView.this) {
+        focusOn(part, selection);
+      }
+    }
+  }
+
   private class ShowInfosAction extends InstrumentedAction {
     public ShowInfosAction() {
       super("Show informational messages", AS_CHECK_BOX);
@@ -735,6 +745,8 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       return desc1.compareToIgnoreCase(desc2);
     }
   }
+
+  private final PageSelectionListener pageSelectionListener = new PageSelectionListener();
 
   private static Object REFRESH_MARKERS_JOB_FAMILY = new Object();
 
@@ -975,6 +987,8 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       propertyChangeListener = null;
     }
 
+    getSite().getPage().removeSelectionListener(pageSelectionListener);
+
     MarkersChangeService.getService().removeListener(this);
 
     super.dispose();
@@ -1000,15 +1014,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       initProgressService(progressService);
     }
 
-    // TODO: we're leaking this
-    getSite().getPage().addSelectionListener(new ISelectionListener() {
-      @Override
-      public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-        if (part != ProblemsView.this) {
-          focusOn(part, selection);
-        }
-      }
-    });
+    getSite().getPage().addSelectionListener(pageSelectionListener);
 
     // Reset focused project when it is deleted.
     ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
