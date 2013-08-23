@@ -8,7 +8,6 @@ import com.google.dart.tools.ui.internal.util.RowLayouter;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
-import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -23,7 +22,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class ExtractLocalWizard extends RefactoringWizard {
+public class ExtractLocalWizard extends ServiceRefactoringWizard {
 
   private static class ExtractLocalInputPage extends TextInputWizardPage {
     private static Button createCheckbox(Composite parent, String title, boolean value,

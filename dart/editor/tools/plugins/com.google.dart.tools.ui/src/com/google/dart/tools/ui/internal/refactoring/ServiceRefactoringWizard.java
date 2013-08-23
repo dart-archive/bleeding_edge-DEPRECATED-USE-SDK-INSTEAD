@@ -13,8 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
+import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 
 /**
@@ -33,5 +36,25 @@ public abstract class ServiceRefactoringWizard extends RefactoringWizard {
   public boolean needsProgressMonitor() {
     setForcePreviewReview(refactoring.requiresPreview());
     return super.needsProgressMonitor();
+  }
+
+  @Override
+  public boolean performFinish() {
+    boolean valid = super.performFinish();
+    // if not testing, proceed by default
+    if (!ErrorDialog.AUTOMATED_MODE) {
+      return valid;
+    }
+    // log error if not valid
+    if (!valid) {
+      RefactoringStatus status = null;
+      try {
+        status = ReflectionUtils.getFieldObject(this, "fConditionCheckingStatus");
+      } catch (Throwable e) {
+      }
+      DartToolsPlugin.logErrorMessage("Refactoring operation failed: " + status);
+    }
+    // don't show error page/dialog
+    return true;
   }
 }

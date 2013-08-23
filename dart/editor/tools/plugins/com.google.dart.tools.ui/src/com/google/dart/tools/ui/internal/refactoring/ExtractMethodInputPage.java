@@ -273,15 +273,15 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 //    }
   }
 
-  private void parameterModified() {
-    updatePreview(getText());
-    setPageComplete(validatePage(false));
-  }
-
 //  private void setGenerateJavadoc(boolean value) {
 //    fSettings.put(GENERATE_JAVADOC, value);
 //    fRefactoring.setGenerateJavadoc(value);
 //  }
+
+  private void parameterModified() {
+    updatePreview(getText());
+    setPageComplete(validatePage(false));
+  }
 
   private void textModified(String text) {
     fRefactoring.setMethodName(text);
