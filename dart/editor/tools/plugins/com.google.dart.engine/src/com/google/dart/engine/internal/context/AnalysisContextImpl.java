@@ -1068,6 +1068,12 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 
   @Override
   public void mergeContext(AnalysisContext context) {
+    if (context instanceof InstrumentedAnalysisContextImpl) {
+      context = ((InstrumentedAnalysisContextImpl) context).getBasis();
+    }
+    if (!(context instanceof AnalysisContextImpl)) {
+      return;
+    }
     synchronized (cacheLock) {
       // TODO(brianwilkerson) This does not lock against the other context's cacheLock.
       for (Map.Entry<Source, SourceEntry> entry : ((AnalysisContextImpl) context).sourceMap.entrySet()) {
