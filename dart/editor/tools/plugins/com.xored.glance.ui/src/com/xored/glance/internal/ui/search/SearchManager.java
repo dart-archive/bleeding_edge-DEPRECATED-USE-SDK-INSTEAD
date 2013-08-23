@@ -22,6 +22,7 @@ import com.xored.glance.ui.utils.UITextSource;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.SWTException;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -327,6 +328,11 @@ public class SearchManager {
     // ignore panel controls
     if (descriptor != null && panel != null && panel.getControl() != null) {
       if (isParent(panel.getControl(), descriptor.getControl())) {
+        if (descriptor.getControl() instanceof Combo) {
+          getSearchEngine().setSource(rule, source, true);
+          source.init();
+          updateIndexingState();
+        }
         return false;
       }
     }
