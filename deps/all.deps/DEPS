@@ -33,7 +33,6 @@ vars = {
   "json_rev" : "@19997",
   "junit_rev" : "@19997",
   "mockito_rev" : "@19997",
-  "nss_pkcs12_rev" : "@26000",
   "snakeyaml_rev" : "@19997",
   "stripjar_rev" : "@20110",
   "WebCore_rev" : "@26378",
@@ -88,8 +87,6 @@ deps = {
   "dart/third_party/json": "/third_party/json" + Var("json_rev"),
   "dart/third_party/junit": "/third_party/junit" + Var("junit_rev"),
   "dart/third_party/mockito": "/third_party/mockito" + Var("mockito_rev"),
-  "dart/third_party/nss_pkcs12":
-      "/third_party/nss_pkcs12" + Var("nss_pkcs12_rev"),
   "dart/third_party/snakeyaml": "/third_party/snakeyaml" + Var("snakeyaml_rev"),
   "dart/third_party/stripjar": "/third_party/stripjar" + Var("stripjar_rev"),
   "dart/third_party/d8": "/third_party/d8" + Var("d8_rev"),

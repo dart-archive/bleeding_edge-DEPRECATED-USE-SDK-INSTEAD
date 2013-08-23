@@ -11,7 +11,6 @@ vars = {
 
   "gyp_rev": "@1495",
   "nss_rev": "@209026",
-  "nss_pkcs12_rev" : "@26000",
 
   "co19_rev": "@515",
   "co19_repo": "http://co19.googlecode.com/svn/trunk/co19/",
@@ -41,9 +40,6 @@ deps = {
 
   "dart/third_party/net_nss":
       Var("chromium_url") + "/trunk/src/net/third_party/nss" + Var("nss_rev"),
-
-  "dart/third_party/nss_pkcs12":
-      "/third_party/nss_pkcs12" + Var("nss_pkcs12_rev"),
 }
 
 deps_os = {
