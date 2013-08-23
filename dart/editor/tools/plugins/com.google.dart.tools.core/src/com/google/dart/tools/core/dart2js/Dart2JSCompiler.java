@@ -213,6 +213,8 @@ public class Dart2JSCompiler {
 
   private IPackageRootProvider packageRootProvider;
 
+  private boolean suppressWarnings;
+
   /**
    * Create a new Dart2JSCompiler.
    */
@@ -273,14 +275,25 @@ public class Dart2JSCompiler {
     return "dart2js";
   }
 
+  public boolean getSuppressWarnings() {
+    return suppressWarnings;
+  }
+
   public boolean isAvailable() {
     return DartSdkManager.getManager().hasSdk();
+  }
+
+  public void setSuppressWarnings(boolean suppressWarnings) {
+    this.suppressWarnings = suppressWarnings;
   }
 
   protected List<String> getCompilerArguments(IPath inputPath, IPath outputPath) {
     List<String> args = new ArrayList<String>();
 
-    args.add("--suppress-warnings");
+    // See dartbug.com/7277.
+    if (suppressWarnings) {
+      args.add("--suppress-warnings");
+    }
 
     File packageRoot = packageRootProvider.getPackageRoot(getProjectFor(inputPath));
     if (packageRoot != null) {

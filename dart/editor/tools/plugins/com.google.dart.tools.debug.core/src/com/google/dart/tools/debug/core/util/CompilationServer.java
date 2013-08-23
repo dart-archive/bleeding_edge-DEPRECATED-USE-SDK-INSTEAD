@@ -78,6 +78,7 @@ public class CompilationServer {
       IPath outputPath = Path.fromOSString(outFile.getPath());
 
       Dart2JSCompiler compiler = new Dart2JSCompiler();
+      compiler.setSuppressWarnings(true);
 
       console.printSeparator("Compiling " + dartFile.getFullPath() + "...");
 
