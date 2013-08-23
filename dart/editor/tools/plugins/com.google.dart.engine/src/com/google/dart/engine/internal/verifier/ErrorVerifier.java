@@ -49,6 +49,7 @@ import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.Identifier;
@@ -637,6 +638,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     } else {
       return super.visitFunctionExpression(node);
     }
+  }
+
+  @Override
+  public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    Expression functionExpression = node.getFunction();
+    Type expressionType = functionExpression.getStaticType();
+    if (!isFunctionType(expressionType)) {
+      errorReporter.reportError(
+          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          functionExpression);
+    }
+    return super.visitFunctionExpressionInvocation(node);
   }
 
   @Override
@@ -4958,6 +4971,23 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       });
       checked.add(current);
     }
+  }
+
+  private boolean isFunctionType(Type type) {
+    if (type.isDynamic() || type == BottomTypeImpl.getInstance()) {
+      return true;
+    } else if (type instanceof InterfaceType) {
+      if (type == typeProvider.getFunctionType()) {
+        return true;
+      }
+      MethodElement callMethod = ((InterfaceType) type).lookUpMethod(
+          ElementResolver.CALL_METHOD_NAME,
+          currentLibrary);
+      return callMethod != null;
+    } else if (type instanceof FunctionType || type.isDartCoreFunction()) {
+      return true;
+    }
+    return false;
   }
 
   /**

@@ -83,13 +83,6 @@ public enum StaticTypeWarningCode implements ErrorCode {
   INVALID_ASSIGNMENT("A value of type '%s' cannot be assigned to a variable of type '%s'"),
 
   /**
-   * 12.14.4 Function Expression Invocation: A function expression invocation <i>i</i> has the form
-   * <i>e<sub>f</sub>(a<sub>1</sub>, &hellip; a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>,
-   * &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i>, where <i>e<sub>f</sub></i> is an expression.
-   * <p>
-   * It is a static type warning if the static type <i>F</i> of <i>e<sub>f</sub></i> may not be
-   * assigned to a function type.
-   * <p>
    * 12.15.1 Ordinary Invocation: An ordinary method invocation <i>i</i> has the form
    * <i>o.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
    * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>.
@@ -110,6 +103,16 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * @param nonFunctionIdentifier the name of the identifier that is not a function type
    */
   INVOCATION_OF_NON_FUNCTION("'%s' is not a method"),
+
+  /**
+   * 12.14.4 Function Expression Invocation: A function expression invocation <i>i</i> has the form
+   * <i>e<sub>f</sub>(a<sub>1</sub>, &hellip; a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>,
+   * &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i>, where <i>e<sub>f</sub></i> is an expression.
+   * <p>
+   * It is a static type warning if the static type <i>F</i> of <i>e<sub>f</sub></i> may not be
+   * assigned to a function type.
+   */
+  INVOCATION_OF_NON_FUNCTION_EXPRESSION("Cannot invoke a non-function"),
 
   /**
    * 12.19 Conditional: It is a static type warning if the type of <i>e<sub>1</sub></i> may not be

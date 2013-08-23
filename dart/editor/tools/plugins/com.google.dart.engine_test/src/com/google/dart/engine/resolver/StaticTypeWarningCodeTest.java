@@ -26,20 +26,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invocationOfNonFunction_staticInSuperclass() throws Exception {
-    Source source = addSource(createSource(//
-        "class A {",
-        "  static void a() {}",
-        "}",
-        "",
-        "class B extends A {",
-        "  void b() { a(); }",
-        "}"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
-    verify(source);
-  }
-
   public void test_inconsistentMethodInheritance_paramCount() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A {",
@@ -301,6 +287,16 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+    verify(source);
+  }
+
+  public void test_invocationOfNonFunctionExpression_literal() throws Exception {
+    Source source = addSource(createSource(//
+        "f() {",
+        "  3(5);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION);
     verify(source);
   }
 
