@@ -125,6 +125,19 @@ public final class StringUtilities {
     return strSuffix.equalsIgnoreCase(suffix);
   }
 
+  public static boolean isAlphanumeric(CharSequence cs) {
+    if (cs == null || cs.length() == 0) {
+      return false;
+    }
+    int sz = cs.length();
+    for (int i = 0; i < sz; i++) {
+      if (Character.isLetterOrDigit(cs.charAt(i)) == false) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * <p>
    * Checks if a String is whitespace, empty ("") or null.

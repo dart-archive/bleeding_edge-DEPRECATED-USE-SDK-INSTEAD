@@ -328,7 +328,7 @@ public class SearchManager {
     // ignore panel controls
     if (descriptor != null && panel != null && panel.getControl() != null) {
       if (isParent(panel.getControl(), descriptor.getControl())) {
-        if (descriptor.getControl() instanceof Combo) {
+        if (source != null && descriptor.getControl() instanceof Combo) {
           getSearchEngine().setSource(rule, source, true);
           source.init();
           updateIndexingState();

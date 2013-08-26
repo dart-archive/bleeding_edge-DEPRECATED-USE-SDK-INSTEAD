@@ -127,7 +127,7 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
       IPreferenceStore preferences = GlancePlugin.getDefault().getPreferenceStore();
       preferences.setValue(SEARCH_CASE_SENSITIVE, caseInit);
       preferences.setValue(SEARCH_REGEXP, regExInit);
-      preferences.setValue(SEARCH_WORD_PREFIX, !wholeWordInit);
+      preferences.setValue(SEARCH_WORD_PREFIX, wholeWordInit);
     }
 
     /**
@@ -147,7 +147,7 @@ public abstract class SearchPanel implements ISearchPanel, IPreferenceConstants,
 
       s.put("wrap", wrapInit); //$NON-NLS-1$
       s.put("casesensitive", caseSensitive); //$NON-NLS-1$
-      s.put("wholeword", !wordPrefix); //$NON-NLS-1$
+      s.put("wholeword", wordPrefix); //$NON-NLS-1$
       s.put("incremental", incrementalInit); //$NON-NLS-1$
       s.put("isRegEx", regExp); //$NON-NLS-1$
       s.put("selection", ""); //$NON-NLS-1$ (original: fTarget.getSelectionText())
