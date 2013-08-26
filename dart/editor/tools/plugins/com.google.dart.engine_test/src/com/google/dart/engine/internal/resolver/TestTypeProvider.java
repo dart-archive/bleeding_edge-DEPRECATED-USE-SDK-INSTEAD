@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2013, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -261,18 +261,16 @@ public class TestTypeProvider implements TypeProvider {
     if (objectType == null) {
       ClassElementImpl objectElement = getObject();
       objectType = objectElement.getType();
-      if (objectElement.getMethods().length == 0) {
-        objectElement.setConstructors(new ConstructorElement[] {constructorElement(
-            objectElement,
-            null)});
-        objectElement.setMethods(new MethodElement[] {
-            methodElement("toString", getStringType()),
-            methodElement("==", getBoolType(), objectType),
-            methodElement("noSuchMethod", getDynamicType(), getDynamicType())});
-        objectElement.setAccessors(new PropertyAccessorElement[] {
-            getterElement("hashCode", false, getIntType()),
-            getterElement("runtimeType", false, getTypeType())});
-      }
+      objectElement.setConstructors(new ConstructorElement[] {constructorElement(
+          objectElement,
+          null)});
+      objectElement.setMethods(new MethodElement[] {
+          methodElement("toString", getStringType()),
+          methodElement("==", getBoolType(), objectType),
+          methodElement("noSuchMethod", getDynamicType(), getDynamicType())});
+      objectElement.setAccessors(new PropertyAccessorElement[] {
+          getterElement("hashCode", false, getIntType()),
+          getterElement("runtimeType", false, getTypeType())});
     }
     return objectType;
   }
@@ -400,7 +398,7 @@ public class TestTypeProvider implements TypeProvider {
   /**
    * Given a class element representing a class with type parameters, propagate those type
    * parameters to all of the accessors, methods and constructors defined for the class.
-   *
+   * 
    * @param classElement the element representing the class with type parameters
    */
   private void propagateTypeArguments(ClassElementImpl classElement) {
