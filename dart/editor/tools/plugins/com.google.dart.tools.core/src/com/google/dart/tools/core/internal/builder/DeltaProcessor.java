@@ -159,7 +159,8 @@ public class DeltaProcessor {
       this.canonicalPackageDir = null;
       this.fullPackagePath = null;
       this.source = null;
-      this.sourceContainer = getPubFolder().getInvertedSourceContainer();
+      PubFolder pubFolder = getPubFolder();
+      this.sourceContainer = pubFolder == null ? null : pubFolder.getInvertedSourceContainer();
       if (packagesRemovedFromContext == context) {
         return false;
       }
