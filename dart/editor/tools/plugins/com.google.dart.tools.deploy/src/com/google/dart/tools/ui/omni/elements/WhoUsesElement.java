@@ -122,7 +122,7 @@ public class WhoUsesElement extends OmniElement {
   @Override
   protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
     // TODO(scheglov)
-    FindReferencesAction.searchNameUses(text);
+    FindReferencesAction.searchNameUses(searchText);
   }
 
   protected String getSearchText() {
