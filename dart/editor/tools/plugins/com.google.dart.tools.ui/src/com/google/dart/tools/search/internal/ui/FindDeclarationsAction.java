@@ -21,6 +21,9 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.tools.core.DartCore;
@@ -108,10 +111,11 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
    * @return {@code true} if given {@link DartSelection} looks valid.
    */
   private static boolean isValidSelection(DartSelection selection) {
-    // we know the exact Element, no need to search for declarations
+    // If we know the exact Element, no need to search for singleton declarations
     Element element = getSelectionElement(selection);
     if (element != null) {
-      return false;
+      return element instanceof MethodElement || element instanceof FieldElement
+          || element instanceof PropertyAccessorElement;
     }
     // we want to search only method and property declarations
     return isInvocationNameOrPropertyAccessSelected(selection);
