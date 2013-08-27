@@ -83,7 +83,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
-import com.google.dart.engine.utilities.ast.ASTCloner;
 import com.google.dart.engine.utilities.collection.ListUtilities;
 import com.google.dart.engine.utilities.io.UriUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
@@ -628,24 +627,28 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
       throws AnalysisException {
-    DartEntry dartEntry = getReadableDartEntry(source);
-    if (dartEntry == null) {
-      throw new AnalysisException("computeResolvableCompilationUnit for non-Dart: "
-          + source.getFullName());
-    }
-    CompilationUnit unit = dartEntry.getAnyParsedCompilationUnit();
-    if (unit == null) {
-      dartEntry = internalParseDart(source);
-      unit = dartEntry.getAnyParsedCompilationUnit();
-      if (unit == null) {
-        throw new AnalysisException(
-            "Internal error: computeResolvableCompilationUnit could not parse "
-                + source.getFullName());
+    while (true) {
+      synchronized (cacheLock) {
+        SourceEntry sourceEntry = getSourceEntry(source);
+        if (!(sourceEntry instanceof DartEntry)) {
+          throw new AnalysisException("computeResolvableCompilationUnit for non-Dart: "
+              + source.getFullName());
+        }
+        DartEntry dartEntry = (DartEntry) sourceEntry;
+        if (dartEntry.getState(DartEntry.PARSED_UNIT) == CacheState.ERROR) {
+          throw new AnalysisException(
+              "Internal error: computeResolvableCompilationUnit could not parse "
+                  + source.getFullName());
+        }
+        DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+        CompilationUnit unit = dartCopy.getResolvableCompilationUnit();
+        if (unit != null) {
+          sourceMap.put(source, dartCopy);
+          return new ResolvableCompilationUnit(dartCopy.getModificationTime(), unit);
+        }
       }
+      internalParseDart(source);
     }
-    return new ResolvableCompilationUnit(
-        dartEntry.getModificationTime(),
-        (CompilationUnit) unit.accept(new ASTCloner()));
   }
 
   @Override
@@ -2113,7 +2116,8 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
 //      if (notice.getErrors() == null) {
 //        notice.setErrors(errors, lineInfo);
 //      }
-      return unit;
+      // Access the unit through the entry so that the entry records that the unit has been accessed.
+      return dartCopy.getValue(DartEntry.PARSED_UNIT);
     } catch (AnalysisException exception) {
       dartCopy.setState(SourceEntry.LINE_INFO, CacheState.ERROR);
       dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.ERROR);

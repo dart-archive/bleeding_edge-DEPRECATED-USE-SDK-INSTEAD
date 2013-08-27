@@ -20,6 +20,7 @@ import com.google.dart.engine.internal.context.CacheState;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
+import com.google.dart.engine.utilities.ast.ASTCloner;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.ArrayList;
@@ -197,6 +198,12 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private CacheState parsedUnitState = CacheState.INVALID;
 
   /**
+   * A flag indicating whether the parsed AST structure has been accessed since it was set. This is
+   * used to determine whether the structure needs to be copied before it is resolved.
+   */
+  private boolean parsedUnitAccessed = false;
+
+  /**
    * The parsed compilation unit, or {@code null} if the parsed compilation unit is not currently
    * cached.
    */
@@ -311,6 +318,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   public void flushAstStructures() {
     if (parsedUnitState == CacheState.VALID) {
       parsedUnitState = CacheState.FLUSHED;
+      parsedUnitAccessed = false;
       parsedUnit = null;
     }
     resolutionState.flushAstStructures();
@@ -341,6 +349,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   @Override
   public CompilationUnit getAnyParsedCompilationUnit() {
     if (parsedUnitState == CacheState.VALID) {
+      parsedUnitAccessed = true;
       return parsedUnit;
     }
     return getAnyResolvedCompilationUnit();
@@ -361,6 +370,33 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   @Override
   public SourceKind getKind() {
     return sourceKind;
+  }
+
+  /**
+   * Return a compilation unit that has not been accessed by any other client and can therefore
+   * safely be modified by the reconciler.
+   * 
+   * @return a compilation unit that can be modified by the reconciler
+   */
+  public CompilationUnit getResolvableCompilationUnit() {
+    if (parsedUnitState == CacheState.VALID) {
+      if (parsedUnitAccessed) {
+        return (CompilationUnit) parsedUnit.accept(new ASTCloner());
+      }
+      CompilationUnit unit = parsedUnit;
+      parsedUnitState = CacheState.FLUSHED;
+      parsedUnitAccessed = false;
+      parsedUnit = null;
+      return unit;
+    }
+    ResolutionState state = resolutionState;
+    while (state != null) {
+      if (state.resolvedUnitState == CacheState.VALID) {
+        return (CompilationUnit) state.resolvedUnit.accept(new ASTCloner());
+      }
+      state = state.nextState;
+    };
+    return null;
   }
 
   @Override
@@ -432,6 +468,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (descriptor == PARSE_ERRORS) {
       return (E) parseErrors;
     } else if (descriptor == PARSED_UNIT) {
+      parsedUnitAccessed = true;
       return (E) parsedUnit;
     } else if (descriptor == PUBLIC_NAMESPACE) {
       return (E) publicNamespace;
@@ -488,6 +525,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     parseErrorsState = CacheState.INVALID;
 
     parsedUnit = null;
+    parsedUnitAccessed = false;
     parsedUnitState = CacheState.INVALID;
 
     invalidateAllResolutionInformation();
@@ -534,6 +572,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     parseErrorsState = CacheState.ERROR;
 
     parsedUnit = null;
+    parsedUnitAccessed = false;
     parsedUnitState = CacheState.ERROR;
 
     exportedLibraries = Source.EMPTY_ARRAY;
@@ -641,6 +680,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
     if (parsedUnitState != CacheState.VALID) {
       parsedUnit = unit;
+      parsedUnitAccessed = false;
       parsedUnitState = CacheState.VALID;
     }
     if (parseErrorsState != CacheState.VALID) {
@@ -673,7 +713,11 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       parseErrors = updatedValue(state, parseErrors, AnalysisError.NO_ERRORS);
       parseErrorsState = state;
     } else if (descriptor == PARSED_UNIT) {
-      parsedUnit = updatedValue(state, parsedUnit, null);
+      CompilationUnit newUnit = updatedValue(state, parsedUnit, null);
+      if (newUnit != parsedUnit) {
+        parsedUnitAccessed = false;
+      }
+      parsedUnit = newUnit;
       parsedUnitState = state;
     } else if (descriptor == PUBLIC_NAMESPACE) {
       publicNamespace = updatedValue(state, publicNamespace, null);
@@ -747,6 +791,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       parseErrorsState = CacheState.VALID;
     } else if (descriptor == PARSED_UNIT) {
       parsedUnit = (CompilationUnit) value;
+      parsedUnitAccessed = false;
       parsedUnitState = CacheState.VALID;
     } else if (descriptor == PUBLIC_NAMESPACE) {
       publicNamespace = (Namespace) value;
@@ -790,6 +835,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     sourceKind = other.sourceKind;
     parsedUnitState = other.parsedUnitState;
     parsedUnit = other.parsedUnit;
+    parsedUnitAccessed = other.parsedUnitAccessed;
     parseErrorsState = other.parseErrorsState;
     parseErrors = other.parseErrors;
     includedPartsState = other.includedPartsState;
@@ -816,7 +862,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     builder.append(sourceKindState);
     builder.append("; parsedUnit = ");
     builder.append(parsedUnitState);
-    builder.append("; parseErrors = ");
+    builder.append(" (");
+    builder.append(parsedUnitAccessed ? "T" : "F");
+    builder.append("); parseErrors = ");
     builder.append(parseErrorsState);
     builder.append("; exportedLibraries = ");
     builder.append(exportedLibrariesState);
