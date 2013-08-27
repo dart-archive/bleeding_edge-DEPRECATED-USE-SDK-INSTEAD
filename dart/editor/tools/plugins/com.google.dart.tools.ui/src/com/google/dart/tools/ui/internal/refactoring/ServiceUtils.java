@@ -38,6 +38,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
@@ -123,14 +125,20 @@ public class ServiceUtils {
   /**
    * @return the Editor specific {@link Image} to given {@link CorrectionImage} identifier.
    */
-  public static Image toLTK(CorrectionImage imageId) {
+  public static Image toLTK(final CorrectionImage imageId) {
     if (imageId != null) {
-      switch (imageId) {
-        case IMG_CORRECTION_CHANGE:
-          return DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE);
-        case IMG_CORRECTION_CLASS:
-          return DartPluginImages.get(DartPluginImages.IMG_OBJS_CLASS);
-      }
+      return ExecutionUtils.runObjectUI(new RunnableObjectEx<Image>() {
+        @Override
+        public Image runObject() throws Exception {
+          switch (imageId) {
+            case IMG_CORRECTION_CHANGE:
+              return DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE);
+            case IMG_CORRECTION_CLASS:
+              return DartPluginImages.get(DartPluginImages.IMG_OBJS_CLASS);
+          }
+          return null;
+        }
+      });
     }
     return null;
   }

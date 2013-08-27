@@ -30,8 +30,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
-import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
-import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.internal.refactoring.ServiceUtils;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
 
@@ -123,13 +121,8 @@ public class ServiceUtilsTest extends AbstractDartTest {
   }
 
   public void test_toLTK_CorrectionImage() throws Exception {
-    ExecutionUtils.runRethrowUI(new RunnableEx() {
-      @Override
-      public void run() throws Exception {
-        assertNotNull(ServiceUtils.toLTK(CorrectionImage.IMG_CORRECTION_CHANGE));
-        assertNotNull(ServiceUtils.toLTK(CorrectionImage.IMG_CORRECTION_CLASS));
-      }
-    });
+    assertNotNull(ServiceUtils.toLTK(CorrectionImage.IMG_CORRECTION_CHANGE));
+    assertNotNull(ServiceUtils.toLTK(CorrectionImage.IMG_CORRECTION_CLASS));
   }
 
   public void test_toLTK_RefactoringStatus() throws Exception {
