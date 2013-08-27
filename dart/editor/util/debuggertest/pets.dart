@@ -124,6 +124,10 @@ class Dog extends FloppyEars implements Animal {
 
   bool livesWith(Animal other) => true;
 
+  static getStaticDog() {
+    return new Dog("BowWow");
+  }
+  
   void performAction() {
     String name = "iHideAnInstanceVariable";
 

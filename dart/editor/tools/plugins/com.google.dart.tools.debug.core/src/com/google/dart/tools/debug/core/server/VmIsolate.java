@@ -24,7 +24,7 @@ public class VmIsolate {
   private int id;
   private boolean paused = true;
 
-  private Map<Integer, String> classNameMap = new HashMap<Integer, String>();
+  private Map<Integer, VmClass> classInfoMap = new HashMap<Integer, VmClass>();
 
   protected VmIsolate(int isolateId) {
     this.id = isolateId;
@@ -41,8 +41,14 @@ public class VmIsolate {
     return false;
   }
 
+  public VmClass getClassInfo(int classId) {
+    return classInfoMap.get(classId);
+  }
+
   public String getClassName(int classId) {
-    return classNameMap.get(classId);
+    VmClass vmClass = classInfoMap.get(classId);
+
+    return vmClass == null ? null : vmClass.getName();
   }
 
   public int getId() {
@@ -53,8 +59,8 @@ public class VmIsolate {
     return "isolate-" + getId();
   }
 
-  public boolean hasClassName(int classId) {
-    return classNameMap.containsKey(classId);
+  public boolean hasClassInfo(int classId) {
+    return classInfoMap.containsKey(classId);
   }
 
   @Override
@@ -75,12 +81,12 @@ public class VmIsolate {
     return "VmIsolate " + getId();
   }
 
-  protected void clearClassNameMap() {
-    classNameMap.clear();
+  protected void clearClassInfoMap() {
+    classInfoMap.clear();
   }
 
-  protected void setClassName(int classId, String className) {
-    classNameMap.put(classId, className);
+  protected void setClassInfo(int classId, VmClass vmClass) {
+    classInfoMap.put(classId, vmClass);
   }
 
 }

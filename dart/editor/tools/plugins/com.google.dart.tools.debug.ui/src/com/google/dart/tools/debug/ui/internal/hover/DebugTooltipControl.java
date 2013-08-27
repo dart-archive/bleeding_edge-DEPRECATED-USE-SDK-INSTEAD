@@ -15,17 +15,13 @@
 package com.google.dart.tools.debug.ui.internal.hover;
 
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
+import com.google.dart.tools.debug.ui.internal.objectinspector.ObjectInspectorContentProvider;
+import com.google.dart.tools.debug.ui.internal.presentation.DartDebugModelPresentation;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.internal.ui.SWTFactory;
-import org.eclipse.debug.internal.ui.model.elements.ElementContentProvider;
-import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenCountUpdate;
-import org.eclipse.debug.internal.ui.viewers.model.provisional.IChildrenUpdate;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
-import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerUpdate;
-import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerUpdateListener;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.PresentationContext;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.TreeModelViewer;
 import org.eclipse.debug.internal.ui.views.variables.details.DefaultDetailPane;
@@ -38,15 +34,18 @@ import org.eclipse.jface.text.AbstractInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IInformationControlExtension2;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -69,6 +68,10 @@ public class DebugTooltipControl extends AbstractInformationControl implements
    * provides limited access to the detail pane proxy.
    */
   private class DetailPaneContainer implements IDetailPaneContainer {
+
+    public DetailPaneContainer() {
+
+    }
 
     @Override
     public String getCurrentPaneID() {
@@ -105,28 +108,6 @@ public class DebugTooltipControl extends AbstractInformationControl implements
   }
 
   /**
-   * Creates the content for the root element of the tree viewer in the hover
-   */
-  private class TreeRoot extends ElementContentProvider {
-    @Override
-    protected int getChildCount(Object element, IPresentationContext context, IViewerUpdate monitor)
-        throws CoreException {
-      return 1;
-    }
-
-    @Override
-    protected Object[] getChildren(Object parent, int index, int length,
-        IPresentationContext context, IViewerUpdate monitor) throws CoreException {
-      return new Object[] {variable};
-    }
-
-    @Override
-    protected boolean supportsContextId(String id) {
-      return true;
-    }
-  }
-
-  /**
    * Dialog setting key for height
    */
   private static final String HEIGHT = "HEIGHT";
@@ -151,7 +132,7 @@ public class DebugTooltipControl extends AbstractInformationControl implements
    */
   private IVariable variable;
   private IPresentationContext presentationContext;
-  private TreeModelViewer treeViewer;
+  private TreeViewer treeViewer;
   private SashForm sashForm;
   private Composite detailPaneComposite;
 
@@ -224,7 +205,11 @@ public class DebugTooltipControl extends AbstractInformationControl implements
   @Override
   public void setInput(Object input) {
     variable = (IVariable) input;
-    treeViewer.setInput(new TreeRoot());
+    treeViewer.setInput(new Object[] {variable});
+
+    TreeSelection selection = new TreeSelection(new TreePath(new Object[] {variable}));
+    treeViewer.setSelection(selection);
+    detailPane.display(selection);
   }
 
   @Override
@@ -254,11 +239,22 @@ public class DebugTooltipControl extends AbstractInformationControl implements
       }
     }
 
-    treeViewer = new TreeModelViewer(
-        sashForm,
-        SWT.NO_TRIM | SWT.MULTI | SWT.VIRTUAL,
-        presentationContext);
-    treeViewer.setAutoExpandLevel(1);
+    final DartDebugModelPresentation presentation = new DartDebugModelPresentation();
+
+    treeViewer = new TreeViewer(sashForm, SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
+    treeViewer.setAutoExpandLevel(2);
+    treeViewer.setLabelProvider(new LabelProvider() {
+      @Override
+      public Image getImage(Object element) {
+        return presentation.getImage(element);
+      }
+
+      @Override
+      public String getText(Object element) {
+        return presentation.getVariableText((IVariable) element);
+      }
+    });
+    treeViewer.setContentProvider(new ObjectInspectorContentProvider());
 
     if (view != null) {
       // copy over filters
@@ -296,35 +292,6 @@ public class DebugTooltipControl extends AbstractInformationControl implements
     });
 
     initSashWeights();
-
-    // Add update listener to auto-select and display details of root expression.
-    treeViewer.addViewerUpdateListener(new IViewerUpdateListener() {
-      @Override
-      public void updateComplete(IViewerUpdate update) {
-        if (update instanceof IChildrenUpdate || update instanceof IChildrenCountUpdate) {
-          TreeSelection selection = new TreeSelection(new TreePath(new Object[] {variable}));
-          treeViewer.setSelection(selection);
-
-          detailPane.display(selection);
-          treeViewer.removeViewerUpdateListener(this);
-        }
-      }
-
-      @Override
-      public void updateStarted(IViewerUpdate update) {
-
-      }
-
-      @Override
-      public void viewerUpdatesBegin() {
-
-      }
-
-      @Override
-      public void viewerUpdatesComplete() {
-
-      }
-    });
 
     setBackgroundColor(getShell().getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
   }

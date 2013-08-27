@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.ui.internal.objectinspector;
 
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
+import com.google.dart.tools.debug.core.server.ServerDebugValue;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -62,9 +63,14 @@ public class OpenClassInspectorAction implements IObjectActionDelegate {
           if (classValue != null) {
             ObjectInspectorView.inspect(classValue);
           }
-        } else {
-          // TODO(devoncarew): handle ServerDebugValue
+        } else if (obj instanceof ServerDebugValue) {
+          ServerDebugValue value = (ServerDebugValue) obj;
 
+          IValue classValue = value.getClassValue();
+
+          if (classValue != null) {
+            ObjectInspectorView.inspect(classValue);
+          }
         }
 
         instrumentation.metric("Inspect", "Completed");

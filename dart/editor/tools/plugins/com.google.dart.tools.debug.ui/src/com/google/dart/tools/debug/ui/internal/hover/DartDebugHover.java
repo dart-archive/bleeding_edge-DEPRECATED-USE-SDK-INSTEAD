@@ -37,9 +37,6 @@ import org.eclipse.jface.text.Region;
 public class DartDebugHover implements ITextHover, ITextHoverExtension, ITextHoverExtension2 {
   private static DartDebugModelPresentation presentation = new DartDebugModelPresentation();
 
-  // TODO(devoncarew): turn this off when the rich tooltip support is fixed
-  private static boolean USE_PLAIN_TOOLTIP = true;
-
   private static String convertNewLines(String str) {
     if (str == null) {
       return str;
@@ -98,11 +95,7 @@ public class DartDebugHover implements ITextHover, ITextHoverExtension, ITextHov
 
   @Override
   public IInformationControlCreator getHoverControlCreator() {
-    if (USE_PLAIN_TOOLTIP) {
-      return null;
-    } else {
-      return DebugTooltipControlCreator.newControlCreator();
-    }
+    return DebugTooltipControlCreator.newControlCreator();
   }
 
   @Override
@@ -135,11 +128,8 @@ public class DartDebugHover implements ITextHover, ITextHoverExtension, ITextHov
             IVariable variable = resolver.findVariable(variableName);
 
             if (variable != null) {
-              if (USE_PLAIN_TOOLTIP) {
-                return getVariableText(variable);
-              } else {
-                return variable;
-              }
+              return variable;
+              //return getVariableText(variable);
             }
           } catch (DebugException e) {
             return null;

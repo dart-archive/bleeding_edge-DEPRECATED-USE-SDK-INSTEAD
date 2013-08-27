@@ -52,6 +52,8 @@ void testAnimals() {
 
   createARealBigArray();
 
+  Ferret ferret = new Ferret("Fanny");
+  
   var dog = new Dog("Scooter");
 
   dog.performAction();

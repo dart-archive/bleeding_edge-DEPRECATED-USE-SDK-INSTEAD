@@ -23,7 +23,7 @@ import org.eclipse.jface.viewers.Viewer;
 /**
  * The content inspector for the object inspector.
  */
-class ObjectInspectorContentProvider implements ITreeContentProvider {
+public class ObjectInspectorContentProvider implements ITreeContentProvider {
   private static final Object[] EMPTY = new Object[0];
 
   public ObjectInspectorContentProvider() {

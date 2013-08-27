@@ -109,12 +109,6 @@ import org.eclipse.ui.texteditor.IUpdate;
 import java.util.HashMap;
 import java.util.Map;
 
-// TODO: remove statics from the views
-
-// TODO: add an 'Inspect Class...' context menu item
-
-// TODO: something weird with the title of objects in the inspector
-
 // TODO: we need to populate the tree in a lazy manner
 
 // TODO: add the ability to navigate to the source code definition

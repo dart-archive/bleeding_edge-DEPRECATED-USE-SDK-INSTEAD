@@ -24,7 +24,7 @@ import org.eclipse.swt.graphics.Image;
 /**
  * The label provider for the 'name' column in the object inspector.
  */
-class NameLabelProvider extends ColumnLabelProvider {
+public class NameLabelProvider extends ColumnLabelProvider {
   private static DartDebugModelPresentation presentation = new DartDebugModelPresentation();
 
   public NameLabelProvider() {
