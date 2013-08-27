@@ -24,6 +24,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
@@ -184,7 +185,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
 
         private List<SearchMatch> findElementReferences() {
           Element[] refElements;
-          if (searchElement instanceof ClassMemberElement) {
+          if (searchElement instanceof MethodElement || searchElement instanceof FieldElement) {
             // field or method
             ClassMemberElement member = (ClassMemberElement) searchElement;
             Set<ClassMemberElement> hierarchyMembers = HierarchyUtils.getHierarchyMembers(
@@ -218,7 +219,15 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
           // find references to "refElements"
           List<SearchMatch> references = Lists.newArrayList();
           for (Element refElement : refElements) {
-            references.addAll(searchEngine.searchReferences(refElement, null, null));
+            references.addAll(searchEngine.searchReferences(refElement, null, new SearchFilter() {
+              @Override
+              public boolean passes(SearchMatch match) {
+                if (match.getKind() == MatchKind.CONSTRUCTOR_DECLARATION) {
+                  return false;
+                }
+                return true;
+              }
+            }));
           }
           return references;
         }

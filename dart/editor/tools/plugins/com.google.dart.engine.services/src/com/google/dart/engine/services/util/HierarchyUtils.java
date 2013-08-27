@@ -88,6 +88,9 @@ public class HierarchyUtils {
    */
   public static Set<ClassMemberElement> getHierarchyMembers(SearchEngine searchEngine,
       ClassMemberElement member) {
+    if (member instanceof ConstructorElement) {
+      return Sets.newHashSet(member);
+    }
     String name = member.getName();
     ClassElement memberClass = member.getEnclosingElement();
     Set<ClassElement> superClasses = getSuperClasses(memberClass);

@@ -17,6 +17,7 @@ package com.google.dart.engine.services.util;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ClassMemberElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
@@ -76,6 +77,26 @@ public class HierarchyUtilsTest extends RefactoringImplTest {
       assertEquals("mb1", members.get(0).getDisplayName());
       assertThat(members.get(1)).isInstanceOf(MethodElement.class);
       assertEquals("mb2", members.get(1).getDisplayName());
+    }
+  }
+
+  public void test_getHierarchyMembers_constructors() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A { A() {} }",
+        "class B extends A { B() {} }",
+        "");
+    ConstructorElement methodA = getConstructorElement("A", null);
+    ConstructorElement methodB = getConstructorElement("B", null);
+    // A
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, methodA);
+      assertThat(members).containsOnly(methodA);
+    }
+    // B
+    {
+      Set<ClassMemberElement> members = HierarchyUtils.getHierarchyMembers(searchEngine, methodB);
+      assertThat(members).containsOnly(methodB);
     }
   }
 
@@ -323,6 +344,17 @@ public class HierarchyUtilsTest extends RefactoringImplTest {
   private ClassElement getClassElement(String name) {
     CompilationUnitElement unitElement = testUnit.getElement();
     return (ClassElement) CorrectionUtils.getChildren(unitElement, name).get(0);
+  }
+
+  /**
+   * @return the existing {@link ConstructorElement}.
+   */
+  private ConstructorElement getConstructorElement(String className, String name) {
+    ClassElement classElement = getClassElement(className);
+    if (name != null) {
+      return classElement.getNamedConstructor(name);
+    }
+    return classElement.getUnnamedConstructor();
   }
 
   /**
