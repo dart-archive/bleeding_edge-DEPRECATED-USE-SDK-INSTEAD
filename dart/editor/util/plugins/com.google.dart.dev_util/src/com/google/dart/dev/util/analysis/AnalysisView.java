@@ -238,6 +238,20 @@ public class AnalysisView extends ViewPart {
       column.setWidth(pixelConverter.convertWidthInCharsToPixels(15));
       viewerColumn.setLabelProvider(new ColumnLabelProvider() {
         @Override
+        public Color getBackground(Object element) {
+          if (element instanceof AnalysisContextData) {
+            if (((AnalysisContextData) element).getErrorCount() > 0) {
+              return getRedColor();
+            }
+          } else if (element instanceof CacheRow) {
+            if (((CacheRow) element).getErrorCount() > 0) {
+              return getRedColor();
+            }
+          }
+          return null;
+        }
+
+        @Override
         public String getText(Object element) {
           if (element instanceof AnalysisContextData) {
             return "" + ((AnalysisContextData) element).getErrorCount();
