@@ -11,6 +11,7 @@ import optparse
 import os
 import subprocess
 import sys
+import urllib
 
 from os.path import join
 
@@ -110,7 +111,7 @@ def main():
       print 'You must specify a --revision to specify which revision to promote'
       parser.print_help()
       sys.exit(3)
-    if not (options.continuous or options.integration or 
+    if not (options.continuous or options.integration or
             options.testing or options.trunk or options.internal):
       print 'Specify --continuous, --integration, --testing, or --trunk'
       parser.print_help()
@@ -135,7 +136,6 @@ def main():
     sys.exit(2)
 
   gsu = gsutil.GsUtil(options.dryrun, options.gsutilloc)
-
   if options.testing:
     bucket_from = CONTINUOUS
     bucket_to = TESTING
@@ -166,7 +166,19 @@ def main():
     _RemoveElements(gsu, bucket, version_dirs, options.keepcount)
   elif command == 'promote':
     _PromoteBuild(options.revision, bucket_from, bucket_to)
+    _UpdateDocs()
 
+
+def _UpdateDocs():
+  try:
+    print 'Updating docs'
+    url = "http://api.dartlang.org/docs/releases/latest/?force_reload=true"
+    f = urllib.urlopen(url)
+    f.read()
+    print 'Successfully updated api docs'
+  except Exception as e:
+    print 'Could not update api docs, please manually update them'
+    print 'Failed with: %s' % e
 
 def _ReadBucket(gsu, bucket):
   """Read the contents of a Google Storage Bucket.
@@ -233,15 +245,15 @@ def _PromoteBuild(revision, from_bucket, to_bucket):
     from_bucket: the bucket to promote from
     to_bucket: the bucket to promote to
   """
-  
+
   # print the gsutil version
   _Gsutil(['version'])
-  
+
   src = '%s/%s/' % (from_bucket, revision)
   srcVersion = src + 'VERSION'
-  
+
   # copy from continuous/1234 to trunk/1234
-  dest = '%s/%s/' % (to_bucket, revision)  
+  dest = '%s/%s/' % (to_bucket, revision)
   destUpdate = dest + 'eclipse-update/'
   print 'copying: %s -> %s' % (src, dest)
   _Gsutil(['cp', '-a', 'public-read', srcVersion, destUpdate + 'features/'])
