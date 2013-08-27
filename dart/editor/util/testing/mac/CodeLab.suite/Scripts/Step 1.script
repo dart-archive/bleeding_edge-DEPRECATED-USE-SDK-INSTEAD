@@ -1,7 +1,7 @@
 Run "open codelab file search"
 TypeText downArrow
 TypeText enter
-Wait 5
+Wait 10
 TypeText rightArrow
 WaitFor 30, "pubspec lock"
 TypeText downArrow,downArrow,downArrow,downArrow,downArrow

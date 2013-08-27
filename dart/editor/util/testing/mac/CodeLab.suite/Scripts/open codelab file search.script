@@ -1,3 +1,4 @@
+Click (200,200) (* Sometimes Chromium won't quit until there is a UI event *)
 Click(Text:"Tools",CaseSensitive:"Yes")
 Click(Text:"Welcome Page",CaseSensitive:"Yes")
 TypeText CommandKey,o

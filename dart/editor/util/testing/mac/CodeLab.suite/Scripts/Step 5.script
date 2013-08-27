@@ -2,7 +2,7 @@
 Run "open codelab file search"
 TypeText downArrow, downArrow, downArrow, downArrow, downArrow
 TypeText enter
-Wait 5
+Wait 10
 TypeText rightArrow
 WaitFor 30, "pubspec lock"
 Click "pubspec lock"
@@ -23,7 +23,10 @@ TypeText commandKey,v
 TypeText upArrow,upArrow,upArrow,upArrow
 Wait 1
 TypeText optionKey,o (* Navigate to saveDocument() *)
-TypeText upArrow,upArrow,upArrow,upArrow
+TypeText upArrow
+TypeText upArrow
+TypeText upArrow
+TypeText upArrow
 TypeText enter
 TypeText downArrow,downArrow,leftArrow,enter
 TypeText {{
@@ -51,6 +54,7 @@ _storedIds.remove(doc.id);
 window.localStorage.remove(doc.id);
 window.localStorage[DOCUMENT_ID_KEY] = JSON.stringify(_storedIds);
 }}
+Wait 5
 TypeText optionKey,o
 TypeText downArrow, downArrow
 TypeText enter
@@ -69,6 +73,7 @@ TypeText enter
 TypeText {{
 return _storedIds.map(_fetchDocument);
 }}
+Wait 5
 TypeText optionKey,o
 TypeText downArrow,downArrow
 TypeText enter
@@ -116,12 +121,15 @@ TypeText {{
 import 'package:writer/storage.dart';
 }}
 TypeText enter
-Wait 1
+Wait 5
 TypeText optionKey,o
 TypeText downArrow,downArrow,downArrow,downArrow
+Wait 1
 TypeText downArrow,downArrow,downArrow,downArrow
-TypeText downArrow
-TypeText enter
+Wait 1
+TypeText downArrow,downArrow
+Wait 1
+TypeText enter (* Navigate to main() *)
 TypeText downArrow
 TypeText downArrow
 TypeText tab
@@ -131,6 +139,7 @@ documents.addAll(fetchDocuments()
 TypeText rightArrow
 TypeText ";"
 TypeText enter
+Wait 5
 TypeText optionKey,o
 TypeText upArrow,upArrow,upArrow
 TypeText enter

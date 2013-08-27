@@ -2,7 +2,7 @@
 Run "open codelab file search"
 TypeText downArrow, downArrow, downArrow
 TypeText enter
-Wait 5
+Wait 10
 TypeText rightArrow
 WaitFor 30, "pubspec lock"
 Click "pubspec lock"
@@ -90,7 +90,8 @@ TypeText {{
 Wait 1
 TypeText shiftKey,downArrow,downArrow,downArrow
 Wait 5
-TypeText commandKey,x
+TypeText backspace
+Wait 5
 TypeText commandKey,s
 DoubleClick "document item icon"
 Wait 2
@@ -125,6 +126,7 @@ Click (Text:"Untitled")
 Wait 1
 Click "delete file X"
 Wait 1
+Click "red stripe"
 Click "delete file X"
 Click (Text:"Chromium",CaseSensitive:"yes")
 Click (Text:"Quit Chromium",CaseSensitive:"yes")
