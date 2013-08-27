@@ -553,7 +553,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
     // configure refactoring
     createRenameRefactoring("test {} // marker");
-    assertEquals("Rename Method", refactoring.getRefactoringName());
+    assertEquals("Rename Field", refactoring.getRefactoringName());
     refactoring.setNewName("newName");
     // validate change
     assertSuccessfulRename(
@@ -599,7 +599,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
     // configure refactoring
     createRenameRefactoring("test(x) {}");
-    assertEquals("Rename Method", refactoring.getRefactoringName());
+    assertEquals("Rename Field", refactoring.getRefactoringName());
     refactoring.setNewName("newName");
     // validate change
     assertSuccessfulRename(

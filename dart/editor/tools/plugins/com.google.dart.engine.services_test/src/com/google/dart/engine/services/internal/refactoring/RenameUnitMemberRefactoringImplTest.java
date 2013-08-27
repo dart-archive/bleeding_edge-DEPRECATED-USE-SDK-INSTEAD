@@ -479,24 +479,41 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
 //        "}");
   }
 
-  public void test_createChange_TopLevelVariableElement() throws Exception {
-    indexTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "int test = 42;",
-        "main() {",
-        "  print(test);",
-        "}");
-    // configure refactoring
-    createRenameRefactoring("test = 42;");
-    assertEquals("Rename Top-Level Variable", refactoring.getRefactoringName());
-    refactoring.setNewName("newName");
-    // validate change
-    assertSuccessfulRename(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "int newName = 42;",
-        "main() {",
-        "  print(newName);",
-        "}");
+  // TODO(scheglov) uncomment after https://code.google.com/p/dart/issues/detail?id=12789
+//  public void test_createChange_PropertyAccessorElement_getter_declaration() throws Exception {
+//    check_createChange_PropertyAccessorElement("test {}");
+//  }
+//
+//  public void test_createChange_PropertyAccessorElement_getter_usage() throws Exception {
+//    check_createChange_PropertyAccessorElement("test)");
+//  }
+//
+//  public void test_createChange_PropertyAccessorElement_mix() throws Exception {
+//    check_createChange_PropertyAccessorElement("test += 2");
+//  }
+//
+//  public void test_createChange_PropertyAccessorElement_setter_declaration() throws Exception {
+//    check_createChange_PropertyAccessorElement("test(x) {}");
+//  }
+//
+//  public void test_createChange_PropertyAccessorElement_setter_usage() throws Exception {
+//    check_createChange_PropertyAccessorElement("test = 1");
+//  }
+
+  public void test_createChange_TopLevelVariableElement_field() throws Exception {
+    check_createChange_TopLevelVariableElement("test = 42;");
+  }
+
+  public void test_createChange_TopLevelVariableElement_getter() throws Exception {
+    check_createChange_TopLevelVariableElement("test);");
+  }
+
+  public void test_createChange_TopLevelVariableElement_mix() throws Exception {
+    check_createChange_TopLevelVariableElement("test += 2;");
+  }
+
+  public void test_createChange_TopLevelVariableElement_setter() throws Exception {
+    check_createChange_TopLevelVariableElement("test = 1;");
   }
 
   public void test_createChange_TypeAliasElement() throws Exception {
@@ -514,6 +531,56 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "// filler filler filler filler filler filler filler filler filler filler",
         "typedef NewName();",
         "main2(NewName t) {",
+        "}");
+  }
+
+  private void check_createChange_PropertyAccessorElement(String search) throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "get test {}",
+        "set test(x) {}",
+        "main() {",
+        "  print(test);",
+        "  test = 1;",
+        "  test += 2;",
+        "}");
+    // configure refactoring
+    createRenameRefactoring(search);
+    assertEquals("Rename Top-Level Variable", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "get newName {}",
+        "set newName(x) {}",
+        "main() {",
+        "  print(newName);",
+        "  newName = 1;",
+        "  newName += 2;",
+        "}");
+  }
+
+  private void check_createChange_TopLevelVariableElement(String search) throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int test = 42;",
+        "main() {",
+        "  print(test);",
+        "  test = 1;",
+        "  test += 2;",
+        "}");
+    // configure refactoring
+    createRenameRefactoring(search);
+    assertEquals("Rename Top-Level Variable", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int newName = 42;",
+        "main() {",
+        "  print(newName);",
+        "  newName = 1;",
+        "  newName += 2;",
         "}");
   }
 }

@@ -106,6 +106,13 @@ public class RefactoringFactory {
   public static RenameRefactoring createRenameRefactoring(SearchEngine searchEngine, Element element) {
     Preconditions.checkNotNull(searchEngine);
     Preconditions.checkNotNull(element);
+    if (element instanceof PropertyAccessorElement) {
+      element = ((PropertyAccessorElement) element).getVariable();
+      // TODO(scheglov) remove after https://code.google.com/p/dart/issues/detail?id=12789
+      if (element.getEnclosingElement() == null) {
+        return null;
+      }
+    }
     if (element instanceof LibraryElement) {
       return new RenameLibraryRefactoringImpl(searchEngine, (LibraryElement) element);
     }
