@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.ui.internal.presentation;
 
+import com.google.common.io.CharStreams;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
 import com.google.dart.tools.debug.core.server.ServerDebugValue;
@@ -49,7 +50,11 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -309,6 +314,12 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
 
   @Override
   public String getText(Object element) {
+    if (element instanceof DartBreakpoint) {
+      DartBreakpoint bp = (DartBreakpoint) element;
+
+      return getBreakpointText(bp);
+    }
+
     return null;
   }
 
@@ -346,6 +357,28 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
   @Override
   public void setAttribute(String attribute, Object value) {
 
+  }
+
+  /**
+   * Return a textual description of the breakpoint. It looks something like:
+   * <p>
+   * <code>project-name, path/to/file.dart, line 123, 'text.of.line();'</code>
+   * 
+   * @param bp
+   * @return
+   */
+  protected String getBreakpointText(DartBreakpoint bp) {
+    String text = bp.getFile().getProject().getName() + ", "
+        + bp.getFile().getProjectRelativePath().toPortableString() + ", line "
+        + NumberFormat.getNumberInstance().format(bp.getLine());
+
+    String lineInfo = getLineExtract(bp);
+
+    if (lineInfo != null) {
+      text = text + ", '" + lineInfo + "'";
+    }
+
+    return text;
   }
 
   /**
@@ -393,4 +426,25 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
     }
   }
 
+  private String getLineExtract(DartBreakpoint bp) {
+    try {
+      Reader r = new InputStreamReader(bp.getFile().getContents(), bp.getFile().getCharset());
+
+      List<String> lines = CharStreams.readLines(r);
+
+      int line = bp.getLine() - 1;
+
+      if (line > 0 && line < lines.size()) {
+        String lineStr = lines.get(line).trim();
+
+        return lineStr.length() == 0 ? null : lineStr;
+      }
+    } catch (IOException ioe) {
+      return null;
+    } catch (CoreException ce) {
+      return null;
+    }
+
+    return null;
+  }
 }
