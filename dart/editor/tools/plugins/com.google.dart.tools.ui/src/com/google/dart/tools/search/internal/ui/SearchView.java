@@ -116,6 +116,7 @@ public class SearchView extends ViewPart {
   public void showPage(SearchPage newPage) {
     // dispose previous page
     if (page != null) {
+      setContentDescription("");
       page.dispose();
       pageActionBars.dispose();
     }
@@ -144,6 +145,11 @@ public class SearchView extends ViewPart {
       pageBook.showPage(emptyComposite);
       actionBars.updateActionBars();
     }
+  }
+
+  @Override
+  protected void setContentDescription(String description) {
+    super.setContentDescription(description);
   }
 
   private void updateColors() {

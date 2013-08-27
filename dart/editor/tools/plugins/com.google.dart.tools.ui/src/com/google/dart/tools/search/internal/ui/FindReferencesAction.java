@@ -51,6 +51,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
 
@@ -67,6 +68,11 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
     try {
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
+        @Override
+        protected String getPostQueryDescription(List<SearchMatch> matches) {
+          return "'" + name + "' - " + matches.size() + " references in workspace";
+        }
+
         @Override
         protected List<SearchMatch> runQuery() {
           SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
@@ -156,6 +162,15 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
       final String searchName = name;
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
+        @Override
+        protected String getPostQueryDescription(List<SearchMatch> matches) {
+          String displayName = searchElement != null ? searchElement.getDisplayName() : searchName;
+          return MessageFormat.format(
+              "''{0}'' - {1} references in workspace",
+              displayName,
+              matches.size());
+        }
+
         @Override
         protected List<SearchMatch> runQuery() {
           List<SearchMatch> allMatches = Lists.newArrayList();

@@ -24,6 +24,8 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -912,6 +914,11 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   /**
+   * @return the description of given search results.
+   */
+  protected abstract String getPostQueryDescription(List<SearchMatch> matches);
+
+  /**
    * Runs a {@link SearchEngine} request.
    * 
    * @return the {@link SearchMatch}s to display.
@@ -1057,7 +1064,10 @@ public abstract class SearchMatchPage extends SearchPage {
       new Job(taskName) {
         @Override
         protected IStatus run(IProgressMonitor monitor) {
+          // do query
           List<SearchMatch> matches = runQuery();
+          setContentDescription(getPostQueryDescription(matches));
+          // process query results
           rootItem = buildElementItemTree(matches);
           itemCursor = new ItemCursor(rootItem);
           trackPositions();
@@ -1105,6 +1115,18 @@ public abstract class SearchMatchPage extends SearchPage {
     } catch (Throwable e) {
       DartToolsPlugin.log(e);
     }
+  }
+
+  /**
+   * Shows given text as description for {@link SearchView}.
+   */
+  private void setContentDescription(final String description) {
+    ExecutionUtils.runRethrowUI(new RunnableEx() {
+      @Override
+      public void run() throws Exception {
+        searchView.setContentDescription(description);
+      }
+    });
   }
 
   /**

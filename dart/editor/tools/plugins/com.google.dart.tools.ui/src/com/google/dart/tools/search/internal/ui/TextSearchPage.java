@@ -43,6 +43,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.part.IPageSite;
 import org.eclipse.ui.progress.UIJob;
 
+import java.text.MessageFormat;
+
 /**
  * @coverage dart.editor.ui.search
  */
@@ -187,6 +189,10 @@ public class TextSearchPage extends SearchPage {
           new UIJob("Displaying search results...") {
             @Override
             public IStatus runInUIThread(IProgressMonitor monitor) {
+              searchView.setContentDescription(MessageFormat.format(
+                  "''{0}'' - {1} text occurrences in workspace",
+                  searchText,
+                  searchResult.getMatchCount()));
               if (fileSearchPage != null) {
                 fileSearchPage.setInput(searchResult, fileSearchPage);
               }
