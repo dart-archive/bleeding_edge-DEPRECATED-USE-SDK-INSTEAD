@@ -1,5 +1,6 @@
 Content-Type: text/plain
-<html lang="en"><head><style>template { display: none; }</style>
+<html lang="en"><head><style shadowcssshim="">style { display: none !important; }
+</style><style shadowcssshim="">template { display: none; }</style>
 <!--
 This test runs the TodoMVC app and evaluates that it renders correctly.
 -->
@@ -240,4 +241,5 @@ ShadowRoot because it crosses the shadow boundary.
 
 
 <script type="text/javascript" src="packages/shadow_dom/shadow_dom.debug.js"></script>
+<script type="text/javascript" src="packages/browser/interop.js"></script>
 <script type="application/dart" src="todomvc_mainpage_test.html_bootstrap.dart"></script></body></html>

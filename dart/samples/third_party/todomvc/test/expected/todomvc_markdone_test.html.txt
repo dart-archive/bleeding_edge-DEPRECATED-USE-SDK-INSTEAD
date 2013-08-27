@@ -1,5 +1,6 @@
 Content-Type: text/plain
-<html lang="en"><head><style>template { display: none; }</style>
+<html lang="en"><head><style shadowcssshim="">style { display: none !important; }
+</style><style shadowcssshim="">template { display: none; }</style>
 <!--
 This test runs the TodoMVC app, adds a few todos, marks some as done
 programatically, and clicks on a checkbox to mark others via the UI.
@@ -222,116 +223,67 @@ ShadowRoot because it crosses the shadow boundary.
       <ul id="todo-list">
         <template repeat="{{app.visibleTodos}}"></template>
           <li is="todo-row" todo="{{}}"><shadow-root>
-    <style scoped="">
-.todo-item {
-  position: relative;
-  font-size: 24px;
-  border-bottom: 1px dotted #ccc;
+    <style scoped="">todo-row .todo-item, [is=todo-row] .todo-item {
+	position: relative; font-size: 24px; border-bottom-width: 1px; border-bottom-style: dotted; border-bottom-color: rgb(204, 204, 204);
 }
 
-.todo-item.editing {
-  border-bottom: none;
-  padding: 0;
+todo-row .todo-item.editing, [is=todo-row] .todo-item.editing {
+	border-bottom-style: none; padding: 0px;
 }
 
-/*
-TODO(jmesserly): the ".todo-item label" selector does not work with real
-ShadowRoot because it crosses the shadow boundary.
-*/
-.todo-item.completed [is=editable-label] {
-  color: #a9a9a9;
-  text-decoration: line-through;
+todo-row .todo-item.completed [is="editable-label"], [is=todo-row] .todo-item.completed [is="editable-label"] {
+	color: rgb(169, 169, 169); text-decoration: line-through;
 }
 
-.todo-item .toggle {
-  text-align: center;
-  width: 40px;
-  /* auto, since non-WebKit browsers don't support input styling */
-  height: auto;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  margin: auto 0;
-  border: none; /* Mobile Safari */
-  -webkit-appearance: none;
-  /*-moz-appearance: none;*/
-  -ms-appearance: none;
-  -o-appearance: none;
-  appearance: none;
+todo-row .todo-item .toggle, [is=todo-row] .todo-item .toggle {
+	text-align: center; width: 40px; height: auto; position: absolute; top: 0px; bottom: 0px; margin: auto 0px; border: none; -webkit-appearance: none;
 }
 
-.todo-item .toggle:after {
-  content: '✔';
-  line-height: 43px; /* 40 + a couple of pixels visual adjustment */
-  font-size: 20px;
-  color: #d9d9d9;
-  text-shadow: 0 -1px 0 #bfbfbf;
+todo-row .todo-item .toggle::after, [is=todo-row] .todo-item .toggle::after {
+	content: '✔'; line-height: 43px; font-size: 20px; color: rgb(217, 217, 217); text-shadow: rgb(191, 191, 191) 0px -1px 0px;
 }
 
-.todo-item .toggle:checked:after {
-  color: #85ada7;
-  text-shadow: 0 1px 0 #669991;
-  bottom: 1px;
-  position: relative;
-}
-.todo-item .destroy {
-  display: none;
-  position: absolute;
-  top: 0;
-  right: 10px;
-  bottom: 0;
-  width: 40px;
-  height: 40px;
-  margin: auto 0;
-  font-size: 22px;
-  color: #a88a8a;
-  -webkit-transition: all 0.2s;
-  -moz-transition: all 0.2s;
-  -ms-transition: all 0.2s;
-  -o-transition: all 0.2s;
-  transition: all 0.2s;
+todo-row .todo-item .toggle:checked::after, [is=todo-row] .todo-item .toggle:checked::after {
+	color: rgb(133, 173, 167); text-shadow: rgb(102, 153, 145) 0px 1px 0px; bottom: 1px; position: relative;
 }
 
-.todo-item .destroy:hover {
-  text-shadow: 0 0 1px #000,
-         0 0 10px rgba(199, 107, 107, 0.8);
-  -webkit-transform: scale(1.3);
-  -moz-transform: scale(1.3);
-  -ms-transform: scale(1.3);
-  -o-transform: scale(1.3);
-  transform: scale(1.3);
+todo-row .todo-item .destroy, [is=todo-row] .todo-item .destroy {
+	display: none; position: absolute; top: 0px; right: 10px; bottom: 0px; width: 40px; height: 40px; margin: auto 0px; font-size: 22px; color: rgb(168, 138, 138); transition: all 0.2s; -webkit-transition: all 0.2s;
 }
 
-.todo-item .destroy:after {
-  content: '✖';
+todo-row .todo-item .destroy:hover, [is=todo-row] .todo-item .destroy:hover {
+	text-shadow: rgb(0, 0, 0) 0px 0px 1px, rgba(199, 107, 107, 0.8) 0px 0px 10px; -webkit-transform: scale(1.3);
 }
 
-.todo-item:hover .destroy {
-  display: block;
+todo-row .todo-item .destroy::after, [is=todo-row] .todo-item .destroy::after {
+	content: '✖';
 }
 
-.todo-item.editing .destroy,
-.todo-item.editing .toggle {
-  display: none;
+todo-row .todo-item:hover .destroy, [is=todo-row] .todo-item:hover .destroy {
+	display: block;
 }
 
-.todo-item.editing:last-child {
-  margin-bottom: -1px;
+todo-row .todo-item.editing .destroy, [is=todo-row] .todo-item.editing .destroy, todo-row .todo-item.editing .toggle, [is=todo-row] .todo-item.editing .toggle {
+	display: none;
 }
 
-/*
-  Hack to remove background from Mobile Safari.
-  Can't use it globally since it destroys checkboxes in Firefox and Opera
-*/
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  .todo-item .toggle {
-    background: none;
-  }
-  #todo-item .toggle {
-    height: 40px;
-  }
+todo-row .todo-item.editing:last-child, [is=todo-row] .todo-item.editing:last-child {
+	margin-bottom: -1px;
 }
-    </style>
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+todo-row .todo-item .toggle, [is=todo-row] .todo-item .toggle {
+	background-image: none; background-position: initial initial; background-repeat: initial initial;
+}
+
+todo-row #todo-item .toggle, [is=todo-row] #todo-item .toggle {
+	height: 40px;
+}
+
+
+}
+
+</style>
     <div class="todo-item">
       <input class="toggle" type="checkbox">
       <editable-label id="label" value="{{todo.task}}"><shadow-root>
@@ -345,116 +297,67 @@ ShadowRoot because it crosses the shadow boundary.
   </shadow-root></li>
         
           <li is="todo-row" todo="{{}}"><shadow-root>
-    <style scoped="">
-.todo-item {
-  position: relative;
-  font-size: 24px;
-  border-bottom: 1px dotted #ccc;
+    <style scoped="">todo-row .todo-item, [is=todo-row] .todo-item {
+	position: relative; font-size: 24px; border-bottom-width: 1px; border-bottom-style: dotted; border-bottom-color: rgb(204, 204, 204);
 }
 
-.todo-item.editing {
-  border-bottom: none;
-  padding: 0;
+todo-row .todo-item.editing, [is=todo-row] .todo-item.editing {
+	border-bottom-style: none; padding: 0px;
 }
 
-/*
-TODO(jmesserly): the ".todo-item label" selector does not work with real
-ShadowRoot because it crosses the shadow boundary.
-*/
-.todo-item.completed [is=editable-label] {
-  color: #a9a9a9;
-  text-decoration: line-through;
+todo-row .todo-item.completed [is="editable-label"], [is=todo-row] .todo-item.completed [is="editable-label"] {
+	color: rgb(169, 169, 169); text-decoration: line-through;
 }
 
-.todo-item .toggle {
-  text-align: center;
-  width: 40px;
-  /* auto, since non-WebKit browsers don't support input styling */
-  height: auto;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  margin: auto 0;
-  border: none; /* Mobile Safari */
-  -webkit-appearance: none;
-  /*-moz-appearance: none;*/
-  -ms-appearance: none;
-  -o-appearance: none;
-  appearance: none;
+todo-row .todo-item .toggle, [is=todo-row] .todo-item .toggle {
+	text-align: center; width: 40px; height: auto; position: absolute; top: 0px; bottom: 0px; margin: auto 0px; border: none; -webkit-appearance: none;
 }
 
-.todo-item .toggle:after {
-  content: '✔';
-  line-height: 43px; /* 40 + a couple of pixels visual adjustment */
-  font-size: 20px;
-  color: #d9d9d9;
-  text-shadow: 0 -1px 0 #bfbfbf;
+todo-row .todo-item .toggle::after, [is=todo-row] .todo-item .toggle::after {
+	content: '✔'; line-height: 43px; font-size: 20px; color: rgb(217, 217, 217); text-shadow: rgb(191, 191, 191) 0px -1px 0px;
 }
 
-.todo-item .toggle:checked:after {
-  color: #85ada7;
-  text-shadow: 0 1px 0 #669991;
-  bottom: 1px;
-  position: relative;
-}
-.todo-item .destroy {
-  display: none;
-  position: absolute;
-  top: 0;
-  right: 10px;
-  bottom: 0;
-  width: 40px;
-  height: 40px;
-  margin: auto 0;
-  font-size: 22px;
-  color: #a88a8a;
-  -webkit-transition: all 0.2s;
-  -moz-transition: all 0.2s;
-  -ms-transition: all 0.2s;
-  -o-transition: all 0.2s;
-  transition: all 0.2s;
+todo-row .todo-item .toggle:checked::after, [is=todo-row] .todo-item .toggle:checked::after {
+	color: rgb(133, 173, 167); text-shadow: rgb(102, 153, 145) 0px 1px 0px; bottom: 1px; position: relative;
 }
 
-.todo-item .destroy:hover {
-  text-shadow: 0 0 1px #000,
-         0 0 10px rgba(199, 107, 107, 0.8);
-  -webkit-transform: scale(1.3);
-  -moz-transform: scale(1.3);
-  -ms-transform: scale(1.3);
-  -o-transform: scale(1.3);
-  transform: scale(1.3);
+todo-row .todo-item .destroy, [is=todo-row] .todo-item .destroy {
+	display: none; position: absolute; top: 0px; right: 10px; bottom: 0px; width: 40px; height: 40px; margin: auto 0px; font-size: 22px; color: rgb(168, 138, 138); transition: all 0.2s; -webkit-transition: all 0.2s;
 }
 
-.todo-item .destroy:after {
-  content: '✖';
+todo-row .todo-item .destroy:hover, [is=todo-row] .todo-item .destroy:hover {
+	text-shadow: rgb(0, 0, 0) 0px 0px 1px, rgba(199, 107, 107, 0.8) 0px 0px 10px; -webkit-transform: scale(1.3);
 }
 
-.todo-item:hover .destroy {
-  display: block;
+todo-row .todo-item .destroy::after, [is=todo-row] .todo-item .destroy::after {
+	content: '✖';
 }
 
-.todo-item.editing .destroy,
-.todo-item.editing .toggle {
-  display: none;
+todo-row .todo-item:hover .destroy, [is=todo-row] .todo-item:hover .destroy {
+	display: block;
 }
 
-.todo-item.editing:last-child {
-  margin-bottom: -1px;
+todo-row .todo-item.editing .destroy, [is=todo-row] .todo-item.editing .destroy, todo-row .todo-item.editing .toggle, [is=todo-row] .todo-item.editing .toggle {
+	display: none;
 }
 
-/*
-  Hack to remove background from Mobile Safari.
-  Can't use it globally since it destroys checkboxes in Firefox and Opera
-*/
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  .todo-item .toggle {
-    background: none;
-  }
-  #todo-item .toggle {
-    height: 40px;
-  }
+todo-row .todo-item.editing:last-child, [is=todo-row] .todo-item.editing:last-child {
+	margin-bottom: -1px;
 }
-    </style>
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+todo-row .todo-item .toggle, [is=todo-row] .todo-item .toggle {
+	background-image: none; background-position: initial initial; background-repeat: initial initial;
+}
+
+todo-row #todo-item .toggle, [is=todo-row] #todo-item .toggle {
+	height: 40px;
+}
+
+
+}
+
+</style>
     <div class="todo-item">
       <input class="toggle" type="checkbox">
       <editable-label id="label" value="{{todo.task}}"><shadow-root>
@@ -468,116 +371,67 @@ ShadowRoot because it crosses the shadow boundary.
   </shadow-root></li>
         
           <li is="todo-row" todo="{{}}"><shadow-root>
-    <style scoped="">
-.todo-item {
-  position: relative;
-  font-size: 24px;
-  border-bottom: 1px dotted #ccc;
+    <style scoped="">todo-row .todo-item, [is=todo-row] .todo-item {
+	position: relative; font-size: 24px; border-bottom-width: 1px; border-bottom-style: dotted; border-bottom-color: rgb(204, 204, 204);
 }
 
-.todo-item.editing {
-  border-bottom: none;
-  padding: 0;
+todo-row .todo-item.editing, [is=todo-row] .todo-item.editing {
+	border-bottom-style: none; padding: 0px;
 }
 
-/*
-TODO(jmesserly): the ".todo-item label" selector does not work with real
-ShadowRoot because it crosses the shadow boundary.
-*/
-.todo-item.completed [is=editable-label] {
-  color: #a9a9a9;
-  text-decoration: line-through;
+todo-row .todo-item.completed [is="editable-label"], [is=todo-row] .todo-item.completed [is="editable-label"] {
+	color: rgb(169, 169, 169); text-decoration: line-through;
 }
 
-.todo-item .toggle {
-  text-align: center;
-  width: 40px;
-  /* auto, since non-WebKit browsers don't support input styling */
-  height: auto;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  margin: auto 0;
-  border: none; /* Mobile Safari */
-  -webkit-appearance: none;
-  /*-moz-appearance: none;*/
-  -ms-appearance: none;
-  -o-appearance: none;
-  appearance: none;
+todo-row .todo-item .toggle, [is=todo-row] .todo-item .toggle {
+	text-align: center; width: 40px; height: auto; position: absolute; top: 0px; bottom: 0px; margin: auto 0px; border: none; -webkit-appearance: none;
 }
 
-.todo-item .toggle:after {
-  content: '✔';
-  line-height: 43px; /* 40 + a couple of pixels visual adjustment */
-  font-size: 20px;
-  color: #d9d9d9;
-  text-shadow: 0 -1px 0 #bfbfbf;
+todo-row .todo-item .toggle::after, [is=todo-row] .todo-item .toggle::after {
+	content: '✔'; line-height: 43px; font-size: 20px; color: rgb(217, 217, 217); text-shadow: rgb(191, 191, 191) 0px -1px 0px;
 }
 
-.todo-item .toggle:checked:after {
-  color: #85ada7;
-  text-shadow: 0 1px 0 #669991;
-  bottom: 1px;
-  position: relative;
-}
-.todo-item .destroy {
-  display: none;
-  position: absolute;
-  top: 0;
-  right: 10px;
-  bottom: 0;
-  width: 40px;
-  height: 40px;
-  margin: auto 0;
-  font-size: 22px;
-  color: #a88a8a;
-  -webkit-transition: all 0.2s;
-  -moz-transition: all 0.2s;
-  -ms-transition: all 0.2s;
-  -o-transition: all 0.2s;
-  transition: all 0.2s;
+todo-row .todo-item .toggle:checked::after, [is=todo-row] .todo-item .toggle:checked::after {
+	color: rgb(133, 173, 167); text-shadow: rgb(102, 153, 145) 0px 1px 0px; bottom: 1px; position: relative;
 }
 
-.todo-item .destroy:hover {
-  text-shadow: 0 0 1px #000,
-         0 0 10px rgba(199, 107, 107, 0.8);
-  -webkit-transform: scale(1.3);
-  -moz-transform: scale(1.3);
-  -ms-transform: scale(1.3);
-  -o-transform: scale(1.3);
-  transform: scale(1.3);
+todo-row .todo-item .destroy, [is=todo-row] .todo-item .destroy {
+	display: none; position: absolute; top: 0px; right: 10px; bottom: 0px; width: 40px; height: 40px; margin: auto 0px; font-size: 22px; color: rgb(168, 138, 138); transition: all 0.2s; -webkit-transition: all 0.2s;
 }
 
-.todo-item .destroy:after {
-  content: '✖';
+todo-row .todo-item .destroy:hover, [is=todo-row] .todo-item .destroy:hover {
+	text-shadow: rgb(0, 0, 0) 0px 0px 1px, rgba(199, 107, 107, 0.8) 0px 0px 10px; -webkit-transform: scale(1.3);
 }
 
-.todo-item:hover .destroy {
-  display: block;
+todo-row .todo-item .destroy::after, [is=todo-row] .todo-item .destroy::after {
+	content: '✖';
 }
 
-.todo-item.editing .destroy,
-.todo-item.editing .toggle {
-  display: none;
+todo-row .todo-item:hover .destroy, [is=todo-row] .todo-item:hover .destroy {
+	display: block;
 }
 
-.todo-item.editing:last-child {
-  margin-bottom: -1px;
+todo-row .todo-item.editing .destroy, [is=todo-row] .todo-item.editing .destroy, todo-row .todo-item.editing .toggle, [is=todo-row] .todo-item.editing .toggle {
+	display: none;
 }
 
-/*
-  Hack to remove background from Mobile Safari.
-  Can't use it globally since it destroys checkboxes in Firefox and Opera
-*/
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  .todo-item .toggle {
-    background: none;
-  }
-  #todo-item .toggle {
-    height: 40px;
-  }
+todo-row .todo-item.editing:last-child, [is=todo-row] .todo-item.editing:last-child {
+	margin-bottom: -1px;
 }
-    </style>
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+todo-row .todo-item .toggle, [is=todo-row] .todo-item .toggle {
+	background-image: none; background-position: initial initial; background-repeat: initial initial;
+}
+
+todo-row #todo-item .toggle, [is=todo-row] #todo-item .toggle {
+	height: 40px;
+}
+
+
+}
+
+</style>
     <div class="todo-item completed">
       <input class="toggle" type="checkbox">
       <editable-label id="label" value="{{todo.task}}"><shadow-root>
@@ -591,116 +445,67 @@ ShadowRoot because it crosses the shadow boundary.
   </shadow-root></li>
         
           <li is="todo-row" todo="{{}}"><shadow-root>
-    <style scoped="">
-.todo-item {
-  position: relative;
-  font-size: 24px;
-  border-bottom: 1px dotted #ccc;
+    <style scoped="">todo-row .todo-item, [is=todo-row] .todo-item {
+	position: relative; font-size: 24px; border-bottom-width: 1px; border-bottom-style: dotted; border-bottom-color: rgb(204, 204, 204);
 }
 
-.todo-item.editing {
-  border-bottom: none;
-  padding: 0;
+todo-row .todo-item.editing, [is=todo-row] .todo-item.editing {
+	border-bottom-style: none; padding: 0px;
 }
 
-/*
-TODO(jmesserly): the ".todo-item label" selector does not work with real
-ShadowRoot because it crosses the shadow boundary.
-*/
-.todo-item.completed [is=editable-label] {
-  color: #a9a9a9;
-  text-decoration: line-through;
+todo-row .todo-item.completed [is="editable-label"], [is=todo-row] .todo-item.completed [is="editable-label"] {
+	color: rgb(169, 169, 169); text-decoration: line-through;
 }
 
-.todo-item .toggle {
-  text-align: center;
-  width: 40px;
-  /* auto, since non-WebKit browsers don't support input styling */
-  height: auto;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  margin: auto 0;
-  border: none; /* Mobile Safari */
-  -webkit-appearance: none;
-  /*-moz-appearance: none;*/
-  -ms-appearance: none;
-  -o-appearance: none;
-  appearance: none;
+todo-row .todo-item .toggle, [is=todo-row] .todo-item .toggle {
+	text-align: center; width: 40px; height: auto; position: absolute; top: 0px; bottom: 0px; margin: auto 0px; border: none; -webkit-appearance: none;
 }
 
-.todo-item .toggle:after {
-  content: '✔';
-  line-height: 43px; /* 40 + a couple of pixels visual adjustment */
-  font-size: 20px;
-  color: #d9d9d9;
-  text-shadow: 0 -1px 0 #bfbfbf;
+todo-row .todo-item .toggle::after, [is=todo-row] .todo-item .toggle::after {
+	content: '✔'; line-height: 43px; font-size: 20px; color: rgb(217, 217, 217); text-shadow: rgb(191, 191, 191) 0px -1px 0px;
 }
 
-.todo-item .toggle:checked:after {
-  color: #85ada7;
-  text-shadow: 0 1px 0 #669991;
-  bottom: 1px;
-  position: relative;
-}
-.todo-item .destroy {
-  display: none;
-  position: absolute;
-  top: 0;
-  right: 10px;
-  bottom: 0;
-  width: 40px;
-  height: 40px;
-  margin: auto 0;
-  font-size: 22px;
-  color: #a88a8a;
-  -webkit-transition: all 0.2s;
-  -moz-transition: all 0.2s;
-  -ms-transition: all 0.2s;
-  -o-transition: all 0.2s;
-  transition: all 0.2s;
+todo-row .todo-item .toggle:checked::after, [is=todo-row] .todo-item .toggle:checked::after {
+	color: rgb(133, 173, 167); text-shadow: rgb(102, 153, 145) 0px 1px 0px; bottom: 1px; position: relative;
 }
 
-.todo-item .destroy:hover {
-  text-shadow: 0 0 1px #000,
-         0 0 10px rgba(199, 107, 107, 0.8);
-  -webkit-transform: scale(1.3);
-  -moz-transform: scale(1.3);
-  -ms-transform: scale(1.3);
-  -o-transform: scale(1.3);
-  transform: scale(1.3);
+todo-row .todo-item .destroy, [is=todo-row] .todo-item .destroy {
+	display: none; position: absolute; top: 0px; right: 10px; bottom: 0px; width: 40px; height: 40px; margin: auto 0px; font-size: 22px; color: rgb(168, 138, 138); transition: all 0.2s; -webkit-transition: all 0.2s;
 }
 
-.todo-item .destroy:after {
-  content: '✖';
+todo-row .todo-item .destroy:hover, [is=todo-row] .todo-item .destroy:hover {
+	text-shadow: rgb(0, 0, 0) 0px 0px 1px, rgba(199, 107, 107, 0.8) 0px 0px 10px; -webkit-transform: scale(1.3);
 }
 
-.todo-item:hover .destroy {
-  display: block;
+todo-row .todo-item .destroy::after, [is=todo-row] .todo-item .destroy::after {
+	content: '✖';
 }
 
-.todo-item.editing .destroy,
-.todo-item.editing .toggle {
-  display: none;
+todo-row .todo-item:hover .destroy, [is=todo-row] .todo-item:hover .destroy {
+	display: block;
 }
 
-.todo-item.editing:last-child {
-  margin-bottom: -1px;
+todo-row .todo-item.editing .destroy, [is=todo-row] .todo-item.editing .destroy, todo-row .todo-item.editing .toggle, [is=todo-row] .todo-item.editing .toggle {
+	display: none;
 }
 
-/*
-  Hack to remove background from Mobile Safari.
-  Can't use it globally since it destroys checkboxes in Firefox and Opera
-*/
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  .todo-item .toggle {
-    background: none;
-  }
-  #todo-item .toggle {
-    height: 40px;
-  }
+todo-row .todo-item.editing:last-child, [is=todo-row] .todo-item.editing:last-child {
+	margin-bottom: -1px;
 }
-    </style>
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+todo-row .todo-item .toggle, [is=todo-row] .todo-item .toggle {
+	background-image: none; background-position: initial initial; background-repeat: initial initial;
+}
+
+todo-row #todo-item .toggle, [is=todo-row] #todo-item .toggle {
+	height: 40px;
+}
+
+
+}
+
+</style>
     <div class="todo-item completed">
       <input class="toggle" type="checkbox">
       <editable-label id="label" value="{{todo.task}}"><shadow-root>
@@ -747,4 +552,5 @@ ShadowRoot because it crosses the shadow boundary.
 
 
 <script type="text/javascript" src="packages/shadow_dom/shadow_dom.debug.js"></script>
+<script type="text/javascript" src="packages/browser/interop.js"></script>
 <script type="application/dart" src="todomvc_markdone_test.html_bootstrap.dart"></script></body></html>
