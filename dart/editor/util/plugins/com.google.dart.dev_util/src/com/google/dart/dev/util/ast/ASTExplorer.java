@@ -88,6 +88,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A basic AST explorer view.
@@ -119,10 +120,13 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
       }
     };
 
+    private final List<IWorkbenchPart> parts = new ArrayList<IWorkbenchPart>();
+
     @Override
     public void partActivated(IWorkbenchPart part) {
       if (part instanceof DartEditor) {
         part.addPropertyListener(propertyListener);
+        parts.add(part);
       }
     }
 
@@ -135,6 +139,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
     public void partClosed(IWorkbenchPart part) {
       if (part instanceof DartEditor) {
         part.removePropertyListener(propertyListener);
+        parts.remove(part);
       }
     }
 
@@ -142,6 +147,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
     public void partDeactivated(IWorkbenchPart part) {
       if (part instanceof DartEditor) {
         part.removePropertyListener(propertyListener);
+        parts.remove(part);
       }
     }
 
@@ -180,6 +186,14 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
         }
       }
 
+    }
+
+    void dispose() {
+      getSelectionService().removeSelectionListener(this);
+      getPage().removePartListener(this);
+      for (IWorkbenchPart part : parts) {
+        part.removePropertyListener(propertyListener);
+      }
     }
 
   }
@@ -397,8 +411,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
 
   @Override
   public void dispose() {
-    getSelectionService().removeSelectionListener(eventHandler);
-    getPage().removePartListener(eventHandler);
+    eventHandler.dispose();
   }
 
   @Override
