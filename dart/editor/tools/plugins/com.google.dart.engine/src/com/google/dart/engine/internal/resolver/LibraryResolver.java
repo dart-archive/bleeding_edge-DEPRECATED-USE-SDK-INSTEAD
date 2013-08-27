@@ -725,11 +725,6 @@ public class LibraryResolver {
       return null;
     }
     Library library = new Library(analysisContext, errorListener, librarySource);
-    try {
-      library.getDefiningCompilationUnit();
-    } catch (AnalysisException exception) {
-      return null;
-    }
     libraryMap.put(librarySource, library);
     return library;
   }
