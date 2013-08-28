@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-// TODO(devoncarew): use setVariableValue for 'local', 'closure' and 'catch' scopes
-
 /**
  * A WIP debugger domain object.
  * <p>
@@ -188,6 +186,8 @@ public class WebkitDebugger extends WebkitDomain {
   private int remoteObjectCount;
 
   private WebkitLocation stepLocation;
+  private String stepCommand;
+
   private WebkitLocation currentLocation;
 
   public WebkitDebugger(WebkitConnection connection) {
@@ -642,7 +642,11 @@ public class WebkitDebugger extends WebkitDomain {
   }
 
   public void stepInto() throws IOException {
-    sendSimpleCommand("Debugger.stepInto");
+    // the VM steps by expression; we step by line
+    stepLocation = currentLocation;
+    stepCommand = "Debugger.stepInto";
+
+    sendSimpleCommand(stepCommand);
   }
 
   public void stepOut() throws IOException {
@@ -650,11 +654,11 @@ public class WebkitDebugger extends WebkitDomain {
   }
 
   public void stepOver() throws IOException {
-    // TODO(devoncarew): remove this stepping fix once the VM and Dartium have decided how exactly
-    // to do stepping
+    // the VM steps by expression; we step by line
     stepLocation = currentLocation;
+    stepCommand = "Debugger.stepOver";
 
-    sendSimpleCommand("Debugger.stepOver");
+    sendSimpleCommand(stepCommand);
   }
 
   protected void handleDebuggerNotification(String method, JSONObject params) throws JSONException {
@@ -717,7 +721,7 @@ public class WebkitDebugger extends WebkitDomain {
 
       if (restep) {
         try {
-          sendSimpleCommand("Debugger.stepOver");
+          sendSimpleCommand(stepCommand);
         } catch (IOException e) {
           throw new JSONException(e);
         }

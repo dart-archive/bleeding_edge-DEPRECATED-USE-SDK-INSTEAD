@@ -32,13 +32,10 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -68,12 +65,6 @@ public class VmConnection {
 
   private static Charset UTF8 = Charset.forName("UTF-8");
 
-  /**
-   * A set of core libraries - semantically considered part of the core Dart library implementation.
-   */
-  private static final Set<String> CORE_IMPL_LIBRARIES = new HashSet<String>(
-      Arrays.asList(new String[] {"dart:core", "dart:nativewrappers"}));
-
   private static ExecutorService threadPool = Executors.newCachedThreadPool();
 
   private List<VmListener> listeners = new ArrayList<VmListener>();
@@ -98,6 +89,7 @@ public class VmConnection {
 
   private VmLocation currentLocation;
   private boolean isStepping;
+  private String stepCommand;
 
   public VmConnection(String host, int port) {
     this.host = host;
@@ -175,9 +167,7 @@ public class VmConnection {
           if (!result.isError()) {
             for (VmLibraryRef ref : result.getResult()) {
               try {
-                if (!CORE_IMPL_LIBRARIES.contains(ref.getUrl())) {
-                  setLibraryProperties(isolate, ref.getId(), true);
-                }
+                setLibraryProperties(isolate, ref.getId(), true);
               } catch (IOException e) {
 
               }
@@ -864,7 +854,10 @@ public class VmConnection {
   }
 
   public void stepInto(VmIsolate isolate) throws IOException {
-    sendSimpleCommand("stepInto", isolate.getId(), resumeOnSuccess(isolate));
+    isStepping = true;
+    stepCommand = "stepInto";
+
+    sendSimpleCommand(stepCommand, isolate.getId(), resumeOnSuccess(isolate));
   }
 
   public void stepOut(VmIsolate isolate) throws IOException {
@@ -873,8 +866,9 @@ public class VmConnection {
 
   public void stepOver(VmIsolate isolate) throws IOException {
     isStepping = true;
+    stepCommand = "stepOver";
 
-    sendSimpleCommand("stepOver", isolate.getId(), resumeOnSuccess(isolate));
+    sendSimpleCommand(stepCommand, isolate.getId(), resumeOnSuccess(isolate));
   }
 
   protected synchronized void handleTerminated() {
@@ -1403,7 +1397,7 @@ public class VmConnection {
     // If we're stepping, check here to see if we should continue stepping.
     if (sameSourceLine(currentLocation, location) && reason == PausedReason.breakpoint
         && isStepping) {
-      sendSimpleCommand("stepOver", isolate.getId());
+      sendSimpleCommand(stepCommand, isolate.getId());
     } else {
       try {
         getStackTrace(isolate, new VmCallback<List<VmCallFrame>>() {
