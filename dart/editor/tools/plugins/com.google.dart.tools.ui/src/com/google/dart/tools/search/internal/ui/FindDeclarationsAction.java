@@ -30,6 +30,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
+import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -148,6 +149,13 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
+    // may be resolved element
+    Element element = ActionUtil.getActionElement(selection);
+    if (element != null) {
+      String name = element.getName();
+      doSearch(name);
+    }
+    // may be identifier
     ASTNode node = getSelectionNode(selection);
     if (node instanceof SimpleIdentifier) {
       String name = ((SimpleIdentifier) node).getName();
