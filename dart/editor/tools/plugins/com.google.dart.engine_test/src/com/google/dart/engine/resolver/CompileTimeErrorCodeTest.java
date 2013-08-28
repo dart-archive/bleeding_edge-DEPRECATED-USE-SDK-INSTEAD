@@ -3268,6 +3268,18 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(CompileTimeErrorCode.UNDEFINED_FUNCTION);
   }
 
+  public void test_undefinedFunction_inCatch() throws Exception {
+    Source source = addSource(createSource(//
+        "void f() {",
+        "  try {",
+        "  } on Object {",
+        "    g();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.UNDEFINED_FUNCTION);
+  }
+
   public void test_undefinedNamedParameter() throws Exception {
     Source source = addSource(createSource(//
         "class A {",

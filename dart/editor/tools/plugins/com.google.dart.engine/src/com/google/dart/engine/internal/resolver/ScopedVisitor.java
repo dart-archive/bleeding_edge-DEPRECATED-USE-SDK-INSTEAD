@@ -184,6 +184,8 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
       } finally {
         nameScope = outerScope;
       }
+    } else {
+      super.visitCatchClause(node);
     }
     return null;
   }
