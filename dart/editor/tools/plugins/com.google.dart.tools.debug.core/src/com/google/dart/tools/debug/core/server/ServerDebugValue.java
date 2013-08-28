@@ -37,18 +37,28 @@ import java.util.concurrent.CountDownLatch;
  */
 public class ServerDebugValue extends ServerDebugElement implements IValue, IDartDebugValue,
     IExpressionEvaluator {
-  private VmValue value;
+
+  static ServerDebugValue createValue(IDebugTarget target, VmValue value) {
+    if (value != null && value.isList()) {
+      return new ServerDebugIndexedValue(target, value);
+    } else {
+      return new ServerDebugValue(target, value);
+    }
+  }
+
+  protected VmValue value;
+
   private IValueRetriever valueRetriever;
 
   protected List<IVariable> fields;
 
-  public ServerDebugValue(IDebugTarget target, IValueRetriever valueRetriever) {
+  protected ServerDebugValue(IDebugTarget target, IValueRetriever valueRetriever) {
     super(target);
 
     this.valueRetriever = valueRetriever;
   }
 
-  public ServerDebugValue(IDebugTarget target, VmValue value) {
+  protected ServerDebugValue(IDebugTarget target, VmValue value) {
     super(target);
 
     this.value = value;
@@ -208,7 +218,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
 
   @Override
   public boolean isListValue() {
-    return value == null ? false : value.isList();
+    return false;
   }
 
   @Override
@@ -235,7 +245,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     } else if (value.isObject()) {
       fillInFieldsSync();
     } else if (value.isList()) {
-      fillInFieldsList();
+      fillInListFields();
     } else {
       fields = Collections.emptyList();
     }
@@ -260,15 +270,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
                   tempFields.addAll(convert(result.getResult()));
                 }
 
-//                if (result != null && result.getResult() != null) {
-//                  fillInStaticFields(
-//                      value.getIsolate(),
-//                      result.getResult().getClassId(),
-//                      tempFields,
-//                      latch);
-//                } else {
                 latch.countDown();
-//                }
               } catch (Throwable t) {
                 latch.countDown();
 
@@ -289,49 +291,25 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     }
   }
 
-//  protected void fillInStaticFields(VmIsolate isolate, int classId,
-//      final List<IVariable> tempFields, final CountDownLatch latch) {
-//    if (classId == -1) {
-//      latch.countDown();
-//    } else {
-//      try {
-//        getConnection().getClassProperties(isolate, classId, new VmCallback<VmClass>() {
-//          @Override
-//          public void handleResult(VmResult<VmClass> result) {
-//            if (!result.isError()) {
-//              tempFields.addAll(convert(result.getResult()));
-//            }
-//            latch.countDown();
-//          }
-//        });
-//      } catch (IOException e) {
-//        latch.countDown();
-//      }
-//    }
-//  }
+  protected void fillInListFields() {
+    fields = new ArrayList<IVariable>();
+
+    ServerDebugTarget target = getTarget();
+    VmConnection connection = getConnection();
+
+    for (int i = 0; i < value.getLength(); i++) {
+      ServerDebugVariable variable = new ServerDebugVariable(target, VmVariable.createArrayEntry(
+          connection,
+          value,
+          i));
+
+      fields.add(variable);
+    }
+  }
 
   protected boolean isValueRetriever() {
     return valueRetriever != null;
   }
-
-  void fillInFieldsList() {
-    fields = ListSlicer.createValues(getTarget(), value);
-  }
-
-//  private List<IVariable> convert(VmClass vmClass) {
-//    List<IVariable> vars = new ArrayList<IVariable>();
-//
-//    // Add static fields.
-//    for (VmVariable vmVariable : vmClass.getFields()) {
-//      ServerDebugVariable variable = new ServerDebugVariable(getTarget(), vmVariable);
-//
-//      variable.setIsStatic(true);
-//
-//      vars.add(variable);
-//    }
-//
-//    return vars;
-//  }
 
   private List<IVariable> convert(VmObject vmObject) {
     List<IVariable> vars = new ArrayList<IVariable>();

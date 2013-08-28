@@ -130,7 +130,12 @@ class Dog extends FloppyEars implements Animal {
   
   void performAction() {
     String name = "iHideAnInstanceVariable";
-
+  
+    fleaCount++;
+    
+    String temp = 
+        this.name + "\n\n" + bornOn.toString() + this.collar.toString();
+    
     print("bark");
 
     var closure = () {

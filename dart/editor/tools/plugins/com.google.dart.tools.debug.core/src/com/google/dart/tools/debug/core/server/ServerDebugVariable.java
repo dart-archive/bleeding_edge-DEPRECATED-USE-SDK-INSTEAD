@@ -131,7 +131,7 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
     super(target);
 
     this.vmVariable = vmVariable;
-    this.value = new ServerDebugValue(target, vmVariable.getValue());
+    this.value = ServerDebugValue.createValue(target, vmVariable.getValue());
     this.name = vmVariable.getName();
   }
 
