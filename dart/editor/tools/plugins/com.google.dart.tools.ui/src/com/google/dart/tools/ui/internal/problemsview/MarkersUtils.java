@@ -35,6 +35,8 @@ class MarkersUtils {
 
   private static final String ERROR_CATEGORY = "problem";
 
+  private static final String HINT_CATEGORY = "hint";
+
   public static MarkersUtils getInstance() {
     if (INSTANCE == null) {
       INSTANCE = new MarkersUtils();
@@ -48,7 +50,6 @@ class MarkersUtils {
   }
 
   private List<String> markerIds = new ArrayList<String>();
-  private static final String INFO_CATEGORY = "info";
 
   private MarkersUtils() {
     markerIds.add(IMarker.PROBLEM);
@@ -86,12 +87,12 @@ class MarkersUtils {
   private Map<String, Integer> getMarkerCounts(List<IMarker> markers) {
     Map<String, int[]> counts = new LinkedHashMap<String, int[]>();
 
-    final String[] catLookup = {INFO_CATEGORY, TASK_CATEGORY, WARNING_CATEGORY, ERROR_CATEGORY};
+    final String[] catLookup = {HINT_CATEGORY, TASK_CATEGORY, WARNING_CATEGORY, ERROR_CATEGORY};
 
     counts.put(ERROR_CATEGORY, new int[1]);
     counts.put(WARNING_CATEGORY, new int[1]);
     counts.put(TASK_CATEGORY, new int[1]);
-    counts.put(INFO_CATEGORY, new int[1]);
+    counts.put(HINT_CATEGORY, new int[1]);
 
     for (IMarker marker : markers) {
       int severity = marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
