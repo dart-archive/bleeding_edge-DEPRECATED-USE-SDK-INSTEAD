@@ -4,7 +4,7 @@
 
 library chat_stress_client;
 import 'dart:io';
-import 'dart:json' as json;
+import "dart:convert";
 
 
 class ChatStressClient {
@@ -34,7 +34,7 @@ class ChatStressClient {
         printServerError(response);
         return null;
       }
-      var responseData = json.parse(data);
+      var responseData = JSON.decode(data);
       if (responseData["response"] != expected ) {
         printProtocolError();
         return null;
@@ -52,7 +52,7 @@ class ChatStressClient {
       leaveRequest["sessionId"] = sessionId;
       httpClient.post("127.0.0.1", port, "/leave")
         .then((HttpClientRequest request) {
-          request.addString(json.stringify(leaveRequest));
+          request.addString(JSON.encode(leaveRequest));
           return request.close();
         })
         .then((HttpClientResponse response) {
@@ -80,7 +80,7 @@ class ChatStressClient {
       messageRequest["maxMessages"] = 100;
       httpClient.post("127.0.0.1", port, "/receive")
         .then((HttpClientRequest request) {
-          request.addString(json.stringify(messageRequest));
+          request.addString(JSON.encode(messageRequest));
           return request.close();
         })
         .then((HttpClientResponse response) {
@@ -115,7 +115,7 @@ class ChatStressClient {
       messageRequest["message"] = "message $sendMessageCount";
       httpClient.post("127.0.0.1", port, "/message")
         .then((HttpClientRequest request) {
-          request.addString(json.stringify(messageRequest));
+          request.addString(JSON.encode(messageRequest));
           return request.close();
         })
         .then((HttpClientResponse response) {
@@ -143,7 +143,7 @@ class ChatStressClient {
       joinRequest["handle"] = "test1";
       httpClient.post("127.0.0.1", port, "/join")
         .then((HttpClientRequest request) {
-          request.addString(json.stringify(joinRequest));
+          request.addString(JSON.encode(joinRequest));
           return request.close();
         })
         .then((HttpClientResponse response) {

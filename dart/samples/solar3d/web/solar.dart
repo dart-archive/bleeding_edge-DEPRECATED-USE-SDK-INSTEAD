@@ -10,7 +10,7 @@ library solar3d;
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:json' as json;
+import "dart:convert";
 import 'dart:math' as Math;
 
 import 'package:vector_math/vector_math.dart';

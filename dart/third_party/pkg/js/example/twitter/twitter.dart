@@ -5,7 +5,6 @@
 // A JS interop sample showing JSONP access to Twitter from Dart.
 
 import 'dart:html';
-import 'dart:json';
 import 'package:js/js.dart' as js;
 
 void main() {

@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:json' as jsonlib;
+import "dart:convert";
 
 /// Issue wraps JSON structure that describes a bug.
 class Issue {
@@ -26,7 +26,7 @@ List<Issue> getIssues(json) {
 
 /// Iterates over the received issues and construct HTML for them.
 void processJson(String jsonText) {
-  var json = jsonlib.parse(jsonText);
+  var json = JSON.decode(jsonText);
   Element div = query("#content");
   List<Issue> list = getIssues(json);
   if (list == null) {
@@ -41,7 +41,7 @@ Future<dynamic> requestJson(String url) {
   Completer c = new Completer<dynamic>();
   void callback(HttpRequest req) {
     if (req.readyState == HttpRequest.DONE) {
-      c.complete(jsonlib.parse(req.response));
+      c.complete(JSON.decode(req.response));
     }
   };
   return HttpRequest.getString(url);

@@ -35,7 +35,7 @@ abstract class UIState {
         // the views for this.
         window.history.replaceState(null, document.title, '#');
       } else if (state != '') {
-        loadFromHistory(json.parse(state));
+        loadFromHistory(JSON.decode(state));
       }
       firstEvent = false;
     });
@@ -55,7 +55,7 @@ abstract class UIState {
       throw 'history tracking not started';
     }
 
-    String state = json.stringify(toHistory());
+    String state = JSON.encode(toHistory());
 
     // TODO(jmesserly): [state] should be an Object, and we should pass it to
     // the state parameter instead of as a #hash URL. Right now we're working

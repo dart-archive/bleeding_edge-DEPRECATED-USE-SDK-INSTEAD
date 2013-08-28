@@ -6,7 +6,7 @@ library chat_server;
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:json' as json;
+import "dart:convert";
 import 'dart:math';
 
 void startChatServer() {
@@ -303,7 +303,7 @@ class IsolatedServer {
 
   void _sendJSONResponse(HttpResponse response, Map responseData) {
     response.headers.set("Content-Type", "application/json; charset=UTF-8");
-    response.write(json.stringify(responseData));
+    response.write(JSON.encode(responseData));
     response.close();
   }
 
@@ -381,7 +381,7 @@ class IsolatedServer {
       onDone: () {
         String data = body.toString();
         if (data != null) {
-          var requestData = json.parse(data);
+          var requestData = JSON.decode(data);
           if (requestData["request"] == "join") {
             String handle = requestData["handle"];
             if (handle != null) {
@@ -414,7 +414,7 @@ class IsolatedServer {
       (data) => body.write(new String.fromCharCodes(data)),
       onDone: () {
         String data = body.toString();
-        var requestData = json.parse(data);
+        var requestData = JSON.decode(data);
         if (requestData["request"] == "leave") {
           String sessionId = requestData["sessionId"];
           if (sessionId != null) {
@@ -446,7 +446,7 @@ class IsolatedServer {
         String data = body.toString();
         _messageCount++;
         _messageRate.record(1);
-        var requestData = json.parse(data);
+        var requestData = JSON.decode(data);
         if (requestData["request"] == "message") {
           String sessionId = requestData["sessionId"];
           if (sessionId != null) {
@@ -481,7 +481,7 @@ class IsolatedServer {
       (data) => body.write(new String.fromCharCodes(data)),
       onDone: () {
         String data = body.toString();
-        var requestData = json.parse(data);
+        var requestData = JSON.decode(data);
         if (requestData["request"] == "receive") {
           String sessionId = requestData["sessionId"];
           int nextMessage = requestData["nextMessage"];

@@ -1,7 +1,7 @@
 library dromaeo;
 import 'dart:async';
 import 'dart:html';
-import 'dart:json' as json;
+import "dart:convert";
 import 'dart:math' as Math;
 part 'Common.dart';
 part 'RunnerSuite.dart';
@@ -11,9 +11,10 @@ void main() {
   var random = new Math.Random();
 
   String str = 'null';
-  // Very ugly way to build up the string, but let's mimic JS version as much as possible.
+  // Very ugly way to build up the string, but let's mimic JS version as much as
+  // possible.
   for (int i = 0; i < 1024; i++) {
-    str = "$str${new String.fromCharCodes([((25 * random.nextDouble()) + 97).toInt()])}";
+    str += new String.fromCharCode(((25 * random.nextDouble()) + 97).toInt());
   }
 
   List<Node> elems = <Node>[];

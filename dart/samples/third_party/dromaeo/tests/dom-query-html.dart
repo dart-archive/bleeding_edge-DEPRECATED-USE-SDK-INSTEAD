@@ -2,7 +2,7 @@ library dromaeo;
 import 'dart:async';
 import 'dart:html';
 import '../common/common.dart';
-import 'dart:json' as json;
+import "dart:convert";
 import 'dart:math' as Math;
 part 'Common.dart';
 part 'RunnerSuite.dart';

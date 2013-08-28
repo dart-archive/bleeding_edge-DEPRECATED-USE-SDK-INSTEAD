@@ -13,7 +13,6 @@ library pub_package_server;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:json' as json;
 
 const LOG_REQUESTS = true;
 

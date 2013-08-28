@@ -1,7 +1,6 @@
 library tests;
 
 import 'dart:html';
-import 'dart:json';
 
 import 'package:js/js.dart' as js;
 import 'package:js/js_wrapping.dart' as jsw;

@@ -10,7 +10,7 @@
 import "package:expect/expect.dart";
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:json' as json;
+import "dart:convert";
 import '../../../chat/chat_server_lib.dart';
 
 // Message to start chat test client running in an isolate.
@@ -55,7 +55,7 @@ class ChatTestClient {
   void leave() {
     void leaveResponseHandler(response, String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      var responseData = json.parse(data);
+      var responseData = JSON.decode(data);
       Expect.equals("leave", responseData["response"]);
 
       // Test done.
@@ -67,7 +67,7 @@ class ChatTestClient {
     leaveRequest["sessionId"] = sessionId;
     httpClient.post("127.0.0.1", port, "/leave")
       .then((HttpClientRequest request) {
-        request.write(json.stringify(leaveRequest));
+        request.write(JSON.encode(leaveRequest));
         return request.close();
       })
       .then((HttpClientResponse response) {
@@ -81,7 +81,7 @@ class ChatTestClient {
   void receive() {
     void receiveResponseHandler(response, String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      var responseData = json.parse(data);
+      var responseData = JSON.decode(data);
       Expect.equals("receive", responseData["response"]);
       Expect.equals(null, responseData["disconnect"]);
       for (int i = 0; i < responseData["messages"].length; i++) {
@@ -123,7 +123,7 @@ class ChatTestClient {
     receiveRequest["nextMessage"] = receiveMessageNumber;
     httpClient.post("127.0.0.1", port, "/receive")
       .then((HttpClientRequest request) {
-        request.write(json.stringify(receiveRequest));
+        request.write(JSON.encode(receiveRequest));
         return request.close();
       })
       .then((HttpClientResponse response) {
@@ -137,7 +137,7 @@ class ChatTestClient {
   void sendMessage() {
     void sendResponseHandler(response, String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      var responseData = json.parse(data);
+      var responseData = JSON.decode(data);
       Expect.equals("message", responseData["response"]);
       sendMessageNumber++;
       if (sendMessageNumber < messagesToSend) {
@@ -153,7 +153,7 @@ class ChatTestClient {
     messageRequest["message"] = "message $sendMessageNumber";
     httpClient.post("127.0.0.1", port, "/message")
       .then((HttpClientRequest request) {
-        request.write(json.stringify(messageRequest));
+        request.write(JSON.encode(messageRequest));
         return request.close();
       })
       .then((HttpClientResponse response) {
@@ -167,7 +167,7 @@ class ChatTestClient {
   void join() {
     void joinResponseHandler(response, String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      var responseData = json.parse(data);
+      var responseData = JSON.decode(data);
       Expect.equals("join", responseData["response"]);
       sessionId = responseData["sessionId"];
       Expect.isTrue(sessionId != null);
@@ -184,7 +184,7 @@ class ChatTestClient {
     joinRequest["handle"] = "test1";
     httpClient.post("127.0.0.1", port, "/join")
       .then((HttpClientRequest request) {
-        request.write(json.stringify(joinRequest));
+        request.write(JSON.encode(joinRequest));
         return request.close();
       })
       .then((HttpClientResponse response) {

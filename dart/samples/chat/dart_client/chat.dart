@@ -4,7 +4,7 @@
 
 library chat;
 import 'dart:html';
-import 'dart:json' as jsonlib;
+import "dart:convert";
 
 void main() {
   new Chat().start();
@@ -163,14 +163,14 @@ class Chat {
     request.onReadyStateChange.listen((Event event) {
       if (request.readyState != 4) return;
       if (request.status == 200) {
-        onSuccess(jsonlib.parse(request.responseText));
+        onSuccess(JSON.decode(request.responseText));
       } else {
         onError();
       }
     });
     request.open("POST", url, async: true);
     request.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
-    request.send(jsonlib.stringify(json));
+    request.send(JSON.encode(json));
     return request;
   }
 

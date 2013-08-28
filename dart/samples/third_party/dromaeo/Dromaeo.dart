@@ -2,7 +2,7 @@ library dromaeo_test;
 
 import 'dart:html';
 import 'dart:async';
-import 'dart:json' as json;
+import "dart:convert";
 import 'dart:math' as Math;
 import 'Suites.dart';
 
@@ -98,7 +98,7 @@ class Dromaeo {
     window.onMessage.listen(
         (MessageEvent event) {
           try {
-            final response = json.parse(event.data);
+            final response = JSON.decode(event.data);
             _handler = _handler(response['command'], response['data']);
           } catch (e, stacktrace) {
             if (!(e is FormatException &&

@@ -4,7 +4,7 @@
 
 part of solar3d;
 
-final Map _sphereData = json.parse(_sphereDataString);
+final Map _sphereData = JSON.decode(_sphereDataString);
 final String _sphereDataString = '''
 {
 "header" : {
