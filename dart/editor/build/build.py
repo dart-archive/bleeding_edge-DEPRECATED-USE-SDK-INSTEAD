@@ -757,6 +757,12 @@ def RunEditorTests(buildout, buildos):
       zipper = ziputils.ZipUtil(join(buildout, editorArchive), buildos)
       zipper.UnZip(tempDir)
 
+      # before we run the editor, suppress any 'restore windows' dialogs
+      if sys.platform == 'darwin':
+        args = ['defaults', 'write', 'org.eclipse.eclipse.savedState',
+                'NSQuitAlwaysKeepsWindows', '-bool', 'false']
+        subprocess.call(args, shell=IsWindows())
+
       editorExecutable = GetEditorExecutable(join(tempDir, 'dart'))
       args = [editorExecutable, '--test', '--auto-exit',
               '-data', join(tempDir, 'workspace')]
