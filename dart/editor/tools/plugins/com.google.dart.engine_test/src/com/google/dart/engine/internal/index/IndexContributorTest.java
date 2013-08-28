@@ -1655,6 +1655,69 @@ public class IndexContributorTest extends AbstractDartTest {
         new ExpectedLocation(mainElement, findOffset("myMethod();"), "myMethod"));
   }
 
+  public void test_isReferencedByQualifiedResolved_NameElement_operator() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator +(o) {}",
+        "  operator -(o) {}",
+        "  operator ~() {}",
+        "}",
+        "main(A a) {",
+        "  a + 5;",
+        "  a += 5;",
+        "  ++a;",
+        "  --a;",
+        "  ~a;",
+        "  a++;",
+        "  a--;",
+        "}");
+    // prepare elements
+    Element mainElement = findElement("main(");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    // binary
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("+"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
+        new ExpectedLocation(mainElement, findOffset("+ 5;"), "+"));
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("+"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
+        new ExpectedLocation(mainElement, findOffset("+= 5;"), "+="));
+    // prefix
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("+"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
+        new ExpectedLocation(mainElement, findOffset("++a;"), "++"));
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("-"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
+        new ExpectedLocation(mainElement, findOffset("--a;"), "--"));
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("~"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
+        new ExpectedLocation(mainElement, findOffset("~a;"), "~"));
+    // postfix
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("+"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
+        new ExpectedLocation(mainElement, findOffset("++;"), "++"));
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("-"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
+        new ExpectedLocation(mainElement, findOffset("--;"), "--"));
+  }
+
   public void test_isReferencedByQualifiedUnresolved_NameElement_field() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1711,6 +1774,64 @@ public class IndexContributorTest extends AbstractDartTest {
         nameElement,
         IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
         new ExpectedLocation(mainElement, findOffset("myMethod();"), "myMethod"));
+  }
+
+  public void test_isReferencedByQualifiedUnresolved_NameElement_operator() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(a) {",
+        "  a + 5;",
+        "  a += 5;",
+        "  ++a;",
+        "  --a;",
+        "  ~a;",
+        "  a++;",
+        "  a--;",
+        "}");
+    // prepare elements
+    Element mainElement = findElement("main(");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    // binary
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("+"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("+ 5;"), "+"));
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("+"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("+= 5;"), "+="));
+    // prefix
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("+"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("++a;"), "++"));
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("-"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("--a;"), "--"));
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("~"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("~a;"), "~"));
+    // postfix
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("+"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("++;"), "++"));
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("-"),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("--;"), "--"));
   }
 
   public void test_isReferencedByUnqualified_FieldElement() throws Exception {

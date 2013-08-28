@@ -275,23 +275,13 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
-    MethodElement element = node.getBestElement();
-    if (element instanceof MethodElement) {
-      Token operator = node.getOperator();
-      Location location = createLocation(operator);
-      recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
-    }
+    recordOperatorReference(node.getOperator(), node.getBestElement());
     return super.visitAssignmentExpression(node);
   }
 
   @Override
   public Void visitBinaryExpression(BinaryExpression node) {
-    MethodElement element = node.getBestElement();
-    if (element instanceof MethodElement) {
-      Token operator = node.getOperator();
-      Location location = createLocation(operator);
-      recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
-    }
+    recordOperatorReference(node.getOperator(), node.getBestElement());
     return super.visitBinaryExpression(node);
   }
 
@@ -537,23 +527,13 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitPostfixExpression(PostfixExpression node) {
-    MethodElement element = node.getBestElement();
-    if (element instanceof MethodElement) {
-      Token operator = node.getOperator();
-      Location location = createLocation(operator);
-      recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
-    }
+    recordOperatorReference(node.getOperator(), node.getBestElement());
     return super.visitPostfixExpression(node);
   }
 
   @Override
   public Void visitPrefixExpression(PrefixExpression node) {
-    MethodElement element = node.getBestElement();
-    if (element instanceof MethodElement) {
-      Token operator = node.getOperator();
-      Location location = createLocation(operator);
-      recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
-    }
+    recordOperatorReference(node.getOperator(), node.getBestElement());
     return super.visitPrefixExpression(node);
   }
 
@@ -794,6 +774,36 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
           library.getDefiningCompilationUnit(),
           IndexConstants.IS_REFERENCED_BY,
           location);
+    }
+  }
+
+  /**
+   * Record reference to the given operator {@link Element} and name.
+   */
+  private void recordOperatorReference(Token operator, Element element) {
+    // prepare location
+    Location location = createLocation(operator);
+    // record name reference
+    {
+      String name = operator.getLexeme();
+      if (name.equals("++")) {
+        name = "+";
+      }
+      if (name.equals("--")) {
+        name = "-";
+      }
+      if (name.endsWith("=")) {
+        name = name.substring(0, name.length() - 1);
+      }
+      Element nameElement = new NameElementImpl(name);
+      Relationship relationship = element != null
+          ? IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED
+          : IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED;
+      recordRelationship(nameElement, relationship, location);
+    }
+    // record element reference
+    if (element != null) {
+      recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
     }
   }
 
