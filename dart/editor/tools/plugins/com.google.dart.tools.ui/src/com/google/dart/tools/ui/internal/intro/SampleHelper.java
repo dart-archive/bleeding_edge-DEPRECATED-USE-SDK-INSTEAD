@@ -84,17 +84,14 @@ public class SampleHelper {
       @Override
       public void run() {
 
-        if (!sampleName.equals("todomvc")) {
-          // Copy sample to new directory before creating project
-          // so that builder will have the resources to analyze first time through
-          try {
-            FileUtilities.copyDirectoryContents(getDirectory(sampleFile), newProjectDir);
-          } catch (IOException e) {
-            DartToolsPlugin.log(e);
-          }
-        } else {
-          copySampleContents(sampleFile, newProjectDir, newProjectHandle);
+        // Copy sample to new directory before creating project
+        // so that builder will have the resources to analyze first time through
+        try {
+          FileUtilities.copyDirectoryContents(getDirectory(sampleFile), newProjectDir);
+        } catch (IOException e) {
+          DartToolsPlugin.log(e);
         }
+
         try {
           ProjectUtils.createNewProject(
               newProjectName,
@@ -154,6 +151,7 @@ public class SampleHelper {
     }
   }
 
+  @SuppressWarnings("unused")
   private static boolean copySampleContents(final File sampleFile, final File newProjectDir,
       final IProject project) {
 
