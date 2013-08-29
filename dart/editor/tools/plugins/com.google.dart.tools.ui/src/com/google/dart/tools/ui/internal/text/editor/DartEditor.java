@@ -19,6 +19,10 @@ import com.google.common.collect.Maps;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassMember;
+import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisContext;
@@ -2701,7 +2705,32 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 //    }
 
     ASTNode node = new NodeLocator(caret).searchWithin(unit);
-//      System.out.println(caret + "  " + parsedUnit);
+
+    // May be whitespace between class declaration {}, try to find class member.
+    if (node instanceof ClassDeclaration) {
+      ClassDeclaration classDeclaration = (ClassDeclaration) node;
+      if (classDeclaration.getLeftBracket().getOffset() + 1 < caret
+          && caret < classDeclaration.getRightBracket().getOffset()) {
+        for (ClassMember member : classDeclaration.getMembers()) {
+          if (caret < member.getOffset()) {
+            node = member;
+            break;
+          }
+        }
+      }
+    }
+
+    // May be unit whitespace, try to find unit member.
+    if (node instanceof com.google.dart.engine.ast.CompilationUnit) {
+      NodeList<CompilationUnitMember> declarations = ((com.google.dart.engine.ast.CompilationUnit) node).getDeclarations();
+      for (CompilationUnitMember member : declarations) {
+        if (caret < member.getOffset()) {
+          node = member;
+          break;
+        }
+      }
+    }
+
     return LightNodeElements.createLightNodeElement(inputResourceFile, node);
   }
 
