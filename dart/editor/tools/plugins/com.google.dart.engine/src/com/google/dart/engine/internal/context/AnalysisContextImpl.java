@@ -2778,9 +2778,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     try {
       parseHtmlUnit(source);
     } catch (AnalysisException exception) {
-      AnalysisEngine.getInstance().getLogger().logError(
-          "Could not parse " + source.getFullName(),
-          exception);
+      if (!(exception.getCause() instanceof IOException)) {
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Could not parse " + source.getFullName(),
+            exception);
+      }
     }
   }
 
