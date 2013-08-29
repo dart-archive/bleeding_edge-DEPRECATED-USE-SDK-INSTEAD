@@ -984,15 +984,43 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   /**
+   * Worker method for {@link #expandTreeItemsTimeBoxed(List, long)}.
+   */
+  private long expandTreeItemsTimeBoxed(List<ElementItem> items, int childrenLimit, long nanoBudget) {
+    for (ElementItem item : items) {
+      if (nanoBudget < 0) {
+        return -1;
+      }
+      if (item.children.size() <= childrenLimit) {
+        // expand single item
+        {
+          long startNano = System.nanoTime();
+          viewer.setExpandedState(item, true);
+          nanoBudget -= System.nanoTime() - startNano;
+        }
+        // expand children
+        nanoBudget = expandTreeItemsTimeBoxed(item.children, childrenLimit, nanoBudget);
+        if (nanoBudget < 0) {
+          return -1;
+        }
+      }
+    }
+    return nanoBudget;
+  }
+
+  /**
    * Analyzes each {@link ElementItem} and expends it in {@link #viewer} only if it has not too much
    * children. So, user will see enough information, but not too much.
    */
-  private void expandWhileSmallNumberOfChildren(List<ElementItem> items) {
-    for (ElementItem item : items) {
-      if (item.children.size() <= 5) {
-        viewer.setExpandedState(item, true);
-        expandWhileSmallNumberOfChildren(item.children);
+  private void expandTreeItemsTimeBoxed(List<ElementItem> items, long nanoBudget) {
+    int numIterations = 10;
+    int childrenLimit = 10;
+    for (int i = 0; i < numIterations; i++) {
+      if (nanoBudget < 0) {
+        break;
       }
+      nanoBudget = expandTreeItemsTimeBoxed(items, childrenLimit, nanoBudget);
+      childrenLimit *= 2;
     }
   }
 
@@ -1086,7 +1114,7 @@ public abstract class SearchMatchPage extends SearchPage {
               viewer.setInput(rootItem);
               viewer.setExpandedElements(expandedElements);
               // expand
-              expandWhileSmallNumberOfChildren(rootItem.children);
+              expandTreeItemsTimeBoxed(rootItem.children, 75L * 1000000L);
               lastQueryFinishTime = System.currentTimeMillis();
               return Status.OK_STATUS;
             }
