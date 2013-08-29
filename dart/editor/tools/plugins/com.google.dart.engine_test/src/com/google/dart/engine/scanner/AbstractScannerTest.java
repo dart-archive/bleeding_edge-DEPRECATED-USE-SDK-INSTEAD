@@ -800,11 +800,27 @@ public abstract class AbstractScannerTest extends TestCase {
   protected abstract Token scan(String source, GatheringErrorListener listener);
 
   private void assertComment(TokenType commentType, String source) throws Exception {
-    Token token = scan(source + OSUtilities.LINE_SEPARATOR);
+    //
+    // Test without a trailing end-of-line marker
+    //
+    Token token = scan(source);
     assertNotNull(token);
     assertEquals(TokenType.EOF, token.getType());
 
     Token comment = token.getPrecedingComments();
+    assertNotNull(comment);
+    assertEquals(commentType, comment.getType());
+    assertEquals(0, comment.getOffset());
+    assertEquals(source.length(), comment.getLength());
+    assertEquals(source, comment.getLexeme());
+    //
+    // Test with a trailing end-of-line marker
+    //
+    token = scan(source + OSUtilities.LINE_SEPARATOR);
+    assertNotNull(token);
+    assertEquals(TokenType.EOF, token.getType());
+
+    comment = token.getPrecedingComments();
     assertNotNull(comment);
     assertEquals(commentType, comment.getType());
     assertEquals(0, comment.getOffset());

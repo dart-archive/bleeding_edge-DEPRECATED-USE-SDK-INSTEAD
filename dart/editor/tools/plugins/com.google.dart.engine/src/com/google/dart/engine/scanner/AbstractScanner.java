@@ -995,7 +995,10 @@ public abstract class AbstractScanner {
   private int tokenizeSingleLineComment(int next) {
     while (true) {
       next = advance();
-      if ('\n' == next || '\r' == next || -1 == next) {
+      if (-1 == next) {
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(tokenStart, 0));
+        return next;
+      } else if ('\n' == next || '\r' == next) {
         appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(tokenStart, -1));
         return next;
       }
