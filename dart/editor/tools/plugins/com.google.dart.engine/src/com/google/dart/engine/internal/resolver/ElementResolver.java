@@ -90,6 +90,7 @@ import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
+import com.google.dart.engine.internal.element.AuxiliaryElements;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.ElementAnnotationImpl;
@@ -736,20 +737,79 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Expression target = node.getRealTarget();
     Type staticType = getStaticType(target);
     Type propagatedType = getPropagatedType(target);
-    // getter
-    if (node.inGetterContext()) {
-      String methodName = TokenType.INDEX.getLexeme();
-      boolean error = lookUpCheckIndexOperator(node, target, methodName, staticType, propagatedType);
-      if (error) {
-        return null;
-      }
+    String getterMethodName = TokenType.INDEX.getLexeme();
+    String setterMethodName = TokenType.INDEX_EQ.getLexeme();
+    boolean isInGetterContext = node.inGetterContext();
+    boolean isInSetterContext = node.inSetterContext();
+
+    if (isInGetterContext && isInSetterContext) {
+      // lookup setter
+      MethodElement setterStaticMethod = lookUpMethod(target, staticType, setterMethodName);
+      MethodElement setterPropagatedMethod = lookUpMethod(target, propagatedType, setterMethodName);
+      // set setter element
+      node.setStaticElement(setterStaticMethod);
+      node.setPropagatedElement(setterPropagatedMethod);
+      // generate undefined method warning
+      checkForUndefinedIndexOperator(
+          node,
+          target,
+          getterMethodName,
+          setterStaticMethod,
+          setterPropagatedMethod,
+          staticType,
+          propagatedType);
+
+      // lookup getter method
+      MethodElement getterStaticMethod = lookUpMethod(target, staticType, getterMethodName);
+      MethodElement getterPropagatedMethod = lookUpMethod(target, propagatedType, getterMethodName);
+      // set getter element
+      AuxiliaryElements auxiliaryElements = new AuxiliaryElements(
+          getterStaticMethod,
+          getterPropagatedMethod);
+      node.setAuxiliaryElements(auxiliaryElements);
+      // generate undefined method warning
+      checkForUndefinedIndexOperator(
+          node,
+          target,
+          getterMethodName,
+          getterStaticMethod,
+          getterPropagatedMethod,
+          staticType,
+          propagatedType);
+
+    } else if (isInGetterContext) {
+      // lookup getter method
+      MethodElement staticMethod = lookUpMethod(target, staticType, getterMethodName);
+      MethodElement propagatedMethod = lookUpMethod(target, propagatedType, getterMethodName);
+      // set getter element
+      node.setStaticElement(staticMethod);
+      node.setPropagatedElement(propagatedMethod);
+      // generate undefined method warning
+      checkForUndefinedIndexOperator(
+          node,
+          target,
+          getterMethodName,
+          staticMethod,
+          propagatedMethod,
+          staticType,
+          propagatedType);
+    } else if (isInSetterContext) {
+      // lookup setter method
+      MethodElement staticMethod = lookUpMethod(target, staticType, setterMethodName);
+      MethodElement propagatedMethod = lookUpMethod(target, propagatedType, setterMethodName);
+      // set setter element
+      node.setStaticElement(staticMethod);
+      node.setPropagatedElement(propagatedMethod);
+      // generate undefined method warning
+      checkForUndefinedIndexOperator(
+          node,
+          target,
+          setterMethodName,
+          staticMethod,
+          propagatedMethod,
+          staticType,
+          propagatedType);
     }
-    // setter
-    if (node.inSetterContext()) {
-      String methodName = TokenType.INDEX_EQ.getLexeme();
-      lookUpCheckIndexOperator(node, target, methodName, staticType, propagatedType);
-    }
-    // done
     return null;
   }
 
@@ -1071,9 +1131,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // Otherwise, the node should be resolved.
     //
     Element element = resolveSimpleIdentifier(node);
-    if (isFactoryConstructorReturnType(node) && element != resolver.getEnclosingClass()) {
+    ClassElement enclosingClass = resolver.getEnclosingClass();
+    if (isFactoryConstructorReturnType(node) && element != enclosingClass) {
       resolver.reportError(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
-    } else if (isConstructorReturnType(node) && element != resolver.getEnclosingClass()) {
+    } else if (isConstructorReturnType(node) && element != enclosingClass) {
       resolver.reportError(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
       element = null;
     } else if (element == null || (element instanceof PrefixElement && !isValidAsPrefix(node))) {
@@ -1086,6 +1147,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
 
     node.setStaticElement(element);
+    if (node.inSetterContext() && node.inGetterContext() && enclosingClass != null) {
+      InterfaceType enclosingType = enclosingClass.getType();
+      AuxiliaryElements auxiliaryElements = new AuxiliaryElements(lookUpGetter(
+          null,
+          enclosingType,
+          node.getName()), null);
+      node.setAuxiliaryElements(auxiliaryElements);
+    }
 
     //
     // Validate annotation element.
@@ -1269,6 +1338,46 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  /**
+   * Check that the for some index expression that the method element was resolved, otherwise a
+   * {@link StaticWarningCode#UNDEFINED_OPERATOR} is generated.
+   * 
+   * @param node the index expression to resolve
+   * @param target the target of the expression
+   * @param methodName the name of the operator associated with the context of using of the given
+   *          index expression
+   * @return {@code true} if and only if an error code is generated on the passed node
+   */
+  private boolean checkForUndefinedIndexOperator(IndexExpression node, Expression target,
+      String methodName, MethodElement staticMethod, MethodElement propagatedMethod,
+      Type staticType, Type propagatedType) {
+    if (shouldReportMissingMember(staticType, staticMethod)
+        && (strictMode || propagatedType == null || shouldReportMissingMember(
+            propagatedType,
+            propagatedMethod))) {
+      Token leftBracket = node.getLeftBracket();
+      Token rightBracket = node.getRightBracket();
+      if (leftBracket == null || rightBracket == null) {
+        resolver.reportError(
+            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            node,
+            methodName,
+            staticType.getDisplayName());
+      } else {
+        int offset = leftBracket.getOffset();
+        int length = rightBracket.getOffset() - offset + 1;
+        resolver.reportError(
+            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            offset,
+            length,
+            methodName,
+            staticType.getDisplayName());
+      }
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -1523,53 +1632,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return true;
     } else if (parent instanceof MethodInvocation) {
       return ((MethodInvocation) parent).getTarget() == node;
-    }
-    return false;
-  }
-
-  /**
-   * Looks up the method element with the given name for index expression, reports
-   * {@link StaticWarningCode#UNDEFINED_OPERATOR} if not found.
-   * 
-   * @param node the index expression to resolve
-   * @param target the target of the expression
-   * @param methodName the name of the operator associated with the context of using of the given
-   *          index expression
-   * @return {@code true} if and only if an error code is generated on the passed node
-   */
-  private boolean lookUpCheckIndexOperator(IndexExpression node, Expression target,
-      String methodName, Type staticType, Type propagatedType) {
-    // lookup
-    MethodElement staticMethod = lookUpMethod(target, staticType, methodName);
-    MethodElement propagatedMethod = lookUpMethod(target, propagatedType, methodName);
-    // set element
-    node.setStaticElement(staticMethod);
-    node.setPropagatedElement(propagatedMethod);
-    // report problem
-    if (shouldReportMissingMember(staticType, staticMethod)
-        && (strictMode || propagatedType == null || shouldReportMissingMember(
-            propagatedType,
-            propagatedMethod))) {
-      Token leftBracket = node.getLeftBracket();
-      Token rightBracket = node.getRightBracket();
-      if (leftBracket == null || rightBracket == null) {
-        resolver.reportError(
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
-            node,
-            methodName,
-            staticType.getDisplayName());
-        return true;
-      } else {
-        int offset = leftBracket.getOffset();
-        int length = rightBracket.getOffset() - offset + 1;
-        resolver.reportError(
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
-            offset,
-            length,
-            methodName,
-            staticType.getDisplayName());
-        return true;
-      }
     }
     return false;
   }

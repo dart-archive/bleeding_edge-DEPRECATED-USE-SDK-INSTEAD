@@ -720,7 +720,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  a[0]++;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR, StaticTypeWarningCode.UNDEFINED_OPERATOR);
     // no verify(), a[0] is not resolved
   }
 

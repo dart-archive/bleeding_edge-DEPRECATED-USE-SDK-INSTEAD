@@ -22,6 +22,7 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.internal.element.AuxiliaryElements;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
@@ -59,6 +60,13 @@ public class SimpleIdentifier extends Identifier {
   private Element propagatedElement;
 
   /**
+   * If this expression is both in a getter and setter context, the {@link AuxiliaryElements} will
+   * be set to hold onto the static and propagated information. The auxiliary element will hold onto
+   * the elements from the getter context.
+   */
+  private AuxiliaryElements auxiliaryElements = null;
+
+  /**
    * Initialize a newly created identifier.
    * 
    * @param token the token representing the identifier
@@ -70,6 +78,14 @@ public class SimpleIdentifier extends Identifier {
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitSimpleIdentifier(this);
+  }
+
+  /**
+   * Get the auxiliary elements, this will be {@code null} if the node is not in a getter and setter
+   * context, or if it is not yet fully resolved.
+   */
+  public AuxiliaryElements getAuxiliaryElements() {
+    return auxiliaryElements;
   }
 
   @Override
@@ -237,6 +253,13 @@ public class SimpleIdentifier extends Identifier {
   @Override
   public boolean isSynthetic() {
     return token.isSynthetic();
+  }
+
+  /**
+   * Set the auxiliary elements.
+   */
+  public void setAuxiliaryElements(AuxiliaryElements auxiliaryElements) {
+    this.auxiliaryElements = auxiliaryElements;
   }
 
   /**

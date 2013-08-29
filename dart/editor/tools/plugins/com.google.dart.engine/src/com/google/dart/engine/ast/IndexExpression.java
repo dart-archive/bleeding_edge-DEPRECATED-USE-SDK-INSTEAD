@@ -15,6 +15,7 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.internal.element.AuxiliaryElements;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
@@ -71,6 +72,13 @@ public class IndexExpression extends Expression {
   private MethodElement propagatedElement;
 
   /**
+   * If this expression is both in a getter and setter context, the {@link AuxiliaryElements} will
+   * be set to hold onto the static and propagated information. The auxiliary element will hold onto
+   * the elements from the getter context.
+   */
+  private AuxiliaryElements auxiliaryElements = null;
+
+  /**
    * Initialize a newly created index expression.
    * 
    * @param target the expression used to compute the object being indexed
@@ -103,6 +111,14 @@ public class IndexExpression extends Expression {
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitIndexExpression(this);
+  }
+
+  /**
+   * Get the auxiliary elements, this will be {@code null} if the node is not in a getter and setter
+   * context, or if it is not yet fully resolved.
+   */
+  public AuxiliaryElements getAuxiliaryElements() {
+    return auxiliaryElements;
   }
 
   @Override
@@ -286,6 +302,13 @@ public class IndexExpression extends Expression {
    */
   public boolean isCascaded() {
     return period != null;
+  }
+
+  /**
+   * Set the auxiliary elements.
+   */
+  public void setAuxiliaryElements(AuxiliaryElements auxiliaryElements) {
+    this.auxiliaryElements = auxiliaryElements;
   }
 
   /**
