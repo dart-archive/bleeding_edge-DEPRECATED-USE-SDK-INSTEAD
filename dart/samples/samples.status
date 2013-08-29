@@ -1,0 +1,82 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+third_party/todomvc: Skip # Not designed for buildbots, see issue 12865.
+
+[ $browser ]
+# Skip tests that uses dart:io
+chat/test/chat_server_test: Skip
+build_dart: Skip
+build_dart_simple: Skip
+sample_extension: Skip
+time: Skip
+
+[ $compiler == dart2js && $runtime == drt ]
+swarm/test/swarm_test: Pass, Crash, Fail # Issue 10950
+
+[ $compiler == none && $runtime == drt ]
+dartcombat/test/dartcombat_test: Skip # Issue 2790
+swarm/test/swarm_test: Pass, Fail # Issue 3977
+
+[ $runtime == chrome || $runtime == ff || $runtime == safari ]
+dartcombat/test/dartcombat_test: Skip # passes locally but timeout on bot?
+
+[ $runtime == ie9 ]
+swarm/test/swarm_ui_lib/layout/layout_test: Fail # http://dartbug.com/5132
+
+[ $runtime == safari ]
+promise_based_test: Skip
+
+[ $runtime == opera ]
+swarm/test/swarm_ui_lib/touch/touch_test: Fail
+swarm/test/swarm_test: Fail
+
+[ $runtime == vm ]
+# Skip tests that use dart:html on the standalone VM
+clock: Skip
+dartcombat: Skip
+hi: Skip
+solar: Skip
+spirodraw: Skip
+sunflower: Skip
+swarm: Skip
+swipe: Skip
+
+[ $compiler == dart2js && $browser ]
+dartcombat/test/dartcombat_test: Skip
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $browser ]
+# This may be related to issue 157
+swarm/test/swarm_ui_lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
+
+[ $compiler == dart2js && $runtime == ff ]
+swarm/test/swarm_test: Fail # Issue 5633
+
+[ $compiler == dart2js && $runtime == drt && $system == windows ]
+swarm/test/swarm_test: Fail # Issue 4517
+
+[ $compiler == dart2js && $runtime == ie9 ]
+swarm/test/swarm_test: Timeout, Fail # Issue 5633
+
+[ $compiler == dart2analyzer ]
+build_dart: Skip
+
+[ $compiler == dart2dart ]
+# Skip until we stabilize language tests.
+*: Skip
+
+[ $arch == arm ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == mips ]
+*: Skip
+
+[ $arch == simmips ]
+*: Skip
