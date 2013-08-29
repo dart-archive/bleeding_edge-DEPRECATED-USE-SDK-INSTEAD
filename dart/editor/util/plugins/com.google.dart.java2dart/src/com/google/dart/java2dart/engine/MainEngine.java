@@ -966,6 +966,9 @@ public class MainEngine {
           || isEnginePath(file, "utilities/source/")) {
         continue;
       }
+      if (isEnginePath(file, "source/ExplicitPackageUriResolver.java")) {
+        continue;
+      }
       if (isEnginePath(file, "source/")) {
         addNotRemovedCompiationUnitEntries(unit, entry.getValue());
       }
