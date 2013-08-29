@@ -1077,9 +1077,15 @@ public abstract class SearchMatchPage extends SearchPage {
           new UIJob("Displaying search results...") {
             @Override
             public IStatus runInUIThread(IProgressMonitor monitor) {
+              // may be already disposed (e.g. new search was done)
+              if (viewer.getControl().isDisposed()) {
+                return Status.OK_STATUS;
+              }
+              // set new input
               Object[] expandedElements = viewer.getExpandedElements();
               viewer.setInput(rootItem);
               viewer.setExpandedElements(expandedElements);
+              // expand
               expandWhileSmallNumberOfChildren(rootItem.children);
               lastQueryFinishTime = System.currentTimeMillis();
               return Status.OK_STATUS;
