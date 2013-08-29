@@ -42,6 +42,7 @@ public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
     openAction = new OpenAction(editor);
     initActions();
     editor.setAction(findReferencesAction.getActionDefinitionId(), findReferencesAction);
+    editor.setAction(findDeclarationsAction.getActionDefinitionId(), findDeclarationsAction);
     editor.setAction("OpenEditor", openAction);
     addActions(findReferencesAction, findDeclarationsAction, openAction);
     addActionDartSelectionListeners();

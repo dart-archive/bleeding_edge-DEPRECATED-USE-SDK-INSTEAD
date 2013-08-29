@@ -1919,6 +1919,11 @@
             commandId="com.google.dart.tools.ui.edit.text.dart.open.hierarchy"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
       <key
+            sequence="M1+M2+D"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.dart.search.declarations.in.workspace"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
             sequence="M1+M2+U"
             contextId="com.google.dart.tools.ui.dartEditorScope"
             commandId="com.google.dart.tools.ui.edit.text.dart.search.references.in.workspace"
