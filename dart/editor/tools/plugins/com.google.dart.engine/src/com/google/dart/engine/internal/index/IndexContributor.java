@@ -792,7 +792,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       if (name.equals("--")) {
         name = "-";
       }
-      if (name.endsWith("=")) {
+      if (name.endsWith("=") && !name.equals("==")) {
         name = name.substring(0, name.length() - 1);
       }
       Element nameElement = new NameElementImpl(name);

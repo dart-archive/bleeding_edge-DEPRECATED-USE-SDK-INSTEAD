@@ -1662,10 +1662,12 @@ public class IndexContributorTest extends AbstractDartTest {
         "  operator +(o) {}",
         "  operator -(o) {}",
         "  operator ~() {}",
+        "  operator ==(o) {}",
         "}",
         "main(A a) {",
         "  a + 5;",
         "  a += 5;",
+        "  a == 5;",
         "  ++a;",
         "  --a;",
         "  ~a;",
@@ -1689,6 +1691,11 @@ public class IndexContributorTest extends AbstractDartTest {
         new NameElementImpl("+"),
         IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
         new ExpectedLocation(mainElement, findOffset("+= 5;"), "+="));
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("=="),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
+        new ExpectedLocation(mainElement, findOffset("== 5;"), "=="));
     // prefix
     assertRecordedRelation(
         relations,
@@ -1782,6 +1789,7 @@ public class IndexContributorTest extends AbstractDartTest {
         "main(a) {",
         "  a + 5;",
         "  a += 5;",
+        "  a == 5;",
         "  ++a;",
         "  --a;",
         "  ~a;",
@@ -1805,6 +1813,11 @@ public class IndexContributorTest extends AbstractDartTest {
         new NameElementImpl("+"),
         IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
         new ExpectedLocation(mainElement, findOffset("+= 5;"), "+="));
+    assertRecordedRelation(
+        relations,
+        new NameElementImpl("=="),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("== 5;"), "=="));
     // prefix
     assertRecordedRelation(
         relations,
