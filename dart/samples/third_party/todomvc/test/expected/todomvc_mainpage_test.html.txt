@@ -1,14 +1,13 @@
 Content-Type: text/plain
-<html lang="en"><head><style shadowcssshim="">style { display: none !important; }
-</style><style shadowcssshim="">template { display: none; }</style>
+<html lang="en"><head>
 <!--
 This test runs the TodoMVC app and evaluates that it renders correctly.
 -->
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   
-  <link rel="stylesheet" href="../../../web/base.css">
-  <script src="../../packages/polymer/testing/testing.js"></script>
+  <link rel="stylesheet" href="../web/base.css">
+  <script src="packages/polymer/testing/testing.js"></script>
   <title>Dart • TodoMVC</title>
 <style>template,
 thead[template],
@@ -22,7 +21,24 @@ colgroup[template],
 col[template],
 option[template] {
   display: none;
-}</style></head><body><polymer-element name="todo-row" extends="li" attributes="todo">
+}</style></head><body><script src="packages/shadow_dom/shadow_dom.min.js"></script>
+<script src="packages/browser/interop.js"></script>
+<polymer-element name="router-options" extends="ul">
+  <template><content></content></template>
+  
+</polymer-element><polymer-element name="editable-label" attributes="value">
+  <template>
+    <template bind="" if="{{!editing}}">
+      <label class="edit-label" on-double-click="edit">{{value}}</label>
+    </template>
+    <template bind="" if="{{editing}}">
+      <form on-submit="update">
+        <input id="edit" class="edit editing" on-blur="update" on-key-up="maybeCancel">
+      </form>
+    </template>
+  </template>
+  
+</polymer-element><polymer-element name="todo-row" extends="li" attributes="todo">
   <template>
     <style scoped="">
 .todo-item {
@@ -141,8 +157,7 @@ ShadowRoot because it crosses the shadow boundary.
     </div>
   </template>
   
-</polymer-element>
-<polymer-element name="todo-app">
+</polymer-element><polymer-element name="todo-app">
 <template>
   <section id="todoapp">
     <header id="header">
@@ -190,24 +205,6 @@ ShadowRoot because it crosses the shadow boundary.
 </template>
 
 </polymer-element>
-<polymer-element name="router-options" extends="ul">
-  <template><content></content></template>
-  
-</polymer-element>
-<polymer-element name="editable-label" attributes="value">
-  <template>
-    <template bind="" if="{{!editing}}">
-      <label class="edit-label" on-double-click="edit">{{value}}</label>
-    </template>
-    <template bind="" if="{{editing}}">
-      <form on-submit="update">
-        <input id="edit" class="edit editing" on-blur="update" on-key-up="maybeCancel">
-      </form>
-    </template>
-  </template>
-  
-</polymer-element>
-
   <todo-app><shadow-root>
   <section id="todoapp">
     <header id="header">
@@ -240,6 +237,4 @@ ShadowRoot because it crosses the shadow boundary.
   
 
 
-<script type="text/javascript" src="packages/shadow_dom/shadow_dom.debug.js"></script>
-<script type="text/javascript" src="packages/browser/interop.js"></script>
 <script type="application/dart" src="todomvc_mainpage_test.html_bootstrap.dart"></script></body></html>
