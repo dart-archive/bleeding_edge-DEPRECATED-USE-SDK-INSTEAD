@@ -271,7 +271,7 @@ public class SearchEngineImplTest extends EngineTestCase {
         new ExpectedMatch(elementB, MatchKind.FUNCTION_DECLARATION, 10, 20));
   }
 
-  public void test_searchFunctionDeclarations_async() throws Exception {
+  public void issue_12872_test_searchFunctionDeclarations_async() throws Exception {
     LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
     defineFunctionsAB(library);
     scope = new LibrarySearchScope(library);
