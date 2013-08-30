@@ -1205,9 +1205,15 @@ public enum CompileTimeErrorCode implements ErrorCode {
   WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER("Setters should declare exactly one required parameter");
 
   /**
-   * The message template used to create the message to be displayed for this error.
+   * The template used to create the message to be displayed for this error.
    */
   private final String message;
+
+  /**
+   * The template used to create the correction to be displayed for this error, or {@code null} if
+   * there is no correction information for this error.
+   */
+  public String correction;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -1216,6 +1222,22 @@ public enum CompileTimeErrorCode implements ErrorCode {
    */
   private CompileTimeErrorCode(String message) {
     this.message = message;
+  }
+
+  /**
+   * Initialize a newly created error code to have the given message and correction.
+   * 
+   * @param message the template used to create the message to be displayed for the error
+   * @param correction the template used to create the correction to be displayed for the error
+   */
+  private CompileTimeErrorCode(String message, String correction) {
+    this.message = message;
+    this.correction = correction;
+  }
+
+  @Override
+  public String getCorrection() {
+    return correction;
   }
 
   @Override

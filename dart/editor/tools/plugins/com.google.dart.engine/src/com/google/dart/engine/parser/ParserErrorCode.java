@@ -184,9 +184,15 @@ public enum ParserErrorCode implements ErrorCode {
   private final ErrorSeverity severity;
 
   /**
-   * The message template used to create the message to be displayed for this error.
+   * The template used to create the message to be displayed for this error.
    */
   private final String message;
+
+  /**
+   * The template used to create the correction to be displayed for this error, or {@code null} if
+   * there is no correction information for this error.
+   */
+  public String correction;
 
   /**
    * Initialize a newly created error code to have the given severity and message.
@@ -200,12 +206,30 @@ public enum ParserErrorCode implements ErrorCode {
   }
 
   /**
+   * Initialize a newly created error code to have the given severity, message and correction.
+   * 
+   * @param severity the severity of the error
+   * @param message the template used to create the message to be displayed for the error
+   * @param correction the template used to create the correction to be displayed for the error
+   */
+  private ParserErrorCode(ErrorSeverity severity, String message, String correction) {
+    this.severity = severity;
+    this.message = message;
+    this.correction = correction;
+  }
+
+  /**
    * Initialize a newly created error code to have the given message and a severity of ERROR.
    * 
    * @param message the message template used to create the message to be displayed for the error
    */
   private ParserErrorCode(String message) {
     this(ErrorSeverity.ERROR, message);
+  }
+
+  @Override
+  public String getCorrection() {
+    return correction;
   }
 
   @Override

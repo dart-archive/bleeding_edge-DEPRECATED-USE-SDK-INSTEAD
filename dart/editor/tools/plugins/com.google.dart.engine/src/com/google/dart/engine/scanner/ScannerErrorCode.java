@@ -33,9 +33,15 @@ public enum ScannerErrorCode implements ErrorCode {
   UNTERMINATED_STRING_LITERAL("Unterminated string literal");
 
   /**
-   * The message template used to create the message to be displayed for this error.
+   * The template used to create the message to be displayed for this error.
    */
   private final String message;
+
+  /**
+   * The template used to create the correction to be displayed for this error, or {@code null} if
+   * there is no correction information for this error.
+   */
+  public String correction;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -44,6 +50,22 @@ public enum ScannerErrorCode implements ErrorCode {
    */
   private ScannerErrorCode(String message) {
     this.message = message;
+  }
+
+  /**
+   * Initialize a newly created error code to have the given message and correction.
+   * 
+   * @param message the template used to create the message to be displayed for the error
+   * @param correction the template used to create the correction to be displayed for the error
+   */
+  private ScannerErrorCode(String message, String correction) {
+    this.message = message;
+    this.correction = correction;
+  }
+
+  @Override
+  public String getCorrection() {
+    return correction;
   }
 
   @Override

@@ -73,6 +73,12 @@ public class AnalysisError {
   private String message;
 
   /**
+   * The correction to be displayed for this error, or {@code null} if there is no correction
+   * information for this error.
+   */
+  private String correction;
+
+  /**
    * The source in which the error occurred, or {@code null} if unknown.
    */
   private Source source;
@@ -87,6 +93,12 @@ public class AnalysisError {
    * compilation error.
    */
   private int length = 0;
+
+  /**
+   * A flag indicating whether this error can be shown to be a non-issue because of the result of
+   * type propagation.
+   */
+  private boolean isStaticOnly = false;
 
   /**
    * Initialize a newly created analysis error for the specified source. The error has no location
@@ -118,6 +130,20 @@ public class AnalysisError {
     this.length = length;
     this.errorCode = errorCode;
     this.message = String.format(errorCode.getMessage(), arguments);
+    String correctionTemplate = errorCode.getCorrection();
+    if (correctionTemplate != null) {
+      this.correction = String.format(correctionTemplate, arguments);
+    }
+  }
+
+  /**
+   * Return the correction to be displayed for this error, or {@code null} if there is no correction
+   * information for this error. The correction should indicate how the user can fix the error.
+   * 
+   * @return the template used to create the correction to be displayed for this error
+   */
+  public String getCorrection() {
+    return correction;
   }
 
   /**
@@ -140,9 +166,10 @@ public class AnalysisError {
   }
 
   /**
-   * Return the localized error message.
+   * Return the message to be displayed for this error. The message should indicate what is wrong
+   * and why it is wrong.
    * 
-   * @return the localized error message
+   * @return the message to be displayed for this error
    */
   public String getMessage() {
     return message;
@@ -184,6 +211,26 @@ public class AnalysisError {
     hashCode ^= (message != null) ? message.hashCode() : 0;
     hashCode ^= (source != null) ? source.hashCode() : 0;
     return hashCode;
+  }
+
+  /**
+   * Return {@code true} if this error can be shown to be a non-issue because of the result of type
+   * propagation.
+   * 
+   * @return {@code true} if this error can be shown to be a non-issue
+   */
+  public boolean isStaticOnly() {
+    return isStaticOnly;
+  }
+
+  /**
+   * Set whether this error can be shown to be a non-issue because of the result of type propagation
+   * to the given value.
+   * 
+   * @param isStaticOnly {@code true} if this error can be shown to be a non-issue
+   */
+  public void setIsStaticOnly(boolean isStaticOnly) {
+    this.isStaticOnly = isStaticOnly;
   }
 
   /**

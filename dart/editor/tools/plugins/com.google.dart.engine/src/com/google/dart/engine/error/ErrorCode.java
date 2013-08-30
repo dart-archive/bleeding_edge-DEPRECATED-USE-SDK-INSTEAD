@@ -16,10 +16,23 @@ package com.google.dart.engine.error;
 /**
  * The interface {@code ErrorCode} defines the behavior common to objects representing error codes
  * associated with {@link AnalysisError analysis errors}.
+ * <p>
+ * Generally, we want to provide messages that consist of three sentences: 1. what is wrong, 2. why
+ * is it wrong, and 3. how do I fix it. However, we combine the first two in the result of
+ * {@link #getMessage()} and the last in the result of {@link #getCorrection()}.
  * 
  * @coverage dart.engine.error
  */
 public interface ErrorCode {
+  /**
+   * Return the template used to create the correction to be displayed for this error, or
+   * {@code null} if there is no correction information for this error. The correction should
+   * indicate how the user can fix the error.
+   * 
+   * @return the template used to create the correction to be displayed for this error
+   */
+  public String getCorrection();
+
   /**
    * Return the severity of this error.
    * 
@@ -28,9 +41,10 @@ public interface ErrorCode {
   public ErrorSeverity getErrorSeverity();
 
   /**
-   * Return the message template used to create the message to be displayed for this error.
+   * Return the template used to create the message to be displayed for this error. The message
+   * should indicate what is wrong and why it is wrong.
    * 
-   * @return the message template used to create the message to be displayed for this error
+   * @return the template used to create the message to be displayed for this error
    */
   public String getMessage();
 

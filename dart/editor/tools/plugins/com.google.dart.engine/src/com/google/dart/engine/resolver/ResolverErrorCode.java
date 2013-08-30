@@ -44,9 +44,15 @@ public enum ResolverErrorCode implements ErrorCode {
   private final ErrorType type;
 
   /**
-   * The message template used to create the message to be displayed for this error.
+   * The template used to create the message to be displayed for this error.
    */
   private final String message;
+
+  /**
+   * The template used to create the correction to be displayed for this error, or {@code null} if
+   * there is no correction information for this error.
+   */
+  public String correction;
 
   /**
    * Initialize a newly created error code to have the given type and message.
@@ -57,6 +63,24 @@ public enum ResolverErrorCode implements ErrorCode {
   private ResolverErrorCode(ErrorType type, String message) {
     this.type = type;
     this.message = message;
+  }
+
+  /**
+   * Initialize a newly created error code to have the given type, message and correction.
+   * 
+   * @param type the type of this error
+   * @param message the template used to create the message to be displayed for the error
+   * @param correction the template used to create the correction to be displayed for the error
+   */
+  private ResolverErrorCode(ErrorType type, String message, String correction) {
+    this.type = type;
+    this.message = message;
+    this.correction = correction;
+  }
+
+  @Override
+  public String getCorrection() {
+    return correction;
   }
 
   @Override
