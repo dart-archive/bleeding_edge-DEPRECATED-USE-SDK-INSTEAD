@@ -6,10 +6,10 @@
  *******************************************************************************/
 package com.xored.glance.internal.ui.preferences;
 
+import com.xored.glance.internal.ui.GlancePlugin;
+
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
-
-import com.xored.glance.internal.ui.GlancePlugin;
 
 /**
  * @author Yuri Strot
@@ -28,7 +28,7 @@ public class GlancePreferenceInitializer extends AbstractPreferenceInitializer i
     preferences.setDefault(PANEL_DIRECTIONS, true);
     preferences.setDefault(PANEL_STATUS_LINE, true);
     preferences.setDefault(PANEL_CLOSE, true);
-    preferences.setDefault(PANEL_TEXT_SIZE, 20);
+    preferences.setDefault(PANEL_TEXT_SIZE, 30);
     preferences.setDefault(PANEL_LINK, true);
     preferences.setDefault(PANEL_STARTUP, false);
     preferences.setDefault(PANEL_AUTO_INDEXING, false);

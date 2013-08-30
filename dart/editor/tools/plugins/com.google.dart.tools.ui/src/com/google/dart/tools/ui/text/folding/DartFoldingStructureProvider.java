@@ -831,6 +831,9 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
     Token token = scanner.next();
     start = token.getOffset();
     Token comment = token.getPrecedingComments();
+    if (dartEditor == null) {
+      return new IRegion[0];
+    }
     IEditorInput editorInput = dartEditor.getEditorInput();
     IDocumentProvider documentProvider = dartEditor.getDocumentProvider();
     IDocument doc = documentProvider.getDocument(editorInput);
