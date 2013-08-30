@@ -43,7 +43,7 @@ swipe: Skip
 third_party/todomvc/*: Skip
 
 [ $compiler == dart2js && $browser ]
-dartcombat/dartcombat_test: Skip
+dartcombat/test/dartcombat_test: Skip
 third_party/todomvc/*: Skip # Issue 12865
 
 [ $compiler == dart2js && $runtime == none ]
