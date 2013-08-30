@@ -81,7 +81,7 @@ public class DeltaProcessor {
 
     @Override
     public IResource getResource() {
-      if (resource == null) {
+      if (resource == null && proxy != null) {
         resource = proxy.requestResource();
       }
       return resource;
