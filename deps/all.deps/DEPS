@@ -35,7 +35,7 @@ vars = {
   "mockito_rev" : "@19997",
   "snakeyaml_rev" : "@19997",
   "stripjar_rev" : "@20110",
-  "WebCore_rev" : "@26378",
+  "WebCore_rev" : "@26952",
   "weberknecht_rev" : "@26547",
 }
 
@@ -90,7 +90,7 @@ deps = {
   "dart/third_party/snakeyaml": "/third_party/snakeyaml" + Var("snakeyaml_rev"),
   "dart/third_party/stripjar": "/third_party/stripjar" + Var("stripjar_rev"),
   "dart/third_party/d8": "/third_party/d8" + Var("d8_rev"),
-  "dart/third_party/WebCore": "/third_party/WebCore" + Var("WebCore_rev"),
+#  "dart/third_party/WebCore": "/third_party/WebCore" + Var("WebCore_rev"),
   "dart/third_party/weberknecht":
       "/third_party/weberknecht" + Var("weberknecht_rev"),
 }
