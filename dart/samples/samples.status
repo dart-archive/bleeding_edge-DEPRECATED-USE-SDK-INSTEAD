@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-third_party/todomvc: Skip # Not designed for buildbots, see issue 12865.
-
 [ $browser ]
 # Skip tests that uses dart:io
 chat/test/chat_server_test: Skip
@@ -42,9 +40,11 @@ spirodraw: Skip
 sunflower: Skip
 swarm: Skip
 swipe: Skip
+third_party/todomvc/*: Skip
 
 [ $compiler == dart2js && $browser ]
-dartcombat/test/dartcombat_test: Skip
+dartcombat/dartcombat_test: Skip
+third_party/todomvc/*: Skip # Issue 12865
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

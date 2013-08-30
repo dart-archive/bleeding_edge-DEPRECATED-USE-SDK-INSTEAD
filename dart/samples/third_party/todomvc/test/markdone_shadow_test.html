@@ -8,13 +8,18 @@ BSD-style license that can be found in the LICENSE file.
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <link rel="import" href="app.html">
-  <link rel="stylesheet" href="base.css">
+  <script>
+  // Force the ShadowDOM polyfill to run regardless of whether it is needed.
+  window.__forceShadowDomPolyfill = true;
+  </script>
+  <link rel="import" href="../web/app.html">
+  <link rel="stylesheet" href="../web/base.css">
   <script src="packages/polymer/boot.js"></script>
+  <script src="packages/unittest/test_controller.js"></script>
   <title>Dart • TodoMVC</title>
 </head>
 <body>
   <todo-app></todo-app>
-  <script type="application/dart"> main() { } </script>
+  <script type="application/dart" src="markdone_shadow_test.dart"></script>
 </body>
 </html>
