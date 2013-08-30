@@ -1266,8 +1266,8 @@ public class DartCore extends Plugin implements DartSdkListener {
 
       InstrumentationBuilder instrumentation = Instrumentation.builder("DartCore.LogError");
       try {
-        instrumentation.data("Message", message != null ? message : "null");
-        instrumentation.data("Exception", exception != null ? exception.toString() : "null");
+        instrumentation.data("Log_Message", message != null ? message : "null");
+        instrumentation.data("Log_Exception", exception != null ? exception.toString() : "null");
 
         if (exception != null) {
           instrumentation.record(exception);
