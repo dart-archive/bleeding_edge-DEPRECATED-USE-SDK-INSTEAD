@@ -446,12 +446,8 @@ public class MainEngine {
   private static CompilationUnit buildAstTestLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "ast_test"));
-    unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "source.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "error.dart", null));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
     unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
     unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
@@ -552,15 +548,10 @@ public class MainEngine {
   private static CompilationUnit buildElementTestLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "element_test"));
-    unit.getDirectives().add(importDirective("dart:collection", null));
-    unit.getDirectives().add(importDirective("dart:io", null));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_engine_io.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
     unit.getDirectives().add(importDirective(src_package + "source_io.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "error.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
     unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
     unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
     unit.getDirectives().add(importDirective(src_package + "element.dart", null));
@@ -571,8 +562,6 @@ public class MainEngine {
             importShowCombinator("AnalysisContext", "AnalysisContextImpl")));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(importDirective("test_support.dart", null));
-    unit.getDirectives().add(
-        importDirective("scanner_test.dart", null, importShowCombinator("TokenFactory")));
     unit.getDirectives().add(
         importDirective("ast_test.dart", null, importShowCombinator("ASTFactory")));
     unit.getDirectives().add(
@@ -661,8 +650,6 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
-    unit.getDirectives().add(importDirective("error.dart", null));
-    unit.getDirectives().add(importDirective("instrumentation.dart", null));
     unit.getDirectives().add(
         importDirective("element.dart", null, importShowCombinator("HtmlElementImpl")));
     unit.getDirectives().add(
@@ -716,11 +703,8 @@ public class MainEngine {
   private static CompilationUnit buildParserTestLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "parser_test"));
-    unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "source.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
     unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
@@ -794,9 +778,7 @@ public class MainEngine {
   private static CompilationUnit buildResolverTestLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "resolver_test"));
-    unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
     unit.getDirectives().add(importDirective(src_package + "source_io.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
@@ -888,10 +870,8 @@ public class MainEngine {
   private static CompilationUnit buildSdkIoLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "sdk", "io"));
-    unit.getDirectives().add(importDirective("dart:io", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_io.dart", null));
-    unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("java_engine_io.dart", null));
     unit.getDirectives().add(importDirective("source_io.dart", null));
     unit.getDirectives().add(importDirective("error.dart", null));
@@ -919,8 +899,6 @@ public class MainEngine {
   private static CompilationUnit buildSdkLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "sdk"));
-    unit.getDirectives().add(importDirective("java_core.dart", null));
-    unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(
         importDirective(
             "source.dart",
@@ -943,10 +921,8 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "source", "io"));
     unit.getDirectives().add(importDirective("source.dart", null));
-    unit.getDirectives().add(importDirective("dart:io", null));
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_io.dart", null));
-    unit.getDirectives().add(importDirective("sdk.dart", null, importShowCombinator("DartSdk")));
     unit.getDirectives().add(
         importDirective(
             "engine.dart",
@@ -1003,9 +979,7 @@ public class MainEngine {
   private static CompilationUnit buildTestSupportLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "test_support"));
-    unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
     unit.getDirectives().add(importDirective(src_package + "source.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
