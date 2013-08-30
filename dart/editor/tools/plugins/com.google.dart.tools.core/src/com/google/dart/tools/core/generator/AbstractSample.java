@@ -51,7 +51,7 @@ public class AbstractSample {
         new ChromePackagedAppSample(),
         new CommandLineSample(),
         new WebAppSample(),
-        new WebUiSample());
+        new PolymerSample());
   }
 
   private String title;

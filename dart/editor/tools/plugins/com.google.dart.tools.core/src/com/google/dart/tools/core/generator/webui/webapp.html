@@ -7,7 +7,10 @@
     <link rel="stylesheet" href="{name.lower}.css">
     
     <!-- import the click-counter -->
-    <link rel="import" href="xclickcounter.html">
+    <link rel="import" href="clickcounter.html">
+    <!-- This is the bootstrap script for Polymer. 
+         Use this INSTEAD of dart.js -->
+    <script src="packages/polymer/boot.js"></script>
   </head>
   <body>
     <h1>{name.title}</h1>
@@ -15,10 +18,11 @@
     <p>Hello world from Dart!</p>
     
     <div id="sample_container_id">
-      <div is="x-click-counter" id="click_counter" count="{{startingCount}}"></div>
+      <template id="tmpl" bind>
+        <click-counter count="{{}}"></click-counter>
+      </template>
     </div>
 
     <script type="application/dart" src="{name.lower}.dart"></script>
-    <script src="packages/browser/dart.js"></script>
   </body>
 </html>

@@ -19,13 +19,4 @@ h1, p {
   background-color: #fff;
 }
 
-#click_counter {
-  font-size: 24pt;
-  text-align: center;
-  margin-top: 140px;
-}
 
-#click_counter button {
-  font-size: 24pt;
-  margin-bottom: 20px;
-}

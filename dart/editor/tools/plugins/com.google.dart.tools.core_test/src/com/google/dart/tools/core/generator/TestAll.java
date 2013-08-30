@@ -23,7 +23,7 @@ public class TestAll {
     suite.addTestSuite(CommandLineSampleTest.class);
     suite.addTestSuite(ChromePackagedAppSampleTest.class);
     suite.addTestSuite(WebAppSampleTest.class);
-    suite.addTestSuite(WebUiSampleTest.class);
+    suite.addTestSuite(PolymerSampleTest.class);
     return suite;
   }
 }

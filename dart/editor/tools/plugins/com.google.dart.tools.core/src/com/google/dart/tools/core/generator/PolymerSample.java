@@ -18,29 +18,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Create a sample web application using the Web UI (web_ui) package.
+ * Create a sample web application using the Polymer (polymer) package.
  * 
  * @coverage dart.tools.core.generator
  */
-public class WebUiSample extends AbstractSample {
+public class PolymerSample extends AbstractSample {
 
-  public WebUiSample() {
+  public PolymerSample() {
     super(
-        "Web application (using the web_ui library)",
-        "Create a sample web application using the Web UI (web_ui) library");
+        "Web application (using the polymer library)",
+        "Create a sample web application using the Polymer (polymer) library");
 
     List<String[]> templates = new ArrayList<String[]>();
 
     templates.add(new String[] {
         "pubspec.yaml",
-        "name: {name}\ndescription: A sample WebUI application\n"
-            + "dependencies:\n  browser: any\n  js: any\n  web_ui: any\n"});
+        "name: {name}\ndescription: A sample Polymer application\n"
+            + "dependencies:\n    polymer: any\n"});
     templates.add(new String[] {"build.dart", "@webui/build.dart"});
     templates.add(new String[] {"web/{name.lower}.dart", "@webui/webapp.dart"});
     templates.add(new String[] {"web/{name.lower}.html", "@webui/webapp.html"});
     templates.add(new String[] {"web/{name.lower}.css", "@webui/webapp.css"});
-    templates.add(new String[] {"web/xclickcounter.dart", "@webui/xclickcounter.dart"});
-    templates.add(new String[] {"web/xclickcounter.html", "@webui/xclickcounter.html"});
+    templates.add(new String[] {"web/clickcounter.dart", "@webui/clickcounter.dart"});
+    templates.add(new String[] {"web/clickcounter.html", "@webui/clickcounter.html"});
 
     setTemplates(templates);
     setMainFile("web/{name.lower}.html");

@@ -22,14 +22,14 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Path;
 
-public class WebUiSampleTest extends TestCase {
+public class PolymerSampleTest extends TestCase {
 
   public void testGenerateSample() throws Exception {
     PlainTestProject testProject = new PlainTestProject("sample");
     IProject project = testProject.getProject();
 
     try {
-      WebUiSample generator = new WebUiSample();
+      PolymerSample generator = new PolymerSample();
 
       IFile mainFile = generator.generateInto(project, "foo");
 
@@ -38,17 +38,14 @@ public class WebUiSampleTest extends TestCase {
 
       IContainer parent = mainFile.getParent();
 
-      // assert that there are no analysis errors
-
-      IFile buildFile = parent.getParent().getFile(new Path("build.dart"));
-      assertTrue(buildFile.exists());
-      // TODO(devoncarew): we can't call this - web_ui doesn't exist in our repo
-      //GeneratorUtils.assertNoAnalysisErrors(buildFile);
+      IFile clickCounterFile = parent.getFile(new Path("clickcounter.dart"));
+      assertTrue(clickCounterFile.exists());
 
       IFile fooDartFile = parent.getFile(new Path("foo.dart"));
       assertTrue(fooDartFile.exists());
-      // TODO(devoncarew): we can't call this - web_ui doesn't exist in our repo
-      //GeneratorUtils.assertNoAnalysisErrors(fooDartFile);
+      // TODO(keertip): fix this to analyze against package directory built during the 
+      // build process.
+      // GeneratorUtils.assertNoAnalysisErrors(fooDartFile);
     } finally {
       testProject.dispose();
     }
