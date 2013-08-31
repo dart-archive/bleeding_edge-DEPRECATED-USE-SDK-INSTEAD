@@ -154,6 +154,15 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
     return typeProvider;
   }
 
+  /**
+   * Report an error with the given analysis error.
+   * 
+   * @param errorCode analysis error
+   */
+  public void reportError(AnalysisError analysisError) {
+    errorListener.onError(analysisError);
+  }
+
   @Override
   public Void visitBlock(Block node) {
     Scope outerScope = nameScope;
@@ -446,6 +455,15 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
    */
   protected Scope getNameScope() {
     return nameScope;
+  }
+
+  /**
+   * Return the source.
+   * 
+   * @return the source
+   */
+  protected Source getSource() {
+    return source;
   }
 
   /**

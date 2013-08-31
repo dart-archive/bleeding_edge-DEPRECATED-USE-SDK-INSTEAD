@@ -75,8 +75,11 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
@@ -126,6 +129,11 @@ public class ResolverVisitor extends ScopedVisitor {
   private TypeOverrideManager overrideManager = new TypeOverrideManager();
 
   /**
+   * Proxy conditional error codes.
+   */
+  private ArrayList<ProxyConditionalAnalysisError> proxyConditionalAnalysisErrors = new ArrayList<ProxyConditionalAnalysisError>();
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
    * 
    * @param library the library containing the compilation unit being resolved
@@ -164,6 +172,10 @@ public class ResolverVisitor extends ScopedVisitor {
    */
   public TypeOverrideManager getOverrideManager() {
     return overrideManager;
+  }
+
+  public ArrayList<ProxyConditionalAnalysisError> getProxyConditionalAnalysisErrors() {
+    return proxyConditionalAnalysisErrors;
   }
 
   @Override
@@ -799,6 +811,52 @@ public class ResolverVisitor extends ScopedVisitor {
     if (currentType == null || !currentType.isMoreSpecificThan(potentialType)) {
       overrideManager.setType(element, potentialType);
     }
+  }
+
+  /**
+   * Report a conditional analysis error with the given error code and arguments.
+   * 
+   * @param enclosingElement the enclosing element
+   * @param errorCode the error code of the error to be reported
+   * @param node the node specifying the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  protected void reportErrorProxyConditionalAnalysisError(Element enclosingElement,
+      ErrorCode errorCode, ASTNode node, Object... arguments) {
+    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
+        enclosingElement,
+        new AnalysisError(getSource(), node.getOffset(), node.getLength(), errorCode, arguments)));
+  }
+
+  /**
+   * Report a conditional analysis error with the given error code and arguments.
+   * 
+   * @param enclosingElement the enclosing element
+   * @param errorCode the error code of the error to be reported
+   * @param offset the offset of the location of the error
+   * @param length the length of the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  protected void reportErrorProxyConditionalAnalysisError(Element enclosingElement,
+      ErrorCode errorCode, int offset, int length, Object... arguments) {
+    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
+        enclosingElement,
+        new AnalysisError(getSource(), offset, length, errorCode, arguments)));
+  }
+
+  /**
+   * Report a conditional analysis error with the given error code and arguments.
+   * 
+   * @param enclosingElement the enclosing element
+   * @param errorCode the error code of the error to be reported
+   * @param token the token specifying the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  protected void reportErrorProxyConditionalAnalysisError(Element enclosingElement,
+      ErrorCode errorCode, Token token, Object... arguments) {
+    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(
+        enclosingElement,
+        new AnalysisError(getSource(), token.getOffset(), token.getLength(), errorCode, arguments)));
   }
 
   @Override

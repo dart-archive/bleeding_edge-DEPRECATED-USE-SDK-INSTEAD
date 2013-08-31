@@ -1823,19 +1823,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod() throws Exception {
-    Source source = addSource(createSource(//
-        "abstract class A {",
-        "  m(p);",
-        "}",
-        "class B extends A {",
-        "  noSuchMethod(invocation) {}",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-    verify(source);
-  }
-
   public void test_nonBoolExpression_functionType() throws Exception {
     Source source = addSource(createSource(//
         "bool makeAssertion() => true;",
@@ -2258,6 +2245,97 @@ public class NonErrorResolverTest extends ResolverTestCase {
     resolve(source);
     assertNoErrors();
     verify(source);
+  }
+
+  public void test_proxy_annotation_prefixed() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'meta.dart';",
+        "@proxy",
+        "class A {}",
+        "f(A a) {",
+        "  a.m();",
+        "  var x = a.g;",
+        "  a.s = 1;",
+        "  var y = a + a;",
+        "  a++;",
+        "  ++a;",
+        "}"));
+    addSource("/meta.dart", createSource(//
+        "library meta;",
+        "const proxy = const _Proxy();",
+        "class _Proxy { const _Proxy(); }"));
+    resolve(source);
+    assertNoErrors();
+  }
+
+  public void test_proxy_annotation_prefixed2() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'meta.dart';",
+        "@proxy",
+        "class A {}",
+        "class B {",
+        "  f(A a) {",
+        "    a.m();",
+        "    var x = a.g;",
+        "    a.s = 1;",
+        "    var y = a + a;",
+        "    a++;",
+        "    ++a;",
+        "  }",
+        "}"));
+    addSource("/meta.dart", createSource(//
+        "library meta;",
+        "const proxy = const _Proxy();",
+        "class _Proxy { const _Proxy(); }"));
+    resolve(source);
+    assertNoErrors();
+  }
+
+  public void test_proxy_annotation_prefixed3() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'meta.dart';",
+        "class B {",
+        "  f(A a) {",
+        "    a.m();",
+        "    var x = a.g;",
+        "    a.s = 1;",
+        "    var y = a + a;",
+        "    a++;",
+        "    ++a;",
+        "  }",
+        "}",
+        "@proxy",
+        "class A {}"));
+    addSource("/meta.dart", createSource(//
+        "library meta;",
+        "const proxy = const _Proxy();",
+        "class _Proxy { const _Proxy(); }"));
+    resolve(source);
+    assertNoErrors();
+  }
+
+  public void test_proxy_annotation_simple() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'meta.dart';",
+        "@proxy",
+        "class B {",
+        "  m() {",
+        "    n();",
+        "    var x = g;",
+        "    s = 1;",
+        "    var y = this + this;",
+        "  }",
+        "}"));
+    addSource("/meta.dart", createSource(//
+        "library meta;",
+        "const proxy = const _Proxy();",
+        "class _Proxy { const _Proxy(); }"));
+    resolve(source);
+    assertNoErrors();
   }
 
   public void test_recursiveConstructorRedirect() throws Exception {

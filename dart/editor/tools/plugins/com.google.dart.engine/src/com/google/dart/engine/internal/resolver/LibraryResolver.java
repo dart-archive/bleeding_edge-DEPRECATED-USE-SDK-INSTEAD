@@ -807,6 +807,11 @@ public class LibraryResolver {
     for (Source source : library.getCompilationUnitSources()) {
       ResolverVisitor visitor = new ResolverVisitor(library, source, typeProvider);
       library.getAST(source).accept(visitor);
+      for (ProxyConditionalAnalysisError conditionalCode : visitor.getProxyConditionalAnalysisErrors()) {
+        if (conditionalCode.shouldIncludeErrorCode()) {
+          visitor.reportError(conditionalCode.getAnalysisError());
+        }
+      }
     }
   }
 

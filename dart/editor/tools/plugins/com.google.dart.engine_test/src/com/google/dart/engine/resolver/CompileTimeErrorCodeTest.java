@@ -128,9 +128,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library lib2;",
         "f() {}"));
     resolve(source);
-    assertErrors(
-        StaticWarningCode.AMBIGUOUS_IMPORT,
-        StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+    assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT, CompileTimeErrorCode.UNDEFINED_FUNCTION);
   }
 
   public void test_argumentDefinitionTestNonParameter() throws Exception {
