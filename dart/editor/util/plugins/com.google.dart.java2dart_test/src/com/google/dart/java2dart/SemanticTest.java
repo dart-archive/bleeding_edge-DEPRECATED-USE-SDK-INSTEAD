@@ -728,24 +728,15 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class Test implements Enum<Test> {",
+            "class Test extends Enum<Test> {",
             "  static final Test EOF = new Test_EOF('EOF', 0, 5);",
             "  static final Test DEF = new Test.con1('DEF', 1);",
             "  static final List<Test> values = [EOF, DEF];",
-            "  ",
-            "  /// The name of this enum constant, as declared in the enum declaration.",
-            "  final String name;",
-            "  ",
-            "  /// The position in the enum declaration.",
-            "  final int ordinal;",
-            "  Test.con1(this.name, this.ordinal);",
-            "  Test.con2(this.name, this.ordinal, int p);",
+            "  Test.con1(String name, int ordinal) : super(name, ordinal);",
+            "  Test.con2(String name, int ordinal, int p) : super(name, ordinal);",
             "  void foo() {",
             "    print(1);",
             "  }",
-            "  int compareTo(Test other) => ordinal - other.ordinal;",
-            "  int hashCode => ordinal;",
-            "  String toString() => name;",
             "}",
             "class Test_EOF extends Test {",
             "  Test_EOF(String name, int ordinal, int arg0) : super.con2(name, ordinal, arg0);",
@@ -775,20 +766,11 @@ public class SemanticTest extends AbstractSemanticTest {
         toString(
             "class Test {",
             "}",
-            "class MyEnum implements Enum<MyEnum> {",
+            "class MyEnum extends Enum<MyEnum> {",
             "  static final MyEnum ONE = new MyEnum('ONE', 0);",
             "  static final MyEnum TWO = new MyEnum('TWO', 1);",
             "  static final List<MyEnum> values = [ONE, TWO];",
-            "  ",
-            "  /// The name of this enum constant, as declared in the enum declaration.",
-            "  final String name;",
-            "  ",
-            "  /// The position in the enum declaration.",
-            "  final int ordinal;",
-            "  MyEnum(this.name, this.ordinal);",
-            "  int compareTo(MyEnum other) => ordinal - other.ordinal;",
-            "  int hashCode => ordinal;",
-            "  String toString() => name;",
+            "  MyEnum(String name, int ordinal) : super(name, ordinal);",
             "}"),
         getFormattedSource(unit));
   }
@@ -808,20 +790,11 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class Test implements Enum<Test> {",
+            "class Test extends Enum<Test> {",
             "  static final Test ONE = new Test('ONE', 0);",
             "  static final Test TWO = new Test('TWO', 1);",
             "  static final List<Test> values = [ONE, TWO];",
-            "  ",
-            "  /// The name of this enum constant, as declared in the enum declaration.",
-            "  final String name;",
-            "  ",
-            "  /// The position in the enum declaration.",
-            "  final int ordinal;",
-            "  Test(this.name, this.ordinal);",
-            "  int compareTo(Test other) => ordinal - other.ordinal;",
-            "  int hashCode => ordinal;",
-            "  String toString() => name;",
+            "  Test(String name, int ordinal) : super(name, ordinal);",
             "}"),
         getFormattedSource(unit));
   }
@@ -848,23 +821,14 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class Test implements Enum<Test> {",
+            "class Test extends Enum<Test> {",
             "  static final Test ONE = new Test.con1('ONE', 0);",
             "  static final Test TWO = new Test.withPriority('TWO', 1, 2);",
             "  static final List<Test> values = [ONE, TWO];",
-            "  ",
-            "  /// The name of this enum constant, as declared in the enum declaration.",
-            "  final String name;",
-            "  ",
-            "  /// The position in the enum declaration.",
-            "  final int ordinal;",
             "  Test.con1(String name, int ordinal) : this.withPriority(name, ordinal, 0);",
-            "  Test.withPriority(this.name, this.ordinal, int p) {",
+            "  Test.withPriority(String name, int ordinal, int p) : super(name, ordinal) {",
             "    print(p);",
             "  }",
-            "  int compareTo(Test other) => ordinal - other.ordinal;",
-            "  int hashCode => ordinal;",
-            "  String toString() => name;",
             "}"),
         getFormattedSource(unit));
   }
@@ -1734,20 +1698,11 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class A implements Enum<A> {",
+            "class A extends Enum<A> {",
             "  static final A ONE = new A('ONE', 0);",
             "  static final A TWO = new A('TWO', 1);",
             "  static final List<A> values = [ONE, TWO];",
-            "  ",
-            "  /// The name of this enum constant, as declared in the enum declaration.",
-            "  final String name;",
-            "  ",
-            "  /// The position in the enum declaration.",
-            "  final int ordinal;",
-            "  A(this.name, this.ordinal);",
-            "  int compareTo(A other) => ordinal - other.ordinal;",
-            "  int hashCode => ordinal;",
-            "  String toString() => name;",
+            "  A(String name, int ordinal) : super(name, ordinal);",
             "}",
             "class B {",
             "  void main(A p) {",

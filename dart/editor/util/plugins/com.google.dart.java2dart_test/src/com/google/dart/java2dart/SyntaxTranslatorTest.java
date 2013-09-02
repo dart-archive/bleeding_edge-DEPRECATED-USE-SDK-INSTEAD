@@ -239,19 +239,10 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
     assertDartSource(
         "abstract class I {",
         "}",
-        "class Direction implements Enum<Direction>, I {",
+        "class Direction extends Enum<Direction> implements I {",
         "  static final List<Direction> values = [];",
-        "  ",
-        "  /// The name of this enum constant, as declared in the enum declaration.",
-        "  final String name;",
-        "  ",
-        "  /// The position in the enum declaration.",
-        "  final int ordinal;",
-        "  Direction.jtd_constructor_0_decl(this.name, this.ordinal) {",
+        "  Direction.jtd_constructor_0_decl(String name, int ordinal) : super(name, ordinal) {",
         "  }",
-        "  int compareTo(Direction other) => ordinal - other.ordinal;",
-        "  int hashCode => ordinal;",
-        "  String toString() => name;",
         "}");
   }
 
@@ -1705,17 +1696,22 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
   public void test_typeWildcard() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "import java.util.*;",
         "public class A {",
         "  void test() {",
         "    List<?> v1;",
         "    List<? extends String> v2;",
+        "    Map<?, String> v3;",
+        "    Map<?, ?> v4;",
         "  }",
         "}");
     assertDartSource(//
         "class A {",
         "  void test() {",
-        "    List<Object> v1;",
+        "    List v1;",
         "    List<String> v2;",
+        "    Map<dynamic, String> v3;",
+        "    Map v4;",
         "  }",
         "}");
   }

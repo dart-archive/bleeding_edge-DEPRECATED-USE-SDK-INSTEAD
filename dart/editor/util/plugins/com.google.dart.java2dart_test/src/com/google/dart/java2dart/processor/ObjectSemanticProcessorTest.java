@@ -454,16 +454,16 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
         "public class Test {",
-        "  Object o;",
+        "  Object p;",
         "  public boolean equals(Object o) {",
-        "    return this.equals(o);",
+        "    return o instanceof Test && p.equals(((Test) o).p);",
         "  }",
         "}");
     runProcessor();
     assertFormattedSource(//
         "class Test {",
-        "  Object o;",
-        "  bool operator ==(Object o) => this == o;",
+        "  Object p;",
+        "  bool operator ==(Object o) => o is Test && p == ((o as Test)).p;",
         "}");
   }
 

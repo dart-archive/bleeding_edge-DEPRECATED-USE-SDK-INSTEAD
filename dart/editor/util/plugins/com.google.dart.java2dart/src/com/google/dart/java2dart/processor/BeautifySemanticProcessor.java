@@ -14,13 +14,13 @@
 
 package com.google.dart.java2dart.processor;
 
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.IsExpression;
-import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.ReturnStatement;
@@ -36,12 +36,13 @@ import static com.google.dart.java2dart.util.TokenFactory.token;
  */
 public class BeautifySemanticProcessor extends SemanticProcessor {
   private static boolean canRemovePathenthesis(ParenthesizedExpression node) {
+    // unwrap all enclosing parentheses
+    while (node.getParent() instanceof ParenthesizedExpression) {
+      node = (ParenthesizedExpression) node.getParent();
+    }
     // argument of invocation
-    if (node.getParent() instanceof MethodInvocation) {
-      MethodInvocation invocation = (MethodInvocation) node.getParent();
-      if (invocation.getArgumentList().getArguments().contains(node)) {
-        return true;
-      }
+    if (node.getParent() instanceof ArgumentList) {
+      return true;
     }
     // RHS of assignment
     if (node.getParent() instanceof AssignmentExpression) {

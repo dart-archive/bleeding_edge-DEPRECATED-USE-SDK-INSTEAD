@@ -42,6 +42,7 @@ import static com.google.dart.java2dart.util.ASTFactory.typeName;
 
 import org.eclipse.jdt.core.dom.IMethodBinding;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -183,10 +184,18 @@ public class ConstructorSemanticProcessor extends SemanticProcessor {
       return;
     }
     // add redirecting constructor invocation
+    List<ConstructorInitializer> initializers = node.getInitializers();
     RedirectingConstructorInvocation redirect = redirectingConstructorInvocation(
         "thisConstructorRedirection",
         methodInvocation.getArgumentList().getArguments());
-    node.getInitializers().add(redirect);
+    initializers.add(redirect);
+    // remove speculative "super" constructor invocation
+    for (Iterator<ConstructorInitializer> iter = initializers.iterator(); iter.hasNext();) {
+      ConstructorInitializer initializer = iter.next();
+      if (initializer instanceof SuperConstructorInvocation) {
+        iter.remove();
+      }
+    }
     // remove body
     node.setBody(emptyFunctionBody());
     // record constructor invocation
