@@ -94,6 +94,9 @@ public class AnalyzerOptions {
     List<String> result = new ArrayList<String>();
 
     for (String arg : args) {
+      if (arg.isEmpty()) {
+        continue;
+      }
       if (arg.indexOf('=') != -1) {
         String[] strs = arg.split("=");
         result.add(strs[0]);
