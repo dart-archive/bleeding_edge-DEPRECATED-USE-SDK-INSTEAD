@@ -49,7 +49,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.eclipse.ui.forms.DetailsPart;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.MasterDetailsBlock;
@@ -244,12 +243,11 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
     int result = Window.OK;
     String name = null;
     if (list.length > 0) {
-      ElementListSelectionDialog inputDialog = new ElementListSelectionDialog(
+      PackageSelectionDialog inputDialog = new PackageSelectionDialog(
           PlatformUI.getWorkbench().getDisplay().getActiveShell(),
-          new LabelProvider());
+          list);
       inputDialog.setTitle("Add dependency");
       inputDialog.setMessage("Enter name of package:");
-      inputDialog.setElements(list);
       result = inputDialog.open();
       if (result == Window.OK) {
         name = (String) inputDialog.getFirstResult();
