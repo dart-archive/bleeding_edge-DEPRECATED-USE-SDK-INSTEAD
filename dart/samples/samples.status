@@ -15,7 +15,6 @@ swarm/test/swarm_test: Pass, Crash, Fail # Issue 10950
 
 [ $compiler == none && $runtime == drt ]
 dartcombat/test/dartcombat_test: Skip # Issue 2790
-swarm/test/swarm_test: Pass, Fail # Issue 3977
 
 [ $runtime == chrome || $runtime == ff || $runtime == safari ]
 dartcombat/test/dartcombat_test: Skip # passes locally but timeout on bot?
