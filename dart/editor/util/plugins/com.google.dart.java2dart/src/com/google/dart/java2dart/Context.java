@@ -1035,6 +1035,9 @@ public class Context {
         }
         memberNamesInClass.add(name);
         // apply name
+        if ("<empty>".equals(name)) {
+          name = null;
+        }
         renameConstructor(node, name);
         // continue
         return super.visitConstructorDeclaration(node);

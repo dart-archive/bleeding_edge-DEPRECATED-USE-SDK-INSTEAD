@@ -148,7 +148,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
   /**
    * The object used to record the results of performing an analysis task.
    */
-  private AnalysisTaskResultRecorder resultRecorder = new AnalysisTaskResultRecorder();
+  private AnalysisTaskResultRecorder resultRecorder;
 
   /**
    * The maximum number of sources for which data should be kept in the cache.
@@ -168,6 +168,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
    */
   public AnalysisContextImpl2() {
     super();
+    resultRecorder = new AnalysisTaskResultRecorder();
   }
 
   @Override

@@ -61,6 +61,7 @@ import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SuperExpression;
+import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
@@ -1455,14 +1456,49 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
               Keyword.FINAL,
               enclosingTypeName,
               variableDeclaration(enclosingTypeRef)));
+      boolean hasConstructors = false;
       for (ClassMember member : members) {
         if (member instanceof ConstructorDeclaration) {
+          hasConstructors = true;
           ConstructorDeclaration constructor = (ConstructorDeclaration) member;
           constructor.getParameters().getParameters().add(
               0,
               fieldFormalParameter(null, null, enclosingTypeRef));
           context.getConstructorDescription(constructor).insertEnclosingTypeRef = true;
         }
+      }
+      // no constructors, add default one
+      if (!hasConstructors) {
+        ConstructorDeclaration constructor = constructorDeclaration(
+            name,
+            null,
+            formalParameterList(fieldFormalParameter(null, null, enclosingTypeRef)),
+            null);
+        boolean addedConstructor = false;
+        members = classDeclaration.getMembers();
+        for (int i = 0; i < members.size(); i++) {
+          ClassMember classMember = members.get(i);
+          if (!(classMember instanceof FieldDeclaration)) {
+            addedConstructor = true;
+            members.add(i, constructor);
+            break;
+          }
+        }
+        if (!addedConstructor) {
+          members.add(constructor);
+        }
+        // register generated default constructor with its binding
+        {
+          IMethodBinding[] javaMethodBindings = binding.getDeclaredMethods();
+          for (IMethodBinding javaMethodBinding : javaMethodBindings) {
+            if (javaMethodBinding.isConstructor()) {
+              context.putConstructorBinding(constructor, javaMethodBinding);
+              break;
+            }
+          }
+        }
+        // mark: add enclosing instance argument
+        context.getConstructorDescription(constructor).insertEnclosingTypeRef = true;
       }
     }
     // done
@@ -1707,10 +1743,12 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         innerClass.accept(new RecursiveASTVisitor<Void>() {
           @Override
           public Void visitMethodInvocation(MethodInvocation node) {
-            if (node.getTarget() == null) {
+            Expression target = node.getTarget();
+            if (target == null || target instanceof ThisExpression) {
               IMethodBinding methodBinding = (IMethodBinding) context.getNodeBinding(node);
+              // TODO(scheglov) check also super classes
               if (methodBinding != null
-                  && methodBinding.getDeclaringClass() == enclosingTypeBinding) {
+                  && JavaUtils.isSubtype(enclosingTypeBinding, methodBinding.getDeclaringClass())) {
                 addEnclosingTypeRef.set(true);
                 node.setTarget(enclosingTypeRef);
               }
@@ -1720,15 +1758,27 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
           @Override
           public Void visitSimpleIdentifier(SimpleIdentifier node) {
-            if (!(node.getParent() instanceof PropertyAccess)
-                && !(node.getParent() instanceof PrefixedIdentifier)) {
-              Object binding = context.getNodeBinding(node);
-              if (binding instanceof IVariableBinding) {
-                IVariableBinding variableBinding = (IVariableBinding) binding;
-                if (variableBinding.isField()
-                    && variableBinding.getDeclaringClass() == enclosingTypeBinding) {
-                  addEnclosingTypeRef.set(true);
+            ASTNode target = null;
+            if (node.getParent() instanceof PrefixedIdentifier) {
+              return null;
+            }
+            if (node.getParent() instanceof PropertyAccess) {
+              PropertyAccess access = (PropertyAccess) node.getParent();
+              target = access.getTarget();
+              if (!(target instanceof ThisExpression)) {
+                return null;
+              }
+            }
+            Object binding = context.getNodeBinding(node);
+            if (binding instanceof IVariableBinding) {
+              IVariableBinding variableBinding = (IVariableBinding) binding;
+              if (variableBinding.isField()
+                  && variableBinding.getDeclaringClass() == enclosingTypeBinding) {
+                addEnclosingTypeRef.set(true);
+                if (target == null) {
                   replaceNode(node.getParent(), node, propertyAccess(enclosingTypeRef, node));
+                } else {
+                  replaceNode(target.getParent(), target, enclosingTypeRef);
                 }
               }
             }

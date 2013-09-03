@@ -141,6 +141,7 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/resolver"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/scope"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/task"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/type"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/verifier"));
     context.addSourceFile(new File(
@@ -187,6 +188,9 @@ public class MainEngine {
             + "Lcom/google/dart/engine/scanner/Token;Lcom/google/dart/engine/ast/Expression;"
             + "Lcom/google/dart/engine/scanner/Token;)",
         "forCascade");
+    context.addRename(
+        "Lcom/google/dart/engine/sdk/DirectoryBasedDartSdk;.(Ljava/io/File;)",
+        "<empty>");
     context.addRename(
         "Lcom/google/dart/engine/html/ast/XmlTagNode;.becomeParentOf<T:Lcom/google/dart/engine/html/ast/XmlNode;>(Ljava/util/List<TT;>;Ljava/util/List<TT;>;)",
         "becomeParentOfEmpty");
@@ -620,7 +624,7 @@ public class MainEngine {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "AnalysisEngine.java") || isEnginePath(file, "utilities/logging/")
           || isEnginePath(file, "context/") || isEnginePath(file, "internal/cache/")
-          || isEnginePath(file, "internal/context/")) {
+          || isEnginePath(file, "internal/context/") || isEnginePath(file, "internal/task/")) {
         unit.getDeclarations().add(member);
       }
     }
@@ -1095,7 +1099,7 @@ public class MainEngine {
     if (index == -1) {
       throw new IllegalArgumentException("Not found: " + pattern);
     }
-    return StringUtils.replaceOnce(source, pattern, replacement);
+    return StringUtils.replace(source, pattern, replacement);
   }
 
   /**

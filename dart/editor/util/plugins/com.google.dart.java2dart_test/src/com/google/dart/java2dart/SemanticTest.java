@@ -282,6 +282,95 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_classInner_enclosingSuperClass() throws Exception {
+    setFileLines(
+        "test/S.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class S {",
+            "  void outerMethod() {}",
+            "}"));
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class A extends S {",
+            "  public class B {",
+            "    public B() {}",
+            "    void test() {",
+            "      outerMethod();",
+            "    }",
+            "  }",
+            "  B test2() {",
+            "    return new B();",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // do translate
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A extends S {",
+            "  A_B test2() => new A_B(this);",
+            "}",
+            "class A_B {",
+            "  final A A_this;",
+            "  A_B(this.A_this);",
+            "  void test() {",
+            "    A_this.outerMethod();",
+            "  }",
+            "}",
+            "class S {",
+            "  void outerMethod() {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_classInner_enclosingThisQualifier() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class A {",
+            "  public class B {",
+            "    void test() {",
+            "      A.this.outerField = 5;",
+            "      A.this.outerMethod();",
+            "    }",
+            "  }",
+            "  int outerField;",
+            "  void outerMethod() {}",
+            "  B test2() {",
+            "    return new B();",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // do translate
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  int outerField = 0;",
+            "  void outerMethod() {",
+            "  }",
+            "  A_B test2() => new A_B(this);",
+            "}",
+            "class A_B {",
+            "  final A A_this;",
+            "  A_B(this.A_this);",
+            "  void test() {",
+            "    A_this.outerField = 5;",
+            "    A_this.outerMethod();",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_classInner_referenceFromAnonymous() throws Exception {
     setFileLines(
         "test/A.java",
