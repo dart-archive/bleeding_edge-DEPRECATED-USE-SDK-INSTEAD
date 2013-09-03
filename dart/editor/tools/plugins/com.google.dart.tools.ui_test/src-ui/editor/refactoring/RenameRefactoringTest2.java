@@ -41,7 +41,7 @@ public final class RenameRefactoringTest2 extends AbstractDartEditorTabTest2 {
     }
   }
 
-  public void test_renameClass() throws Exception {
+  public void issue_12990_test_renameClass() throws Exception {
     openTestEditor(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {}",
