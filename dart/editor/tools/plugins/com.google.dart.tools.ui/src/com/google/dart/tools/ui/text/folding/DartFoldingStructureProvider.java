@@ -48,6 +48,7 @@ import org.eclipse.jface.text.source.projection.IProjectionPosition;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -668,7 +669,14 @@ public class DartFoldingStructureProvider implements IDartFoldingStructureProvid
   }
 
   public void refresh() {
-    update(createContext(false));
+    final FoldingStructureComputationContext context = createContext(false);
+
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        update(context);
+      }
+    });
   }
 
   @Override
