@@ -418,6 +418,9 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   public AnalysisContextImpl() {
     super();
+    if (AnalysisEngine.getInstance().getUseExperimentalContext()) {
+      throw new RuntimeException("Should not be creating an instance of AnalysisContextImpl");
+    }
   }
 
   @Override
@@ -650,6 +653,23 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       }
       internalParseDart(source);
     }
+  }
+
+  @Override
+  public ResolvableHtmlUnit computeResolvableHtmlUnit(Source source) throws AnalysisException {
+    HtmlEntry htmlEntry = getReadableHtmlEntry(source);
+    if (htmlEntry == null) {
+      throw new AnalysisException("computeResolvableHtmlUnit invoked for non-HTML file: "
+          + source.getFullName());
+    }
+    htmlEntry = internalCacheHtmlParseData(source, htmlEntry, HtmlEntry.PARSED_UNIT);
+    HtmlUnit unit = htmlEntry.getValue(HtmlEntry.PARSED_UNIT);
+    if (unit == null) {
+      throw new AnalysisException("Internal error: computeResolvableHtmlUnit could not parse "
+          + source.getFullName());
+    }
+    // If the unit is ever modified by resolution then we will need to create a copy of it.
+    return new ResolvableHtmlUnit(htmlEntry.getModificationTime(), unit);
   }
 
   @Override

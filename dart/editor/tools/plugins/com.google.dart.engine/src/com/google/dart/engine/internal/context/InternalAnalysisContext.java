@@ -68,7 +68,18 @@ public interface InternalAnalysisContext extends AnalysisContext {
    * @return the AST structure representing the content of the source
    * @throws AnalysisException if the analysis could not be performed
    */
-  public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException;
+  public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
+      throws AnalysisException;
+
+  /**
+   * Return an AST structure corresponding to the given source, but ensure that the structure has
+   * not already been resolved and will not be resolved by any other threads.
+   * 
+   * @param source the compilation unit for which an AST structure should be returned
+   * @return the AST structure representing the content of the source
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  public ResolvableHtmlUnit computeResolvableHtmlUnit(Source source) throws AnalysisException;
 
   /**
    * Initialize the specified context by removing the specified sources from the receiver and adding

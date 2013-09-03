@@ -43,7 +43,7 @@ public class TestSource extends FileBasedSource {
    * @param contents the contents of the file represented by this source
    */
   public TestSource(ContentCache contentCache, File file, String contents) {
-    super(contentCache, file);
+    super(contentCache == null ? new ContentCache() : contentCache, file);
     this.contents = contents;
   }
 

@@ -1,5 +1,6 @@
 package com.google.dart.engine.internal.context;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
@@ -62,7 +63,8 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
    * {@link AnalysisContextImpl} as the basis context.
    */
   public InstrumentedAnalysisContextImpl() {
-    this(new AnalysisContextImpl());
+    this(AnalysisEngine.getInstance().getUseExperimentalContext()
+        ? new DelegatingAnalysisContextImpl2() : new DelegatingAnalysisContextImpl());
   }
 
   /**
@@ -193,8 +195,14 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException {
+  public ResolvableCompilationUnit computeResolvableCompilationUnit(Source source)
+      throws AnalysisException {
     return basis.computeResolvableCompilationUnit(source);
+  }
+
+  @Override
+  public ResolvableHtmlUnit computeResolvableHtmlUnit(Source source) throws AnalysisException {
+    return basis.computeResolvableHtmlUnit(source);
   }
 
   @Override

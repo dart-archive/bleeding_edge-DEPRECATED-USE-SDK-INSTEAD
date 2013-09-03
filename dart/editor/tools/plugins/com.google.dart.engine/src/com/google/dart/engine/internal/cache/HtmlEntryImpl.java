@@ -152,7 +152,22 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   }
 
   /**
-   * Invalidate all of the resolution information associated with the compilation unit.
+   * Invalidate all of the information associated with the HTML file.
+   */
+  public void invalidateAllInformation() {
+    setState(LINE_INFO, CacheState.INVALID);
+
+    parsedUnit = null;
+    parsedUnitState = CacheState.INVALID;
+
+    referencedLibraries = Source.EMPTY_ARRAY;
+    referencedLibrariesState = CacheState.INVALID;
+
+    invalidateAllResolutionInformation();
+  }
+
+  /**
+   * Invalidate all of the resolution information associated with the HTML file.
    */
   public void invalidateAllResolutionInformation() {
     element = null;
@@ -163,6 +178,15 @@ public class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
     hints = AnalysisError.NO_ERRORS;
     hintsState = CacheState.INVALID;
+  }
+
+  /**
+   * Record that an error was encountered while attempting to resolve the source associated with
+   * this entry.
+   */
+  public void recordResolutionError() {
+    setState(HtmlEntry.ELEMENT, CacheState.ERROR);
+    setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.ERROR);
   }
 
   @Override

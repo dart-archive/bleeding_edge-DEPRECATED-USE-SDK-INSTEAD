@@ -15,6 +15,7 @@ package com.google.dart.engine;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.DelegatingAnalysisContextImpl;
+import com.google.dart.engine.internal.context.DelegatingAnalysisContextImpl2;
 import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.io.FileUtilities;
@@ -89,6 +90,11 @@ public final class AnalysisEngine {
   private Logger logger = Logger.NULL;
 
   /**
+   * A flag indicating whether the new analysis context should be created.
+   */
+  private boolean useExperimentalContext = false;
+
+  /**
    * Prevent the creation of instances of this class.
    */
   private AnalysisEngine() {
@@ -101,12 +107,19 @@ public final class AnalysisEngine {
    * @return the analysis context that was created
    */
   public AnalysisContext createAnalysisContext() {
-    // If instrumentation is ignoring data, return the uninstrumented analysis context version
+    //
+    // If instrumentation is ignoring data, return an uninstrumented analysis context.
+    //
     if (Instrumentation.isNullLogger()) {
+      if (useExperimentalContext) {
+        return new DelegatingAnalysisContextImpl2();
+      }
       return new DelegatingAnalysisContextImpl();
-    } else {
-      return new InstrumentedAnalysisContextImpl(new DelegatingAnalysisContextImpl());
     }
+    if (useExperimentalContext) {
+      return new InstrumentedAnalysisContextImpl(new DelegatingAnalysisContextImpl2());
+    }
+    return new InstrumentedAnalysisContextImpl(new DelegatingAnalysisContextImpl());
   }
 
   /**
@@ -119,6 +132,15 @@ public final class AnalysisEngine {
   }
 
   /**
+   * Return {@code true} if the new analysis context should be created.
+   * 
+   * @return {@code true} if the new analysis context should be created
+   */
+  public boolean getUseExperimentalContext() {
+    return useExperimentalContext;
+  }
+
+  /**
    * Set the logger that should receive information about errors within the analysis engine to the
    * given logger.
    * 
@@ -127,5 +149,14 @@ public final class AnalysisEngine {
    */
   public void setLogger(Logger logger) {
     this.logger = logger == null ? Logger.NULL : logger;
+  }
+
+  /**
+   * Set whether the new analysis context should be created to the given flag.
+   * 
+   * @param use {@code true} if the new analysis context should be created
+   */
+  public void setUseExperimentalContext(boolean use) {
+    useExperimentalContext = use;
   }
 }

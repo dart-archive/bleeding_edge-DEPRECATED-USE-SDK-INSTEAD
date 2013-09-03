@@ -145,6 +145,15 @@ public class AnalysisCache {
   }
 
   /**
+   * Remove all information related to the given source from this cache.
+   * 
+   * @param source the source to be removed
+   */
+  public void remove(Source source) {
+    sourceMap.remove(source);
+  }
+
+  /**
    * Set the sources for which data should not be flushed to the given array.
    * 
    * @param sources the sources for which data should not be flushed

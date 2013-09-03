@@ -32,6 +32,7 @@ public class TestAll {
     suite.addTest(com.google.dart.engine.internal.scope.TestAll.suite());
     suite.addTest(com.google.dart.engine.internal.sdk.TestAll.suite());
     suite.addTest(com.google.dart.engine.internal.search.TestAll.suite());
+    suite.addTest(com.google.dart.engine.internal.task.TestAll.suite());
     suite.addTest(com.google.dart.engine.internal.type.TestAll.suite());
     return suite;
   }

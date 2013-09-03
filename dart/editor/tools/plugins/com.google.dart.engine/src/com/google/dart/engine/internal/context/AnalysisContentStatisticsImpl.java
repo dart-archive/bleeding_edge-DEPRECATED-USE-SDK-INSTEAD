@@ -15,7 +15,9 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.context.AnalysisContentStatistics;
+import com.google.dart.engine.internal.cache.DartEntry;
 import com.google.dart.engine.internal.cache.DataDescriptor;
+import com.google.dart.engine.source.Source;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -102,6 +104,14 @@ public class AnalysisContentStatisticsImpl implements AnalysisContentStatistics 
   public CacheRow[] getCacheRows() {
     Collection<CacheRow> items = dataMap.values();
     return items.toArray(new CacheRow[items.size()]);
+  }
+
+  public void putCacheItem(DartEntry dartEntry, DataDescriptor<?> descriptor) {
+    putCacheItem(descriptor, dartEntry.getState(descriptor));
+  }
+
+  public void putCacheItem(DartEntry dartEntry, Source librarySource, DataDescriptor<?> descriptor) {
+    putCacheItem(descriptor, dartEntry.getState(descriptor, librarySource));
   }
 
   public void putCacheItem(DataDescriptor<?> rowDesc, CacheState state) {

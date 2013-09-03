@@ -418,6 +418,8 @@ public interface AnalysisContext {
 
   /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.
+   * Return the resolved AST structure, or {@code null} if the source could not be either parsed or
+   * resolved.
    * 
    * @param unitSource the source to be parsed and resolved
    * @param librarySource the source of the defining compilation unit of the library containing the

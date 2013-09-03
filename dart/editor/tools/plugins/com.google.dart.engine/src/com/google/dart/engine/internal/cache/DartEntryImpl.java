@@ -162,6 +162,25 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     }
 
     /**
+     * Record that an in-process parse has stopped without recording results because the results
+     * were invalidated before they could be recorded.
+     */
+    public void recordResolutionNotInProcess() {
+      if (resolvedUnitState == CacheState.IN_PROCESS) {
+        resolvedUnitState = CacheState.INVALID;
+      }
+      if (resolutionErrorsState == CacheState.IN_PROCESS) {
+        resolutionErrorsState = CacheState.INVALID;
+      }
+      if (hintsState == CacheState.IN_PROCESS) {
+        hintsState = CacheState.INVALID;
+      }
+      if (nextState != null) {
+        nextState.recordResolutionNotInProcess();
+      }
+    }
+
+    /**
      * Write a textual representation of this state to the given builder. The result will only be
      * used for debugging purposes.
      * 
@@ -616,6 +635,34 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
+   * Record that an in-process parse has stopped without recording results because the results were
+   * invalidated before they could be recorded.
+   */
+  public void recordParseNotInProcess() {
+    if (getState(LINE_INFO) == CacheState.IN_PROCESS) {
+      setState(LINE_INFO, CacheState.INVALID);
+    }
+    if (sourceKindState == CacheState.IN_PROCESS) {
+      sourceKindState = CacheState.INVALID;
+    }
+    if (parseErrorsState == CacheState.IN_PROCESS) {
+      parseErrorsState = CacheState.INVALID;
+    }
+    if (parsedUnitState == CacheState.IN_PROCESS) {
+      parsedUnitState = CacheState.INVALID;
+    }
+    if (exportedLibrariesState == CacheState.IN_PROCESS) {
+      exportedLibrariesState = CacheState.INVALID;
+    }
+    if (importedLibrariesState == CacheState.IN_PROCESS) {
+      importedLibrariesState = CacheState.INVALID;
+    }
+    if (includedPartsState == CacheState.IN_PROCESS) {
+      includedPartsState = CacheState.INVALID;
+    }
+  }
+
+  /**
    * Record that an error occurred while attempting to scan or parse the entry represented by this
    * entry. This will set the state of all resolution-based information as being in error, but will
    * not change the state of any parse results.
@@ -632,6 +679,26 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     publicNamespaceState = CacheState.ERROR;
 
     resolutionState.recordResolutionError();
+  }
+
+  /**
+   * Record that an in-process parse has stopped without recording results because the results were
+   * invalidated before they could be recorded.
+   */
+  public void recordResolutionNotInProcess() {
+    if (elementState == CacheState.IN_PROCESS) {
+      elementState = CacheState.INVALID;
+    }
+    if (clientServerState == CacheState.IN_PROCESS) {
+      clientServerState = CacheState.INVALID;
+    }
+    if (launchableState == CacheState.IN_PROCESS) {
+      launchableState = CacheState.INVALID;
+    }
+    if (publicNamespaceState == CacheState.IN_PROCESS) {
+      publicNamespaceState = CacheState.INVALID;
+    }
+    resolutionState.recordResolutionNotInProcess();
   }
 
   /**

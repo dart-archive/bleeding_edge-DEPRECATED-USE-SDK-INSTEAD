@@ -17,6 +17,7 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.AnalysisContextImpl2;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.internal.sdk.SdkLibrariesReader;
@@ -173,6 +174,22 @@ public class DirectoryBasedDartSdk implements DartSdk {
   }
 
   /**
+   * Return the default Dart SDK, or {@code null} if the directory containing the default SDK cannot
+   * be determined (or does not exist).
+   * <p>
+   * Added in order to test AnalysisContextImpl2.
+   * 
+   * @return the default Dart SDK
+   */
+  public static DirectoryBasedDartSdk getDefaultSdk2() {
+    File sdkDirectory = getDefaultSdkDirectory();
+    if (sdkDirectory == null) {
+      return null;
+    }
+    return new DirectoryBasedDartSdk(sdkDirectory, true);
+  }
+
+  /**
    * Return the default directory for the Dart SDK, or {@code null} if the directory cannot be
    * determined (or does not exist). The default directory is provided by a {@link System} property
    * named {@code com.google.dart.sdk}, or, if the property is not defined, an environment variable
@@ -204,7 +221,32 @@ public class DirectoryBasedDartSdk implements DartSdk {
     this.sdkDirectory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
     initializeLibraryMap();
-    analysisContext = new AnalysisContextImpl();
+    if (AnalysisEngine.getInstance().getUseExperimentalContext()) {
+      analysisContext = new AnalysisContextImpl2();
+    } else {
+      analysisContext = new AnalysisContextImpl();
+    }
+    analysisContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
+    String[] uris = getUris();
+    ChangeSet changeSet = new ChangeSet();
+    for (String uri : uris) {
+      changeSet.added(analysisContext.getSourceFactory().forUri(uri));
+    }
+    analysisContext.applyChanges(changeSet);
+  }
+
+  /**
+   * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
+   * <p>
+   * Added in order to test AnalysisContextImpl2.
+   * 
+   * @param sdkDirectory the directory containing the SDK
+   */
+  public DirectoryBasedDartSdk(File sdkDirectory, boolean ignored) {
+    this.sdkDirectory = sdkDirectory.getAbsoluteFile();
+    initializeSdk();
+    initializeLibraryMap();
+    analysisContext = new AnalysisContextImpl2();
     analysisContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
     String[] uris = getUris();
     ChangeSet changeSet = new ChangeSet();

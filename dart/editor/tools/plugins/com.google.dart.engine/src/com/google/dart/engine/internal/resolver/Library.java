@@ -272,19 +272,20 @@ public class Library {
   }
 
   /**
-   * Return the modification stamp associated with the given source.
+   * Return the modification time associated with the given source.
    * 
-   * @param source the source representing the compilation unit whose AST is to be returned
-   * @return the AST structure associated with the given source
+   * @param source the source representing the compilation unit whose modification time is to be
+   *          returned
+   * @return the modification time associated with the given source
    * @throws AnalysisException if an AST structure could not be created for the compilation unit
    */
-  public long getModificationStamp(Source source) throws AnalysisException {
+  public long getModificationTime(Source source) throws AnalysisException {
     ResolvableCompilationUnit holder = astMap.get(source);
     if (holder == null) {
       holder = analysisContext.computeResolvableCompilationUnit(source);
       astMap.put(source, holder);
     }
-    return holder.getModificationStamp();
+    return holder.getModificationTime();
   }
 
   /**
