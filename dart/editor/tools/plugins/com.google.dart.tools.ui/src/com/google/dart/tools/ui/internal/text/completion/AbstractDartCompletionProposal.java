@@ -578,15 +578,17 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
 
   @Override
   public IInformationControlCreator getInformationControlCreator() {
-    Shell shell = DartToolsPlugin.getActiveWorkbenchShell();
-    if (shell == null || !BrowserInformationControl.isAvailable(shell)) {
-      return null;
-    }
-
-    if (fCreator == null) {
-      fCreator = new ControlCreator();
-    }
-    return fCreator;
+    // FIXME(scheglov) disabled because of https://code.google.com/p/dart/issues/detail?id=12903
+    return null;
+//    Shell shell = DartToolsPlugin.getActiveWorkbenchShell();
+//    if (shell == null || !BrowserInformationControl.isAvailable(shell)) {
+//      return null;
+//    }
+//
+//    if (fCreator == null) {
+//      fCreator = new ControlCreator();
+//    }
+//    return fCreator;
   }
 
   @Override
