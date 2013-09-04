@@ -18,7 +18,7 @@ void main() {
   new Suite(window, 'dom-attr')
     .test('getAttribute', () {
       for (int i = 0; i < num; i++)
-        ret = elem.attributes['id'];
+        ret = elem.getAttribute('id');
     })
     .test('element.property', () {
       for (int i = 0; i < num * 2; i++)
@@ -26,7 +26,7 @@ void main() {
     })
     .test('setAttribute', () {
         for (int i = 0; i < num; i++)
-          a.attributes['id'] = 'foo';
+          a.setAttribute('id', 'foo');
     })
     .test('element.property = value', () {
       for (int i = 0; i < num; i++)
