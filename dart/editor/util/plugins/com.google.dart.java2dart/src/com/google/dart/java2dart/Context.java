@@ -620,6 +620,27 @@ public class Context {
     return references != null ? references : Lists.<SimpleIdentifier> newArrayList();
   }
 
+  /**
+   * Remembers that "identifier" is reference to the given Java binding.
+   */
+  public void putReference(SimpleIdentifier identifier, IBinding binding, String bindingSignature) {
+    if (binding != null) {
+      signatureToBinding.put(bindingSignature, binding);
+      identifierToName.put(identifier, identifier.getName());
+      // remember binding for reference
+      nodeToBinding.put(identifier, binding);
+      // add reference to binding
+      List<SimpleIdentifier> identifiers = bindingToIdentifiers.get(binding);
+      if (identifiers == null) {
+        identifiers = Lists.newLinkedList();
+        bindingToIdentifiers.put(binding, identifiers);
+      }
+      identifiers.add(identifier);
+    }
+    // remember global name
+    usedNames.add(identifier.getName());
+  }
+
   public void renameConstructor(ConstructorDeclaration node, String name) {
     IMethodBinding binding = constructorToBinding.get(node);
     //
@@ -771,27 +792,6 @@ public class Context {
    */
   void putPrivateClassMember(ClassMember member) {
     privateClassMembers.add(member);
-  }
-
-  /**
-   * Remembers that "identifier" is reference to the given Java binding.
-   */
-  void putReference(SimpleIdentifier identifier, IBinding binding, String bindingSignature) {
-    if (binding != null) {
-      signatureToBinding.put(bindingSignature, binding);
-      identifierToName.put(identifier, identifier.getName());
-      // remember binding for reference
-      nodeToBinding.put(identifier, binding);
-      // add reference to binding
-      List<SimpleIdentifier> identifiers = bindingToIdentifiers.get(binding);
-      if (identifiers == null) {
-        identifiers = Lists.newLinkedList();
-        bindingToIdentifiers.put(binding, identifiers);
-      }
-      identifiers.add(identifier);
-    }
-    // remember global name
-    usedNames.add(identifier.getName());
   }
 
   private void dontUseThisInFieldInitializers(CompilationUnit unit) {

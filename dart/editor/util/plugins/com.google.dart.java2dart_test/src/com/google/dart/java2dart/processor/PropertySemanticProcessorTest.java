@@ -60,10 +60,10 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "public class Test {",
         "  private boolean foo;",
         "  public boolean isFoo() {",
-        "    return foo;",
+        "    return foo && true;",
         "  }",
         "  public void setFoo(boolean v) {",
-        "    this.foo = v;",
+        "    this.foo = v && true;",
         "  }",
         "  public void main() {",
         "    setFoo(true);",
@@ -76,15 +76,156 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(
         "class Test {",
         "  bool _foo = false;",
-        "  bool get isFoo => _foo;",
+        "  bool get isFoo => _foo && true;",
         "  void set foo(bool v) {",
-        "    this._foo = v;",
+        "    this._foo = v && true;",
         "  }",
         "  void main() {",
         "    foo = true;",
         "    print(isFoo);",
         "    this.foo = false;",
         "    print(this.isFoo);",
+        "  }",
+        "}");
+  }
+
+  public void test_makeProperty_justField_getSet() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  private int foo;",
+        "  public int getFoo() {",
+        "    return foo;",
+        "  }",
+        "  public void setFoo(int v) {",
+        "    this.foo = v;",
+        "  }",
+        "  public void main() {",
+        "    setFoo(1);",
+        "    print(getFoo());",
+        "    this.setFoo(2);",
+        "    print(this.getFoo());",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  int foo = 0;",
+        "  void main() {",
+        "    foo = 1;",
+        "    print(foo);",
+        "    this.foo = 2;",
+        "    print(this.foo);",
+        "  }",
+        "}");
+  }
+
+  public void test_makeProperty_justField_onlyGetter_noAssignments() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  private int foo;",
+        "  public int getFoo() {",
+        "    return foo;",
+        "  }",
+        "  public void main() {",
+        "    print(getFoo());",
+        "    print(this.getFoo());",
+        "  }",
+        "}");
+    runProcessor();
+    assertFormattedSource(
+        "class Test {",
+        "  final int foo = 0;",
+        "  void main() {",
+        "    print(foo);",
+        "    print(this.foo);",
+        "  }",
+        "}");
+  }
+
+  public void test_makeProperty_justField_override() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class A {",
+            "  private int foo;",
+            "  public int getFoo() {",
+            "    return foo;",
+            "  }",
+            "}"));
+    setFileLines(
+        "test/B.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class B extends A {",
+            "  private int bar;",
+            "  public int getFoo() {",
+            "    return bar;",
+            "  }",
+            "  public void main() {",
+            "    print(getFoo());",
+            "    print(this.getFoo());",
+            "  }",
+            "}"));
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // do translate
+    unit = context.translate();
+    runProcessor();
+    assertFormattedSource(
+        "class A {",
+        "  int _foo = 0;",
+        "  int get foo => _foo;",
+        "}",
+        "class B extends A {",
+        "  int _bar = 0;",
+        "  int get foo => _bar;",
+        "  void main() {",
+        "    print(foo);",
+        "    print(this.foo);",
+        "  }",
+        "}");
+  }
+
+  public void test_makeProperty_justField_updateBinding() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  private int foo;",
+        "  public int getFoo() {",
+        "    return foo;",
+        "  }",
+        "  public void setFoo(int v) {",
+        "    this.foo = v;",
+        "  }",
+        "  public void foo() {",
+        "  }",
+        "  public void main() {",
+        "    setFoo(1);",
+        "    print(getFoo());",
+        "    this.setFoo(2);",
+        "    print(this.getFoo());",
+        "  }",
+        "}");
+    runProcessor();
+    context.ensureUniqueClassMemberNames(unit);
+    assertFormattedSource(
+        "class Test {",
+        "  int foo3 = 0;",
+        "  void foo() {",
+        "  }",
+        "  void main() {",
+        "    foo3 = 1;",
+        "    print(foo3);",
+        "    this.foo3 = 2;",
+        "    print(this.foo3);",
         "  }",
         "}");
   }
@@ -225,7 +366,7 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "public class Test {",
         "  private int foo;",
         "  public int getFoo() {",
-        "    return foo;",
+        "    return foo - 1;",
         "  }",
         "  public int setFoo(int v) {",
         "    this.foo = v + 1;",
@@ -240,7 +381,7 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(
         "class Test {",
         "  int _foo = 0;",
-        "  int get foo => _foo;",
+        "  int get foo => _foo - 1;",
         "  int setFoo(int v) {",
         "    this._foo = v + 1;",
         "    return 42;",

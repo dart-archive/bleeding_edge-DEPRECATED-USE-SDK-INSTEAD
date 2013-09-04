@@ -442,7 +442,13 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           if (pair.getLeft().equals(className)) {
             String fieldName = pair.getRight();
             String accessorName = fieldName + accessorSuffix;
-            String privateFieldName = "_" + fieldName;
+            String privatePropertyName;
+            if ("elementResolver".equals(fieldName) || "thisType".equals(fieldName)
+                || "typeAnalyzer".equals(fieldName)) {
+              privatePropertyName = "_" + fieldName;
+            } else {
+              privatePropertyName = fieldName;
+            }
             node.getMembers().add(
                 methodDeclaration(
                     null,
@@ -451,7 +457,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
                     null,
                     identifier(accessorName),
                     null,
-                    expressionFunctionBody(identifier(privateFieldName))));
+                    expressionFunctionBody(identifier(privatePropertyName))));
             node.getMembers().add(
                 methodDeclaration(
                     null,
@@ -461,7 +467,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
                     identifier(accessorName),
                     formalParameterList(simpleFormalParameter("__v")),
                     expressionFunctionBody(assignmentExpression(
-                        identifier(privateFieldName),
+                        identifier(privatePropertyName),
                         TokenType.EQ,
                         identifier("__v")))));
           }
@@ -635,8 +641,8 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           ExpressionStatement doReadStatement = expressionStatement(methodInvocation(
               receiverIdent,
               "accept2",
-              methodInvocation(identifier("_file"), "readAsStringSync"),
-              methodInvocation(identifier("_file"), "lastModified")));
+              methodInvocation(identifier("file"), "readAsStringSync"),
+              methodInvocation(identifier("file"), "lastModified")));
           node.setBody(blockFunctionBody(tryCacheBlock, doReadStatement));
           return null;
         }
