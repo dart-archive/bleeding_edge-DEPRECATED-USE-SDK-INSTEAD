@@ -60,8 +60,13 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
       view.showPage(new SearchMatchPage(view, "Searching for '" + name + "' declarations...") {
         @Override
+        protected boolean canUseFilterPotential() {
+          return false;
+        }
+
+        @Override
         protected String getPostQueryDescription(List<SearchMatch> matches) {
-          return "'" + name + "' - " + matches.size() + " declarations in workspace";
+          return "'" + name + "' - " + matches.size() + " declarations";
         }
 
         @Override

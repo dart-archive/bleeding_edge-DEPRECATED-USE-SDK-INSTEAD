@@ -70,8 +70,13 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
         @Override
+        protected boolean canUseFilterPotential() {
+          return false;
+        }
+
+        @Override
         protected String getPostQueryDescription(List<SearchMatch> matches) {
-          return "'" + name + "' - " + matches.size() + " references in workspace";
+          return "'" + name + "' - " + matches.size() + " references";
         }
 
         @Override
@@ -164,6 +169,11 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
         @Override
+        protected boolean canUseFilterPotential() {
+          return searchElement != null;
+        }
+
+        @Override
         protected String getPostQueryDescription(List<SearchMatch> matches) {
           String displayName;
           if (searchElement == null) {
@@ -181,37 +191,18 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
               displayName = searchElement.getDisplayName();
             }
           }
-          return MessageFormat.format(
-              "''{0}'' - {1} references in workspace",
-              displayName,
-              matches.size());
+          return MessageFormat.format("''{0}'' - {1} references", displayName, matches.size());
         }
 
         @Override
         protected List<SearchMatch> runQuery() {
           List<SearchMatch> allMatches = Lists.newArrayList();
           if (searchElement != null) {
-            allMatches.addAll(findElementDeclaration());
+            allMatches.addAll(findVariableElementDeclaration());
             allMatches.addAll(findElementReferences());
           }
           allMatches.addAll(findUnresolvedNameReferences());
           return allMatches;
-        }
-
-        /**
-         * For local variable and parameters it is interesting to see their declaration with
-         * initializer and type.
-         */
-        private List<SearchMatch> findElementDeclaration() {
-          ElementKind elementKind = searchElement.getKind();
-          if (elementKind != ElementKind.PARAMETER && elementKind != ElementKind.LOCAL_VARIABLE) {
-            return ImmutableList.of();
-          }
-          return ImmutableList.of(new SearchMatch(
-              null,
-              MatchKind.VARIABLE_WRITE,
-              searchElement,
-              SourceRangeFactory.rangeElementName(searchElement)));
         }
 
         private List<SearchMatch> findElementReferences() {
@@ -284,6 +275,22 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
                   || match.getKind() == MatchKind.NAME_REFERENCE_UNRESOLVED;
             }
           });
+        }
+
+        /**
+         * For local variable and parameters it is interesting to see their declaration with
+         * initializer and type.
+         */
+        private List<SearchMatch> findVariableElementDeclaration() {
+          ElementKind elementKind = searchElement.getKind();
+          if (elementKind != ElementKind.PARAMETER && elementKind != ElementKind.LOCAL_VARIABLE) {
+            return ImmutableList.of();
+          }
+          return ImmutableList.of(new SearchMatch(
+              null,
+              MatchKind.VARIABLE_WRITE,
+              searchElement,
+              SourceRangeFactory.rangeElementName(searchElement)));
         }
       });
     } catch (Throwable e) {

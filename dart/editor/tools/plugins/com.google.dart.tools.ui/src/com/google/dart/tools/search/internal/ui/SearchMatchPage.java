@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.search.internal.ui;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -23,6 +24,7 @@ import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.UriKind;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
@@ -54,6 +56,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -172,7 +175,6 @@ public abstract class SearchMatchPage extends SearchPage {
       }
     }
   }
-
   /**
    * Helper for navigating {@link ElementItem} and {@link LineItem} hierarchy.
    */
@@ -285,7 +287,6 @@ public abstract class SearchMatchPage extends SearchPage {
       return true;
     }
   }
-
   /**
    * Item for a line with one or more matches.
    */
@@ -551,6 +552,12 @@ public abstract class SearchMatchPage extends SearchPage {
     }
   }
 
+  private static final String SETTINGS_ID = "SearchMatchPage";
+
+  private static final String FILTER_SDK_ID = "filter_SDK";
+
+  private static final String FILTER_POTENTIAL_ID = "filter_potential";
+
   private static final ITreeContentProvider CONTENT_PROVIDER = new SearchContentProvider();
   private static final IBaseLabelProvider LABEL_PROVIDER = new DelegatingStyledCellLabelProvider(
       new SearchLabelProvider());
@@ -614,6 +621,10 @@ public abstract class SearchMatchPage extends SearchPage {
     }
     item.numMatches = result;
     return result;
+  }
+
+  private static IDialogSettings getDialogSettings() {
+    return DartToolsPlugin.getDefault().getDialogSettingsSection(SETTINGS_ID);
   }
 
   /**
@@ -809,6 +820,7 @@ public abstract class SearchMatchPage extends SearchPage {
       openItemNext();
     }
   };
+
   private IAction prevAction = new Action() {
     {
       setToolTipText("Show Previous Match");
@@ -820,23 +832,71 @@ public abstract class SearchMatchPage extends SearchPage {
       openItemPrev();
     }
   };
+
+  private IAction filterSdkAction = new Action(null, IAction.AS_CHECK_BOX) {
+    {
+      setToolTipText("Hide SDK and package matches");
+      DartPluginImages.setLocalImageDescriptors(this, "search_filter_sdk.png");
+    }
+
+    @Override
+    public void run() {
+      filterEnabledSdk = isChecked();
+      getDialogSettings().put(FILTER_SDK_ID, filterEnabledSdk);
+      refresh();
+    }
+  };
+
+  private IAction filterPotentialAction = new Action(null, IAction.AS_CHECK_BOX) {
+    {
+      setToolTipText("Hide potential matches");
+      DartPluginImages.setLocalImageDescriptors(this, "search_filter_potential.png");
+    }
+
+    @Override
+    public void run() {
+      filterEnabledPotential = isChecked();
+      getDialogSettings().put(FILTER_POTENTIAL_ID, filterEnabledPotential);
+      refresh();
+    }
+  };
   private final SearchView searchView;
   private final String taskName;
+
   private final Set<IResource> markerResources = Sets.newHashSet();
 
   private TreeViewer viewer;
-
   private IPreferenceStore preferences;
+
   private IPropertyChangeListener propertyChangeListener = new IPropertyChangeListener() {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
       updateColors();
     }
   };
-
   private ElementItem rootItem;
   private ItemCursor itemCursor;
+
   private PositionTracker positionTracker;
+  private boolean filterEnabledSdk = false;
+  private boolean filterEnabledPotential = false;
+  private int filteredCountSdk = 0;
+  private int filteredCountPotential = 0;
+  private static final Predicate<SearchMatch> FILTER_SDK = new Predicate<SearchMatch>() {
+    @Override
+    public boolean apply(SearchMatch input) {
+      Source source = input.getElement().getSource();
+      UriKind uriKind = source.getUriKind();
+      return uriKind == UriKind.DART_URI || uriKind == UriKind.PACKAGE_URI;
+    }
+  };
+
+  private static final Predicate<SearchMatch> FILTER_POTENTIAL = new Predicate<SearchMatch>() {
+    @Override
+    public boolean apply(SearchMatch input) {
+      return input.getKind() == MatchKind.NAME_REFERENCE_UNRESOLVED;
+    }
+  };
 
   private long lastQueryStartTime = 0;
   private long lastQueryFinishTime = 0;
@@ -848,6 +908,7 @@ public abstract class SearchMatchPage extends SearchPage {
 
   @Override
   public void createControl(Composite parent) {
+    initFilters();
     viewer = new TreeViewer(parent, SWT.FULL_SELECTION);
     viewer.setContentProvider(CONTENT_PROVIDER);
     viewer.setLabelProvider(LABEL_PROVIDER);
@@ -891,6 +952,9 @@ public abstract class SearchMatchPage extends SearchPage {
   @Override
   public void makeContributions(IMenuManager menuManager, IToolBarManager toolBarManager,
       IStatusLineManager statusLineManager) {
+    toolBarManager.add(filterSdkAction);
+    toolBarManager.add(filterPotentialAction);
+    toolBarManager.add(new Separator());
     toolBarManager.add(nextAction);
     toolBarManager.add(prevAction);
     toolBarManager.add(new Separator());
@@ -911,6 +975,13 @@ public abstract class SearchMatchPage extends SearchPage {
   @Override
   public void show() {
     refresh();
+  }
+
+  /**
+   * @return {@code true} if potential filter can be used.
+   */
+  protected boolean canUseFilterPotential() {
+    return true;
   }
 
   /**
@@ -972,6 +1043,29 @@ public abstract class SearchMatchPage extends SearchPage {
     }
   }
 
+  // TODO(scheglov)
+  private List<SearchMatch> applyFilters(List<SearchMatch> matches) {
+    filteredCountSdk = 0;
+    filteredCountPotential = 0;
+    List<SearchMatch> filtered = Lists.newArrayList();
+    for (SearchMatch match : matches) {
+      boolean filterOut = false;
+      if (filterEnabledSdk && FILTER_SDK.apply(match)) {
+        filteredCountSdk++;
+        filterOut = true;
+      }
+      if (canUseFilterPotential() && filterEnabledPotential && FILTER_POTENTIAL.apply(match)) {
+        filteredCountPotential++;
+        filterOut = true;
+      }
+      if (filterOut) {
+        continue;
+      }
+      filtered.add(match);
+    }
+    return filtered;
+  }
+
   /**
    * Disposes {@link #positionTracker}.
    */
@@ -1021,6 +1115,25 @@ public abstract class SearchMatchPage extends SearchPage {
       }
       nanoBudget = expandTreeItemsTimeBoxed(items, childrenLimit, nanoBudget);
       childrenLimit *= 2;
+    }
+  }
+
+  /**
+   * Initializes filters from {@link IDialogSettings}.
+   */
+  private void initFilters() {
+    IDialogSettings settings = getDialogSettings();
+    if (settings.getBoolean(FILTER_SDK_ID)) {
+      filterEnabledSdk = true;
+      filterSdkAction.setChecked(true);
+    }
+    if (settings.getBoolean(FILTER_POTENTIAL_ID)) {
+      filterEnabledPotential = true;
+      filterPotentialAction.setChecked(true);
+    }
+    if (!canUseFilterPotential()) {
+      filterPotentialAction.setEnabled(false);
+      filterPotentialAction.setChecked(false);
     }
   }
 
@@ -1094,7 +1207,17 @@ public abstract class SearchMatchPage extends SearchPage {
         protected IStatus run(IProgressMonitor monitor) {
           // do query
           List<SearchMatch> matches = runQuery();
-          setContentDescription(getPostQueryDescription(matches));
+          matches = applyFilters(matches);
+          // set description
+          String filtersDesc;
+          {
+            filtersDesc = " (" + filteredCountSdk + " SDK";
+            if (canUseFilterPotential()) {
+              filtersDesc += ", " + filteredCountPotential + " potential";
+            }
+            filtersDesc += " matches filtered out)";
+          }
+          setContentDescription(getPostQueryDescription(matches) + filtersDesc);
           // process query results
           rootItem = buildElementItemTree(matches);
           itemCursor = new ItemCursor(rootItem);
