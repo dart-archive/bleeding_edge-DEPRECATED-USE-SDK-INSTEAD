@@ -14,7 +14,6 @@
 package com.google.dart.engine.internal.cache;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.internal.context.CacheState;
 import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;

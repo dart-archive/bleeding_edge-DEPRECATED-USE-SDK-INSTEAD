@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.internal.context;
+package com.google.dart.engine.internal.cache;
 
 /**
  * The enumeration {@code CacheState} defines the possible states of cached data.

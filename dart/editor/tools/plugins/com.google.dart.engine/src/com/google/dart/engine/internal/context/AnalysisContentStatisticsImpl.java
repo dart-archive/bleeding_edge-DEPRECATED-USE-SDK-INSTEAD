@@ -15,6 +15,7 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.context.AnalysisContentStatistics;
+import com.google.dart.engine.internal.cache.CacheState;
 import com.google.dart.engine.internal.cache.DartEntry;
 import com.google.dart.engine.internal.cache.DataDescriptor;
 import com.google.dart.engine.source.Source;

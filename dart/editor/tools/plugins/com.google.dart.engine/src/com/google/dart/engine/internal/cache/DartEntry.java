@@ -16,7 +16,6 @@ package com.google.dart.engine.internal.cache;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.internal.context.CacheState;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;

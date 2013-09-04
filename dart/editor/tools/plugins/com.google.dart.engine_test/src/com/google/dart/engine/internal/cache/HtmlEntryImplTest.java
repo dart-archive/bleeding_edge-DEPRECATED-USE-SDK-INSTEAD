@@ -18,7 +18,6 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.HtmlWarningCode;
 import com.google.dart.engine.html.ast.HtmlUnit;
-import com.google.dart.engine.internal.context.CacheState;
 import com.google.dart.engine.internal.element.HtmlElementImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;

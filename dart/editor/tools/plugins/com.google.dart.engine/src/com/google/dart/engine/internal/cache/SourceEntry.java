@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.cache;
 
-import com.google.dart.engine.internal.context.CacheState;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.source.LineInfo;
 

@@ -52,6 +52,7 @@ import com.google.dart.engine.html.parser.HtmlParser;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.html.scanner.HtmlScanner;
 import com.google.dart.engine.internal.builder.HtmlUnitBuilder;
+import com.google.dart.engine.internal.cache.CacheState;
 import com.google.dart.engine.internal.cache.DartEntry;
 import com.google.dart.engine.internal.cache.DartEntryImpl;
 import com.google.dart.engine.internal.cache.DataDescriptor;

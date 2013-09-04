@@ -18,7 +18,6 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.HintCode;
-import com.google.dart.engine.internal.context.CacheState;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.parser.ParserErrorCode;
