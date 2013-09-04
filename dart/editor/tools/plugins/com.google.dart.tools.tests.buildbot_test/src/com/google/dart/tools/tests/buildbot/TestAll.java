@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.tests.buildbot;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 
@@ -44,8 +45,11 @@ public class TestAll {
 
     // UI
     suite.addTest(com.google.dart.tools.ui.TestAll.suite());
-    suite.addTest(editor.TestAll.suite());
-    //suite.addTest(views.TestAll.suite());
+    // TODO: the UI tests are disabled on linux, due to model dialogs blocking tests -
+    if (!DartCore.isLinux()) {
+      suite.addTest(editor.TestAll.suite());
+      //suite.addTest(views.TestAll.suite());
+    }
 
     // Web
     suite.addTest(com.google.dart.tools.ui.web.TestAll.suite());
