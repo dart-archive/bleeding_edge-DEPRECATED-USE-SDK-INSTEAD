@@ -53,9 +53,6 @@ deps = {
   "dart/third_party/nss":
       Var("chromium_url") + "/trunk/deps/third_party/nss" + Var("nss_rev"),
 
-  "dart/third_party/polymer/ShadowDOM/":
-      "https://github.com/dart-lang/ShadowDOM.git@ad85d2210df1077d1dc361e99691f6ba9bdae78d",
-
   "dart/third_party/sqlite":
       Var("chromium_url") + "/trunk/src/third_party/sqlite" + Var("nss_rev"),
 
