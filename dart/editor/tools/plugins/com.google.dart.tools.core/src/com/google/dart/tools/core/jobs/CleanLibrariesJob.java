@@ -66,6 +66,9 @@ public class CleanLibrariesJob extends Job {
         }
       }
 
+      if (root.getProjects().length == 0) {
+        System.gc();
+      }
       subMonitor.done();
     } catch (CoreException ex) {
       return ex.getStatus();
