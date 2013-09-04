@@ -1042,36 +1042,60 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefixedIdentifier = node.getIdentifier();
-    Element element = prefixedIdentifier.getStaticElement();
+    Element staticElement = prefixedIdentifier.getStaticElement();
     Type staticType = dynamicType;
-    if (element instanceof ClassElement) {
+    if (staticElement instanceof ClassElement) {
       if (isNotTypeLiteral(node)) {
-        staticType = ((ClassElement) element).getType();
+        staticType = ((ClassElement) staticElement).getType();
       } else {
         staticType = typeProvider.getTypeType();
       }
-    } else if (element instanceof FunctionTypeAliasElement) {
-      staticType = ((FunctionTypeAliasElement) element).getType();
-    } else if (element instanceof MethodElement) {
-      staticType = ((MethodElement) element).getType();
-    } else if (element instanceof PropertyAccessorElement) {
-      staticType = getType((PropertyAccessorElement) element, node.getPrefix().getStaticType());
-    } else if (element instanceof ExecutableElement) {
-      staticType = ((ExecutableElement) element).getType();
-    } else if (element instanceof TypeVariableElement) {
-//      if (isTypeName(node)) {
-      staticType = ((TypeVariableElement) element).getType();
-//      } else {
-//        type = typeProvider.getTypeType());
-//      }
-    } else if (element instanceof VariableElement) {
-      staticType = ((VariableElement) element).getType();
+    } else if (staticElement instanceof FunctionTypeAliasElement) {
+      staticType = ((FunctionTypeAliasElement) staticElement).getType();
+    } else if (staticElement instanceof MethodElement) {
+      staticType = ((MethodElement) staticElement).getType();
+    } else if (staticElement instanceof PropertyAccessorElement) {
+      staticType = getType(
+          (PropertyAccessorElement) staticElement,
+          node.getPrefix().getStaticType());
+    } else if (staticElement instanceof ExecutableElement) {
+      staticType = ((ExecutableElement) staticElement).getType();
+    } else if (staticElement instanceof TypeVariableElement) {
+      staticType = ((TypeVariableElement) staticElement).getType();
+    } else if (staticElement instanceof VariableElement) {
+      staticType = ((VariableElement) staticElement).getType();
     }
     recordStaticType(prefixedIdentifier, staticType);
     recordStaticType(node, staticType);
-    // TODO(brianwilkerson) I think we want to repeat the logic above using the propagated element
-    // to get another candidate for the propagated type.
-    Type propagatedType = overrideManager.getType(element);
+
+    Element propagatedElement = prefixedIdentifier.getPropagatedElement();
+    Type propagatedType = null;
+    if (propagatedElement instanceof ClassElement) {
+      if (isNotTypeLiteral(node)) {
+        propagatedType = ((ClassElement) propagatedElement).getType();
+      } else {
+        propagatedType = typeProvider.getTypeType();
+      }
+    } else if (propagatedElement instanceof FunctionTypeAliasElement) {
+      propagatedType = ((FunctionTypeAliasElement) propagatedElement).getType();
+    } else if (propagatedElement instanceof MethodElement) {
+      propagatedType = ((MethodElement) propagatedElement).getType();
+    } else if (propagatedElement instanceof PropertyAccessorElement) {
+      propagatedType = getType(
+          (PropertyAccessorElement) propagatedElement,
+          node.getPrefix().getStaticType());
+    } else if (propagatedElement instanceof ExecutableElement) {
+      propagatedType = ((ExecutableElement) propagatedElement).getType();
+    } else if (propagatedElement instanceof TypeVariableElement) {
+      propagatedType = ((TypeVariableElement) propagatedElement).getType();
+    } else if (propagatedElement instanceof VariableElement) {
+      propagatedType = ((VariableElement) propagatedElement).getType();
+    }
+    Type overriddenType = overrideManager.getType(propagatedElement);
+    if (propagatedType == null
+        || (overriddenType != null && overriddenType.isMoreSpecificThan(propagatedType))) {
+      propagatedType = overriddenType;
+    }
     if (propagatedType != null && propagatedType.isMoreSpecificThan(staticType)) {
       recordPropagatedType(prefixedIdentifier, propagatedType);
       recordPropagatedType(node, propagatedType);
