@@ -65,8 +65,13 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
         }
 
         @Override
-        protected String getPostQueryDescription(List<SearchMatch> matches) {
-          return "'" + name + "' - " + matches.size() + " declarations";
+        protected String getQueryElementName() {
+          return name;
+        }
+
+        @Override
+        protected String getQueryKindName() {
+          return "declarations";
         }
 
         @Override

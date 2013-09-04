@@ -894,7 +894,8 @@ public abstract class SearchMatchPage extends SearchPage {
   private static final Predicate<SearchMatch> FILTER_POTENTIAL = new Predicate<SearchMatch>() {
     @Override
     public boolean apply(SearchMatch input) {
-      return input.getKind() == MatchKind.NAME_REFERENCE_UNRESOLVED;
+      return input.getKind() == MatchKind.NAME_REFERENCE_RESOLVED
+          || input.getKind() == MatchKind.NAME_REFERENCE_UNRESOLVED;
     }
   };
 
@@ -985,9 +986,14 @@ public abstract class SearchMatchPage extends SearchPage {
   }
 
   /**
-   * @return the description of given search results.
+   * @return the description of the element we searched for.
    */
-  protected abstract String getPostQueryDescription(List<SearchMatch> matches);
+  protected abstract String getQueryElementName();
+
+  /**
+   * @return the description of the query we executed.
+   */
+  protected abstract String getQueryKindName();
 
   /**
    * Runs a {@link SearchEngine} request.
@@ -1050,13 +1056,17 @@ public abstract class SearchMatchPage extends SearchPage {
     List<SearchMatch> filtered = Lists.newArrayList();
     for (SearchMatch match : matches) {
       boolean filterOut = false;
-      if (filterEnabledSdk && FILTER_SDK.apply(match)) {
+      if (FILTER_SDK.apply(match)) {
         filteredCountSdk++;
-        filterOut = true;
+        if (filterEnabledSdk) {
+          filterOut = true;
+        }
       }
-      if (canUseFilterPotential() && filterEnabledPotential && FILTER_POTENTIAL.apply(match)) {
+      if (canUseFilterPotential() && FILTER_POTENTIAL.apply(match)) {
         filteredCountPotential++;
-        filterOut = true;
+        if (filterEnabledPotential) {
+          filterOut = true;
+        }
       }
       if (filterOut) {
         continue;
@@ -1207,17 +1217,25 @@ public abstract class SearchMatchPage extends SearchPage {
         protected IStatus run(IProgressMonitor monitor) {
           // do query
           List<SearchMatch> matches = runQuery();
+          int totalCount = matches.size();
           matches = applyFilters(matches);
           // set description
           String filtersDesc;
           {
-            filtersDesc = " (" + filteredCountSdk + " SDK";
-            if (canUseFilterPotential()) {
-              filtersDesc += ", " + filteredCountPotential + " potential";
+            filtersDesc = "";
+            filtersDesc += ",   SDK: " + filteredCountSdk;
+            if (filterEnabledSdk) {
+              filtersDesc += " (filtered)";
             }
-            filtersDesc += " matches filtered out)";
+            if (canUseFilterPotential()) {
+              filtersDesc += ",   potential: " + filteredCountPotential;
+              if (filterEnabledPotential) {
+                filtersDesc += " (filtered)";
+              }
+            }
           }
-          setContentDescription(getPostQueryDescription(matches) + filtersDesc);
+          setContentDescription("'" + getQueryElementName() + "' - " + matches.size() + " "
+              + getQueryKindName() + ",   total: " + totalCount + filtersDesc);
           // process query results
           rootItem = buildElementItemTree(matches);
           itemCursor = new ItemCursor(rootItem);

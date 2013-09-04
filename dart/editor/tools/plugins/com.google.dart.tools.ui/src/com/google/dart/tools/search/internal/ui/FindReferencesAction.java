@@ -31,6 +31,7 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.util.HierarchyUtils;
+import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
@@ -47,12 +48,13 @@ import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import static com.google.dart.tools.search.internal.ui.FindDeclarationsAction.isInvocationNameOrPropertyAccessSelected;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
-import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
 
@@ -75,8 +77,13 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
         }
 
         @Override
-        protected String getPostQueryDescription(List<SearchMatch> matches) {
-          return "'" + name + "' - " + matches.size() + " references";
+        protected String getQueryElementName() {
+          return name;
+        }
+
+        @Override
+        protected String getQueryKindName() {
+          return "references";
         }
 
         @Override
@@ -174,24 +181,28 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
         }
 
         @Override
-        protected String getPostQueryDescription(List<SearchMatch> matches) {
-          String displayName;
+        protected String getQueryElementName() {
+          // no element
           if (searchElement == null) {
-            displayName = searchName;
-          } else {
-            if (searchElement.getKind() == ElementKind.CONSTRUCTOR) {
-              String className = searchElement.getEnclosingElement().getDisplayName();
-              String constructorName = searchElement.getDisplayName();
-              if (StringUtils.isEmpty(constructorName)) {
-                displayName = "constructor " + className + "()";
-              } else {
-                displayName = "constructor " + className + "." + constructorName + "()";
-              }
+            return searchName;
+          }
+          // constructor
+          if (searchElement.getKind() == ElementKind.CONSTRUCTOR) {
+            String className = searchElement.getEnclosingElement().getDisplayName();
+            String constructorName = searchElement.getDisplayName();
+            if (StringUtils.isEmpty(constructorName)) {
+              return "constructor " + className + "()";
             } else {
-              displayName = searchElement.getDisplayName();
+              return "constructor " + className + "." + constructorName + "()";
             }
           }
-          return MessageFormat.format("''{0}'' - {1} references", displayName, matches.size());
+          // some other element
+          return searchElement.getDisplayName();
+        }
+
+        @Override
+        protected String getQueryKindName() {
+          return "references";
         }
 
         @Override
@@ -201,8 +212,26 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
             allMatches.addAll(findVariableElementDeclaration());
             allMatches.addAll(findElementReferences());
           }
-          allMatches.addAll(findUnresolvedNameReferences());
+          addUniqueNameReferences(allMatches, findNameReferences());
           return allMatches;
+        }
+
+        /**
+         * Adds given "name" references only if there are no "exact" reference with same location.
+         */
+        private void addUniqueNameReferences(List<SearchMatch> result, List<SearchMatch> nameMatches) {
+          // remember existing locations
+          Set<Pair<Element, SourceRange>> existingRefs = Sets.newHashSet();
+          for (SearchMatch match : result) {
+            existingRefs.add(ImmutablePair.of(match.getElement(), match.getSourceRange()));
+          }
+          // add new name references
+          for (SearchMatch match : nameMatches) {
+            if (existingRefs.contains(ImmutablePair.of(match.getElement(), match.getSourceRange()))) {
+              continue;
+            }
+            result.add(match);
+          }
         }
 
         private List<SearchMatch> findElementReferences() {
@@ -254,7 +283,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
           return references;
         }
 
-        private List<SearchMatch> findUnresolvedNameReferences() {
+        private List<SearchMatch> findNameReferences() {
           if (searchElement != null) {
             // only class members may have potential references
             if (!(searchElement.getEnclosingElement() instanceof ClassElement)) {
@@ -271,7 +300,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
           return searchEngine.searchQualifiedMemberReferences(searchName, null, new SearchFilter() {
             @Override
             public boolean passes(SearchMatch match) {
-              return searchElement == null
+              return match.getKind() == MatchKind.NAME_REFERENCE_RESOLVED
                   || match.getKind() == MatchKind.NAME_REFERENCE_UNRESOLVED;
             }
           });
