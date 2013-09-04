@@ -46,6 +46,7 @@ import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import static com.google.dart.tools.search.internal.ui.FindDeclarationsAction.isInvocationNameOrPropertyAccessSelected;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
@@ -164,7 +165,22 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
         @Override
         protected String getPostQueryDescription(List<SearchMatch> matches) {
-          String displayName = searchElement != null ? searchElement.getDisplayName() : searchName;
+          String displayName;
+          if (searchElement == null) {
+            displayName = searchName;
+          } else {
+            if (searchElement.getKind() == ElementKind.CONSTRUCTOR) {
+              String className = searchElement.getEnclosingElement().getDisplayName();
+              String constructorName = searchElement.getDisplayName();
+              if (StringUtils.isEmpty(constructorName)) {
+                displayName = "constructor " + className + "()";
+              } else {
+                displayName = "constructor " + className + "." + constructorName + "()";
+              }
+            } else {
+              displayName = searchElement.getDisplayName();
+            }
+          }
           return MessageFormat.format(
               "''{0}'' - {1} references in workspace",
               displayName,
