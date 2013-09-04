@@ -35,7 +35,7 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
@@ -95,7 +95,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(final CompilationUnit unit) {
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new RecursiveASTVisitor<Void>() {
       @Override
       public Void visitFieldDeclaration(FieldDeclaration node) {
         if (context.getPrivateClassMembers().contains(node)) {
@@ -182,7 +182,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
     });
     // remember all overridden and overriding methods
     final Set<IMethodBinding> ignoredMethods = Sets.newHashSet();
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new RecursiveASTVisitor<Void>() {
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
@@ -197,7 +197,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
       }
     });
     // try to convert properties into fields
-    unit.accept(new GeneralizingASTVisitor<Void>() {
+    unit.accept(new RecursiveASTVisitor<Void>() {
       private final Map<String, FieldPropertyInfo> properties = Maps.newHashMap();
 
       @Override
@@ -234,7 +234,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
                       boolean readOnly = true;
                       List<SimpleIdentifier> references = context.getReferences(fieldName);
                       for (SimpleIdentifier reference : references) {
-                        readOnly &= reference.inGetterContext();
+                        readOnly &= !reference.inSetterContext();
                       }
                       if (readOnly) {
                         fieldDeclaration.getFields().setKeyword(token(Keyword.FINAL));
