@@ -659,8 +659,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
    */
   private void initializeGetter() {
     extractGetter = false;
-    // we cannot extract getter
-    if (!parameters.isEmpty()) {
+    // may be we cannot at all
+    if (!canExtractGetter()) {
       return;
     }
     // OK, just expression

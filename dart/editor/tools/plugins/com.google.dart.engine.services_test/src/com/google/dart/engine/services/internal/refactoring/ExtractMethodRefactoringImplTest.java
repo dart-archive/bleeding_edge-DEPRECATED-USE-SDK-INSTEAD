@@ -867,7 +867,28 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "Operation not applicable to a while statement's expression and body.");
   }
 
+  public void test_canExtractGetter_false_fieldAssignment() throws Exception {
+    keepGetterFlag = true;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "  main() {",
+        "// start",
+        "    f = 1;",
+        "// end",
+        "  }",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    //
+    assertFalse(refactoring.canExtractGetter());
+    assertFalse(refactoring.getExtractGetter());
+  }
+
   public void test_canExtractGetter_false_hasParameters() throws Exception {
+    keepGetterFlag = true;
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f(int p) {",
@@ -878,9 +899,11 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     //
     assertFalse(refactoring.canExtractGetter());
+    assertFalse(refactoring.getExtractGetter());
   }
 
   public void test_canExtractGetter_false_returnNotUsed_assignment() throws Exception {
+    keepGetterFlag = true;
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "var topVar = 0;",
@@ -892,9 +915,11 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     //
     assertFalse(refactoring.canExtractGetter());
+    assertFalse(refactoring.getExtractGetter());
   }
 
   public void test_canExtractGetter_false_returnNotUsed_noReturn() throws Exception {
+    keepGetterFlag = true;
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "var topVar = 0;",
@@ -910,9 +935,11 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     //
     assertFalse(refactoring.canExtractGetter());
+    assertFalse(refactoring.getExtractGetter());
   }
 
   public void test_canExtractGetter_true() throws Exception {
+    keepGetterFlag = true;
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -923,6 +950,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     // no parameters
     assertTrue(refactoring.canExtractGetter());
+    assertTrue(refactoring.getExtractGetter());
   }
 
   public void test_checkMethodName() throws Exception {
@@ -1065,6 +1093,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "    v++;",
         "  } while (v < 10);",
         "// end",
+        "  print(v);",
         "}",
         "");
     setSelectionFromStartEndComments();
@@ -1084,6 +1113,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "    v += i;",
         "  }",
         "// end",
+        "  print(v);",
         "}",
         "");
     setSelectionFromStartEndComments();
@@ -1104,6 +1134,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "    v += i;",
         "  }",
         "// end",
+        "  print(v);",
         "}",
         "");
     setSelectionFromStartEndComments();
@@ -1137,6 +1168,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "// start",
         "  int v = calculateSomething();",
         "// end",
+        "  print(v);",
         "}",
         "int calculateSomething() => 42;",
         "");
@@ -1157,6 +1189,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "    v++;",
         "  }",
         "// end",
+        "  print(v);",
         "}",
         "");
     setSelectionFromStartEndComments();
@@ -1171,10 +1204,9 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "// start",
-        "  int a = 1;",
-        "  int b = 2;",
-        "  int v = a + b;",
+        "  int v = 1 + 2;",
         "// end",
+        "  print(v);",
         "}",
         "");
     setSelectionFromStartEndComments();
