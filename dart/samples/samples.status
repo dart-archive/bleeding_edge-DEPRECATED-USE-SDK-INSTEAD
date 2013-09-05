@@ -39,11 +39,10 @@ spirodraw: Skip
 sunflower: Skip
 swarm: Skip
 swipe: Skip
-third_party/todomvc/*: Skip
+third_party/todomvc: Skip
 
 [ $compiler == dart2js && $browser ]
 dartcombat/test/dartcombat_test: Skip
-third_party/todomvc/*: Skip # Issue 12865
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
