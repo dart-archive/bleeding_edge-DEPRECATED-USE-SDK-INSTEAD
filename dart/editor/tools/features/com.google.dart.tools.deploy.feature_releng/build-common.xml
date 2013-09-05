@@ -307,7 +307,6 @@
             <!-- echoproperties prefix="eclipse-" / -->
             <get src="${eclipse-sdk.@{version}.url}/${eclipse-sdk.@{version}.@{os.ws}.@{arch}.zip}"
                  dest="${build.downloads}/eclipse-SDK-@{version}-@{os.ws}-@{arch}.${eclipse-sdk-@{os.ws}.ext}" 
-                 verbose="true" 
                  usetimestamp="true"/>
             <mkdir dir="@{location}"/>
             <expandArchive archive-name="${build.downloads}/eclipse-SDK-@{version}-@{os.ws}-@{arch}.${eclipse-sdk-@{os.ws}.ext}" 
