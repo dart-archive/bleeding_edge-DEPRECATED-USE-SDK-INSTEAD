@@ -1549,6 +1549,26 @@ public class CompletionTests extends CompletionTestCase {
     test("class Foo { int input = 7; mth() { if (in!1) {}}}", "1+input");
   }
 
+  public void testCompletion_namedArgument_alreadyUsed() throws Exception {
+    test("func({foo}) {} main() { func(foo: 0, fo!1); }", "1-foo");
+  }
+
+  public void testCompletion_namedArgument_constructor() throws Exception {
+    test("class A {A({foo, bar}) {}} main() { new A(fo!1); }", "1+foo", "1-bar");
+  }
+
+  public void testCompletion_namedArgument_function() throws Exception {
+    test("func({foo, bar}) {} main() { func(fo!1); }", "1+foo", "1-bar");
+  }
+
+  public void testCompletion_namedArgument_notNamed() throws Exception {
+    test("func([foo]) {} main() { func(fo!1); }", "1-foo");
+  }
+
+  public void testCompletion_namedArgument_unresolvedFunction() throws Exception {
+    test("main() { func(fo!1); }", "1-foo");
+  }
+
   public void testCompletion_newMemberType1() throws Exception {
     test(
         "class Collection{}class List extends Collection{}class Foo { !1 }",

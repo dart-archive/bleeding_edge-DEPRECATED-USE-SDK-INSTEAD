@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.services.completion;
 
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Annotation;
 import com.google.dart.engine.ast.ArgumentList;
@@ -55,6 +56,7 @@ import com.google.dart.engine.ast.InterpolationExpression;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -117,6 +119,7 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.ast.ScopedNameFinder;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -439,6 +442,7 @@ public class CompletionEngine {
     public Void visitArgumentList(ArgumentList node) {
       if (completionNode instanceof SimpleIdentifier) {
         analyzeLocalName(completionNode);
+        analyzeNamedParameter(node, completionNode);
       }
       return null;
     }
@@ -1563,6 +1567,63 @@ public class CompletionEngine {
       pNull();
       pTrue();
       pFalse();
+    }
+  }
+
+  void analyzeNamedParameter(ArgumentList args, SimpleIdentifier identifier) {
+    // Completion x!
+    filter = new Filter(identifier);
+    // prepare executable element
+    ExecutableElement executableElement = null;
+    ASTNode argsParent = args.getParent();
+    if (argsParent instanceof MethodInvocation) {
+      MethodInvocation invocation = (MethodInvocation) argsParent;
+      Element nameElement = invocation.getMethodName().getStaticElement();
+      if (nameElement instanceof ExecutableElement) {
+        executableElement = (ExecutableElement) nameElement;
+      }
+    }
+    if (argsParent instanceof InstanceCreationExpression) {
+      InstanceCreationExpression creation = (InstanceCreationExpression) argsParent;
+      executableElement = creation.getStaticElement();
+    }
+    if (executableElement == null) {
+      return;
+    }
+    // remember already used names
+    Set<String> usedNames = Sets.newHashSet();
+    for (Expression arg : args.getArguments()) {
+      if (arg instanceof NamedExpression) {
+        NamedExpression namedExpr = (NamedExpression) arg;
+        String name = namedExpr.getName().getLabel().getName();
+        usedNames.add(name);
+      }
+    }
+    // propose named parameters
+    ParameterElement[] parameters = executableElement.getParameters();
+    for (ParameterElement parameterElement : parameters) {
+      // should be named
+      if (parameterElement.getParameterKind() != ParameterKind.NAMED) {
+        continue;
+      }
+      // filter by name
+      if (filterDisallows(parameterElement)) {
+        continue;
+      }
+      // may be already used
+      String parameterName = parameterElement.getName();
+      if (usedNames.contains(parameterName)) {
+        continue;
+      }
+      // OK, add proposal
+      CompletionProposal prop = createProposal(ProposalKind.NAMED_ARGUMENT);
+      prop.setCompletion(parameterName);
+      prop.setParameterName(parameterName);
+      prop.setParameterType(parameterElement.getType().getDisplayName());
+      prop.setLocation(identifier.getOffset());
+      prop.setReplacementLength(identifier.getLength());
+      prop.setRelevance(10);
+      requestor.accept(prop);
     }
   }
 

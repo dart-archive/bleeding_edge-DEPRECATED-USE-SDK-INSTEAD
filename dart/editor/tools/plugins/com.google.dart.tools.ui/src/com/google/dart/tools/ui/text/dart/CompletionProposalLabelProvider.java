@@ -87,6 +87,7 @@ public class CompletionProposalLabelProvider {
       case CompletionProposal.METHOD_NAME_REFERENCE:
       case CompletionProposal.METHOD_REF:
       case CompletionProposal.ARGUMENT_LIST:
+      case CompletionProposal.NAMED_ARGUMENT:
       case CompletionProposal.POTENTIAL_METHOD_DECLARATION:
         descriptor = DartElementImageProvider.getMethodImageDescriptor(false, proposal.isPrivate());
         break;

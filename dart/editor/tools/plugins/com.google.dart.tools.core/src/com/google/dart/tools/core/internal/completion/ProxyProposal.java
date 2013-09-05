@@ -76,6 +76,8 @@ public class ProxyProposal extends CompletionProposal {
         return CompletionProposal.LIBRARY_PREFIX;
       case METHOD:
         return CompletionProposal.METHOD_REF;
+      case NAMED_ARGUMENT:
+        return CompletionProposal.NAMED_ARGUMENT;
       case PARAMETER:
         return CompletionProposal.LOCAL_VARIABLE_REF;
       case SETTER:
@@ -94,9 +96,17 @@ public class ProxyProposal extends CompletionProposal {
     return proposal.getCompletion().toCharArray();
   }
 
+  public String getParameterName() {
+    return proposal.getParameterName();
+  }
+
   @Override
   public char[][] getParameterNames() {
     return copyStrings(proposal.getParameterNames());
+  }
+
+  public String getParameterType() {
+    return proposal.getParameterType();
   }
 
   @Override

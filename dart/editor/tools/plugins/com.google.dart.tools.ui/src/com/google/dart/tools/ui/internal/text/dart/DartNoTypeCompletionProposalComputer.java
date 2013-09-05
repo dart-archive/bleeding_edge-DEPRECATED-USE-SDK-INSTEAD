@@ -39,6 +39,7 @@ public class DartNoTypeCompletionProposalComputer extends DartCompletionProposal
     collector.setIgnored(CompletionProposal.METHOD_NAME_REFERENCE, false);
     collector.setIgnored(CompletionProposal.METHOD_REF, false);
     collector.setIgnored(CompletionProposal.ARGUMENT_LIST, false);
+    collector.setIgnored(CompletionProposal.NAMED_ARGUMENT, false);
     collector.setIgnored(CompletionProposal.LIBRARY_PREFIX, false);
     collector.setIgnored(CompletionProposal.POTENTIAL_METHOD_DECLARATION, false);
     collector.setIgnored(CompletionProposal.VARIABLE_DECLARATION, false);

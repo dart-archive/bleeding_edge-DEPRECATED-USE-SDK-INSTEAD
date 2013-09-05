@@ -186,6 +186,20 @@ public class EditorUtility {
   }
 
   /**
+   * If the current active editor is {@link DartEditor}, return it, else return null.
+   */
+  public static DartEditor getActiveEditor() {
+    IWorkbenchPage page = DartToolsPlugin.getActivePage();
+    if (page != null) {
+      IEditorPart part = page.getActiveEditor();
+      if (part instanceof DartEditor) {
+        return (DartEditor) part;
+      }
+    }
+    return null;
+  }
+
+  /**
    * If the current active editor edits a Dart element return it, else return null
    */
   public static DartElement getActiveEditorDartInput() {

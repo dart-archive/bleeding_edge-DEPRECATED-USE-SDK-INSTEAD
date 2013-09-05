@@ -949,6 +949,9 @@ public class InternalCompletionProposal extends CompletionProposal {
       case CompletionProposal.ARGUMENT_LIST:
         buffer.append("ARGUMENT_LIST");
         break;
+      case CompletionProposal.NAMED_ARGUMENT:
+        buffer.append("NAMED_ARGUMENT");
+        break;
       case CompletionProposal.METHOD_REF:
         buffer.append("METHOD_REF"); //$NON-NLS-1$
         if (this.isConstructor) {

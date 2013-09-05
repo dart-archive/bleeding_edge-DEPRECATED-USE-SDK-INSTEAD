@@ -607,6 +607,8 @@ public class CompletionProposal {
 
   public static final int ARGUMENT_LIST = 28;
 
+  public static final int NAMED_ARGUMENT = 29;
+
   /**
    * First valid completion kind.
    */
@@ -615,7 +617,7 @@ public class CompletionProposal {
   /**
    * Last valid completion kind.
    */
-  protected static final int LAST_KIND = ARGUMENT_LIST;
+  protected static final int LAST_KIND = NAMED_ARGUMENT;
 
   /**
    * Creates a basic completion proposal. All instance field have plausible default values unless
@@ -895,7 +897,15 @@ public class CompletionProposal {
     return null; // default overridden by concrete implementation
   }
 
+  public String getParameterName() {
+    return null;
+  }
+
   public char[][] getParameterNames() {
+    return null;
+  }
+
+  public String getParameterType() {
     return null;
   }
 

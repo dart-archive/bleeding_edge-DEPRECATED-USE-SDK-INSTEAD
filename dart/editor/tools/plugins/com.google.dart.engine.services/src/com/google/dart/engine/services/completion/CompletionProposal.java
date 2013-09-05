@@ -23,7 +23,11 @@ public interface CompletionProposal {
 
   int getLocation();
 
+  String getParameterName();
+
   String[] getParameterNames();
+
+  String getParameterType();
 
   String[] getParameterTypes();
 
@@ -53,9 +57,13 @@ public interface CompletionProposal {
 
   CompletionProposal setLocation(int x);
 
+  CompletionProposal setParameterName(String paramName);
+
   CompletionProposal setParameterNames(String[] paramNames);
 
   CompletionProposal setParameterStyle(int count, boolean named, boolean positional);
+
+  CompletionProposal setParameterType(String paramType);
 
   CompletionProposal setParameterTypes(String[] paramTypes);
 

@@ -30,6 +30,8 @@ public class CompletionProposalImpl implements CompletionProposal {
   private String declaringType = "";
   private String[] parameterNames = StringUtilities.EMPTY_ARRAY;
   private String[] parameterTypes = StringUtilities.EMPTY_ARRAY;
+  private String parameterName;
+  private String parameterType;
   private ProposalKind kind = ProposalKind.NONE;
   private int location = 0;
   private int replacementLength = 0;
@@ -61,8 +63,18 @@ public class CompletionProposalImpl implements CompletionProposal {
   }
 
   @Override
+  public String getParameterName() {
+    return parameterName;
+  }
+
+  @Override
   public String[] getParameterNames() {
     return parameterNames;
+  }
+
+  @Override
+  public String getParameterType() {
+    return parameterType;
   }
 
   @Override
@@ -144,6 +156,12 @@ public class CompletionProposalImpl implements CompletionProposal {
   }
 
   @Override
+  public CompletionProposal setParameterName(String parameterName) {
+    this.parameterName = parameterName;
+    return this;
+  }
+
+  @Override
   public CompletionProposal setParameterNames(String[] paramNames) {
     parameterNames = paramNames;
     return this;
@@ -154,6 +172,12 @@ public class CompletionProposalImpl implements CompletionProposal {
     this.named = named;
     this.positional = positional;
     this.positionalParameterCount = count;
+    return this;
+  }
+
+  @Override
+  public CompletionProposal setParameterType(String parameterType) {
+    this.parameterType = parameterType;
     return this;
   }
 
