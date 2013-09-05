@@ -92,7 +92,7 @@ public class ResolveDartUnitTaskTest extends EngineTestCase {
     });
   }
 
-  public void xxx_test_perform_library() throws AnalysisException {
+  public void test_perform_library() throws AnalysisException {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     LibraryElementImpl libraryElement = library(context, "lib");
     CompilationUnitElementImpl unitElement = (CompilationUnitElementImpl) libraryElement.getDefiningCompilationUnit();
@@ -110,7 +110,10 @@ public class ResolveDartUnitTaskTest extends EngineTestCase {
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
       public Boolean visitResolveDartUnitTask(ResolveDartUnitTask task) throws AnalysisException {
-        assertNull(task.getException());
+        AnalysisException exception = task.getException();
+        if (exception != null) {
+          throw exception;
+        }
         assertSame(source, task.getLibrarySource());
         assertEquals(source.getModificationStamp(), task.getModificationTime());
         assertNotNull(task.getResolvedUnit());

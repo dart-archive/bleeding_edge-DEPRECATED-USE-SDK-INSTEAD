@@ -114,7 +114,10 @@ public class ParseHtmlTaskTest extends EngineTestCase {
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
       public Boolean visitParseHtmlTask(ParseHtmlTask task) throws AnalysisException {
-        assertNull(task.getException());
+        AnalysisException exception = task.getException();
+        if (exception != null) {
+          throw exception;
+        }
         assertNotNull(task.getHtmlUnit());
         assertNotNull(task.getLineInfo());
         assertEquals(source.getModificationStamp(), task.getModificationTime());

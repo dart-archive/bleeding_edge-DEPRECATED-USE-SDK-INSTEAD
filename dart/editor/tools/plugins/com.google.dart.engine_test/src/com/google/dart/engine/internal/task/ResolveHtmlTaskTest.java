@@ -103,8 +103,11 @@ public class ResolveHtmlTaskTest extends EngineTestCase {
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
       public Boolean visitResolveHtmlTask(ResolveHtmlTask task) throws AnalysisException {
+        AnalysisException exception = task.getException();
+        if (exception != null) {
+          throw exception;
+        }
         assertNotNull(task.getElement());
-        assertNull(task.getException());
         assertEquals(source.getModificationStamp(), task.getModificationTime());
         assertLength(1, task.getResolutionErrors());
         assertSame(source, task.getSource());

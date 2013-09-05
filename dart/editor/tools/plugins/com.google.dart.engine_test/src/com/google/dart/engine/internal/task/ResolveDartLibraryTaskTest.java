@@ -89,8 +89,11 @@ public class ResolveDartLibraryTaskTest extends EngineTestCase {
       @Override
       public Boolean visitResolveDartLibraryTask(ResolveDartLibraryTask task)
           throws AnalysisException {
+        AnalysisException exception = task.getException();
+        if (exception != null) {
+          throw exception;
+        }
         assertNotNull(task.getLibraryResolver());
-        assertNull(task.getException());
         assertSame(source, task.getLibrarySource());
         assertSame(source, task.getUnitSource());
         return true;

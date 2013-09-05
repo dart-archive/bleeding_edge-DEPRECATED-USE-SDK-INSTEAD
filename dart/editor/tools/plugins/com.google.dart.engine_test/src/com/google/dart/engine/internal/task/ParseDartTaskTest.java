@@ -124,9 +124,12 @@ public class ParseDartTaskTest extends EngineTestCase {
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
       public Boolean visitParseDartTask(ParseDartTask task) throws AnalysisException {
+        AnalysisException exception = task.getException();
+        if (exception != null) {
+          throw exception;
+        }
         assertNotNull(task.getCompilationUnit());
         assertLength(1, task.getErrors());
-        assertNull(task.getException());
         assertLength(1, task.getExportedSources());
         assertLength(1, task.getImportedSources());
         assertLength(1, task.getIncludedSources());
@@ -150,9 +153,12 @@ public class ParseDartTaskTest extends EngineTestCase {
     task.perform(new TestTaskVisitor<Boolean>() {
       @Override
       public Boolean visitParseDartTask(ParseDartTask task) throws AnalysisException {
+        AnalysisException exception = task.getException();
+        if (exception != null) {
+          throw exception;
+        }
         assertNotNull(task.getCompilationUnit());
         assertLength(0, task.getErrors());
-        assertNull(task.getException());
         assertLength(0, task.getExportedSources());
         assertLength(0, task.getImportedSources());
         assertLength(0, task.getIncludedSources());

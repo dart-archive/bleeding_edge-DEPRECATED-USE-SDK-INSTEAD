@@ -274,7 +274,7 @@ public final class ElementFactory {
   }
 
   public static LibraryElementImpl library(AnalysisContext context, String libraryName) {
-    String fileName = libraryName + ".dart";
+    String fileName = "/" + libraryName + ".dart";
     FileBasedSource source = new FileBasedSource(
         context.getSourceFactory().getContentCache(),
         createFile(fileName));
