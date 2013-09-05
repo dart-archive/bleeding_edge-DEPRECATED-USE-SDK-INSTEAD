@@ -13,11 +13,16 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.ResolvedEvent;
 import com.google.dart.tools.core.internal.builder.AnalysisWorker;
+import com.google.dart.tools.core.utilities.io.FilenameUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.filesystem.IFileStore;
@@ -49,7 +54,6 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
   private static final String IGNORE_FOLDER_ICON = "icons/full/dart16/flder_obj_excl.png"; //$NON-NLS-1$
 
   private static final String PACKAGES_FOLDER_ICON = "icons/full/dart16/fldr_obj_pkg.png"; //$NON-NLS-1$
-  @SuppressWarnings("unused")
   private static final String LIBRARY_ICON = "icons/full/dart16/dart_library.png"; //$NON-NLS-1$
   private static final String BUILD_FILE_ICON = "icons/full/dart16/build_dart.png"; //$NON-NLS-1$
   private static final String PACKAGE_ICON = "icons/full/obj16/package_obj.gif"; //$NON-NLS-1$
@@ -115,13 +119,12 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
           return DartToolsPlugin.getImage(BUILD_FILE_ICON);
         }
 
-        // TODO(scheglov) disable for now, even "get" operation gets blocked currently.
-        // TODO(scheglov) restore once AnalysisContext is fixed.
-//        SourceKind kind = DartCore.getProjectManager().getSourceKind(file);
-//
-//        if (kind == SourceKind.LIBRARY) {
-//          return DartToolsPlugin.getImage(LIBRARY_ICON);
-//        }
+        if (DartCoreDebug.EXPERIMENTAL) {
+          SourceKind kind = DartCore.getProjectManager().getSourceKind(file);
+          if (kind == SourceKind.LIBRARY) {
+            return DartToolsPlugin.getImage(LIBRARY_ICON);
+          }
+        }
       }
 
       if (element instanceof IFolder) {
@@ -194,27 +197,27 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
           }
 
           // Append the library name to library units.
-          // TODO(scheglov) disable for now, even "get" operation gets blocked currently.
-          // TODO(scheglov) restore once AnalysisContext is fixed.
-//          ProjectManager projectManager = DartCore.getProjectManager();
-//          SourceKind kind = projectManager.getSourceKind((IFile) resource);
-//
-//          if (kind == SourceKind.LIBRARY) {
-//            LibraryElement libraryElement = projectManager.getLibraryElementOrNull((IFile) resource);
-//
-//            if (libraryElement != null) {
-//              String name = libraryElement.getName();
-//
-//              if (name == null || name.length() == 0) {
-//
-//                if (libraryElement.getEntryPoint() != null) {
-//                  name = FilenameUtils.removeExtension(resource.getName());
-//                }
-//              }
-//
-//              string.append(" [" + name + "]", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$ //$NON-NLS-2$
-//            }
-//          }
+          if (DartCoreDebug.EXPERIMENTAL) {
+            ProjectManager projectManager = DartCore.getProjectManager();
+            SourceKind kind = projectManager.getSourceKind((IFile) resource);
+
+            if (kind == SourceKind.LIBRARY) {
+              LibraryElement libraryElement = projectManager.getLibraryElementOrNull((IFile) resource);
+
+              if (libraryElement != null) {
+                String name = libraryElement.getName();
+
+                if (name == null || name.length() == 0) {
+
+                  if (libraryElement.getEntryPoint() != null) {
+                    name = FilenameUtils.removeExtension(resource.getName());
+                  }
+                }
+
+                string.append(" [" + name + "]", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$ //$NON-NLS-2$
+              }
+            }
+          }
         }
       } catch (Throwable th) {
         DartToolsPlugin.log(th);
