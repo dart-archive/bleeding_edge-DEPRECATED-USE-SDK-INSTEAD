@@ -166,6 +166,15 @@ public interface ContextManager {
   void removeWorker(AnalysisWorker analysisWorker);
 
   /**
+   * Locate a {@link IFileInfo} for the given package uri relative to the given resource
+   * 
+   * @param relativeTo the resource to use to locate an analysis context
+   * @param uri a package: uri
+   * @return the file information or null if the resource is null or does not exist
+   */
+  IFileInfo resolveUriToFileInfo(IResource relativeTo, String uri);
+
+  /**
    * Set the hint option for all the analysis context, based on changes to the hint preference
    * DartCore.ENABLE_HINT_PREFERENCE
    * 
@@ -179,4 +188,5 @@ public interface ContextManager {
    * @param context the context
    */
   void stopWorkers(AnalysisContext context);
+
 }

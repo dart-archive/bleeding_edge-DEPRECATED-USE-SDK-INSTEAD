@@ -23,6 +23,7 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
@@ -32,6 +33,7 @@ import com.google.dart.tools.core.mock.MockContainer;
 import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
 
 import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
@@ -50,6 +52,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.IOException;
 
 public class ProjectImplTest extends ContextManagerImplTest {
 
@@ -543,6 +546,55 @@ public class ProjectImplTest extends ContextManagerImplTest {
     assertUriResolvedToPackageRoot(project, new Path(packageRoots[0].getPath()));
   }
 
+  public void test_resolveUriTofileInfoFile() throws IOException {
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+    File parent = projectContainer.getLocation().toFile().getParentFile();
+    File packages = new File(parent, "packagesRoot");
+    File dartFile = new File(packages, "bar/foo.dart");
+    FileUtilities.create(dartFile);
+
+    final IEclipsePreferences prefs = mock(IEclipsePreferences.class);
+    when(prefs.get(DartCore.PROJECT_PREF_PACKAGE_ROOT, "")).thenReturn(packages.getAbsolutePath());
+    final DartCore core = mock(DartCore.class);
+    when(core.getProjectPreferences(projectContainer)).thenReturn(prefs);
+
+    ProjectImpl project = new ProjectImpl(
+        projectContainer,
+        sdk,
+        index,
+        new AnalysisContextFactory() {
+          @Override
+          public AnalysisContext createContext() {
+            return new MockContextForTest();
+          }
+
+          @Override
+          public File[] getPackageRoots(IContainer container) {
+            CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {});
+            return ProjectImpl.getPackageRoots(core, options, projectContainer);
+          }
+        });
+    IFileInfo info = project.resolveUriToFileInfo(webContainer, "package:bar/foo.dart");
+    assertNotNull(info);
+    assertNotNull(info.getFile());
+    assertNull(info.getResource());
+  }
+
+  public void test_resolveUriToFileInfoResource() {
+    ProjectImpl project = newTarget();
+    IResource resource = projectContainer.getFolder("web").getFile("other.dart");
+    IFileInfo info = project.resolveUriToFileInfo(
+        webContainer,
+        resource.getLocation().toFile().toURI().toString());
+    assertNotNull(info);
+    assertNotNull(info.getResource());
+
+    info = project.resolveUriToFileInfo(webContainer, "package:pkg1/build.dart");
+    assertNotNull(info);
+    assertNotNull(info.getResource());
+
+  }
+
   @Override
   protected ProjectImpl newTarget() {
     return new ProjectImpl(projectContainer, sdk, index, new AnalysisContextFactory() {
@@ -579,7 +631,8 @@ public class ProjectImplTest extends ContextManagerImplTest {
     assertEquals(file1.getParent(), file2.getParent());
 
     Source source3 = factory.resolveUri(source1, "package:doesNotExist3/doesNotExist4.dart");
-    assertNull(source3);
+    assertNotNull(source3);
+    assertFalse(new File(source3.getFullName()).exists());
   }
 
   private void assertFactoryInitialized(MockContainer container, AnalysisContext context) {
@@ -601,6 +654,7 @@ public class ProjectImplTest extends ContextManagerImplTest {
   private void assertUriDoesNotResolve(Project project) {
     SourceFactory factory = project.getDefaultContext().getSourceFactory();
     Source source = factory.forUri("package:foo/foo.dart");
-    assertNull(source);
+    assertNotNull(source);
+    assertFalse(new File(source.getFullName()).exists());
   }
 }

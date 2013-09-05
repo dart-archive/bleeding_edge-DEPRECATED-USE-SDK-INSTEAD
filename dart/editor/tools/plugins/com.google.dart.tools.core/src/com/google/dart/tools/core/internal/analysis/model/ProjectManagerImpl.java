@@ -28,6 +28,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.AnalysisEvent;
 import com.google.dart.tools.core.analysis.model.AnalysisListener;
+import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
@@ -360,6 +361,15 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     } else {
       return map.getResource(source);
     }
+  }
+
+  @Override
+  public IFileInfo resolveUriToFileInfo(IResource relativeTo, String uri) {
+    Project project = getProject(relativeTo.getProject());
+    if (project != null) {
+      return project.resolveUriToFileInfo(relativeTo, uri);
+    }
+    return null;
   }
 
   @Override

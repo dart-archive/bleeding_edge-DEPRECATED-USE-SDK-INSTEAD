@@ -54,4 +54,5 @@ public interface PubFolder extends ResourceMap {
    * Updates the pubspec model, called when the pubspec.yaml file is changed
    */
   void invalidatePubspec() throws CoreException, IOException;
+
 }

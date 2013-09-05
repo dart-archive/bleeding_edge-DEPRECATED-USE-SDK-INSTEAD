@@ -20,6 +20,7 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
@@ -360,6 +361,23 @@ public class ProjectManagerImplTest extends ContextManagerImplTest {
   public void test_newSearchEngine() throws Exception {
     MockProjectManagerImpl manager = newTarget();
     assertNotNull(manager.newSearchEngine());
+  }
+
+  public void test_resolveUriToFileInfo() {
+    MockProjectManagerImpl manager = newTarget();
+    IResource resource = projectContainer.getFolder("web").getFile("other.dart");
+    IFileInfo info = manager.resolveUriToFileInfo(
+        projectContainer,
+        resource.getLocation().toFile().toURI().toString());
+    assertNotNull(info);
+    assertNotNull(info.getResource());
+
+    info = manager.resolveUriToFileInfo(projectContainer, "package:pkg1/build.dart");
+    assertNotNull(info);
+    assertNotNull(info.getResource());
+
+    info = manager.resolveUriToFileInfo(projectContainer, "package:/doesnotexist/nofile.dart");
+    assertNull(info);
   }
 
   @Override

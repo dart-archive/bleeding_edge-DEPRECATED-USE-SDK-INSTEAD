@@ -18,15 +18,20 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.context.AnalysisOptionsImpl;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
+import com.google.dart.engine.source.ExplicitPackageUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.PackageUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.source.UriResolver;
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.FileInfo;
+import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.analysis.model.ResourceMap;
@@ -38,6 +43,7 @@ import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -350,7 +356,11 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
       // If this is the project, then adjust the context source factory
       if (container.getType() == PROJECT) {
-        initContext(defaultContext, projectResource, sdk, true);
+        initContext(
+            defaultContext,
+            projectResource,
+            sdk,
+            getPackageUriResolver(projectResource, sdk, true));
       }
 
       // Merge any overlapping pub folders
@@ -384,12 +394,35 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
         defaultContext.mergeContext(context);
         index.removeContext(context);
       } else {
-        initContext(defaultContext, projectResource, getSdk(), false);
+        initContext(
+            defaultContext,
+            projectResource,
+            getSdk(),
+            getPackageUriResolver(container, getSdk(), false));
       }
 
       // Traverse container to find pubspec files that were overshadowed by the one just removed
       createPubFolders(container);
     }
+  }
+
+  @Override
+  public IFileInfo resolveUriToFileInfo(IResource relativeTo, String uri) {
+
+    AnalysisContext context = getContext(relativeTo);
+    Source source = context.getSourceFactory().forUri(uri);
+
+    ResourceMap map = getResourceMap(relativeTo);
+    if (source != null && map != null) {
+      IFile resource = map.getResource(source);
+      if (resource != null) {
+        return new FileInfo(resource);
+      }
+    }
+    if (source != null) {
+      return new FileInfo(new File(source.getFullName()));
+    }
+    return null;
   }
 
   @Override
@@ -433,7 +466,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       logNoLocation(container);
       context = factory.createContext();
     }
-    return initContext(context, container, sdk, true);
+    return initContext(context, container, sdk, getPackageUriResolver(container, sdk, true));
   }
 
   /**
@@ -491,6 +524,37 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   /**
+   * Find the most appropriate package resolver for the given container, based on presence of
+   * pubspec, package roots etc.
+   * 
+   * @return UriResolver used to resolve package: uris.
+   */
+  private UriResolver getPackageUriResolver(IContainer container, DartSdk sdk, boolean hasPubspec) {
+
+    UriResolver pkgResolver = null;
+    File[] packageRoots = factory.getPackageRoots(container);
+    File[] packagesDirs = null;
+    if (hasPubspec) {
+      IPath location = container.getLocation();
+      if (location != null) {
+        packagesDirs = new File[] {new File(location.toFile(), PACKAGES_DIRECTORY_NAME)};
+      }
+    } else if (packageRoots.length > 0) {
+      packagesDirs = packageRoots;
+    }
+    if (packagesDirs != null) {
+      pkgResolver = new PackageUriResolver(packagesDirs);
+    } else if (sdk instanceof DirectoryBasedDartSdk) {
+      // TODO(keertip): replace PackageUriResolver with explicit one at a later stage
+      // for now use this only when there is no pubspec or package root
+      pkgResolver = new ExplicitPackageUriResolver(
+          (DirectoryBasedDartSdk) sdk,
+          container.getLocation().toFile());
+    }
+    return pkgResolver;
+  }
+
+  /**
    * Find the {@link PubFolder} defined for an ancestor. Must synchronize against
    * {@link #pubFolders} before calling this method and either call {@link #initialize()} or check
    * that {@link #isInitialized()} returns {@code true}.
@@ -545,24 +609,14 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * @return the context (not {@code null})
    */
   private AnalysisContext initContext(AnalysisContext context, IContainer container, DartSdk sdk,
-      boolean hasPubspec) {
+      UriResolver pkgResolver) {
     DartUriResolver dartResolver = new DartUriResolver(sdk);
 
     FileUriResolver fileResolver = new FileUriResolver();
 
-    File[] packageRoots = factory.getPackageRoots(container);
-    File[] packagesDirs = null;
-    if (hasPubspec) {
-      IPath location = container.getLocation();
-      if (location != null) {
-        packagesDirs = new File[] {new File(location.toFile(), PACKAGES_DIRECTORY_NAME)};
-      }
-    } else if (packageRoots.length > 0) {
-      packagesDirs = packageRoots;
-    }
     SourceFactory sourceFactory;
-    if (packagesDirs != null) {
-      PackageUriResolver pkgResolver = new PackageUriResolver(packagesDirs);
+
+    if (pkgResolver != null) {
       sourceFactory = new SourceFactory(dartResolver, pkgResolver, fileResolver);
     } else {
       logNoLocation(container);
@@ -586,7 +640,11 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       return;
     }
     boolean hasPubspec = projectResource.getFile(PUBSPEC_FILE_NAME).exists();
-    defaultContext = initContext(factory.createContext(), projectResource, getSdk(), hasPubspec);
+    defaultContext = initContext(
+        factory.createContext(),
+        projectResource,
+        getSdk(),
+        getPackageUriResolver(projectResource, getSdk(), hasPubspec));
     defaultResourceMap = new SimpleResourceMapImpl(projectResource, defaultContext);
     createPubFolders(projectResource);
   }
