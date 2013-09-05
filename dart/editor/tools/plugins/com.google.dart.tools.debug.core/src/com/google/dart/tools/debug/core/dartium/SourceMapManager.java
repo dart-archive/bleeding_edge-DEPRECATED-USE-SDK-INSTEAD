@@ -33,7 +33,9 @@ import org.eclipse.core.runtime.Path;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 // TODO(devoncarew): use the symbol name information in the maps?
@@ -163,7 +165,9 @@ public class SourceMapManager implements ResourceChangeParticipant {
    * @param line
    * @return
    */
-  public SourceLocation getReverseMappingFor(IFile targetFile, int line) {
+  public List<SourceLocation> getReverseMappingsFor(IFile targetFile, int line) {
+    List<SourceLocation> mappings = new ArrayList<SourceMapManager.SourceLocation>();
+
     synchronized (sourceMaps) {
       for (IFile sourceFile : sourceMaps.keySet()) {
         SourceMap map = sourceMaps.get(sourceFile);
@@ -173,26 +177,26 @@ public class SourceMapManager implements ResourceChangeParticipant {
           IFile file = resolveFile(sourceFile, path);
 
           if (file != null && file.equals(targetFile)) {
-            SourceMapInfo reverseMapping = map.getReverseMappingFor(path, line);
+            List<SourceMapInfo> reverseMappings = map.getReverseMappingsFor(path, line);
 
-            if (reverseMapping != null) {
-              IFile mapSource = map.getMapSource();
+            for (SourceMapInfo reverseMapping : reverseMappings) {
+              if (reverseMapping != null) {
+                IFile mapSource = map.getMapSource();
 
-              if (mapSource != null) {
-                return new SourceLocation(
-                    mapSource,
-                    reverseMapping.getLine(),
-                    reverseMapping.getColumn());
+                if (mapSource != null) {
+                  mappings.add(new SourceLocation(
+                      mapSource,
+                      reverseMapping.getLine(),
+                      reverseMapping.getColumn()));
+                }
               }
             }
-
-            return null;
           }
         }
       }
     }
 
-    return null;
+    return mappings;
   }
 
   @Override

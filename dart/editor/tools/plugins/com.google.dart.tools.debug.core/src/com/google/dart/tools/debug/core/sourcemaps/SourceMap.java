@@ -34,6 +34,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 // //@ sourceMappingURL=/path/to/file.js.map
@@ -237,9 +238,8 @@ public class SourceMap {
    * @param column
    * @return
    */
-  public SourceMapInfo getReverseMappingFor(String file, int line) {
+  public List<SourceMapInfo> getReverseMappingsFor(String file, int line) {
     // TODO(devoncarew): calculate this information once for O(1) lookup
-
     for (SourceMapInfoEntry entry : entries) {
       SourceMapInfo info = entry.getInfo();
 
@@ -252,12 +252,15 @@ public class SourceMap {
           // TODO(devoncarew): there will be several entries on this line
           // We need to choose one that has a non-zero range, or is a catch-all entry
 
-          return new SourceMapInfo(path.toString(), entry.line, entry.column);
+          return Collections.singletonList(new SourceMapInfo(
+              path.toString(),
+              entry.line,
+              entry.column));
         }
       }
     }
 
-    return null;
+    return Collections.emptyList();
   }
 
   public String[] getSourceNames() {

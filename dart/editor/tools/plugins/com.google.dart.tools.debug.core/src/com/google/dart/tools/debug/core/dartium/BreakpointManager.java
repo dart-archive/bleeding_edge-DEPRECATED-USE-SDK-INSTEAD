@@ -266,11 +266,11 @@ class BreakpointManager implements IBreakpointListener {
       SourceMapManager sourceMapManager = debugTarget.getSourceMapManager();
 
       if (sourceMapManager.isMapTarget(breakpoint.getFile())) {
-        SourceMapManager.SourceLocation location = sourceMapManager.getReverseMappingFor(
+        List<SourceMapManager.SourceLocation> locations = sourceMapManager.getReverseMappingsFor(
             breakpoint.getFile(),
             line);
 
-        if (location != null) {
+        for (SourceMapManager.SourceLocation location : locations) {
           String mappedRegex = getResourceResolver().getUrlRegexForResource(location.getFile());
 
           if (mappedRegex != null) {
