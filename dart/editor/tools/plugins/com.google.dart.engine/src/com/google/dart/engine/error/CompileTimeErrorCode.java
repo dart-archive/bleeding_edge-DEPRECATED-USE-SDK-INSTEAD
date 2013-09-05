@@ -521,8 +521,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 
    * @param name the name of the type in question
    */
-  IMPLICIT_THIS_REFERENCE_IN_INITIALIZER(
-      "The 'this' expression cannot be implicitly used in initializers"),
+  IMPLICIT_THIS_REFERENCE_IN_INITIALIZER("Only static members can be accessed in initializers"),
 
   /**
    * SDK implementation libraries can be imported only by other SDK libraries.
