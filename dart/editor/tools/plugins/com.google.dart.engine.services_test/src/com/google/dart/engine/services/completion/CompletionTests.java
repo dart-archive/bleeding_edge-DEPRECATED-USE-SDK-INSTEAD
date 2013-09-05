@@ -18,6 +18,10 @@ package com.google.dart.engine.services.completion;
  */
 public class CompletionTests extends CompletionTestCase {
 
+  public void test_classMembers_inGetter() throws Exception {
+    test("class A { var fff; get z {ff!1}}", "1+fff");
+  }
+
   public void test001() throws Exception {
     String source = src(//
         "void r1(var v) {",
