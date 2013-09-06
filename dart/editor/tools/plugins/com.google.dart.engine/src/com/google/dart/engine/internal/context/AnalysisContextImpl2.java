@@ -2014,49 +2014,47 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
    */
   private SourceEntry recordResolveDartUnitTaskResults(ResolveDartUnitTask task)
       throws AnalysisException {
-    Source source = task.getSource();
+    Source unitSource = task.getSource();
+    Source librarySource = task.getLibrarySource();
     AnalysisException thrownException = task.getException();
     DartEntry dartEntry = null;
     synchronized (cacheLock) {
-      SourceEntry sourceEntry = cache.get(source);
+      SourceEntry sourceEntry = cache.get(unitSource);
       if (!(sourceEntry instanceof DartEntry)) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent a Dart file, but check to be safe.
         throw new AnalysisException(
             "Internal error: attempting to reolve non-Dart file as a Dart file: "
-                + source.getFullName());
+                + unitSource.getFullName());
       }
       dartEntry = (DartEntry) sourceEntry;
-      cache.accessed(source);
-      long sourceTime = source.getModificationStamp();
+      cache.accessed(unitSource);
+      long sourceTime = unitSource.getModificationStamp();
       long resultTime = task.getModificationTime();
       if (sourceTime == resultTime) {
         if (dartEntry.getModificationTime() != sourceTime) {
           // The source has changed without the context being notified. Simulate notification.
-          sourceChanged(source);
-          dartEntry = getReadableDartEntry(source);
+          sourceChanged(unitSource);
+          dartEntry = getReadableDartEntry(unitSource);
           if (dartEntry == null) {
             throw new AnalysisException("A Dart file became a non-Dart file: "
-                + source.getFullName());
+                + unitSource.getFullName());
           }
         }
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         if (thrownException == null) {
-          dartCopy.setValue(
-              DartEntry.RESOLVED_UNIT,
-              task.getLibrarySource(),
-              task.getResolvedUnit());
+          dartCopy.setValue(DartEntry.RESOLVED_UNIT, librarySource, task.getResolvedUnit());
         } else {
-          dartCopy.setState(DartEntry.RESOLVED_UNIT, CacheState.ERROR);
+          dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.ERROR);
         }
-        cache.put(source, dartCopy);
+        cache.put(unitSource, dartCopy);
         dartEntry = dartCopy;
       } else {
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
         if (dartCopy.getState(DartEntry.RESOLVED_UNIT) == CacheState.IN_PROCESS) {
-          dartCopy.setState(DartEntry.RESOLVED_UNIT, CacheState.INVALID);
+          dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.INVALID);
         }
-        cache.put(source, dartCopy);
+        cache.put(unitSource, dartCopy);
         dartEntry = dartCopy;
       }
     }
