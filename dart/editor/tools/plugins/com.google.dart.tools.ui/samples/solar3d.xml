@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<sample name="Solar 3D" file="web/solar.html">
-    <description>A 3D solar system simulator using WebGL.</description>
-</sample>
