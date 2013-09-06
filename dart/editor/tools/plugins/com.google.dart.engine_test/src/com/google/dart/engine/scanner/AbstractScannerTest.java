@@ -138,14 +138,6 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.DOUBLE, ".123");
   }
 
-  public void test_double_fraction_d() throws Exception {
-    assertToken(TokenType.DOUBLE, ".123d");
-  }
-
-  public void test_double_fraction_D() throws Exception {
-    assertToken(TokenType.DOUBLE, ".123D");
-  }
-
   public void test_double_fraction_e() throws Exception {
     assertToken(TokenType.DOUBLE, ".123e4");
   }
@@ -154,24 +146,8 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.DOUBLE, ".123E4");
   }
 
-  public void test_double_fraction_ed() throws Exception {
-    assertToken(TokenType.DOUBLE, ".123e4d");
-  }
-
-  public void test_double_fraction_Ed() throws Exception {
-    assertToken(TokenType.DOUBLE, ".123E4d");
-  }
-
   public void test_double_missingDigitInExponent() throws Exception {
     assertError(ScannerErrorCode.MISSING_DIGIT, 1, "1e");
-  }
-
-  public void test_double_whole_d() throws Exception {
-    assertToken(TokenType.DOUBLE, "12d");
-  }
-
-  public void test_double_whole_D() throws Exception {
-    assertToken(TokenType.DOUBLE, "12D");
   }
 
   public void test_double_whole_e() throws Exception {
@@ -180,14 +156,6 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_double_whole_E() throws Exception {
     assertToken(TokenType.DOUBLE, "12E4");
-  }
-
-  public void test_double_whole_ed() throws Exception {
-    assertToken(TokenType.DOUBLE, "12e4d");
-  }
-
-  public void test_double_whole_Ed() throws Exception {
-    assertToken(TokenType.DOUBLE, "12E4d");
   }
 
   public void test_eq() throws Exception {
@@ -915,6 +883,20 @@ public abstract class AbstractScannerTest extends TestCase {
       assertEquals(source.length(), tokenWithSpaces.getLength());
       assertEquals(source, tokenWithSpaces.getLexeme());
       return originalToken;
+    } else if (expectedType == TokenType.INT) {
+      Token tokenWithLowerD = scan(source + "d");
+      assertNotNull(tokenWithLowerD);
+      assertEquals(expectedType, tokenWithLowerD.getType());
+      assertEquals(0, tokenWithLowerD.getOffset());
+      assertEquals(source.length(), tokenWithLowerD.getLength());
+      assertEquals(source, tokenWithLowerD.getLexeme());
+
+      Token tokenWithUpperD = scan(source + "D");
+      assertNotNull(tokenWithUpperD);
+      assertEquals(expectedType, tokenWithUpperD.getType());
+      assertEquals(0, tokenWithUpperD.getOffset());
+      assertEquals(source.length(), tokenWithUpperD.getLength());
+      assertEquals(source, tokenWithUpperD.getLexeme());
     }
 
     Token tokenWithSpaces = scan(" " + source + " ");

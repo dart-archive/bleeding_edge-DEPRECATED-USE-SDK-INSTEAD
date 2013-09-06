@@ -949,9 +949,6 @@ public abstract class AbstractScanner {
         continue;
       } else if (next == '.') {
         return tokenizeFractionPart(advance(), start);
-      } else if (next == 'd' || next == 'D') {
-        appendStringToken(TokenType.DOUBLE, getString(start, 0));
-        return advance();
       } else if (next == 'e' || next == 'E') {
         return tokenizeFractionPart(next, start);
       } else {
