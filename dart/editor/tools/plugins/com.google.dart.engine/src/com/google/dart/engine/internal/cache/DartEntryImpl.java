@@ -20,6 +20,7 @@ import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.ast.ASTCloner;
+import com.google.dart.engine.utilities.collection.BooleanArray;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.ArrayList;
@@ -313,15 +314,17 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   private int bitmask = 0;
 
   /**
-   * Mask indicating that this library is launchable: that the file has a main method.
+   * The index of the bit in the {@link #bitmask} indicating that this library is launchable: that
+   * the file has a main method.
    */
-  private static final int LAUNCHABLE = 1 << 1;
+  private static final int LAUNCHABLE_INDEX = 1;
 
   /**
-   * Mask indicating that the library is client code: that the library depends on the html library.
-   * If the library is not "client code", then it is referenced as "server code".
+   * The index of the bit in the {@link #bitmask} indicating that the library is client code: that
+   * the library depends on the html library. If the library is not "client code", then it is
+   * referred to as "server code".
    */
-  private static final int CLIENT_CODE = 1 << 2;
+  private static final int CLIENT_CODE_INDEX = 2;
 
   /**
    * Initialize a newly created cache entry to be empty.
@@ -480,9 +483,9 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     } else if (descriptor == INCLUDED_PARTS) {
       return (E) includedParts;
     } else if (descriptor == IS_CLIENT) {
-      return (E) ((bitmask & CLIENT_CODE) != 0 ? Boolean.TRUE : Boolean.FALSE);
+      return (E) (Boolean) BooleanArray.get(bitmask, CLIENT_CODE_INDEX);
     } else if (descriptor == IS_LAUNCHABLE) {
-      return (E) ((bitmask & LAUNCHABLE) != 0 ? Boolean.TRUE : Boolean.FALSE);
+      return (E) (Boolean) BooleanArray.get(bitmask, LAUNCHABLE_INDEX);
     } else if (descriptor == PARSE_ERRORS) {
       return (E) parseErrors;
     } else if (descriptor == PARSED_UNIT) {
@@ -770,10 +773,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       includedParts = updatedValue(state, includedParts, Source.EMPTY_ARRAY);
       includedPartsState = state;
     } else if (descriptor == IS_CLIENT) {
-      bitmask = updatedValue(state, bitmask, CLIENT_CODE);
+      bitmask = updatedValue(state, bitmask, CLIENT_CODE_INDEX);
       clientServerState = state;
     } else if (descriptor == IS_LAUNCHABLE) {
-      bitmask = updatedValue(state, bitmask, LAUNCHABLE);
+      bitmask = updatedValue(state, bitmask, LAUNCHABLE_INDEX);
       launchableState = state;
     } else if (descriptor == PARSE_ERRORS) {
       parseErrors = updatedValue(state, parseErrors, AnalysisError.NO_ERRORS);
@@ -839,18 +842,10 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       includedParts = value == null ? Source.EMPTY_ARRAY : (Source[]) value;
       includedPartsState = CacheState.VALID;
     } else if (descriptor == IS_CLIENT) {
-      if (((Boolean) value).booleanValue()) {
-        bitmask |= CLIENT_CODE;
-      } else {
-        bitmask &= ~CLIENT_CODE;
-      }
+      bitmask = BooleanArray.set(bitmask, CLIENT_CODE_INDEX, ((Boolean) value).booleanValue());
       clientServerState = CacheState.VALID;
     } else if (descriptor == IS_LAUNCHABLE) {
-      if (((Boolean) value).booleanValue()) {
-        bitmask |= LAUNCHABLE;
-      } else {
-        bitmask &= ~LAUNCHABLE;
-      }
+      bitmask = BooleanArray.set(bitmask, LAUNCHABLE_INDEX, ((Boolean) value).booleanValue());
       launchableState = CacheState.VALID;
     } else if (descriptor == PARSE_ERRORS) {
       parseErrors = value == null ? AnalysisError.NO_ERRORS : (AnalysisError[]) value;
@@ -982,7 +977,7 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * @param bitMask the mask used to access the bit whose state is being set
    * @return the value of the data that should be kept in the cache
    */
-  private int updatedValue(CacheState state, int currentValue, int bitMask) {
+  private int updatedValue(CacheState state, int currentValue, int bitIndex) {
     if (state == CacheState.VALID) {
       throw new IllegalArgumentException("Use setValue() to set the state to VALID");
     } else if (state == CacheState.IN_PROCESS) {
@@ -991,6 +986,6 @@ public class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       //
       return currentValue;
     }
-    return currentValue &= ~bitMask;
+    return BooleanArray.set(currentValue, bitIndex, false);
   }
 }
