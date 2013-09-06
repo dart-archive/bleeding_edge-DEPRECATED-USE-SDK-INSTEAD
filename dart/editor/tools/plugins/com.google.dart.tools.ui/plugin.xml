@@ -804,6 +804,11 @@
             description="%category.refactoring.description"
             id="com.google.dart.tools.ui.category.refactoring">
       </category>
+      <category
+            name="%category.tools.name"
+            description="%category.tools.description"
+            id="com.google.dart.tools.ui.category.tools">
+      </category>
       <!-- search -->
       <command
             name="%ActionDefinition.referencesInWorkspace.name"
@@ -1132,6 +1137,14 @@
             description="%ActionDefinition.gotoType.description"
             categoryId="org.eclipse.ui.category.navigate"
             id="com.google.dart.tools.ui.navigate.gototype">
+      </command>
+      
+<!-- Tools -->
+      <command
+            name="%ActionDefinition.reanalyzeSources.name"
+            description="%ActionDefinition.reanalyzeSources.description"
+            categoryId="com.google.dart.tools.ui.category.tools"
+            id="com.google.dart.tools.ui.buildClean">
       </command>
       
 <!-- project -->

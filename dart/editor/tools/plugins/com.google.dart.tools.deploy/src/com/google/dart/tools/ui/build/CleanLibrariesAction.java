@@ -27,7 +27,7 @@ import org.eclipse.ui.actions.ActionFactory;
  */
 public class CleanLibrariesAction extends InstrumentedAction implements
     ActionFactory.IWorkbenchAction {
-  private static final String ACTION_ID = "buildClean"; //$NON-NLS-1$
+  private static final String ACTION_ID = "com.google.dart.tools.ui.buildClean"; //$NON-NLS-1$
 
   /**
    * Creates a new BuildCleanAction
@@ -38,6 +38,7 @@ public class CleanLibrariesAction extends InstrumentedAction implements
     super(BuildMessages.CleanLibrariesAction_rebuildAll);
 
     setId(ACTION_ID);
+    setActionDefinitionId(ACTION_ID);
   }
 
   @Override

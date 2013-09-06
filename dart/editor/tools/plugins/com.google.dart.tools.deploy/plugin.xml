@@ -170,6 +170,10 @@
             commandId="org.eclipse.ui.window.previousEditor"
             sequence="M1+M2+F6"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            commandId="com.google.dart.tools.ui.buildClean"
+            sequence="M1+M2+M3+B"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
    </extension>
    
    <extension
