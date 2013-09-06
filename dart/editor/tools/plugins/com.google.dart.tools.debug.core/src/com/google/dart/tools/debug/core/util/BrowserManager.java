@@ -679,9 +679,6 @@ public class BrowserManager {
       env.put("DART_PACKAGE_ROOT", packageRootUri);
     }
 
-    // This flag allows us to retrieve the dart: core sources from Dartium.
-    env.put("DART_DEBUG_LIBS", "true");
-
     devToolsPortNumber = DEVTOOLS_PORT_NUMBER;
 
     if (enableDebugging) {
