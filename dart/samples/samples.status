@@ -21,9 +21,12 @@ dartcombat/test/dartcombat_test: Skip # passes locally but timeout on bot?
 
 [ $runtime == ie9 ]
 swarm/test/swarm_ui_lib/layout/layout_test: Fail # http://dartbug.com/5132
+third_party/todomvc/test/mainpage_test: Fail # Issue 12865
 
 [ $runtime == safari ]
 promise_based_test: Skip
+third_party/todomvc/test/markdone_test: Fail # Issue 12865
+third_party/todomvc/test/markdone_shadow_test: Fail # Issue 12865
 
 [ $runtime == opera ]
 swarm/test/swarm_ui_lib/touch/touch_test: Fail
