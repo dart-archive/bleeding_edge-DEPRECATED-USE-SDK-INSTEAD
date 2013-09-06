@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -356,12 +357,18 @@ public class ServiceUtils {
   }
 
   private static TextEdit[] toLTK(List<Edit> edits) {
-    int length = edits.size();
-    TextEdit[] ltkEdits = new TextEdit[length];
-    for (int i = 0; i < length; i++) {
-      ltkEdits[i] = toLTK(edits.get(i));
+    Set<Integer> seenOffsets = Sets.newHashSet();
+    List<TextEdit> ltkEdits = Lists.newArrayList();
+    for (Edit edit : edits) {
+      // filter out duplicates
+      if (!seenOffsets.add(edit.offset)) {
+        continue;
+      }
+      // add LTK edit
+      TextEdit ltkEdit = toLTK(edit);
+      ltkEdits.add(ltkEdit);
     }
-    return ltkEdits;
+    return ltkEdits.toArray(new TextEdit[ltkEdits.size()]);
   }
 
   /**
