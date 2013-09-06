@@ -116,6 +116,7 @@ import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -126,16 +127,6 @@ import java.util.List;
 public class ProblemsView extends ViewPart implements MarkersChangeService.MarkerChangeListener {
 
   static class TypeLabelProvider extends ColumnLabelProvider {
-    @Override
-    public Color getBackground(Object element) {
-      return ProblemsView.getBackground(element);
-    }
-
-    @Override
-    public Color getForeground(Object element) {
-      return ProblemsView.getForeground(element);
-    }
-
     @Override
     public String getText(Object element) {
       if (element instanceof IMarker) {
@@ -226,16 +217,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       }
 
       super.dispose(viewer, column);
-    }
-
-    @Override
-    public Color getBackground(Object element) {
-      return ProblemsView.getBackground(element);
-    }
-
-    @Override
-    public Color getForeground(Object element) {
-      return ProblemsView.getForeground(element);
     }
 
     @Override
@@ -435,12 +416,12 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       IStyledLabelProvider, IColorProvider {
     @Override
     public Color getBackground(Object element) {
-      return ProblemsView.getBackground(element);
+      return null;
     }
 
     @Override
     public Color getForeground(Object element) {
-      return ProblemsView.getForeground(element);
+      return null;
     }
 
     @Override
@@ -543,6 +524,56 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
   }
 
+  private class MarkersRefreshJob extends WorkspaceJob {
+    private final Display display;
+
+    MarkersRefreshJob(Display display) {
+      super("Refresh Problems");
+
+      this.display = display;
+
+      setSystem(true);
+    }
+
+    @Override
+    public boolean belongsTo(Object family) {
+      return family == REFRESH_MARKERS_JOB_FAMILY;
+    }
+
+    @Override
+    public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+      monitor.beginTask("Refresh problems", IProgressMonitor.UNKNOWN);
+
+      try {
+        List<IMarker> markers = new ArrayList<IMarker>();
+
+        for (String markerId : MarkersUtils.getInstance().getErrorsViewMarkerIds()) {
+          IMarker[] marks = ResourcesPlugin.getWorkspace().getRoot().findMarkers(
+              markerId,
+              true,
+              IResource.DEPTH_INFINITE);
+
+          markers.addAll(Arrays.asList(marks));
+        }
+
+        showMarkers(display, markers);
+      } catch (CoreException ce) {
+        DartToolsPlugin.log(ce);
+      } finally {
+        if (rescheduleJob) {
+          rescheduleJob = false;
+          schedule(250);
+        } else {
+          refreshJob = null;
+        }
+      }
+
+      monitor.done();
+
+      return Status.OK_STATUS;
+    }
+  }
+
   private final class PageSelectionListener implements ISelectionListener {
     @Override
     public void selectionChanged(IWorkbenchPart part, ISelection selection) {
@@ -558,10 +589,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
       setImageDescriptor(DartToolsPlugin.getBundledImageDescriptor("icons/full/eview16/tasks_tsk.gif"));
 
-      // TODO(keertip): do a restore state after a few builds to make sure all users have 
-      // default set to false;
-      setChecked(false);
-      //setChecked(getMementoBoolean("showInfos", false));
+      setChecked(getMementoBoolean("showInfos", false));
     }
 
     @Override
@@ -577,8 +605,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     private int sortColumn;
     private int direction;
 
-    private static final int CAT_BUILDPATH = 10; // CategorizedProblem.CAT_BUILDPATH
-
     public TableSorter() {
       direction = DESCENDING;
     }
@@ -586,9 +612,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
       if (direction == DESCENDING) {
-        return compareMarkers((IMarker) e1, (IMarker) e2);
+        return compareMarkers((TableSorterMarker) e1, (TableSorterMarker) e2);
       } else {
-        return -1 * compareMarkers((IMarker) e1, (IMarker) e2);
+        return -1 * compareMarkers((TableSorterMarker) e1, (TableSorterMarker) e2);
       }
     }
 
@@ -604,34 +630,38 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
     @Override
     public void sort(final Viewer viewer, Object[] elements) {
-      try {
-        super.sort(viewer, elements);
-      } catch (IllegalArgumentException iae) {
-        // We can get exceptions because the markers are changing out from under us. See
-        // https://code.google.com/p/dart/issues/detail?id=3937. This is fairly infrequent
-        //behavior. If we encounter an exception, we try a re-sort.
-        try {
-          super.sort(viewer, elements);
-        } catch (IllegalArgumentException ex) {
+      // We cache views on the markers and sort those, in order to protect against concurrent
+      // modifications to the marker information.
 
+      TableSorterMarker[] sortables = new TableSorterMarker[elements.length];
+
+      for (int i = 0; i < sortables.length; i++) {
+        sortables[i] = new TableSorterMarker((IMarker) elements[i]);
+      }
+
+      Arrays.sort(sortables, new Comparator<TableSorterMarker>() {
+        @Override
+        public int compare(TableSorterMarker marker1, TableSorterMarker marker2) {
+          return TableSorter.this.compare(viewer, marker1, marker2);
         }
+      });
+
+      for (int i = 0; i < sortables.length; i++) {
+        elements[i] = sortables[i].marker;
       }
     }
 
-    private int compareLineNumber(IMarker marker1, IMarker marker2) {
-      int line1 = marker1.getAttribute(IMarker.LINE_NUMBER, 0);
-      int line2 = marker2.getAttribute(IMarker.LINE_NUMBER, 0);
-
-      return line1 - line2;
+    private final int compareLineNumber(TableSorterMarker marker1, TableSorterMarker marker2) {
+      return marker1.line - marker2.line;
     }
 
-    private final int compareMarkers(IMarker marker1, IMarker marker2) {
+    private final int compareMarkers(TableSorterMarker marker1, TableSorterMarker marker2) {
       // sort by severity
       // then by resource name
       // then by line number
       // then by problem description
 
-      if (marker1 == null || marker2 == null || !marker1.exists() || !marker2.exists()) {
+      if (marker1 == null || marker2 == null || !marker1.exists || !marker2.exists) {
         return 0;
       }
 
@@ -706,43 +736,43 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       }
     }
 
-    private int compareProblemDescription(IMarker marker1, IMarker marker2) {
-      String desc1 = marker1.getAttribute(IMarker.MESSAGE, "");
-      String desc2 = marker2.getAttribute(IMarker.MESSAGE, "");
-
-      return desc1.compareToIgnoreCase(desc2);
+    private final int compareProblemDescription(TableSorterMarker marker1, TableSorterMarker marker2) {
+      return marker1.description.compareToIgnoreCase(marker2.description);
     }
 
-    private int compareResourceName(IMarker marker1, IMarker marker2) {
-      String name1 = marker1.getResource().getName();
-      String name2 = marker2.getResource().getName();
-
-      return name1.compareToIgnoreCase(name2);
+    private final int compareResourceName(TableSorterMarker marker1, TableSorterMarker marker2) {
+      return marker1.resourceName.compareToIgnoreCase(marker2.resourceName);
     }
 
-    private final int compareSeverity(IMarker marker1, IMarker marker2) {
-      int sev1 = marker1.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
-      int sev2 = marker2.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
-
-      if (sev1 == sev2 && sev1 == IMarker.SEVERITY_ERROR) {
-        int category1 = marker1.getAttribute("categoryId", 0);
-        int category2 = marker2.getAttribute("categoryId", 0);
-
-        int compare1 = (category1 == CAT_BUILDPATH ? 0 : 1);
-        int compare2 = (category2 == CAT_BUILDPATH ? 0 : 1);
-
-        return compare1 - compare2;
-      }
-
+    private final int compareSeverity(TableSorterMarker marker1, TableSorterMarker marker2) {
       // This order (sev2 - sev1) is deliberate.
-      return sev2 - sev1;
+      return marker2.severity - marker1.severity;
     }
 
-    private int compareType(IMarker marker1, IMarker marker2) {
-      String desc1 = MarkersExtManager.getInstance().getLabelForMarkerType(marker1);
-      String desc2 = MarkersExtManager.getInstance().getLabelForMarkerType(marker2);
+    private final int compareType(TableSorterMarker marker1, TableSorterMarker marker2) {
+      return marker1.description.compareToIgnoreCase(marker2.description);
+    }
+  }
 
-      return desc1.compareToIgnoreCase(desc2);
+  private static class TableSorterMarker {
+    public IMarker marker;
+
+    String resourceName;
+    int line;
+    int severity;
+    String description;
+
+    boolean exists;
+
+    public TableSorterMarker(IMarker marker) {
+      this.marker = marker;
+
+      this.resourceName = marker.getResource().getName();
+      this.line = marker.getAttribute(IMarker.LINE_NUMBER, 0);
+      this.severity = marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
+      this.description = marker.getAttribute(IMarker.MESSAGE, "");
+
+      this.exists = marker.exists();
     }
   }
 
@@ -751,18 +781,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   private static Object REFRESH_MARKERS_JOB_FAMILY = new Object();
 
   private static ResourceManager resourceManager;
-
-  private static Color getBackground(Object element) {
-    // if (BK_COLOR == null) {
-    // BK_COLOR = new Color(Display.getDefault(), 0xDD, 0xDD, 0xDD);
-    // }
-
-    return null;
-  }
-
-  private static Color getForeground(Object element) {
-    return null;
-  }
 
   private static ResourceManager getImageManager() {
     if (resourceManager == null) {
@@ -834,11 +852,9 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   private GoToMarkerAction goToMarkerAction;
 
-  private Job job;
+  private Job refreshJob;
 
   private boolean rescheduleJob;
-
-  private long lastShowTime;
 
   private Display swtDisplay;
   private IPreferenceStore preferences;
@@ -927,13 +943,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     enableSorting(fileNameColumn.getColumn(), 1);
 
     tableViewer.getTable().setSortColumn(fileNameColumn.getColumn());
-
-//    TableViewerColumn typeColumn = new TableViewerColumn(tableViewer, SWT.LEFT);
-//    typeColumn.setLabelProvider(new TypeLabelProvider());
-//    typeColumn.getColumn().setText("Type");
-//    typeColumn.getColumn().setWidth(130);
-//    typeColumn.getColumn().setResizable(true);
-//    enableSorting(typeColumn.getColumn(), 2);
 
     restoreColumnWidths();
 
@@ -1103,8 +1112,6 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     progressService.showBusyForFamily(REFRESH_MARKERS_JOB_FAMILY);
   }
 
-  // private static Color BK_COLOR = null;
-
   protected void showMarkers(Display display, final List<IMarker> markers) {
     for (int i = markers.size() - 1; i >= 0; i--) {
       if (!markers.get(i).exists()) {
@@ -1127,59 +1134,11 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   }
 
   protected void startUpdateJob(final Display display) {
-    if (job != null) {
+    if (refreshJob != null) {
       rescheduleJob = true;
     } else {
-      job = new WorkspaceJob("Refresh Problems") {
-        @Override
-        public boolean belongsTo(Object family) {
-          return family == REFRESH_MARKERS_JOB_FAMILY;
-        }
-
-        @Override
-        public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
-          // Update problems view at least every 2 to 3 seconds
-          if (rescheduleJob && System.currentTimeMillis() - lastShowTime < 2000) {
-            rescheduleJob = false;
-            schedule(1000);
-          } else {
-            monitor.beginTask("Refresh problems", IProgressMonitor.UNKNOWN);
-
-            try {
-              List<IMarker> markers = new ArrayList<IMarker>();
-
-              for (String markerId : MarkersUtils.getInstance().getErrorsViewMarkerIds()) {
-                IMarker[] marks = ResourcesPlugin.getWorkspace().getRoot().findMarkers(
-                    markerId,
-                    true,
-                    IResource.DEPTH_INFINITE);
-
-                markers.addAll(Arrays.asList(marks));
-              }
-
-              showMarkers(display, markers);
-              lastShowTime = System.currentTimeMillis();
-            } catch (CoreException ce) {
-              DartToolsPlugin.log(ce);
-            } finally {
-              if (rescheduleJob) {
-                rescheduleJob = false;
-                schedule(1000);
-              } else {
-                job = null;
-              }
-            }
-
-            monitor.done();
-          }
-
-          return Status.OK_STATUS;
-        }
-      };
-
-      job.setRule(ResourcesPlugin.getWorkspace().getRoot());
-
-      job.schedule(250);
+      refreshJob = new MarkersRefreshJob(display);
+      refreshJob.schedule(250);
     }
   }
 
