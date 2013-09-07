@@ -14,7 +14,9 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
+import com.google.dart.engine.source.Source;
 
 /**
  * Test for {@link RenameLocalRefactoringImpl}.
@@ -381,6 +383,35 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "    int test = 2;",
         "    print(test);",
         "  }",
+        "}");
+  }
+
+  public void test_createChange_oneUnitInTwoContexts() throws Exception {
+    String code = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int test = 0;",
+        "  print(test);",
+        "}");
+    // index unit in separate context
+    {
+      ContextHelper helper = new ContextHelper();
+      Source source = helper.addSource("/Test.dart", code);
+      CompilationUnit unit = helper.analyzeSingleUnitLibrary(source);
+      index.indexUnit(helper.context, unit);
+    }
+    // index same unit as "test"
+    indexTestUnit(code);
+    // configure refactoring
+    createRenameRefactoring("test = 0");
+    assertEquals("Rename Local Variable", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int newName = 0;",
+        "  print(newName);",
         "}");
   }
 

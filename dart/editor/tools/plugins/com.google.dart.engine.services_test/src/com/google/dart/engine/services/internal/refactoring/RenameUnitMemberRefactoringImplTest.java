@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.Source;
@@ -499,6 +500,75 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
 //  public void test_createChange_PropertyAccessorElement_setter_usage() throws Exception {
 //    check_createChange_PropertyAccessorElement("test = 1");
 //  }
+
+  public void test_createChange_oneLibInTwoContexts() throws Exception {
+    String libCode = "test() {}";
+    String code = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'Lib.dart';",
+        "main() {",
+        "  test();",
+        "}");
+    // index unit in separate context
+    Source source2;
+    {
+      ContextHelper helper = new ContextHelper();
+      helper.addSource("/Lib.dart", libCode);
+      source2 = helper.addSource("/Test2.dart", code);
+      CompilationUnit unit = helper.analyzeSingleUnitLibrary(source2);
+      index.indexUnit(helper.context, unit);
+    }
+    // index unit Lib.dart in "test"
+    addSource("/Lib.dart", libCode);
+    indexTestUnit(code);
+    // configure refactoring
+    createRenameRefactoring("test()");
+    assertEquals("Rename Top-Level Function", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'Lib.dart';",
+        "main() {",
+        "  newName();",
+        "}");
+    assertChangeResult(
+        refactoringChange,
+        source2,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'Lib.dart';",
+            "main() {",
+            "  newName();",
+            "}"));
+  }
+
+  public void test_createChange_oneUnitInTwoContexts() throws Exception {
+    String code = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  main();",
+        "}");
+    // index unit in separate context
+    {
+      ContextHelper helper = new ContextHelper();
+      Source source = helper.addSource("/Test.dart", code);
+      CompilationUnit unit = helper.analyzeSingleUnitLibrary(source);
+      index.indexUnit(helper.context, unit);
+    }
+    // index same unit as "test"
+    indexTestUnit(code);
+    // configure refactoring
+    createRenameRefactoring("main() {");
+    assertEquals("Rename Top-Level Function", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "newName() {",
+        "  newName();",
+        "}");
+  }
 
   public void test_createChange_TopLevelVariableElement_field() throws Exception {
     check_createChange_TopLevelVariableElement("test = 42;");

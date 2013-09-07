@@ -113,14 +113,16 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         }
       }
       // update references
-      for (SearchMatch reference : validator.renameElementsReferences) {
+      List<SearchMatch> uniqueElementsRefs = getUniqueMatches(validator.renameElementsReferences);
+      for (SearchMatch reference : uniqueElementsRefs) {
         Source refSource = reference.getElement().getSource();
         SourceChange refChange = exactManager.get(refSource);
         addReferenceEdit(refChange, reference);
       }
       // potential matches
       SourceChangeManager previewManager = new SourceChangeManager();
-      for (SearchMatch reference : nameReferences) {
+      List<SearchMatch> uniqueNameRefs = getUniqueMatches(nameReferences);
+      for (SearchMatch reference : uniqueNameRefs) {
         Source refSource = reference.getElement().getSource();
         SourceChange refChange = previewManager.get(refSource);
         Edit edit = createReferenceEdit(reference, newName);

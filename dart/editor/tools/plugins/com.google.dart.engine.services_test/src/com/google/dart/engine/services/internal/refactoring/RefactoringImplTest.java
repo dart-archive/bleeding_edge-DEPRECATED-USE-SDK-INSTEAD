@@ -47,6 +47,7 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   public static void assertChangeResult(Change compositeChange, Source source, String expected)
       throws Exception {
     SourceChange sourceChange = getSourceChange(compositeChange, source);
+    assertNotNull("No change for: " + source.toString(), sourceChange);
     String sourceResult = getChangeResult(source, sourceChange);
     assertEquals(expected, sourceResult);
   }
@@ -137,7 +138,7 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
 
   protected final ProgressMonitor pm = new NullProgressMonitor();
 
-  private Index index;
+  protected Index index;
 
   protected SearchEngine searchEngine;
 

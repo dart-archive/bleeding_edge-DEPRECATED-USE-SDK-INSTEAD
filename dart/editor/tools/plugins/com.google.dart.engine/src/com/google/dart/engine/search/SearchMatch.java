@@ -142,6 +142,11 @@ public class SearchMatch {
     return sourceRange;
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(element, sourceRange, kind);
+  }
+
   /**
    * @return the {@code true} if field or method access is done using qualifier.
    */

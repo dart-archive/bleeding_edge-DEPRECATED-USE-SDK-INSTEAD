@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.Source;
@@ -525,6 +526,73 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
             "  a.newName = 1;",
             "  a.newName += 2;",
             "}"));
+  }
+
+  public void test_createChange_oneUnitInTwoContexts() throws Exception {
+    String code = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "}",
+        "class B extends A {",
+        "  test() {} // marker",
+        "}",
+        "class C extends B {",
+        "  test() {}",
+        "}",
+        "class D implements B {",
+        "  test() {}",
+        "}",
+        "main(var e) {",
+        "  A a = new A();",
+        "  B b = new B();",
+        "  C c = new C();",
+        "  D d = new D();",
+        "  a.test();",
+        "  b.test();",
+        "  c.test();",
+        "  d.test();",
+        "  e.test();",
+        "}");
+    // index unit in separate context
+    {
+      ContextHelper helper = new ContextHelper();
+      Source source = helper.addSource("/Test.dart", code);
+      CompilationUnit unit = helper.analyzeSingleUnitLibrary(source);
+      index.indexUnit(helper.context, unit);
+    }
+    // index same unit as "test"
+    indexTestUnit(code);
+    // configure refactoring
+    createRenameRefactoring("test() {} // marker");
+    assertEquals("Rename Method", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  newName() {}",
+        "}",
+        "class B extends A {",
+        "  newName() {} // marker",
+        "}",
+        "class C extends B {",
+        "  newName() {}",
+        "}",
+        "class D implements B {",
+        "  newName() {}",
+        "}",
+        "main(var e) {",
+        "  A a = new A();",
+        "  B b = new B();",
+        "  C c = new C();",
+        "  D d = new D();",
+        "  a.newName();",
+        "  b.newName();",
+        "  c.newName();",
+        "  d.newName();",
+        "  e.newName();",
+        "}");
   }
 
   public void test_createChange_PropertyAccessorElement_getter() throws Exception {

@@ -72,6 +72,17 @@ public class SearchMatchTest extends EngineTestCase {
     }
   }
 
+  public void test_hashCode() throws Exception {
+    Element element = mock(Element.class);
+    SearchMatch match = new SearchMatch(
+        MatchQuality.EXACT,
+        MatchKind.TYPE_REFERENCE,
+        element,
+        new SourceRange(10, 5));
+    // no check
+    match.hashCode();
+  }
+
   public void test_new() throws Exception {
     SearchMatch match = new SearchMatch(
         MatchQuality.EXACT,

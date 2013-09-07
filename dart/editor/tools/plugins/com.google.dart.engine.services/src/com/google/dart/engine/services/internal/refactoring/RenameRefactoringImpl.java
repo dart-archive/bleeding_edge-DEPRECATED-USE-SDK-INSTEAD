@@ -15,6 +15,8 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -30,16 +32,31 @@ import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeElementName;
 
+import java.util.List;
+import java.util.Set;
+
 /**
  * Abstract implementation of {@link RenameRefactoring}.
  */
 public abstract class RenameRefactoringImpl extends RefactoringImpl implements RenameRefactoring {
-
   /**
    * @return the {@link Edit} to replace the given {@link SearchMatch} reference.
    */
   protected static Edit createReferenceEdit(SearchMatch reference, String newText) {
     return new Edit(reference.getSourceRange(), newText);
+  }
+
+  /**
+   * When one {@link Source} (one file) is used in more than one context, {@link SearchEngine} will
+   * return separate {@link SearchMatch} for each context. But in rename refactoring we want to
+   * update {@link Source} only once.
+   */
+  protected static List<SearchMatch> getUniqueMatches(List<SearchMatch> matches) {
+    Set<SearchMatch> uniqueMatches = Sets.newHashSet();
+    for (SearchMatch match : matches) {
+      uniqueMatches.add(match);
+    }
+    return Lists.newArrayList(uniqueMatches);
   }
 
   /**

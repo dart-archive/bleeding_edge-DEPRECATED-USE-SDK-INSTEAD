@@ -72,6 +72,7 @@ public class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
       }
       // update references
       List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
+      references = getUniqueMatches(references);
       for (SearchMatch reference : references) {
         Source refSource = reference.getElement().getSource();
         SourceChange refChange = changeManager.get(refSource);
