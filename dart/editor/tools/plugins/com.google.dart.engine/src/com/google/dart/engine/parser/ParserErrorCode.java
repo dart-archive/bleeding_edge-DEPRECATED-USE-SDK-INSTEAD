@@ -84,6 +84,7 @@ public enum ParserErrorCode implements ErrorCode {
   FINAL_TYPEDEF("Type aliases cannot be declared to be 'final'"),
   FUNCTION_TYPED_PARAMETER_VAR(
       "Function typed parameters cannot specify 'const', 'final' or 'var' instead of return type"),
+  GETTER_IN_FUNCTION("Getters cannot be defined within methods or functions"),
   GETTER_WITH_PARAMETERS("Getter should be declared without a parameter list"),
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
   IMPLEMENTS_BEFORE_EXTENDS("The extends clause must be before the implements clause"),
@@ -149,6 +150,7 @@ public enum ParserErrorCode implements ErrorCode {
   POSITIONAL_PARAMETER_OUTSIDE_GROUP(
       "Positional parameters must be enclosed in square brackets ('[' and ']')"),
   REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR("Only factory constructor can specify '=' redirection."),
+  SETTER_IN_FUNCTION("Setters cannot be defined within methods or functions"),
   STATIC_AFTER_CONST("The modifier 'static' should be before the modifier 'const'"),
   STATIC_AFTER_FINAL("The modifier 'static' should be before the modifier 'final'"),
   STATIC_AFTER_VAR("The modifier 'static' should be before the modifier 'var'"),

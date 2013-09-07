@@ -543,7 +543,20 @@ public class Parser {
     if (afterIdentifier == null) {
       return false;
     }
-    return isFunctionExpression(afterIdentifier);
+    if (isFunctionExpression(afterIdentifier)) {
+      return true;
+    }
+    // It's possible that we have found a getter. While this isn't valid at this point we test for
+    // it in order to recover better.
+    if (matches(Keyword.GET)) {
+      Token afterName = skipSimpleIdentifier(currentToken.getNext());
+      if (afterName == null) {
+        return false;
+      }
+      return matches(afterName, TokenType.FUNCTION)
+          || matches(afterName, TokenType.OPEN_CURLY_BRACKET);
+    }
+    return false;
   }
 
   /**
@@ -3189,10 +3202,16 @@ public class Parser {
    */
   private Statement parseFunctionDeclarationStatement(CommentAndMetadata commentAndMetadata,
       TypeName returnType) {
-    return new FunctionDeclarationStatement(parseFunctionDeclaration(
-        commentAndMetadata,
-        null,
-        returnType));
+    FunctionDeclaration declaration = parseFunctionDeclaration(commentAndMetadata, null, returnType);
+    Token propertyKeyword = declaration.getPropertyKeyword();
+    if (propertyKeyword != null) {
+      if (((KeywordToken) propertyKeyword).getKeyword() == Keyword.GET) {
+        reportError(ParserErrorCode.GETTER_IN_FUNCTION, propertyKeyword);
+      } else {
+        reportError(ParserErrorCode.SETTER_IN_FUNCTION, propertyKeyword);
+      }
+    }
+    return new FunctionDeclarationStatement(declaration);
   }
 
   /**

@@ -684,6 +684,14 @@ public class ErrorParserTest extends ParserTestCase {
     parseCompilationUnit("void f(var x()) {}", ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR);
   }
 
+  public void test_getterInFunction_block() throws Exception {
+    parseStatement("get x { return _x; }", ParserErrorCode.GETTER_IN_FUNCTION);
+  }
+
+  public void test_getterInFunction_expression() throws Exception {
+    parseStatement("get x => _x;", ParserErrorCode.GETTER_IN_FUNCTION);
+  }
+
   public void test_getterWithParameters() throws Exception {
     parse(
         "parseClassMember",
@@ -1183,6 +1191,14 @@ public class ErrorParserTest extends ParserTestCase {
         new Object[] {"C"},
         "C() = D;",
         ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR);
+  }
+
+  public void test_setterInFunction_block() throws Exception {
+    parseStatement("set x(v) {_x = v;}", ParserErrorCode.SETTER_IN_FUNCTION);
+  }
+
+  public void test_setterInFunction_expression() throws Exception {
+    parseStatement("set x(v) => _x = v;", ParserErrorCode.SETTER_IN_FUNCTION);
   }
 
   public void test_staticAfterConst() throws Exception {
