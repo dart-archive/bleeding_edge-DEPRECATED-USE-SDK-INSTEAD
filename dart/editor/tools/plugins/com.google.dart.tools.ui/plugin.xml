@@ -843,6 +843,13 @@
             id="com.google.dart.tools.ui.file.new"
             name="%Command.newFile.name">
       </command>
+      <command
+            categoryId="org.eclipse.ui.category.file"
+            defaultHandler="com.google.dart.tools.ui.internal.handlers.NewFileHandler"
+            description="%Command.newFile.description"
+            id="com.google.dart.tools.ui.file.showInFinder"
+            name="%Command.newFile.name">
+      </command>
 <!-- edit -->
       <command
             name="%ActionDefinition.selectEnclosing.name"

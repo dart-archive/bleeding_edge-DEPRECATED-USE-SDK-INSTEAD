@@ -74,6 +74,10 @@
    <extension
          point="org.eclipse.ui.bindings">
      <key
+            commandId="com.google.dart.tools.ui.file.showInFinder"
+            sequence="M1+M2+M3+F"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
+     <key
             commandId="org.eclipse.ui.file.properties"
             sequence="M3+CR"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />

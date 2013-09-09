@@ -31,6 +31,7 @@ import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.actions.OpenTutorialAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.actions.RunPublishAction;
+import com.google.dart.tools.ui.actions.ShowInFinderAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
 import com.google.dart.tools.ui.internal.handlers.NewFileHandler;
 import com.google.dart.tools.ui.internal.handlers.NewFileHandler.NewFileCommandAction;
@@ -205,6 +206,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private QuickMenuAction newQuickMenu;
 
   private IWorkbenchAction refreshAction;
+
+  private ShowInFinderAction showInFinderAction;
 
   // IDE-specific retarget actions
   //private CommandContributionItem minimizeItem;
@@ -542,6 +545,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     refreshAction = ActionFactory.REFRESH.create(window);
     register(refreshAction);
+
+    showInFinderAction = ShowInFinderAction.getInstance(window);
+    register(showInFinderAction);
 
     newWindowAction = ActionFactory.OPEN_NEW_WINDOW.create(getWindow());
     newWindowAction.setText(IDEWorkbenchMessages.Workbench_openNewWindow);
@@ -969,6 +975,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 //    menu.add(actionFactory.getPropertiesItem());
 
     menu.add(new Separator());
+    menu.add(showInFinderAction);
     menu.add(actionFactory.getPropertiesItem());
 
     menu.add(ContributionItemFactory.REOPEN_EDITORS.create(getWindow()));

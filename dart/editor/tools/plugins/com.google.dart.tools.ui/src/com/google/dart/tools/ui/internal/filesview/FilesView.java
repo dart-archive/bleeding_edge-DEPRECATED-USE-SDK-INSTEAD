@@ -32,6 +32,7 @@ import com.google.dart.tools.ui.actions.OpenExternalDartdocAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
+import com.google.dart.tools.ui.actions.ShowInFinderAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
@@ -583,6 +584,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     if (allElementsAreResources(selection)) {
       manager.add(new Separator());
+      manager.add(ShowInFinderAction.getInstance(null));
       manager.add(propertyDialogAction);
     }
 
