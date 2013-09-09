@@ -17,12 +17,136 @@ import com.google.dart.engine.source.Source;
 
 public class NonHintCodeTest extends ResolverTestCase {
 
+  public void test_deadCode_deadBlock_conditionalElse_debugConst() throws Exception {
+    Source source = addSource(createSource(//
+        "const bool DEBUG = true;",
+        "f() {",
+        "  DEBUG ? 1 : 2;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_deadCode_deadBlock_conditionalIf_debugConst() throws Exception {
+    Source source = addSource(createSource(//
+        "const bool DEBUG = false;",
+        "f() {",
+        "  DEBUG ? 1 : 2;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_deadCode_deadBlock_else() throws Exception {
+    Source source = addSource(createSource(//
+        "const bool DEBUG = true;",
+        "f() {",
+        "  if(DEBUG) {} else {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_deadCode_deadBlock_if_debugConst_prefixedIdentifier() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  static const bool DEBUG = false;",
+        "}",
+        "f() {",
+        "  if(A.DEBUG) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_deadCode_deadBlock_if_debugConst_prefixedIdentifier2() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib2.dart';",
+        "f() {",
+        "  if(A.DEBUG) {}",
+        "}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class A {",
+        "  static const bool DEBUG = false;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_deadCode_deadBlock_if_debugConst_propertyAccessor() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib2.dart' as LIB;",
+        "f() {",
+        "  if(LIB.A.DEBUG) {}",
+        "}"));
+    addSource("/lib2.dart", createSource(//
+        "library lib2;",
+        "class A {",
+        "  static const bool DEBUG = false;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_deadCode_deadBlock_if_debugConst_simpleIdentifier() throws Exception {
+    Source source = addSource(createSource(//
+        "const bool DEBUG = false;",
+        "f() {",
+        "  if(DEBUG) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_deadCode_deadBlock_while_debugConst() throws Exception {
+    Source source = addSource(createSource(//
+        "const bool DEBUG = false;",
+        "f() {",
+        "  while(DEBUG) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_deadCode_deadCatch_onCatchSubtype() throws Exception {
     Source source = addSource(createSource(//
         "class A {}",
         "class B extends A {}",
         "f() {",
         "  try {} on B catch (e) {} on A catch (e) {} catch (e) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_deadCode_deadOperandLHS_and_debugConst() throws Exception {
+    Source source = addSource(createSource(//
+        "const bool DEBUG = false;",
+        "f() {",
+        "  bool b = DEBUG && false;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_deadCode_deadOperandLHS_or_debugConst() throws Exception {
+    Source source = addSource(createSource(//
+        "const bool DEBUG = true;",
+        "f() {",
+        "  bool b = DEBUG || true;",
         "}"));
     resolve(source);
     assertNoErrors();

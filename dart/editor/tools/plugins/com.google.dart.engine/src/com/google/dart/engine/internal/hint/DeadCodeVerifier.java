@@ -20,14 +20,19 @@ import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.internal.constant.ConstantVisitor;
 import com.google.dart.engine.internal.constant.EvaluationResultImpl;
@@ -68,20 +73,22 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
     boolean isBarBar = operator.getType() == TokenType.BAR_BAR;
     if (isAmpAmp || isBarBar) {
       Expression lhsCondition = node.getLeftOperand();
-      ValidResult lhsResult = getConstantBooleanValue(lhsCondition);
-      if (lhsResult != null) {
-        if (lhsResult == ValidResult.RESULT_TRUE && isBarBar) {
-          // report error on else block: true || !e!
-          errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
-          // only visit the LHS:
-          safelyVisit(lhsCondition);
-          return null;
-        } else if (lhsResult == ValidResult.RESULT_FALSE && isAmpAmp) {
-          // report error on if block: false && !e!
-          errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
-          // only visit the LHS:
-          safelyVisit(lhsCondition);
-          return null;
+      if (!isDebugConstant(lhsCondition)) {
+        ValidResult lhsResult = getConstantBooleanValue(lhsCondition);
+        if (lhsResult != null) {
+          if (lhsResult == ValidResult.RESULT_TRUE && isBarBar) {
+            // report error on else block: true || !e!
+            errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
+            // only visit the LHS:
+            safelyVisit(lhsCondition);
+            return null;
+          } else if (lhsResult == ValidResult.RESULT_FALSE && isAmpAmp) {
+            // report error on if block: false && !e!
+            errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
+            // only visit the LHS:
+            safelyVisit(lhsCondition);
+            return null;
+          }
         }
       }
       // How do we want to handle the RHS? It isn't dead code, but "pointless" or "obscure"...
@@ -134,18 +141,21 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitConditionalExpression(ConditionalExpression node) {
     Expression conditionExpression = node.getCondition();
-    ValidResult result = getConstantBooleanValue(conditionExpression);
-    if (result != null) {
-      if (result == ValidResult.RESULT_TRUE) {
-        // report error on else block: true ? 1 : !2!
-        errorReporter.reportError(HintCode.DEAD_CODE, node.getElseExpression());
-        safelyVisit(node.getThenExpression());
-        return null;
-      } else {
-        // report error on if block: false ? !1! : 2
-        errorReporter.reportError(HintCode.DEAD_CODE, node.getThenExpression());
-        safelyVisit(node.getElseExpression());
-        return null;
+    safelyVisit(conditionExpression);
+    if (!isDebugConstant(conditionExpression)) {
+      ValidResult result = getConstantBooleanValue(conditionExpression);
+      if (result != null) {
+        if (result == ValidResult.RESULT_TRUE) {
+          // report error on else block: true ? 1 : !2!
+          errorReporter.reportError(HintCode.DEAD_CODE, node.getElseExpression());
+          safelyVisit(node.getThenExpression());
+          return null;
+        } else {
+          // report error on if block: false ? !1! : 2
+          errorReporter.reportError(HintCode.DEAD_CODE, node.getThenExpression());
+          safelyVisit(node.getElseExpression());
+          return null;
+        }
       }
     }
     return super.visitConditionalExpression(node);
@@ -171,21 +181,24 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitIfStatement(IfStatement node) {
     Expression conditionExpression = node.getCondition();
-    ValidResult result = getConstantBooleanValue(conditionExpression);
-    if (result != null) {
-      if (result == ValidResult.RESULT_TRUE) {
-        // report error on else block: if(true) {} else {!}
-        Statement elseStatement = node.getElseStatement();
-        if (elseStatement != null) {
-          errorReporter.reportError(HintCode.DEAD_CODE, elseStatement);
-          safelyVisit(node.getThenStatement());
+    safelyVisit(conditionExpression);
+    if (!isDebugConstant(conditionExpression)) {
+      ValidResult result = getConstantBooleanValue(conditionExpression);
+      if (result != null) {
+        if (result == ValidResult.RESULT_TRUE) {
+          // report error on else block: if(true) {} else {!}
+          Statement elseStatement = node.getElseStatement();
+          if (elseStatement != null) {
+            errorReporter.reportError(HintCode.DEAD_CODE, elseStatement);
+            safelyVisit(node.getThenStatement());
+            return null;
+          }
+        } else {
+          // report error on if block: if (false) {!} else {}
+          errorReporter.reportError(HintCode.DEAD_CODE, node.getThenStatement());
+          safelyVisit(node.getElseStatement());
           return null;
         }
-      } else {
-        // report error on if block: if (false) {!} else {}
-        errorReporter.reportError(HintCode.DEAD_CODE, node.getThenStatement());
-        safelyVisit(node.getElseStatement());
-        return null;
       }
     }
     return super.visitIfStatement(node);
@@ -260,12 +273,14 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
   public Void visitWhileStatement(WhileStatement node) {
     Expression conditionExpression = node.getCondition();
     safelyVisit(conditionExpression);
-    ValidResult result = getConstantBooleanValue(conditionExpression);
-    if (result != null) {
-      if (result == ValidResult.RESULT_FALSE) {
-        // report error on if block: while (false) {!}
-        errorReporter.reportError(HintCode.DEAD_CODE, node.getBody());
-        return null;
+    if (!isDebugConstant(conditionExpression)) {
+      ValidResult result = getConstantBooleanValue(conditionExpression);
+      if (result != null) {
+        if (result == ValidResult.RESULT_FALSE) {
+          // report error on if block: while (false) {!}
+          errorReporter.reportError(HintCode.DEAD_CODE, node.getBody());
+          return null;
+        }
       }
     }
     safelyVisit(node.getBody());
@@ -298,6 +313,29 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
       }
       return null;
     }
+  }
+
+  /**
+   * Return {@code true} if and only if the passed expression is resolved to a constant variable.
+   * 
+   * @param expression some conditional expression
+   * @return {@code true} if and only if the passed expression is resolved to a constant variable
+   */
+  private boolean isDebugConstant(Expression expression) {
+    Element element = null;
+    if (expression instanceof Identifier) {
+      Identifier identifier = (Identifier) expression;
+      element = identifier.getStaticElement();
+    } else if (expression instanceof PropertyAccess) {
+      PropertyAccess propertyAccess = (PropertyAccess) expression;
+      element = propertyAccess.getPropertyName().getStaticElement();
+    }
+    if (element instanceof PropertyAccessorElement) {
+      PropertyAccessorElement pae = (PropertyAccessorElement) element;
+      PropertyInducingElement variable = pae.getVariable();
+      return variable != null && variable.isConst();
+    }
+    return false;
   }
 
   /**
