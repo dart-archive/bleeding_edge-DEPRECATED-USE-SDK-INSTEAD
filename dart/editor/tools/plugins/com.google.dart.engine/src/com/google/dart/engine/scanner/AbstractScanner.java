@@ -670,9 +670,9 @@ public abstract class AbstractScanner {
       appendToken(TokenType.PERIOD, getOffset() - 1);
       return bigSwitch(next);
     }
-    if (next == 'd' || next == 'D') {
-      next = advance();
-    }
+//    if (next == 'd' || next == 'D') {
+//      next = advance();
+//    }
     appendStringToken(TokenType.DOUBLE, getString(start, next < 0 ? 0 : -1));
     return next;
   }

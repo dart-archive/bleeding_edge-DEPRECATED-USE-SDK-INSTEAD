@@ -883,7 +883,7 @@ public abstract class AbstractScannerTest extends TestCase {
       assertEquals(source.length(), tokenWithSpaces.getLength());
       assertEquals(source, tokenWithSpaces.getLexeme());
       return originalToken;
-    } else if (expectedType == TokenType.INT) {
+    } else if (expectedType == TokenType.INT || expectedType == TokenType.DOUBLE) {
       Token tokenWithLowerD = scan(source + "d");
       assertNotNull(tokenWithLowerD);
       assertEquals(expectedType, tokenWithLowerD.getType());
