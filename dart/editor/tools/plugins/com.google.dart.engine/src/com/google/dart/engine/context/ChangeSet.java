@@ -139,4 +139,56 @@ public class ChangeSet {
       removedContainers.add(container);
     }
   }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    boolean needsSeparator = appendSources(builder, added, false, "added");
+    needsSeparator = appendSources(builder, changed, needsSeparator, "changed");
+    appendSources(builder, removed, needsSeparator, "removed");
+    int count = removedContainers.size();
+    if (count > 0) {
+      if (removed.isEmpty()) {
+        if (needsSeparator) {
+          builder.append("; ");
+        }
+        builder.append("removed: from ");
+        builder.append(count);
+        builder.append(" containers");
+      } else {
+        builder.append(", and more from ");
+        builder.append(count);
+        builder.append(" containers");
+      }
+    }
+    return builder.toString();
+  }
+
+  /**
+   * Append the given sources to the given builder, prefixed with the given label and possibly a
+   * separator.
+   * 
+   * @param builder the builder to which the sources are to be appended
+   * @param sources the sources to be appended
+   * @param needsSeparator {@code true} if a separator is needed before the label
+   * @param label the label used to prefix the sources
+   * @return {@code true} if future lists of sources will need a separator
+   */
+  private boolean appendSources(StringBuilder builder, ArrayList<Source> sources,
+      boolean needsSeparator, String label) {
+    if (sources.isEmpty()) {
+      return needsSeparator;
+    }
+    if (needsSeparator) {
+      builder.append("; ");
+    }
+    builder.append(label);
+    String prefix = " ";
+    for (Source source : sources) {
+      builder.append(prefix);
+      builder.append(source.getFullName());
+      prefix = ", ";
+    }
+    return true;
+  }
 }
