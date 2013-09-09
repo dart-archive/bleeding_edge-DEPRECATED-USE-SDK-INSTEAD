@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.context;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
@@ -116,6 +117,20 @@ public interface InternalAnalysisContext extends AnalysisContext {
    * Returns a statistics about this context.
    */
   public AnalysisContentStatistics getStatistics();
+
+  /**
+   * Return a time-stamped fully-resolved compilation unit for the given source in the given
+   * library.
+   * 
+   * @param unitSource the source of the compilation unit for which a resolved AST structure is to
+   *          be returned
+   * @param libraryElement the element representing the library in which the compilation unit is to
+   *          be resolved
+   * @return a time-stamped fully-resolved compilation unit for the source
+   * @throws AnalysisException if the resolved compilation unit could not be computed
+   */
+  public TimestampedData<CompilationUnit> internalResolveCompilationUnit(Source unitSource,
+      LibraryElement libraryElement) throws AnalysisException;
 
   /**
    * Given a table mapping the source for the libraries represented by the corresponding elements to

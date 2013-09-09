@@ -211,6 +211,9 @@ public class ParseDartTask extends AnalysisTask {
 
   @Override
   protected String getTaskDescription() {
+    if (source == null) {
+      return "parse as dart null source";
+    }
     return "parse as dart " + source.getFullName();
   }
 

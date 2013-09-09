@@ -898,6 +898,21 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
+  public TimestampedData<CompilationUnit> internalResolveCompilationUnit(Source unitSource,
+      LibraryElement libraryElement) throws AnalysisException {
+    DartEntry dartEntry = getReadableDartEntry(unitSource);
+    if (dartEntry == null) {
+      throw new AnalysisException("internalResolveCompilationUnit invoked for non-Dart file: "
+          + unitSource.getFullName());
+    }
+    Source librarySource = libraryElement.getSource();
+    dartEntry = internalResolveDart(unitSource, librarySource);
+    return new TimestampedData<CompilationUnit>(
+        dartEntry.getModificationTime(),
+        dartEntry.getValue(DartEntry.RESOLVED_UNIT, librarySource));
+  }
+
+  @Override
   public boolean isClientLibrary(Source librarySource) {
     SourceEntry sourceEntry = getReadableSourceEntry(librarySource);
     if (sourceEntry instanceof DartEntry) {

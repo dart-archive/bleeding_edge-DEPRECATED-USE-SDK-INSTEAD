@@ -145,6 +145,9 @@ public class ParseHtmlTask extends AnalysisTask {
 
   @Override
   protected String getTaskDescription() {
+    if (source == null) {
+      return "parse as html null source";
+    }
     return "parse as html " + source.getFullName();
   }
 

@@ -24,6 +24,12 @@ import junit.framework.Assert;
  */
 public class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
   @Override
+  public E visitGenerateDartHintsTask(GenerateDartHintsTask task) throws AnalysisException {
+    Assert.fail("Unexpectedly invoked visitGenerateDartHintsTask");
+    return null;
+  }
+
+  @Override
   public E visitParseDartTask(ParseDartTask task) throws AnalysisException {
     Assert.fail("Unexpectedly invoked visitParseDartTask");
     return null;

@@ -91,6 +91,9 @@ public class ResolveHtmlTask extends AnalysisTask {
 
   @Override
   protected String getTaskDescription() {
+    if (source == null) {
+      return "resolve as html null source";
+    }
     return "resolve as html " + source.getFullName();
   }
 

@@ -467,6 +467,12 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
+  public TimestampedData<CompilationUnit> internalResolveCompilationUnit(Source unitSource,
+      LibraryElement libraryElement) throws AnalysisException {
+    return basis.internalResolveCompilationUnit(unitSource, libraryElement);
+  }
+
+  @Override
   public boolean isClientLibrary(Source librarySource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-isClientLibrary");
     try {

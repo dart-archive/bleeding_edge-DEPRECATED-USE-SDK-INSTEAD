@@ -116,7 +116,11 @@ public class ResolveDartUnitTask extends AnalysisTask {
 
   @Override
   protected String getTaskDescription() {
-    return "resolve unit " + libraryElement.getSource().getFullName();
+    Source librarySource = libraryElement.getSource();
+    if (librarySource == null) {
+      return "resolve unit null source";
+    }
+    return "resolve unit " + librarySource.getFullName();
   }
 
   @Override

@@ -51,6 +51,7 @@ import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.task.AnalysisTask;
 import com.google.dart.engine.internal.task.AnalysisTaskVisitor;
+import com.google.dart.engine.internal.task.GenerateDartHintsTask;
 import com.google.dart.engine.internal.task.ParseDartTask;
 import com.google.dart.engine.internal.task.ParseHtmlTask;
 import com.google.dart.engine.internal.task.ResolveDartLibraryTask;
@@ -86,6 +87,12 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
    * record the results of a task.
    */
   private class AnalysisTaskResultRecorder implements AnalysisTaskVisitor<SourceEntry> {
+    @Override
+    public SourceEntry visitGenerateDartHintsTask(GenerateDartHintsTask task)
+        throws AnalysisException {
+      return recordGenerateDartHintsTask(task);
+    }
+
     @Override
     public DartEntry visitParseDartTask(ParseDartTask task) throws AnalysisException {
       return recordParseDartTaskResults(task);
@@ -213,8 +220,9 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
         // term we need to keep track of which libraries are referencing non-existing sources and
         // only re-analyze those libraries.
         for (Map.Entry<Source, SourceEntry> mapEntry : cache.entrySet()) {
-          if (!mapEntry.getKey().isInSystemLibrary() && mapEntry.getValue() instanceof DartEntry) {
-            DartEntryImpl dartCopy = ((DartEntry) mapEntry.getValue()).getWritableCopy();
+          SourceEntry sourceEntry = mapEntry.getValue();
+          if (!mapEntry.getKey().isInSystemLibrary() && sourceEntry instanceof DartEntry) {
+            DartEntryImpl dartCopy = ((DartEntry) sourceEntry).getWritableCopy();
             dartCopy.invalidateAllResolutionInformation();
             mapEntry.setValue(dartCopy);
           }
@@ -281,7 +289,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
       }
       // TODO(brianwilkerson) Gather other kinds of errors when their generation is moved out of
       // resolution into separate phases.
-      //addAll(errors, internalGetDartHintData(source, dartEntry, DartEntry.HINTS));
+      //addAll(errors, getDartHintData(source, librarySource, dartEntry, DartEntry.HINTS));
       if (errors.isEmpty()) {
         return AnalysisError.NO_ERRORS;
       }
@@ -858,6 +866,25 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
       }
     }
     return statistics;
+  }
+
+  @Override
+  public TimestampedData<CompilationUnit> internalResolveCompilationUnit(Source unitSource,
+      LibraryElement libraryElement) throws AnalysisException {
+    DartEntry dartEntry = getReadableDartEntry(unitSource);
+    if (dartEntry == null) {
+      throw new AnalysisException("internalResolveCompilationUnit invoked for non-Dart file: "
+          + unitSource.getFullName());
+    }
+    Source librarySource = libraryElement.getSource();
+    dartEntry = cacheDartResolutionData(
+        unitSource,
+        librarySource,
+        dartEntry,
+        DartEntry.RESOLVED_UNIT);
+    return new TimestampedData<CompilationUnit>(
+        dartEntry.getModificationTime(),
+        dartEntry.getValue(DartEntry.RESOLVED_UNIT, librarySource));
   }
 
   @Override
@@ -1512,6 +1539,16 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
                   return new ResolveDartUnitTask(this, source, libraryElement);
                 }
               }
+//              CacheState hintsState = dartEntry.getState(DartEntry.HINTS, librarySource);
+//              if (hintsState == CacheState.INVALID || hintsState == CacheState.FLUSHED) {
+//                LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
+//                if (libraryElement != null) {
+//                  DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+//                  dartCopy.setState(DartEntry.HINTS, librarySource, CacheState.IN_PROCESS);
+//                  cache.put(source, dartCopy);
+//                  return new GenerateDartHintsTask(this, libraryElement);
+//                }
+//              }
             }
           }
         } else if (sourceEntry instanceof HtmlEntry) {
@@ -1782,6 +1819,74 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
       unitSources.add(partSource);
     }
     dartCopy.setValue(DartEntry.INCLUDED_PARTS, unitSources.toArray(new Source[unitSources.size()]));
+  }
+
+  /**
+   * Record the results produced by performing a {@link GenerateDartHintsTask}. If the results were
+   * computed from data that is now out-of-date, then the results will not be recorded.
+   * 
+   * @param task the task that was performed
+   * @return an entry containing the computed results
+   * @throws AnalysisException if the results could not be recorded
+   */
+  private DartEntry recordGenerateDartHintsTask(GenerateDartHintsTask task)
+      throws AnalysisException {
+    Source librarySource = task.getLibraryElement().getSource();
+    AnalysisException thrownException = task.getException();
+    DartEntry libraryEntry = null;
+    for (Map.Entry<Source, TimestampedData<AnalysisError[]>> entry : task.getHintMap().entrySet()) {
+      Source unitSource = entry.getKey();
+      TimestampedData<AnalysisError[]> results = entry.getValue();
+      synchronized (cacheLock) {
+        SourceEntry sourceEntry = cache.get(unitSource);
+        if (!(sourceEntry instanceof DartEntry)) {
+          // This shouldn't be possible because we should never have performed the task if the source
+          // didn't represent a Dart file, but check to be safe.
+          throw new AnalysisException(
+              "Internal error: attempting to parse non-Dart file as a Dart file: "
+                  + unitSource.getFullName());
+        }
+        DartEntry dartEntry = (DartEntry) sourceEntry;
+        if (unitSource.equals(librarySource)) {
+          libraryEntry = dartEntry;
+        }
+        cache.accessed(unitSource);
+        long sourceTime = unitSource.getModificationStamp();
+        long resultTime = results.getModificationTime();
+        if (sourceTime == resultTime) {
+          if (dartEntry.getModificationTime() != sourceTime) {
+            // The source has changed without the context being notified. Simulate notification.
+            sourceChanged(unitSource);
+            dartEntry = getReadableDartEntry(unitSource);
+            if (dartEntry == null) {
+              throw new AnalysisException("A Dart file became a non-Dart file: "
+                  + unitSource.getFullName());
+            }
+          }
+          DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+          if (thrownException == null) {
+            dartCopy.setValue(DartEntry.HINTS, results.getData());
+            ChangeNoticeImpl notice = getNotice(unitSource);
+            notice.setErrors(dartEntry.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
+          } else {
+            dartCopy.setState(DartEntry.HINTS, CacheState.ERROR);
+          }
+          cache.put(unitSource, dartCopy);
+          dartEntry = dartCopy;
+        } else {
+          if (dartEntry.getState(DartEntry.HINTS) == CacheState.IN_PROCESS) {
+            DartEntryImpl dartCopy = dartEntry.getWritableCopy();
+            dartCopy.setState(DartEntry.HINTS, CacheState.INVALID);
+            cache.put(unitSource, dartCopy);
+            dartEntry = dartCopy;
+          }
+        }
+      }
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    return libraryEntry;
   }
 
   /**

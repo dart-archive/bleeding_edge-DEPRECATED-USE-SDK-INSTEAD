@@ -85,6 +85,9 @@ public class ResolveDartLibraryTask extends AnalysisTask {
 
   @Override
   protected String getTaskDescription() {
+    if (librarySource == null) {
+      return "resolve library null source";
+    }
     return "resolve library " + librarySource.getFullName();
   }
 
