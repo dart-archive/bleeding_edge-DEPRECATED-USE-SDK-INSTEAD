@@ -44,6 +44,7 @@ import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
@@ -345,20 +346,18 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     if (expression instanceof AssignmentExpression) {
       return;
     }
+    // ignore "throw"
+    if (expression instanceof ThrowExpression) {
+      return;
+    }
     // prepare expression type
     Type type = expression.getBestType();
     if (type.isVoid()) {
       return;
     }
-    //
+    // prepare source
     SourceBuilder builder = new SourceBuilder(offset);
-    // type
-    if (type.isDynamic()) {
-      builder.append("var ");
-    } else {
-      builder.append(utils.getTypeSource(type));
-      builder.append(" ");
-    }
+    builder.append("var ");
     // prepare excluded names
     Set<String> excluded = Sets.newHashSet();
     {

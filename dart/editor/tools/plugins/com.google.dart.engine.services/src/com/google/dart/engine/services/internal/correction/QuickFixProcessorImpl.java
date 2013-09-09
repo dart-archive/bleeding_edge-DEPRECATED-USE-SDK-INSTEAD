@@ -53,6 +53,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.RecursiveElementVisitor;
 import com.google.dart.engine.error.AnalysisError;
@@ -797,6 +798,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (element == null) {
         continue;
       }
+      if (element instanceof PropertyAccessorElement) {
+        element = ((PropertyAccessorElement) element).getVariable();
+      }
       if (element.getKind() != kind) {
         continue;
       }
@@ -827,6 +831,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         Element element = CorrectionUtils.getExportedElement(libraryElement, name);
         if (element == null) {
           continue;
+        }
+        if (element instanceof PropertyAccessorElement) {
+          element = ((PropertyAccessorElement) element).getVariable();
         }
         if (element.getKind() != kind) {
           continue;

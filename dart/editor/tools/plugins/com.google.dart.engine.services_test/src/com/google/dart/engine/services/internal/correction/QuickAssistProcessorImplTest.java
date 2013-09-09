@@ -191,7 +191,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
             "List<int> readBytes() => <int> [];",
             "main() {",
             "  List<int> bytes;",
-            "  List<int> readBytes = readBytes();",
+            "  var readBytes = readBytes();",
             "}",
             ""));
     // linked positions
@@ -214,6 +214,16 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "}",
         "");
     assert_assignToLocalVariable(initial, "readBytes();", initial);
+  }
+
+  public void test_assignToLocalVariable_throw() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  throw 42;",
+        "}",
+        "");
+    assert_assignToLocalVariable(initial, "throw 42;", initial);
   }
 
   public void test_convertToBlockBody_OK_closure() throws Exception {

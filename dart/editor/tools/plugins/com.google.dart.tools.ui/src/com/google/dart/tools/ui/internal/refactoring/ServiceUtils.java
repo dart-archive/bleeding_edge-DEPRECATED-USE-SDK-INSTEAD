@@ -357,14 +357,8 @@ public class ServiceUtils {
   }
 
   private static TextEdit[] toLTK(List<Edit> edits) {
-    Set<Integer> seenOffsets = Sets.newHashSet();
     List<TextEdit> ltkEdits = Lists.newArrayList();
     for (Edit edit : edits) {
-      // filter out duplicates
-      if (!seenOffsets.add(edit.offset)) {
-        continue;
-      }
-      // add LTK edit
       TextEdit ltkEdit = toLTK(edit);
       ltkEdits.add(ltkEdit);
     }
