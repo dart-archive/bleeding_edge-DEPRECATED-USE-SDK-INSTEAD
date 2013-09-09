@@ -137,12 +137,10 @@ public class FileBasedSource implements Source {
     } catch (ClosedByInterruptException exception) {
       byteBuffer = null;
     } finally {
-      if (channel != null) {
-        try {
-          channel.close();
-        } catch (IOException closeException) {
-          // Ignored
-        }
+      try {
+        file.close();
+      } catch (IOException closeException) {
+        // Ignored
       }
     }
     if (byteBuffer != null) {

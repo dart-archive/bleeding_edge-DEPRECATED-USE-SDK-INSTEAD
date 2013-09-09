@@ -649,7 +649,7 @@ public class CompletionEngine {
     public Void visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
       // { A.Fac() : this.!b(); }
       if (node.getConstructorName() == completionNode) {
-        ClassElement classElement = node.getElement().getEnclosingElement();
+        ClassElement classElement = node.getStaticElement().getEnclosingElement();
         constructorReference(classElement, node.getConstructorName());
       }
       return null;

@@ -15,7 +15,6 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
@@ -40,7 +39,6 @@ import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SwitchCase;
@@ -474,27 +472,6 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Append the value of the given string literal to the given string builder.
-   * 
-   * @param builder the builder to which the string's value is to be appended
-   * @param literal the string literal whose value is to be appended to the builder
-   * @throws IllegalArgumentException if the string is not a constant string without any string
-   *           interpolation
-   */
-  private void appendStringValue(StringBuilder builder, StringLiteral literal)
-      throws IllegalArgumentException {
-    if (literal instanceof SimpleStringLiteral) {
-      builder.append(((SimpleStringLiteral) literal).getValue());
-    } else if (literal instanceof AdjacentStrings) {
-      for (StringLiteral stringLiteral : ((AdjacentStrings) literal).getStrings()) {
-        appendStringValue(builder, stringLiteral);
-      }
-    } else {
-      throw new IllegalArgumentException();
-    }
-  }
-
-  /**
    * Return the element for the part with the given source, or {@code null} if there is no element
    * for the given source.
    * 
@@ -650,12 +627,6 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
     if (literal instanceof StringInterpolation) {
       return null;
     }
-    StringBuilder builder = new StringBuilder();
-    try {
-      appendStringValue(builder, literal);
-    } catch (IllegalArgumentException exception) {
-      return null;
-    }
-    return builder.toString().trim();
+    return literal.getStringValue();
   }
 }

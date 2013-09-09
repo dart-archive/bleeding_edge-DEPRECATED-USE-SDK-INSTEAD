@@ -366,6 +366,7 @@ public class GatheringErrorListener implements AnalysisErrorListener {
    * @throws AssertionFailedError with
    */
   private void fail(AnalysisError[] expectedErrors) {
+    @SuppressWarnings("resource")
     PrintStringWriter writer = new PrintStringWriter();
     writer.print("Expected ");
     writer.print(expectedErrors.length);

@@ -336,6 +336,7 @@ public class EngineTestCase extends TestCase {
    * @return the source string composed of the given lines
    */
   public static String createSource(String... lines) {
+    @SuppressWarnings("resource")
     PrintStringWriter writer = new PrintStringWriter();
     for (String line : lines) {
       writer.println(line);

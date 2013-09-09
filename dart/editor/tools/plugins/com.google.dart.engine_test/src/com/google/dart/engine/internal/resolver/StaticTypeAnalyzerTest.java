@@ -611,7 +611,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
         null,
         typeName(classElement),
         identifier(constructorName));
-    node.setElement(constructor);
+    node.setStaticElement(constructor);
     assertSame(classElement.getType(), analyze(node));
     listener.assertNoErrors();
   }
@@ -628,7 +628,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     TypeName typeName = typeName(elementC, typeName(elementI));
     typeName.setType(elementC.getType().substitute(new Type[] {elementI.getType()}));
     InstanceCreationExpression node = instanceCreationExpression(null, typeName);
-    node.setElement(constructor);
+    node.setStaticElement(constructor);
     InterfaceType interfaceType = (InterfaceType) analyze(node);
     Type[] typeArgs = interfaceType.getTypeArguments();
     assertEquals(1, typeArgs.length);
@@ -645,7 +645,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     constructor.setType(constructorType);
     classElement.setConstructors(new ConstructorElement[] {constructor});
     InstanceCreationExpression node = instanceCreationExpression(null, typeName(classElement));
-    node.setElement(constructor);
+    node.setStaticElement(constructor);
     assertSame(classElement.getType(), analyze(node));
     listener.assertNoErrors();
   }

@@ -91,6 +91,7 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
   public void assertResolved() {
     if (!unresolvedExpressions.isEmpty() /*|| !invalidlyPropagatedExpressions.isEmpty()*/
         || !unresolvedTypes.isEmpty()) {
+      @SuppressWarnings("resource")
       PrintStringWriter writer = new PrintStringWriter();
       int unresolvedTypeCount = unresolvedTypes.size();
       if (unresolvedTypeCount > 0) {

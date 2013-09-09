@@ -57,12 +57,6 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
   private ConstructorElement staticElement;
 
   /**
-   * The element associated with the constructor based on propagated type information, or {@code null} if the AST structure has not been
-   * resolved or if the constructor could not be resolved.
-   */
-  private ConstructorElement propagatedElement;
-
-  /**
    * Initialize a newly created super invocation to invoke the inherited constructor with the given
    * name with the given arguments.
    * 
@@ -106,17 +100,6 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
    */
   public SimpleIdentifier getConstructorName() {
     return constructorName;
-  }
-
-  /**
-   * Return the element associated with the constructor based on propagated type information, or
-   * {@code null} if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   * 
-   * @return the element associated with the super constructor
-   */
-  public ConstructorElement getElement() {
-    return propagatedElement;
   }
 
   @Override
@@ -170,16 +153,6 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
    */
   public void setConstructorName(SimpleIdentifier identifier) {
     constructorName = becomeParentOf(identifier);
-  }
-
-  /**
-   * Set the element associated with the constructor based on propagated type information to the
-   * given element.
-   * 
-   * @param element the element to be associated with the constructor
-   */
-  public void setElement(ConstructorElement element) {
-    propagatedElement = element;
   }
 
   /**

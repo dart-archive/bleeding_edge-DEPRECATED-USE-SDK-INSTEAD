@@ -65,7 +65,6 @@ public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitConstructorName(ConstructorName node) {
     node.setStaticElement(null);
-    node.setElement(null);
     return super.visitConstructorName(node);
   }
 
@@ -105,7 +104,6 @@ public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
     node.setStaticElement(null);
-    node.setElement(null);
     return super.visitInstanceCreationExpression(node);
   }
 
@@ -126,7 +124,6 @@ public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     node.setStaticElement(null);
-    node.setElement(null);
     return super.visitRedirectingConstructorInvocation(node);
   }
 
@@ -140,7 +137,6 @@ public class ResolutionEraser extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     node.setStaticElement(null);
-    node.setElement(null);
     return super.visitSuperConstructorInvocation(node);
   }
 }

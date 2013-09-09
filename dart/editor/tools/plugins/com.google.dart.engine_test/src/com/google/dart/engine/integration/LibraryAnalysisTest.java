@@ -127,6 +127,7 @@ public abstract class LibraryAnalysisTest extends TestCase {
   private void assertErrors() {
     int size = errorList.size();
     if (size > 0) {
+      @SuppressWarnings("resource")
       PrintStringWriter writer = new PrintStringWriter();
       writer.print("Expected 0 errors, found ");
       writer.print(errorList.size());

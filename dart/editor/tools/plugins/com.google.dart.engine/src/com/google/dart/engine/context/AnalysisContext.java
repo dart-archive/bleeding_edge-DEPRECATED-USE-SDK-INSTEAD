@@ -491,6 +491,5 @@ public interface AnalysisContext {
    */
   // Soon to be deprecated, but the replacement isn't quite ready yet
   // * @deprecated Use the ChangeResult returned by {@link #changed(ChangeSet)}.
-  @Deprecated
   public Iterable<Source> sourcesToResolve(Source[] changedSources);
 }

@@ -130,12 +130,10 @@ public class IoTimings extends TestCase {
       byteBuffer.limit(length);
       channel.read(byteBuffer);
     } finally {
-      if (channel != null) {
-        try {
-          channel.close();
-        } catch (IOException exception) {
-          // Ignored
-        }
+      try {
+        file.close();
+      } catch (IOException exception) {
+        // Ignored
       }
     }
     long end1 = System.nanoTime();
@@ -175,12 +173,10 @@ public class IoTimings extends TestCase {
       byteBuffer.limit(length);
       channel.read(byteBuffer);
     } finally {
-      if (channel != null) {
-        try {
-          channel.close();
-        } catch (IOException exception) {
-          // Ignored
-        }
+      try {
+        file.close();
+      } catch (IOException exception) {
+        // Ignored
       }
     }
     long end1 = System.nanoTime();

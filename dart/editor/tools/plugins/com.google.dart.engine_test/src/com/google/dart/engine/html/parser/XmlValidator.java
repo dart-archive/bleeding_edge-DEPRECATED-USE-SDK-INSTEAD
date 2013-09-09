@@ -95,6 +95,7 @@ public class XmlValidator extends RecursiveXmlVisitor<Void> {
       errors.add("Expected to visit node with tag: " + expectedTag);
     }
     if (!errors.isEmpty()) {
+      @SuppressWarnings("resource")
       PrintStringWriter writer = new PrintStringWriter();
       writer.print("Invalid XML structure:");
       for (String message : errors) {

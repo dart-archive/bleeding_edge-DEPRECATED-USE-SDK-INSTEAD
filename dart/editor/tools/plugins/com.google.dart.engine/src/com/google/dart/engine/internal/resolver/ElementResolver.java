@@ -1127,7 +1127,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       name.setStaticElement(element);
     }
     node.setStaticElement(element);
-    node.setElement(element);
     ArgumentList argumentList = node.getArgumentList();
     ParameterElement[] parameters = resolveArgumentsToParameters(false, argumentList, element);
     if (parameters != null) {
@@ -1238,7 +1237,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       name.setStaticElement(element);
     }
     node.setStaticElement(element);
-    node.setElement(element);
     ArgumentList argumentList = node.getArgumentList();
     ParameterElement[] parameters = resolveArgumentsToParameters(
         isInConstConstructor(),

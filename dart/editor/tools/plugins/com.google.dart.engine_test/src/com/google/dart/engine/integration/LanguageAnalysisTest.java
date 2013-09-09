@@ -326,6 +326,7 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
   }
 
   private String getTestSource(int testIndex, String[] lines) {
+    @SuppressWarnings("resource")
     PrintStringWriter writer = new PrintStringWriter();
     for (int i = 0; i < lines.length; i++) {
       String line = lines[i];

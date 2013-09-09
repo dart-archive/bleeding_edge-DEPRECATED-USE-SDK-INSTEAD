@@ -52,13 +52,6 @@ public class InstanceCreationExpression extends Expression {
   private ConstructorElement staticElement;
 
   /**
-   * The element associated with the constructor based on propagated type information, or
-   * {@code null} if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   */
-  private ConstructorElement propagatedElement;
-
-  /**
    * Initialize a newly created instance creation expression.
    * 
    * @param keyword the keyword used to indicate how an object should be created
@@ -98,17 +91,6 @@ public class InstanceCreationExpression extends Expression {
    */
   public ConstructorName getConstructorName() {
     return constructorName;
-  }
-
-  /**
-   * Return the element associated with the constructor based on propagated type information, or
-   * {@code null} if the AST structure has not been resolved or if the constructor could not be
-   * resolved.
-   * 
-   * @return the element associated with the constructor
-   */
-  public ConstructorElement getElement() {
-    return propagatedElement;
   }
 
   @Override
@@ -162,16 +144,6 @@ public class InstanceCreationExpression extends Expression {
    */
   public void setConstructorName(ConstructorName constructorName) {
     this.constructorName = constructorName;
-  }
-
-  /**
-   * Set the element associated with the constructor based on propagated type information to the
-   * given element.
-   * 
-   * @param element the element to be associated with the constructor
-   */
-  public void setElement(ConstructorElement element) {
-    this.propagatedElement = element;
   }
 
   /**

@@ -137,6 +137,7 @@ public abstract class DirectoryBasedSuiteBuilder {
       } else {
         if (errorList.size() > 0) {
           errorCount++;
+          @SuppressWarnings("resource")
           PrintStringWriter writer = new PrintStringWriter();
           writer.print("Expected 0 errors, found ");
           writer.print(errorList.size());

@@ -239,19 +239,6 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Return {@code true} if the given value is the result of evaluating an expression whose value is
-   * a valid key in a const map literal. Keys in const map literals must be either a string, number,
-   * boolean, list, map, or null.
-   * 
-   * @param value
-   * @return {@code true} if the given value is a valid key in a const map literal
-   */
-  private boolean isValidConstMapKey(Object value) {
-    // TODO(brianwilkerson)
-    return true;
-  }
-
-  /**
    * If the given result represents one or more errors, report those errors. Except for special
    * cases, use the given error code rather than the one reported in the error.
    * 

@@ -606,7 +606,7 @@ public class ElementResolverTest extends EngineTestCase {
 
     SuperConstructorInvocation invocation = superConstructorInvocation();
     resolveInClass(invocation, subclass);
-    assertEquals(superConstructor, invocation.getElement());
+    assertEquals(superConstructor, invocation.getStaticElement());
     listener.assertNoErrors();
   }
 
@@ -626,7 +626,7 @@ public class ElementResolverTest extends EngineTestCase {
         parameterName,
         integer(0)));
     resolveInClass(invocation, subclass);
-    assertEquals(superConstructor, invocation.getElement());
+    assertEquals(superConstructor, invocation.getStaticElement());
     assertSame(
         parameter,
         ((NamedExpression) invocation.getArgumentList().getArguments().get(0)).getName().getLabel().getStaticElement());

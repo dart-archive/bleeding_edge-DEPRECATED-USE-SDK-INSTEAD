@@ -612,12 +612,12 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
     recordStaticType(node, node.getConstructorName().getType().getType());
 
-    ConstructorElement element = node.getElement();
+    ConstructorElement element = node.getStaticElement();
     if (element != null && "Element".equals(element.getEnclosingElement().getName())) {
-      String constructorName = element.getName();
-      if ("tag".equals(constructorName)) {
-        LibraryElement library = element.getLibrary();
-        if (isHtmlLibrary(library)) {
+      LibraryElement library = element.getLibrary();
+      if (isHtmlLibrary(library)) {
+        String constructorName = element.getName();
+        if ("tag".equals(constructorName)) {
           Type returnType = getFirstArgumentAsType(
               library,
               node.getArgumentList(),
@@ -625,10 +625,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
           if (returnType != null) {
             recordPropagatedType(node, returnType);
           }
-        }
-      } else {
-        LibraryElement library = element.getLibrary();
-        if (isHtmlLibrary(library)) {
+        } else {
           Type returnType = getElementNameAsType(
               library,
               constructorName,
