@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.search.internal.ui;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -26,6 +28,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
@@ -44,6 +47,7 @@ import org.eclipse.ui.PlatformUI;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Finds declarations of the {@link Element}s similar to selected in the workspace.
@@ -89,12 +93,26 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
             // local element, remove
             iter.remove();
           }
+          declarations = getUniqueMatches(declarations);
           return declarations;
         }
       });
     } catch (Throwable e) {
       ExceptionHandler.handle(e, "Find Declarations", "Exception during search.");
     }
+  }
+
+  /**
+   * When one {@link Source} (one file) is used in more than one context, {@link SearchEngine} will
+   * return separate {@link SearchMatch} for each context. But we want to show {@link Source} only
+   * once.
+   */
+  static List<SearchMatch> getUniqueMatches(List<SearchMatch> matches) {
+    Set<SearchMatch> uniqueMatches = Sets.newHashSet();
+    for (SearchMatch match : matches) {
+      uniqueMatches.add(match);
+    }
+    return Lists.newArrayList(uniqueMatches);
   }
 
   static boolean isInvocationNameOrPropertyAccessSelected(DartSelection selection) {

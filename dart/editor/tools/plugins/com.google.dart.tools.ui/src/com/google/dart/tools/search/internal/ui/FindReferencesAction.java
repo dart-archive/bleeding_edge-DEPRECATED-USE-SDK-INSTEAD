@@ -89,7 +89,8 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
         @Override
         protected List<SearchMatch> runQuery() {
           SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
-          return searchEngine.searchQualifiedMemberReferences(name, null, null);
+          List<SearchMatch> refs = searchEngine.searchQualifiedMemberReferences(name, null, null);
+          return FindDeclarationsAction.getUniqueMatches(refs);
         }
       });
     } catch (Throwable e) {
@@ -213,6 +214,7 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
             allMatches.addAll(findElementReferences());
           }
           addUniqueNameReferences(allMatches, findNameReferences());
+          allMatches = FindDeclarationsAction.getUniqueMatches(allMatches);
           return allMatches;
         }
 
