@@ -50,6 +50,7 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.type.Type;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
+import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
@@ -59,18 +60,23 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
+import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -88,6 +94,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -183,6 +191,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
             AnalysisError error = (AnalysisError) element;
             EditorUtility.revealInEditor(editor, error.getOffset(), error.getLength());
           }
+          tableViewer.setInput(element);
         }
       }
 
@@ -251,10 +260,6 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
       if (object instanceof CompilationUnit) {
         children.addAll(errors);
       }
-      Element element = getElement(object);
-      if (element != null) {
-        children.add(element);
-      }
       return children.toArray();
     }
   }
@@ -267,7 +272,8 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
       if (obj instanceof AnalysisError) {
         img = "error_obj.gif";
       } else if (obj instanceof Element) {
-        img = "methpro_obj.gif";
+        // TODO(brianwilkerson) Find a better icon for this
+        img = "class_hi.gif";
       } else {
         img = "brkpi_obj.gif";
       }
@@ -283,32 +289,39 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
       builder.append(obj.getClass().getSimpleName());
       if (obj instanceof ASTNode) {
         ASTNode node = (ASTNode) obj;
-        builder.append(" [");
-        builder.append(node.getOffset());
-        builder.append("..");
-        builder.append(node.getOffset() + node.getLength() - 1);
-        builder.append("]");
+//        builder.append(" [");
+//        builder.append(node.getOffset());
+//        builder.append("..");
+//        builder.append(node.getOffset() + node.getLength() - 1);
+//        builder.append("]");
         String name = getName(node);
         if (name != null) {
           builder.append(" - ");
           builder.append(name);
         }
-        if (obj instanceof Expression) {
-          builder.append(" (");
-          Type type = ((Expression) obj).getStaticType();
-          if (type == null) {
-            builder.append("null");
-          } else {
-            builder.append(type);
-          }
-          builder.append(")");
-        }
-      } else if (obj instanceof Element) {
-        String name = ((Element) obj).getDisplayName();
-        if (name != null) {
-          builder.append(" - ");
-          builder.append(name);
-        }
+//        if (obj instanceof Expression) {
+//          builder.append(" (");
+//          Type staticType = ((Expression) obj).getStaticType();
+//          if (staticType == null) {
+//            builder.append("null");
+//          } else {
+//            builder.append(staticType);
+//          }
+//          builder.append("/");
+//          Type propagatedType = ((Expression) obj).getPropagatedType();
+//          if (propagatedType == null) {
+//            builder.append("null");
+//          } else {
+//            builder.append(propagatedType);
+//          }
+//          builder.append(")");
+//        }
+//      } else if (obj instanceof Element) {
+//        String name = ((Element) obj).getDisplayName();
+//        if (name != null) {
+//          builder.append(" - ");
+//          builder.append(name);
+//        }
       }
       return builder.toString();
     }
@@ -381,15 +394,153 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
     }
   }
 
+  private static class PropertiesContentProvider implements IStructuredContentProvider {
+    private static Object[] NO_ELEMENTS = new Object[0];
+
+    @Override
+    public void dispose() {
+    }
+
+    @Override
+    public Object[] getElements(Object inputElement) {
+      HashMap<String, String> propertyMap = new HashMap<String, String>();
+      addProperties(propertyMap, inputElement);
+      if (propertyMap.isEmpty()) {
+        return NO_ELEMENTS;
+      }
+      int count = propertyMap.size();
+      String[] names = propertyMap.keySet().toArray(new String[count]);
+      Arrays.sort(names);
+      String[][] elements = new String[count][];
+      for (int i = 0; i < count; i++) {
+        String name = names[i];
+        elements[i] = new String[] {name, propertyMap.get(name)};
+      }
+      return elements;
+    }
+
+    @Override
+    public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+    }
+
+    private void addProperties(HashMap<String, String> propertyMap, Object inputElement) {
+      if (inputElement instanceof ASTNode) {
+        ASTNode node = (ASTNode) inputElement;
+        propertyMap.put("offset", Integer.toString(node.getOffset()));
+        propertyMap.put("length", Integer.toString(node.getLength()));
+      }
+      if (inputElement instanceof Expression) {
+        Expression expression = (Expression) inputElement;
+        propertyMap.put("staticType", toString(expression.getStaticType()));
+        propertyMap.put("propagatedType", toString(expression.getPropagatedType()));
+      }
+      if (inputElement instanceof BinaryExpression) {
+        BinaryExpression expression = (BinaryExpression) inputElement;
+        propertyMap.put("staticElement", toString(expression.getStaticElement()));
+        propertyMap.put("propagatedElement", toString(expression.getPropagatedElement()));
+      } else if (inputElement instanceof CompilationUnit) {
+        CompilationUnit unit = (CompilationUnit) inputElement;
+        propertyMap.put("element", toString(unit.getElement()));
+      } else if (inputElement instanceof ExportDirective) {
+        ExportDirective directive = (ExportDirective) inputElement;
+        propertyMap.put("element", toString(directive.getElement()));
+      } else if (inputElement instanceof FunctionExpressionInvocation) {
+        FunctionExpressionInvocation expression = (FunctionExpressionInvocation) inputElement;
+        propertyMap.put("staticElement", toString(expression.getStaticElement()));
+        propertyMap.put("propagatedElement", toString(expression.getPropagatedElement()));
+      } else if (inputElement instanceof ImportDirective) {
+        ImportDirective directive = (ImportDirective) inputElement;
+        propertyMap.put("element", toString(directive.getElement()));
+      } else if (inputElement instanceof LibraryDirective) {
+        LibraryDirective directive = (LibraryDirective) inputElement;
+        propertyMap.put("element", toString(directive.getElement()));
+      } else if (inputElement instanceof PartDirective) {
+        PartDirective directive = (PartDirective) inputElement;
+        propertyMap.put("element", toString(directive.getElement()));
+      } else if (inputElement instanceof PartOfDirective) {
+        PartOfDirective directive = (PartOfDirective) inputElement;
+        propertyMap.put("element", toString(directive.getElement()));
+      } else if (inputElement instanceof PostfixExpression) {
+        PostfixExpression expression = (PostfixExpression) inputElement;
+        propertyMap.put("staticElement", toString(expression.getStaticElement()));
+        propertyMap.put("propagatedElement", toString(expression.getPropagatedElement()));
+      } else if (inputElement instanceof PrefixExpression) {
+        PrefixExpression expression = (PrefixExpression) inputElement;
+        propertyMap.put("staticElement", toString(expression.getStaticElement()));
+        propertyMap.put("propagatedElement", toString(expression.getPropagatedElement()));
+      } else if (inputElement instanceof SimpleIdentifier) {
+        SimpleIdentifier identifier = (SimpleIdentifier) inputElement;
+        propertyMap.put("staticElement", toString(identifier.getStaticElement()));
+        propertyMap.put("propagatedElement", toString(identifier.getPropagatedElement()));
+      }
+    }
+
+    private String toString(Element element) {
+      if (element == null) {
+        return "null";
+      }
+      String name = element.getDisplayName();
+      if (name == null) {
+        name = "- unnamed -";
+      }
+      return name + " (" + element.getClass().getSimpleName() + ")";
+    }
+
+    private String toString(Type type) {
+      if (type == null) {
+        return "null";
+      }
+      String name = type.getDisplayName();
+      if (name == null) {
+        return "- unnamed -";
+      }
+      return name;
+    }
+  }
+
+  private static class PropertiesLabelProvider implements ITableLabelProvider {
+    @Override
+    public void addListener(ILabelProviderListener listener) {
+    }
+
+    @Override
+    public void dispose() {
+    }
+
+    @Override
+    public Image getColumnImage(Object element, int columnIndex) {
+      return null;
+    }
+
+    @Override
+    public String getColumnText(Object element, int columnIndex) {
+      if (element instanceof String[]) {
+        return ((String[]) element)[columnIndex];
+      }
+      return null;
+    }
+
+    @Override
+    public boolean isLabelProperty(Object element, String property) {
+      return false;
+    }
+
+    @Override
+    public void removeListener(ILabelProviderListener listener) {
+    }
+  }
+
   /**
    * View extension id.
    */
   public static final String ID = "com.google.dart.dev.util.ast.ASTExplorer";
 
-  private TreeViewer viewer;
+  private TreeViewer treeViewer;
+  private TableViewer tableViewer;
 
   private Action expandAllAction;
   private Action collapseAllAction;
+  private Action refreshAction;
 
   private EventHandler eventHandler = new EventHandler();
 
@@ -397,10 +548,27 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
 
   @Override
   public void createPartControl(Composite parent) {
+    // TODO(brianwilkerson) It would be nice to have a slider between the tree and the table.
+    parent.setLayout(new FillLayout(SWT.VERTICAL));
 
-    viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-    viewer.setContentProvider(new ExplorerContentProvider());
-    viewer.setLabelProvider(new ExplorerLabelProvider());
+    treeViewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+    treeViewer.setContentProvider(new ExplorerContentProvider());
+    treeViewer.setLabelProvider(new ExplorerLabelProvider());
+
+    tableViewer = new TableViewer(parent);
+    tableViewer.setContentProvider(new PropertiesContentProvider());
+    tableViewer.setLabelProvider(new PropertiesLabelProvider());
+    tableViewer.getTable().setHeaderVisible(true);
+
+    TableColumn nameColumn = new TableColumn(tableViewer.getTable(), SWT.LEFT);
+    nameColumn.setResizable(true);
+    nameColumn.setText("Name");
+    nameColumn.setWidth(150);
+
+    TableColumn valueColumn = new TableColumn(tableViewer.getTable(), SWT.LEFT);
+    valueColumn.setResizable(true);
+    valueColumn.setText("Value");
+    valueColumn.setWidth(600);
 
     makeActions();
     contributeToActionBars();
@@ -422,7 +590,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
   @Override
   public void setFocus() {
     refresh();
-    viewer.getControl().setFocus();
+    treeViewer.getControl().setFocus();
   }
 
   protected IEditorPart getActiveEditor() {
@@ -445,10 +613,17 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
   private void contributeViewToolItems(IToolBarManager manager) {
     manager.add(expandAllAction);
     manager.add(collapseAllAction);
+    manager.add(refreshAction);
   }
 
   private CompilationUnit getCompilationUnit() {
     IEditorPart editor = getActiveEditor();
+    if (editor instanceof CompilationUnitEditor) {
+      CompilationUnit unit = ((CompilationUnitEditor) editor).getCompilationUnit();
+      if (unit != null) {
+        return unit;
+      }
+    }
     if (editor != null) {
 
       IEditorInput input = editor.getEditorInput();
@@ -514,7 +689,7 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
   }
 
   private void hookupListeners() {
-    viewer.addSelectionChangedListener(eventHandler);
+    treeViewer.addSelectionChangedListener(eventHandler);
     getSelectionService().addSelectionListener(eventHandler);
     getPage().addPartListener(eventHandler);
   }
@@ -524,10 +699,10 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
     expandAllAction = new Action() {
       @Override
       public void run() {
-        if (!viewer.getControl().isDisposed()) {
-          viewer.getControl().setRedraw(false);
-          viewer.expandToLevel(viewer.getInput(), AbstractTreeViewer.ALL_LEVELS);
-          viewer.getControl().setRedraw(true);
+        if (!treeViewer.getControl().isDisposed()) {
+          treeViewer.getControl().setRedraw(false);
+          treeViewer.expandToLevel(treeViewer.getInput(), AbstractTreeViewer.ALL_LEVELS);
+          treeViewer.getControl().setRedraw(true);
         }
       }
     };
@@ -538,10 +713,10 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
     collapseAllAction = new Action() {
       @Override
       public void run() {
-        if (!viewer.getControl().isDisposed()) {
-          viewer.getControl().setRedraw(false);
-          viewer.collapseToLevel(viewer.getInput(), AbstractTreeViewer.ALL_LEVELS);
-          viewer.getControl().setRedraw(true);
+        if (!treeViewer.getControl().isDisposed()) {
+          treeViewer.getControl().setRedraw(false);
+          treeViewer.collapseToLevel(treeViewer.getInput(), AbstractTreeViewer.ALL_LEVELS);
+          treeViewer.getControl().setRedraw(true);
         }
       }
     };
@@ -549,10 +724,19 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
     collapseAllAction.setToolTipText("Collapse All");
     collapseAllAction.setImageDescriptor(DartDevPlugin.getImageDescriptor("collapseall.gif"));
 
+    refreshAction = new Action() {
+      @Override
+      public void run() {
+        refresh();
+      }
+    };
+    refreshAction.setText("Refresh");
+    refreshAction.setToolTipText("Refresh");
+    refreshAction.setImageDescriptor(DartDevPlugin.getImageDescriptor("refresh.gif"));
   }
 
   private void refresh() {
-    viewer.setInput(getCompilationUnit());
+    treeViewer.setInput(getCompilationUnit());
   }
 
   private void selectNodeAtOffset(int offset, int length) {

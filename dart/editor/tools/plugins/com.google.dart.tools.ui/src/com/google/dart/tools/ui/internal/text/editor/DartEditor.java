@@ -2239,6 +2239,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return fCachedSelectedRange;
   }
 
+  public com.google.dart.engine.ast.CompilationUnit getCompilationUnit() {
+    if (resolvedUnit != null) {
+      return resolvedUnit;
+    }
+    return parsedUnit;
+  }
+
   // TODO(scheglov)
   public Point getDocumentSelectionRange() {
     ISourceViewer sourceViewer = getSourceViewer();
