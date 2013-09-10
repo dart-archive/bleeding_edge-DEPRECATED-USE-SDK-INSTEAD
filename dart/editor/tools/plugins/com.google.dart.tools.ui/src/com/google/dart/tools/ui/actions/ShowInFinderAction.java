@@ -125,7 +125,7 @@ public class ShowInFinderAction extends InstrumentedSelectionDispatchAction {
           return;
         }
         if (SystemUtils.IS_OS_WINDOWS) {
-          new ProcessBuilder("Explorer.exe", "/select", path).start();
+          new ProcessBuilder("Explorer.exe", "/select," + path).start();
           return;
         }
       } catch (IOException e) {
