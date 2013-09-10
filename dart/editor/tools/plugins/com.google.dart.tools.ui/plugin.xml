@@ -845,10 +845,9 @@
       </command>
       <command
             categoryId="org.eclipse.ui.category.file"
-            defaultHandler="com.google.dart.tools.ui.internal.handlers.NewFileHandler"
-            description="%Command.newFile.description"
+            description="%Command.showInFinder.description"
             id="com.google.dart.tools.ui.file.showInFinder"
-            name="%Command.newFile.name">
+            name="%Command.showInFinder.name">
       </command>
 <!-- edit -->
       <command
