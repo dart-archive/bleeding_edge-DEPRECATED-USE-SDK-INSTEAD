@@ -656,6 +656,14 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitReturnStatement(ReturnStatement node) {
+      if (completionNode instanceof SimpleIdentifier) {
+        analyzeLocalName(completionNode);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
       if (node.getIdentifier() == completionNode) {
         if (node.getKeyword() == null && node.getType() == null) {
@@ -1141,8 +1149,21 @@ public class CompletionEngine {
     public Void visitReturnStatement(ReturnStatement node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
-      } else if (isCompletionBetween(node.getExpression().getEnd(), node.getSemicolon().getOffset())) {
-        operatorAccess(node.getExpression(), new Ident(node));
+        return null;
+      }
+      Expression expression = node.getExpression();
+      // return !
+      if (expression instanceof SimpleIdentifier) {
+        SimpleIdentifier identifier = (SimpleIdentifier) expression;
+        analyzeLocalName(identifier);
+        return null;
+      }
+      // return expression ! ;
+      Token semicolon = node.getSemicolon();
+      if (expression != null && semicolon != null
+          && isCompletionBetween(expression.getEnd(), semicolon.getOffset())) {
+        operatorAccess(expression, new Ident(node));
+        return null;
       }
       return null;
     }

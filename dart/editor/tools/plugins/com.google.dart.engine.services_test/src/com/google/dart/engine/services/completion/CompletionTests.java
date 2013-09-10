@@ -1597,6 +1597,14 @@ public class CompletionTests extends CompletionTestCase {
         "1-List");
   }
 
+  public void testCompletion_return_withIdentifierPrefix() throws Exception {
+    test("f() { var vvv = 42; return v!1 }", "1+vvv");
+  }
+
+  public void testCompletion_return_withoutExpression() throws Exception {
+    test("f() { var vvv = 42; return !1 }", "1+vvv");
+  }
+
   public void testCompletion_staticField1() throws Exception {
     test(
         "class num{}class Sunflower {static final n!2um MAX_D = 300;nu!3m xc, yc;Sun!4flower() {x!Xc = y!Yc = MA!1 }}",
