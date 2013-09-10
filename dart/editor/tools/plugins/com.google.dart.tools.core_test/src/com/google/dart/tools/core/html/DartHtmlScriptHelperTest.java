@@ -43,6 +43,30 @@ public class DartHtmlScriptHelperTest extends TestCase {
         + "<script type=\"application/dart\">foo foo!</script></html>", expectedScripts);
   }
 
+  public void test_getNonDartScripts_1() {
+    String html = "<html><script type=\"application/dart\">foo!</script>\n"
+        + "<script type=\"application/dart\">foo foo!</script></html>";
+    List<String> scripts = DartHtmlScriptHelper.getNonDartScripts(html);
+    assertEquals(0, scripts.size());
+  }
+
+  public void test_getNonDartScripts_2() {
+    String html = "<html><script src=\"packages/polymer/boot.js\">foo!</script>\n"
+        + "<script type=\"application/dart\">foo foo!</script></html>";
+    List<String> scripts = DartHtmlScriptHelper.getNonDartScripts(html);
+    assertEquals(1, scripts.size());
+    assertEquals("packages/polymer/boot.js", scripts.get(0));
+  }
+
+  public void test_getNonDartScripts_3() {
+    String html = "<html><script src=\"packages/polymer/boot.js\"></script>\n"
+        + "<script type=\"text/javascript\" src=\"packages/browser/interop.js\"></script></html>";
+    List<String> scripts = DartHtmlScriptHelper.getNonDartScripts(html);
+    assertEquals(2, scripts.size());
+    assertEquals("packages/polymer/boot.js", scripts.get(0));
+    assertEquals("packages/browser/interop.js", scripts.get(1));
+  }
+
   private void validateParse(String data, List<Token> expectedScripts) {
     List<Token> actualScripts = DartHtmlScriptHelper.getDartScripts(data);
 

@@ -29,6 +29,8 @@ import java.util.List;
  */
 public class DartHtmlScriptHelper {
 
+  private static final String APPLICATION_DART_TAG = "application/dart";
+
   /**
    * Parse the given html file and return the content and location of the "application/dart"
    * scripts.
@@ -65,11 +67,43 @@ public class DartHtmlScriptHelper {
     return scripts;
   }
 
+  public static List<String> getNonDartScripts(String data) {
+    HtmlParser parser = new HtmlParser(data);
+
+    XmlDocument document = parser.parse();
+
+    List<String> scripts = new ArrayList<String>();
+
+    for (XmlNode child : document.getChildren()) {
+      if (child instanceof XmlElement) {
+        locateNonDartScripts((XmlElement) child, scripts);
+      }
+    }
+
+    return scripts;
+  }
+
+  private static void locateNonDartScripts(XmlElement node, List<String> scripts) {
+    if ("script".equals(node.getLabel())) {
+      String type = node.getAttributeString("type");
+      boolean isDart = type != null && APPLICATION_DART_TAG.equalsIgnoreCase(type);
+      if (!isDart) {
+        scripts.add(node.getAttributeString("src"));
+      }
+    }
+
+    for (XmlNode child : node.getChildren()) {
+      if (child instanceof XmlElement) {
+        locateNonDartScripts((XmlElement) child, scripts);
+      }
+    }
+  }
+
   private static void locateScripts(XmlElement node, List<Token> scripts) {
     if ("script".equals(node.getLabel())) {
       String type = node.getAttributeString("type");
 
-      if ("application/dart".equalsIgnoreCase(type)) {
+      if (APPLICATION_DART_TAG.equalsIgnoreCase(type)) {
         Token endToken = node.getEndToken();
         Token token = new Token(
             node.getContents(),

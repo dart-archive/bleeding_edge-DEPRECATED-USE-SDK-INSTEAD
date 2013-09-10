@@ -24,6 +24,20 @@
             properties="canLaunchChromeApp"
             type="org.eclipse.jface.viewers.ISelection">
       </propertyTester>
+       <propertyTester
+            class="com.google.dart.tools.debug.ui.launch.RunInBrowserPropertyTester"
+            id="com.google.dart.tools.debug.ui.run.deployPolymerPropertyTester"
+            namespace="com.google.dart.tools.debug.ui.launch"
+            properties=" canDeployPolymer"
+            type="org.eclipse.jface.viewers.ISelection">
+      </propertyTester>
+       <propertyTester
+             class="com.google.dart.tools.debug.ui.launch.RunInDartiumPropertyTester"
+             id="com.google.dart.tools.debug.ui.run.dartiumPropertyTester"
+             namespace="com.google.dart.tools.debug.ui.launch"
+             properties="canLaunchDartium"
+             type="org.eclipse.jface.viewers.ISelection">
+       </propertyTester>
    </extension>
 
    <extension
@@ -438,6 +452,13 @@
                id="org.eclipse.ui.commands.toggleState">
          </state>
       </command>
+      <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.DeployPolymerAppHandler"
+            description="Generate JavaScript for Polymer App"
+            id="com.google.dart.tools.debug.ui.run.deploypolymer"
+            name="Deploy Polymer App">
+      </command>
    </extension>
    
    <!-- extension point="org.eclipse.ui.views">
@@ -518,7 +539,7 @@
                   <and>
                         <test
                               forcePluginActivation="true"
-                              property="com.google.dart.tools.debug.ui.launch.canLaunchBrowser">
+                              property="com.google.dart.tools.debug.ui.launch.canLaunchDartium">
                         </test>
                   </and>
                </with>
@@ -549,6 +570,30 @@
             </visibleWhen>
          </command>
       </menuContribution>
+      <!--menuContribution
+            allPopups="false"
+            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
+         <command
+               commandId="com.google.dart.tools.debug.ui.run.deploypolymer"
+               icon="icons/obj16/run_exc.png"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <and>
+                     <test
+                           forcePluginActivation="true"
+                           property="com.google.dart.tools.debug.ui.launch.canDeployPolymer">
+                     </test>
+                  </and>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution-->
    </extension>
    
    <extension point="org.eclipse.ui.actionSets">

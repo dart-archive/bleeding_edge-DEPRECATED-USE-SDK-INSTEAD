@@ -16,15 +16,21 @@ package com.google.dart.tools.debug.ui.launch;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.html.DartHtmlScriptHelper;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
+import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
+import java.io.IOException;
+import java.util.List;
+
 /**
- * A {@link PropertyTester} for checking whether the resource can be launched in the browser. It is
- * used to contribute the Run in Dartium and Run as JavaScript context menus in the Files view.
- * Defines the property "canLaunchBrowser"
+ * A {@link PropertyTester} for checking whether the resource can be launched in a non Dartium
+ * browser. It is used to contribute the Run as JavaScript and Run Polymer App as JavaScript context
+ * menus in the Files view. Defines the property "canLaunchBrowser" and "canDeployPolymer".
  */
 public class RunInBrowserPropertyTester extends PropertyTester {
 
@@ -40,7 +46,7 @@ public class RunInBrowserPropertyTester extends PropertyTester {
         Object o = ((IStructuredSelection) receiver).getFirstElement();
         if (o instanceof IFile) {
           IFile file = (IFile) o;
-          if (DartCore.isHtmlLikeFileName(((IFile) o).getName())) {
+          if (DartCore.isHtmlLikeFileName(((IFile) o).getName())) { // && !usesBootJs(file)) {
             return true;
           }
 
@@ -53,6 +59,39 @@ public class RunInBrowserPropertyTester extends PropertyTester {
       }
     }
 
+    if ("canDeployPolymer".equalsIgnoreCase(property)) {
+      if (receiver instanceof IStructuredSelection) {
+        Object o = ((IStructuredSelection) receiver).getFirstElement();
+        if (o instanceof IFile) {
+          IFile file = (IFile) o;
+          if (DartCore.isHtmlLikeFileName(((IFile) o).getName())) {
+            if (usesBootJs(file)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private boolean usesBootJs(IFile file) {
+    try {
+      String contents = FileUtilities.getContents(file.getLocation().toFile(), "UTF-8");
+      if (contents != null) {
+        List<String> list = DartHtmlScriptHelper.getNonDartScripts(contents);
+        if (!list.isEmpty()) {
+          for (String string : list) {
+            if (string.contains("polymer/boot.js")) {
+              return true;
+            }
+          }
+        }
+      }
+    } catch (IOException e) {
+      DartDebugUIPlugin.logError(e);
+    }
     return false;
   }
 
