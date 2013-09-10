@@ -1876,7 +1876,20 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
         } else {
           if (dartEntry.getState(DartEntry.HINTS) == CacheState.IN_PROCESS) {
             DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-            dartCopy.setState(DartEntry.HINTS, CacheState.INVALID);
+            if (thrownException == null || resultTime >= 0L) {
+              //
+              // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+              // will be re-analyzed using the up-to-date sources.
+              //
+              dartCopy.setState(DartEntry.HINTS, CacheState.INVALID);
+            } else {
+              //
+              // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+              // cache so that we won't attempt to re-analyze the sources until there's a good chance
+              // that we'll be able to do so without error.
+              //
+              dartCopy.setState(DartEntry.HINTS, CacheState.ERROR);
+            }
             cache.put(unitSource, dartCopy);
             dartEntry = dartCopy;
           }
@@ -1948,7 +1961,20 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
         dartEntry = dartCopy;
       } else {
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-        dartCopy.recordParseNotInProcess();
+        if (thrownException == null || resultTime >= 0L) {
+          //
+          // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+          // will be re-analyzed using the up-to-date sources.
+          //
+          dartCopy.recordParseNotInProcess();
+        } else {
+          //
+          // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+          // cache so that we won't attempt to re-analyze the sources until there's a good chance
+          // that we'll be able to do so without error.
+          //
+          dartCopy.recordParseError();
+        }
         cache.put(source, dartCopy);
         dartEntry = dartCopy;
       }
@@ -2013,14 +2039,29 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
         htmlEntry = htmlCopy;
       } else {
         HtmlEntryImpl htmlCopy = ((HtmlEntry) sourceEntry).getWritableCopy();
-        if (htmlCopy.getState(SourceEntry.LINE_INFO) == CacheState.IN_PROCESS) {
-          htmlCopy.setState(SourceEntry.LINE_INFO, CacheState.INVALID);
-        }
-        if (htmlCopy.getState(HtmlEntry.PARSED_UNIT) == CacheState.IN_PROCESS) {
-          htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.INVALID);
-        }
-        if (htmlCopy.getState(HtmlEntry.REFERENCED_LIBRARIES) == CacheState.IN_PROCESS) {
-          htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.INVALID);
+        if (thrownException == null || resultTime >= 0L) {
+          //
+          // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+          // will be re-analyzed using the up-to-date sources.
+          //
+          if (htmlCopy.getState(SourceEntry.LINE_INFO) == CacheState.IN_PROCESS) {
+            htmlCopy.setState(SourceEntry.LINE_INFO, CacheState.INVALID);
+          }
+          if (htmlCopy.getState(HtmlEntry.PARSED_UNIT) == CacheState.IN_PROCESS) {
+            htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.INVALID);
+          }
+          if (htmlCopy.getState(HtmlEntry.REFERENCED_LIBRARIES) == CacheState.IN_PROCESS) {
+            htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.INVALID);
+          }
+        } else {
+          //
+          // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+          // cache so that we won't attempt to re-analyze the sources until there's a good chance
+          // that we'll be able to do so without error.
+          //
+          htmlCopy.setState(SourceEntry.LINE_INFO, CacheState.ERROR);
+          htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
+          htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
         }
         cache.put(source, htmlCopy);
         htmlEntry = htmlCopy;
@@ -2100,8 +2141,22 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
             for (Source source : library.getCompilationUnitSources()) {
               DartEntry dartEntry = getReadableDartEntry(source);
               if (dartEntry != null) {
+                long resultTime = library.getModificationTime(source);
                 DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-                dartCopy.recordResolutionNotInProcess();
+                if (thrownException == null || resultTime >= 0L) {
+                  //
+                  // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+                  // will be re-analyzed using the up-to-date sources.
+                  //
+                  dartCopy.recordResolutionNotInProcess();
+                } else {
+                  //
+                  // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+                  // cache so that we won't attempt to re-analyze the sources until there's a good chance
+                  // that we'll be able to do so without error.
+                  //
+                  dartCopy.recordResolutionError();
+                }
                 cache.put(source, dartCopy);
               }
             }
@@ -2162,8 +2217,21 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
         dartEntry = dartCopy;
       } else {
         DartEntryImpl dartCopy = dartEntry.getWritableCopy();
-        if (dartCopy.getState(DartEntry.RESOLVED_UNIT) == CacheState.IN_PROCESS) {
-          dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.INVALID);
+        if (thrownException == null || resultTime >= 0L) {
+          //
+          // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+          // will be re-analyzed using the up-to-date sources.
+          //
+          if (dartCopy.getState(DartEntry.RESOLVED_UNIT) == CacheState.IN_PROCESS) {
+            dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.INVALID);
+          }
+        } else {
+          //
+          // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+          // cache so that we won't attempt to re-analyze the sources until there's a good chance
+          // that we'll be able to do so without error.
+          //
+          dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.ERROR);
         }
         cache.put(unitSource, dartCopy);
         dartEntry = dartCopy;
@@ -2221,11 +2289,24 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
         htmlEntry = htmlCopy;
       } else {
         HtmlEntryImpl htmlCopy = htmlEntry.getWritableCopy();
-        if (htmlCopy.getState(HtmlEntry.ELEMENT) == CacheState.IN_PROCESS) {
-          htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
-        }
-        if (htmlCopy.getState(HtmlEntry.RESOLUTION_ERRORS) == CacheState.IN_PROCESS) {
-          htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.INVALID);
+        if (thrownException == null || resultTime >= 0L) {
+          //
+          // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+          // will be re-analyzed using the up-to-date sources.
+          //
+          if (htmlCopy.getState(HtmlEntry.ELEMENT) == CacheState.IN_PROCESS) {
+            htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
+          }
+          if (htmlCopy.getState(HtmlEntry.RESOLUTION_ERRORS) == CacheState.IN_PROCESS) {
+            htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.INVALID);
+          }
+        } else {
+          //
+          // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+          // cache so that we won't attempt to re-analyze the sources until there's a good chance
+          // that we'll be able to do so without error.
+          //
+          htmlCopy.recordResolutionError();
         }
         cache.put(source, htmlCopy);
         htmlEntry = htmlCopy;
