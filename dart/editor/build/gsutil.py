@@ -523,7 +523,7 @@ class GsUtil(object):
       the command to execute gsutil
     """
     args = []
-    if not self._running_on_buildbot and self._useshell:
+    if self._useshell:
       args.append('python')
     args.append(self._gsutil)
     return args
