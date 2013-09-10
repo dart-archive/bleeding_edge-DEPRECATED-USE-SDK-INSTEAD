@@ -70,10 +70,10 @@ class GsUtil(object):
           break
 
     gsutil = None
-    if os.path.exists(bot_gs_util):
-      gsutil = bot_gs_util
-    elif os.path.exists(home_gs_util):
+    if os.path.exists(home_gs_util):
       gsutil = home_gs_util
+    elif os.path.exists(bot_gs_util):
+      gsutil = bot_gs_util
     elif path_gs_util is not None:
       gsutil = path_gs_util
     else:
