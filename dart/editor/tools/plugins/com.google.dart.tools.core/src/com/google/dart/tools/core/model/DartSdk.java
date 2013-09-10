@@ -55,15 +55,18 @@ public class DartSdk {
    * @return the path to the dart2js script in the bin/ directory
    */
   public File getDart2JsExecutable() {
-    String dart2jsName = "dart2js" + (DartCore.isWindows() ? ".bat" : "");
-
-    return new File(new File(sdkPath, "bin"), dart2jsName);
+    return getSdkExecutable("dart2js");
   }
 
   public File getDartDocExecutable() {
-    String dartDocName = "dartdoc" + (DartCore.isWindows() ? ".bat" : "");
+    return getSdkExecutable("dartdoc");
+  }
 
-    return new File(new File(sdkPath, "bin"), dartDocName);
+  /**
+   * @return the path to the dartfmt script in the bin/ directory.
+   */
+  public File getDartFmtExecutable() {
+    return getSdkExecutable("dartfmt");
   }
 
   /**
@@ -217,6 +220,11 @@ public class DartSdk {
 
   protected void dispose() {
 
+  }
+
+  protected File getSdkExecutable(String binaryName) {
+    binaryName += (DartCore.isWindows() ? ".bat" : "");
+    return new File(new File(sdkPath, "bin"), binaryName);
   }
 
   protected void initializeSdk() {

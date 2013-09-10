@@ -36,6 +36,7 @@ import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
@@ -64,6 +65,7 @@ import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.FoldingActionGroup;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
+import com.google.dart.tools.ui.internal.formatter.DartFormatter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
 import com.google.dart.tools.ui.internal.text.ProductProperties;
@@ -738,19 +740,56 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   protected class FormatElementAction extends Action implements IUpdate {
 
+    private class FormatElementJob extends Job {
+
+      private final IFile file;
+
+      FormatElementJob(IFile file) {
+        super("Formatting " + file.getLocation());
+        this.file = file;
+      }
+
+      @Override
+      protected IStatus run(IProgressMonitor monitor) {
+
+        //TODO (pquitslund): update to read editor buffer (rather than file contents)
+
+        MessageConsole console = DartCore.getConsole();
+        console.clear();
+        console.println("Formatting " + file.getName() + " ...");
+
+        try {
+          DartFormatter.format(file.getLocation(), monitor, console);
+        } catch (Exception e) {
+          return Status.CANCEL_STATUS;
+        }
+
+        return Status.OK_STATUS;
+      }
+
+    };
+
     FormatElementAction() {
       setEnabled(isEditorInputModifiable());
+      setText("Format (experimental)");
+    }
+
+    @Override
+    public boolean isEnabled() {
+      return super.isEnabled() && DartFormatter.isAvailable();
     }
 
     @Override
     public void run() {
-      //TODO (pquitslund): implement format action hooks
+      IFile file = getInputResourceFile();
+      new FormatElementJob(file).schedule();
     }
 
     @Override
     public void update() {
       setEnabled(isEditorInputModifiable());
     }
+
   }
 
   /**
@@ -2116,6 +2155,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         addAction(menu, RefactorActionGroup.GROUP_REORG, ITextEditorActionConstants.QUICK_ASSIST);
       }
     }
+
+    // Format
+    IAction action = getAction(DartEditorActionDefinitionIds.QUICK_FORMAT);
+    if (action != null && action.isEnabled()) {
+      addAction(menu, RefactorActionGroup.GROUP_REORG, DartEditorActionDefinitionIds.QUICK_FORMAT);
+    }
+
     if (selection instanceof DartSelection) {
       DartSelection dartSelection = (DartSelection) selection;
       if (ActionUtil.hasItemsInGroup(menu, IContextMenuConstants.GROUP_OPEN)) {
@@ -2872,8 +2918,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     action = new FormatElementAction();
     action.setActionDefinitionId(DartEditorActionDefinitionIds.QUICK_FORMAT);
-    setAction("QuickFormat", action); //$NON-NLS-1$
-    markAsStateDependentAction("QuickFormat", true); //$NON-NLS-1$
+    setAction(DartEditorActionDefinitionIds.QUICK_FORMAT, action);
+    markAsStateDependentAction(DartEditorActionDefinitionIds.QUICK_FORMAT, true);
 
     action = new RemoveOccurrenceAnnotations(this);
     action.setActionDefinitionId(DartEditorActionDefinitionIds.REMOVE_OCCURRENCE_ANNOTATIONS);
