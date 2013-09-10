@@ -21,6 +21,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(AnalysisTaskTest.class);
     suite.addTestSuite(GenerateDartHintsTaskTest.class);
     suite.addTestSuite(ParseDartTaskTest.class);
     suite.addTestSuite(ParseHtmlTaskTest.class);
