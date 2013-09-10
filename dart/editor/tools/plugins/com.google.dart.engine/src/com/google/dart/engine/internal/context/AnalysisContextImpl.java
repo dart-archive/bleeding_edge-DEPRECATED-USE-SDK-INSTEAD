@@ -246,9 +246,6 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   public AnalysisContextImpl() {
     super();
-    if (AnalysisEngine.getInstance().getUseExperimentalContext()) {
-      throw new RuntimeException("Should not be creating an instance of AnalysisContextImpl");
-    }
   }
 
   @Override

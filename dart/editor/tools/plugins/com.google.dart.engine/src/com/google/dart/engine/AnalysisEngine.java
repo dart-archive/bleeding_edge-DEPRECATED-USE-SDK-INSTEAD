@@ -92,7 +92,7 @@ public final class AnalysisEngine {
   /**
    * A flag indicating whether the new analysis context should be created.
    */
-  private boolean useExperimentalContext = false;
+  private boolean useExperimentalContext = true;
 
   /**
    * Prevent the creation of instances of this class.
@@ -157,6 +157,6 @@ public final class AnalysisEngine {
    * @param use {@code true} if the new analysis context should be created
    */
   public void setUseExperimentalContext(boolean use) {
-    useExperimentalContext = use;
+    //useExperimentalContext = use;
   }
 }

@@ -134,7 +134,7 @@ public final class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   public static AnalysisContextImpl contextWithCore() {
-    AnalysisContextImpl sdkContext = (AnalysisContextImpl) DirectoryBasedDartSdk.getDefaultSdk().getContext();
+    AnalysisContext sdkContext = DirectoryBasedDartSdk.getDefaultSdk().getContext();
     SourceFactory sourceFactory = sdkContext.getSourceFactory();
     //
     // dart:core
@@ -195,7 +195,11 @@ public final class AnalysisContextFactory {
     HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();
     elementMap.put(coreSource, coreLibrary);
     elementMap.put(htmlSource, htmlLibrary);
-    sdkContext.recordLibraryElements(elementMap);
+    if (sdkContext instanceof AnalysisContextImpl) {
+      ((AnalysisContextImpl) sdkContext).recordLibraryElements(elementMap);
+    } else {
+      ((AnalysisContextImpl2) sdkContext).recordLibraryElements(elementMap);
+    }
 
     AnalysisContextImpl context = new DelegatingAnalysisContextImpl();
     sourceFactory = new SourceFactory(new DartUriResolver(
