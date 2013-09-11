@@ -297,6 +297,38 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_isDouble() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = 1 is double;"));
+    resolve(source);
+    assertErrors(source, HintCode.IS_DOUBLE);
+    verify(source);
+  }
+
+  public void test_isInt() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = 1 is int;"));
+    resolve(source);
+    assertErrors(source, HintCode.IS_INT);
+    verify(source);
+  }
+
+  public void test_isNotDouble() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = 1 is! double;"));
+    resolve(source);
+    assertErrors(source, HintCode.IS_NOT_DOUBLE);
+    verify(source);
+  }
+
+  public void test_isNotInt() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = 1 is! int;"));
+    resolve(source);
+    assertErrors(source, HintCode.IS_NOT_INT);
+    verify(source);
+  }
+
   public void test_unusedImport() throws Exception {
     Source source = addSource(createSource(//
         "library L;",

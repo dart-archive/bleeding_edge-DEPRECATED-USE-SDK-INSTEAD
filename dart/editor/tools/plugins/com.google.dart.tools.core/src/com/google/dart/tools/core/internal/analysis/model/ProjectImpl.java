@@ -426,6 +426,14 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   @Override
+  public void setDart2JSHintOption(boolean enableDart2JSHints) {
+    for (AnalysisContext context : getAnalysisContexts()) {
+      AnalysisOptionsImpl options = (AnalysisOptionsImpl) context.getAnalysisOptions();
+      options.setDart2jsHint(enableDart2JSHints);
+    }
+  }
+
+  @Override
   public void setHintOption(boolean enableHint) {
     for (AnalysisContext context : getAnalysisContexts()) {
       AnalysisOptionsImpl options = (AnalysisOptionsImpl) context.getAnalysisOptions();
@@ -605,7 +613,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * @param context the context to be initialized (not {@code null})
    * @param container the container with sources to be analyzed
    * @param sdk the Dart SDK to use when initializing the context (not {@code null})
-   * @param hasPubspec {@code true} if the contaner has a pubspec file
+   * @param hasPubspec {@code true} if the container has a pubspec file
    * @return the context (not {@code null})
    */
   private AnalysisContext initContext(AnalysisContext context, IContainer container, DartSdk sdk,
@@ -625,6 +633,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.setHint(DartCore.getPlugin().isHintsEnabled());
+    options.setDart2jsHint(DartCore.getPlugin().isHintsDart2JSEnabled());
 
     context.setSourceFactory(sourceFactory);
     context.setAnalysisOptions(options);

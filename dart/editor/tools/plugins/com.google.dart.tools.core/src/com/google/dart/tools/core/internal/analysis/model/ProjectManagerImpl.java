@@ -373,6 +373,13 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
+  public void setDart2JSHintOption(boolean enableDart2JSHints) {
+    for (Project project : getProjects()) {
+      project.setDart2JSHintOption(enableDart2JSHints);
+    }
+  }
+
+  @Override
   public void setHintOption(boolean enableHint) {
     for (Project project : getProjects()) {
       project.setHintOption(enableHint);

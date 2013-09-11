@@ -776,8 +776,12 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_enable_auto_completion_tooltip;
   public static String DartBasePreferencePage_enable_code_folding;
   public static String DartBasePreferencePage_enable_code_folding_tooltip;
-  public static String DartBasePreferencePage_enable_hints;
-  public static String DartBasePreferencePage_enable_hints_tooltip;
+
+  public static String HintPreferencePage_enable_hints;
+  public static String HintPreferencePage_enable_hints_tooltip;
+  public static String HintPreferencePage_hints_group;
+  public static String HintPreferencePage_enable_dart2js_hints;
+  public static String HintPreferencePage_enable_dart2js_hints_tooltip;
 
   public static String DartBasePreferencePage_groupTitle;
 

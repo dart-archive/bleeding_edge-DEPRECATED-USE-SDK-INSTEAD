@@ -176,6 +176,14 @@ public interface ContextManager {
 
   /**
    * Set the hint option for all the analysis context, based on changes to the hint preference
+   * DartCore.ENABLE_HINTS_DART2JS_PREFERENCE
+   * 
+   * @param enableDart2JSHints
+   */
+  void setDart2JSHintOption(boolean enableDart2JSHints);
+
+  /**
+   * Set the hint option for all the analysis context, based on changes to the hint preference
    * DartCore.ENABLE_HINT_PREFERENCE
    * 
    * @param enableHint

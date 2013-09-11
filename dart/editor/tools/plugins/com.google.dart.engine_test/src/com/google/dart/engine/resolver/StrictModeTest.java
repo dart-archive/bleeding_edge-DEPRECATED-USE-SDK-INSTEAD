@@ -39,6 +39,7 @@ public class StrictModeTest extends ResolverTestCase {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.setStrictMode(true);
+    options.setHint(false);
     getAnalysisContext().setAnalysisOptions(options);
   }
 

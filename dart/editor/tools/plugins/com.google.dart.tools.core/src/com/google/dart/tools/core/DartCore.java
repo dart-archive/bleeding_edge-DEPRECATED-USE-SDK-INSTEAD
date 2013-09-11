@@ -151,14 +151,19 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String EXTENSION_JS = "js";
 
   /**
-   * Preference for the automatically running pub
+   * Preference for the automatically running pub.
    */
   public static final String PUB_AUTO_RUN_PREFERENCE = "pubAutoRun";
 
   /**
-   * Preference for enabling hints
+   * Preference for enabling hints.
    */
   public static final String ENABLE_HINTS_PREFERENCE = "enableHints";
+
+  /**
+   * Preference for enabling dart2js related hints.
+   */
+  public static final String ENABLE_HINTS_DART2JS_PREFERENCE = "enableHints_dart2js";
 
   public static final String PROJECT_PREF_PACKAGE_ROOT = "projectPackageRoot";
 
@@ -1391,6 +1396,10 @@ public class DartCore extends Plugin implements DartSdkListener {
 
   public boolean isAutoRunPubEnabled() {
     return DartCore.getPlugin().getPrefs().getBoolean(PUB_AUTO_RUN_PREFERENCE, true);
+  }
+
+  public boolean isHintsDart2JSEnabled() {
+    return DartCore.getPlugin().getPrefs().getBoolean(ENABLE_HINTS_DART2JS_PREFERENCE, true);
   }
 
   public boolean isHintsEnabled() {

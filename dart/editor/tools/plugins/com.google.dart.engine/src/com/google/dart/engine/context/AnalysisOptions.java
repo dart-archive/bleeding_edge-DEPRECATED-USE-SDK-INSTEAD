@@ -19,6 +19,13 @@ package com.google.dart.engine.context;
  */
 public interface AnalysisOptions {
   /**
+   * Return {@code true} if analysis is to generate dart2js related hint results.
+   * 
+   * @return {@code true} if analysis is to generate dart2js related hint results
+   */
+  public boolean getDart2jsHint();
+
+  /**
    * Return {@code true} if analysis is to generate hint results (e.g. type inference based
    * information and pub best practices).
    * 

@@ -42,6 +42,27 @@ public enum HintCode implements ErrorCode {
       "Dead code, this on-catch block will never be executed since '%s' is a subtype of '%s'"),
 
   /**
+   * Hint for the {@code x is double} type checks.
+   */
+  IS_DOUBLE("When compiled to JS, this test will return true when the left hand side is an int"),
+
+  /**
+   * Hint for the {@code x is int} type checks.
+   */
+  IS_INT("When compiled to JS, this test will return true when the left hand side is a double"),
+
+  /**
+   * Hint for the {@code x is! double} type checks.
+   */
+  IS_NOT_DOUBLE(
+      "When compiled to JS, this test will return false when the left hand side is an int"),
+
+  /**
+   * Hint for the {@code x is! int} type checks.
+   */
+  IS_NOT_INT("When compiled to JS, this test will return false when the left hand side is a double"),
+
+  /**
    * Unused imports are imports which are never not used.
    */
   UNUSED_IMPORT("Unused import");

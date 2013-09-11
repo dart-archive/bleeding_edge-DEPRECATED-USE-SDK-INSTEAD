@@ -33,9 +33,19 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   private boolean hint = true;
 
   /**
+   * A flag indicating whether analysis is to generate dart2js related hint results.
+   */
+  private boolean dart2jsHint = true;
+
+  /**
    * Initialize a newly created set of analysis options to have their default values.
    */
   public AnalysisOptionsImpl() {
+  }
+
+  @Override
+  public boolean getDart2jsHint() {
+    return dart2jsHint;
   }
 
   @Override
@@ -52,6 +62,15 @@ public class AnalysisOptionsImpl implements AnalysisOptions {
   @Override
   public boolean getStrictMode() {
     return strictMode;
+  }
+
+  /**
+   * Set whether analysis is to generate dart2js related hint results.
+   * 
+   * @param hint {@code true} if analysis is to generate dart2js related hint results
+   */
+  public void setDart2jsHint(boolean dart2jsHints) {
+    this.dart2jsHint = dart2jsHints;
   }
 
   /**

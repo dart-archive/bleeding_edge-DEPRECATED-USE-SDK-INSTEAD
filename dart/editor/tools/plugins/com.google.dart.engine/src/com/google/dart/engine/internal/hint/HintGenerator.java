@@ -39,9 +39,8 @@ public class HintGenerator {
   AnalysisErrorListener errorListener;
 
   private ImportsVerifier importsVerifier;
-  private DeadCodeVerifier deadCodeVerifier;
 
-//private PubVerifier pubVerifier;
+  private final boolean enableDart2JSHints;
 
   public HintGenerator(CompilationUnit[] compilationUnits, AnalysisContext context,
       AnalysisErrorListener errorListener) {
@@ -50,6 +49,7 @@ public class HintGenerator {
     this.errorListener = errorListener;
     LibraryElement library = compilationUnits[0].getElement().getLibrary();
     importsVerifier = new ImportsVerifier(library);
+    enableDart2JSHints = context.getAnalysisOptions().getDart2jsHint();
   }
 
   public void generateForLibrary() throws AnalysisException {
@@ -75,10 +75,15 @@ public class HintGenerator {
 
     importsVerifier.visitCompilationUnit(unit);
 
-    deadCodeVerifier = new DeadCodeVerifier(errorReporter);
-    deadCodeVerifier.visitCompilationUnit(unit);
+    // dead code analysis
+    new DeadCodeVerifier(errorReporter).visitCompilationUnit(unit);
 
-//    pubVerifier = new PubVerifier(context, errorReporter);
-//    pubVerifier.visitCompilationUnit(unit);
+    // dart2js analysis
+    if (enableDart2JSHints) {
+      new Dart2JSVerifier(errorReporter).visitCompilationUnit(unit);
+    }
+
+    // pub analysis
+//    new PubVerifier(context, errorReporter).visitCompilationUnit(unit);
   }
 }

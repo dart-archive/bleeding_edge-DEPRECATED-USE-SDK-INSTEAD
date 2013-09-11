@@ -59,7 +59,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Button enableFolding;
   private Button enableAutoCompletion;
   private Button runPubAutoCheck;
-  private Button enableHints;
 
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
@@ -124,12 +123,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
       prefs.putBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, runPubAutoCheck.getSelection());
-      boolean hints = DartCore.getPlugin().isHintsEnabled();
-      prefs.putBoolean(DartCore.ENABLE_HINTS_PREFERENCE, enableHints.getSelection());
-      if (hints != enableHints.getSelection()) {
-        // trigger processing for hints
-        DartCore.getProjectManager().setHintOption(enableHints.getSelection());
-      }
       try {
         DartCore.getPlugin().savePrefs();
       } catch (CoreException e) {
@@ -148,7 +141,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         composite);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
 
-    // General preferences
+    // General group
     Group generalGroup = new Group(composite, SWT.NONE);
     generalGroup.setText(PreferencesMessages.DartBasePreferencePage_general);
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
@@ -225,12 +218,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_enable_code_folding_tooltip);
     GridDataFactory.fillDefaults().span(2, 1).applyTo(enableFolding);
 
-    enableHints = createCheckBox(
-        generalGroup,
-        PreferencesMessages.DartBasePreferencePage_enable_hints,
-        PreferencesMessages.DartBasePreferencePage_enable_hints_tooltip);
-    GridDataFactory.fillDefaults().span(2, 1).applyTo(enableHints);
-
+    // Save actions group
     Group saveGroup = new Group(composite, SWT.NONE);
     saveGroup.setText(PreferencesMessages.DartBasePreferencePage_save);
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
@@ -243,6 +231,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_trailing_ws_details);
     GridDataFactory.fillDefaults().applyTo(removeTrailingWhitespaceCheck);
 
+    // Pub group
     Group pubGroup = new Group(composite, SWT.NONE);
     pubGroup.setText(PreferencesMessages.DartBasePreferencePage_pub);
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
@@ -255,6 +244,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_pub_auto_details);
     GridDataFactory.fillDefaults().applyTo(runPubAutoCheck);
 
+    // init
     initFromPrefs();
 
     return composite;
@@ -296,7 +286,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
-      enableHints.setSelection(prefs.getBoolean(DartCore.ENABLE_HINTS_PREFERENCE, true));
       runPubAutoCheck.setSelection(prefs.getBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, true));
     }
 

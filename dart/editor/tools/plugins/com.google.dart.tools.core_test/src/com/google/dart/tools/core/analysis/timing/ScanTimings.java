@@ -318,6 +318,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public void setDart2JSHintOption(boolean enableDart2JSHints) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void setHintOption(boolean enableHint) {
       throw new UnsupportedOperationException();
     }
