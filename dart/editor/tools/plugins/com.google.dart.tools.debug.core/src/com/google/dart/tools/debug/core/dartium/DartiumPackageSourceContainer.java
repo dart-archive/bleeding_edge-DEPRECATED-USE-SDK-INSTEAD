@@ -14,14 +14,15 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.sourcelookup.ISourceContainerType;
 import org.eclipse.debug.core.sourcelookup.containers.AbstractSourceContainer;
+import org.eclipse.debug.core.sourcelookup.containers.LocalFileStorage;
 
 /**
  * A source container for Dartium that resolves package: urls to resources or files
@@ -43,10 +44,17 @@ public class DartiumPackageSourceContainer extends AbstractSourceContainer {
     }
 
     if (wrapper.getProject() != null) {
-      IFile file = DartCore.getProjectManager().resolvePackageUri(wrapper.getProject(), name);
 
-      if (file != null) {
-        return new Object[] {file};
+      IFileInfo fileInfo = DartCore.getProjectManager().resolveUriToFileInfo(
+          wrapper.getProject(),
+          name);
+
+      if (fileInfo != null) {
+        if (fileInfo.getResource() != null) {
+          return new Object[] {fileInfo.getResource()};
+        } else {
+          return new Object[] {new LocalFileStorage(fileInfo.getFile())};
+        }
       }
     }
 
