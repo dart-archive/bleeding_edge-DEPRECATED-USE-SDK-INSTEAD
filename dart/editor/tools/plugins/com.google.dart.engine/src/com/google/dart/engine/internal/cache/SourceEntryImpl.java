@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.cache;
 
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
@@ -27,6 +28,11 @@ public abstract class SourceEntryImpl implements SourceEntry {
    * entry.
    */
   private long modificationTime;
+
+  /**
+   * The exception that caused one or more values to have a state of {@link CacheState#ERROR}.
+   */
+  private AnalysisException exception;
 
   /**
    * The state of the cached line information.
@@ -44,6 +50,17 @@ public abstract class SourceEntryImpl implements SourceEntry {
    */
   public SourceEntryImpl() {
     super();
+  }
+
+  /**
+   * Return the exception that caused one or more values to have a state of {@link CacheState#ERROR}
+   * .
+   * 
+   * @return the exception that caused one or more values to be uncomputable
+   */
+  @Override
+  public AnalysisException getException() {
+    return exception;
   }
 
   @Override
@@ -68,6 +85,16 @@ public abstract class SourceEntryImpl implements SourceEntry {
     } else {
       throw new IllegalArgumentException("Invalid descriptor: " + descriptor);
     }
+  }
+
+  /**
+   * Set the exception that caused one or more values to have a state of {@link CacheState#ERROR} to
+   * the given exception.
+   * 
+   * @param exception the exception that caused one or more values to be uncomputable
+   */
+  public void setException(AnalysisException exception) {
+    this.exception = exception;
   }
 
   /**

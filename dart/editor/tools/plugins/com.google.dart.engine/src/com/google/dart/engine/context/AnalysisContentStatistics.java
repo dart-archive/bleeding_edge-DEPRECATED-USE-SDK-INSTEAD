@@ -14,6 +14,8 @@
 
 package com.google.dart.engine.context;
 
+import com.google.dart.engine.internal.cache.CacheState;
+
 /**
  * Container with statistics about the {@link AnalysisContext}.
  */
@@ -36,7 +38,16 @@ public interface AnalysisContentStatistics {
   }
 
   /**
-   * @return the statistics for each kind of cached data.
+   * Return the exceptions that caused some entries to have a state of {@link CacheState#ERROR}.
+   * 
+   * @return the exceptions that caused some entries to have a state of {@link CacheState#ERROR}
+   */
+  public AnalysisException[] getExceptions();
+
+  /**
+   * Return the statistics for each kind of cached data.
+   * 
+   * @return the statistics for each kind of cached data
    */
   CacheRow[] getCacheRows();
 }

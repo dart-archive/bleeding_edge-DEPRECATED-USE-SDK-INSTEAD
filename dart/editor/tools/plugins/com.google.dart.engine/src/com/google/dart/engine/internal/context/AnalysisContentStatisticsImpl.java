@@ -15,13 +15,16 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.context.AnalysisContentStatistics;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.internal.cache.CacheState;
 import com.google.dart.engine.internal.cache.DartEntry;
 import com.google.dart.engine.internal.cache.DataDescriptor;
+import com.google.dart.engine.internal.cache.SourceEntry;
 import com.google.dart.engine.source.Source;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -101,29 +104,41 @@ public class AnalysisContentStatisticsImpl implements AnalysisContentStatistics 
 
   private final Map<String, CacheRow> dataMap = new HashMap<String, CacheRow>();
 
+  private HashSet<AnalysisException> exceptions = new HashSet<AnalysisException>();
+
   @Override
   public CacheRow[] getCacheRows() {
     Collection<CacheRow> items = dataMap.values();
     return items.toArray(new CacheRow[items.size()]);
   }
 
+  @Override
+  public AnalysisException[] getExceptions() {
+    return exceptions.toArray(new AnalysisException[exceptions.size()]);
+  }
+
   public void putCacheItem(DartEntry dartEntry, DataDescriptor<?> descriptor) {
-    putCacheItem(descriptor, dartEntry.getState(descriptor));
+    putCacheItem(dartEntry, descriptor, dartEntry.getState(descriptor));
   }
 
   public void putCacheItem(DartEntry dartEntry, Source librarySource, DataDescriptor<?> descriptor) {
-    putCacheItem(descriptor, dartEntry.getState(descriptor, librarySource));
+    putCacheItem(dartEntry, descriptor, dartEntry.getState(descriptor, librarySource));
   }
 
-  public void putCacheItem(DataDescriptor<?> rowDesc, CacheState state) {
-    // prepare state -> count map
+  public void putCacheItem(SourceEntry dartEntry, DataDescriptor<?> rowDesc, CacheState state) {
     String rowName = rowDesc.toString();
     CacheRowImpl row = (CacheRowImpl) dataMap.get(rowName);
     if (row == null) {
       row = new CacheRowImpl(rowName);
       dataMap.put(rowName, row);
     }
-    // increment count
     row.incState(state);
+
+    if (state == CacheState.ERROR) {
+      AnalysisException exception = dartEntry.getException();
+      if (exception != null) {
+        exceptions.add(exception);
+      }
+    }
   }
 }

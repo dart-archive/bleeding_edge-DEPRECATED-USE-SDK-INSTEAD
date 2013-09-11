@@ -1871,6 +1871,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
           } else {
             dartCopy.setState(DartEntry.HINTS, CacheState.ERROR);
           }
+          dartCopy.setException(thrownException);
           cache.put(unitSource, dartCopy);
           dartEntry = dartCopy;
         } else {
@@ -1890,6 +1891,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
               //
               dartCopy.setState(DartEntry.HINTS, CacheState.ERROR);
             }
+            dartCopy.setException(thrownException);
             cache.put(unitSource, dartCopy);
             dartEntry = dartCopy;
           }
@@ -1957,6 +1959,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
         } else {
           dartCopy.recordParseError();
         }
+        dartCopy.setException(thrownException);
         cache.put(source, dartCopy);
         dartEntry = dartCopy;
       } else {
@@ -1975,6 +1978,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
           //
           dartCopy.recordParseError();
         }
+        dartCopy.setException(thrownException);
         cache.put(source, dartCopy);
         dartEntry = dartCopy;
       }
@@ -2035,6 +2039,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
           htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
           htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
         }
+        htmlCopy.setException(thrownException);
         cache.put(source, htmlCopy);
         htmlEntry = htmlCopy;
       } else {
@@ -2063,6 +2068,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
           htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
           htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
         }
+        htmlCopy.setException(thrownException);
         cache.put(source, htmlCopy);
         htmlEntry = htmlCopy;
       }
@@ -2126,6 +2132,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
               } else {
                 dartCopy.recordResolutionError();
               }
+              dartCopy.setException(thrownException);
               cache.put(source, dartCopy);
               if (source.equals(unitSource)) {
                 unitEntry = dartCopy;
@@ -2157,6 +2164,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
                   //
                   dartCopy.recordResolutionError();
                 }
+                dartCopy.setException(thrownException);
                 cache.put(source, dartCopy);
               }
             }
@@ -2213,6 +2221,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
         } else {
           dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.ERROR);
         }
+        dartCopy.setException(thrownException);
         cache.put(unitSource, dartCopy);
         dartEntry = dartCopy;
       } else {
@@ -2233,6 +2242,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
           //
           dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.ERROR);
         }
+        dartCopy.setException(thrownException);
         cache.put(unitSource, dartCopy);
         dartEntry = dartCopy;
       }
@@ -2285,6 +2295,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
         } else {
           htmlCopy.recordResolutionError();
         }
+        htmlCopy.setException(thrownException);
         cache.put(source, htmlCopy);
         htmlEntry = htmlCopy;
       } else {
@@ -2308,6 +2319,7 @@ public class AnalysisContextImpl2 implements InternalAnalysisContext {
           //
           htmlCopy.recordResolutionError();
         }
+        htmlCopy.setException(thrownException);
         cache.put(source, htmlCopy);
         htmlEntry = htmlCopy;
       }

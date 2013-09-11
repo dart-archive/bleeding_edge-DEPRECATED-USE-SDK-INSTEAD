@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContentStatistics.CacheRow;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.index.IndexImpl;
@@ -26,11 +27,18 @@ import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.part.ViewPart;
 
@@ -90,6 +98,7 @@ public class AnalysisView extends ViewPart {
     private int inProcessCount;
     private int invalidCount;
     private int validCount;
+    private AnalysisException[] exceptions;
 
     public AnalysisContextData(String name, AnalysisContentStatistics statistics,
         ContextWorkerState workerState) {
@@ -103,6 +112,7 @@ public class AnalysisView extends ViewPart {
         invalidCount += row.getInvalidCount();
         validCount += row.getValidCount();
       }
+      this.exceptions = statistics.getExceptions();
     }
 
     @Override
@@ -365,6 +375,23 @@ public class AnalysisView extends ViewPart {
         return 0;
       }
     });
+
+    Menu menu = new Menu(viewer.getTree());
+    MenuItem copyItem = new MenuItem(menu, SWT.PUSH);
+    copyItem.setText("Copy Exceptions");
+    copyItem.addSelectionListener(new SelectionListener() {
+      @Override
+      public void widgetDefaultSelected(SelectionEvent event) {
+        // never called
+      }
+
+      @Override
+      public void widgetSelected(SelectionEvent event) {
+        copyExceptions();
+      }
+    });
+    viewer.getTree().setMenu(menu);
+
     viewer.setInput(this);
     // There is a bug in the SWT on OS X.
     // When we update a Tree when user toggle an item, this causes crash.
@@ -405,6 +432,12 @@ public class AnalysisView extends ViewPart {
   public void setFocus() {
   }
 
+  private void copyExceptions() {
+    Clipboard clipboard = new Clipboard(viewer.getTree().getDisplay());
+    TextTransfer textTransfer = TextTransfer.getInstance();
+    clipboard.setContents(new Object[] {getExceptionsText()}, new Transfer[] {textTransfer});
+  }
+
   private Font getBoldFont() {
     if (boldFont == null) {
       Font defaultFont = viewer.getTree().getFont();
@@ -413,6 +446,30 @@ public class AnalysisView extends ViewPart {
       boldFont = new Font(defaultFont.getDevice(), boldData);
     }
     return boldFont;
+  }
+
+  private String getExceptionsText() {
+    if (contexts == null) {
+      return "- no exceptions -";
+    }
+    PrintStringWriter writer = new PrintStringWriter();
+    boolean first = true;
+    for (AnalysisContextData data : contexts) {
+      for (AnalysisException exception : data.exceptions) {
+        if (first) {
+          first = false;
+        } else {
+          writer.println();
+          writer.println("----------------------------------------");
+          writer.println();
+        }
+        exception.printStackTrace(writer);
+      }
+    }
+    if (first) {
+      return "- no exceptions -";
+    }
+    return writer.toString();
   }
 
   private Font getItalicFont() {

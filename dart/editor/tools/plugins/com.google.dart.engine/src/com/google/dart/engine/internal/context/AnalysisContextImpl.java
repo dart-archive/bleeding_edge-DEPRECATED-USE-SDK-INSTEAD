@@ -150,7 +150,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private static void putStatCacheItem(AnalysisContentStatisticsImpl statistics,
       DartEntry dartEntry, Source librarySource, DataDescriptor<?> key) {
-    statistics.putCacheItem(key, dartEntry.getState(key, librarySource));
+    statistics.putCacheItem(dartEntry, key, dartEntry.getState(key, librarySource));
   }
 
   /**
@@ -159,7 +159,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private static void putStatCacheItem(AnalysisContentStatisticsImpl statistics, SourceEntry entry,
       DataDescriptor<?> key) {
-    statistics.putCacheItem(key, entry.getState(key));
+    statistics.putCacheItem(entry, key, entry.getState(key));
   }
 
   /**
