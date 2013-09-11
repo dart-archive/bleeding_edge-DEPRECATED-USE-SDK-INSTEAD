@@ -339,10 +339,21 @@ public class ASTCloner implements ASTVisitor<ASTNode> {
 
   @Override
   public ForEachStatement visitForEachStatement(ForEachStatement node) {
+    DeclaredIdentifier loopVariable = node.getLoopVariable();
+    if (loopVariable == null) {
+      return new ForEachStatement(
+          node.getForKeyword(),
+          node.getLeftParenthesis(),
+          clone(node.getIdentifier()),
+          node.getInKeyword(),
+          clone(node.getIterator()),
+          node.getRightParenthesis(),
+          clone(node.getBody()));
+    }
     return new ForEachStatement(
         node.getForKeyword(),
         node.getLeftParenthesis(),
-        clone(node.getLoopVariable()),
+        clone(loopVariable),
         node.getInKeyword(),
         clone(node.getIterator()),
         node.getRightParenthesis(),

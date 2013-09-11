@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Declaration;
+import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
@@ -100,7 +101,10 @@ public class ScopedNameFinder extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitForEachStatement(ForEachStatement node) {
-    addToScope(node.getLoopVariable().getIdentifier());
+    DeclaredIdentifier loopVariable = node.getLoopVariable();
+    if (loopVariable != null) {
+      addToScope(loopVariable.getIdentifier());
+    }
     return super.visitForEachStatement(node);
   }
 

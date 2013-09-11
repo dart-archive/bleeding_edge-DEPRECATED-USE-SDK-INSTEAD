@@ -20,7 +20,8 @@ import com.google.dart.engine.scanner.Token;
  * 
  * <pre>
  * forEachStatement ::=
- *     'for' '(' {@link SimpleFormalParameter loopParameter} 'in' {@link Expression iterator} ')' {@link Block body}
+ *     'for' '(' {@link DeclaredIdentifier loopParameter} 'in' {@link Expression iterator} ')' {@link Block body}
+ *   | 'for' '(' {@link SimpleIdentifier identifier} 'in' {@link Expression iterator} ')' {@link Block body}
  * </pre>
  * 
  * @coverage dart.engine.ast
@@ -37,9 +38,15 @@ public class ForEachStatement extends Statement {
   private Token leftParenthesis;
 
   /**
-   * The declaration of the loop variable.
+   * The declaration of the loop variable, or {@code null} if the loop variable is a simple
+   * identifier.
    */
   private DeclaredIdentifier loopVariable;
+
+  /**
+   * The loop variable, or {@code null} if the loop variable is declared in the 'for'.
+   */
+  private SimpleIdentifier identifier;
 
   /**
    * The token representing the 'in' keyword.
@@ -82,6 +89,27 @@ public class ForEachStatement extends Statement {
     this.body = becomeParentOf(body);
   }
 
+  /**
+   * Initialize a newly created for-each statement.
+   * 
+   * @param forKeyword the token representing the 'for' keyword
+   * @param leftParenthesis the left parenthesis
+   * @param identifier the loop variable
+   * @param iterator the expression evaluated to produce the iterator
+   * @param rightParenthesis the right parenthesis
+   * @param body the body of the loop
+   */
+  public ForEachStatement(Token forKeyword, Token leftParenthesis, SimpleIdentifier identifier,
+      Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
+    this.forKeyword = forKeyword;
+    this.leftParenthesis = leftParenthesis;
+    this.identifier = becomeParentOf(identifier);
+    this.inKeyword = inKeyword;
+    this.iterator = becomeParentOf(iterator);
+    this.rightParenthesis = rightParenthesis;
+    this.body = becomeParentOf(body);
+  }
+
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitForEachStatement(this);
@@ -116,6 +144,15 @@ public class ForEachStatement extends Statement {
   }
 
   /**
+   * Return the loop variable, or {@code null} if the loop variable is declared in the 'for'.
+   * 
+   * @return the loop variable
+   */
+  public SimpleIdentifier getIdentifier() {
+    return identifier;
+  }
+
+  /**
    * Return the token representing the 'in' keyword.
    * 
    * @return the token representing the 'in' keyword
@@ -143,7 +180,8 @@ public class ForEachStatement extends Statement {
   }
 
   /**
-   * Return the declaration of the loop variable.
+   * Return the declaration of the loop variable, or {@code null} if the loop variable is a simple
+   * identifier.
    * 
    * @return the declaration of the loop variable
    */
@@ -176,6 +214,15 @@ public class ForEachStatement extends Statement {
    */
   public void setForKeyword(Token forKeyword) {
     this.forKeyword = forKeyword;
+  }
+
+  /**
+   * Set the loop variable to the given variable.
+   * 
+   * @param identifier the loop variable
+   */
+  public void setIdentifier(SimpleIdentifier identifier) {
+    this.identifier = becomeParentOf(identifier);
   }
 
   /**
@@ -226,6 +273,7 @@ public class ForEachStatement extends Statement {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(loopVariable, visitor);
+    safelyVisitChild(identifier, visitor);
     safelyVisitChild(iterator, visitor);
     safelyVisitChild(body, visitor);
   }

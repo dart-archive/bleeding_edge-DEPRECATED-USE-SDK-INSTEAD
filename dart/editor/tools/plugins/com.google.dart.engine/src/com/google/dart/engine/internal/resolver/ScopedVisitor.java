@@ -533,6 +533,7 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
     // We visit the iterator before the loop variable because the loop variable cannot be in scope
     // while visiting the iterator.
     //
+    safelyVisit(node.getIdentifier());
     safelyVisit(node.getIterator());
     safelyVisit(node.getLoopVariable());
     visitStatementInScope(node.getBody());

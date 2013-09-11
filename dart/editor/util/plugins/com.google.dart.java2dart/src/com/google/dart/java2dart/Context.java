@@ -28,6 +28,7 @@ import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ForEachStatement;
@@ -278,13 +279,16 @@ public class Context {
 
       @Override
       public Void visitForEachStatement(ForEachStatement node) {
-        SimpleIdentifier nameNode = node.getLoopVariable().getIdentifier();
-        String variableName = nameNode.getName();
-        if (forbiddenNames.contains(variableName)) {
-          ensureHierarchyNames(node);
-          ensureMethodNames(node);
-          String newName = generateUniqueVariableName(variableName);
-          renameIdentifier(nameNode, newName);
+        DeclaredIdentifier loopVariable = node.getLoopVariable();
+        if (loopVariable != null) {
+          SimpleIdentifier nameNode = loopVariable.getIdentifier();
+          String variableName = nameNode.getName();
+          if (forbiddenNames.contains(variableName)) {
+            ensureHierarchyNames(node);
+            ensureMethodNames(node);
+            String newName = generateUniqueVariableName(variableName);
+            renameIdentifier(nameNode, newName);
+          }
         }
         return super.visitForEachStatement(node);
       }

@@ -2487,7 +2487,8 @@ public class SimpleParserTest extends ParserTestCase {
     ForEachStatement statement = parse("parseForStatement", "for (element in list) {}");
     assertNotNull(statement.getForKeyword());
     assertNotNull(statement.getLeftParenthesis());
-    assertNotNull(statement.getLoopVariable());
+    assertNull(statement.getLoopVariable());
+    assertNotNull(statement.getIdentifier());
     assertNotNull(statement.getInKeyword());
     assertNotNull(statement.getIterator());
     assertNotNull(statement.getRightParenthesis());
@@ -2500,6 +2501,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getLeftParenthesis());
     assertNotNull(statement.getLoopVariable());
     assertSize(1, statement.getLoopVariable().getMetadata());
+    assertNull(statement.getIdentifier());
     assertNotNull(statement.getInKeyword());
     assertNotNull(statement.getIterator());
     assertNotNull(statement.getRightParenthesis());
@@ -2511,6 +2513,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getForKeyword());
     assertNotNull(statement.getLeftParenthesis());
     assertNotNull(statement.getLoopVariable());
+    assertNull(statement.getIdentifier());
     assertNotNull(statement.getInKeyword());
     assertNotNull(statement.getIterator());
     assertNotNull(statement.getRightParenthesis());
@@ -2522,6 +2525,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getForKeyword());
     assertNotNull(statement.getLeftParenthesis());
     assertNotNull(statement.getLoopVariable());
+    assertNull(statement.getIdentifier());
     assertNotNull(statement.getInKeyword());
     assertNotNull(statement.getIterator());
     assertNotNull(statement.getRightParenthesis());

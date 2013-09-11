@@ -363,8 +363,13 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
 
   @Override
   public Void visitForEachStatement(ForEachStatement node) {
+    DeclaredIdentifier loopVariable = node.getLoopVariable();
     writer.print("for (");
-    visit(node.getLoopVariable());
+    if (loopVariable == null) {
+      visit(node.getIdentifier());
+    } else {
+      visit(loopVariable);
+    }
     writer.print(" in ");
     visit(node.getIterator());
     writer.print(") ");

@@ -868,7 +868,9 @@ public class ResolverVisitor extends ScopedVisitor {
     Expression iterator = node.getIterator();
     safelyVisit(iterator);
     DeclaredIdentifier loopVariable = node.getLoopVariable();
+    SimpleIdentifier identifier = node.getIdentifier();
     safelyVisit(loopVariable);
+    safelyVisit(identifier);
     Statement body = node.getBody();
     if (body != null) {
       try {
@@ -879,6 +881,13 @@ public class ResolverVisitor extends ScopedVisitor {
             Type iteratorElementType = getIteratorElementType(iterator);
             override(loopElement, iteratorElementType);
             recordPropagatedType(loopVariable.getIdentifier(), iteratorElementType);
+          }
+        } else if (identifier != null && iterator != null) {
+          Element identifierElement = identifier.getStaticElement();
+          if (identifierElement instanceof VariableElement) {
+            Type iteratorElementType = getIteratorElementType(iterator);
+            override((VariableElement) identifierElement, iteratorElementType);
+            recordPropagatedType(identifier, iteratorElementType);
           }
         }
         visitStatementInScope(body);

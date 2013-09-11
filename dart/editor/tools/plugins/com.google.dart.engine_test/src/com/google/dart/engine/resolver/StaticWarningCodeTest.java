@@ -2108,6 +2108,16 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source1);
   }
 
+  public void test_undefinedIdentifier_for() throws Exception {
+    Source source = addSource(createSource(//
+        "f(var l) {",
+        "  for (e in l) {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
+  }
+
   public void test_undefinedIdentifier_function() throws Exception {
     Source source = addSource(createSource(//
     "int a() => b;"));

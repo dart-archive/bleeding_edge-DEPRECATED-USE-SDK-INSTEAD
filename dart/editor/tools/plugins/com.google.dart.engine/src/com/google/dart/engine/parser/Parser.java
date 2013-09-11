@@ -2974,8 +2974,6 @@ public class Parser {
           List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
           SimpleIdentifier variableName = parseSimpleIdentifier();
           variables.add(new VariableDeclaration(null, null, variableName, null, null));
-          // TODO(jwren) metadata isn't allowed before the identifier in "identifier in expression",
-          // add warning if commentAndMetadata has content
           variableList = new VariableDeclarationList(
               commentAndMetadata.getComment(),
               commentAndMetadata.getMetadata(),
@@ -2989,6 +2987,7 @@ public class Parser {
         }
         if (matches(Keyword.IN)) {
           DeclaredIdentifier loopVariable = null;
+          SimpleIdentifier identifier = null;
           if (variableList == null) {
             // We found: <expression> 'in'
             reportError(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH);
@@ -3003,17 +3002,37 @@ public class Parser {
             if (variable.getInitializer() != null) {
               reportError(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH);
             }
-            loopVariable = new DeclaredIdentifier(
-                commentAndMetadata.getComment(),
-                commentAndMetadata.getMetadata(),
-                variableList.getKeyword(),
-                variableList.getType(),
-                variable.getName());
+            Token keyword = variableList.getKeyword();
+            TypeName type = variableList.getType();
+            if (keyword != null || type != null) {
+              loopVariable = new DeclaredIdentifier(
+                  commentAndMetadata.getComment(),
+                  commentAndMetadata.getMetadata(),
+                  keyword,
+                  type,
+                  variable.getName());
+            } else {
+              if (!commentAndMetadata.getMetadata().isEmpty()) {
+                // TODO(jwren) metadata isn't allowed before the identifier in "identifier in expression",
+                // add warning if commentAndMetadata has content
+              }
+              identifier = variable.getName();
+            }
           }
           Token inKeyword = expect(Keyword.IN);
           Expression iterator = parseExpression();
           Token rightParenthesis = expect(TokenType.CLOSE_PAREN);
           Statement body = parseStatement();
+          if (loopVariable == null) {
+            return new ForEachStatement(
+                forKeyword,
+                leftParenthesis,
+                identifier,
+                inKeyword,
+                iterator,
+                rightParenthesis,
+                body);
+          }
           return new ForEachStatement(
               forKeyword,
               leftParenthesis,
