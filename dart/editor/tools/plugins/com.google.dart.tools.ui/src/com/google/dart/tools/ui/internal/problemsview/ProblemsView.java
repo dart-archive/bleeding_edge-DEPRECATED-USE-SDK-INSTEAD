@@ -585,7 +585,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   private class ShowInfosAction extends InstrumentedAction {
     public ShowInfosAction() {
-      super("Show informational messages", AS_CHECK_BOX);
+      super("Show tasks", AS_CHECK_BOX);
 
       setImageDescriptor(DartToolsPlugin.getBundledImageDescriptor("icons/full/eview16/tasks_tsk.gif"));
 
@@ -745,6 +745,10 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     }
 
     private final int compareSeverity(TableSorterMarker marker1, TableSorterMarker marker2) {
+      if (marker1.severity == marker2.severity) {
+        return marker2.priority - marker1.priority;
+      }
+
       // This order (sev2 - sev1) is deliberate.
       return marker2.severity - marker1.severity;
     }
@@ -760,6 +764,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     String resourceName;
     int line;
     int severity;
+    int priority;
     String description;
 
     boolean exists;
@@ -770,6 +775,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       this.resourceName = marker.getResource().getName();
       this.line = marker.getAttribute(IMarker.LINE_NUMBER, 0);
       this.severity = marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
+      this.priority = marker.getAttribute(IMarker.PRIORITY, IMarker.PRIORITY_NORMAL);
       this.description = marker.getAttribute(IMarker.MESSAGE, "");
 
       this.exists = marker.exists();

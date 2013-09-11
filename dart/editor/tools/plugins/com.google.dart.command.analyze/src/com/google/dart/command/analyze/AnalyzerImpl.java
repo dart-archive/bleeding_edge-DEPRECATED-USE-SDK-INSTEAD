@@ -120,7 +120,7 @@ class AnalyzerImpl {
 
     // create options for context
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
-    contextOptions.setHint(options.getHint());
+    contextOptions.setHint(options.getHints());
     //TODO (danrubel): Enable strict mode by default when it is ready
     //contextOptions.setStrictMode(true);
 
@@ -139,6 +139,7 @@ class AnalyzerImpl {
     // prepare errors
     Set<Source> sources = getAllSources(library);
     getAllErrors(context, sources, errors);
+    filterInfoLevelErrors(errors);
     return getMaxErrorSeverity(errors);
   }
 
@@ -197,6 +198,16 @@ class AnalyzerImpl {
 
     for (LibraryElement child : library.getExportedLibraries()) {
       addLibrary(child, libraries, units, sources);
+    }
+  }
+
+  private void filterInfoLevelErrors(List<AnalysisError> errors) {
+    for (int i = errors.size() - 1; i >= 0; i--) {
+      AnalysisError error = errors.get(i);
+
+      if (error.getErrorCode().getErrorSeverity() == ErrorSeverity.INFO) {
+        errors.remove(i);
+      }
     }
   }
 

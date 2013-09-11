@@ -23,8 +23,6 @@ import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.BuildVisitor;
 import com.google.dart.tools.core.builder.CleanEvent;
 
-import static com.google.dart.tools.core.DartCore.DART_PROBLEM_MARKER_TYPE;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceProxy;
@@ -149,7 +147,9 @@ public class AnalysisEngineParticipant implements BuildParticipant {
       project.discardContextsIn(event.getProject());
       project = null;
     }
-    event.getProject().deleteMarkers(DART_PROBLEM_MARKER_TYPE, true, DEPTH_INFINITE);
+
+    event.getProject().deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, DEPTH_INFINITE);
+    event.getProject().deleteMarkers(DartCore.DART_TASK_MARKER_TYPE, true, DEPTH_INFINITE);
   }
 
   /**

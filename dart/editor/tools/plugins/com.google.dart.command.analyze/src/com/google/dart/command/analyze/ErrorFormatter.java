@@ -16,6 +16,7 @@ package com.google.dart.command.analyze;
 
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
+import com.google.dart.engine.error.ErrorType;
 import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.source.Source;
@@ -104,9 +105,15 @@ public class ErrorFormatter {
           length,
           escapePipe(error.getMessage())));
     } else {
+      String errorType = error.getErrorCode().getErrorSeverity().getDisplayName();
+
+      if (error.getErrorCode().getType() == ErrorType.HINT) {
+        errorType = error.getErrorCode().getType().getDisplayName();
+      }
+
       // [warning] 'foo' is not a method or function (/Users/devoncarew/tmp/foo.dart, line 1, col 2)
       out.println(String.format("[%s] %s (%s, line %d, col %d)", //
-          error.getErrorCode().getErrorSeverity().getDisplayName(),
+          errorType,
           error.getMessage(),
           source.getFullName(),
           location.getLineNumber(),
@@ -120,7 +127,7 @@ public class ErrorFormatter {
 
     int errorCount = 0;
     int warnCount = 0;
-    int suggestionCount = 0;
+    int hintCount = 0;
 
     for (AnalysisError error : errors) {
       ErrorSeverity severity = error.getErrorCode().getErrorSeverity();
@@ -130,35 +137,49 @@ public class ErrorFormatter {
         if (options.getWarningsAreFatal()) {
           errorCount++;
         } else {
-          warnCount++;
+          if (error.getErrorCode().getType() == ErrorType.HINT) {
+            hintCount++;
+          } else {
+            warnCount++;
+          }
         }
-      } else if (severity.equals(ErrorSeverity.SUGGESTION)) {
-        suggestionCount++;
       }
 
       formatError(error);
     }
 
     if (!options.getMachineFormat()) {
-      if (errorCount != 0 && warnCount != 0) {
-        out.println(String.format(
-            "%d %s and %d %s found.",
-            errorCount,
-            pluralize("error", errorCount),
-            warnCount,
-            pluralize("warning", warnCount)));
-      } else if (errorCount != 0) {
-        out.println(String.format("%d %s found.", errorCount, pluralize("error", errorCount)));
-      } else if (warnCount != 0) {
-        out.println(String.format("%d %s found.", warnCount, pluralize("warning", warnCount)));
-      } else if (suggestionCount != 0) {
-        out.println(String.format(
-            "%d %s found.",
-            suggestionCount,
-            pluralize("suggestion", suggestionCount)));
-      } else {
-        out.println("No issues found.");
+      StringBuffer buf = new StringBuffer();
+
+      if (errorCount != 0) {
+        buf.append(String.format("%d %s", errorCount, pluralize("error", errorCount)));
       }
+
+      if (warnCount != 0) {
+        if (buf.length() > 0) {
+          if (hintCount == 0) {
+            buf.append(" and ");
+          } else {
+            buf.append(", ");
+          }
+        }
+        buf.append(String.format("%d %s", warnCount, pluralize("warning", warnCount)));
+      }
+
+      if (hintCount != 0) {
+        if (buf.length() > 0) {
+          buf.append(", and ");
+        }
+        buf.append(String.format("%d %s", hintCount, pluralize("hint", hintCount)));
+      }
+
+      if (buf.length() != 0) {
+        buf.append(" found.");
+      } else {
+        buf.append("No issues found");
+      }
+
+      out.println(buf.toString());
     }
   }
 

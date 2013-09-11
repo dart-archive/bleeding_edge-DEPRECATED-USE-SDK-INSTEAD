@@ -60,22 +60,8 @@
 		<attribute name="categoryId"/>
 	</extension>
 
-  <extension id="parsingProblem" name="%dart.marker.parsing.problem.name" point="org.eclipse.core.resources.markers">
+  <extension id="hint" name="%dart.marker.hint.problem.name" point="org.eclipse.core.resources.markers">
     <super type="com.google.dart.tools.core.problem"/>
-    <persistent value="true"/>
-    <attribute name="id"/>
-    <attribute name="flags"/>
-    <attribute name="arguments"/>
-    <attribute name="categoryId"/>
-  </extension>
-
-  <extension id="resolutionProblem" name="%dart.marker.resolution.problem.name" point="org.eclipse.core.resources.markers">
-    <super type="com.google.dart.tools.core.problem"/>
-    <persistent value="true"/>
-    <attribute name="id"/>
-    <attribute name="flags"/>
-    <attribute name="arguments"/>
-    <attribute name="categoryId"/>
   </extension>
 
 	<extension id="task" name="%dart.marker.task.name" point="org.eclipse.core.resources.markers">

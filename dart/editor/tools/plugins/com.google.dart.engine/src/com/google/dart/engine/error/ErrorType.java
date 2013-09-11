@@ -20,10 +20,15 @@ package com.google.dart.engine.error;
  */
 public enum ErrorType {
   /**
+   * Task (todo) comments in user code.
+   */
+  TODO(ErrorSeverity.INFO),
+
+  /**
    * Extra analysis run over the code to follow best practices, which are not in the Dart Language
    * Specification.
    */
-  HINT(ErrorSeverity.SUGGESTION),
+  HINT(ErrorSeverity.WARNING),
 
   /**
    * Compile-time errors are errors that preclude execution. A compile time error must be reported
@@ -35,7 +40,7 @@ public enum ErrorType {
    * Suggestions made in situations where the user has deviated from recommended pub programming
    * practices.
    */
-  PUB_SUGGESTION(ErrorSeverity.SUGGESTION),
+  PUB_SUGGESTION(ErrorSeverity.WARNING),
 
   /**
    * Static warnings are those warnings reported by the static checker. They have no effect on
@@ -66,6 +71,10 @@ public enum ErrorType {
    */
   private ErrorType(ErrorSeverity severity) {
     this.severity = severity;
+  }
+
+  public String getDisplayName() {
+    return name().toLowerCase().replace('_', ' ');
   }
 
   /**

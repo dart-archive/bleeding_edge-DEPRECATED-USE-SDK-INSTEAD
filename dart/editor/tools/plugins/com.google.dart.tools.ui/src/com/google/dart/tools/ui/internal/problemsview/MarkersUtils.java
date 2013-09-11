@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.problemsview;
 
+import com.google.dart.tools.core.DartCore;
+
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 
@@ -87,34 +89,39 @@ class MarkersUtils {
   private Map<String, Integer> getMarkerCounts(List<IMarker> markers) {
     Map<String, int[]> counts = new LinkedHashMap<String, int[]>();
 
-    final String[] catLookup = {HINT_CATEGORY, TASK_CATEGORY, WARNING_CATEGORY, ERROR_CATEGORY};
-
     counts.put(ERROR_CATEGORY, new int[1]);
     counts.put(WARNING_CATEGORY, new int[1]);
-    counts.put(TASK_CATEGORY, new int[1]);
     counts.put(HINT_CATEGORY, new int[1]);
+    counts.put(TASK_CATEGORY, new int[1]);
 
     for (IMarker marker : markers) {
       int severity = marker.getAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
 
-      if (severity == IMarker.SEVERITY_INFO) {
+      if (severity == IMarker.SEVERITY_ERROR) {
+        counts.get(ERROR_CATEGORY)[0]++;
+      } else if (severity == IMarker.SEVERITY_WARNING) {
         try {
-          if (marker.isSubtypeOf(IMarker.TASK)) {
-            severity = 1;
+          if (marker.isSubtypeOf(DartCore.DART_HINT_MARKER_TYPE)) {
+            counts.get(HINT_CATEGORY)[0]++;
+          } else {
+            counts.get(WARNING_CATEGORY)[0]++;
           }
         } catch (CoreException ce) {
           // ignore
 
         }
-      } else if (severity == IMarker.SEVERITY_WARNING) {
-        severity = 2;
-      } else if (severity == IMarker.SEVERITY_ERROR) {
-        severity = 3;
+      } else if (severity == IMarker.SEVERITY_INFO) {
+        try {
+          if (marker.isSubtypeOf(IMarker.TASK)) {
+            counts.get(TASK_CATEGORY)[0]++;
+          } else {
+            //counts.get(TASK_CATEGORY)[0]++;
+          }
+        } catch (CoreException ce) {
+          // ignore
+
+        }
       }
-
-      String category = catLookup[severity];
-
-      counts.get(category)[0]++;
     }
 
     Map<String, Integer> result = new LinkedHashMap<String, Integer>();

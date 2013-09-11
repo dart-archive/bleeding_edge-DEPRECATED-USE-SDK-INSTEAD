@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.ErrorSeverity;
+import com.google.dart.engine.error.ErrorType;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 
@@ -77,6 +78,7 @@ public class AnalysisMarkerManager {
       }
 
       resource.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_ZERO);
+      resource.deleteMarkers(DartCore.DART_TASK_MARKER_TYPE, true, IResource.DEPTH_ZERO);
 
       // Ignore if user requested to don't analyze resource.
       if (!DartCore.isAnalyzed(resource)) {
@@ -93,21 +95,36 @@ public class AnalysisMarkerManager {
           severity = IMarker.SEVERITY_ERROR;
         } else if (errorSeverity == ErrorSeverity.WARNING) {
           severity = IMarker.SEVERITY_WARNING;
-        } else if (errorSeverity == ErrorSeverity.SUGGESTION) {
+        } else if (errorSeverity == ErrorSeverity.INFO) {
           severity = IMarker.SEVERITY_INFO;
         } else {
           continue;
         }
 
         int lineNum = lineInfo.getLocation(error.getOffset()).getLineNumber();
+        boolean isHint = errorCode.getType() == ErrorType.HINT;
 
-        IMarker marker = resource.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);
+        String markerType = DartCore.DART_PROBLEM_MARKER_TYPE;
+
+        if (errorCode.getType() == ErrorType.TODO) {
+          markerType = DartCore.DART_TASK_MARKER_TYPE;
+        } else if (isHint) {
+          markerType = DartCore.DART_HINT_MARKER_TYPE;
+        }
+
+        IMarker marker = resource.createMarker(markerType);
         marker.setAttribute(IMarker.SEVERITY, severity);
         marker.setAttribute(IMarker.CHAR_START, error.getOffset());
         marker.setAttribute(IMarker.CHAR_END, error.getOffset() + error.getLength());
         marker.setAttribute(IMarker.LINE_NUMBER, lineNum);
         marker.setAttribute(ERROR_CODE, encodeErrorCode(errorCode));
-        marker.setAttribute(IMarker.MESSAGE, error.getMessage());
+
+        if (isHint) {
+          marker.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_LOW);
+          marker.setAttribute(IMarker.MESSAGE, "hint: " + error.getMessage());
+        } else {
+          marker.setAttribute(IMarker.MESSAGE, error.getMessage());
+        }
 
         errorCount++;
 

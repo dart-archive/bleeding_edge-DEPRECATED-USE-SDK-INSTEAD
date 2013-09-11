@@ -18,6 +18,7 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.*;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.TodoCode;
 import com.google.dart.engine.internal.parser.CommentAndMetadata;
 import com.google.dart.engine.internal.parser.FinalConstVarOrType;
 import com.google.dart.engine.internal.parser.Modifiers;
@@ -37,6 +38,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Matcher;
 
 /**
  * Instances of the class {@code Parser} are used to parse tokens into an AST structure.
@@ -97,7 +99,10 @@ public class Parser {
     InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.Parser.parseCompilationUnit");
     try {
       currentToken = token;
-      return parseCompilationUnit();
+      CompilationUnit compilationUnit = parseCompilationUnit();
+      // TODO(devoncarew): we should move this work to a later phase of analysis
+      gatherTodoComments(token);
+      return compilationUnit;
     } finally {
       instrumentation.log();
     }
@@ -330,6 +335,15 @@ public class Parser {
     };
   }
 
+  /**
+   * Create a synthetic token with the given type.
+   * 
+   * @return the synthetic token that was created
+   */
+  private Token createSyntheticToken(TokenType type) {
+    return new StringToken(type, "", currentToken.getOffset());
+  }
+
 //  /**
 //   * If the current token is an identifier matching the given identifier, return it after advancing
 //   * to the next token. Otherwise report an error and return the current token without advancing.
@@ -346,15 +360,6 @@ public class Parser {
 //    reportError(ParserErrorCode.EXPECTED_TOKEN, identifier);
 //    return currentToken;
 //  }
-
-  /**
-   * Create a synthetic token with the given type.
-   * 
-   * @return the synthetic token that was created
-   */
-  private Token createSyntheticToken(TokenType type) {
-    return new StringToken(type, "", currentToken.getOffset());
-  }
 
   /**
    * Check that the given expression is assignable and report an error if it isn't.
@@ -433,6 +438,23 @@ public class Parser {
       }
     }
     return null;
+  }
+
+  private void gatherTodoComments(Token token) {
+    while (token != null && token.getType() != TokenType.EOF) {
+      Token commentToken = token.getPrecedingComments();
+
+      while (commentToken != null) {
+        if (commentToken.getType() == TokenType.SINGLE_LINE_COMMENT
+            || commentToken.getType() == TokenType.MULTI_LINE_COMMENT) {
+          scrapeTodoComment(commentToken);
+        }
+
+        commentToken = commentToken.getNext();
+      }
+
+      token = token.getNext();
+    }
   }
 
   /**
@@ -1817,7 +1839,7 @@ public class Parser {
   }
 
   /**
-   * Parse the documentation comment and metadata preceeding a declaration. This method allows any
+   * Parse the documentation comment and metadata preceding a declaration. This method allows any
    * number of documentation comments to occur before, after or between the metadata, but only
    * returns the last (right-most) documentation comment that is found.
    * 
@@ -2036,10 +2058,10 @@ public class Parser {
           if (partOfDirectiveFound) {
             reportError(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES);
           } else {
-            for (Directive preceedingDirective : directives) {
+            for (Directive precedingDirective : directives) {
               reportError(
                   ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
-                  preceedingDirective.getKeyword());
+                  precedingDirective.getKeyword());
             }
             partOfDirectiveFound = true;
           }
@@ -4703,30 +4725,6 @@ public class Parser {
     return expression;
   }
 
-//  /**
-//   * Parse a simple identifier.
-//   * 
-//   * <pre>
-//   * identifier ::=
-//   *     IDENTIFIER
-//   * </pre>
-//   * 
-//   * @param consumeToken a predicate that returns {@code true} if the current token is not a simple
-//   *          identifier but is a keyword that should be consumed as if it were an identifier
-//   * @return the simple identifier that was parsed
-//   */
-//  import com.google.common.base.Predicate;
-//  private SimpleIdentifier parseSimpleIdentifier(Predicate<Token> consumeToken) {
-//    if (matchesIdentifier()) {
-//      return new SimpleIdentifier(getAndAdvance());
-//    }
-//    reportError(ParserErrorCode.MISSING_IDENTIFIER);
-//    if (matches(TokenType.KEYWORD) && consumeToken.apply(currentToken)) {
-//      return new SimpleIdentifier(getAndAdvance());
-//    }
-//    return createSyntheticIdentifier();
-//  }
-
   /**
    * Parse a simple identifier.
    * 
@@ -4768,6 +4766,30 @@ public class Parser {
     }
     return new LabeledStatement(labels, statement);
   }
+
+//  /**
+//   * Parse a simple identifier.
+//   * 
+//   * <pre>
+//   * identifier ::=
+//   *     IDENTIFIER
+//   * </pre>
+//   * 
+//   * @param consumeToken a predicate that returns {@code true} if the current token is not a simple
+//   *          identifier but is a keyword that should be consumed as if it were an identifier
+//   * @return the simple identifier that was parsed
+//   */
+//  import com.google.common.base.Predicate;
+//  private SimpleIdentifier parseSimpleIdentifier(Predicate<Token> consumeToken) {
+//    if (matchesIdentifier()) {
+//      return new SimpleIdentifier(getAndAdvance());
+//    }
+//    reportError(ParserErrorCode.MISSING_IDENTIFIER);
+//    if (matches(TokenType.KEYWORD) && consumeToken.apply(currentToken)) {
+//      return new SimpleIdentifier(getAndAdvance());
+//    }
+//    return createSyntheticIdentifier();
+//  }
 
   /**
    * Parse a list of statements within a switch statement.
@@ -5165,18 +5187,18 @@ public class Parser {
   }
 
 /**
-   * Parse a list of type arguments.
-   * 
-   * <pre>
-   * typeArguments ::=
-   *     '<' typeList '>'
-   * 
-   * typeList ::=
-   *     type (',' type)*
-   * </pre>
-   * 
-   * @return the type argument list that was parsed
-   */
+     * Parse a list of type arguments.
+     * 
+     * <pre>
+     * typeArguments ::=
+     *     '<' typeList '>'
+     * 
+     * typeList ::=
+     *     type (',' type)*
+     * </pre>
+     * 
+     * @return the type argument list that was parsed
+     */
   private TypeArgumentList parseTypeArgumentList() {
     Token leftBracket = expect(TokenType.LT);
     List<TypeName> arguments = new ArrayList<TypeName>();
@@ -5220,9 +5242,9 @@ public class Parser {
    * Parse a type parameter.
    * 
    * <pre>
-   * typeParameter ::=
-   *     metadata name ('extends' bound)?
-   * </pre>
+ * typeParameter ::=
+ *     metadata name ('extends' bound)?
+ * </pre>
    * 
    * @return the type parameter that was parsed
    */
@@ -5248,15 +5270,15 @@ public class Parser {
   }
 
 /**
-   * Parse a list of type parameters.
-   * 
-   * <pre>
-   * typeParameterList ::=
-   *     '<' typeParameter (',' typeParameter)* '>'
-   * </pre>
-   * 
-   * @return the list of type parameters that were parsed
-   */
+     * Parse a list of type parameters.
+     * 
+     * <pre>
+     * typeParameterList ::=
+     *     '<' typeParameter (',' typeParameter)* '>'
+     * </pre>
+     * 
+     * @return the list of type parameters that were parsed
+     */
   private TypeParameterList parseTypeParameterList() {
     Token leftBracket = expect(TokenType.LT);
     List<TypeParameter> typeParameters = new ArrayList<TypeParameter>();
@@ -5336,9 +5358,9 @@ public class Parser {
    * Parse a variable declaration.
    * 
    * <pre>
-   * variableDeclaration ::=
-   *     identifier ('=' expression)?
-   * </pre>
+ * variableDeclaration ::=
+ *     identifier ('=' expression)?
+ * </pre>
    * 
    * @return the variable declaration that was parsed
    */
@@ -5570,6 +5592,24 @@ public class Parser {
         token.getLength(),
         errorCode,
         arguments));
+  }
+
+  /**
+   * Look for user defined tasks in comments and convert them into info level analysis issues.
+   * 
+   * @param commentToken the comment token to analyze
+   */
+  private void scrapeTodoComment(Token commentToken) {
+    Matcher matcher = TodoCode.TODO_REGEX.matcher(commentToken.getLexeme());
+
+    if (matcher.find()) {
+      errorListener.onError(new AnalysisError(
+          source,
+          commentToken.getOffset() + matcher.start(1),
+          matcher.end(1) - matcher.start(1),
+          TodoCode.TODO,
+          matcher.group()));
+    }
   }
 
   /**

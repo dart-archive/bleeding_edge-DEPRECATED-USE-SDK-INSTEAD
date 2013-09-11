@@ -88,7 +88,7 @@ class AnnotationTypesExtManager {
       case IMarker.SEVERITY_WARNING:
         return DartToolsPlugin.getImage("icons/full/misc/warn_tsk.gif");
       case IMarker.SEVERITY_INFO:
-        return DartToolsPlugin.getImage("icons/full/misc/info_tsk.gif");
+        return DartToolsPlugin.getImage("icons/full/eview16/tasks_tsk.gif");
     }
 
     return DartToolsPlugin.getImage("icons/full/misc/info_tsk.gif");

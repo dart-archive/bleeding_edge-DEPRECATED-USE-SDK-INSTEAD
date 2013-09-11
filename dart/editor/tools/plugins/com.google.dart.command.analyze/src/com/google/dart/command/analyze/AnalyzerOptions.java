@@ -167,7 +167,7 @@ public class AnalyzerOptions {
 
   @Option(name = "--hints",//
   usage = "Show hint results")
-  private boolean hint = false;
+  private boolean hints = false;
 
   @Argument
   private final String sourceFile = null;
@@ -187,8 +187,8 @@ public class AnalyzerOptions {
    * @return whether hint results (e.g. type inference based information and pub best practices)
    *         should be reported.
    */
-  public boolean getHint() {
-    return hint;
+  public boolean getHints() {
+    return hints;
   }
 
   public boolean getMachineFormat() {
