@@ -23,7 +23,6 @@ import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
 
 public class DartDocUtilitiesTest extends ResolverTestCase {
-
   public void test_class_doc() throws Exception {
     ASTNode id = findNodeIn("A", createSource(//
         "/// My class",
@@ -232,9 +231,8 @@ public class DartDocUtilitiesTest extends ResolverTestCase {
   private CompilationUnit resolve(String... lines) throws Exception {
     Source source = addSource(createSource(lines));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     return getAnalysisContext().resolveCompilationUnit(source, library);
   }
-
 }

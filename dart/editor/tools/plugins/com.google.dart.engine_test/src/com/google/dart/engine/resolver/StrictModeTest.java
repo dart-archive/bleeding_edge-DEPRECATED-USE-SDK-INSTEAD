@@ -31,7 +31,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   @Override
@@ -49,7 +49,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  return n & 0x0F;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_conditional_and_is() throws Exception {
@@ -58,7 +58,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  return (n is int && n > 0) ? n & 0x0F : 0;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_conditional_is() throws Exception {
@@ -67,7 +67,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  return (n is int) ? n & 0x0F : 0;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_conditional_isNot() throws Exception {
@@ -76,7 +76,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  return (n is! int) ? 0 : n & 0x0F;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_conditional_or_is() throws Exception {
@@ -85,7 +85,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  return (n is! int || n < 0) ? 0 : n & 0x0F;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_forEach() throws Exception {
@@ -97,7 +97,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_if_and_is() throws Exception {
@@ -109,7 +109,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  return 0;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_if_is() throws Exception {
@@ -121,7 +121,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  return 0;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_if_isNot() throws Exception {
@@ -134,7 +134,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_if_isNot_abrupt() throws Exception {
@@ -146,7 +146,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  return n & 0x0F;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_if_or_is() throws Exception {
@@ -159,7 +159,7 @@ public class StrictModeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 
   public void test_localVar() throws Exception {
@@ -169,6 +169,6 @@ public class StrictModeTest extends ResolverTestCase {
         "  return n & 0x0F;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
   }
 }

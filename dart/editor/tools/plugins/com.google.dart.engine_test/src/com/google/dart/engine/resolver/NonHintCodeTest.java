@@ -16,7 +16,6 @@ package com.google.dart.engine.resolver;
 import com.google.dart.engine.source.Source;
 
 public class NonHintCodeTest extends ResolverTestCase {
-
   public void test_deadCode_deadBlock_conditionalElse_debugConst() throws Exception {
     Source source = addSource(createSource(//
         "const bool DEBUG = true;",
@@ -24,7 +23,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "  DEBUG ? 1 : 2;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -35,7 +34,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "  DEBUG ? 1 : 2;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -46,7 +45,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "  if(DEBUG) {} else {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -59,7 +58,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "  if(A.DEBUG) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -76,7 +75,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "  static const bool DEBUG = false;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -93,7 +92,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "  static const bool DEBUG = false;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -104,7 +103,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "  if(DEBUG) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -115,7 +114,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "  while(DEBUG) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -127,7 +126,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "  try {} on B catch (e) {} on A catch (e) {} catch (e) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -138,7 +137,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "  bool b = DEBUG && false;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -149,7 +148,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "  bool b = DEBUG || true;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -166,7 +165,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "library lib2;",
         "class Two {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -188,7 +187,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "export 'lib2.dart';",
         "class Three {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -209,7 +208,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "library lib3;",
         "class Three {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -229,7 +228,7 @@ public class NonHintCodeTest extends ResolverTestCase {
         "class One {}",
         "topLevelFunction() {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 }

@@ -17,14 +17,13 @@ import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.source.Source;
 
 public class HintCodeTest extends ResolverTestCase {
-
   public void test_deadCode_deadBlock_conditionalElse() throws Exception {
     Source source = addSource(createSource(//
         "f() {",
         "  true ? 1 : 2;",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -35,7 +34,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  true ? true : false && false;",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -45,7 +44,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  false ? 1 : 2;",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -56,7 +55,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  false ? false && false : true;",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -66,7 +65,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  if(true) {} else {}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -77,7 +76,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  if(true) {} else {if (false) {}}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -87,7 +86,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  if(false) {}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -98,7 +97,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  if(false) {if(false) {}}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -108,7 +107,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  while(false) {}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -119,7 +118,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  while(false) {if(false) {}}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -130,7 +129,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  try {} catch (e) {} catch (e) {}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
+    assertErrors(source, HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
     verify(source);
   }
 
@@ -142,7 +141,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  try {} catch (e) {} catch (e) {if(false) {}}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
+    assertErrors(source, HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
     verify(source);
   }
 
@@ -152,7 +151,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  try {} on Object catch (e) {} catch (e) {}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
+    assertErrors(source, HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
     verify(source);
   }
 
@@ -163,7 +162,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  try {} on Object catch (e) {} catch (e) {if(false) {}}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
+    assertErrors(source, HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH);
     verify(source);
   }
 
@@ -175,7 +174,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  try {} on A catch (e) {} on B catch (e) {}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE_ON_CATCH_SUBTYPE);
+    assertErrors(source, HintCode.DEAD_CODE_ON_CATCH_SUBTYPE);
     verify(source);
   }
 
@@ -188,7 +187,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  try {} on A catch (e) {} on B catch (e) {if(false) {}}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE_ON_CATCH_SUBTYPE);
+    assertErrors(source, HintCode.DEAD_CODE_ON_CATCH_SUBTYPE);
     verify(source);
   }
 
@@ -198,7 +197,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  bool b = false && false;",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -208,7 +207,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  bool b = false && (false && false);",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -218,7 +217,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  bool b = true || true;",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -228,7 +227,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  bool b = true || (false && false);",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -240,7 +239,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  var two = 2;",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -254,7 +253,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -268,7 +267,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -280,7 +279,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  if(false) {}",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -294,7 +293,7 @@ public class HintCodeTest extends ResolverTestCase {
         "  var three = 3;",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -305,7 +304,7 @@ public class HintCodeTest extends ResolverTestCase {
     addSource("/lib1.dart", createSource(//
         "library lib1;"));
     resolve(source);
-    assertErrors(HintCode.UNUSED_IMPORT);
+    assertErrors(source, HintCode.UNUSED_IMPORT);
     verify(source);
   }
 
@@ -319,7 +318,7 @@ public class HintCodeTest extends ResolverTestCase {
         "library lib1;",
         "class A {}"));
     resolve(source);
-    assertErrors(HintCode.UNUSED_IMPORT);
+    assertErrors(source, HintCode.UNUSED_IMPORT);
     verify(source);
   }
 
@@ -333,7 +332,7 @@ public class HintCodeTest extends ResolverTestCase {
         "library lib1;",
         "class A {}"));
     resolve(source);
-    assertErrors(HintCode.UNUSED_IMPORT);
+    assertErrors(source, HintCode.UNUSED_IMPORT);
     verify(source);
   }
 
@@ -348,7 +347,7 @@ public class HintCodeTest extends ResolverTestCase {
         "class A {}",
         "class B {}"));
     resolve(source);
-    assertErrors(HintCode.UNUSED_IMPORT);
+    assertErrors(source, HintCode.UNUSED_IMPORT);
     verify(source);
   }
 }

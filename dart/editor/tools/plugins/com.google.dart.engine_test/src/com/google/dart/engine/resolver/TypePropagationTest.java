@@ -41,9 +41,9 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 public class TypePropagationTest extends ResolverTestCase {
-  // TODO(scheglov) disabled because we don't resolve function expression
   public void fail_functionExpression_asInvocationArgument_functionExpressionInvocation()
       throws Exception {
+    // TODO(scheglov) disabled because we don't resolve function expression
     String code = createSource(//
         "main() {",
         "  (f(String value)) {} ((v) {",
@@ -52,7 +52,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "}");
     Source source = addSource(code);
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
@@ -66,8 +66,8 @@ public class TypePropagationTest extends ResolverTestCase {
     assertSame(dynamicType, vIdentifier.getStaticType());
   }
 
-  // TODO(scheglov) disabled because we don't resolve function expression
   public void fail_propagatedReturnType_functionExpression() throws Exception {
+    // TODO(scheglov) disabled because we don't resolve function expression
     String code = createSource(//
         "main() {",
         "  var v = (() {return 42;})();",
@@ -91,7 +91,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  }",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -113,7 +113,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return p;",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -133,7 +133,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return v;",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
@@ -151,7 +151,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return v;",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
@@ -170,7 +170,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "}");
     Source source = addSource(code);
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     InterfaceType stringType = getTypeProvider().getStringType();
@@ -199,7 +199,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "}");
     Source source = addSource(code);
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // k
@@ -230,7 +230,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "}");
     Source source = addSource(code);
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // k
@@ -255,7 +255,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "}");
     Source source = addSource(code);
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
@@ -280,7 +280,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "}");
     Source source = addSource(code);
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // v
@@ -305,7 +305,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "}");
     Source source = addSource(code);
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     // p1
@@ -326,7 +326,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return v;",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
@@ -370,7 +370,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return (p is A) ? p : null;",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -394,7 +394,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  }",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -419,7 +419,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  }",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
 //    ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -444,7 +444,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  }",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -466,7 +466,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return p;",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -490,7 +490,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return p;",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -514,7 +514,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  }",
         "}"));
     LibraryElement library = resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_METHOD);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_METHOD);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(2);
     BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
@@ -534,7 +534,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  }",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -555,7 +555,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return (p is! A) ? null : p;",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -579,7 +579,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  }",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -604,7 +604,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  }",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -626,7 +626,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return p;",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -648,7 +648,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return p;",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
@@ -667,7 +667,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return v[2];",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
@@ -684,7 +684,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return v[2];",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
@@ -701,7 +701,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return v;",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
@@ -723,7 +723,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return v;",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(0);
@@ -851,7 +851,7 @@ public class TypePropagationTest extends ResolverTestCase {
         "  return [v1, v2, v3, v4, v5, v6, v7, m1, b1, b2, b3];",
         "}"));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration main = (FunctionDeclaration) unit.getDeclarations().get(0);
@@ -879,7 +879,7 @@ public class TypePropagationTest extends ResolverTestCase {
       Type expectedPropagatedType) throws Exception {
     Source source = addSource(code);
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     //

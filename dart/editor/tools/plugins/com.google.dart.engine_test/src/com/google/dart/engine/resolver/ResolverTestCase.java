@@ -18,7 +18,6 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -85,37 +84,34 @@ public class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * Assert that the number of errors that have been gathered matches the number of errors that are
-   * given and that they have the expected error codes. The order in which the errors were gathered
-   * is ignored.
+   * Assert that the number of errors reported against the given source matches the number of errors
+   * that are given and that they have the expected error codes. The order in which the errors were
+   * gathered is ignored.
    * 
-   * @param expectedErrorCodes the error codes of the errors that should have been gathered
-   * @throws AssertionFailedError if a different number of errors have been gathered than were
+   * @param source the source against which the errors should have been reported
+   * @param expectedErrorCodes the error codes of the errors that should have been reported
+   * @throws AnalysisException if the reported errors could not be computed
+   * @throws AssertionFailedError if a different number of errors have been reported than were
    *           expected
    */
-  protected void assertErrors(ErrorCode... expectedErrorCodes) {
+  protected void assertErrors(Source source, ErrorCode... expectedErrorCodes)
+      throws AnalysisException {
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    for (ChangeNotice notice : analysisContext.performAnalysisTask()) {
-      for (AnalysisError error : notice.getErrors()) {
-        errorListener.onError(error);
-      }
+    for (AnalysisError error : analysisContext.computeErrors(source)) {
+      errorListener.onError(error);
     }
     errorListener.assertErrors(expectedErrorCodes);
   }
 
   /**
-   * Assert that no errors have been gathered.
+   * Assert that no errors have been reported against the given source.
    * 
-   * @throws AssertionFailedError if any errors have been gathered
+   * @param source the source against which no errors should have been reported
+   * @throws AnalysisException if the reported errors could not be computed
+   * @throws AssertionFailedError if any errors have been reported
    */
-  protected void assertNoErrors() {
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    for (ChangeNotice notice : analysisContext.performAnalysisTask()) {
-      for (AnalysisError error : notice.getErrors()) {
-        errorListener.onError(error);
-      }
-    }
-    errorListener.assertNoErrors();
+  protected void assertNoErrors(Source source) throws AnalysisException {
+    assertLength(0, analysisContext.computeErrors(source));
   }
 
   /**

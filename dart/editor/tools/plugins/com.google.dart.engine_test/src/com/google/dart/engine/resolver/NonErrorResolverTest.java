@@ -30,7 +30,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library lib2;",
         "class N {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -48,7 +48,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class B {}",
         "class C {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -66,7 +66,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class B {}",
         "class C {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -76,7 +76,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  return ?v;",
         "}"));
     resolve(source);
-    assertErrors(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
+    assertErrors(source, ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
     verify(source);
   }
 
@@ -86,7 +86,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  return ?v;",
         "}"));
     resolve(source);
-    assertErrors(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
+    assertErrors(source, ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
     verify(source);
   }
 
@@ -96,7 +96,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  return ?v;",
         "}"));
     resolve(source);
-    assertErrors(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
+    assertErrors(source, ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST);
     verify(source);
   }
 
@@ -114,7 +114,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "    caller(new CallMeBack());",
         "  }"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -127,7 +127,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -138,7 +138,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  a(1);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -149,7 +149,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "process(Object x) {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -162,7 +162,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  a(1, '2');",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -173,7 +173,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  a(1, '2');",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -184,7 +184,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  -x;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -199,7 +199,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library lib1;",
         "bool x = false;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -214,7 +214,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -224,7 +224,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  dynamic x;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -251,7 +251,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -264,7 +264,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -277,7 +277,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -295,7 +295,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -308,7 +308,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -318,7 +318,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  m();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -331,7 +331,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  get v => 1;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -342,7 +342,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  static set x(int p) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -353,7 +353,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  static set x(int p) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -369,7 +369,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const factory C() = B;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -380,7 +380,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const A();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -393,7 +393,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const B();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -404,7 +404,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const A();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -416,7 +416,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  get x {return 0;}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -428,7 +428,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "import 'math.dart' as math;",
         "const C = math.PI;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -440,7 +440,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "const C = A.m;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -470,7 +470,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const B.n2(num p) : v = null == p;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -500,7 +500,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const B.n2(num p) : v = null != p;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -511,7 +511,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "f() { return const A(true, 0, 1.0, '2'); }"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -522,7 +522,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const A();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -535,7 +535,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  return const A.name();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -548,7 +548,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  return const A();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -556,7 +556,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "typedef F([x]);"));
     resolve(source);
-    assertErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -564,7 +564,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "f(g({p})) {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -572,7 +572,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "f(g([p])) {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -585,7 +585,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  'b' : () {}",
         "};"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -593,7 +593,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "bool get a => true;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -603,7 +603,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  var v = dynamic;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -614,7 +614,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     addSource("/lib1.dart", createSource(//
         "library lib1;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -625,7 +625,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     addSource("/lib1.dart", createSource(//
         ""));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -636,7 +636,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  f(1, 2);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -646,7 +646,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  a(1, 2);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -659,7 +659,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  a(1, 2);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -670,7 +670,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  a(1, 2);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -682,7 +682,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A() : x = 0, y = 0 {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -693,7 +693,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A() : x = 1 {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -704,7 +704,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A() : x = 1 {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -715,7 +715,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A(this.x) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -726,7 +726,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A([this.x]) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -740,7 +740,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B(this.x) : super();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -751,7 +751,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A() : x = 1 {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -763,7 +763,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A(this.x) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -774,7 +774,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A() {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -785,7 +785,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A() {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -796,7 +796,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A(int this.x(int p)) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -807,7 +807,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A() {}",
         "}"));
     resolve(source);
-    assertErrors(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE);
+    assertErrors(source, ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE);
     verify(source);
   }
 
@@ -817,7 +817,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  final int x;",
         "}"));
     resolve(source);
-    assertErrors(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE);
+    assertErrors(source, ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE);
     verify(source);
   }
 
@@ -828,7 +828,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A() : x = 0 {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -840,7 +840,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A.named() : this (42);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -854,7 +854,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B() : v = new A.named();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -868,7 +868,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B(A a) : v = a.f;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -882,7 +882,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B() : v = new A().f();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -896,7 +896,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B() : v = new A().f;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -908,7 +908,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  static var f;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -920,7 +920,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  static get f => 42;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -932,7 +932,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  static f() => 42;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -944,7 +944,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "var f = 42;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -956,7 +956,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "f() => 42;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -968,7 +968,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "get f => 42;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -979,7 +979,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A(p) : v = (p is T);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -990,7 +990,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "import 'lib.dart';"));
     addSource("/lib.dart", "library lib;");
     resolve(source);
-    assertErrors(HintCode.UNUSED_IMPORT, HintCode.UNUSED_IMPORT);
+    assertErrors(source, HintCode.UNUSED_IMPORT, HintCode.UNUSED_IMPORT);
     verify(source);
   }
 
@@ -1003,7 +1003,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "library lib1;",
         "class A {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1015,7 +1015,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     addSource("/part.dart", createSource(//
         "class A {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1030,7 +1030,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1049,7 +1049,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class A<E> extends B<E> implements D<E> {",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1065,7 +1065,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  E get x => 1;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1080,7 +1080,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class C<E> extends A<E> implements B<E> {",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1096,7 +1096,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  x(E e) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1112,7 +1112,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  x(E e) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1128,7 +1128,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  x() {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1139,7 +1139,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A(this.x) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1152,7 +1152,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1163,7 +1163,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  m();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1176,7 +1176,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1187,7 +1187,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1201,7 +1201,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1217,7 +1217,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1229,7 +1229,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  x = y;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1246,7 +1246,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  b += 3;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1255,7 +1255,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "f({String x: '0'}) {",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1264,7 +1264,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "f([String x = '0']) {",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1275,7 +1275,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  g = () => 0;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1285,7 +1285,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  factory A() {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1298,7 +1298,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  m({int a, int b}) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1311,7 +1311,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  m({int p : 0}) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1324,7 +1324,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  m([int p = 0]) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1337,7 +1337,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  m([int b = 0, String a = '0']) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1350,7 +1350,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  m({b, a}) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1363,7 +1363,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  int m() { return 1; }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1378,7 +1378,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  int m() { return 1; }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1391,7 +1391,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  int m() { return 1; }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1404,7 +1404,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  List<dynamic> m() { return new List<dynamic>(); }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1417,7 +1417,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  int m() { return 1; }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1430,7 +1430,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  int m() { return 1; }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1445,7 +1445,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  int m() { return 1; }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1458,7 +1458,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  int m() {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1470,7 +1470,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1482,7 +1482,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1494,7 +1494,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1506,7 +1506,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1518,7 +1518,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1533,7 +1533,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1547,7 +1547,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  a.g();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1558,7 +1558,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  g();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1570,7 +1570,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  v();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1583,7 +1583,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  v();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1594,7 +1594,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  v();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1603,7 +1603,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "var v1 = <int> [42];",
         "var v2 = const <int> [42];"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1611,7 +1611,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "var v = <String, int > {'a' : 1};"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1621,7 +1621,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  set A(v) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1632,7 +1632,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  set x(int v) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1643,7 +1643,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  set x(String v) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1654,7 +1654,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  set x(v) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1663,7 +1663,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "int get x => 0;",
         "set x(int v) {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1672,7 +1672,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "get x => 0;",
         "set x(String v) {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1681,7 +1681,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "int get x => 0;",
         "set x(v) {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1692,7 +1692,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "class B extends Object with A {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1703,7 +1703,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "class B extends Object with A {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1713,7 +1713,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "typedef B = Object with A;",
         "class C extends Object with B {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1723,7 +1723,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "typedef B = Object with A;",
         "typedef C = Object with B;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1734,7 +1734,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B() {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1745,7 +1745,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B() : super() {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1761,7 +1761,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  return new A();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1774,7 +1774,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  new A.name();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1787,7 +1787,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  new A();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1803,7 +1803,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class C extends B {",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1819,7 +1819,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class C extends B {",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1830,7 +1830,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  assert(makeAssertion);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1840,7 +1840,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  assert(true);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1848,7 +1848,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "f({x : 2 + 3}) {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1856,7 +1856,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "f([x = 2 + 3]) {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1866,7 +1866,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A({x : 2 + 3}) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1876,7 +1876,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A([x = 2 + 3]) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1886,7 +1886,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  m({x : 2 + 3}) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1896,7 +1896,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  m([x = 2 + 3]) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1910,7 +1910,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const B({b}) : super(a: b);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1926,7 +1926,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1936,7 +1936,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const {'a' : 0, 'b' : 1};",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1946,7 +1946,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  var m = {'a' : 0, 'b' : 1};",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1956,7 +1956,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  <String, int> {'a' : 0, 'b' : 1};",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -1970,7 +1970,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const A.b2(bool p) : v = true || p;",
         "}"));
     resolve(source);
-    assertErrors(HintCode.DEAD_CODE);
+    assertErrors(source, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -2000,7 +2000,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const A.j2(p) : v = 5 % p;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     // operations on "p" are not resolved
   }
 
@@ -2020,7 +2020,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const A.e2(int p) : v = 5 << p;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2050,7 +2050,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const A.j2(num p) : v = 5 % p;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2061,7 +2061,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const A() : a = 5;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2072,7 +2072,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const A() : this.named(42);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2085,7 +2085,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const B() : super(42);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2098,7 +2098,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const A.c(num p) : v = -p;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2112,7 +2112,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B() : super.named();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2124,7 +2124,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2137,7 +2137,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2151,7 +2151,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2163,7 +2163,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2173,7 +2173,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  operator []=(a, b) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2183,21 +2183,21 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  void operator []=(a, b) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
   public void test_nonVoidReturnForSetter_function_no() throws Exception {
     Source source = addSource("set x(v) {}");
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
   public void test_nonVoidReturnForSetter_function_void() throws Exception {
     Source source = addSource("void set x(v) {}");
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2207,7 +2207,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  set x(v) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2217,7 +2217,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  void set x(v) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2227,7 +2227,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  operator +(p) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2243,7 +2243,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class p4 {}",
         "p.A a;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2266,7 +2266,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "const proxy = const _Proxy();",
         "class _Proxy { const _Proxy(); }"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
   }
 
   public void test_proxy_annotation_prefixed2() throws Exception {
@@ -2290,7 +2290,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "const proxy = const _Proxy();",
         "class _Proxy { const _Proxy(); }"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
   }
 
   public void test_proxy_annotation_prefixed3() throws Exception {
@@ -2314,7 +2314,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "const proxy = const _Proxy();",
         "class _Proxy { const _Proxy(); }"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
   }
 
   public void test_proxy_annotation_simple() throws Exception {
@@ -2335,7 +2335,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "const proxy = const _Proxy();",
         "class _Proxy { const _Proxy(); }"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
   }
 
   public void test_recursiveConstructorRedirect() throws Exception {
@@ -2346,7 +2346,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A.c() {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2362,7 +2362,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  factory C() {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2375,7 +2375,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  factory B(int p) = A;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2386,7 +2386,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  const factory A.b() = A.a;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2399,7 +2399,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  var x = new A.x();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2412,7 +2412,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  var x = a.x();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2425,7 +2425,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  var x = a.x;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2437,7 +2437,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2447,7 +2447,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A() { return; }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2466,7 +2466,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2478,7 +2478,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class A<T> implements I {",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2488,7 +2488,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class B extends A {}",
         "A f(B b) { return b; }"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2498,7 +2498,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class B extends A {}",
         "B f(A a) { return a; }"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2513,7 +2513,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "void g2() {}",
         ""));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2521,7 +2521,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "f() { return; }"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2529,7 +2529,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "void f() { return; }"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2542,7 +2542,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2556,7 +2556,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A.m();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2570,7 +2570,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A.f = 1;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2585,7 +2585,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A.f = 1;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2603,7 +2603,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2614,7 +2614,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  A a;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2622,7 +2622,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "typedef A<T extends A>();"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2635,7 +2635,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "f() { return const G<B>(); }"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2646,7 +2646,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "f() { return new G<B>(); }"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2654,7 +2654,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "abstract class A<T extends A>{}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2662,7 +2662,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "abstract class A<T extends A<A>>{}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2670,7 +2670,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "abstract class A<T extends A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A<A>>>>>>>>>>>>>>>>>>>>>{}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2683,7 +2683,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B() : super.named();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2696,7 +2696,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B() : super();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2709,7 +2709,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2722,7 +2722,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2734,7 +2734,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  B();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2748,7 +2748,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  Bar.ctor() : super.ctor();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2763,7 +2763,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2774,7 +2774,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     addSource("/lib1.dart", createSource(//
         "library lib1;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2785,7 +2785,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     addSource("/lib1.dart", createSource(//
         "library lib1;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2795,7 +2795,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  (() => null).call();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     // A call to verify(source) fails as '.call()' isn't resolved.
   }
 
@@ -2805,7 +2805,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  (() => null)();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     // A call to verify(source) fails as '(() => null)()' isn't resolved.
   }
 
@@ -2820,7 +2820,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  a[0] = 1;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2829,7 +2829,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "const A = 3;",
         "const B = ~((1 << A) - 1);"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2843,7 +2843,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  x.y = 0;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2858,7 +2858,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2873,7 +2873,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2883,7 +2883,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  operator []=(a, b) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2916,7 +2916,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  set x(a) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -2927,7 +2927,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  operator " + name + "(" + parameters + ") {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     reset();
   }

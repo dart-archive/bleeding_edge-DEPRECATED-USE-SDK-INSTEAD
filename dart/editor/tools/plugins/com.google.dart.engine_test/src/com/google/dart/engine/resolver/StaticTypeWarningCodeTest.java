@@ -22,7 +22,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     // TODO
     ));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INACCESSIBLE_SETTER);
+    assertErrors(source, StaticTypeWarningCode.INACCESSIBLE_SETTER);
     verify(source);
   }
 
@@ -37,7 +37,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class C implements A, B {",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE);
+    assertErrors(source, StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE);
     verify(source);
   }
 
@@ -51,7 +51,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}",
         "abstract class C implements A, B {}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE);
+    assertErrors(source, StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE);
     verify(source);
   }
 
@@ -65,7 +65,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}",
         "abstract class C implements A, B {}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE);
+    assertErrors(source, StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE);
     verify(source);
   }
 
@@ -78,7 +78,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  a.m();",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
+    assertErrors(source, StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
     verify(source);
   }
 
@@ -91,7 +91,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  a.m;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
+    assertErrors(source, StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
     verify(source);
   }
 
@@ -104,7 +104,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  a.f;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
+    assertErrors(source, StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
     verify(source);
   }
 
@@ -117,7 +117,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  a.f;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
+    assertErrors(source, StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
     verify(source);
   }
 
@@ -130,7 +130,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  a.f = 42;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
+    assertErrors(source, StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER);
     verify(source);
   }
 
@@ -147,7 +147,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  b += 3;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    assertErrors(source, StaticTypeWarningCode.INVALID_ASSIGNMENT);
     verify(source);
   }
 
@@ -156,7 +156,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "f({String x: 0}) {",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    assertErrors(source, StaticTypeWarningCode.INVALID_ASSIGNMENT);
     verify(source);
   }
 
@@ -165,7 +165,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "f([String x = 0]) {",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    assertErrors(source, StaticTypeWarningCode.INVALID_ASSIGNMENT);
     verify(source);
   }
 
@@ -179,7 +179,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  a.x = '0';",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    assertErrors(source, StaticTypeWarningCode.INVALID_ASSIGNMENT);
     verify(source);
   }
 
@@ -190,7 +190,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  x = '0';",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    assertErrors(source, StaticTypeWarningCode.INVALID_ASSIGNMENT);
     verify(source);
   }
 
@@ -203,7 +203,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  A.x = '0';",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    assertErrors(source, StaticTypeWarningCode.INVALID_ASSIGNMENT);
     verify(source);
   }
 
@@ -211,7 +211,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "int x = 'string';"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    assertErrors(source, StaticTypeWarningCode.INVALID_ASSIGNMENT);
     verify(source);
   }
 
@@ -221,7 +221,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  int x = 'string';",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    assertErrors(source, StaticTypeWarningCode.INVALID_ASSIGNMENT);
     verify(source);
   }
 
@@ -233,7 +233,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+    assertErrors(source, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
   }
 
   public void test_invocationOfNonFunction_localVariable() throws Exception {
@@ -243,7 +243,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  return x();",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+    assertErrors(source, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
     verify(source);
   }
 
@@ -258,7 +258,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+    assertErrors(source, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
     // A call to verify(source) fails as A.x() cannot be resolved.
   }
 
@@ -271,7 +271,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+    assertErrors(source, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
     // A call to verify(source) fails as g() cannot be resolved.
   }
 
@@ -286,7 +286,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+    assertErrors(source, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
     verify(source);
   }
 
@@ -296,7 +296,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  3(5);",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION);
+    assertErrors(source, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION);
     verify(source);
   }
 
@@ -304,7 +304,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "f() { return 3 ? 2 : 1; }"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
+    assertErrors(source, StaticTypeWarningCode.NON_BOOL_CONDITION);
     verify(source);
   }
 
@@ -314,7 +314,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  do {} while (3);",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
+    assertErrors(source, StaticTypeWarningCode.NON_BOOL_CONDITION);
     verify(source);
   }
 
@@ -324,7 +324,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  if (3) return 2; else return 1;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
+    assertErrors(source, StaticTypeWarningCode.NON_BOOL_CONDITION);
     verify(source);
   }
 
@@ -334,7 +334,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  while (3) {}",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
+    assertErrors(source, StaticTypeWarningCode.NON_BOOL_CONDITION);
     verify(source);
   }
 
@@ -345,7 +345,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  assert(makeAssertion);",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_BOOL_EXPRESSION);
+    assertErrors(source, StaticTypeWarningCode.NON_BOOL_EXPRESSION);
     verify(source);
   }
 
@@ -355,7 +355,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  assert(0);",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_BOOL_EXPRESSION);
+    assertErrors(source, StaticTypeWarningCode.NON_BOOL_EXPRESSION);
     verify(source);
   }
 
@@ -365,7 +365,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class B<E> {}",
         "f(B<A> b) {}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT);
+    assertErrors(source, StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT);
     verify(source);
   }
 
@@ -374,7 +374,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class B<E> {}",
         "f(B<A> b) {}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT);
+    assertErrors(source, StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT);
     verify(source);
   }
 
@@ -382,7 +382,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "int f() => '0';"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    assertErrors(source, StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 
@@ -390,7 +390,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "int get g => '0';"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    assertErrors(source, StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 
@@ -402,7 +402,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    assertErrors(source, StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 
@@ -412,7 +412,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  int f() => '0';",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    assertErrors(source, StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 
@@ -420,7 +420,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "void f() => 42;"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    assertErrors(source, StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 
@@ -428,7 +428,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "int f() { return '0'; }"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    assertErrors(source, StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 
@@ -436,7 +436,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "int get g { return '0'; }"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    assertErrors(source, StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 
@@ -448,7 +448,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    assertErrors(source, StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 
@@ -458,7 +458,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  int f() { return '0'; }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    assertErrors(source, StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 
@@ -466,7 +466,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "void f() { return 42; }"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    assertErrors(source, StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 
@@ -478,7 +478,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "typedef D = G<B> with C;"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -489,7 +489,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "class C extends G<B>{}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -503,7 +503,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  C(G<B> this.f) {}",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -514,7 +514,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "G<B> f() {}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -525,7 +525,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "typedef G<B> f();"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -536,7 +536,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "f(G<B> h()) {}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -547,7 +547,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "class C implements G<B>{}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -558,7 +558,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "var b = 1 is G<B>;"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -571,7 +571,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  G<B> m() {}",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -582,7 +582,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "f() { return new G<B>(); }"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -594,7 +594,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends B> {}",
         "f() { return new G<A>(); }"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -605,7 +605,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "f(G<B> g) {}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -618,7 +618,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  factory X.name(int x, int y) = X<B>;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -630,7 +630,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class D<E extends A> {}",
         "C<D<B>> Var;"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -642,7 +642,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "class D<F extends G<B>> {}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -653,7 +653,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "G<B> g;"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -664,7 +664,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class G<E extends A> {}",
         "class C extends Object with G<B>{}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -673,7 +673,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class T {}",
         "f(T e) { return e.m; }"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_GETTER);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
     // A call to verify(source) fails as 'e.m' isn't resolved.
   }
 
@@ -682,7 +682,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class A {}",
         "var a = A.B;"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_GETTER);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_GETTER);
     // A call to verify(source) fails as 'A.B' isn't resolved.
   }
 
@@ -694,7 +694,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_METHOD);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_METHOD);
   }
 
   public void test_undefinedMethod_ignoreTypePropagation() throws Exception {
@@ -710,7 +710,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_METHOD);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_METHOD);
   }
 
   public void test_undefinedOperator_indexBoth() throws Exception {
@@ -720,7 +720,10 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  a[0]++;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR, StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(
+        source,
+        StaticTypeWarningCode.UNDEFINED_OPERATOR,
+        StaticTypeWarningCode.UNDEFINED_OPERATOR);
     // no verify(), a[0] is not resolved
   }
 
@@ -731,7 +734,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  a[0];",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
     // no verify(), a[0] is not resolved
   }
 
@@ -742,7 +745,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  a[0] = 1;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
     // no verify(), a[0] is not resolved
   }
 
@@ -753,7 +756,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  a + 1;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_OPERATOR);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_OPERATOR);
     // no verify(), 'a + 1' is not resolved
   }
 
@@ -762,7 +765,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class T {}",
         "f(T e1) { e1.m = 0; }"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_SETTER);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_SETTER);
     // A call to verify(source) fails as 'e.m' isn't resolved.
   }
 
@@ -771,7 +774,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class A {}",
         "f() { A.B = 0;}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_SETTER);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_SETTER);
     //A call to verify(source) fails as 'A.B' isn't resolved.
   }
 
@@ -782,7 +785,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  m() { return super.m(); }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD);
+    assertErrors(source, StaticTypeWarningCode.UNDEFINED_SUPER_METHOD);
   }
 
   public void test_unqualifiedReferenceToNonLocalStaticMember_getter() throws Exception {
@@ -796,7 +799,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER);
+    assertErrors(source, StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER);
     verify(source);
   }
 
@@ -811,7 +814,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER);
+    assertErrors(source, StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER);
     verify(source);
   }
 
@@ -826,7 +829,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER);
+    assertErrors(source, StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER);
     verify(source);
   }
 
@@ -835,7 +838,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class A<E, F> {}",
         "A<A> a = null;"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    assertErrors(source, StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
     verify(source);
   }
 
@@ -844,7 +847,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class A<E> {}",
         "A<A, A> a = null;"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    assertErrors(source, StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
     verify(source);
   }
 
@@ -856,7 +859,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  return p is C<A>;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    assertErrors(source, StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
     verify(source);
   }
 
@@ -868,7 +871,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "  return p is C<A, A>;",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    assertErrors(source, StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
     verify(source);
   }
 }

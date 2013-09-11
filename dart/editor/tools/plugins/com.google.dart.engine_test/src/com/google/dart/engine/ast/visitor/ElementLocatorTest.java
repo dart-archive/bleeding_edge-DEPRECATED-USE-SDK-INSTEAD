@@ -235,7 +235,7 @@ public class ElementLocatorTest extends ResolverTestCase {
   private CompilationUnit resolve(String... lines) throws Exception {
     Source source = addSource(createSource(lines));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
     return getAnalysisContext().resolveCompilationUnit(source, library);
   }

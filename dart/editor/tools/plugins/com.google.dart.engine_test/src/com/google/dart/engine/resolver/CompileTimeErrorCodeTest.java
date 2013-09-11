@@ -26,7 +26,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     // TODO Find an expression that would raise an exception
     ));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION);
+    assertErrors(source, CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION);
     verify(source);
   }
 
@@ -37,7 +37,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "f() { return const C(); }"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION);
+    assertErrors(source, CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION);
     verify(source);
   }
 
@@ -48,7 +48,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "class B extends Object mixin A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
     verify(source);
   }
 
@@ -58,7 +58,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "var A;",
         "class B extends Object mixin A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
     verify(source);
   }
 
@@ -67,7 +67,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     // TODO(brianwilkerson) Figure out how to mock Object
     ));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS);
+    assertErrors(source, CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS);
     verify(source);
   }
 
@@ -78,7 +78,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  final m = const A();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
+    assertErrors(source, CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
     verify(source);
   }
 
@@ -87,7 +87,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "const x = y + 1;",
         "const y = x + 1;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
+    assertErrors(source, CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
     verify(source);
   }
 
@@ -96,7 +96,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     // TODO(brianwilkerson) Figure out how to mock Object
     ));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT);
+    assertErrors(source, CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT);
     verify(source);
   }
 
@@ -112,7 +112,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library lib2;",
         "class N {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.AMBIGUOUS_EXPORT);
+    assertErrors(source, CompileTimeErrorCode.AMBIGUOUS_EXPORT);
     verify(source);
   }
 
@@ -128,7 +128,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library lib2;",
         "f() {}"));
     resolve(source);
-    assertErrors(StaticWarningCode.AMBIGUOUS_IMPORT, CompileTimeErrorCode.UNDEFINED_FUNCTION);
+    assertErrors(
+        source,
+        StaticWarningCode.AMBIGUOUS_IMPORT,
+        CompileTimeErrorCode.UNDEFINED_FUNCTION);
   }
 
   public void test_argumentDefinitionTestNonParameter() throws Exception {
@@ -139,6 +142,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST,
         CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER);
     verify(source);
@@ -153,7 +157,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(42);",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    assertErrors(source, CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
   }
 
@@ -166,7 +170,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const B() : super(42);",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    assertErrors(source, CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
   }
 
@@ -177,6 +181,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
         StaticWarningCode.UNDEFINED_CLASS);
     verify(source);
@@ -188,7 +193,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B {}",
         "typedef as = A with B;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    assertErrors(source, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     verify(source);
   }
 
@@ -196,7 +201,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "typedef bool as();"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    assertErrors(source, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     verify(source);
   }
 
@@ -204,7 +209,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class as {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+    assertErrors(source, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
     verify(source);
   }
 
@@ -212,7 +217,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A<as> {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
+    assertErrors(source, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
     verify(source);
   }
 
@@ -233,7 +238,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS);
+    assertErrors(source, CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS);
     verify(source);
   }
 
@@ -244,7 +249,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A.x() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD);
+    assertErrors(source, CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD);
     verify(source);
   }
 
@@ -255,7 +260,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  void x() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD);
+    assertErrors(source, CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD);
     verify(source);
   }
 
@@ -268,7 +273,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  m() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD);
+    assertErrors(source, CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD);
     verify(source);
   }
 
@@ -281,7 +286,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  m() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD);
+    assertErrors(source, CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD);
     verify(source);
   }
 
@@ -294,7 +299,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  int m;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER);
+    assertErrors(source, CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER);
     verify(source);
   }
 
@@ -307,7 +312,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  get m => 0;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER);
+    assertErrors(source, CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER);
     verify(source);
   }
 
@@ -320,7 +325,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const B(): super();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER);
+    assertErrors(source, CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER);
     verify(source);
   }
 
@@ -333,7 +338,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const B();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER);
+    assertErrors(source, CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER);
     verify(source);
   }
 
@@ -346,7 +351,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const B();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
+    assertErrors(source, CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
     verify(source);
   }
 
@@ -360,6 +365,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER);
     verify(source);
@@ -372,7 +378,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
+    assertErrors(source, CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
     verify(source);
   }
 
@@ -383,7 +389,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "const a = new A();"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+    assertErrors(source, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
     verify(source);
   }
 
@@ -396,7 +402,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "final a = const A();",
         "const C = a.m;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+    assertErrors(source, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
     verify(source);
   }
 
@@ -413,7 +419,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_constEvalThrowsException_divisionByZero() throws Exception {
     Source source = addSource("const C = 1 ~/ 0;");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
+    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
     verify(source);
   }
 
@@ -421,6 +427,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource("const C = ~null;");
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
         StaticTypeWarningCode.UNDEFINED_OPERATOR);
     // no verify(), '~null' is not resolved
@@ -430,6 +437,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource("const C = -null;");
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
         StaticTypeWarningCode.UNDEFINED_OPERATOR);
     // no verify(), '-null' is not resolved
@@ -438,7 +446,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_constEvalThrowsException_unaryNot_null() throws Exception {
     Source source = addSource("const C = !null;");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     verify(source);
   }
 
@@ -450,7 +458,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_constEvalTypeBool_binary_leftTrue() throws Exception {
     Source source = addSource("const C = (true || 0);");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, HintCode.DEAD_CODE);
+    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, HintCode.DEAD_CODE);
     verify(source);
   }
 
@@ -464,7 +472,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const B(num p) : a = p == const A();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
     verify(source);
   }
 
@@ -478,7 +486,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const B(String p) : a = p != const A();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
     verify(source);
   }
 
@@ -506,7 +514,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_constEvalTypeNum_plus_String() throws Exception {
     Source source = addSource("const C = 'a' + 'b';");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     verify(source);
   }
 
@@ -517,7 +525,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A(const this.x) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_FORMAL_PARAMETER);
+    assertErrors(source, CompileTimeErrorCode.CONST_FORMAL_PARAMETER);
     verify(source);
   }
 
@@ -525,7 +533,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "f(const x) {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_FORMAL_PARAMETER);
+    assertErrors(source, CompileTimeErrorCode.CONST_FORMAL_PARAMETER);
     verify(source);
   }
 
@@ -535,21 +543,21 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const C = p;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+    assertErrors(source, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
     verify(source);
   }
 
   public void test_constInitializedWithNonConstValue_missingConstInListLiteral() throws Exception {
     Source source = addSource("const List L = [0];");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+    assertErrors(source, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
     verify(source);
   }
 
   public void test_constInitializedWithNonConstValue_missingConstInMapLiteral() throws Exception {
     Source source = addSource("const Map M = {'a' : 0};");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+    assertErrors(source, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
     verify(source);
   }
 
@@ -559,7 +567,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const int f = 0;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_INSTANCE_FIELD);
+    assertErrors(source, CompileTimeErrorCode.CONST_INSTANCE_FIELD);
     verify(source);
   }
 
@@ -570,7 +578,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "f() { return const A<A>(); }"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS);
+    assertErrors(source, CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS);
     verify(source);
   }
 
@@ -584,7 +592,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  return const C<A>();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS);
+    assertErrors(source, CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS);
     verify(source);
   }
 
@@ -598,7 +606,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  return const C<A, A>();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS);
+    assertErrors(source, CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS);
     verify(source);
   }
 
@@ -609,7 +617,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "f() { return const T(0, 1, c: 2, d: 3); }"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_CONST);
+    assertErrors(source, CompileTimeErrorCode.CONST_WITH_NON_CONST);
     verify(source);
   }
 
@@ -623,7 +631,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
+    assertErrors(source, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
     verify(source);
   }
 
@@ -634,7 +642,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "f(p) { return const A(p); }"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
+    assertErrors(source, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
     verify(source);
   }
 
@@ -645,7 +653,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  return const A();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_TYPE);
+    assertErrors(source, CompileTimeErrorCode.CONST_WITH_NON_TYPE);
     verify(source);
   }
 
@@ -658,7 +666,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source1);
     resolve(source2);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_TYPE);
+    assertErrors(source2, CompileTimeErrorCode.CONST_WITH_NON_TYPE);
     verify(source1);
   }
 
@@ -670,6 +678,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
         StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC);
     verify(source);
@@ -683,6 +692,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
         StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC);
     verify(source);
@@ -697,7 +707,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  return const A.noSuchConstructor();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR);
     // no verify(), 'noSuchConstructor' is not resolved
   }
 
@@ -710,7 +720,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  return const A();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT);
+    assertErrors(source, CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT);
     verify(source);
   }
 
@@ -718,7 +728,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "typedef F([x = 0]);"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS);
+    assertErrors(source, CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS);
     verify(source);
   }
 
@@ -726,7 +736,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "f(g({p: null})) {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER);
+    assertErrors(source, CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER);
     verify(source);
   }
 
@@ -734,7 +744,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "f(g([p = null])) {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER);
+    assertErrors(source, CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER);
     verify(source);
   }
 
@@ -746,6 +756,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
         CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME);
     verify(source);
@@ -759,6 +770,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
         CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT);
     verify(source);
@@ -772,6 +784,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
         CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(source);
@@ -792,23 +805,24 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "",
         "class A {}"));
     resolve(librarySource);
-    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    assertErrors(sourceB, CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(librarySource, sourceA, sourceB);
   }
 
   public void test_duplicateDefinition_classMembers_fields() throws Exception {
-    Source librarySource = addSource(createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  int a;",
         "  int a;",
         "}"));
-    resolve(librarySource);
+    resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
         CompileTimeErrorCode.DUPLICATE_DEFINITION);
-    verify(librarySource);
+    verify(source);
   }
 
   public void test_duplicateDefinition_classMembers_fields_oneStatic() throws Exception {
@@ -819,6 +833,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
@@ -827,31 +842,33 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void test_duplicateDefinition_classMembers_methods() throws Exception {
-    Source librarySource = addSource(createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  m() {}",
         "  m() {}",
         "}"));
-    resolve(librarySource);
+    resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
         CompileTimeErrorCode.DUPLICATE_DEFINITION);
-    verify(librarySource);
+    verify(source);
   }
 
   public void test_duplicateDefinition_localFields() throws Exception {
-    Source librarySource = addSource(createSource(//
+    Source source = addSource(createSource(//
         "class A {",
         "  m() {",
         "    int a;",
         "    int a;",
         "  }",
         "}"));
-    resolve(librarySource);
+    resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
         CompileTimeErrorCode.DUPLICATE_DEFINITION);
-    verify(librarySource);
+    verify(source);
   }
 
   public void test_duplicateDefinition_parameterWithFunctionName_local() throws Exception {
@@ -861,6 +878,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
         CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(source);
@@ -873,6 +891,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
         CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(source);
@@ -887,7 +906,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  static int get x => 0;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
     verify(source);
   }
 
@@ -901,7 +920,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  static int get x => 0;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
     verify(source);
   }
 
@@ -914,7 +933,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  static x() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
     verify(source);
   }
 
@@ -928,7 +947,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  static x() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
     verify(source);
   }
 
@@ -941,7 +960,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  static set x(value) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
     verify(source);
   }
 
@@ -955,7 +974,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  static set x(value) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE);
     verify(source);
   }
 
@@ -966,7 +985,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  f(a: 1, a: 2);",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT);
+    assertErrors(source, CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT);
     verify(source);
   }
 
@@ -974,7 +993,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "export 'dart:_interceptors';"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY);
+    assertErrors(source, CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY);
     verify(source);
   }
 
@@ -985,7 +1004,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     addSource("/lib1.dart", createSource(//
         "part of lib;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY);
+    assertErrors(source, CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY);
     verify(source);
   }
 
@@ -994,6 +1013,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     "class A extends bool {}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
@@ -1004,6 +1024,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     "class A extends double {}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
@@ -1014,6 +1035,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     "class A extends int {}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
@@ -1024,6 +1046,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     "class A extends Null {}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
@@ -1034,6 +1057,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     "class A extends num {}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
@@ -1044,6 +1068,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     "class A extends String {}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
@@ -1054,7 +1079,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "int A;",
         "class B extends A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_NON_CLASS);
+    assertErrors(source, CompileTimeErrorCode.EXTENDS_NON_CLASS);
     verify(source);
   }
 
@@ -1062,7 +1087,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class B extends dynamic {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_NON_CLASS);
+    assertErrors(source, CompileTimeErrorCode.EXTENDS_NON_CLASS);
     verify(source);
   }
 
@@ -1075,7 +1100,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(0);",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS);
+    assertErrors(source, CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS);
     verify(source);
   }
 
@@ -1088,7 +1113,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const B() : super(0);",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS);
+    assertErrors(source, CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS);
     verify(source);
   }
 
@@ -1099,7 +1124,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A() : x = 0, x = 1 {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS);
+    assertErrors(source, CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS);
     verify(source);
   }
 
@@ -1111,6 +1136,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
         CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS);
     verify(source);
@@ -1125,6 +1151,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
         CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS);
     verify(source);
@@ -1137,7 +1164,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A(this.x) : x = 1 {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER);
     verify(source);
   }
 
@@ -1148,7 +1175,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  factory A(this.x) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR);
     verify(source);
   }
 
@@ -1159,7 +1186,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A() : x = '';",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE);
+    assertErrors(source, CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE);
     verify(source);
   }
 
@@ -1172,6 +1199,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
         CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR);
     verify(source);
@@ -1184,7 +1212,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  m([this.x]) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR);
     verify(source);
   }
 
@@ -1196,7 +1224,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A() : this.named(), x = 42;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR);
     verify(source);
   }
 
@@ -1208,7 +1236,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A() : x = 42, this.named();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR);
     verify(source);
   }
 
@@ -1220,7 +1248,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A(this.x) : this.named();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR);
     verify(source);
   }
 
@@ -1231,7 +1259,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A() : x = 0, x = 0 {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS);
+    assertErrors(source, CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS);
     verify(source);
   }
 
@@ -1250,7 +1278,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A(this.x) : x = 0 {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER);
     verify(source);
   }
 
@@ -1261,7 +1289,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A(this.x, this.x) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES);
+    assertErrors(source, CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES);
     verify(source);
   }
 
@@ -1273,6 +1301,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
         CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME);
     verify(source);
@@ -1282,7 +1311,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A implements bool {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -1290,7 +1319,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A implements double {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -1298,7 +1327,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A implements int {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -1306,7 +1335,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A implements Null {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -1314,7 +1343,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A implements num {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -1322,7 +1351,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A implements String {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -1330,7 +1359,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A implements dynamic {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DYNAMIC);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_DYNAMIC);
     verify(source);
   }
 
@@ -1339,7 +1368,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "int A;",
         "class B implements A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
     verify(source);
   }
 
@@ -1349,7 +1378,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "int B;",
         "typedef C = A implements B;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
     verify(source);
   }
 
@@ -1358,7 +1387,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class A {}",
         "class B implements A, A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_REPEATED);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_REPEATED);
     verify(source);
   }
 
@@ -1368,6 +1397,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B implements A, A, A, A {}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
         CompileTimeErrorCode.IMPLEMENTS_REPEATED);
@@ -1379,7 +1409,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class A {}",
         "class B extends A implements A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS);
     verify(source);
   }
 
@@ -1387,7 +1417,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A implements Object {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS);
+    assertErrors(source, CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS);
     verify(source);
   }
 
@@ -1399,7 +1429,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  var f;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -1410,7 +1440,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  final y = x;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -1422,7 +1452,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  f() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -1433,7 +1463,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  m() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -1446,7 +1476,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  var f;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -1460,7 +1490,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  var f;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -1472,7 +1502,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     // the hint from being generated by testing the import directive for the error, this is such a
     // minor corner case that we don't think we should add the additional computation time to figure
     // out such cases.
-    assertErrors(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, HintCode.UNUSED_IMPORT);
+    assertErrors(source, CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, HintCode.UNUSED_IMPORT);
     verify(source);
   }
 
@@ -1484,7 +1514,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     // the hint from being generated by testing the import directive for the error, this is such a
     // minor corner case that we don't think we should add the additional computation time to figure
     // out such cases.
-    assertErrors(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, HintCode.UNUSED_IMPORT);
+    assertErrors(source, CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, HintCode.UNUSED_IMPORT);
     verify(source);
   }
 
@@ -1497,7 +1527,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "part of lib;",
         "class A{}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
+    assertErrors(source, CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
     verify(source);
   }
 
@@ -1512,7 +1542,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES);
+    assertErrors(source, CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES);
     verify(source);
   }
 
@@ -1530,6 +1560,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
         CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES);
     verify(source);
@@ -1541,7 +1572,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A() : x = 0 {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD);
+    assertErrors(source, CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD);
   }
 
   public void test_initializerForStaticField() throws Exception {
@@ -1551,7 +1582,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A() : x = 0 {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD);
+    assertErrors(source, CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD);
     verify(source);
   }
 
@@ -1561,7 +1592,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A(this.x) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD);
+    assertErrors(source, CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD);
     verify(source);
   }
 
@@ -1574,7 +1605,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B(this.x) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD);
+    assertErrors(source, CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD);
     verify(source);
   }
 
@@ -1584,7 +1615,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A([this.x]) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD);
+    assertErrors(source, CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD);
     verify(source);
   }
 
@@ -1595,7 +1626,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A(this.x) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD);
+    assertErrors(source, CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD);
     verify(source);
   }
 
@@ -1606,7 +1637,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A([this.x]) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD);
+    assertErrors(source, CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD);
     verify(source);
   }
 
@@ -1619,7 +1650,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC);
+    assertErrors(source, CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC);
     verify(source);
   }
 
@@ -1632,7 +1663,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC);
+    assertErrors(source, CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC);
     verify(source);
   }
 
@@ -1645,7 +1676,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC);
+    assertErrors(source, CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC);
     verify(source);
   }
 
@@ -1656,7 +1687,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
     verify(source);
   }
 
@@ -1670,7 +1701,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
     verify(source);
   }
 
@@ -1684,7 +1715,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
     verify(source);
   }
 
@@ -1699,7 +1730,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
     verify(source);
   }
 
@@ -1710,7 +1741,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
     verify(source);
   }
 
@@ -1721,7 +1752,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
     verify(source);
   }
 
@@ -1734,7 +1765,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_ANNOTATION);
+    assertErrors(source, CompileTimeErrorCode.INVALID_ANNOTATION);
     verify(source);
   }
 
@@ -1745,7 +1776,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "class B {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME);
+    assertErrors(source, CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME);
     // no verify() call, "B" is not resolved
   }
 
@@ -1755,7 +1786,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B() : super();", // add ": super()" to force parsing as constructor
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME);
+    assertErrors(source, CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME);
     // no verify() call, "B" is not resolved
   }
 
@@ -1766,7 +1797,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  factory B() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS);
+    assertErrors(source, CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS);
     verify(source);
   }
 
@@ -1776,7 +1807,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  factory B() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS);
+    assertErrors(source, CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS);
     // no verify() call, "B" is not resolved
   }
 
@@ -1786,7 +1817,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  factory A() { return this; }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    assertErrors(source, CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
     verify(source);
   }
 
@@ -1798,7 +1829,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A() : f = this;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    assertErrors(source, CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
     verify(source);
   }
 
@@ -1809,7 +1840,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  var f = this;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    assertErrors(source, CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
     verify(source);
   }
 
@@ -1819,7 +1850,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  static m() { return this; }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    assertErrors(source, CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
     verify(source);
   }
 
@@ -1829,7 +1860,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  static A f = this;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    assertErrors(source, CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
     verify(source);
   }
 
@@ -1842,21 +1873,21 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B() : super(this);",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    assertErrors(source, CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
     verify(source);
   }
 
   public void test_invalidReferenceToThis_topLevelFunction() throws Exception {
     Source source = addSource("f() { return this; }");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    assertErrors(source, CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
     verify(source);
   }
 
   public void test_invalidReferenceToThis_variableInitializer() throws Exception {
     Source source = addSource("int x = this;");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
+    assertErrors(source, CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS);
     verify(source);
   }
 
@@ -1868,7 +1899,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST);
+    assertErrors(source, CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST);
     verify(source);
   }
 
@@ -1880,7 +1911,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
+    assertErrors(source, CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
     verify(source);
   }
 
@@ -1888,21 +1919,21 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "export 'ht:';"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_URI);
+    assertErrors(source, CompileTimeErrorCode.INVALID_URI);
   }
 
   public void test_invalidUri_import() throws Exception {
     Source source = addSource(createSource(//
     "import 'ht:';"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_URI);
+    assertErrors(source, CompileTimeErrorCode.INVALID_URI);
   }
 
   public void test_invalidUri_part() throws Exception {
     Source source = addSource(createSource(//
     "part 'ht:';"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_URI);
+    assertErrors(source, CompileTimeErrorCode.INVALID_URI);
   }
 
   public void test_labelInOuterScope() throws Exception {
@@ -1917,7 +1948,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE);
+    assertErrors(source, CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE);
     // We cannot verify resolution with unresolvable labels
   }
 
@@ -1929,7 +1960,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.LABEL_UNDEFINED);
+    assertErrors(source, CompileTimeErrorCode.LABEL_UNDEFINED);
     // We cannot verify resolution with undefined labels
   }
 
@@ -1941,7 +1972,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.LABEL_UNDEFINED);
+    assertErrors(source, CompileTimeErrorCode.LABEL_UNDEFINED);
     // We cannot verify resolution with undefined labels
   }
 
@@ -1949,7 +1980,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "var v = const <String> [42];"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
+    assertErrors(source, CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
   }
 
@@ -1957,7 +1988,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "var v = const <String, int > {1 : 2};"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE);
+    assertErrors(source, CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE);
     verify(source);
   }
 
@@ -1965,7 +1996,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "var v = const <String, String> {'a' : 2};"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
+    assertErrors(source, CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
     verify(source);
   }
 
@@ -1975,7 +2006,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  int A = 0;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME);
+    assertErrors(source, CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME);
     verify(source);
   }
 
@@ -1985,7 +2016,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  int z, A, b = 0;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME);
+    assertErrors(source, CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME);
     verify(source);
   }
 
@@ -1995,7 +2026,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  get A => 0;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME);
+    assertErrors(source, CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME);
     verify(source);
   }
 
@@ -2011,6 +2042,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
         CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME);
     verify(source);
@@ -2023,7 +2055,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "class B extends Object with A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
     verify(source);
   }
 
@@ -2034,7 +2066,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "typedef B = Object with A;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR);
     verify(source);
   }
 
@@ -2044,7 +2076,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends A {}",
         "class C extends Object with B {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
     verify(source);
   }
 
@@ -2054,7 +2086,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends Object with A {}",
         "class C extends Object with B {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
     verify(source);
   }
 
@@ -2064,7 +2096,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends A {}",
         "typedef C = Object with B;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
     verify(source);
   }
 
@@ -2074,7 +2106,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends Object with A {}",
         "typedef C = Object with B;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT);
     verify(source);
   }
 
@@ -2082,7 +2114,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A extends Object with bool {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -2090,7 +2122,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A extends Object with double {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -2098,7 +2130,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A extends Object with int {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -2106,7 +2138,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A extends Object with Null {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -2114,7 +2146,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A extends Object with num {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -2122,7 +2154,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A extends Object with String {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -2131,7 +2163,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "int A;",
         "class B extends Object with A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
     verify(source);
   }
 
@@ -2141,7 +2173,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "int B;",
         "typedef C = A with B;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
     verify(source);
   }
 
@@ -2152,7 +2184,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "class B extends Object with A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_REFERENCES_SUPER);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_REFERENCES_SUPER);
     verify(source);
   }
 
@@ -2162,7 +2194,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B {}",
         "class C extends A with B {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
     verify(source);
   }
 
@@ -2172,7 +2204,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B {}",
         "typedef C = A with B;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
+    assertErrors(source, CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
     verify(source);
   }
 
@@ -2184,7 +2216,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A.b() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS);
+    assertErrors(source, CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS);
     verify(source);
   }
 
@@ -2195,7 +2227,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B() : super(), super() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS);
+    assertErrors(source, CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS);
     verify(source);
   }
 
@@ -2205,7 +2237,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A native 'string' {}"));
     resolve(source);
-    assertErrors(ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE);
+    assertErrors(source, ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE);
     verify(source);
   }
 
@@ -2215,7 +2247,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "int m(a) native 'string';"));
     resolve(source);
-    assertErrors(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE);
+    assertErrors(source, ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE);
     verify(source);
   }
 
@@ -2227,7 +2259,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  static int m(a) native 'string';",
         "}"));
     resolve(source);
-    assertErrors(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE);
+    assertErrors(source, ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE);
     verify(source);
   }
 
@@ -2240,7 +2272,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS);
+    assertErrors(source, CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS);
     verify(source);
   }
 
@@ -2253,7 +2285,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT);
+    assertErrors(source, CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT);
     verify(source);
   }
 
@@ -2265,7 +2297,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends A {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
+    assertErrors(source, CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
   }
 
@@ -2274,7 +2306,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class A { A.named() {} }",
         "class B extends A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
+    assertErrors(source, CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT);
     verify(source);
   }
 
@@ -2287,7 +2319,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR);
     verify(source);
   }
 
@@ -2300,7 +2332,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR);
     verify(source);
   }
 
@@ -2309,7 +2341,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "int y;",
         "f({x : y}) {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
     verify(source);
   }
 
@@ -2318,7 +2350,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "int y;",
         "f([x = y]) {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
     verify(source);
   }
 
@@ -2329,7 +2361,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A({x : y}) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
     verify(source);
   }
 
@@ -2340,7 +2372,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A([x = y]) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
     verify(source);
   }
 
@@ -2351,7 +2383,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  m({x : y}) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
     verify(source);
   }
 
@@ -2362,7 +2394,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  m([x = y]) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
     verify(source);
   }
 
@@ -2375,7 +2407,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
     verify(source);
   }
 
@@ -2385,7 +2417,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  return const [a];",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
     verify(source);
   }
 
@@ -2395,7 +2427,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  {'a' : 0, 'b' : 1}.length;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT);
+    assertErrors(source, CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT);
     verify(source);
   }
 
@@ -2405,7 +2437,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  {'a' : 0, 'b' : 1};",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT);
+    assertErrors(source, CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT);
     verify(source);
   }
 
@@ -2415,7 +2447,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  return const {a : 0};",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
     verify(source);
   }
 
@@ -2425,7 +2457,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  return const {'a' : a};",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
     verify(source);
   }
 
@@ -2436,7 +2468,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(String p) : a = p && true;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     verify(source);
   }
 
@@ -2447,7 +2479,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(String p) : a = true && p;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     verify(source);
   }
 
@@ -2459,6 +2491,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
         CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
@@ -2472,6 +2505,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
         CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
@@ -2485,7 +2519,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A() : a = C;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -2497,7 +2531,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A() : this.named(C);",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -2511,7 +2545,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const B() : super(C);",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -2524,7 +2558,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B() : super.named();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR);
     verify(source);
   }
 
@@ -2537,7 +2571,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR);
     verify(source);
   }
 
@@ -2549,7 +2583,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends A {",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR);
     verify(source);
   }
 
@@ -2562,7 +2596,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
+    assertErrors(source, CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
     verify(source);
   }
 
@@ -2575,7 +2609,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const B() : super();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
+    assertErrors(source, CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
     verify(source);
   }
 
@@ -2585,7 +2619,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  operator +({p}) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR);
+    assertErrors(source, CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR);
     verify(source);
   }
 
@@ -2595,7 +2629,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  operator +([p]) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR);
+    assertErrors(source, CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR);
     verify(source);
   }
 
@@ -2606,7 +2640,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     addSource("/l2.dart", createSource(//
         "library l2;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.PART_OF_NON_PART);
+    assertErrors(source, CompileTimeErrorCode.PART_OF_NON_PART);
     verify(source);
   }
 
@@ -2619,7 +2653,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "typedef p();",
         "p.A a;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
+    assertErrors(source, CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
     verify(source);
   }
 
@@ -2632,7 +2666,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "p() {}",
         "p.A a;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
+    assertErrors(source, CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
     verify(source);
   }
 
@@ -2645,7 +2679,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "var p = null;",
         "p.A a;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
+    assertErrors(source, CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
     verify(source);
   }
 
@@ -2658,7 +2692,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class p {}",
         "p.A a;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
+    assertErrors(source, CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER);
     verify(source);
   }
 
@@ -2666,7 +2700,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "f({var _p}) {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
+    assertErrors(source, CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
     verify(source);
   }
 
@@ -2677,7 +2711,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A({this._p: 0});",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
+    assertErrors(source, CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
     verify(source);
   }
 
@@ -2685,7 +2719,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "f({_p : 0}) {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
+    assertErrors(source, CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER);
     verify(source);
   }
 
@@ -2697,6 +2731,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
         CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT);
     verify(source);
@@ -2708,7 +2743,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A() : this();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT);
+    assertErrors(source, CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT);
     verify(source);
   }
 
@@ -2725,6 +2760,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
@@ -2740,7 +2776,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  factory A() = A;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
+    assertErrors(source, CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT);
     verify(source);
   }
 
@@ -2757,6 +2793,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
@@ -2779,6 +2816,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
@@ -2805,6 +2843,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
@@ -2818,6 +2857,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends A {}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
     verify(source);
@@ -2829,6 +2869,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B implements A {}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
     verify(source);
@@ -2840,6 +2881,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B implements A {}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
     verify(source);
@@ -2850,7 +2892,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "abstract class A implements A {}",
         "class B implements A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS);
+    assertErrors(source, CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS);
     verify(source);
   }
 
@@ -2861,6 +2903,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class C implements A {}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
     verify(source);
@@ -2874,6 +2917,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class D implements A {}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
         CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE);
@@ -2884,7 +2928,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A extends A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS);
+    assertErrors(source, CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS);
     verify(source);
   }
 
@@ -2892,7 +2936,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "class A implements A {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS);
+    assertErrors(source, CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS);
     verify(source);
   }
 
@@ -2902,7 +2946,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class M {}",
         "typedef B = A with M implements B;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS);
+    assertErrors(source, CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS);
     verify(source);
   }
 
@@ -2913,7 +2957,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const factory A.b() = A.a;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR);
     verify(source);
   }
 
@@ -2923,7 +2967,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  var x = (x) {};",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -2933,7 +2977,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  int x = x + 1;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -2943,7 +2987,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  int x = x++;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -2954,7 +2998,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  var x = x();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -2964,7 +3008,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  rethrow;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH);
+    assertErrors(source, CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH);
     verify(source);
   }
 
@@ -2974,7 +3018,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A() { return 0; }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR);
     verify(source);
   }
 
@@ -2984,7 +3028,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  A() => null;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR);
     verify(source);
   }
 
@@ -2992,7 +3036,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "var v = super + 0;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    assertErrors(source, CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
     // no verify(), 'super.v' is not resolved
   }
 
@@ -3006,7 +3050,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B() : f = super.m();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    assertErrors(source, CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
     // no verify(), 'super.m' is not resolved
   }
 
@@ -3021,7 +3065,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    assertErrors(source, CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
     // no verify(), 'super.m' is not resolved
   }
 
@@ -3034,7 +3078,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         " var b = super.a;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    assertErrors(source, CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
     // no verify(), 'super.a' is not resolved
   }
 
@@ -3047,7 +3091,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  static n() { return super.m(); }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    assertErrors(source, CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
     // no verify(), 'super.m' is not resolved
   }
 
@@ -3060,7 +3104,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  static int b = super.a;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    assertErrors(source, CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
     // no verify(), 'super.a' is not resolved
   }
 
@@ -3070,7 +3114,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  super.f();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    assertErrors(source, CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
     // no verify(), 'super.f' is not resolved
   }
 
@@ -3078,7 +3122,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "var v = super.y;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
+    assertErrors(source, CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT);
     // no verify(), 'super.y' is not resolved
   }
 
@@ -3090,7 +3134,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B.name() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR);
     verify(source);
   }
 
@@ -3102,7 +3146,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B.name() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR);
+    assertErrors(source, CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR);
     verify(source);
   }
 
@@ -3110,7 +3154,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "typedef A({A a});"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    assertErrors(source, CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
     verify(source);
   }
 
@@ -3118,7 +3162,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "typedef A([A a]);"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    assertErrors(source, CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
     verify(source);
   }
 
@@ -3126,7 +3170,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "typedef A(A a);"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    assertErrors(source, CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
     verify(source);
   }
 
@@ -3134,7 +3178,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "typedef A(List<A> a);"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    assertErrors(source, CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
     verify(source);
   }
 
@@ -3146,7 +3190,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B a;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    assertErrors(source, CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
     verify(source);
   }
 
@@ -3154,7 +3198,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "typedef A A();"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    assertErrors(source, CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
     verify(source);
   }
 
@@ -3164,6 +3208,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "typedef A B();"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
         CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
     verify(source);
@@ -3173,7 +3218,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "typedef M = Object with M;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
+    assertErrors(source, CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
     verify(source);
   }
 
@@ -3183,6 +3228,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "typedef M2 = Object with M1;"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
         CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF);
     verify(source);
@@ -3197,7 +3243,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}",
         "f() { return const G<B>(); }"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    assertErrors(source, CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 
@@ -3207,7 +3253,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  return const A();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.UNDEFINED_CLASS);
+    assertErrors(source, CompileTimeErrorCode.UNDEFINED_CLASS);
     verify(source);
   }
 
@@ -3218,7 +3264,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B() : super.named();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER);
+    assertErrors(source, CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER);
     // no verify(), "super.named()" is not resolved
   }
 
@@ -3231,7 +3277,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B() : super();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT);
+    assertErrors(source, CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT);
     verify(source);
   }
 
@@ -3244,7 +3290,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  B();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT);
+    assertErrors(source, CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT);
     verify(source);
   }
 
@@ -3254,7 +3300,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  g();",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.UNDEFINED_FUNCTION);
+    assertErrors(source, CompileTimeErrorCode.UNDEFINED_FUNCTION);
   }
 
   public void test_undefinedFunction_hasImportPrefix() throws Exception {
@@ -3263,7 +3309,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "main() { return f(); }"));
     addSource("/lib.dart", "library lib;");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.UNDEFINED_FUNCTION);
+    assertErrors(source, CompileTimeErrorCode.UNDEFINED_FUNCTION);
   }
 
   public void test_undefinedFunction_inCatch() throws Exception {
@@ -3275,7 +3321,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.UNDEFINED_FUNCTION);
+    assertErrors(source, CompileTimeErrorCode.UNDEFINED_FUNCTION);
   }
 
   public void test_undefinedNamedParameter() throws Exception {
@@ -3287,7 +3333,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(p: 0);",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER);
+    assertErrors(source, CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER);
     // no verify(), 'p' is not resolved
   }
 
@@ -3295,21 +3341,21 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
     "export 'unknown.dart';"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+    assertErrors(source, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
   }
 
   public void test_uriDoesNotExist_import() throws Exception {
     Source source = addSource(createSource(//
     "import 'unknown.dart';"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+    assertErrors(source, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
   }
 
   public void test_uriDoesNotExist_part() throws Exception {
     Source source = addSource(createSource(//
     "part 'unknown.dart';"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+    assertErrors(source, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
   }
 
   public void test_uriWithInterpolation_constant() throws Exception {
@@ -3317,6 +3363,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     "import 'stuff_$platform.dart';"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
         StaticWarningCode.UNDEFINED_IDENTIFIER);
     // We cannot verify resolution with an unresolvable URI: 'stuff_$platform.dart'
@@ -3327,7 +3374,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library lib;",
         "part '${'a'}.dart';"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.URI_WITH_INTERPOLATION);
+    assertErrors(source, CompileTimeErrorCode.URI_WITH_INTERPOLATION);
     // We cannot verify resolution with an unresolvable URI: '${'a'}.dart'
   }
 
@@ -3337,7 +3384,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  operator -(a, b) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS);
+    assertErrors(source, CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS);
     verify(source);
     reset();
   }
@@ -3368,28 +3415,28 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   public void test_wrongNumberOfParametersForSetter_function_named() throws Exception {
     Source source = addSource("set x({p}) {}");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    assertErrors(source, CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
   }
 
   public void test_wrongNumberOfParametersForSetter_function_optional() throws Exception {
     Source source = addSource("set x([p]) {}");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    assertErrors(source, CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
   }
 
   public void test_wrongNumberOfParametersForSetter_function_tooFew() throws Exception {
     Source source = addSource("set x() {}");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    assertErrors(source, CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
   }
 
   public void test_wrongNumberOfParametersForSetter_function_tooMany() throws Exception {
     Source source = addSource("set x(a, b) {}");
     resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    assertErrors(source, CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
   }
 
@@ -3399,7 +3446,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  set x({p}) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    assertErrors(source, CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
   }
 
@@ -3409,7 +3456,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  set x([p]) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    assertErrors(source, CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
   }
 
@@ -3419,7 +3466,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  set x() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    assertErrors(source, CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
   }
 
@@ -3429,7 +3476,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  set x(a, b) {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
+    assertErrors(source, CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER);
     verify(source);
   }
 
@@ -3438,10 +3485,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource("const C = " + expr + ";");
     resolve(source);
     if (resolved) {
-      assertErrors(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+      assertErrors(source, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
       verify(source);
     } else {
       assertErrors(
+          source,
           CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
           StaticTypeWarningCode.UNDEFINED_OPERATOR);
       // no verify(), 'null x' is not resolved
@@ -3456,7 +3504,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  const A(bool p) : a = " + expr + ";",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    assertErrors(source, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     verify(source);
     reset();
   }
@@ -3469,6 +3517,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
         CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
@@ -3483,6 +3532,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(
+        source,
         CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
         CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
     verify(source);
@@ -3496,7 +3546,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  operator " + name + "(" + parameters + ") {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR);
+    assertErrors(source, CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR);
     verify(source);
     reset();
   }

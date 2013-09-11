@@ -45,7 +45,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -157,7 +157,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  return a(0);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -167,7 +167,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "class B {}",
         "class C {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -181,7 +181,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  m() {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -194,7 +194,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  m(e, f()) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -203,14 +203,14 @@ public class SimpleResolverTest extends ResolverTestCase {
         "/// [A]",
         "class A {}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
   public void test_empty() throws Exception {
     Source source = addSource("");
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -224,7 +224,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  void sort([compare = Comparable.compare]) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -235,7 +235,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  A(this.x) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -247,7 +247,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  for (int x in list) {}",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -260,7 +260,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -274,7 +274,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -288,7 +288,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  a.f = a.f.toString();",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES);
+    assertErrors(source, StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES);
     verify(source);
   }
 
@@ -304,7 +304,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertLength(2, classes);
     assertFalse(classes[0].hasReferenceToSuper());
     assertTrue(classes[1].hasReferenceToSuper());
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -325,7 +325,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "}",
         "A a;"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -342,7 +342,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  _two.f(0);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -357,7 +357,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  foo();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -372,7 +372,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  c[0][0][0];",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -383,7 +383,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  b[0][0] = 'hi';",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    assertErrors(source, StaticTypeWarningCode.INVALID_ASSIGNMENT);
     verify(source);
   }
 
@@ -405,7 +405,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  g(f()[0]);",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -418,7 +418,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -433,7 +433,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     ClassElement[] classes = unit.getTypes();
     assertLength(2, classes);
     assertFalse(classes[0].isValidMixin());
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -449,7 +449,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     ClassElement[] classes = unit.getTypes();
     assertLength(1, classes);
     assertFalse(classes[0].isValidMixin());
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -467,7 +467,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     ClassElement[] classes = unit.getTypes();
     assertLength(1, classes);
     assertFalse(classes[0].isValidMixin());
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -481,7 +481,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     ClassElement[] classes = unit.getTypes();
     assertLength(1, classes);
     assertTrue(classes[0].isValidMixin());
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -499,7 +499,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "}"));
     LibraryElement library = resolve(source);
     assertNotNull(library);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -515,7 +515,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertLength(1, classes);
     ElementAnnotation[] annotations = classes[0].getMetadata();
     assertLength(1, annotations);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -534,7 +534,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     FieldElement field = classes[0].getFields()[0];
     ElementAnnotation[] annotations = field.getMetadata();
     assertLength(1, annotations);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -546,7 +546,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertNotNull(library);
     ElementAnnotation[] annotations = library.getMetadata();
     assertLength(1, annotations);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -565,7 +565,7 @@ public class SimpleResolverTest extends ResolverTestCase {
     MethodElement method = classes[0].getMethods()[0];
     ElementAnnotation[] annotations = method.getMetadata();
     assertLength(1, annotations);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -583,7 +583,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  foo() => super.foo();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -600,7 +600,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  c.m1();",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -616,7 +616,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -635,7 +635,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "}"));
     resolve(source);
     // failing with error code: INVOCATION_OF_NON_FUNCTION
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -645,7 +645,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  return null == p;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -660,7 +660,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  int f() => x = 1;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 
@@ -673,7 +673,7 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  s = 123;",
         "}"));
     resolve(source);
-    assertNoErrors();
+    assertNoErrors(source);
     verify(source);
   }
 

@@ -29,7 +29,7 @@ public class ErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER);
+    assertErrors(source, ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER);
     verify(source);
   }
 
@@ -44,8 +44,7 @@ public class ErrorResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH);
+    assertErrors(source, ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH);
     verify(source);
   }
-
 }
