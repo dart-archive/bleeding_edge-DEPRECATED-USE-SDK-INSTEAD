@@ -94,14 +94,8 @@ public class PasteAction extends SelectionListenerAction {
           CopyProjectOperation operation = new CopyProjectOperation(this.shell);
           operation.copyProject((IProject) resourceData[i]);
         }
-      } else {
-        // enablement should ensure that we always have access to a container
-        IContainer container = getContainer();
-
-        CopyFilesAndFoldersOperation operation = new CopyFilesAndFoldersOperation(this.shell);
-        operation.copyResources(resourceData, container);
+        return;
       }
-      return;
     }
 
     // try a file transfer
