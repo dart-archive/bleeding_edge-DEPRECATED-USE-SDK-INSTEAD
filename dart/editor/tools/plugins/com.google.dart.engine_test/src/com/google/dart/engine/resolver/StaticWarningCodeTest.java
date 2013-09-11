@@ -2124,7 +2124,7 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
+    assertErrors(source, StaticWarningCode.UNDEFINED_IDENTIFIER);
   }
 
   public void test_undefinedIdentifier_function() throws Exception {
