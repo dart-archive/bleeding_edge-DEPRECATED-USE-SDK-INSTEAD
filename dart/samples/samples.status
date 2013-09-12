@@ -28,10 +28,10 @@ promise_based_test: Skip
 third_party/todomvc: Pass, Fail # Flaky? Issue 12865
 
 [ $system == windows && $runtime == ff ]
-third_party/todomvc: pass, Timeout # Issue 13260
+third_party/todomvc: Pass, Fail, Timeout # Issue 13260, 13281
 
 [ $system == windows && $runtime == chrome ]
-third_party/todomvc: pass, Timeout # Issue 13260
+third_party/todomvc: Pass, Fail, Timeout # Issue 13260, 13281
 
 [ $runtime == opera ]
 swarm/test/swarm_ui_lib/touch/touch_test: Fail
