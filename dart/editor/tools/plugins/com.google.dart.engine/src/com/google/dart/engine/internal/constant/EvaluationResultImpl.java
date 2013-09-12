@@ -24,6 +24,14 @@ import com.google.dart.engine.ast.Expression;
 public abstract class EvaluationResultImpl {
   public abstract EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand);
 
+  /**
+   * Return the result of applying boolean conversion to this result.
+   * 
+   * @param node the node against which errors should be reported
+   * @return the result of applying boolean conversion to the given value
+   */
+  public abstract EvaluationResultImpl applyBooleanConversion(ASTNode node);
+
   public abstract EvaluationResultImpl bitAnd(BinaryExpression node,
       EvaluationResultImpl rightOperand);
 

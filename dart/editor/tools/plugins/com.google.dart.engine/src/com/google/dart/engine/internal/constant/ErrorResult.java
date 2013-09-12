@@ -101,6 +101,11 @@ public class ErrorResult extends EvaluationResultImpl {
   }
 
   @Override
+  public EvaluationResultImpl applyBooleanConversion(ASTNode node) {
+    return this;
+  }
+
+  @Override
   public EvaluationResultImpl bitAnd(BinaryExpression node, EvaluationResultImpl rightOperand) {
     return rightOperand.bitAndError(node, this);
   }

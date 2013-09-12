@@ -96,6 +96,17 @@ public class ValidResult extends EvaluationResultImpl {
     return rightOperand.addToValid(node, this);
   }
 
+  /**
+   * Return the result of applying boolean conversion to this result.
+   * 
+   * @param node the node against which errors should be reported
+   * @return the result of applying boolean conversion to the given value
+   */
+  @Override
+  public EvaluationResultImpl applyBooleanConversion(ASTNode node) {
+    return booleanConversion(node, value);
+  }
+
   @Override
   public EvaluationResultImpl bitAnd(BinaryExpression node, EvaluationResultImpl rightOperand) {
     return rightOperand.bitAndValid(node, this);

@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BooleanLiteral;
+import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
@@ -168,6 +169,25 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
   @Override
   public EvaluationResultImpl visitBooleanLiteral(BooleanLiteral node) {
     return node.getValue() ? ValidResult.RESULT_TRUE : ValidResult.RESULT_FALSE;
+  }
+
+  @Override
+  public EvaluationResultImpl visitConditionalExpression(ConditionalExpression node) {
+    Expression condition = node.getCondition();
+    EvaluationResultImpl conditionResult = condition.accept(this);
+    conditionResult = conditionResult.applyBooleanConversion(condition);
+    if (conditionResult instanceof ErrorResult) {
+      return conditionResult;
+    }
+    EvaluationResultImpl thenResult = node.getThenExpression().accept(this);
+    if (thenResult instanceof ErrorResult) {
+      return thenResult;
+    }
+    EvaluationResultImpl elseResult = node.getElseExpression().accept(this);
+    if (elseResult instanceof ErrorResult) {
+      return elseResult;
+    }
+    return (conditionResult == ValidResult.RESULT_TRUE) ? thenResult : elseResult;
   }
 
   @Override

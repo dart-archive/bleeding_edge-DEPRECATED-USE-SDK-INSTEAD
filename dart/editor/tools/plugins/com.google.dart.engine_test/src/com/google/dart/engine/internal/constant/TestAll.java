@@ -23,6 +23,7 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ConstantFinderTest.class);
     suite.addTestSuite(ConstantValueComputerTest.class);
+    suite.addTestSuite(ConstantVisitorTest.class);
     suite.addTestSuite(DirectedGraphTest.class);
     suite.addTestSuite(ReferenceFinderTest.class);
     return suite;
