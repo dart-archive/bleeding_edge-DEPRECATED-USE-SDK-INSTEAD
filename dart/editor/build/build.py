@@ -30,7 +30,6 @@ GSU_API_DOCS_BUCKET = 'gs://dartlang-api-docs'
 
 REVISION = None
 TRUNK_BUILD = None
-MILESTONE_BUILD = None
 PLUGINS_BUILD = None
 
 NO_UPLOAD = None
@@ -187,7 +186,6 @@ def main():
   global GSU_PATH_LATEST
   global REVISION
   global TRUNK_BUILD
-  global MILESTONE_BUILD
   global PLUGINS_BUILD
   global NO_UPLOAD
 
@@ -300,22 +298,18 @@ def main():
       print 'Could not find username'
       return 6
 
-    # dart-editor[-trunk], dart-editor-(win/mac/linux)[-trunk/milestone]
+    # dart-editor[-trunk], dart-editor-(win/mac/linux)[-trunk]
     builder_name = str(options.name)
 
     TRUNK_BUILD = builder_name.endswith("-trunk")
-    MILESTONE_BUILD = builder_name.endswith("-milestone")
     PLUGINS_BUILD = (builder_name == 'dart-editor' or
-                     builder_name == 'dart-editor-trunk' or
-                     builder_name == 'dart-editor-milestone')
+                     builder_name == 'dart-editor-trunk')
 
     build_skip_tests = os.environ.get('DART_SKIP_RUNNING_TESTS')
     sdk_environment = os.environ
     if username.startswith('chrome'):
       if TRUNK_BUILD:
         to_bucket = 'gs://dart-editor-archive-trunk'
-      elif MILESTONE_BUILD:
-        to_bucket = 'gs://dart-editor-archive-milestone'
       else:
         to_bucket = 'gs://dart-editor-archive-continuous'
       running_on_buildbot = True
@@ -585,15 +579,6 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
       + "dartium-lucid32-full-trunk-%s.0.zip" % REVISION)
     dartiumFiles.append("gs://dartium-archive/dartium-lucid64-full-trunk/"
       + "dartium-lucid64-full-trunk-%s.0.zip" % REVISION)
-  elif MILESTONE_BUILD:
-    dartiumFiles.append("gs://dartium-archive/dartium-mac-full-milestone/"
-      + "dartium-mac-full-milestone-%s.0.zip" % REVISION)
-    dartiumFiles.append("gs://dartium-archive/dartium-win-full-milestone/"
-      + "dartium-win-full-milestone-%s.0.zip" % REVISION)
-    dartiumFiles.append("gs://dartium-archive/dartium-lucid32-full-milestone/"
-      + "dartium-lucid32-full-milestone-%s.0.zip" % REVISION)
-    dartiumFiles.append("gs://dartium-archive/dartium-lucid64-full-milestone/"
-      + "dartium-lucid64-full-milestone-%s.0.zip" % REVISION)
   else:
     dartiumFiles.append("gs://dartium-archive/continuous/dartium-mac.zip")
     dartiumFiles.append("gs://dartium-archive/continuous/dartium-win.zip")
