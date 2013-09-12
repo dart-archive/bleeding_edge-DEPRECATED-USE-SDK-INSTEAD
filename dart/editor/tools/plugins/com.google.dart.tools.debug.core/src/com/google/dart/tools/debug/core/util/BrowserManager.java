@@ -549,7 +549,7 @@ public class BrowserManager {
       if (expired) {
         msg.append("\nThis build of Dartium has expired.\n\n");
         msg.append("Please download a new Dart Editor or Dartium build from \n");
-        msg.append("http://www.dartlang.org/downloads.html.");
+        msg.append("https://www.dartlang.org/tools/dartium/");
       }
     }
 
