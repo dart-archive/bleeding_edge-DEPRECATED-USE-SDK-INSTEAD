@@ -400,13 +400,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
           return null;
         }
         String propertyName = propertyNameNode.getName();
-        FieldElementImpl field = (FieldElementImpl) currentHolder.getField(propertyName);
-        if (field == null) {
-          field = new FieldElementImpl(node.getName().getName());
-          field.setFinal(true);
-          field.setStatic(true);
+        TopLevelVariableElementImpl variable = (TopLevelVariableElementImpl) currentHolder.getTopLevelVariable(propertyName);
+        if (variable == null) {
+          variable = new TopLevelVariableElementImpl(node.getName().getName());
+          variable.setFinal(true);
+          variable.setSynthetic(true);
 
-          currentHolder.addField(field);
+          currentHolder.addTopLevelVariable(variable);
         }
         if (matches(property, Keyword.GET)) {
           PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(propertyNameNode);
@@ -414,12 +414,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
           getter.setLabels(holder.getLabels());
           getter.setLocalVariables(holder.getLocalVariables());
 
-          getter.setVariable(field);
+          getter.setVariable(variable);
           getter.setGetter(true);
           getter.setStatic(true);
-          field.setGetter(getter);
+          variable.setGetter(getter);
 
           currentHolder.addAccessor(getter);
+          expression.setElement(getter);
           propertyNameNode.setStaticElement(getter);
         } else {
           PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(propertyNameNode);
@@ -428,13 +429,14 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
           setter.setLocalVariables(holder.getLocalVariables());
           setter.setParameters(holder.getParameters());
 
-          setter.setVariable(field);
+          setter.setVariable(variable);
           setter.setSetter(true);
           setter.setStatic(true);
-          field.setSetter(setter);
-          field.setFinal(false);
+          variable.setSetter(setter);
+          variable.setFinal(false);
 
           currentHolder.addAccessor(setter);
+          expression.setElement(setter);
           propertyNameNode.setStaticElement(setter);
         }
       }
@@ -573,6 +575,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         field = new FieldElementImpl(node.getName().getName());
         field.setFinal(true);
         field.setStatic(isStatic);
+        field.setSynthetic(true);
 
         currentHolder.addField(field);
       }

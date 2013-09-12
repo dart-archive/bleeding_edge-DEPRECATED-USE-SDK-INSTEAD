@@ -43,6 +43,7 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
@@ -428,7 +429,33 @@ public class ElementBuilderTest extends EngineTestCase {
     assertEquals(secondParameterName, parameters[1].getName());
   }
 
-  public void test_visitFunctionDeclaration() {
+  public void test_visitFunctionDeclaration_getter() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String functionName = "f";
+    FunctionDeclaration declaration = functionDeclaration(
+        null,
+        Keyword.GET,
+        functionName,
+        functionExpression(formalParameterList(), blockFunctionBody()));
+    declaration.accept(builder);
+    PropertyAccessorElement[] accessors = holder.getAccessors();
+    assertLength(1, accessors);
+    PropertyAccessorElement accessor = accessors[0];
+
+    assertNotNull(accessor);
+    assertEquals(functionName, accessor.getName());
+    assertSame(accessor, declaration.getElement());
+    assertSame(accessor, declaration.getFunctionExpression().getElement());
+    assertTrue(accessor.isGetter());
+    assertFalse(accessor.isSetter());
+    assertFalse(accessor.isSynthetic());
+    PropertyInducingElement variable = accessor.getVariable();
+    assertInstanceOf(TopLevelVariableElement.class, variable);
+    assertTrue(variable.isSynthetic());
+  }
+
+  public void test_visitFunctionDeclaration_plain() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String functionName = "f";
@@ -447,6 +474,32 @@ public class ElementBuilderTest extends EngineTestCase {
     assertSame(function, declaration.getElement());
     assertSame(function, declaration.getFunctionExpression().getElement());
     assertFalse(function.isSynthetic());
+  }
+
+  public void test_visitFunctionDeclaration_setter() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String functionName = "f";
+    FunctionDeclaration declaration = functionDeclaration(
+        null,
+        Keyword.SET,
+        functionName,
+        functionExpression(formalParameterList(), blockFunctionBody()));
+    declaration.accept(builder);
+    PropertyAccessorElement[] accessors = holder.getAccessors();
+    assertLength(1, accessors);
+    PropertyAccessorElement accessor = accessors[0];
+
+    assertNotNull(accessor);
+    assertEquals(functionName + "=", accessor.getName());
+    assertSame(accessor, declaration.getElement());
+    assertSame(accessor, declaration.getFunctionExpression().getElement());
+    assertFalse(accessor.isGetter());
+    assertTrue(accessor.isSetter());
+    assertFalse(accessor.isSynthetic());
+    PropertyInducingElement variable = accessor.getVariable();
+    assertInstanceOf(TopLevelVariableElement.class, variable);
+    assertTrue(variable.isSynthetic());
   }
 
   public void test_visitFunctionExpression() {

@@ -57,7 +57,7 @@ public class ElementHolder {
   private ArrayList<VariableElement> localVariables;
   private ArrayList<MethodElement> methods;
   private ArrayList<ParameterElement> parameters;
-  private ArrayList<VariableElement> topLevelVariables;
+  private ArrayList<TopLevelVariableElement> topLevelVariables;
   private ArrayList<ClassElement> types;
   private ArrayList<FunctionTypeAliasElement> typeAliases;
   private ArrayList<TypeVariableElement> typeVariables;
@@ -127,7 +127,7 @@ public class ElementHolder {
 
   public void addTopLevelVariable(TopLevelVariableElement element) {
     if (topLevelVariables == null) {
-      topLevelVariables = new ArrayList<VariableElement>();
+      topLevelVariables = new ArrayList<TopLevelVariableElement>();
     }
     topLevelVariables.add(element);
   }
@@ -235,6 +235,18 @@ public class ElementHolder {
     ParameterElement[] result = parameters.toArray(new ParameterElement[parameters.size()]);
     parameters = null;
     return result;
+  }
+
+  public TopLevelVariableElement getTopLevelVariable(String variableName) {
+    if (topLevelVariables == null) {
+      return null;
+    }
+    for (TopLevelVariableElement variable : topLevelVariables) {
+      if (variable.getName().equals(variableName)) {
+        return variable;
+      }
+    }
+    return null;
   }
 
   public TopLevelVariableElement[] getTopLevelVariables() {
