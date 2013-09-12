@@ -480,27 +480,6 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
 //        "}");
   }
 
-  // TODO(scheglov) uncomment after https://code.google.com/p/dart/issues/detail?id=12789
-//  public void test_createChange_PropertyAccessorElement_getter_declaration() throws Exception {
-//    check_createChange_PropertyAccessorElement("test {}");
-//  }
-//
-//  public void test_createChange_PropertyAccessorElement_getter_usage() throws Exception {
-//    check_createChange_PropertyAccessorElement("test)");
-//  }
-//
-//  public void test_createChange_PropertyAccessorElement_mix() throws Exception {
-//    check_createChange_PropertyAccessorElement("test += 2");
-//  }
-//
-//  public void test_createChange_PropertyAccessorElement_setter_declaration() throws Exception {
-//    check_createChange_PropertyAccessorElement("test(x) {}");
-//  }
-//
-//  public void test_createChange_PropertyAccessorElement_setter_usage() throws Exception {
-//    check_createChange_PropertyAccessorElement("test = 1");
-//  }
-
   public void test_createChange_oneLibInTwoContexts() throws Exception {
     String libCode = "test() {}";
     String code = makeSource(
@@ -568,6 +547,26 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "newName() {",
         "  newName();",
         "}");
+  }
+
+  public void test_createChange_PropertyAccessorElement_getter_declaration() throws Exception {
+    check_createChange_PropertyAccessorElement("test {}");
+  }
+
+  public void test_createChange_PropertyAccessorElement_getter_usage() throws Exception {
+    check_createChange_PropertyAccessorElement("test)");
+  }
+
+  public void test_createChange_PropertyAccessorElement_mix() throws Exception {
+    check_createChange_PropertyAccessorElement("test += 2");
+  }
+
+  public void test_createChange_PropertyAccessorElement_setter_declaration() throws Exception {
+    check_createChange_PropertyAccessorElement("test(x) {}");
+  }
+
+  public void test_createChange_PropertyAccessorElement_setter_usage() throws Exception {
+    check_createChange_PropertyAccessorElement("test = 1");
   }
 
   public void test_createChange_TopLevelVariableElement_field() throws Exception {

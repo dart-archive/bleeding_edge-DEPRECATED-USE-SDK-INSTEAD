@@ -14,11 +14,14 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.common.collect.Lists;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -90,19 +93,37 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     pm = checkProgressMonitor(pm);
     try {
       SourceChangeManager changeManager = new SourceChangeManager();
-      // update declaration
-      {
-        Source elementSource = element.getSource();
-        SourceChange elementChange = changeManager.get(elementSource);
-        addDeclarationEdit(elementChange, element);
+      // prepare elements (for synthetic property)
+      List<Element> elements = Lists.newArrayList();
+      if (element instanceof PropertyInducingElement && element.isSynthetic()) {
+        PropertyInducingElement property = (PropertyInducingElement) element;
+        PropertyAccessorElement getter = property.getGetter();
+        PropertyAccessorElement setter = property.getSetter();
+        if (getter != null) {
+          elements.add(getter);
+        }
+        if (setter != null) {
+          elements.add(setter);
+        }
+      } else {
+        elements.add(element);
       }
-      // update references
-      List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
-      references = getUniqueMatches(references);
-      for (SearchMatch reference : references) {
-        Source refSource = reference.getElement().getSource();
-        SourceChange refChange = changeManager.get(refSource);
-        addReferenceEdit(refChange, reference);
+      // update each element
+      for (Element element : elements) {
+        // update declaration
+        {
+          Source elementSource = element.getSource();
+          SourceChange elementChange = changeManager.get(elementSource);
+          addDeclarationEdit(elementChange, element);
+        }
+        // update references
+        List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
+        references = getUniqueMatches(references);
+        for (SearchMatch reference : references) {
+          Source refSource = reference.getElement().getSource();
+          SourceChange refChange = changeManager.get(refSource);
+          addReferenceEdit(refChange, reference);
+        }
       }
       // return CompositeChange
       CompositeChange compositeChange = new CompositeChange(getRefactoringName());
