@@ -26,7 +26,7 @@ import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * Instances of the class {@code MultiplyDefinedElementImpl} represent a collection of elements that
@@ -59,8 +59,21 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    */
   public MultiplyDefinedElementImpl(AnalysisContext context, Element firstElement,
       Element secondElement) {
+    this.context = context;
     name = firstElement.getName();
     conflictingElements = computeConflictingElements(firstElement, secondElement);
+  }
+
+  /**
+   * Initialize a newly created element to represent a list of conflicting elements.
+   * 
+   * @param context the analysis context in which the multiply defined elements are defined
+   * @param conflictingElements the elements that conflict
+   */
+  public MultiplyDefinedElementImpl(AnalysisContext context, Element[] conflictingElements) {
+    this.context = context;
+    name = conflictingElements[0].getName();
+    this.conflictingElements = conflictingElements;
   }
 
   @Override
@@ -180,7 +193,7 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * @param elements the list to which the element(s) are to be added
    * @param element the element(s) to be added
    */
-  private void add(ArrayList<Element> elements, Element element) {
+  private void add(HashSet<Element> elements, Element element) {
     if (element instanceof MultiplyDefinedElementImpl) {
       for (Element conflictingElement : ((MultiplyDefinedElementImpl) element).conflictingElements) {
         elements.add(conflictingElement);
@@ -200,7 +213,7 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    * @return an array containing all of the conflicting elements
    */
   private Element[] computeConflictingElements(Element firstElement, Element secondElement) {
-    ArrayList<Element> elements = new ArrayList<Element>();
+    HashSet<Element> elements = new HashSet<Element>();
     add(elements, firstElement);
     add(elements, secondElement);
     return elements.toArray(new Element[elements.size()]);

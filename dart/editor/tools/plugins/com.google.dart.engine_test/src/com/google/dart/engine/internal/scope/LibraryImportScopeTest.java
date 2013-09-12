@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.scope;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
@@ -74,9 +75,14 @@ public class LibraryImportScopeTest extends ResolverTestCase {
       assertInstanceOf(MultiplyDefinedElement.class, element);
 
       Element[] conflictingElements = ((MultiplyDefinedElement) element).getConflictingElements();
-      assertEquals(typeB1, conflictingElements[0]);
-      assertEquals(typeB2, conflictingElements[1]);
-      assertEquals(2, conflictingElements.length);
+      assertLength(2, conflictingElements);
+      if (conflictingElements[0] == typeB1) {
+        assertSame(typeB2, conflictingElements[1]);
+      } else if (conflictingElements[0] == typeB2) {
+        assertSame(typeB1, conflictingElements[1]);
+      } else {
+        assertSame(typeB1, conflictingElements[0]);
+      }
     }
 
     {
@@ -124,6 +130,54 @@ public class LibraryImportScopeTest extends ResolverTestCase {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     LibraryImportScope scope = new LibraryImportScope(definingLibrary, errorListener);
     assertEquals(errorListener, scope.getErrorListener());
+  }
+
+  public void test_nonConflictingImports_fromSdk() {
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
+    String typeName = "List";
+    ClassElement type = classElement(typeName);
+
+    LibraryElement importedLibrary = createTestLibrary(context, "lib");
+    ((CompilationUnitElementImpl) importedLibrary.getDefiningCompilationUnit()).setTypes(new ClassElement[] {type});
+    ImportElementImpl importCore = importFor(
+        context.getLibraryElement(context.getSourceFactory().forUri("dart:core")),
+        null);
+    ImportElementImpl importLib = importFor(importedLibrary, null);
+
+    LibraryElementImpl importingLibrary = createTestLibrary(context, "importing");
+    importingLibrary.setImports(new ImportElement[] {importCore, importLib});
+
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    Scope scope = new LibraryImportScope(importingLibrary, errorListener);
+
+    assertEquals(type, scope.lookup(identifier(typeName), importingLibrary));
+    errorListener.assertNoErrors();
+  }
+
+  public void test_nonConflictingImports_sameElement() {
+    AnalysisContext context = new AnalysisContextImpl();
+    String typeNameA = "A";
+    String typeNameB = "B";
+    ClassElement typeA = classElement(typeNameA);
+    ClassElement typeB = classElement(typeNameB);
+
+    LibraryElement importedLibrary = createTestLibrary(context, "imported");
+    ((CompilationUnitElementImpl) importedLibrary.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
+        typeA, typeB});
+    ImportElementImpl import1 = importFor(importedLibrary, null);
+    ImportElementImpl import2 = importFor(importedLibrary, null);
+
+    LibraryElementImpl importingLibrary = createTestLibrary(context, "importing");
+    importingLibrary.setImports(new ImportElement[] {import1, import2});
+
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    Scope scope = new LibraryImportScope(importingLibrary, errorListener);
+
+    assertEquals(typeA, scope.lookup(identifier(typeNameA), importingLibrary));
+    errorListener.assertNoErrors();
+
+    assertEquals(typeB, scope.lookup(identifier(typeNameB), importingLibrary));
+    errorListener.assertNoErrors();
   }
 
   public void test_prefixedAndNonPrefixed() {

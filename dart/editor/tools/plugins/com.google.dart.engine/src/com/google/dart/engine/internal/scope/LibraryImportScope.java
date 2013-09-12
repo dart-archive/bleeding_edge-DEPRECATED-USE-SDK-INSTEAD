@@ -88,13 +88,16 @@ public class LibraryImportScope extends Scope {
       if (element != null) {
         if (foundElement == null) {
           foundElement = element;
-        } else {
+        } else if (foundElement != element) {
           foundElement = new MultiplyDefinedElementImpl(
               definingLibrary.getContext(),
               foundElement,
               element);
         }
       }
+    }
+    if (foundElement instanceof MultiplyDefinedElementImpl) {
+      foundElement = removeSdkElements((MultiplyDefinedElementImpl) foundElement);
     }
     if (foundElement instanceof MultiplyDefinedElementImpl) {
       String foundEltName = foundElement.getDisplayName();
@@ -138,5 +141,33 @@ public class LibraryImportScope extends Scope {
     for (ImportElement element : definingLibrary.getImports()) {
       importedNamespaces.add(builder.createImportNamespace(element));
     }
+  }
+
+  /**
+   * Given a collection of elements that a single name could all be mapped to, remove from the list
+   * all of the names defined in the SDK. Return the element(s) that remain.
+   * 
+   * @param foundElement the element encapsulating the collection of elements
+   * @return all of the elements that are not defined in the SDK
+   */
+  private Element removeSdkElements(MultiplyDefinedElementImpl foundElement) {
+    Element[] conflictingMembers = foundElement.getConflictingElements();
+    int length = conflictingMembers.length;
+    int to = 0;
+    for (Element member : conflictingMembers) {
+      if (!member.getLibrary().isInSdk()) {
+        conflictingMembers[to++] = member;
+      }
+    }
+    if (to == length) {
+      // None of the members were removed
+      return foundElement;
+    } else if (to == 1) {
+      // All but one member was removed
+      return conflictingMembers[0];
+    }
+    Element[] remaining = new Element[to];
+    System.arraycopy(conflictingMembers, 0, remaining, 0, to);
+    return new MultiplyDefinedElementImpl(definingLibrary.getContext(), remaining);
   }
 }

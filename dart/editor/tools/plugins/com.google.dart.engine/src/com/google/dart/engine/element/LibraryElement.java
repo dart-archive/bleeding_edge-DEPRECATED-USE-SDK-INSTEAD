@@ -106,6 +106,13 @@ public interface LibraryElement extends Element {
   public boolean isDartCore();
 
   /**
+   * Return {@code true} if this library is the dart:core library.
+   * 
+   * @return {@code true} if this library is the dart:core library
+   */
+  public boolean isInSdk();
+
+  /**
    * Return {@code true} if this library is up to date with respect to the given time stamp. If any
    * transitively referenced Source is newer than the time stamp, this method returns false.
    * 
@@ -113,5 +120,4 @@ public interface LibraryElement extends Element {
    * @return {@code true} if this library is up to date with respect to the given time stamp
    */
   public boolean isUpToDate(long timeStamp);
-
 }

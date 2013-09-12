@@ -99,6 +99,11 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   }
 
   @Override
+  public boolean isInSdk() {
+    return getActualElement().isInSdk();
+  }
+
+  @Override
   public boolean isUpToDate(long timeStamp) {
     return getActualElement().isUpToDate(timeStamp);
   }

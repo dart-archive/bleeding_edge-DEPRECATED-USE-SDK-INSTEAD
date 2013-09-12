@@ -283,6 +283,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
+  public boolean isInSdk() {
+    return getName().startsWith("dart.");
+  }
+
+  @Override
   public boolean isUpToDate(long timeStamp) {
     Set<LibraryElement> visitedLibraries = Sets.newHashSet();
 
