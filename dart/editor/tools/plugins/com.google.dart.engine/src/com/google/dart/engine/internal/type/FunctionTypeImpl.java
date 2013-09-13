@@ -243,6 +243,11 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @Override
   public Type getReturnType() {
     Type baseReturnType = getBaseReturnType();
+    if (baseReturnType == null) {
+      // TODO(brianwilkerson) This is a patch. The return type should never be null and we need to
+      // understand why it is and fix it.
+      return DynamicTypeImpl.getInstance();
+    }
     return baseReturnType.substitute(
         typeArguments,
         TypeVariableTypeImpl.getTypes(getTypeVariables()));
