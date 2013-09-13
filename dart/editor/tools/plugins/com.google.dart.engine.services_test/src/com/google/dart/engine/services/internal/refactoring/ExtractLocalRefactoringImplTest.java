@@ -123,6 +123,40 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
         "Cannot extract the name part of a declaration.");
   }
 
+  public void test_bad_stringSelection_leadingQuote() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var vvv = 'abc';",
+        "}",
+        "");
+    setSelectionString("'a");
+    selectionEnd--;
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Cannot extract only leading or trailing quote of string literal.");
+  }
+
+  public void test_bad_stringSelection_trailingQuote() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var vvv = 'abc';",
+        "}",
+        "");
+    setSelectionString("c'");
+    selectionStart++;
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Cannot extract only leading or trailing quote of string literal.");
+  }
+
   public void test_checkFinalConditions_sameVariable_after() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -778,7 +812,7 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
         "}");
   }
 
-  public void test_stringLiteral() throws Exception {
+  public void test_stringLiteral_part() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -793,6 +827,24 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
         "main() {",
         "  var res = 'cde';",
         "  print('ab${res}fgh');",
+        "}");
+  }
+
+  public void test_stringLiteral_whole() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print('abc');",
+        "}");
+    // create refactoring
+    setSelectionString("'abc'");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var res = 'abc';",
+        "  print(res);",
         "}");
   }
 

@@ -229,6 +229,10 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
     // part of string literal
     if (coveringNode instanceof StringLiteral) {
       stringLiteralPart = utils.getText(selectionRange);
+      if (stringLiteralPart.startsWith("'") || stringLiteralPart.startsWith("\"")
+          || stringLiteralPart.endsWith("'") || stringLiteralPart.endsWith("\"")) {
+        return RefactoringStatus.createFatalErrorStatus("Cannot extract only leading or trailing quote of string literal.");
+      }
       return new RefactoringStatus();
     }
     // single node selected
@@ -376,8 +380,9 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
             SourceRange occuRange = rangeStartLength(occuStart, occuLength);
             occurrences.add(occuRange);
           }
+          return null;
         }
-        return null;
+        return visitExpression(node);
       }
 
       private void addOccurrence(SourceRange range) {
