@@ -752,17 +752,33 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       @Override
       protected IStatus run(IProgressMonitor monitor) {
 
-        //TODO (pquitslund): update to read editor buffer (rather than file contents)
-
         MessageConsole console = DartCore.getConsole();
         console.clear();
         console.println("Formatting " + file.getName() + " ...");
 
+        final IDocument document = getSourceViewer().getDocument();
+
         try {
-          DartFormatter.format(file.getLocation(), monitor, console);
+          final String unformattedSource = document.get();
+          final String formattedSource = DartFormatter.format(unformattedSource, monitor, console);
+          Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+              if (!formattedSource.equals(unformattedSource)) {
+                document.set(formattedSource);
+              }
+              //TODO (pquitslund): (re)set cursor position
+            }
+          });
         } catch (Exception e) {
+          DartToolsPlugin.log(e);
+          console.clear();
+          //TODO (pquitslund): remove console logging
+          console.println("Formatting cancelled");
           return Status.CANCEL_STATUS;
         }
+
+        console.clear();
 
         return Status.OK_STATUS;
       }

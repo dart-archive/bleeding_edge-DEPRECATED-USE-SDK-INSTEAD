@@ -189,6 +189,8 @@ public class ProcessRunner {
     stdoutThread.start();
     stderrThread.start();
 
+    processStarted(process);
+
     try {
       // Run the process; check periodically for user cancellation.
       while (processThread.isAlive()) {
@@ -229,6 +231,16 @@ public class ProcessRunner {
       // This exception is expected.
 
     }
+  }
+
+  /**
+   * To be (optionally) implemented in subclasses. Getting a handle on the started process can be
+   * useful, for example, if you want to pipe it stdin.
+   * 
+   * @param process the process
+   * @throws IOException if an exception is thrown while interacting with the process
+   */
+  protected void processStarted(Process process) throws IOException {
   }
 
 }

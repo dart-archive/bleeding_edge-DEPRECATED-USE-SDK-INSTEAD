@@ -17,14 +17,13 @@ import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
 
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,64 +32,123 @@ import java.util.List;
  */
 public class DartFormatter {
 
+//  /**
+//   * Run the formatter on the given input path.
+//   * 
+//   * @param path the path to pass to the formatter
+//   * @param monitor the monitor for displaying progress
+//   * @param console the console to which output should be directed
+//   * @throws IOException if an exception was thrown during execution
+//   * @throws CoreException if an exception occurs in file refresh
+//   */
+//  public static void format(IPath path, IProgressMonitor monitor, MessageConsole console)
+//      throws IOException, CoreException {
+//
+//    File dartfmt = DartSdkManager.getManager().getSdk().getDartFmtExecutable();
+//    if (!dartfmt.canExecute()) {
+//      return;
+//    }
+//
+//    ProcessBuilder builder = new ProcessBuilder();
+//
+//    List<String> args = new ArrayList<String>();
+//    args.add(dartfmt.getPath());
+//    args.addAll(buildArguments(path));
+//
+//    builder.command(args);
+//    builder.redirectErrorStream(true);
+//
+//    ProcessRunner runner = new ProcessRunner(builder);
+//    runner.runSync(monitor);
+//
+//    if (runner.getExitCode() == 0) {
+//      ResourcesPlugin.getWorkspace().getRoot().getFile(path).refreshLocal(
+//          IResource.DEPTH_INFINITE,
+//          monitor);
+//    }
+//
+//    StringBuilder sb = new StringBuilder();
+//
+//    if (!runner.getStdOut().isEmpty()) {
+//      sb.append(runner.getStdOut() + "\n");
+//    }
+//
+//    //TODO (pquitslund): better error handling
+//    if (!runner.getStdErr().isEmpty()) {
+//      sb.append(runner.getStdErr() + "\n");
+//    }
+//
+//    console.print(sb.toString());
+//
+//  }
+
   /**
-   * Run the formatter on the given input path.
+   * Run the formatter on the given input source.
    * 
-   * @param path the path to pass to the formatter
+   * @param source the source to pass to the formatter
    * @param monitor the monitor for displaying progress
    * @param console the console to which output should be directed
    * @throws IOException if an exception was thrown during execution
    * @throws CoreException if an exception occurs in file refresh
+   * @return the formatted source string (or null in case formatting could not be executed)
    */
-  public static void format(IPath path, IProgressMonitor monitor, MessageConsole console)
+  public static String format(final String source, IProgressMonitor monitor, MessageConsole console)
       throws IOException, CoreException {
 
     File dartfmt = DartSdkManager.getManager().getSdk().getDartFmtExecutable();
     if (!dartfmt.canExecute()) {
-      return;
+      return null;
     }
 
     ProcessBuilder builder = new ProcessBuilder();
 
     List<String> args = new ArrayList<String>();
     args.add(dartfmt.getPath());
-    args.addAll(buildArguments(path));
 
     builder.command(args);
     builder.redirectErrorStream(true);
 
-    ProcessRunner runner = new ProcessRunner(builder);
-    runner.runSync(monitor);
+    ProcessRunner runner = new ProcessRunner(builder) {
+      @Override
+      protected void processStarted(Process process) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+            process.getOutputStream(),
+            "UTF-8"), source.length());
+        writer.append(source);
+        writer.close();
+      }
+    };
 
-    if (runner.getExitCode() == 0) {
-      ResourcesPlugin.getWorkspace().getRoot().getFile(path).refreshLocal(
-          IResource.DEPTH_INFINITE,
-          monitor);
-    }
+    runner.runSync(monitor);
 
     StringBuilder sb = new StringBuilder();
 
     if (!runner.getStdOut().isEmpty()) {
-      sb.append(runner.getStdOut() + "\n");
+      sb.append(runner.getStdOut());
     }
 
-    if (!runner.getStdErr().isEmpty()) {
-      sb.append(runner.getStdErr() + "\n");
+    //TODO (pquitslund): better error handling
+    if (runner.getExitCode() != 0) {
+      throw new IOException(runner.getStdErr());
     }
 
-    console.print(sb.toString());
-
+    //TODO (pquitslund): figure out why we need to remove an extra trailing NEWLINE
+    String formattedSource = sb.toString();
+    if (formattedSource.endsWith("\n\n")) {
+      return formattedSource.substring(0, formattedSource.length() - 1);
+    }
+    return formattedSource;
   }
 
   public static boolean isAvailable() {
     return DartSdkManager.getManager().getSdk().getDartFmtExecutable().canExecute();
   }
 
-  private static List<String> buildArguments(IPath path) {
-    ArrayList<String> args = new ArrayList<String>();
-    args.add("-w");
-    args.add(path.toOSString());
-    return args;
-  }
+//  private static List<String> buildArguments(IPath path) {
+//    ArrayList<String> args = new ArrayList<String>();
+//    args.add("-w");
+//    args.add(path.toOSString());
+//    return args;
+//  }
 
 }
