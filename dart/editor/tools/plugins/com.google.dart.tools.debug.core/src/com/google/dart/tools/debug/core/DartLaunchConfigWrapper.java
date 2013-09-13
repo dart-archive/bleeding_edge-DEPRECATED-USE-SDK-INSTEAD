@@ -36,6 +36,7 @@ public class DartLaunchConfigWrapper {
   private static final String APPLICATION_NAME = "applicationName";
   private static final String SOURCE_DIRECTORY = "sourceDirectory";
   private static final String URL_QUERY_PARAMS = "urlQueryParams";
+  private static final String DART2JS_FLAGS = "dart2jsFlags";
 
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
   private static final String SHOW_LAUNCH_OUTPUT = "showLaunchOutput";
@@ -45,8 +46,6 @@ public class DartLaunchConfigWrapper {
 
   private static final String IS_FILE = "launchHtmlFile";
   private static final String URL = "url";
-  private static final String USE_DEFAULT_BROWSER = "systemDefaultBrowser";
-  private static final String BROWSER_NAME = "browserName";
 
   private static final String CONNECTION_HOST = "connectionHost";
   private static final String CONNECTION_PORT = "connectionPort";
@@ -129,19 +128,6 @@ public class DartLaunchConfigWrapper {
     return StringUtilities.parseArgumentString(command);
   }
 
-  /**
-   * @return the name of browser to use for the launch configuration
-   */
-  public String getBrowserName() {
-    try {
-      return launchConfig.getAttribute(BROWSER_NAME, "");
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return "";
-    }
-  }
-
   public boolean getCheckedMode() {
     try {
       return launchConfig.getAttribute(VM_CHECKED_MODE, true);
@@ -157,6 +143,32 @@ public class DartLaunchConfigWrapper {
    */
   public ILaunchConfiguration getConfig() {
     return launchConfig;
+  }
+
+  /**
+   * @return the string for additional flags to Dart2js
+   */
+  public String getDart2jsFlags() {
+    try {
+      return launchConfig.getAttribute(DART2JS_FLAGS, "");
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return "";
+    }
+  }
+
+  /**
+   * @return the string for additional flags to Dart2js
+   */
+  public String[] getDart2jsFlagsAsArray() {
+    String command = getDart2jsFlags();
+
+    if (command == null || command.length() == 0) {
+      return new String[0];
+    }
+
+    return StringUtilities.parseArgumentString(command);
   }
 
   /**
@@ -281,16 +293,6 @@ public class DartLaunchConfigWrapper {
     }
   }
 
-  public boolean getUseDefaultBrowser() {
-    try {
-      return launchConfig.getAttribute(USE_DEFAULT_BROWSER, true);
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return true;
-    }
-  }
-
   public boolean getUseWebComponents() {
     try {
       return launchConfig.getAttribute(DARTIUM_USE_WEB_COMPONENTS, true);
@@ -360,13 +362,6 @@ public class DartLaunchConfigWrapper {
     getWorkingCopy().setAttribute(APPLICATION_ARGUMENTS, value);
   }
 
-  /**
-   * @see #getBrowserName()
-   */
-  public void setBrowserName(String value) {
-    getWorkingCopy().setAttribute(BROWSER_NAME, value);
-  }
-
   public void setCheckedMode(boolean value) {
     getWorkingCopy().setAttribute(VM_CHECKED_MODE, value);
   }
@@ -383,6 +378,13 @@ public class DartLaunchConfigWrapper {
    */
   public void setConnectionPort(int value) {
     getWorkingCopy().setAttribute(CONNECTION_PORT, value);
+  }
+
+  /**
+   * @see #getDart2jsFlags()
+   */
+  public void setDart2jsFlags(String value) {
+    getWorkingCopy().setAttribute(DART2JS_FLAGS, value);
   }
 
   /**
@@ -423,10 +425,6 @@ public class DartLaunchConfigWrapper {
    */
   public void setUrlQueryParams(String value) {
     getWorkingCopy().setAttribute(URL_QUERY_PARAMS, value);
-  }
-
-  public void setUseDefaultBrowser(boolean value) {
-    getWorkingCopy().setAttribute(USE_DEFAULT_BROWSER, value);
   }
 
   public void setUseWebComponents(boolean value) {

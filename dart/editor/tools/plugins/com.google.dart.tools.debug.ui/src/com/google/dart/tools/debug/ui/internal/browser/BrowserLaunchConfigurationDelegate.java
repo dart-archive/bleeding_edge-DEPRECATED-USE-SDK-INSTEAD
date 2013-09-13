@@ -116,15 +116,7 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
             Messages.BrowserLaunchConfigurationDelegate_HtmlFileNotFound));
       }
 
-//      try {
-//        // Our embedded web server will automatically recompile the dart.js file if any of its
-//        // dependencies have changed. There's no need to compile it here (esp. on every launch).
-//        compileJavascript(resource, monitor);
-//      } catch (OperationCanceledException ex) {
-//        // The user cancelled the launch.
-//
-//        return;
-//      }
+      //   compileJavascript(resource, monitor);
 
       try {
         // This returns just a plain file: url.
@@ -157,19 +149,26 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
       }
     }
 
-    if (launchConfig.getUseDefaultBrowser()) {
+    if (DartDebugCorePlugin.getPlugin().getIsDefaultBrowser()) {
       openBrowser(url);
     } else {
-      launchInExternalBrowser(launchConfig, url);
+      launchInExternalBrowser(url);
     }
 
     DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
 
   }
 
-  private void launchInExternalBrowser(DartLaunchConfigWrapper launchConfig, final String url)
-      throws CoreException {
-    String browserName = launchConfig.getBrowserName();
+  private void launchInExternalBrowser(final String url) throws CoreException {
+
+    String browserName = DartDebugCorePlugin.getPlugin().getBrowserName();
+    if (browserName.length() == 0) {
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugUIPlugin.PLUGIN_ID,
+          "Specify browser to launch in Preferences > Run and Debug"));
+    }
+
     List<String> cmd = new ArrayList<String>();
 
     if (DartCore.isMac()) {
@@ -180,12 +179,12 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
     cmd.add(browserName);
     cmd.add(url);
 
-    if (launchConfig.getArguments().length() != 0) {
+    if (DartDebugCorePlugin.getPlugin().getBrowserArgs().length() != 0) {
       if (DartCore.isMac()) {
         cmd.add("--args");
-        cmd.add(launchConfig.getArguments());
+        cmd.add(DartDebugCorePlugin.getPlugin().getBrowserArgs());
       } else {
-        cmd.addAll(Arrays.asList(launchConfig.getArgumentsAsArray()));
+        cmd.addAll(Arrays.asList(DartDebugCorePlugin.getPlugin().getBrowserArgsAsArray()));
       }
     }
 

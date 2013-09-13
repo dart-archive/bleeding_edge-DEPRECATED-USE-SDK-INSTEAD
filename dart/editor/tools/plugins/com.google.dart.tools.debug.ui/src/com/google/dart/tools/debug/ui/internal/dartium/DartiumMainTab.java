@@ -242,7 +242,9 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       useWebComponentsButton.setSelection(dartLauncher.getUseWebComponents());
     }
 
-    argumentText.setText(dartLauncher.getArguments());
+    if (argumentText != null) {
+      argumentText.setText(dartLauncher.getArguments());
+    }
   }
 
   @Override
@@ -281,8 +283,9 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     if (useWebComponentsButton != null) {
       dartLauncher.setUseWebComponents(useWebComponentsButton.getSelection());
     }
-
-    dartLauncher.setArguments(argumentText.getText().trim());
+    if (argumentText != null) {
+      dartLauncher.setArguments(argumentText.getText().trim());
+    }
   }
 
   @Override

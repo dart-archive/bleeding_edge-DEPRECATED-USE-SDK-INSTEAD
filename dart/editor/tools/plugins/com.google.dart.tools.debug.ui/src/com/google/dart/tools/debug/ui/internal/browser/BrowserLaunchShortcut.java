@@ -101,7 +101,6 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
 
     launchWrapper.setProjectName(resource.getProject().getName());
     launchWrapper.setApplicationName(resource.getFullPath().toPortableString());
-    launchWrapper.setUseDefaultBrowser(true);
 
     launchConfig.setMappedResources(new IResource[] {resource});
 

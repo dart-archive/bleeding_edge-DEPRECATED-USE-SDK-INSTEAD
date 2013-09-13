@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.core;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.utilities.general.StringUtilities;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 import com.google.dart.tools.debug.core.util.ResourceChangeManager;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
@@ -98,6 +99,8 @@ public class DartDebugCorePlugin extends Plugin {
   public static final String PREFS_USE_SOURCE_MAPS = "useSourceMaps";
 
   public static final String PREFS_DEFAULT_BROWSER = "defaultBrowser";
+
+  public static final String PREFS_BROWSER_ARGS = "browserArgs";
 
   public static final String PREFS_BREAK_ON_EXCEPTIONS = "breakOnExceptions";
 
@@ -281,13 +284,15 @@ public class DartDebugCorePlugin extends Plugin {
     }
   }
 
-  /**
-   * Returns the path to the Browser executable, if it has been set. Otherwise, this method returns
-   * the empty string.
-   * 
-   * @return the path to the Browser executable
-   */
-  public String getBrowserExecutablePath() {
+  public String getBrowserArgs() {
+    return getPrefs().get(PREFS_BROWSER_ARGS, "");
+  }
+
+  public String[] getBrowserArgsAsArray() {
+    return StringUtilities.parseArgumentString(getBrowserArgs());
+  }
+
+  public String getBrowserName() {
     return getPrefs().get(PREFS_BROWSER_NAME, "");
   }
 
@@ -338,13 +343,13 @@ public class DartDebugCorePlugin extends Plugin {
     }
   }
 
-  /**
-   * Set the path to the Browser executable.
-   * 
-   * @param value the path to the Browser executable.
-   */
-  public void setBrowserExecutablePath(String value) {
-    getPrefs().put(PREFS_BROWSER_NAME, value);
+  public void setBrowserPreferences(boolean useDefault, String name, String args) {
+
+    IEclipsePreferences prefs = getPrefs();
+
+    prefs.putBoolean(PREFS_DEFAULT_BROWSER, useDefault);
+    prefs.put(PREFS_BROWSER_NAME, name);
+    prefs.put(PREFS_BROWSER_ARGS, args);
 
     try {
       getPrefs().flush();
@@ -376,10 +381,6 @@ public class DartDebugCorePlugin extends Plugin {
     } catch (BackingStoreException exception) {
       logError(exception);
     }
-  }
-
-  public void setDefaultBrowser(boolean value) {
-    getPrefs().putBoolean(PREFS_DEFAULT_BROWSER, value);
   }
 
   public void setShowRunResumeDialogPref(boolean value) {

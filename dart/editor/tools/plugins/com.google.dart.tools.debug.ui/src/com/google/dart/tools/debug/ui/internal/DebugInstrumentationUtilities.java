@@ -1,6 +1,7 @@
 package com.google.dart.tools.debug.ui.internal;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -19,7 +20,9 @@ public class DebugInstrumentationUtilities {
     instrumentation.data("LaunchConfig-getWorkingDirectory", launch.getWorkingDirectory());
 
     instrumentation.metric("LaunchConfig-getArguments", launch.getArguments());
-    instrumentation.metric("LaunchConfig-getBrowserName", launch.getBrowserName());
+    instrumentation.metric(
+        "LaunchConfig-getBrowserName",
+        DartDebugCorePlugin.getPlugin().getBrowserName());
     instrumentation.metric("LaunchConfig-getCheckedMode", String.valueOf(launch.getCheckedMode()));
     instrumentation.metric("LaunchConfig-getLastLaunchTime", launch.getLastLaunchTime());
     instrumentation.metric(
@@ -30,7 +33,7 @@ public class DebugInstrumentationUtilities {
         String.valueOf(launch.getShowLaunchOutput()));
     instrumentation.metric(
         "LaunchConfig-getUseDefaultBrowser",
-        String.valueOf(launch.getUseDefaultBrowser()));
+        String.valueOf(DartDebugCorePlugin.getPlugin().getIsDefaultBrowser()));
     instrumentation.metric(
         "LaunchConfig-getUseWebComponents",
         String.valueOf(launch.getUseWebComponents()));
