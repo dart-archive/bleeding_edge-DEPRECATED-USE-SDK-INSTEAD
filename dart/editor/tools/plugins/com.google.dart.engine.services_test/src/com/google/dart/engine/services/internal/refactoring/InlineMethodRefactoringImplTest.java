@@ -314,6 +314,31 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
+  public void test_function_hasReturn_assign() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b) {",
+        "  print(a);",
+        "  print(b);",
+        "  return a + b;",
+        "}",
+        "main() {",
+        "  var v;",
+        "  v = test(1, 2);",
+        "}");
+    selection = findOffset("test(a, b)");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v;",
+        "  print(1);",
+        "  print(2);",
+        "  v = 1 + 2;",
+        "}");
+  }
+
   public void test_function_hasReturn_hasReturnType() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -546,6 +571,100 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "    print(2);",
         "  }",
         "}");
+  }
+
+  public void test_function_notStatement_oneStatement_assign() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(int p) {",
+        "  print(p * 2);",
+        "}",
+        "main() {",
+        "  var v;",
+        "  v = test(0);",
+        "}",
+        "");
+    selection = findOffset("test(int p");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v;",
+        "  v = (int p) {",
+        "    print(p * 2);",
+        "  }(0);",
+        "}",
+        "");
+  }
+
+  public void test_function_notStatement_oneStatement_variableDeclaration() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(int p) {",
+        "  print(p * 2);",
+        "}",
+        "main() {",
+        "  var v = test(0);",
+        "}",
+        "");
+    selection = findOffset("test(int p");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = (int p) {",
+        "    print(p * 2);",
+        "  }(0);",
+        "}",
+        "");
+  }
+
+  public void test_function_notStatement_severalStatements() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(int p) {",
+        "  print(p);",
+        "  print(p * 2);",
+        "}",
+        "main() {",
+        "  var v = test(0);",
+        "}",
+        "");
+    selection = findOffset("test(int p");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = (int p) {",
+        "    print(p);",
+        "    print(p * 2);",
+        "  }(0);",
+        "}",
+        "");
+  }
+
+  public void test_function_notStatement_zeroStatements() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(int p) {",
+        "}",
+        "main() {",
+        "  var v = test(0);",
+        "}",
+        "");
+    selection = findOffset("test(int p");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = (int p) {",
+        "  }(0);",
+        "}",
+        "");
   }
 
   public void test_function_singleStatement() throws Exception {

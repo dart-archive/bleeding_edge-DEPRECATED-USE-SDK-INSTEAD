@@ -45,6 +45,9 @@ import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.SymbolLiteral;
 import com.google.dart.engine.ast.ThisExpression;
+import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
@@ -165,7 +168,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         MethodInvocation invocation = (MethodInvocation) nodeParent;
         Expression target = invocation.getTarget();
         List<Expression> arguments = invocation.getArgumentList().getArguments();
-        inlineMethodBody(status, invocation, invocation.isCascaded(), target, arguments);
+        inlineMethodInvocation(status, invocation, invocation.isCascaded(), target, arguments);
       } else {
         // cannot inline reference to method: var v = new A().method;
         if (methodElement instanceof MethodElement) {
@@ -195,7 +198,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
             arguments.add(((AssignmentExpression) nodeParent.getParent()).getRightHandSide());
           }
           // inline body
-          inlineMethodBody(status, nodeParent, cascade, target, arguments);
+          inlineMethodInvocation(status, nodeParent, cascade, target, arguments);
           return;
         }
         // not invocation, just reference to function
@@ -216,8 +219,49 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       }
     }
 
-    private void inlineMethodBody(RefactoringStatus status, ASTNode methodUsage, boolean cascaded,
-        Expression target, List<Expression> arguments) {
+    private boolean canInlineBody(ASTNode usage) {
+      // no statements, usually just expression
+      if (methodStatementsPart == null) {
+        // empty method, inline as closure
+        if (methodExpressionPart == null) {
+          return false;
+        }
+        // OK, just expression
+        return true;
+      }
+      // analyze point of invocation
+      ASTNode parent = usage.getParent();
+      ASTNode parent2 = parent.getParent();
+      // OK, if statement in block
+      if (parent instanceof Statement) {
+        return parent2 instanceof Block;
+      }
+      // may be assignment, in block
+      if (parent instanceof AssignmentExpression) {
+        AssignmentExpression assignment = (AssignmentExpression) parent;
+        // inlining setter
+        if (assignment.getLeftHandSide() == usage) {
+          return parent2 instanceof Statement && parent2.getParent() instanceof Block;
+        }
+        // inlining initializer
+        return methodExpressionPart != null;
+      }
+      // may be value for variable initializer, in block
+      if (methodExpressionPart != null) {
+        if (parent instanceof VariableDeclaration) {
+          if (parent2 instanceof VariableDeclarationList) {
+            ASTNode parent3 = parent2.getParent();
+            return parent3 instanceof VariableDeclarationStatement
+                && parent3.getParent() instanceof Block;
+          }
+        }
+      }
+      // not in block, cannot inline body
+      return false;
+    }
+
+    private void inlineMethodInvocation(RefactoringStatus status, ASTNode methodUsage,
+        boolean cascaded, Expression target, List<Expression> arguments) {
       // prepare change
       SourceChange refChange;
       if (argsHaveSideEffect) {
@@ -231,38 +275,56 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
             "Cannot inline cascade invocation.",
             RefactoringStatusContext.create(methodUsage));
       }
-      // insert non-return statements
-      if (methodStatementsPart != null) {
-        // prepare statements source for invocation
-        String source = getMethodSourceForInvocation(
-            methodStatementsPart,
-            refUtils,
-            methodUsage,
-            target,
-            arguments);
-        source = refUtils.getIndentSource(source, methodStatementsPart.prefix, refPrefix);
-        // do insert
-        SourceRange range = rangeStartLength(refLineRange, 0);
-        Edit edit = new Edit(range, source);
-        refChange.addEdit("Replace all references to method with statements", edit);
+      // can we inline method body into "methodUsage" block?
+      if (canInlineBody(methodUsage)) {
+        // insert non-return statements
+        if (methodStatementsPart != null) {
+          // prepare statements source for invocation
+          String source = getMethodSourceForInvocation(
+              methodStatementsPart,
+              refUtils,
+              methodUsage,
+              target,
+              arguments);
+          source = refUtils.getIndentSource(source, methodStatementsPart.prefix, refPrefix);
+          // do insert
+          SourceRange range = rangeStartLength(refLineRange, 0);
+          Edit edit = new Edit(range, source);
+          refChange.addEdit("Replace all references to method with statements", edit);
+        }
+        // replace invocation with return expression
+        if (methodExpressionPart != null) {
+          // prepare expression source for invocation
+          String source = getMethodSourceForInvocation(
+              methodExpressionPart,
+              refUtils,
+              methodUsage,
+              target,
+              arguments);
+          // do replace
+          SourceRange methodUsageRange = rangeNode(methodUsage);
+          Edit edit = new Edit(methodUsageRange, source);
+          refChange.addEdit("Replace all references to method with statements", edit);
+        } else {
+          Edit edit = new Edit(refLineRange, "");
+          refChange.addEdit("Replace all references to method with statements", edit);
+        }
+        return;
       }
-      // replace invocation with return expression
-      if (methodExpressionPart != null) {
-        // prepare expression source for invocation
-        String source = getMethodSourceForInvocation(
-            methodExpressionPart,
-            refUtils,
-            methodUsage,
-            target,
-            arguments);
-        // do replace
-        SourceRange methodUsageRange = rangeNode(methodUsage);
-        Edit edit = new Edit(methodUsageRange, source);
-        refChange.addEdit("Replace all references to method with statements", edit);
-      } else {
-        Edit edit = new Edit(refLineRange, "");
-        refChange.addEdit("Replace all references to method with statements", edit);
+      // inline as closure invocation
+      String source;
+      {
+        source = methodUtils.getText(rangeStartEnd(
+            methodParameters.getLeftParenthesis(),
+            methodNode));
+        String methodPrefix = methodUtils.getLinePrefix(methodNode.getOffset());
+        source = refUtils.getIndentSource(source, methodPrefix, refPrefix);
+        source = source.trim();
       }
+      // do insert
+      SourceRange range = rangeNode(node);
+      Edit edit = new Edit(range, source);
+      refChange.addEdit("Replace all references to method with statements", edit);
     }
 
     private boolean shouldProcess() {
