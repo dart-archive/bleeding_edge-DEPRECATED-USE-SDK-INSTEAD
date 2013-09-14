@@ -74,6 +74,7 @@ import static com.google.dart.engine.ast.ASTFactory.label;
 import static com.google.dart.engine.ast.ASTFactory.namedExpression;
 import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
 import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
+import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartLength;
 
@@ -1087,6 +1088,27 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     identifier.setStaticElement(element);
     // check
     assertSame(null, CorrectionUtils.getPropertyAccessorElement(identifier));
+  }
+
+  public void test_getQualifiedPropertyTarget_invocation() throws Exception {
+    SimpleIdentifier target = identifier("target");
+    SimpleIdentifier name = identifier("name");
+    new MethodInvocation(target, null, name, null);
+    assertSame(null, CorrectionUtils.getQualifiedPropertyTarget(name));
+  }
+
+  public void test_getQualifiedPropertyTarget_prefixedIdentifier() throws Exception {
+    SimpleIdentifier prefix = identifier("prefix");
+    SimpleIdentifier name = identifier("name");
+    identifier(prefix, name);
+    assertSame(prefix, CorrectionUtils.getQualifiedPropertyTarget(name));
+  }
+
+  public void test_getQualifiedPropertyTarget_propertyAccess() throws Exception {
+    SimpleIdentifier target = identifier("target");
+    SimpleIdentifier name = identifier("name");
+    propertyAccess(target, name);
+    assertSame(target, CorrectionUtils.getQualifiedPropertyTarget(name));
   }
 
   public void test_getRecommendedFileNameForClass() throws Exception {

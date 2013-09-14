@@ -525,6 +525,27 @@ public class CorrectionUtils {
   }
 
   /**
+   * If given {@link ASTNode} is name of qualified property extraction, returns target from which
+   * this property is extracted. Otherwise {@code null}.
+   */
+  public static Expression getQualifiedPropertyTarget(ASTNode node) {
+    ASTNode parent = node.getParent();
+    if (parent instanceof PrefixedIdentifier) {
+      PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
+      if (prefixed.getIdentifier() == node) {
+        return ((PrefixedIdentifier) parent).getPrefix();
+      }
+    }
+    if (parent instanceof PropertyAccess) {
+      PropertyAccess access = (PropertyAccess) parent;
+      if (access.getPropertyName() == node) {
+        return access.getRealTarget();
+      }
+    }
+    return null;
+  }
+
+  /**
    * Returns the name of the file which corresponds to the name of the class according to the style
    * guide. However class does not have to be in this file.
    */

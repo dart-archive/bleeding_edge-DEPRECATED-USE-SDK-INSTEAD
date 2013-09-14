@@ -515,6 +515,115 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
     assertNoFix(CorrectionKind.QF_CREATE_PART);
   }
 
+  public void test_creationFunction_forFunctionType_function() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  useFunction(test);",
+        "}",
+        "",
+        "useFunction(int g(double a, String b)) {}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_FUNCTION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  useFunction(test);",
+            "}",
+            "",
+            "useFunction(int g(double a, String b)) {}",
+            "",
+            "int test(double a, String b) {",
+            "}",
+            ""));
+  }
+
+  public void test_creationFunction_forFunctionType_method_targetClass() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(A a) {",
+        "  useFunction(a.test);",
+        "}",
+        "",
+        "class A {",
+        "}",
+        "",
+        "useFunction(int g(double a, String b)) {}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main(A a) {",
+            "  useFunction(a.test);",
+            "}",
+            "",
+            "class A {",
+            "  int test(double a, String b) {",
+            "  }",
+            "}",
+            "",
+            "useFunction(int g(double a, String b)) {}"));
+  }
+
+  public void test_creationFunction_forFunctionType_method_targetClass_hasOtherMember()
+      throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(A a) {",
+        "  useFunction(a.test);",
+        "}",
+        "",
+        "class A {",
+        "  m() {}",
+        "}",
+        "",
+        "useFunction(int g(double a, String b)) {}");
+    assert_runProcessor(
+        CorrectionKind.QF_CREATE_METHOD,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main(A a) {",
+            "  useFunction(a.test);",
+            "}",
+            "",
+            "class A {",
+            "  m() {}",
+            "  ",
+            "  int test(double a, String b) {",
+            "  }",
+            "}",
+            "",
+            "useFunction(int g(double a, String b)) {}"));
+  }
+
+  public void test_creationFunction_forFunctionType_notFunctionType() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(A a) {",
+        "  useFunction(a.test);",
+        "}",
+        "",
+        "class A {",
+        "}",
+        "",
+        "useFunction(g) {}");
+    assertNoFix(CorrectionKind.QF_CREATE_METHOD);
+  }
+
+  public void test_creationFunction_forFunctionType_unknownTarget() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main(A a) {",
+        "  useFunction(a.test);",
+        "}",
+        "",
+        "typedef A();",
+        "",
+        "useFunction(int g(double a, String b)) {}");
+    assertNoFix(CorrectionKind.QF_CREATE_FUNCTION);
+    assertNoFix(CorrectionKind.QF_CREATE_METHOD);
+  }
+
   public void test_expectedToken_semicolon() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",

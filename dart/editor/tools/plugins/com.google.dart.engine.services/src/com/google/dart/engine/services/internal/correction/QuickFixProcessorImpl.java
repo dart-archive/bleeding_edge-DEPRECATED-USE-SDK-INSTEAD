@@ -81,6 +81,7 @@ import com.google.dart.engine.services.util.HierarchyUtils;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.dart.ParameterKind;
@@ -407,11 +408,15 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         addFix_boolInsteadOfBoolean();
       }
       if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
+        addFix_createFunction_forFunctionType();
         addFix_importLibrary_withType();
         addFix_importLibrary_withTopLevelVariable();
       }
       if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
         addFix_removeParentheses_inGetterInvocation();
+      }
+      if (errorCode == StaticTypeWarningCode.UNDEFINED_GETTER) {
+        addFix_createFunction_forFunctionType();
       }
       if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
         addFix_undefinedMethod_useSimilar();
@@ -456,6 +461,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN
         || errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER
         || errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION
+        || errorCode == StaticTypeWarningCode.UNDEFINED_GETTER
         || errorCode == StaticTypeWarningCode.UNDEFINED_METHOD;
   }
 
@@ -635,6 +641,46 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       // add proposal
       String proposalName = getConstructorProposalName(superConstructor);
       addUnitCorrectionProposal(CorrectionKind.QF_CREATE_CONSTRUCTOR_SUPER, proposalName);
+    }
+  }
+
+  private void addFix_createFunction_forFunctionType() throws Exception {
+    SimpleIdentifier nameNode = (SimpleIdentifier) node;
+    // prepare argument expression (to get parameter)
+    ClassElement targetElement;
+    Expression argument;
+    {
+      Expression target = CorrectionUtils.getQualifiedPropertyTarget(node);
+      if (target != null) {
+        Type targetType = target.getBestType();
+        if (targetType != null && targetType.getElement() instanceof ClassElement) {
+          targetElement = (ClassElement) targetType.getElement();
+          argument = (Expression) target.getParent();
+        } else {
+          return;
+        }
+      } else {
+        ClassDeclaration enclosingClass = node.getAncestor(ClassDeclaration.class);
+        targetElement = enclosingClass != null ? enclosingClass.getElement() : null;
+        argument = nameNode;
+      }
+    }
+    // should be argument of some invocation
+    ParameterElement parameterElement = argument.getBestParameterElement();
+    if (parameterElement == null) {
+      return;
+    }
+    // should be parameter of function type
+    Type parameterType = parameterElement.getType();
+    if (!(parameterType instanceof FunctionType)) {
+      return;
+    }
+    FunctionType functionType = (FunctionType) parameterType;
+    // add proposal
+    if (targetElement != null) {
+      addProposal_createFunction_method(targetElement, functionType);
+    } else {
+      addProposal_createFunction_function(functionType);
     }
   }
 
@@ -1235,6 +1281,10 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
+  private void addInsertEdit(int offset, String text) {
+    textEdits.add(createInsertEdit(offset, text));
+  }
+
   // TODO(scheglov) waiting for https://code.google.com/p/dart/issues/detail?id=10053
 //  private void addFix_useEffectiveIntegerDivision(IProblemLocation location) throws Exception {
 //    for (DartNode n = node; n != null; n = n.getParent()) {
@@ -1263,10 +1313,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 //      }
 //    }
 //  }
-
-  private void addInsertEdit(int offset, String text) {
-    textEdits.add(createInsertEdit(offset, text));
-  }
 
   private void addInsertEdit(SourceBuilder builder) {
     addInsertEdit(builder.getOffset(), builder.toString());
@@ -1303,6 +1349,26 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       linkedPositionProposals.put(group, nodeProposals);
     }
     nodeProposals.add(proposal);
+  }
+
+  /**
+   * Adds positions from the given {@link SourceBuilder} to the {@link #linkedPositions}.
+   */
+  private void addLinkedPositions(SourceBuilder builder) {
+    // positions
+    for (Entry<String, List<SourceRange>> linkedEntry : builder.getLinkedPositions().entrySet()) {
+      String group = linkedEntry.getKey();
+      for (SourceRange position : linkedEntry.getValue()) {
+        addLinkedPosition(group, position);
+      }
+    }
+    // proposals for positions
+    for (Entry<String, List<LinkedPositionProposal>> entry : builder.getLinkedProposals().entrySet()) {
+      String group = entry.getKey();
+      for (LinkedPositionProposal proposal : entry.getValue()) {
+        addLinkedPositionProposal(group, proposal);
+      }
+    }
   }
 
   // https://code.google.com/p/dart/issues/detail?id=10058
@@ -1346,23 +1412,134 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
 //  }
 
   /**
-   * Adds positions from the given {@link SourceBuilder} to the {@link #linkedPositions}.
+   * Prepares proposal for creating function corresponding to the given {@link FunctionType}.
    */
-  private void addLinkedPositions(SourceBuilder builder) {
-    // positions
-    for (Entry<String, List<SourceRange>> linkedEntry : builder.getLinkedPositions().entrySet()) {
-      String group = linkedEntry.getKey();
-      for (SourceRange position : linkedEntry.getValue()) {
-        addLinkedPosition(group, position);
+  private void addProposal_createFunction(FunctionType functionType, String name,
+      Source targetSource, int insertOffset, String eol, String prefix, String sourcePrefix,
+      String sourceSuffix) {
+    // build method source
+    SourceBuilder sb = new SourceBuilder(insertOffset);
+    {
+      sb.append(sourcePrefix);
+      sb.append(prefix);
+      // may be return type
+      {
+        Type returnType = functionType.getReturnType();
+        if (returnType != null) {
+          String typeSource = utils.getTypeSource(returnType);
+          if (!typeSource.equals("dynamic")) {
+            sb.startPosition("RETURN_TYPE");
+            sb.append(typeSource);
+            sb.endPosition();
+            sb.append(" ");
+          }
+        }
       }
-    }
-    // proposals for positions
-    for (Entry<String, List<LinkedPositionProposal>> entry : builder.getLinkedProposals().entrySet()) {
-      String group = entry.getKey();
-      for (LinkedPositionProposal proposal : entry.getValue()) {
-        addLinkedPositionProposal(group, proposal);
+      // append name
+      {
+        sb.startPosition("NAME");
+        sb.append(name);
+        sb.endPosition();
       }
+      // append parameters
+      sb.append("(");
+      ParameterElement[] parameters = functionType.getParameters();
+      for (int i = 0; i < parameters.length; i++) {
+        ParameterElement parameter = parameters[i];
+        // append separator
+        if (i != 0) {
+          sb.append(", ");
+        }
+        // append type name
+        Type type = parameter.getType();
+        String typeSource = utils.getTypeSource(type);
+        {
+          sb.startPosition("TYPE" + i);
+          sb.append(typeSource);
+          addSuperTypeProposals(sb, Sets.<Type> newHashSet(), type);
+          sb.endPosition();
+        }
+        sb.append(" ");
+        // append parameter name
+        {
+          sb.startPosition("ARG" + i);
+          sb.append(parameter.getDisplayName());
+          sb.endPosition();
+        }
+      }
+      sb.append(")");
+      // close method
+      sb.append(" {" + eol + prefix + "}");
+      sb.append(sourceSuffix);
     }
+    // insert source
+    addInsertEdit(insertOffset, sb.toString());
+    // add linked positions
+    if (Objects.equal(targetSource, source)) {
+      addLinkedPosition("NAME", sb, rangeNode(node));
+    }
+    addLinkedPositions(sb);
+  }
+
+  /**
+   * Adds proposal for creating method corresponding to the given {@link FunctionType} in the given
+   * {@link ClassElement}.
+   */
+  private void addProposal_createFunction_function(FunctionType functionType) throws Exception {
+    String name = ((SimpleIdentifier) node).getName();
+    // prepare environment
+    String eol = utils.getEndOfLine();
+    int insertOffset = unit.getEnd();
+    // prepare prefix
+    String prefix = "";
+    String sourcePrefix = eol + eol;
+    String sourceSuffix = eol;
+    addProposal_createFunction(
+        functionType,
+        name,
+        source,
+        insertOffset,
+        eol,
+        prefix,
+        sourcePrefix,
+        sourceSuffix);
+    // add proposal
+    addUnitCorrectionProposal(source, CorrectionKind.QF_CREATE_FUNCTION, name);
+  }
+
+  /**
+   * Adds proposal for creating method corresponding to the given {@link FunctionType} in the given
+   * {@link ClassElement}.
+   */
+  private void addProposal_createFunction_method(ClassElement targetClassElement,
+      FunctionType functionType) throws Exception {
+    String name = ((SimpleIdentifier) node).getName();
+    // prepare environment
+    String eol = utils.getEndOfLine();
+    Source targetSource = targetClassElement.getSource();
+    // prepare insert offset
+    ClassDeclaration targetClassNode = CorrectionUtils.getResolvedNode(targetClassElement);
+    int insertOffset = targetClassNode.getEnd() - 1;
+    // prepare prefix
+    String prefix = "  ";
+    String sourcePrefix;
+    if (targetClassNode.getMembers().isEmpty()) {
+      sourcePrefix = "";
+    } else {
+      sourcePrefix = prefix + eol;
+    }
+    String sourceSuffix = eol;
+    addProposal_createFunction(
+        functionType,
+        name,
+        targetSource,
+        insertOffset,
+        eol,
+        prefix,
+        sourcePrefix,
+        sourceSuffix);
+    // add proposal
+    addUnitCorrectionProposal(targetSource, CorrectionKind.QF_CREATE_METHOD, name);
   }
 
   private void addRemoveEdit(SourceRange range) {

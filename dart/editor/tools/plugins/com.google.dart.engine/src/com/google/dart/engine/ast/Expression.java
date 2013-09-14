@@ -43,6 +43,22 @@ public abstract class Expression extends ASTNode {
   private Type propagatedType;
 
   /**
+   * Return the best parameter element information available for this expression. If type
+   * propagation was able to find a better parameter element than static analysis, that type will be
+   * returned. Otherwise, the result of static analysis will be returned.
+   * 
+   * @return the parameter element representing the parameter to which the value of this expression
+   *         will be bound
+   */
+  public ParameterElement getBestParameterElement() {
+    ParameterElement propagatedElement = getPropagatedParameterElement();
+    if (propagatedElement != null) {
+      return propagatedElement;
+    }
+    return getStaticParameterElement();
+  }
+
+  /**
    * Return the best type information available for this expression. If type propagation was able to
    * find a better type than static analysis, that type will be returned. Otherwise, the result of
    * static analysis will be returned. If no type analysis has been performed, then the type
