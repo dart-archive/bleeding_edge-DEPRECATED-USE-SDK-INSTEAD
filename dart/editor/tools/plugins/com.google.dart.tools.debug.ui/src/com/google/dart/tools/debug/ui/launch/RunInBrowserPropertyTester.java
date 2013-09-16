@@ -46,7 +46,7 @@ public class RunInBrowserPropertyTester extends PropertyTester {
         Object o = ((IStructuredSelection) receiver).getFirstElement();
         if (o instanceof IFile) {
           IFile file = (IFile) o;
-          if (DartCore.isHtmlLikeFileName(((IFile) o).getName())) { // && !usesBootJs(file)) {
+          if (DartCore.isHtmlLikeFileName(((IFile) o).getName()) && !usesBootJs(file)) {
             return true;
           }
 
