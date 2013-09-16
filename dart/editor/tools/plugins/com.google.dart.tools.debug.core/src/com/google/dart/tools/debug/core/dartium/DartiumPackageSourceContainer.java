@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.IFileInfo;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -43,18 +44,19 @@ public class DartiumPackageSourceContainer extends AbstractSourceContainer {
       return EMPTY;
     }
 
-    if (wrapper.getProject() != null) {
+    IContainer parent = wrapper.getProject();
 
-      IFileInfo fileInfo = DartCore.getProjectManager().resolveUriToFileInfo(
-          wrapper.getProject(),
-          name);
+    if (wrapper.getApplicationResource() != null) {
+      parent = wrapper.getApplicationResource().getParent();
+    }
 
-      if (fileInfo != null) {
-        if (fileInfo.getResource() != null) {
-          return new Object[] {fileInfo.getResource()};
-        } else {
-          return new Object[] {new LocalFileStorage(fileInfo.getFile())};
-        }
+    IFileInfo fileInfo = DartCore.getProjectManager().resolveUriToFileInfo(parent, name);
+
+    if (fileInfo != null) {
+      if (fileInfo.getResource() != null) {
+        return new Object[] {fileInfo.getResource()};
+      } else {
+        return new Object[] {new LocalFileStorage(fileInfo.getFile())};
       }
     }
 
