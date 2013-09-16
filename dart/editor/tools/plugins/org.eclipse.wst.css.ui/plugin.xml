@@ -1,0 +1,692 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+
+	<extension-point id="proposalInfo" name="%proposalInfo.name" schema="schema/proposalInfo.exsd"/>
+
+	<extension point="org.eclipse.ui.editors">
+		<editor
+			name="%CSS_Source_Page_Editor.name"
+			icon="$nl$/icons/full/obj16/sourceEditor.gif"
+			contributorClass="org.eclipse.wst.css.ui.internal.ActionContributorCSS"
+			class="org.eclipse.wst.sse.ui.StructuredTextEditor"
+			symbolicFontName="org.eclipse.wst.sse.ui.textfont"
+			id="org.eclipse.wst.css.core.csssource.source">
+			<contentTypeBinding
+				contentTypeId="org.eclipse.wst.css.core.csssource" />
+		</editor>
+	</extension>
+
+	<extension point="org.eclipse.wst.sse.ui.editorConfiguration">
+		<contentOutlineConfiguration
+			class="org.eclipse.wst.css.ui.views.contentoutline.CSSContentOutlineConfiguration"
+			target="org.eclipse.wst.css.core.csssource" />
+		<quickOutlineConfiguration
+			class="org.eclipse.wst.css.ui.views.contentoutline.CSSQuickOutlineConfiguration"
+			target="org.eclipse.wst.css.core.csssource" />
+		<sourceViewerConfiguration
+			class="org.eclipse.wst.css.ui.StructuredTextViewerConfigurationCSS"
+			target="org.eclipse.wst.css.core.csssource" />
+		<propertySheetConfiguration
+			class="org.eclipse.wst.css.ui.views.properties.CSSPropertySheetConfiguration"
+			target="org.eclipse.wst.css.core.csssource" />
+		<documentationTextHover
+        	class="org.eclipse.wst.css.ui.internal.text.hover.CSSColorHover"
+        	target="org.eclipse.wst.css.STYLE" />
+		<provisionalConfiguration
+			type="characterpairmatcher"
+			class="org.eclipse.wst.css.ui.internal.text.CSSDocumentRegionEdgeMatcher"
+			target="org.eclipse.wst.css.core.csssource" />
+		<provisionalConfiguration
+			type="foldingstrategy"
+			class="org.eclipse.wst.css.ui.internal.projection.CSSFoldingStrategy"
+			target="org.eclipse.wst.css.core.csssource" />
+		<provisionalConfiguration
+			type="autoeditstrategy"
+			class="org.eclipse.wst.css.ui.internal.autoedit.StructuredAutoEditStrategyCSS"
+			target="org.eclipse.wst.css.STYLE" />
+		<provisionalDefinition
+			type="preferencepages"
+			value="org.eclipse.wst.css.ui.preferences.css org.eclipse.wst.sse.ui.preferences.css.source, org.eclipse.wst.css.ui.preferences.templates, org.eclipse.wst.sse.ui.preferences.css.styles, org.eclipse.wst.sse.ui.preferences.css.contentassist"
+			target="org.eclipse.wst.css.core.csssource" />
+		<provisionalDefinition
+			type="spellingregions"
+			value="COMMENT"
+			target="org.eclipse.wst.css.core.csssource" />
+		<provisionalDefinition
+			type="activecontexts"
+			value="org.eclipse.wst.css.core.csssource, org.eclipse.wst.sse.comments"
+			target="org.eclipse.wst.css.core.csssource" />
+	</extension>
+	
+	<extension point="org.eclipse.ui.contexts">
+		<context
+			name="%scope.structured.text.editor.css.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structured.text.editor.css.description"
+			id="org.eclipse.wst.css.core.csssource">
+		</context>
+	</extension>
+	
+	<extension
+		point="org.eclipse.wst.sse.ui.adapterFactoryDescription">
+		<adapterFactoryDescription
+			class="org.eclipse.wst.css.ui.internal.registry.AdapterFactoryProviderCSS">
+			<contentType id="org.eclipse.wst.css.core.csssource" />
+		</adapterFactoryDescription>
+	</extension>
+
+	<extension
+		point="org.eclipse.core.filebuffers.annotationModelCreation">
+		<factory
+			contentTypeId="org.eclipse.wst.css.core.csssource"
+			class="org.eclipse.wst.sse.ui.internal.StructuredResourceMarkerAnnotationModelFactory" />
+	</extension>
+
+	<extension point="org.eclipse.ui.preferencePages">
+		<page
+			name="%CSS_Files.name"
+			category="org.eclipse.wst.html.ui.preferences.web"
+			class="org.eclipse.wst.css.ui.internal.preferences.ui.CSSFilesPreferencePage"
+			id="org.eclipse.wst.css.ui.preferences.css">
+			<keywordReference id="org.eclipse.wst.css.ui.files"/>
+		</page>
+		<page
+			name="%CSS_Source.name"
+			category="org.eclipse.wst.css.ui.preferences.css"
+			class="org.eclipse.wst.css.ui.internal.preferences.ui.CSSSourcePreferencePage"
+			id="org.eclipse.wst.sse.ui.preferences.css.source">
+			<keywordReference id="org.eclipse.wst.css.ui.source"/>
+		</page>
+  <page
+        category="org.eclipse.wst.sse.ui.preferences.css.source"
+        class="org.eclipse.wst.css.ui.internal.preferences.ui.CSSContentAssistPreferencePage"
+        id="org.eclipse.wst.sse.ui.preferences.css.contentassist"
+        name="%CSS_Content_Assist.name">
+     <keywordReference
+           id="org.eclipse.wst.css.ui.contentassist">
+     </keywordReference>
+  </page>
+		<page
+			name="%CSS_Templates.name"
+			category="org.eclipse.wst.sse.ui.preferences.css.source"
+			class="org.eclipse.wst.css.ui.internal.preferences.ui.CSSTemplatePreferencePage"
+			id="org.eclipse.wst.css.ui.preferences.templates">
+			<keywordReference id="org.eclipse.wst.css.ui.templates"/>
+		</page>
+		<page
+			name="%CSS_Syntax_Coloring"
+			category="org.eclipse.wst.sse.ui.preferences.css.source"
+			class="org.eclipse.wst.css.ui.internal.preferences.ui.CSSSyntaxColoringPage"
+			id="org.eclipse.wst.sse.ui.preferences.css.styles">
+         	<keywordReference id="org.eclipse.wst.css.ui.styles"/>
+		</page>
+	</extension>
+
+	<!-- CSS Content Settings Property Page -->
+	<extension point="org.eclipse.ui.propertyPages">
+		<page
+			name="%WebContentSettings.name"
+			class="org.eclipse.wst.css.ui.internal.contentproperties.ui.CSSWebContentSettingsPropertyPage"
+			id="org.eclipse.wst.css.ui.internal.contentproperties.CSSWebContentSettingsPropertyPage.css">
+         	<enabledWhen>
+               	<and>
+					<adapt type="org.eclipse.core.resources.IFile">
+						<or> 
+							<test 
+								forcePluginActivation="true"
+								property="org.eclipse.core.resources.contentTypeId"
+								value="org.eclipse.wst.css.core.csssource" />
+						</or>
+					</adapt>
+				</and> 
+			</enabledWhen>
+         	<keywordReference id="org.eclipse.wst.css.ui.webcontent"/>
+		</page>
+	</extension>
+
+	<!-- Keywords for preference and properties pages -->
+	<extension point="org.eclipse.ui.keywords">
+		<keyword
+			label="%preferenceKeywords.files"
+			id="org.eclipse.wst.css.ui.files"/>
+		<keyword
+			label="%preferenceKeywords.source"
+			id="org.eclipse.wst.css.ui.source"/>
+		<keyword
+			label="%preferenceKeywords.templates"
+			id="org.eclipse.wst.css.ui.templates"/>
+		<keyword
+			label="%preferenceKeywords.styles"
+			id="org.eclipse.wst.css.ui.styles"/>
+		<keyword
+			label="%preferenceKeywords.webcontent"
+			id="org.eclipse.wst.css.ui.webcontent"/>
+  <keyword
+        id="org.eclipse.wst.css.ui.contentassist"
+        label="%preferenceKeywords.contentassist">
+  </keyword>
+    </extension>
+
+	<!-- Editor actionsets -->
+	<extension point="org.eclipse.ui.actionSetPartAssociations">
+		<actionSetPartAssociation
+			targetID="org.eclipse.ui.edit.text.actionSet.annotationNavigation">
+			<part id="org.eclipse.wst.css.core.csssource.source"></part>
+		</actionSetPartAssociation>
+		<actionSetPartAssociation
+			targetID="org.eclipse.ui.NavigateActionSet">
+			<part id="org.eclipse.wst.css.core.csssource.source"></part>
+		</actionSetPartAssociation>
+	</extension>
+
+	<extension point="org.eclipse.core.runtime.adapters">
+		<factory
+			adaptableType="org.eclipse.wst.css.core.internal.provisional.document.ICSSModel"
+			class="org.eclipse.wst.css.ui.internal.editor.CSSSelectionConverterFactory">
+			<adapter
+				type="org.eclipse.wst.sse.ui.internal.editor.SelectionConvertor"/>
+		</factory>
+	</extension>
+
+	<!-- initialize css ui preferences -->
+	<extension point="org.eclipse.core.runtime.preferences">
+		<initializer
+			class="org.eclipse.wst.css.ui.internal.preferences.CSSUIPreferenceInitializer" />
+	</extension>
+
+	<!-- New CSS wizard -->
+	<extension point="org.eclipse.ui.newWizards">
+		<wizard
+			id="org.eclipse.wst.css.ui.internal.wizard.NewCSSWizard"
+			name="%_UI_WIZARD_NAME"
+			class="org.eclipse.wst.css.ui.internal.wizard.NewCSSWizard"
+			category="org.eclipse.wst.web.ui"
+			icon="$nl$/icons/full/etool16/newcss_wiz.gif">
+			<description>%_UI_WIZARD_CREATE_NEW_FILE</description>
+			<selection class="org.eclipse.core.resources.IResource" />
+		</wizard>
+	</extension>
+	
+	<extension point="org.eclipse.ui.menus">
+		<menuContribution locationURI="menu:edit?after=additions">
+			<command commandId="org.eclipse.ui.edit.text.contentAssist.proposals" id="CSSContentAssist" style="push">
+			   <visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.css.ui.cssSourceContributions.definition"></reference>
+				</visibleWhen>
+			</command>
+		</menuContribution>
+	</extension>
+
+	<extension point="org.eclipse.ui.popupMenus">
+		<viewerContribution
+			targetID="org.eclipse.wst.css.core.csssource.source.RulerContext"
+			id="org.eclipse.ui.texteditor.ruler.context.actions">
+			<action
+				label="%AddTask.label"
+				helpContextId="org.eclipse.ui.AddTask_action_context"
+				class="org.eclipse.ui.texteditor.TaskRulerAction"
+				tooltip="%AddTask.tooltip"
+				menubarPath="additions"
+				id="org.eclipse.ui.texteditor.TaskRulerAction">
+			</action>
+			<action
+				label="%AddBookmark.label"
+				helpContextId="org.eclipse.ui.bookmark_action_context"
+				class="org.eclipse.ui.texteditor.BookmarkRulerAction"
+				tooltip="%AddBookmark.tooltip"
+				menubarPath="additions"
+				id="org.eclipse.ui.texteditor.BookmarkRulerAction">
+			</action>
+		</viewerContribution>
+	</extension>
+
+	<!-- Templates -->
+	<extension point="org.eclipse.ui.editors.templates">
+		<contextType
+			name="%All_CSS_context_type_Extension_Element.name"
+			class="org.eclipse.wst.css.ui.internal.templates.TemplateContextTypeCSS"
+			id="css_all">
+		</contextType>
+		<contextType
+			name="%CSS_New_context_type_Extension_Element.name"
+			class="org.eclipse.wst.css.ui.internal.templates.TemplateContextTypeCSS"
+			id="css_new">
+		</contextType>
+		<include
+			file="templates/cssdefault-templates.xml"
+			translations="$nl$/templates/cssdefault-templates.properties">
+		</include>
+	</extension>
+
+	<extension
+		point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectorTargets">
+		<target
+			id="org.eclipse.wst.css.core.csssource"
+			name="%CSS_source_target_name">
+		</target>
+	</extension>
+	<extension
+		point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
+		<hyperlinkDetector
+			class="org.eclipse.wst.css.ui.internal.hyperlink.CSSHyperlinkDetector"
+			id="org.eclipse.wst.css.ui.internal.hyperlink.CSSHyperlinkDetector"
+			name="%CSS_detector_name"
+			targetId="org.eclipse.wst.css.core.csssource">
+		</hyperlinkDetector>
+	</extension>
+
+	<extension
+ 		point="org.eclipse.ui.handlers">
+		<handler
+			class="org.eclipse.wst.css.ui.internal.handlers.CleanupDocumentHandler"
+			commandId="org.eclipse.wst.sse.ui.cleanup.document">
+			<activeWhen>
+				<reference definitionId="org.eclipse.wst.css.ui.cssSourceContributions.definition"/>
+			</activeWhen>
+		</handler>
+		<handler
+			class="org.eclipse.wst.css.ui.internal.handlers.StructuredSelectEnclosingHandler"
+			commandId="org.eclipse.wst.sse.ui.structure.select.enclosing">
+			<activeWhen>
+				<reference definitionId="org.eclipse.wst.css.ui.cssSourceContributions.definition"/>
+			</activeWhen>
+		</handler>
+		<handler
+			class="org.eclipse.wst.css.ui.internal.handlers.StructuredSelectNextHandler"
+			commandId="org.eclipse.wst.sse.ui.structure.select.next">
+			<activeWhen>
+				<reference definitionId="org.eclipse.wst.css.ui.cssSourceContributions.definition"/>
+			</activeWhen>
+		</handler>
+		<handler
+			class="org.eclipse.wst.css.ui.internal.handlers.StructuredSelectPreviousHandler"
+			commandId="org.eclipse.wst.sse.ui.structure.select.previous">
+			<activeWhen>
+				<reference definitionId="org.eclipse.wst.css.ui.cssSourceContributions.definition"/>
+			</activeWhen>
+		</handler>
+		<!-- TODO Use the handler from SSE or XML's declaration -->
+		<handler
+			class="org.eclipse.wst.sse.ui.internal.handlers.StructuredSelectHistoryHandler"
+			commandId="org.eclipse.wst.sse.ui.structure.select.last">
+			<activeWhen>
+				<reference definitionId="org.eclipse.wst.css.ui.cssSourceContributions.definition"/>
+			</activeWhen>
+		</handler>
+	</extension>
+
+	<!-- CSS editor actions -->
+	<extension point="org.eclipse.ui.editorActions">
+		<!--<editorContribution
+			id="org.eclipse.wst.css.core.csssource.source.editorActions"
+			targetID="org.eclipse.wst.css.core.csssource.source">
+			<action
+				id="CleanupDocument"
+				label="%CleanupDocument_label"
+				definitionId="org.eclipse.wst.sse.ui.cleanup.document"
+				tooltip="%CleanupDocument_tooltip"
+				class="org.eclipse.wst.css.ui.internal.edit.ui.CleanupActionCSSDelegate"
+				actionID="CleanupDocument">
+			</action>
+			<action
+				id="StructureSelectEnclosing"
+				label="%StructureSelectEnclosing_label"
+				definitionId="org.eclipse.wst.sse.ui.structure.select.enclosing"
+				tooltip="%StructureSelectEnclosing_tooltip"
+				class="org.eclipse.wst.css.ui.internal.selection.StructuredSelectEnclosingCSSActionDelegate"
+				actionID="StructureSelectEnclosing">
+			</action>
+			<action
+				id="StructureSelectNext"
+				label="%StructureSelectNext_label"
+				definitionId="org.eclipse.wst.sse.ui.structure.select.next"
+				tooltip="%StructureSelectNext_tooltip"
+				class="org.eclipse.wst.css.ui.internal.selection.StructuredSelectNextCSSActionDelegate"
+				actionID="StructureSelectNext">
+			</action>
+			<action
+				id="StructureSelectPrevious"
+				label="%StructureSelectPrevious_label"
+				definitionId="org.eclipse.wst.sse.ui.structure.select.previous"
+				tooltip="%StructureSelectPrevious_tooltip"
+				class="org.eclipse.wst.css.ui.internal.selection.StructuredSelectPreviousCSSActionDelegate"
+				actionID="StructureSelectPrevious">
+			</action>
+			<action
+				id="StructureSelectHistory"
+				label="%StructureSelectHistory_label"
+				definitionId="org.eclipse.wst.sse.ui.structure.select.last"
+				tooltip="%StructureSelectHistory_tooltip"
+				class="org.eclipse.wst.sse.ui.internal.selection.StructuredSelectHistoryActionDelegate"
+				actionID="StructureSelectHistory">
+			</action>
+		</editorContribution>-->
+        <editorContribution
+            targetID="org.eclipse.wst.css.core.csssource.source"
+            id="org.eclipse.wst.css.core.csssource.ruler.actions">
+         <action
+               label="%AddBookmark.label"
+               helpContextId="org.eclipse.ui.bookmark_action_context"
+               class="org.eclipse.ui.texteditor.BookmarkRulerAction"
+               actionID="RulerDoubleClick"
+               id="org.eclipse.ui.texteditor.BookmarkRulerAction"/>
+         <action
+               label="%SelectRuler.label"
+               class="org.eclipse.ui.texteditor.SelectRulerAction"
+               actionID="RulerClick"
+               id="org.eclipse.ui.texteditor.SelectRulerAction"/>
+        </editorContribution>
+	</extension>
+	
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.css.ui.cssSourceContributions.definition">
+            <with variable="activeContexts">
+	           <iterate operator="or">
+	              <equals value="org.eclipse.wst.css.core.csssource"/>
+	           </iterate>
+            </with>
+		</definition>
+	</extension>
+	
+	<!-- Define theme -->
+	<extension
+		point="org.eclipse.ui.themes">
+		<theme
+			id="org.eclipse.ui.ide.systemDefault">
+			<colorOverride
+				id="ATMARK_RULE"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="SELECTOR"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="MEDIA"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="COMMENT"
+				value="COLOR_LIST_SELECTION">
+			</colorOverride>
+			<colorOverride
+				id="PROPERTY_NAME"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="PROPERTY_VALUE"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="URI"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="STRING"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="ERROR"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="UNIVERSAL"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="ID"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="CLASS"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="ATTRIBUTE_DELIM"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="ATTRIBUTE_NAME"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="ATTRIBUTE_OPERATOR"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="ATTRIBUTE_VALUE"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="PSEUDO"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="COMBINATOR"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+		</theme>
+		<colorDefinition
+			id="ATMARK_RULE"
+			isEditable="false"
+			label="%Colors.atmarkRule"
+			value="63, 127, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="SELECTOR"
+			isEditable="false"
+			label="%Colors.selector"
+			value="63, 127, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="MEDIA"
+			isEditable="false"
+			label="%Colors.media"
+			value="42, 0, 225">
+		</colorDefinition>
+		<colorDefinition
+			id="COMMENT"
+			isEditable="false"
+			label="%Colors.comment"
+			value="63, 95, 191">
+		</colorDefinition>
+		<colorDefinition
+			id="PROPERTY_NAME"
+			isEditable="false"
+			label="%Colors.propertyName"
+			value="127, 0, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="PROPERTY_VALUE"
+			isEditable="false"
+			label="%Colors.propertyValue"
+			value="42, 0, 225">
+		</colorDefinition>
+		<colorDefinition
+			id="URI"
+			isEditable="false"
+			label="%Colors.uri"
+			value="42, 0, 225">
+		</colorDefinition>
+		<colorDefinition
+			id="STRING"
+			isEditable="false"
+			label="%Colors.string"
+			value="42, 0, 225">
+		</colorDefinition>
+		<colorDefinition
+			id="ERROR"
+			isEditable="false"
+			label="%Colors.error"
+			value="191, 63, 63">
+		</colorDefinition>
+		<colorDefinition
+			id="UNIVERSAL"
+			isEditable="false"
+			label="%Colors.universal"
+			value="63, 127, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="ID"
+			isEditable="false"
+			label="%Colors.id"
+			value="63, 127, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="CLASS"
+			isEditable="false"
+			label="%Colors.class"
+			value="63, 127, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="ATTRIBUTE_DELIM"
+			isEditable="false"
+			label="%Colors.attrDelim"
+			value="63, 127, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="ATTRIBUTE_NAME"
+			isEditable="false"
+			label="%Colors.attrName"
+			value="63, 127, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="ATTRIBUTE_OPERATOR"
+			isEditable="false"
+			label="%Colors.attrOp"
+			value="63, 127, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="ATTRIBUTE_VALUE"
+			isEditable="false"
+			label="%Colors.attrValue"
+			value="63, 127, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="PSEUDO"
+			isEditable="false"
+			label="%Colors.pseudo"
+			value="63, 127, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="COMBINATOR"
+			isEditable="false"
+			label="%Colors.combinator"
+			value="63, 127, 127">
+		</colorDefinition>
+	</extension>
+	
+	<!-- Enable the FormatHandler for CSS Content Type -->
+	<extension point="org.eclipse.ui.handlers">
+		<handler 
+			class="org.eclipse.wst.sse.ui.internal.handlers.FormatHandler"
+			commandId="org.eclipse.wst.sse.ui.format">
+			<activeWhen>
+				<reference definitionId="org.eclipse.wst.css.ui.cssContentType.definition"></reference>
+			</activeWhen>
+		</handler>
+	</extension>
+	
+	<!-- Set up a definition for CSS Content Types -->
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.css.ui.cssContentType.definition">
+			<iterate ifEmpty="false">
+				<adapt type="org.eclipse.core.resources.IFile">
+					<!-- Force property tester to load, should not cause entire plug-in to start -->
+					<test property="org.eclipse.wst.sse.core.resources.contentTypeId"
+						value="org.eclipse.wst.css.core.csssource" forcePluginActivation="true"/>
+				</adapt>
+			</iterate>
+		</definition>
+	</extension>
+
+	<extension point="org.eclipse.wst.sse.ui.characterPairing">
+		<inserter class="org.eclipse.wst.css.ui.internal.text.CSSCharacterPairInserter" id="org.eclipse.wst.html.css.ui.inserter">
+			<contentTypeIdentifier
+				id="org.eclipse.wst.html.core.htmlsource"
+				partitions="org.eclipse.wst.css.STYLE">
+			</contentTypeIdentifier>
+		</inserter>
+		<inserter class="org.eclipse.wst.css.ui.internal.text.CSSCharacterPairInserter" id="org.eclipse.wst.css.ui.inserter">
+			<contentTypeIdentifier
+				id="org.eclipse.wst.css.core.csssource"
+				partitions="org.eclipse.wst.css.STYLE">
+			</contentTypeIdentifier>
+		</inserter>
+	</extension>
+ <extension
+       point="org.eclipse.wst.sse.ui.commentingStrategy">
+    <blockCommentingStrategy
+          prefix="/*"
+          suffix="*/">
+       <contentType
+             id="org.eclipse.wst.html.core.htmlsource">
+          <allowablePartitionTypes
+                anyPartitionType="false">
+          </allowablePartitionTypes>
+          <requiredPartitionTypes>
+             <partitionType
+                   id="org.eclipse.wst.css.STYLE">
+             </partitionType>
+          </requiredPartitionTypes>
+       </contentType>
+       <contentType
+             associatedCommentPartitionTypeID="org.eclipse.wst.css.COMMENT"
+             id="org.eclipse.wst.css.core.csssource">
+          <allowablePartitionTypes
+                anyPartitionType="true">
+          </allowablePartitionTypes>
+       </contentType>
+       <contentType
+             id="org.eclipse.jst.jsp.core.jspsource">
+          <allowablePartitionTypes
+                anyPartitionType="false">
+          </allowablePartitionTypes>
+          <requiredPartitionTypes>
+             <partitionType
+                   id="org.eclipse.wst.css.STYLE">
+             </partitionType>
+          </requiredPartitionTypes>
+       </contentType>
+    </blockCommentingStrategy>
+ </extension>
+ <extension
+       point="org.eclipse.wst.sse.ui.completionProposal">
+    <proposalCategory
+          icon="icons/full/obj16/tag_selector.gif"
+          id="org.eclipse.wst.css.ui.proposalCategory.css"
+          name="%proposalCategory.css">
+    </proposalCategory>
+    <proposalCategory
+          icon="icons/full/obj16/tag-template.gif"
+          id="org.eclipse.wst.css.ui.proposalCategory.cssTemplates"
+          name="%proposalCategory.cssTemplates">
+    </proposalCategory>
+    <proposalComputer
+          activate="false"
+          categoryId="org.eclipse.wst.css.ui.proposalCategory.css"
+          class="org.eclipse.wst.css.ui.internal.contentassist.CSSCompletionProposalComputer"
+          id="org.eclipse.wst.css.ui.proposalComputer.css">
+       <contentType
+             id="org.eclipse.wst.css.core.csssource">
+       </contentType>
+    </proposalComputer>
+    <proposalComputer
+          activate="false"
+          categoryId="org.eclipse.wst.css.ui.proposalCategory.cssTemplates"
+          class="org.eclipse.wst.css.ui.internal.contentassist.CSSTemplatesCompletionProposalComputer"
+          id="org.eclipse.wst.css.ui.proposalComputer.cssTemplates">
+       <contentType
+             id="org.eclipse.wst.css.core.csssource">
+       </contentType>
+    </proposalComputer>
+ </extension>
+ <extension
+       point="org.eclipse.wst.sse.ui.completionProposalCategoriesConfiguration">
+    <categoriesConfiguration
+          class="org.eclipse.wst.css.ui.internal.preferences.CSSCompletionProposalCategoriesConfiguration"
+          contentTypeID="org.eclipse.wst.css.core.csssource">
+    </categoriesConfiguration>
+ </extension>
+</plugin>
