@@ -16,7 +16,6 @@ package com.google.dart.tools.core.model;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
-import com.google.dart.engine.internal.context.AnalysisContextImpl2;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.sdk.SdkLibrary;
 import com.google.dart.engine.source.ContentCache;
@@ -26,7 +25,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.UriKind;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -78,11 +76,7 @@ public class DartSdkManager {
     @Override
     public AnalysisContext getContext() {
       if (sdkContext == null) {
-        if (DartCoreDebug.EXPERIMENTAL) {
-          sdkContext = new AnalysisContextImpl2();
-        } else {
-          sdkContext = new AnalysisContextImpl();
-        }
+        sdkContext = new AnalysisContextImpl();
         sdkContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
       }
       return sdkContext;

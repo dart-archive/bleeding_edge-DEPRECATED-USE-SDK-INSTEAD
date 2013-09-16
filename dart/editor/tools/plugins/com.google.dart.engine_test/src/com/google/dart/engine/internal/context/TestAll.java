@@ -22,7 +22,6 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(AnalysisContextImplTest.class);
-    suite.addTestSuite(AnalysisContextImpl2Test.class);
     suite.addTestSuite(AnalysisOptionsImplTest.class);
     return suite;
   }

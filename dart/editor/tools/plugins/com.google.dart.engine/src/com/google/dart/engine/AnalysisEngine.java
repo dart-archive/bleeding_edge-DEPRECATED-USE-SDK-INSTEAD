@@ -15,7 +15,6 @@ package com.google.dart.engine;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.DelegatingAnalysisContextImpl;
-import com.google.dart.engine.internal.context.DelegatingAnalysisContextImpl2;
 import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.io.FileUtilities;
@@ -90,11 +89,6 @@ public final class AnalysisEngine {
   private Logger logger = Logger.NULL;
 
   /**
-   * A flag indicating whether the new analysis context should be created.
-   */
-  private boolean useExperimentalContext = true;
-
-  /**
    * Prevent the creation of instances of this class.
    */
   private AnalysisEngine() {
@@ -111,13 +105,7 @@ public final class AnalysisEngine {
     // If instrumentation is ignoring data, return an uninstrumented analysis context.
     //
     if (Instrumentation.isNullLogger()) {
-      if (useExperimentalContext) {
-        return new DelegatingAnalysisContextImpl2();
-      }
       return new DelegatingAnalysisContextImpl();
-    }
-    if (useExperimentalContext) {
-      return new InstrumentedAnalysisContextImpl(new DelegatingAnalysisContextImpl2());
     }
     return new InstrumentedAnalysisContextImpl(new DelegatingAnalysisContextImpl());
   }
@@ -129,15 +117,6 @@ public final class AnalysisEngine {
    */
   public Logger getLogger() {
     return logger;
-  }
-
-  /**
-   * Return {@code true} if the new analysis context should be created.
-   * 
-   * @return {@code true} if the new analysis context should be created
-   */
-  public boolean getUseExperimentalContext() {
-    return useExperimentalContext;
   }
 
   /**

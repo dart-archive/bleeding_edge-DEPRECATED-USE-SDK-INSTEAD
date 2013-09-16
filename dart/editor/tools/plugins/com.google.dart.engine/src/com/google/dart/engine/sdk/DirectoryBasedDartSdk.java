@@ -17,7 +17,6 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
-import com.google.dart.engine.internal.context.AnalysisContextImpl2;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.internal.sdk.SdkLibrariesReader;
@@ -221,11 +220,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
     this.sdkDirectory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
     initializeLibraryMap();
-    if (AnalysisEngine.getInstance().getUseExperimentalContext()) {
-      analysisContext = new AnalysisContextImpl2();
-    } else {
-      analysisContext = new AnalysisContextImpl();
-    }
+    analysisContext = new AnalysisContextImpl();
     analysisContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
     String[] uris = getUris();
     ChangeSet changeSet = new ChangeSet();
@@ -246,7 +241,7 @@ public class DirectoryBasedDartSdk implements DartSdk {
     this.sdkDirectory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
     initializeLibraryMap();
-    analysisContext = new AnalysisContextImpl2();
+    analysisContext = new AnalysisContextImpl();
     analysisContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
     String[] uris = getUris();
     ChangeSet changeSet = new ChangeSet();

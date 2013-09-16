@@ -1,6 +1,5 @@
 package com.google.dart.engine.internal.context;
 
-import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContentStatistics;
 import com.google.dart.engine.context.AnalysisContext;
@@ -63,8 +62,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
    * {@link AnalysisContextImpl} as the basis context.
    */
   public InstrumentedAnalysisContextImpl() {
-    this(AnalysisEngine.getInstance().getUseExperimentalContext()
-        ? new DelegatingAnalysisContextImpl2() : new DelegatingAnalysisContextImpl());
+    this(new DelegatingAnalysisContextImpl());
   }
 
   /**
