@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component xmlns="http://eclipse.org/wtp/releng/tools/component-model"
+	name="org.eclipse.wst.common">
+	<component-depends unrestricted="true"></component-depends>
+	<plugin id="org.eclipse.wst.common.ui" fragment="false" />
+	<plugin id="org.eclipse.wst.common.ui.properties" fragment="false" />
+	<plugin id="org.eclipse.wst.common.uriresolver" fragment="false" />
+	
+<!--	<description url="http://eclipse.org/webtools/wst/components/common/overview.html" /> -->
+
+<!--	<package name="org.eclipse.wst.common.ui.viewers"> -->
+<!--		<type name="SelectSingleFileView" />  -->  <!-- ?, does eclipse provide better support? -->
+<!--		<type name="ResourceFilter" /> -->
+<!--		<type name="SelectMultiFilePage" /> -->
+<!--		<type name="SelectSingleFilePage" /> -->
+<!--		<type name="TableNavigator" /> -->       <!-- No, should be in eclipse base -->
+<!--		<type name="NavigableTableViewer" /> --> <!-- No, should be in eclipse base -->
+<!--	</package> -->
+<!--	<package name="org.eclipse.wst.common.ui.actionhandler.action"> -->
+<!--		<type name="CutAction" />  -->    <!-- No to these four,  should be removed? -->
+<!--		<type name="PasteAction" /> -->
+<!--		<type name="CopyAction" />  -->
+<!--		<type name="EditAction" /> -->
+<!--	</package>  -->
+<!--	<package name="org.eclipse.wst.common.ui"> -->
+<!--  	<type name="UIPlugin" />  -->    <!-- No, delete this -->
+<!-- 	<type name="OverlayIconManager" />  --> <!--  No -->
+<!--  	<type name="WindowUtility" />  -->   <!-- Remove class, clean up xsd.ui -->
+<!--    <type name="ImageFactory" />  -->   <!-- No -->
+<!--	</package> -->
+<!--	<package name="org.eclipse.wst.common.ui.wizards">  -->
+<!--  		<type name="ExampleProjectCreationOperation" />  -->  <!-- referenced externally only within package (ExampleProjectCreationWizardPage -->
+<!-- 		<type name="ExampleProjectCreationWizardPage" /> --> <!-- referenced externally only within package (ExampleProjectCreationWizard, and Operation -->
+<!--  		<type name="ExampleProjectCreationWizard" />  --> <!-- referenced by XMLExampleProjectCreationWizard, which is deprecated and going to be removed in M4  -->
+<!--	</package> -->
+<!--	<package name="org.eclipse.wst.common.ui.dnd"> -->
+<!--		<type name="ViewerDropAdapter" />  -->
+<!--		<type name="DragAndDropCommand" /> -->  <!-- referenced externally only within package -->
+<!--		<type name="DragAndDropManager" /> -->  <!--   -->
+<!--		<type name="ObjectTransfer" />  -->
+<!--		<type name="DefaultDragAndDropCommand" />  -->
+<!--		<type name="ViewerDragAdapter" /> -->
+<!--	</package>  -->
+<!--	<package name="org.eclipse.wst.common.ui.resource"> -->
+<!--		<type name="ResourceDeleteListener" />  -->  <!-- no references -->
+<!--	</package> -->
+<!--	<package name="org.eclipse.wst.common.ui.dialogs">  -->
+<!--		<type name="SelectSingleFileDialog" />  -->    <!-- No, should look into base for support? -->
+<!--	</package>  -->
+<!--	<package name="org.eclipse.wst.common.ui.actionhandler">
+		<type name="ActionHandlerListener" />
+	</package>
+-->
+<!-- provisional APIs -->
+<!--
+	<package name="org.eclipse.wst.common.uriresolver">
+		<type name="URIResolverPlugin"  subclass="false" instantiate="false"/>
+		<type name="URIResolver" implement="false"/>
+		<type name="URIResolverExtension" implement="true"/>
+	</package>
+-->
+</component>

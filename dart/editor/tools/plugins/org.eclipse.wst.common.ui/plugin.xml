@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+
+  <extension-point id="exampleProjectCreationWizard" name="Example Project Creation Wizard" schema="schema/exampleProjectCreationWizard.exsd"/>
+  <extension
+	point="org.eclipse.search.searchResultViewPages">
+	<viewPage
+		id="org.eclipse.wst.common.ui.internal.search.SearchResultPage"
+		searchResultClass="org.eclipse.wst.common.ui.internal.search.SearchResult"
+		class="org.eclipse.wst.common.ui.internal.search.SearchResultPage">
+	</viewPage>
+  </extension>
+ 
+  <!--
+   <extension point="org.eclipse.ui.popupMenus"> 
+      <objectContribution 
+         id="test" 
+         objectClass="org.eclipse.core.resources.IFile">  
+         <action
+            id="testit" 
+            enablesFor="1"
+            style="pulldown"
+            menubarPath="additions"
+            label="TEST SEARCH DIALOG" 
+            class="org.eclipse.wst.common.ui.internal.search.dialogs.Test"> 
+         </action>          
+      </objectContribution>               
+    </extension> 
+   -->
+</plugin>
