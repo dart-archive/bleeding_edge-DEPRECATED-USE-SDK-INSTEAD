@@ -1,0 +1,1720 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.3"?>
+<plugin>
+
+	<extension-point id="catalogFileType" name="%XML_Catalog_File_Type_Extension_Point.name" schema="schema/catalogFileType.exsd"/>
+
+	<extension point="org.eclipse.wst.xml.ui.catalogFileType">
+		<fileType
+			extensions="dtd, ent, mod"
+			description="%_UI_PREF_DTD_FILES"
+			id="org.eclipse.wst.xml.core.ui.catalogFileType.dtd">
+		</fileType>
+		<fileType
+			extensions="xsd"
+			description="%_UI_PREF_XSD_FILES"
+			id="org.eclipse.wst.xml.core.ui.catalogFileType.xsd">
+		</fileType>
+		<fileType
+			extensions="tld"
+			description="%_UI_PREF_TAGLIB_DEF_FILES"
+			id="org.eclipse.wst.xml.core.ui.catalogFileType.tld">
+		</fileType>
+		<fileType
+			extensions="xml, cat, xmlcatalog"
+			description="%_UI_PREF_CATALOG_FILES"
+			id="org.eclipse.wst.xml.core.ui.catalogFileType.cat">
+		</fileType>
+	</extension>
+
+	<!--The org.eclipse.wst.xml.core.xmlsource content type is only for
+		handling some special cases of ill-formed xml in a reasonable
+		manner, and should not be emulated by clients. The two content
+		types are often used interchangeably by the XML component, but
+		please use org.eclipse.core.runtime.xml instead. -->
+	<extension point="org.eclipse.wst.sse.ui.editorConfiguration">
+		<sourceViewerConfiguration
+			class="org.eclipse.wst.xml.ui.StructuredTextViewerConfigurationXML"
+			target="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource" />
+		<contentOutlineConfiguration
+			class="org.eclipse.wst.xml.ui.views.contentoutline.XMLContentOutlineConfiguration"
+			target="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource" />
+		<quickOutlineConfiguration
+			class="org.eclipse.wst.xml.ui.internal.quickoutline.XMLQuickOutlineConfiguration"
+			target="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource" />
+		<propertySheetConfiguration
+			class="org.eclipse.wst.xml.ui.views.properties.XMLPropertySheetConfiguration"
+			target="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource" />
+		<documentationTextHover
+        	class="org.eclipse.wst.xml.ui.internal.taginfo.XMLTagInfoHoverProcessor"
+        	target="org.eclipse.wst.xml.XML_DEFAULT">
+  		</documentationTextHover>
+  		<doubleClickStrategy
+        	class="org.eclipse.wst.xml.ui.internal.doubleclick.XMLDoubleClickStrategy"
+        	target="org.eclipse.wst.xml.XML_DEFAULT">
+  		</doubleClickStrategy>
+		<provisionalConfiguration
+			type="sourceeditingtexttools"
+			class="org.eclipse.wst.xml.ui.internal.provisional.XMLSourceEditingTextTools"
+			target="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource" />
+		<provisionalConfiguration
+			type="characterpairmatcher"
+			class="org.eclipse.wst.xml.ui.internal.text.XMLDocumentRegionEdgeMatcher"
+			target="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource" />
+		<provisionalConfiguration
+			type="foldingstrategy"
+			class="org.eclipse.wst.xml.ui.internal.projection.XMLFoldingStrategy"
+			target="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource" />
+		<provisionalConfiguration
+			type="org.eclipse.jface.text.quickassist.IQuickAssistProcessor"
+			class="org.eclipse.wst.xml.ui.internal.correction.XMLQuickAssistProcessor"
+			target="org.eclipse.wst.xml.XML_DEFAULT" />
+		<provisionalConfiguration
+			type="autoeditstrategy"
+			class="org.eclipse.wst.xml.ui.internal.autoedit.StructuredAutoEditStrategyXML"
+			target="org.eclipse.wst.xml.XML_DEFAULT" />
+		<provisionalDefinition
+			type="preferencepages"
+			value="org.eclipse.wst.xml.ui.preferences.xml.xml, org.eclipse.wst.sse.ui.preferences.xml.source, org.eclipse.wst.sse.ui.preferences.xml.templates, org.eclipse.wst.sse.ui.preferences.xml.colors, org.eclipse.wst.sse.ui.preferences.xml.contentassist"
+			target="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource" />
+		<provisionalDefinition
+			type="spellingregions"
+			value="XML_COMMENT_TEXT, XML_CONTENT, XML_DEFAULT"
+			target="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource" />
+		<provisionalDefinition
+			type="activecontexts"
+			value="org.eclipse.core.runtime.xml, org.eclipse.wst.xml.navigation, org.eclipse.wst.xml.cleanup, org.eclipse.wst.xml.selection, org.eclipse.wst.xml.dependencies, org.eclipse.wst.xml.grammar, org.eclipse.wst.xml.expand, org.eclipse.wst.xml.occurrences, org.eclipse.wst.sse.comments"
+        	target="org.eclipse.core.runtime.xml" />
+	</extension>
+	
+	<extension point="org.eclipse.ui.contexts">
+		<context
+			name="%scope.structured.text.editor.xml.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structured.text.editor.xml.description"
+			id="org.eclipse.core.runtime.xml">
+		</context>
+		<context
+			name="%scope.structured.text.editor.xml.navigation.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structured.text.editor.xml.navigation.description"
+			id="org.eclipse.wst.xml.navigation">
+		</context>
+		<context
+			name="%scope.structured.text.editor.xml.cleanup.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structured.text.editor.xml.cleanup.description"
+			id="org.eclipse.wst.xml.cleanup">
+		</context>
+		<context
+			name="%scope.structured.text.editor.xml.comments.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structured.text.editor.xml.comments.description"
+			id="org.eclipse.wst.xml.comments">
+		</context>
+		<context
+			name="%scope.structured.text.editor.xml.selection.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structured.text.editor.xml.selection.description"
+			id="org.eclipse.wst.xml.selection">
+		</context>
+		<context
+			name="%scope.structured.text.editor.xml.dependencies.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structured.text.editor.xml.dependencies.description"
+			id="org.eclipse.wst.xml.dependencies">
+		</context>
+		<context
+			name="%scope.structured.text.editor.xml.grammar.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structured.text.editor.xml.grammar.description"
+			id="org.eclipse.wst.xml.grammar">
+		</context>
+		<context
+			name="%scope.structured.text.editor.xml.expand.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structured.text.editor.xml.expand.description"
+			id="org.eclipse.wst.xml.expand">
+		</context>
+		<context
+			name="%scope.structured.text.editor.xml.occurrences.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structured.text.editor.xml.occurrences.description"
+			id="org.eclipse.wst.xml.occurrences">
+		</context>
+	</extension>
+	
+	<extension
+		point="org.eclipse.core.filebuffers.annotationModelCreation">
+		<factory
+			contentTypeId="org.eclipse.core.runtime.xml"
+			class="org.eclipse.wst.sse.ui.internal.StructuredResourceMarkerAnnotationModelFactory" />
+		<factory
+			contentTypeId="org.eclipse.wst.xml.core.xmlsource"
+			class="org.eclipse.wst.sse.ui.internal.StructuredResourceMarkerAnnotationModelFactory" />
+	</extension>
+	<extension
+		point="org.eclipse.wst.sse.ui.adapterFactoryDescription">
+		<adapterFactoryDescription
+			class="org.eclipse.wst.xml.ui.internal.registry.AdapterFactoryProviderForXML">
+			<contentType id="org.eclipse.core.runtime.xml" />
+			<contentType id="org.eclipse.wst.xml.core.xmlsource" />
+		</adapterFactoryDescription>
+	</extension>
+	<extension point="org.eclipse.ui.preferencePages">
+		<!-- The "top-level" XML category -->
+		<page
+			name="%XML.name"
+			class="org.eclipse.wst.xml.ui.internal.preferences.EmptyFilePreferencePage"
+			id="org.eclipse.wst.xml.ui.preferences.xml">
+		</page>
+		<!-- The "lower level" XML Files category/page -->
+		<page
+			name="%XML_Files.name"
+			category="org.eclipse.wst.xml.ui.preferences.xml"
+			class="org.eclipse.wst.xml.ui.internal.preferences.XMLFilesPreferencePage"
+			id="org.eclipse.wst.xml.ui.preferences.xml.xml">
+         	<keywordReference id="org.eclipse.wst.xml.ui.files"/>
+        </page>
+		<!-- XML PREFERENCE PAGES -->
+		<page
+			name="%XML_Source.name"
+			category="org.eclipse.wst.xml.ui.preferences.xml.xml"
+			class="org.eclipse.wst.xml.ui.internal.preferences.XMLSourcePreferencePage"
+			id="org.eclipse.wst.sse.ui.preferences.xml.source">
+         	<keywordReference id="org.eclipse.wst.xml.ui.source"/>
+		</page>
+		<page
+			name="%XML_Content_Assist.name"
+			category="org.eclipse.wst.sse.ui.preferences.xml.source"
+			class="org.eclipse.wst.xml.ui.internal.preferences.XMLContentAssistPreferencePage"
+			id="org.eclipse.wst.sse.ui.preferences.xml.contentassist">
+         	<keywordReference id="org.eclipse.wst.xml.ui.contentassist"/>
+		</page>
+		<page
+			name="%XML_Templates.name"
+			category="org.eclipse.wst.sse.ui.preferences.xml.source"
+			class="org.eclipse.wst.xml.ui.internal.preferences.XMLTemplatePreferencePage"
+			id="org.eclipse.wst.sse.ui.preferences.xml.templates">
+         	<keywordReference id="org.eclipse.wst.xml.ui.templates"/>
+		</page>
+		<page
+			name="%XML_Syntax_Coloring"
+			category="org.eclipse.wst.sse.ui.preferences.xml.source"
+			class="org.eclipse.wst.xml.ui.internal.preferences.XMLSyntaxColoringPage"
+			id="org.eclipse.wst.sse.ui.preferences.xml.colors">
+         	<keywordReference id="org.eclipse.wst.xml.ui.styles"/>
+		</page>
+		<page
+			name="%_UI_PREF_XML_CATALOG"
+			category="org.eclipse.wst.xml.ui.preferences.xml"
+			class="org.eclipse.wst.xml.ui.internal.catalog.XMLCatalogPreferencePage"
+			id="org.eclipse.wst.xml.core.ui.XMLCatalogPreferencePage">
+         	<keywordReference id="org.eclipse.wst.xml.ui.xmlcatalog"/>
+		</page>
+		<page
+			name="%XML_Typing"
+			category="org.eclipse.wst.sse.ui.preferences.xml.source"
+			class="org.eclipse.wst.xml.ui.internal.preferences.XMLTypingPreferencePage"
+			id="org.eclipse.wst.sse.ui.preferences.xml.typing">
+		</page>
+    	<page
+            name="%XML_Validator.name"
+            category="org.eclipse.wst.xml.ui.preferences.xml.xml"
+            class="org.eclipse.wst.xml.ui.internal.preferences.XMLValidatorPreferencePage"
+            id="org.eclipse.wst.sse.ui.preferences.xml.validation">
+       	    <keywordReference id="org.eclipse.wst.xml.ui.severities"/>
+    	</page>
+	</extension>
+	
+	<!-- Web content settings -->
+	<extension point="org.eclipse.ui.propertyPages">
+		<page
+			name="%XML_Property_validation"
+			class="org.eclipse.wst.xml.ui.internal.preferences.XMLValidatorPreferencePage"
+			id="org.eclipse.wst.xml.ui.propertyPage.project.validation"
+			category="ValidationPropertiesPage">
+			<enabledWhen>
+				<adapt type="org.eclipse.core.resources.IProject">
+					
+				</adapt>
+			</enabledWhen>
+		</page>
+	</extension>
+	<!-- Keywords for preference and properties pages -->
+	<extension point="org.eclipse.ui.keywords">
+		<keyword
+			label="%preferenceKeywords.files"
+			id="org.eclipse.wst.xml.ui.files"/>
+		<keyword
+			label="%preferenceKeywords.source"
+			id="org.eclipse.wst.xml.ui.source"/>
+		<keyword
+			label="%preferenceKeywords.contentassist"
+			id="org.eclipse.wst.xml.ui.contentassist"/>
+		<keyword
+			label="%preferenceKeywords.templates"
+			id="org.eclipse.wst.xml.ui.templates"/>
+		<keyword
+			label="%preferenceKeywords.styles"
+			id="org.eclipse.wst.xml.ui.styles"/>
+		<keyword
+			label="%preferenceKeywords.xmlcatalog"
+			id="org.eclipse.wst.xml.ui.xmlcatalog"/>
+		<keyword
+			label="%preferenceKeywords.severities"
+			id="org.eclipse.wst.xml.ui.severities"/>
+    </extension>
+	
+	<!-- Editor actionsets -->
+	<extension point="org.eclipse.ui.actionSetPartAssociations">
+		<actionSetPartAssociation
+			targetID="org.eclipse.ui.edit.text.actionSet.annotationNavigation">
+			<part id="org.eclipse.core.runtime.xml.source"></part>
+			<part id="org.eclipse.core.runtime.xml.source2"></part>
+		</actionSetPartAssociation>
+		<actionSetPartAssociation
+			targetID="org.eclipse.ui.NavigateActionSet">
+			<part id="org.eclipse.core.runtime.xml.source"></part>
+			<part id="org.eclipse.core.runtime.xml.source2"></part>
+		</actionSetPartAssociation>
+	</extension>
+
+	<!-- Templates -->
+	<extension point="org.eclipse.ui.editors.templates">
+		<contextType
+			name="%All_XML_context_type_Extension_Element.name"
+			class="org.eclipse.wst.xml.ui.internal.templates.TemplateContextTypeXML"
+			id="xml_all">
+		</contextType>
+		<contextType
+			name="%XML_New_context_type_Extension_Element.name"
+			class="org.eclipse.wst.xml.ui.internal.templates.TemplateContextTypeXML"
+			id="xml_new">
+		</contextType>
+		<contextType
+			name="%XML_Tag_context_type_Extension_Element.name"
+			class="org.eclipse.wst.xml.ui.internal.templates.TemplateContextTypeXML"
+			id="xml_tag">
+		</contextType>
+		<contextType
+			name="%XML_Attribute_context_type_Extension_Element.name"
+			class="org.eclipse.wst.xml.ui.internal.templates.TemplateContextTypeXML"
+			id="xml_attribute">
+		</contextType>
+		<contextType
+			name="%XML_Attribute_value_context_type_Extension_Element.name"
+			class="org.eclipse.wst.xml.ui.internal.templates.TemplateContextTypeXML"
+			id="xml_attribute_value">
+		</contextType>
+		<include
+			file="templates/xmldefault-templates.xml"
+			translations="$nl$/templates/xmldefault-templates.properties">
+		</include>
+	</extension>
+
+	<extension point="org.eclipse.ui.editors">
+		<editor
+			name="%XML_Editor.name"
+			icon="$nl$/icons/xmldoc.gif"
+			contributorClass="org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorActionBarContributor"
+			class="org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart"
+			symbolicFontName="org.eclipse.wst.sse.ui.textfont"
+			id="org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart">
+			<contentTypeBinding
+				contentTypeId="org.eclipse.core.runtime.xml" />
+			<contentTypeBinding
+				contentTypeId="org.eclipse.wst.xml.core.xmlsource" />
+
+		</editor>
+	</extension>
+
+	<!-- Editor actionsets -->
+	<extension point="org.eclipse.ui.actionSetPartAssociations">
+		<actionSetPartAssociation
+			targetID="org.eclipse.ui.edit.text.actionSet.annotationNavigation">
+			<part
+				id="org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart">
+			</part>
+		</actionSetPartAssociation>
+		<actionSetPartAssociation
+			targetID="org.eclipse.ui.NavigateActionSet">
+			<part
+				id="org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart">
+			</part>
+		</actionSetPartAssociation>
+	</extension>
+
+
+
+	<!-- ================================================== -->
+	<!-- Contribute a 'New Wizard' for XML files            -->
+	<!-- ================================================== -->
+	<extension point="org.eclipse.ui.newWizards">
+		<category
+			name="%_UI_WIZARD_XML_CATEGORY"
+			id="org.eclipse.wst.XMLCategory">
+		</category>
+		<wizard
+			name="%_UI_WIZARD_NEW_XML"
+			icon="/icons/full/etool16/new_xml.gif"
+			category="org.eclipse.wst.XMLCategory"
+			class="org.eclipse.wst.xml.ui.internal.wizards.NewXMLWizard"
+			id="org.eclipse.wst.xml.ui.internal.wizards.NewXMLWizard">
+			<description>%_UI_CREATE_NEW_XML_FILE</description>
+			<selection class="org.eclipse.core.resources.IResource">
+			</selection>
+		</wizard>
+	</extension>
+
+	<!-- =============================================================================== -->
+	<!-- Allow the 'New XML' wizard to be accessed via the 'Generate' menu on a XSD file -->
+	<!-- =============================================================================== -->
+<!--
+	<extension point="org.eclipse.ui.popupMenus">
+		<objectContribution
+			objectClass="org.eclipse.core.resources.IFile"
+			nameFilter="*.xsd"
+			id="org.eclipse.wst.xmlwizard.createXMLFromXSD">
+			<menu
+				label="%genMenuLabel"
+				path="additions"
+				id="generateXMLArtifacts">
+				<separator name="xml" />
+			</menu>
+			<action
+				label="%_UI_ACTION_CREATE_XML"
+				class="org.eclipse.wst.xml.ui.internal.wizards.XMLImportActionDelegate"
+				menubarPath="generateXMLArtifacts/xml"
+				enablesFor="1"
+				id="org.eclipse.wst.xmlwizard.createXMLFromXSDAction">
+			</action>
+		</objectContribution>
+	</extension>
+-->
+
+	<!-- =============================================================================== -->
+	<!-- Allow the 'New XML' wizard to be accessed via the 'Generate' menu on a DTD file -->
+	<!-- =============================================================================== -->
+<!--	
+	<extension point="org.eclipse.ui.popupMenus">
+		<objectContribution
+			objectClass="org.eclipse.core.resources.IFile"
+			nameFilter="*.dtd"
+			id="org.eclipse.wst.xmlwizard.createXMLFromDTD">
+			<menu
+				label="%genMenuLabel"
+				path="additions"
+				id="generateXMLArtifacts">
+				<separator name="xml" />
+			</menu>
+			<action
+				label="%_UI_ACTION_CREATE_XML"
+				class="org.eclipse.wst.xml.ui.internal.wizards.XMLImportActionDelegate"
+				menubarPath="generateXMLArtifacts/xml"
+				enablesFor="1"
+				id="org.eclipse.wst.xmlwizard.createXMLFromDTDAction">
+			</action>
+		</objectContribution>
+	</extension>
+-->
+
+	<!-- =============================================================================== -->
+	<!-- Contribute a New->Example... entry for Editing and Validating XML files         -->
+	<!-- =============================================================================== -->
+
+	<!-- define the XMLSamples project wizard -->
+	<extension point="org.eclipse.ui.newWizards">
+		<category
+			name="%_UI_WIZARD_XML_CATEGORY"
+			parentCategory="org.eclipse.ui.Examples"
+			id="org.eclipse.wst.xml.examples">
+		</category>
+		<wizard
+			name="%XMLExample.name"
+			class="org.eclipse.wst.xml.ui.internal.wizards.ExampleProjectCreationWizard"
+			category="org.eclipse.ui.Examples/org.eclipse.wst.xml.examples"
+			id="org.eclipse.wst.xml.ui.XMLExampleProjectCreationWizard"
+			project="true"
+			icon="$nl$/icons/newSampleProject_wiz.gif">
+			<description>
+				%XMLExampleProjectCreationWizard.description
+			</description>
+		</wizard>
+	</extension>
+
+	<!-- configure the XMLSamples project wizard -->
+	<extension
+		point="org.eclipse.wst.common.ui.exampleProjectCreationWizard"
+		id="XMLExampleProjectCreationWizardExtension">
+		<wizard
+			id="org.eclipse.wst.xml.ui.XMLExampleProjectCreationWizard"
+			banner="icons/newSampleProject_wizbanner.png">
+			<projectsetup
+				pagetitle="%XMLExampleProjectCreationWizard.pagetitle"
+				name="%XMLExampleProjectCreationWizard.projectname"
+				label="%XMLExampleProjectCreationWizard.label"
+				pagedescription="%XMLExampleProjectCreationWizard.pagedescription"
+				open="readme.html">
+				<import
+					dest=""
+					src="examples/EditingAndValidatingXML.zip" />
+			</projectsetup>
+		</wizard>
+	</extension>
+
+	<extension point="org.eclipse.core.runtime.adapters">
+		<factory
+			adaptableType="org.eclipse.wst.xml.core.internal.provisional.document.IDOMModel"
+			class="org.eclipse.wst.xml.ui.internal.editor.DOMSelectionConvertorFactory">
+			<adapter
+            	type="org.eclipse.wst.sse.ui.internal.editor.SelectionConvertor"/>
+		</factory>
+		<factory
+			adaptableType="org.eclipse.wst.xml.core.internal.provisional.document.IDOMModel"
+			class="org.eclipse.wst.xml.ui.internal.spelling.SpellcheckDelegateAdapterFactory">
+			<adapter
+            	type="org.eclipse.wst.sse.ui.internal.spelling.ISpellcheckDelegate"/>
+		</factory>
+	</extension>
+
+	<!-- initialize xml ui preferences -->
+	<extension point="org.eclipse.core.runtime.preferences">
+		<initializer
+			class="org.eclipse.wst.xml.ui.internal.preferences.XMLUIPreferenceInitializer" />
+	</extension>
+
+	<extension point="org.eclipse.wst.sse.ui.sourcevalidation">
+		<validator
+			scope="total"
+			class="org.eclipse.wst.xml.ui.internal.validation.DelegatingSourceValidatorForXML"
+			id="org.eclipse.wst.xml.ui.internal.validation.DelegatingSourceValidatorForXML">
+			<contentTypeIdentifier id="org.eclipse.core.runtime.xml">
+				<partitionType id="org.eclipse.wst.xml.XML_DEFAULT"/>
+				<partitionType id="org.eclipse.wst.xml.XML_COMMENT"/>
+				<partitionType id="org.eclipse.wst.sse.ST_DEFAULT"/>
+                <partitionType id="org.eclipse.wst.xml.XML_PI"/> 
+			</contentTypeIdentifier>
+			<contentTypeIdentifier id="org.eclipse.wst.xml.core.xmlsource">
+				<partitionType id="org.eclipse.wst.xml.XML_DEFAULT"/>
+				<partitionType id="org.eclipse.wst.xml.XML_COMMENT"/>
+				<partitionType id="org.eclipse.wst.sse.ST_DEFAULT"/>
+                <partitionType id="org.eclipse.wst.xml.XML_PI"/>
+			</contentTypeIdentifier>
+		</validator>
+	</extension>
+	
+		
+   <extension point="org.eclipse.ui.editors.annotationTypes">
+      <type name="org.eclipse.wst.xml.ui.matching.tag"/>
+   </extension>
+   <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+      		includeOnPreferencePage="true"
+            colorPreferenceValue="212,212,212"
+            annotationType="org.eclipse.wst.xml.ui.matching.tag"
+            colorPreferenceKey="matchingTagIndicationColor"
+            presentationLayer="4"
+            label="%MatchingTagPreference.label"
+            icon="icons/full/obj16/tag-generic.gif"
+            textPreferenceValue="false"
+            textPreferenceKey="matchingTagIndication"
+            highlightPreferenceKey="matchingTagHighlight"
+            highlightPreferenceValue="true"
+            verticalRulerPreferenceKey="matchingTagVerticalRuler"
+            verticalRulerPreferenceValue="false"
+            overviewRulerPreferenceKey="matchingTagIndicationInOverviewRuler"
+            overviewRulerPreferenceValue="true"
+            textStylePreferenceKey="matchingTagTextStyle"
+			textStylePreferenceValue="NONE">
+      </specification>
+   </extension>
+
+	<!--======================================================================================-->
+	<!-- Document provider for ExternalFileEditorInput                                        -->
+	<!--======================================================================================-->
+	<extension point="org.eclipse.ui.editors.documentProviders">
+		<provider
+			inputTypes="org.eclipse.wst.xml.ui.internal.hyperlink.ExternalFileEditorInput"
+			class="org.eclipse.ui.editors.text.TextFileDocumentProvider"
+			id="org.eclipse.wst.xml.ui.internal.ExternalFileDocumentProvider">
+		</provider>
+	</extension>
+
+	<!-- To Do: migrate this to the org.eclipse.ui.menus popup: format -->
+	<extension point="org.eclipse.ui.popupMenus">
+		<viewerContribution
+			targetID="org.eclipse.core.runtime.xml.source.RulerContext"
+			id="org.eclipse.ui.texteditor.ruler.context.actions">
+			<action
+				label="%AddTask.label"
+				helpContextId="org.eclipse.ui.AddTask_action_context"
+				class="org.eclipse.ui.texteditor.TaskRulerAction"
+				tooltip="%AddTask.tooltip"
+				menubarPath="additions"
+				id="org.eclipse.ui.texteditor.TaskRulerAction">
+			</action>
+			<action
+				label="%AddBookmark.label"
+				helpContextId="org.eclipse.ui.bookmark_action_context"
+				class="org.eclipse.ui.texteditor.BookmarkRulerAction"
+				tooltip="%AddBookmark.tooltip"
+				menubarPath="additions"
+				id="org.eclipse.ui.texteditor.BookmarkRulerAction">
+			</action>
+		</viewerContribution>
+	</extension>
+
+	<!--======================================================================================-->
+	<!-- Pop-up menu and associated command/handler for nested validation messages.           -->
+	<!--======================================================================================-->
+
+	<extension point="org.eclipse.ui.menus">
+      <menuContribution locationURI="popup:org.eclipse.ui.ide.MarkersView">
+          <command commandId="org.eclipse.wst.xml.ui.referencedFileErrors">
+             <visibleWhen checkEnabled="false">
+				<reference definitionId="org.eclipse.wst.xml.ui.referencedFileErrors" />
+             </visibleWhen>
+         </command>
+      </menuContribution>
+	</extension>
+	
+	<extension point="org.eclipse.ui.commands">
+		<command
+			description="%_UI_REF_FILE_SHOW_DETAILS"
+			id="org.eclipse.wst.xml.ui.referencedFileErrors" 
+			name="%_UI_REF_FILE_SHOW_DETAILS" />
+	</extension>
+	
+    <extension point="org.eclipse.ui.handlers">
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.validation.core.errorinfo.ReferencedFileErrorsHandler"
+             commandId="org.eclipse.wst.xml.ui.referencedFileErrors">
+             <enabledWhen>
+				<reference definitionId="org.eclipse.wst.xml.ui.referencedFileErrors" />
+             </enabledWhen>
+       </handler>
+	</extension>
+	
+	<extension point="org.eclipse.core.expressions.propertyTesters">
+	   <propertyTester
+	         class="org.eclipse.wst.xml.ui.internal.validation.core.errorinfo.GroupNamePropertyTester"
+	         id="org.eclipse.wst.xml.ui.markerGroupNamePropertyTester"
+	         namespace="org.eclipse.wst.xml.ui"
+	         properties="groupNamePrefix"
+	         type="org.eclipse.core.resources.IMarker">
+	   </propertyTester>
+	</extension>
+	 
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.xml.ui.referencedFileErrors">
+                <and>
+                   <count value="1" />
+                   <with variable="selection">
+                   		<iterate operator="or">
+                      		<adapt type="org.eclipse.core.resources.IMarker">
+                            	<test property="org.eclipse.wst.xml.ui.groupNamePrefix" value="referencedFileError" forcePluginActivation="true" />
+                      		</adapt>
+                   		</iterate>
+                	</with>
+                </and>
+		</definition>
+	</extension>	 
+
+<!--	
+	<extension point="org.eclipse.ui.editorActions">
+		<editorContribution
+			id="org.eclipse.core.runtime.xml.source.editorActions"
+			targetID="org.eclipse.core.runtime.xml.source">
+			<action
+				id="CleanupDocument"
+				label="%CleanupDocument_label"
+				definitionId="org.eclipse.wst.sse.ui.cleanup.document"
+				tooltip="%CleanupDocument_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.actions.CleanupActionXMLDelegate"
+				actionID="CleanupDocument">
+			</action>
+			<action
+				id="ToggleComment"
+				label="%ToggleComment_label"
+				definitionId="org.eclipse.wst.sse.ui.toggle.comment"
+				tooltip="%ToggleComment_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.actions.ToggleCommentActionXMLDelegate"
+				actionID="ToggleComment">
+			</action>
+			<action
+				id="AddBlockComment"
+				label="%AddBlockComment_label"
+				definitionId="org.eclipse.wst.sse.ui.add.block.comment"
+				tooltip="%AddBlockComment_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.actions.AddBlockCommentActionXMLDelegate"
+				actionID="AddBlockComment">
+			</action>
+			<action
+				id="RemoveBlockComment"
+				label="%RemoveBlockComment_label"
+				definitionId="org.eclipse.wst.sse.ui.remove.block.comment"
+				tooltip="%RemoveBlockComment_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.actions.RemoveBlockCommentActionXMLDelegate"
+				actionID="RemoveBlockComment">
+			</action>
+			<action
+				id="FindOccurrences"
+				label="%FindOccurrences_label"
+				definitionId="org.eclipse.wst.sse.ui.search.find.occurrences"
+				class="org.eclipse.wst.xml.ui.internal.search.XMLFindOccurrencesActionDelegate"
+				actionID="FindOccurrences">
+			</action>
+			<action
+				id="StructureSelectEnclosing"
+				label="%StructureSelectEnclosing_label"
+				definitionId="org.eclipse.wst.sse.ui.structure.select.enclosing"
+				tooltip="%StructureSelectEnclosing_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.selection.StructuredSelectEnclosingXMLActionDelegate"
+				actionID="StructureSelectEnclosing">
+			</action>
+			<action
+				id="StructureSelectNext"
+				label="%StructureSelectNext_label"
+				definitionId="org.eclipse.wst.sse.ui.structure.select.next"
+				tooltip="%StructureSelectNext_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.selection.StructuredSelectNextXMLActionDelegate"
+				actionID="StructureSelectNext">
+			</action>
+			<action
+				id="StructureSelectPrevious"
+				label="%StructureSelectPrevious_label"
+				definitionId="org.eclipse.wst.sse.ui.structure.select.previous"
+				tooltip="%StructureSelectPrevious_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.selection.StructuredSelectPreviousXMLActionDelegate"
+				actionID="StructureSelectPrevious">
+			</action>
+			<action
+				id="StructureSelectHistory"
+				label="%StructureSelectHistory_label"
+				definitionId="org.eclipse.wst.sse.ui.structure.select.last"
+				tooltip="%StructureSelectHistory_tooltip"
+				class="org.eclipse.wst.sse.ui.internal.selection.StructuredSelectHistoryActionDelegate"
+				actionID="StructureSelectHistory">
+			</action>
+		</editorContribution>-->
+	<extension point="org.eclipse.ui.editorActions">
+        <editorContribution
+            targetID="org.eclipse.core.runtime.xml.source"
+            id="org.eclipse.core.runtime.xml.source.ruler.actions">
+         <action
+               label="%AddBookmark.label"
+               helpContextId="org.eclipse.ui.bookmark_action_context"
+               class="org.eclipse.ui.texteditor.BookmarkRulerAction"
+               actionID="RulerDoubleClick"
+               id="org.eclipse.ui.texteditor.BookmarkRulerAction"/>
+         <action
+               label="%SelectRuler.label"
+               class="org.eclipse.ui.texteditor.SelectRulerAction"
+               actionID="RulerClick"
+               id="org.eclipse.ui.texteditor.SelectRulerAction"/>
+        </editorContribution>
+	</extension>
+
+	<extension
+		point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectorTargets">
+		<target
+			id="org.eclipse.core.runtime.xml"
+			name="%XML_Source_target_name">
+		</target>
+	</extension>
+	<extension
+		point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
+		<hyperlinkDetector
+			class="org.eclipse.wst.xml.ui.internal.hyperlink.XMLHyperlinkDetector"
+			id="org.eclipse.wst.xml.ui.internal.hyperlink.XMLHyperlinkDetector"
+			name="%XML_hyperlink"
+			targetId="org.eclipse.core.runtime.xml">
+		</hyperlinkDetector>
+   </extension>
+ <extension
+       point="org.eclipse.ui.importWizards">
+    <category
+          id="org.eclipse.wst.XMLCategory"
+          name="%_UI_WIZARD_XML_CATEGORY">
+    </category>
+    <wizard
+          category="org.eclipse.wst.XMLCategory"
+          class="org.eclipse.wst.xml.ui.internal.wizards.ImportXMLCatalogWizard"
+          icon="icons/xmldoc.gif"
+          id="org.eclipse.wst.xml.ui.internal.wizards.ImportXMLCatalogWizard"
+          name="%_UI_WIZARD_IMPORT_EXPORT_XMLCATALOG">
+       <description>
+          %_UI_IMPORT_XML_CATALOG_FILE
+       </description>
+    </wizard>
+ </extension>
+ <extension
+       point="org.eclipse.ui.exportWizards">
+    <category
+          id="org.eclipse.wst.XMLCategory"
+          name="%_UI_WIZARD_XML_CATEGORY">
+    </category>
+    <wizard
+          category="org.eclipse.wst.XMLCategory"
+          class="org.eclipse.wst.xml.ui.internal.wizards.ExportXMLCatalogWizard"
+          icon="icons/xmldoc.gif"
+          id="org.eclipse.wst.xml.ui.internal.wizards.ExportXMLCatalogWizard"
+          name="%_UI_WIZARD_IMPORT_EXPORT_XMLCATALOG">
+       <description>
+          %_UI_EXPORT_XML_CATALOG_FILE
+       </description>
+    </wizard>
+ </extension>
+
+	<extension point="org.eclipse.ui.commands">
+		<!-- Navigate commands -->
+		<command
+			name="%ActionDefinition.nextSibling.name"
+			description="%ActionDefinition.nextSibling.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.xml.ui.nextSibling">
+		</command>
+		<command
+			name="%ActionDefinition.previousSibling.name"
+			description="%ActionDefinition.previousSibling.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.xml.ui.previousSibling">
+		</command>
+		<command
+			name="%ActionDefinition.gotoMatchingTag.name"
+			description="%ActionDefinition.gotoMatchingTag.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.xml.ui.gotoMatchingTag">
+		</command>
+	</extension>
+
+	<extension point="org.eclipse.ui.bindings">
+      <!--  win32:  M1=CTRL,    M2=SHIFT, M3=ALT, M4=-
+            carbon: M1=COMMAND, M2=SHIFT, M3=ALT, M4=CTRL
+            gtk: ? 
+      -->
+      <!-- Navigate commands -->
+		<key
+			sequence="M1+M2+ARROW_UP"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.xml.ui.previousSibling"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+		<key
+			platform="carbon"
+			sequence="CTRL+SHIFT+ARROW_UP"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.xml.ui.previousSibling"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+		<key
+			sequence="M1+M2+ARROW_DOWN"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.xml.ui.nextSibling"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+		<key
+			platform="carbon"
+			sequence="CTRL+SHIFT+ARROW_DOWN"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.xml.ui.nextSibling"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+		<key
+			sequence="M1+M2+&gt;"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.xml.ui.gotoMatchingTag"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+		<key
+			platform="carbon"
+			sequence="CTRL+SHIFT+."
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.xml.ui.gotoMatchingTag"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+			
+	</extension>
+	
+<!--
+   This section contains the new org.eclipse.ui.menus extions points and command handler
+   definitions.
+ -->
+ 
+	<extension point="org.eclipse.ui.menus">
+		<!-- Unable to contribute to Search menu at the moment due to bug 213385 -->
+<!--
+		<menuContribution locationURI="menu:org.eclipse.search.menu">
+-->
+	    <menuContribution locationURI="menu:goTo?after=matchingEnd">
+<!--		
+	       <command commandId="org.eclipse.wst.xml.ui.gotoMatchingTag" id="GoToMatchingTag" label="%GoToMatchingTag_label" style="push">
+			   <visibleWhen checkEnabled="false">
+				   <reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
+			   </visibleWhen>
+	       </command>
+-->		
+	       <separator name="goToSiblingsBegin" visible="true"></separator>
+	       <command commandId="org.eclipse.wst.xml.ui.nextSibling" id="GoToNextSibling" label="%ActionDefinition.nextSibling.name" style="push">
+			   <visibleWhen checkEnabled="true" />
+	       </command>
+	       <command commandId="org.eclipse.wst.xml.ui.previousSibling" id="GoToPreviousSibling" label="%ActionDefinition.previousSibling.name" style="push">
+			   <visibleWhen checkEnabled="true" />
+	       </command>
+	       <separator name="goToSiblingsEnd" visible="false"></separator>
+		</menuContribution>
+       <menuContribution
+           locationURI="menu:org.eclipse.ui.main.menu?before=window">
+        <menu
+              id="org.eclipse.wst.xml.ui.designMenuId"
+              label="%DesignMenu_name">
+           <separator
+                 name="designStart">
+           </separator>
+           <command
+                 commandId="org.eclipse.wst.xml.ui.disable.grammar.constraints"
+                 icon="icons/full/etool16/constrainon.gif"
+                 id="ToggleGrammarConstraints"
+                 mnemonic="%Constraints_mnemonic"
+                 style="push">
+                 <visibleWhen checkEnabled="false">
+                	 <and>
+                       <reference definitionId="org.eclipse.wst.xml.ui.grammar"/>
+                       <not>
+                         <reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"/>
+                       </not>
+                    </and>
+                 </visibleWhen>
+           </command>
+           <command
+                 commandId="org.eclipse.wst.xml.ui.reload.dependencies"
+                 icon="icons/full/etool16/rldgrmr.gif"
+                 id="ReloadDependencies"
+                 mnemonic="%ReloadDependencies_mnemonic"
+                 style="push">
+                 <visibleWhen checkEnabled="false">
+                	<and>
+                       <reference definitionId="org.eclipse.wst.xml.ui.dependencies"/>
+                       <not>
+                         <reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"/>
+                       </not>
+                    </and>
+                 </visibleWhen>
+           </command>
+           <separator
+                 name="expand"
+                 visible="true">
+           </separator>
+           
+           <command
+                 commandId="sed.tabletree.expandAll"
+                 icon="icons/full/etool16/expand_all.gif"
+                 id="ExpandAll"
+                 style="push">
+                 <visibleWhen checkEnabled="false">
+                    <and>
+                       <reference definitionId="org.eclipse.wst.xml.ui.expand"/>
+                       <not>
+                         <reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"/>
+                       </not>
+                    </and>
+                 </visibleWhen>
+           </command>
+           <command
+                 commandId="sed.tabletree.collapseAll"
+                 icon="icons/full/etool16/collapse_all.gif"
+                 id="CollapseAll"
+                 style="push">
+                 <visibleWhen checkEnabled="false">
+                    <and>
+                       <reference definitionId="org.eclipse.wst.xml.ui.expand"/>
+                       <not>
+                         <reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"/>
+                       </not>
+                    </and>
+                 </visibleWhen>
+           </command>
+           
+           <separator
+                 name="additions"
+                 visible="true">
+           </separator>
+           <separator
+                 name="designEnd"
+                 visible="false">
+           </separator>
+        </menu>
+     </menuContribution>
+     <menuContribution locationURI="menu:edit?after=additions">
+		<command commandId="org.eclipse.ui.edit.text.contentAssist.proposals" id="XMLContentAssist" style="push">
+		   <visibleWhen checkEnabled="false">
+				<reference definitionId="org.eclipse.wst.xml.ui.xmlSourceContributions.definition"></reference>
+			</visibleWhen>
+		</command>
+	</menuContribution>		
+     <menuContribution
+           locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+        <menu
+              id="generateMenuId"
+              label="%genMenuLabel">
+	        <command
+	              commandId="org.eclipse.wst.sse.ui.generate.xml"
+	              id="GenerateXML"
+	              style="push">
+	           <visibleWhen checkEnabled="false">
+	              <or>
+					<iterate ifEmpty="false">
+						<adapt
+							type="org.eclipse.core.resources.IFile">
+							<test
+								property="org.eclipse.wst.sse.core.resources.contentTypeId"
+                    			value="org.eclipse.wst.xsd.core.xsdsource">
+							</test>
+						</adapt>
+					</iterate>
+					<iterate ifEmpty="false">
+						<adapt
+							type="org.eclipse.core.resources.IFile">
+							<test
+								property="org.eclipse.wst.sse.core.resources.contentTypeId"
+                    			value="org.eclipse.wst.dtd.core.dtdsource">
+							</test>
+						</adapt>
+					</iterate>
+				 </or>	
+	           </visibleWhen>
+	        </command>
+        </menu>
+     </menuContribution>
+     
+     <menuContribution
+           locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+        <toolbar
+              id="org.eclipse.wst.xml.ui.design.DesignToolBar"
+              label="%editor_grammar_toolbar">
+           <separator
+                 name="sed.tabletree.separator.1"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="org.eclipse.wst.xml.ui.disable.grammar.constraints"
+                 icon="icons/full/etool16/constrainon.gif"
+                 id="ToggleGrammarConstraints"
+                 style="push"
+                 tooltip="%Constraints_name">
+	           <visibleWhen checkEnabled="true" />
+           </command>
+           <command
+                 commandId="org.eclipse.wst.xml.ui.reload.dependencies"
+                 icon="icons/full/etool16/rldgrmr.gif"
+                 id="ReloadDependencies"
+                 style="push">
+	           <visibleWhen checkEnabled="true" />
+           </command>
+        </toolbar>
+     </menuContribution>
+	</extension>
+	
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.xml.ui.xmlSourceContributions.definition">
+            <with variable="activeContexts">
+	           <iterate operator="or">
+	              <equals value="org.eclipse.core.runtime.xml"/>
+	           </iterate>
+            </with>
+		</definition>
+	</extension>
+	
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.xml.ui.core">
+			<with variable="activeContexts">
+				<iterate operator="or">
+					<equals value="org.eclipse.core.runtime.xml"/>
+				</iterate>
+			</with>
+		</definition>
+	</extension>
+	
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.xml.ui.occurrences">
+            <with variable="activeContexts">
+	           <iterate operator="or">
+	              <equals value="org.eclipse.wst.xml.occurrences"/>
+	           </iterate>
+            </with>
+		</definition>
+	</extension>
+
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.xml.ui.comments">
+			<with variable="activeContexts">
+				<iterate operator="or">
+					<equals value="org.eclipse.wst.xml.comments"/>
+				</iterate>
+			</with>
+		</definition>
+	</extension>
+
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.xml.ui.cleanup">
+			<with variable="activeContexts">
+				<iterate operator="or">
+					<equals value="org.eclipse.wst.xml.cleanup"/>
+				</iterate>
+			</with>
+		</definition>
+	</extension>
+	
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.xml.ui.navigation">
+			<with variable="activeContexts">
+				<iterate operator="or">
+					<equals value="org.eclipse.wst.xml.navigation"/>
+				</iterate>
+			</with>
+		</definition>
+	</extension>
+	
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.xml.ui.selection">
+			<with variable="activeContexts">
+				<iterate operator="or">
+					<equals value="org.eclipse.wst.xml.selection"/>
+				</iterate>
+			</with>
+		</definition>
+	</extension>
+	
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.xml.ui.dependencies">
+			<or>
+				<with variable="activeEditor">
+					<test property="org.eclipse.wst.xml.ui.editor" forcePluginActivation="true" />
+				</with>
+				<with variable="activeContexts">
+					<iterate operator="or">
+						<equals value="org.eclipse.wst.xml.dependencies"/>
+					</iterate>
+				</with>
+			</or>
+		</definition>
+	</extension>
+
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.xml.ui.grammar">
+			<or>
+				<with variable="activeEditor">
+					<test property="org.eclipse.wst.xml.ui.editor" forcePluginActivation="true" />
+				</with>
+				<with variable="activeContexts">
+					<iterate operator="or">
+						<equals value="org.eclipse.wst.xml.grammar"/>
+					</iterate>
+				</with>
+			</or>
+		</definition>
+	</extension>
+	
+	<extension point="org.eclipse.core.expressions.propertyTesters">
+		<propertyTester
+			class="org.eclipse.wst.xml.ui.internal.editor.propertytester.XMLEditorTester"
+			id="org.eclipse.wst.xml.ui.internal.editor.propertytester.XMLEditorTester"
+			namespace="org.eclipse.wst.xml.ui"
+			properties="editor"
+			type="org.eclipse.ui.IEditorPart">
+		</propertyTester>
+	</extension>
+
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.xml.ui.expand">
+			<or>
+				<with variable="activeEditorId">
+					<equals value="org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart"></equals>
+				</with>
+				<with variable="activeContexts">
+					<iterate operator="or">
+						<equals value="org.eclipse.wst.xml.expand"/>
+					</iterate>
+				</with>
+			</or>
+		</definition>
+	</extension>
+	
+    <extension
+       point="org.eclipse.ui.handlers">
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.handlers.CleanupdocumentHandler"
+             commandId="org.eclipse.wst.sse.ui.cleanup.document">
+          <activeWhen>
+			 <reference definitionId="org.eclipse.wst.xml.ui.cleanup"/>
+          </activeWhen>
+       </handler>
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.handlers.StructuredSelectEnclosingXMLHandler"
+             commandId="org.eclipse.wst.sse.ui.structure.select.enclosing">
+          <activeWhen>
+              <reference definitionId="org.eclipse.wst.xml.ui.selection"/>
+          </activeWhen>
+       </handler>
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.handlers.StructuredSelectNextXMLHandler"
+             commandId="org.eclipse.wst.sse.ui.structure.select.next">
+          <activeWhen>
+              <reference definitionId="org.eclipse.wst.xml.ui.selection"/>
+          </activeWhen>
+       </handler>
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.handlers.StructuredSelectPreviousXMLHandler"
+             commandId="org.eclipse.wst.sse.ui.structure.select.previous">
+          <activeWhen>
+              <reference definitionId="org.eclipse.wst.xml.ui.selection"/>
+          </activeWhen>
+       </handler>
+       <handler
+             class="org.eclipse.wst.sse.ui.internal.handlers.StructuredSelectHistoryHandler"
+             commandId="org.eclipse.wst.sse.ui.structure.select.last">
+          <activeWhen>
+              <reference definitionId="org.eclipse.wst.xml.ui.selection"/>
+          </activeWhen>
+       </handler>
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.handlers.XMLFindOccurencesHandler"
+             commandId="org.eclipse.wst.sse.ui.search.find.occurrences">
+          <activeWhen>
+              <reference definitionId="org.eclipse.wst.xml.ui.occurrences"/>
+          </activeWhen>
+       </handler>
+<!--
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.handlers.GoToMatchingTagHandler"
+             commandId="org.eclipse.wst.xml.ui.gotoMatchingTag">
+          <activeWhen>
+              <reference definitionId="org.eclipse.wst.xml.ui.navigation"/>
+          </activeWhen>
+          <enabledWhen>
+              <reference definitionId="org.eclipse.wst.xml.ui.navigation"/>
+          </enabledWhen>
+       </handler>
+-->
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.handlers.NextSiblingNavigationHandler"
+             commandId="org.eclipse.wst.xml.ui.nextSibling">
+          <activeWhen>
+              <reference definitionId="org.eclipse.wst.xml.ui.navigation"/>
+          </activeWhen>
+       </handler>
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.handlers.PreviousSiblingNavigationHandler"
+             commandId="org.eclipse.wst.xml.ui.previousSibling">
+          <activeWhen>
+              <reference definitionId="org.eclipse.wst.xml.ui.navigation"/>
+          </activeWhen>
+       </handler>
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.handlers.ReloadDependenciesHandler"
+             commandId="org.eclipse.wst.xml.ui.reload.dependencies">
+          <activeWhen>
+              <reference definitionId="org.eclipse.wst.xml.ui.dependencies"/>
+          </activeWhen>
+       </handler>
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.handlers.ToggleEditModeHandler"
+             commandId="org.eclipse.wst.xml.ui.disable.grammar.constraints">
+          <activeWhen>
+              <reference definitionId="org.eclipse.wst.xml.ui.grammar"/>
+          </activeWhen>
+       </handler>
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.wizards.NewXMLHandler"
+             commandId="org.eclipse.wst.sse.ui.generate.xml">
+       </handler>
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.handlers.ExpandAllHandler"
+             commandId="sed.tabletree.expandAll">
+             <activeWhen>
+                 <not>
+		            <with variable="activeContexts">
+			           <iterate operator="or">
+			              <equals value="org.eclipse.wst.sse.ui.structuredTextEditorScope"/>
+			           </iterate>
+		            </with>
+                 </not>
+             </activeWhen>
+       </handler>
+       <handler
+             class="org.eclipse.wst.xml.ui.internal.handlers.CollapseAllHandler"
+             commandId="sed.tabletree.collapseAll">
+             <activeWhen>
+                 <not>
+		            <with variable="activeContexts">
+			           <iterate operator="or">
+			              <equals value="org.eclipse.wst.sse.ui.structuredTextEditorScope"/>
+			           </iterate>
+		            </with>
+                 </not>
+             </activeWhen>
+       </handler>
+    </extension>
+    
+    <extension
+       point="org.eclipse.ui.commands">
+	    <command
+	          id="org.eclipse.wst.sse.ui.generate.xml"
+	          name="%_UI_ACTION_CREATE_XML">
+	    </command>
+	    <command
+	          description="%ReloadDependencies_description"
+	          id="org.eclipse.wst.xml.ui.reload.dependencies"
+	          name="%ReloadDependencies_name">
+	    </command>
+	    <command
+	          description="%Constraints_description"
+	          id="org.eclipse.wst.xml.ui.disable.grammar.constraints"
+	          name="%Constraints_name">
+	    </command>
+	    <command
+	          id="sed.tabletree.expandAll"
+	          name="%ExpandAll_name">
+	    </command>
+	    <command
+	          id="sed.tabletree.collapseAll"
+	          name="%CollapseAll_name">
+	    </command>
+	</extension> 
+	
+	<!-- Define theme -->
+	<extension
+		point="org.eclipse.ui.themes">
+		<theme
+			id="org.eclipse.ui.ide.systemDefault">
+			<colorOverride
+				id="tagAttributeName"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="tagAttributeValue"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="commentBorder"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="commentText"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="declBoder"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="doctypeName"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="doctypeExternalPubref"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="doctypeExternalId"
+				value="COLOR_WIDGET_NORMAL_SHADOW">
+			</colorOverride>
+			<colorOverride
+				id="doctypeExtrenalSysref"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="tagBorder"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="tagName"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="piBorder"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="cdataBorder"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="cdataText"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="entityReference"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+		</theme>
+		<colorDefinition
+			id="tagAttributeName"
+			isEditable="false"
+			label="%Colors.tagAttributeName"
+			value="127, 0, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="tagAttributeValue"
+			isEditable="false"
+			label="%Colors.tagAttributeValue"
+			value="42, 0, 255">
+		</colorDefinition>
+		<colorDefinition
+			id="commentBorder"
+			isEditable="false"
+			label="%Colors.commentBorder"
+			value="63, 95, 191">
+		</colorDefinition>
+		<colorDefinition
+			id="commentText"
+			isEditable="false"
+			label="%Colors.commentText"
+			value="63, 95, 191">
+		</colorDefinition>
+		<colorDefinition
+			id="declBoder"
+			isEditable="false"
+			label="%Colors.declBorder"
+			value="0, 128, 128">
+		</colorDefinition>
+		<colorDefinition
+			id="doctypeName"
+			isEditable="false"
+			label="%Colors.doctypeName"
+			value="0, 128, 128">
+		</colorDefinition>
+		<colorDefinition
+			id="doctypeExternalPubref"
+			isEditable="false"
+			label="%Colors.doctypeExternalPubref"
+			value="0, 128, 128">
+		</colorDefinition>
+		<colorDefinition
+			id="doctypeExternalId"
+			isEditable="false"
+			label="%Colors.doctypeExternalId"
+			value="128, 128, 128">
+		</colorDefinition>
+		<colorDefinition
+			id="doctypeExtrenalSysref"
+			isEditable="false"
+			label="%Colors.doctypeExtrenalSysref"
+			value="63, 127, 95">
+		</colorDefinition>
+		<colorDefinition
+			id="tagBorder"
+			isEditable="false"
+			label="%Colors.tagBorder"
+			value="0, 128, 128">
+		</colorDefinition>
+		<colorDefinition
+			id="tagName"
+			isEditable="false"
+			label="%Colors.tagName"
+			value="63, 127, 127">
+		</colorDefinition>
+		<colorDefinition
+			id="piBorder"
+			isEditable="false"
+			label="%Colors.piBorder"
+			value="0, 128, 128">
+		</colorDefinition>
+		<colorDefinition
+			id="cdataBorder"
+			isEditable="false"
+			label="%Colors.cdataBorder"
+			value="0, 128, 128">
+		</colorDefinition>
+		<colorDefinition
+			id="cdataText"
+			isEditable="false"
+			label="%Colors.cdataText"
+			value="0, 0, 0">
+		</colorDefinition>
+		<colorDefinition
+			id="entityReference"
+			isEditable="false"
+			label="%Colors.entityReference"
+			value="42, 0, 255">
+		</colorDefinition>
+	</extension>
+
+	<!-- Enable the FormatHandler for XML Content Type -->
+	<extension point="org.eclipse.ui.handlers">
+		<handler 
+			class="org.eclipse.wst.sse.ui.internal.handlers.FormatHandler"
+			commandId="org.eclipse.wst.sse.ui.format">
+			<activeWhen>
+				<reference definitionId="org.eclipse.wst.xml.ui.xmlContentType.definition"></reference>
+			</activeWhen>
+		</handler>
+	</extension>
+	
+	<!-- Set up a definition for XML Content Types -->
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.xml.ui.xmlContentType.definition">
+			<or>
+            	<iterate ifEmpty="false">
+					<adapt type="org.eclipse.core.resources.IFile">
+						<!-- Force property tester to load, should not cause entire plug-in to start -->
+						<test property="org.eclipse.wst.sse.core.resources.contentTypeId" 
+							value="org.eclipse.wst.xml.core.xmlsource" forcePluginActivation="true"/>
+					</adapt>
+				</iterate>
+				<iterate ifEmpty="false">
+					<adapt type="org.eclipse.core.resources.IFile">
+						<!-- Force property tester to load, should not cause entire plug-in to start -->
+						<test property="org.eclipse.wst.sse.core.resources.contentTypeId"
+							value="org.eclipse.core.runtime.xml" forcePluginActivation="true"/>
+					</adapt>
+				</iterate>
+			</or>
+		</definition>
+	</extension>
+
+
+
+
+	<extension point="org.eclipse.ui.perspectives">
+		<perspective id="org.eclipse.wst.xml.ui.perspective"
+			class="org.eclipse.wst.xml.ui.internal.perspective.XMLPerspectiveFactory"
+			icon="$nl$/icons/full/xml_perspective.gif" 
+			name="%XML.name"/>
+	</extension>
+	
+ <extension point="org.eclipse.ui.perspectiveExtensions">
+	<perspectiveExtension targetID="org.eclipse.wst.xml.ui.perspective">
+		<!-- ProjectExplorer on the left -->
+		<!--<view id="org.eclipse.ui.navigator.ProjectExplorer" relative="org.eclipse.ui.editorss" relationship="left" ratio="0.23" />-->
+		<!-- XPath on the "bottom" left from its own UI plug-in since neither this bundle nor its owning feature require it -->
+		<!-- Content Outline on the right -->
+		<view id="org.eclipse.ui.views.ContentOutline" relative="org.eclipse.ui.editorss" relationship="right" ratio="0.7" />
+		<!-- Templates on the bottom right [removed for 333271]
+		<view id="org.eclipse.ui.texteditor.TemplatesView" relative="org.eclipse.ui.views.ContentOutline" relationship="bottom" ratio="0.6" />-->
+		<!-- everything else on the bottom -->
+		<view id="org.eclipse.ui.views.ProblemView" relative="org.eclipse.ui.editorss" relationship="bottom" ratio="0.6" />
+		<view id="org.eclipse.wst.xml.ui.views.annotations.XMLAnnotationsView" relative="org.eclipse.ui.views.ProblemView" relationship="stack" />
+		<view id="org.eclipse.ui.views.PropertySheet" relative="org.eclipse.ui.views.ProblemView" relationship="stack"/>
+		<view id="org.eclipse.ui.console.ConsoleView" relative="org.eclipse.ui.views.ProblemView" relationship="stack" />
+		<view id="org.eclipse.wst.common.snippets.internal.ui.SnippetsView" relative="org.eclipse.ui.views.ProblemView" relationship="stack" />
+		<!-- view placeholders -->
+		<view id="org.eclipse.search.ui.views.SearchView" relative="org.eclipse.ui.views.ProblemView" relationship="stack" visible="false" />
+		<view id="org.eclipse.ui.views.ProgressView" relative="org.eclipse.ui.views.ProblemView" relationship="stack" visible="false" />
+
+		<actionSet id="org.eclipse.debug.ui.launchActionSet"/>
+	
+		<newWizardShortcut id="org.eclipse.wst.xml.ui.internal.wizards.NewXMLWizard"/>
+		<newWizardShortcut id="org.eclipse.wst.xsd.ui.internal.wizards.NewXSDWizard"/>
+		<newWizardShortcut id="org.eclipse.wst.dtd.ui.internal.wizard.NewDTDWizard"/>
+		<newWizardShortcut id="org.eclipse.ui.wizards.new.folder"/>
+		<newWizardShortcut id="org.eclipse.ui.wizards.new.file"/>
+		<newWizardShortcut id="org.eclipse.ui.editors.wizards.UntitledTextFileWizard"/>
+
+		<viewShortcut id="org.eclipse.ui.navigator.ProjectExplorer"/>
+		<viewShortcut id="org.eclipse.ui.views.ResourceNavigator"/>
+		<viewShortcut id="org.eclipse.ui.views.ContentOutline"/>
+		<viewShortcut id="org.eclipse.ui.views.PropertySheet"/>
+		<viewShortcut id="org.eclipse.ui.views.ProblemView"/>
+		<viewShortcut id="org.eclipse.ui.console.ConsoleView"/>
+		<viewShortcut id="org.eclipse.ui.views.TaskList"/>
+		<!--<viewShortcut id="org.eclipse.ui.texteditor.TemplatesView"/>-->
+		<viewShortcut id="org.eclipse.search.ui.views.SearchView"/>
+		<viewShortcut id="org.eclipse.ui.views.ProgressView"/>
+
+		<perspectiveShortcut id="org.eclipse.debug.ui.DebugPerspective"/>
+		<perspectiveShortcut id="org.eclipse.ui.resourcePerspective"/>
+	</perspectiveExtension>
+	
+	<perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
+		<perspectiveShortcut id="org.eclipse.wst.xml.ui.perspective"/>
+	</perspectiveExtension>
+	<perspectiveExtension targetID="org.eclipse.debug.ui.DebugPerspective">
+		<perspectiveShortcut id="org.eclipse.wst.xml.ui.perspective"/>
+	</perspectiveExtension>
+ </extension>
+
+ <extension point="org.eclipse.ui.navigator.navigatorContent">
+	<commonWizard type="new" wizardId="org.eclipse.wst.xml.ui.internal.wizards.NewXMLWizard" menuGroupId="org.eclipse.wst.xml.new.menuGroup">
+		<enablement>
+			<instanceof value="org.eclipse.core.resources.IResource"/>
+			<with variable="activeWorkbenchWindow.activePerspective">
+			   <equals value="org.eclipse.wst.xml.ui.perspective"/>
+			</with>
+		</enablement>
+	</commonWizard>
+ </extension>
+
+ <extension point="org.eclipse.ui.menus" name="%XML.name" id="XML">
+	<menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+	 <toolbar id="org.eclipse.wst.xml.ui.perspective.NewFileToolBar">
+		<command
+				commandId="org.eclipse.ui.newWizard"
+				icon="$nl$/icons/full/etool16/new_xml.gif"
+				id="org.eclipse.wst.xml.ui.newXMLFile"
+				style="push"
+				tooltip="%XML_New_File.tooltip">
+			 <parameter name="newWizardId" value="org.eclipse.wst.xml.ui.internal.wizards.NewXMLWizard"/>
+          <visibleWhen checkEnabled="false">
+			<with variable="activeWorkbenchWindow.activePerspective">
+				<equals value="org.eclipse.wst.xml.ui.perspective"/>
+			</with>
+           </visibleWhen>         
+        </command>
+       <separator name="additions" visible="false"/>
+      </toolbar> 
+     </menuContribution>
+  </extension>
+ <extension
+       point="org.eclipse.wst.sse.ui.characterPairing">
+    <inserter
+          class="org.eclipse.wst.xml.ui.internal.text.CharacterPairInserter"
+          id="org.eclipse.wst.xml.ui.inserter">
+       <contentTypeIdentifier
+             id="org.eclipse.core.runtime.xml" partitions="org.eclipse.wst.xml.XML_DEFAULT,org.eclipse.wst.xml.XML_DECL">
+       </contentTypeIdentifier>
+       <contentTypeIdentifier
+             id="org.eclipse.wst.xml.core.xmlsource" partitions="org.eclipse.wst.xml.XML_DEFAULT,org.eclipse.wst.xml.XML_DECL">
+       </contentTypeIdentifier>
+    </inserter>
+ </extension>
+ <extension
+       point="org.eclipse.wst.sse.ui.commentingStrategy">
+    <blockCommentingStrategy
+          prefix="&lt;!--"
+          suffix="--&gt;">
+       <contentType
+             id="org.eclipse.core.runtime.xml"
+             associatedCommentPartitionTypeID="org.eclipse.wst.xml.XML_COMMENT">
+          <allowablePartitionTypes
+                anyPartitionType="true">
+          </allowablePartitionTypes>
+       </contentType>
+    </blockCommentingStrategy>
+ </extension>
+ <extension
+       point="org.eclipse.wst.sse.ui.completionProposal">
+    <proposalCategory
+          icon="icons/full/obj16/tag-generic.gif"
+          id="org.eclipse.wst.xml.ui.proposalCategory.xmlTags"
+          name="%proposalCategory.xmlTags">
+    </proposalCategory>
+    <proposalCategory
+          icon="icons/full/obj16/tag-macro.gif"
+          id="org.eclipse.wst.xml.ui.proposalCategory.xmlTemplates"
+          name="%proposalCategory.xmlTemplates">
+    </proposalCategory>
+    <proposalComputer
+          activate="false"
+          categoryId="org.eclipse.wst.xml.ui.proposalCategory.xmlTags"
+          class="org.eclipse.wst.xml.ui.internal.contentassist.XMLTagsCompletionProposalComputer"
+          id="org.eclipse.wst.xml.ui.proposalComputer.xmlTags">
+       <contentType
+             id="org.eclipse.core.runtime.xml">
+       </contentType>
+    </proposalComputer>
+    <proposalComputer
+          activate="false"
+          categoryId="org.eclipse.wst.xml.ui.proposalCategory.xmlTemplates"
+          class="org.eclipse.wst.xml.ui.internal.contentassist.XMLTemplatesCompletionProposalComputer"
+          id="org.eclipse.wst.xml.ui.proposalComputer.xmlTemplates">
+       <contentType
+             id="org.eclipse.core.runtime.xml">
+       </contentType>
+    </proposalComputer>
+ </extension>
+ <extension
+       point="org.eclipse.wst.sse.ui.completionProposalCategoriesConfiguration">
+    <categoriesConfiguration
+          class="org.eclipse.wst.xml.ui.internal.preferences.XMLCompletionProposalCategoriesConfiguration"
+          contentTypeID="org.eclipse.core.runtime.xml">
+    </categoriesConfiguration>
+ </extension>
+ 
+  <extension
+        point="org.eclipse.ui.views">
+     <category      
+            name="%XML.name"
+            id="org.eclipse.wst.xml"/>
+     <view category="org.eclipse.wst.xml"
+           class="org.eclipse.wst.xml.ui.internal.views.annotations.XMLAnnotationsView"
+           id="org.eclipse.wst.xml.ui.views.annotations.XMLAnnotationsView"
+           icon="icons/full/obj16/comment_obj.gif"
+           name="%xmlannotations"
+           restorable="true">
+     </view>
+  </extension>
+
+	<!-- XML Content Model View -->
+	<extension
+		point="org.eclipse.ui.views">
+		<view
+			category="org.eclipse.wst.xml"
+			class="org.eclipse.wst.xml.ui.internal.views.contentmodel.ContentModelView"
+			icon="icons/full/view16/hierarchy.gif"
+			id="org.eclipse.wst.xml.ui.contentmodel.view"
+			name="%contentModel.view.name"
+			restorable="true">
+		</view>
+	</extension>
+	<extension point="org.eclipse.core.runtime.adapters">		
+		<factory 
+			class="org.eclipse.wst.xml.ui.internal.views.contentmodel.ContentModelAdapterFactory" 
+			adaptableType="org.w3c.dom.Element">
+			<adapter type="org.eclipse.ui.model.IWorkbenchAdapter"/>
+		</factory>
+	</extension>
+	<extension
+		point="org.eclipse.ui.menus">
+			<menuContribution
+				locationURI="toolbar:org.eclipse.wst.xml.ui.contentmodel.view">
+				<command
+					commandId="org.eclipse.wst.xml.ui.cmnd.contentmodel.sych"
+					id="org.eclipse.wst.xml.ui.command.contentmodel.synch"
+					icon="icons/full/view16/synced.gif"
+					style="toggle"
+					tooltip="%contentModel.view.synch.tooltip">
+				</command>
+			</menuContribution>
+	</extension>
+	<extension
+		point="org.eclipse.ui.handlers">
+		<handler
+			class="org.eclipse.wst.xml.ui.internal.handlers.ContentModelSynchWithEditorHandler"
+			commandId="org.eclipse.wst.xml.ui.cmnd.contentmodel.sych">
+		</handler>
+	</extension>
+	<extension
+		point="org.eclipse.ui.commands">
+		<command
+			id="org.eclipse.wst.xml.ui.cmnd.contentmodel.sych"
+			name="%contentModel.command.synch.name">
+			<state
+				class="org.eclipse.ui.handlers.RegistryToggleState:true"
+				id="org.eclipse.ui.commands.toggleState">
+			</state>
+		</command>
+	</extension>  
+		 <extension
+       point="org.eclipse.wst.sse.ui.outlineFilters">
+       <filter
+            targetId="org.eclipse.wst.xml.ui.OutlinePage"
+            name="%HideComments.label"
+            enabled="false"
+            description="%HideComments.description"
+            class="org.eclipse.wst.xml.ui.views.contentoutline.XMLCommentFilter"
+            id="org.eclipse.wst.xml.ui.views.contentoutline.XMLCommentFilter">
+      </filter>
+      <filter
+            targetId="org.eclipse.wst.xml.ui.OutlinePage"
+            name="%HideProcessingInstruction.label"
+            enabled="false"
+            description="%HideProcessingInstruction.description"
+            class="org.eclipse.wst.xml.ui.views.contentoutline.XMLProcessingInstructionFilter"
+            id="org.eclipse.wst.xml.ui.views.contentoutline.XMLProcessingInstructionFilter">
+      </filter>
+      <filter
+            targetId="org.eclipse.wst.xml.ui.OutlinePage"
+            name="%HideCDATASection.label"
+            enabled="false"
+            description="%HideCDATASection.description"
+            class="org.eclipse.wst.xml.ui.views.contentoutline.XMLCDATASectionFilter"
+            id="org.eclipse.wst.xml.ui.views.contentoutline.XMLCDATASectionFilter">
+      </filter>
+</extension>
+</plugin>
