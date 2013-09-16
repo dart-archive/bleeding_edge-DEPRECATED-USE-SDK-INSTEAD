@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.core.util;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
@@ -62,22 +63,24 @@ public class ResourceServerTest extends TestCase {
   }
 
   public void test_onlyServeWorkspaceFiles() throws Exception {
-    File file = File.createTempFile("foo", ".txt");
-    Files.write("foo", file, Charsets.UTF_8);
-    file.deleteOnExit();
+    if (!DartCore.isWindows()) {
+      File file = File.createTempFile("foo", ".txt");
+      Files.write("foo", file, Charsets.UTF_8);
+      file.deleteOnExit();
 
-    String filePath = file.getAbsolutePath();
-    if (filePath.startsWith("/")) {
-      filePath = filePath.substring(1);
+      String filePath = file.getAbsolutePath();
+      if (filePath.startsWith("/")) {
+        filePath = filePath.substring(1);
+      }
+      String url = "http://localhost:" + server.getPort() + "/" + URIUtilities.uriEncode(filePath);
+
+      HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+
+      assertEquals(404, connection.getResponseCode());
+
+      connection.disconnect();
+      file.delete();
     }
-    String url = "http://localhost:" + server.getPort() + "/" + URIUtilities.uriEncode(filePath);
-
-    HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-
-    assertEquals(404, connection.getResponseCode());
-
-    connection.disconnect();
-    file.delete();
   }
 
   @Override
