@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.eclipse.wst.sse.ui" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="org.eclipse.wst.sse.ui" id="completionProposalCategoriesConfiguration" name="Completion Proposal Categories Configuration"/>
+      </appInfo>
+      <documentation>
+         This extension point allows the contribution of completion proposal category configuration readers.  These are used to determine which completion categories contributed by &lt;tt&gt;org.eclipse.wst.sse.ui.completionProposal&lt;/tt&gt; extensions are turned on by preference (either programatic or user).  If a completion proposal category configuration reader exists for a given content type the reader will be consulted to determine which completion categories to use when generating completion proposals.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element labelAttribute="name" />
+         </appInfo>
+      </annotation>
+      <complexType>
+         <sequence>
+            <element ref="categoriesConfiguration" minOccurs="1" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  a fully qualified identifier of the target extension point
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  an optional identifier of the extension instance
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  an optional name of the extension instance
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="categoriesConfiguration">
+      <complexType>
+         <attribute name="contentTypeID" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The ID of the content type
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="identifier" basedOn="org.eclipse.core.contenttype.contentTypes/content-type/@id"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string">
+            <annotation>
+               <documentation>
+                  The class that impliments the contributed completion proposal categories configuration.  The class must be public and impliment either &lt;code&gt;org.eclipse.wst.sse.ui.preferences.ICompletionProposalCategoriesConfigurationReader&lt;/code&gt; or &lt;code&gt;org.eclipse.wst.sse.ui.preferences.ICompletionProposalCategoriesConfigurationWriter&lt;/code&gt;.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.wst.sse.ui.preferences.ICompletionProposalCategoriesConfigurationReader"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         &lt;p&gt;The following are examples of a SSE completion proposal computer contribution:&lt;/p&gt;
+&lt;pre&gt;&lt;extension
+    point=&quot;org.eclipse.wst.sse.ui.completionProposalCategoriesConfiguration&quot;&gt;
+  &lt;categoriesConfiguration
+    class=&quot;org.eclipse.wst.xml.ui.internal.preferences.XMLCompletionProposalCategoriesConfiguration&quot;
+    contentTypeID=&quot;org.eclipse.core.runtime.xml&quot;&gt;
+  &lt;/categoriesConfiguration&gt;
+&lt;/extension&gt;
+&lt;/pre&gt;
+&lt;/p&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiinfo"/>
+      </appInfo>
+      <documentation>
+         &lt;p&gt;The contributed class must impliment either &lt;code&gt;org.eclipse.wst.sse.ui.preferences.ICompletionProposalCategoriesConfigurationReader&lt;/code&gt; or &lt;code&gt;org.eclipse.wst.sse.ui.preferences.ICompletionProposalCategoriesConfigurationWriter&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;A reader implimentation should be used if the preferences can not be set by the user, if the preferences will be modified by the user then a writer implimentation should be used.&lt;/p&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="implementation"/>
+      </appInfo>
+      <documentation>
+         &lt;p&gt;See &lt;code&gt;org.eclipse.wst.sse.ui.preferences.AbstractCompletionProposalCategoriesConfiguration&lt;/code&gt; which if implimented by an adopter provides a usefull framework for reading and writing completion proposal categories configuration information to a preference store.&lt;/p&gt;
+
+&lt;p&gt;For a useful user interface for modifing completion proposal categories configurations see &lt;code&gt;org.eclipse.wst.sse.ui.preferences.CodeAssistCyclingConfigurationBlock&lt;/code&gt; which can easly be included on a preference page.&lt;/p&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         Copyright (c) 2010 IBM Corporation and others.
+All rights reserved. This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution, and is available at &lt;a href=&quot;http://www.eclipse.org/legal/epl-v10.html&quot;&gt;http://www.eclipse.org/legal/epl-v10.html&lt;/a&gt;
+      </documentation>
+   </annotation>
+
+</schema>

@@ -1,0 +1,260 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.eclipse.wst.sse.ui" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="org.eclipse.wst.sse.ui" id="commentingStrategy" name="Commenting Strategy"/>
+      </appInfo>
+      <documentation>
+         This extension point allows the contribution of commenting strategy&apos;s to participate in the commenting actions, such as adding and removing commenting blocks and toggling line comments.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element />
+         </appInfo>
+      </annotation>
+      <complexType>
+         <sequence>
+            <choice minOccurs="1" maxOccurs="unbounded">
+               <element ref="blockCommentingStrategy" minOccurs="0" maxOccurs="unbounded"/>
+               <element ref="lineCommentingStrategy" minOccurs="0" maxOccurs="unbounded"/>
+            </choice>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  an optional identifier of the extension instance
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="blockCommentingStrategy">
+      <annotation>
+         <documentation>
+            Defines a block commenting strategy
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <element ref="contentType"/>
+         </sequence>
+         <attribute name="prefix" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The prefix of the block comment this strategy impliments
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="suffix" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The suffix of the block comment this strategy impliments
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="lineCommentingStrategy">
+      <annotation>
+         <documentation>
+            Deefines a line commenting strategy
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <element ref="contentType"/>
+         </sequence>
+         <attribute name="prefix" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The prefix of the block comment this strategy impliments
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="contentType">
+      <annotation>
+         <documentation>
+            A content type that the strategy is applicable for
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence>
+            <choice>
+               <element ref="requiredPartitionTypes"/>
+               <element ref="allowablePartitionTypes"/>
+               <sequence>
+                  <element ref="requiredPartitionTypes"/>
+                  <element ref="allowablePartitionTypes"/>
+               </sequence>
+            </choice>
+         </sequence>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The ID of the content type
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="identifier" basedOn="org.eclipse.core.contenttype.contentTypes/content-type/@id"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="associatedCommentPartitionTypeID" type="string">
+            <annotation>
+               <documentation>
+                  The partition type ID of the comment partition that is associated with the strategy in this content type
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="requiredPartitionTypes">
+      <annotation>
+         <documentation>
+            List of partition types in the associated content type that are requried for the strategy to be applicable.  Only one of these partition types must be present in a selection for the strategy to be applicable.
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <element ref="partitionType"/>
+         </sequence>
+      </complexType>
+   </element>
+
+   <element name="allowablePartitionTypes">
+      <annotation>
+         <documentation>
+            The partition types that are allowed in a user selection for the strategy to be valid.  It is assumed that any partition types listed in the &lt;code&gt;requiredPartitionTypes&lt;/code&gt; are also allowable.  This list is ignored if the value of &lt;code&gt;anyPartitionType&lt;/code&gt; is &lt;code&gt;true&lt;/code&gt;.  If this list is not provided then it is assumed the value of &lt;code&gt;anyPartitionType&lt;/code&gt; is false.
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="0" maxOccurs="unbounded">
+            <element ref="partitionType"/>
+         </sequence>
+         <attribute name="anyPartitionType" type="boolean" use="default" value="false">
+            <annotation>
+               <documentation>
+                  If &lt;code&gt;true&lt;/code&gt; then the strategy is valid for any partition type in the associated &lt;code&gt;contentType&lt;/code&gt;, this means that any &lt;code&gt;partionType&lt;/code&gt;s listed here would be ignored.  If &lt;code&gt;false&lt;/code&gt; then only the &lt;code&gt;partitionType&lt;/code&gt;s listed here are allowed in a user selection (allong with any specified requried partition types) for the strategy to be valid.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="partitionType">
+      <annotation>
+         <documentation>
+            A partition type associated with the parenting content type
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The ID of the partition type.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         &lt;p&gt;&lt;b&gt;Example 1:&lt;/b&gt; A simple example for block comments on XML documents&lt;/p&gt;&lt;pre&gt;&lt;extension point=&quot;org.eclipse.wst.sse.ui.commentingStrategy&quot;&gt;
+  &lt;blockCommentingStrategy
+      prefix=&quot;&amp;lt;!--&quot;
+      suffix=&quot;--&amp;gt;&quot;&gt;
+    &lt;contentType
+        id=&quot;org.eclipse.core.runtime.xml&quot;
+        associatedCommentPartitionTypeID=&quot;org.eclipse.wst.xml.XML_COMMENT&quot;&gt;
+      &lt;allowablePartitionTypes
+          anyPartitionType=&quot;true&quot;&gt;
+      &lt;/allowablePartitionTypes&gt;
+    &lt;/contentType&gt;
+  &lt;/blockCommentingStrategy&gt;
+&lt;/extension&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;b&gt;Example 2:&lt;/b&gt; A more complex example for adding CSS comenting to both CSS and HTML documents&lt;/p&gt;&lt;pre&gt;&lt;extension point=&quot;org.eclipse.wst.sse.ui.commentingStrategy&quot;&gt;
+  &lt;blockCommentingStrategy
+      prefix=&quot;/*&quot;
+      suffix=&quot;*/&quot;&gt;
+    &lt;contentType
+        associatedCommentPartitionTypeID=&quot;org.eclipse.wst.css.COMMENT&quot;
+        id=&quot;org.eclipse.wst.css.core.csssource&quot;&gt;
+      &lt;allowablePartitionTypes
+          anyPartitionType=&quot;true&quot;&gt;
+      &lt;/allowablePartitionTypes&gt;
+    &lt;/contentType&gt;
+    &lt;contentType
+        id=&quot;org.eclipse.wst.html.core.htmlsource&quot;&gt;
+      &lt;allowablePartitionTypes
+          anyPartitionType=&quot;false&quot;&gt;
+      &lt;/allowablePartitionTypes&gt;
+      &lt;requiredPartitionTypes
+          requireAll=&quot;true&quot;&gt;
+        &lt;partitionType
+            id=&quot;org.eclipse.wst.css.STYLE&quot;&gt;
+        &lt;/partitionType&gt;
+      &lt;/requiredPartitionTypes&gt;
+    &lt;/contentType&gt;
+  &lt;/blockCommentingStrategy&gt;
+&lt;/extension&gt;&lt;/pre&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiinfo"/>
+      </appInfo>
+      <documentation>
+         The user of this extension point does not need to impliment any classes themselves but for their contributions to work in any given content type then the following handlers must be registered for the content type in question by using the &lt;code&gt;org.eclipse.ui.handlers&lt;/code&gt; extension point.
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;org.eclipse.wst.sse.ui.handlers.AddBlockCommentHandler&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;org.eclipse.wst.sse.ui.handlers.RemoveBlockCommentHandler&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;org.eclipse.wst.sse.ui.handlers.ToggleLineCommentHandler&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+      </documentation>
+   </annotation>
+
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         Copyright (c) 2010 IBM Corporation and others.
+All rights reserved. This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution, and is available at &lt;a href=&quot;http://www.eclipse.org/legal/epl-v10.html&quot;&gt;http://www.eclipse.org/legal/epl-v10.html&lt;/a&gt;
+      </documentation>
+   </annotation>
+
+</schema>

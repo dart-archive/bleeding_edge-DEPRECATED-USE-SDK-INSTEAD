@@ -1,0 +1,341 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.eclipse.wst.sse.ui" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="org.eclipse.wst.sse.ui" id="editorConfiguration" name="Editor Configuration"/>
+      </appInfo>
+      <documentation>
+         The SSE StructuredTextEditor is intended to be as flexible as possible.  Much of its design centers around the notion of defining and redefining its behavior and appearance based on the content type of its input.  This extension point allows clients to provide an editor configuration to the StructuredTextEditor without having to subclass the editor.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element />
+         </appInfo>
+      </annotation>
+      <complexType>
+         <sequence>
+            <element ref="sourceViewerConfiguration" minOccurs="0" maxOccurs="unbounded"/>
+            <element ref="contentOutlineConfiguration" minOccurs="0" maxOccurs="unbounded"/>
+            <element ref="propertySheetConfiguration" minOccurs="0" maxOccurs="unbounded"/>
+            <element ref="documentationTextHover" minOccurs="0" maxOccurs="unbounded"/>
+            <element ref="doubleClickStrategy" minOccurs="0" maxOccurs="unbounded"/>
+            <element ref="provisionalConfiguration" minOccurs="0" maxOccurs="unbounded"/>
+            <element ref="provisionalDefinition" minOccurs="0" maxOccurs="unbounded"/>
+            <element ref="quickOutlineConfiguration" minOccurs="0" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  a fully qualified identifier of the target extension point
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  an optional identifier of the extension instance
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  an optional name of the extension instance
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="sourceViewerConfiguration">
+      <annotation>
+         <documentation>
+            Defines the source viewer configuration, affecting syntax highlighting, content assist, hover help, and more in the current editor.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="target" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A string defining when to use this extension, either an editor or content type id.  Multiple targets may be given as a comma delimited value.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Must subclass org.eclipse.wst.sse.ui.StructuredTextViewerConfiguration
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.wst.sse.ui.StructuredTextViewerConfiguration:"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="contentOutlineConfiguration">
+      <annotation>
+         <documentation>
+            Defines how the current editor&apos;s input maps to elements with in a Tree control, as well as selection filtering, toolbar and menu contributions, etc in the Outline view.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="target" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A string defining when to use this extension, either an editor or content type id.  Multiple targets may be given as a comma delimited value.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Must subclass org.eclipse.wst.sse.ui.views.contentoutline.ContentOutlineConfiguration
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.wst.sse.ui.views.contentoutline.ContentOutlineConfiguration:"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="propertySheetConfiguration">
+      <annotation>
+         <documentation>
+            Defines how the current editor&apos;s input maps to properties in a Table control, as well as toolbar contributions, etc in the Properties view.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="target" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A string defining when to use this extension, either an editor or content type id.  Multiple targets may be given as a comma delimited value.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Must subclass org.eclipse.wst.sse.ui.views.properties.PropertySheetConfiguration
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.wst.sse.ui.views.properties.PropertySheetConfiguration:"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="documentationTextHover">
+      <annotation>
+         <documentation>
+            Defines the text hover processor to use to display documentation information in a text hover. Note, in the event more than one documentation text hover is contributed for the same target partition type, the first one loaded will be the one used and all other contributions will be ignored.
+&lt;br /&gt;
+&lt;i&gt;Since 3.0&lt;/i&gt;
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="target" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A string defining when to use this extension.  Must be a partition type id.  Multiple targets may be given as a comma delimited value.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Must implement org.eclipse.jface.text.ITextHover
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.jface.text.ITextHover"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="doubleClickStrategy">
+      <annotation>
+         <documentation>
+            Defines the doubleclick strategy to use when the user performs a mouse doubleclick.  Note, in the event more than one doubleclick strategy is contributed for the same target partition type, the first one loaded will be the one used and all other contributions will be ignored.
+&lt;br /&gt;
+&lt;i&gt;Since 3.0&lt;/i&gt;
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="target" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A string defining when to use this extension.  Must be a partition type id.  Multiple targets may be given as a comma delimited value.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Must implement org.eclipse.jface.text.ITextDoubleClickStrategy
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.jface.text.ITextDoubleClickStrategy"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="provisionalConfiguration">
+      <annotation>
+         <documentation>
+            Declares a class fulfilling the requirements of a type to be used for the given target(s).
+Note: this is not API and is only used for provisional configuration types.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="target" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A string defining when to use this extension, either an editor or content type id.  Multiple targets may be given as a comma delimited value.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="type" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The type of configuration to find.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Implementation class for this type.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="provisionalDefinition">
+      <annotation>
+         <documentation>
+            Defines a value for a type to be used for the given target(s).
+Note: this is not API and is only used for provisional configuration types.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="type" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The type of definition to find.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="value" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The value of this definition.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="target" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A string defining when to use this extension, either an editor or content type id.  Multiple targets may be given as a comma delimited value.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="quickOutlineConfiguration">
+      <annotation>
+         <documentation>
+            Defines the configuration to be used when displaying editor input in the Tree layout for an editor&apos;s Quick Outline.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="target" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A string defining when to use this extension, either an editor or content type id.  Multiple targets may be given as a comma delimited value.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The class that provides implementation of the quick outline configuration.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.wst.sse.ui.AbstractQuickOutlineConfiguration:"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         1.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         &lt;pre&gt;
+   &lt;extension 
+         point=&quot;org.eclipse.wst.sse.ui.editorConfiguration&quot;&gt;
+      &lt;!-- associating a source viewer configuration to an input&apos;s content type--&gt;
+      &lt;sourceViewerConfiguration
+            class=&quot;org.eclipse.wst.html.ui.StructuredTextViewerConfigurationHTML&quot;
+            target=&quot;org.eclipse.wst.html.core.htmlsource&quot;/&gt;
+      &lt;!-- associating an outline configuration to an input&apos;s content type --&gt;
+      &lt;contentOutlineConfiguration
+           class=&quot;org.eclipse.wst.sse.xml.ui.views.contentoutline.XMLContentOutlineConfiguration&quot;
+            target=&quot;org.eclipse.core.runtime.xml&quot;/&gt;
+      &lt;!-- associating a property sheet configuration to multiple content types --&gt;
+      &lt;propertySheetConfiguration
+            class=&quot;org.eclipse.wst.xml.ui.views.properties.XMLPropertySheetConfiguration&quot;
+            target=&quot;org.eclipse.wst.sse.contenttype.xml, org.eclipse.wst.html.core.htmlsource, org.eclipse.jst.jsp.core.jspsource&quot;/&gt;
+   &lt;/extension&gt;
+&lt;/pre&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiInfo"/>
+      </appInfo>
+      <documentation>
+         see &lt;code&gt;org.eclipse.wst.sse.ui.StructuredTextViewerConfiguration&lt;/code&gt;, &lt;code&gt;org.eclipse.wst.sse.ui.views.contentoutline.ContentOutlineConfiguration&lt;/code&gt;, &lt;code&gt;org.eclipse.wst.sse.ui.views.properties.StructuredPropertySheetConfiguration&lt;/code&gt;.
+      </documentation>
+   </annotation>
+
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         Copyright (c) 2005, 2007 IBM Corporation and others.
+All rights reserved. This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution, and is available at &lt;a href=&quot;http://www.eclipse.org/legal/epl-v10.html&quot;&gt;http://www.eclipse.org/legal/epl-v10.html&lt;/a&gt;
+      </documentation>
+   </annotation>
+
+</schema>

@@ -1,0 +1,877 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.3"?>
+<plugin>
+
+	<extension-point
+		id="adapterFactoryDescription"
+		name="%Adapter_Factory_Description_Extension.name" ></extension-point>
+	<extension-point
+		id="extendedEditorActions"
+		name="%Extended_Editor_Actions_Extension.name" ></extension-point>
+	<extension-point
+		id="dropTargetTransfers"
+		name="%Drop_Target_Transfers_Extension.name" ></extension-point>
+	<extension-point
+		id="editorConfiguration"
+		name="%Extended_Editor_Configuration_Extension.name"
+		schema="schema/editorconfiguration.exsd" ></extension-point>
+	<extension-point
+		id="semanticHighlighting"
+		name="%Semantic_Highlighting_Extension.name"
+		schema="schema/semanticHighlighting.exsd" ></extension-point>
+	<extension-point
+		id="characterPairing"
+		name="%Character_Pairing.name"
+		schema="schema/characterPairing.exsd" ></extension-point>
+	<extension-point
+	   id="outlineFilters" 
+	   name="%outlineFiltersName" 
+	   schema="schema/outlineFilters.exsd">
+	</extension-point>
+  
+	<!-- Make sure default preference values are set at runtime -->
+	<extension point="org.eclipse.core.runtime.preferences">
+		<initializer
+			class="org.eclipse.wst.sse.ui.internal.PreferenceInitializer" />
+	</extension>
+
+
+	<!-- reusable extensions -->
+	<extension point="org.eclipse.wst.sse.ui.editorConfiguration">
+		<sourceViewerConfiguration
+			class="org.eclipse.wst.sse.ui.StructuredTextViewerConfiguration"
+			target="org.eclipse.wst.sse.ui.StructuredTextEditor" />
+		<provisionalDefinition
+			type="preferencepages"
+			value="org.eclipse.wst.sse.ui.preferences.editor"
+			target="org.eclipse.wst.sse.ui.StructuredTextEditor" />
+	</extension>
+	<!-- associate the NavigateActionSet with various parts of the XML perspective-->
+	<extension point="org.eclipse.ui.actionSetPartAssociations">
+		<actionSetPartAssociation
+			targetID="org.eclipse.ui.edit.text.actionSet.annotationNavigation">
+			<part
+				id="org.eclipse.wst.sse.ui.StructuredTextEditor">
+			</part>
+		</actionSetPartAssociation>
+		<actionSetPartAssociation
+			targetID="org.eclipse.ui.NavigateActionSet">
+			<part
+				id="org.eclipse.wst.sse.ui.StructuredTextEditor">
+			</part>
+		</actionSetPartAssociation>
+		<actionSetPartAssociation
+            targetID="org.eclipse.debug.ui.launchActionSet">
+            <part id="org.eclipse.wst.sse.ui.StructuredTextEditor"/>
+		</actionSetPartAssociation>
+	</extension>
+	
+	<!-- Keywords for preference and properties pages -->
+	<extension point="org.eclipse.ui.keywords">
+		<keyword
+			label="%preferenceKeywords.todo"
+			id="org.eclipse.wst.sse.ui.todo"/>
+		<keyword
+			label="%preferenceKeywords.sseeditor"
+			id="org.eclipse.wst.sse.ui.sseeditor"/>
+    </extension>
+    
+	<extension point="org.eclipse.ui.preferencePages">
+		<!-- Source Editor Preference page under Workbench->Editors -->
+		<page
+			name="%Structured_Text_Editor.name"
+			category="org.eclipse.ui.preferencePages.Editors"
+			class="org.eclipse.wst.sse.ui.internal.preferences.ui.StructuredTextEditorPreferencePage"
+			id="org.eclipse.wst.sse.ui.preferences.editor">
+			<keywordReference id="org.eclipse.wst.sse.ui.sseeditor"/>
+		</page>
+
+		<!-- SSE task tags preference page under that-->
+		<page
+			name="%Task_Tags_Preferences.name"
+			category="org.eclipse.wst.sse.ui.preferences.editor"
+			class="org.eclipse.wst.sse.ui.internal.preferences.ui.TaskTagPreferencePage"
+			id="org.eclipse.wst.sse.ui.preferences.tasktags">
+			<keywordReference id="org.eclipse.wst.sse.ui.todo"/>
+		</page>
+	</extension>
+	<!-- ================================================================================================ -->
+	<!-- common task tags property page -->
+	<!-- ================================================================================================ -->
+	<extension point="org.eclipse.ui.propertyPages">
+		<page
+			id="org.eclipse.wst.sse.ui.project.properties.tasktags"
+			name="%Task_Tags_Preferences.name"
+			class="org.eclipse.wst.sse.ui.internal.preferences.ui.TaskTagPreferencePage">
+         	<enabledWhen>
+               	<and>
+					<adapt type="org.eclipse.core.resources.IProject">
+					</adapt>
+				</and> 
+			</enabledWhen>
+			<keywordReference id="org.eclipse.wst.sse.ui.todo"/>
+		</page>
+	</extension>
+
+	<!--
+		<extension-point id="dragSourceTransfers" name="Drag Source Transfers"/>
+	-->
+	<extension point="org.eclipse.ui.commands">
+		<!-- Edit commands -->
+		<command
+			name="%ActionDefinition.selectEnclosing.name"
+			description="%ActionDefinition.selectEnclosing.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.sse.ui.structure.select.enclosing">
+		</command>
+		<command
+			name="%ActionDefinition.selectNext.name"
+			description="%ActionDefinition.selectNext.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.sse.ui.structure.select.next">
+		</command>
+		<command
+			name="%ActionDefinition.selectPrevious.name"
+			description="%ActionDefinition.selectPrevious.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.sse.ui.structure.select.previous">
+		</command>
+		<command
+			name="%ActionDefinition.selectLast.name"
+			description="%ActionDefinition.selectLast.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.sse.ui.structure.select.last">
+		</command>
+		<!-- Source commands -->
+		<command
+			name="%command.toggle.comment.name"
+			description="%command.toggle.comment.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.sse.ui.toggle.comment">
+		</command>
+		<command
+			name="%command.add.block.comment.name"
+			description="%command.add.block.comment.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.sse.ui.add.block.comment">
+		</command>
+		<command
+			name="%command.remove.block.comment.name"
+			description="%command.remove.block.comment.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.sse.ui.remove.block.comment">
+		</command>
+		<command
+			name="%command.cleanup.document.name"
+			description="%command.cleanup.document.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.sse.ui.cleanup.document">
+		</command>
+		<command
+			name="%command.format.document.name"
+			description="%command.format.document.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.sse.ui.format.document">
+		</command>
+		<command
+			name="%command.format.active.elements.name"
+			description="%command.format.active.elements.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.sse.ui.format.active.elements">
+		</command>
+		<!-- Navigate commands -->
+		<command
+			name="%command.open.file.from.source.name"
+			description="%command.open.file.from.source.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.sse.ui.open.file.from.source">
+		</command>
+      <command
+            name="%ActionDefinition.gotoMatchingBracket.name"
+            description="%ActionDefinition.gotoMatchingBracket.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="org.eclipse.wst.sse.ui.goto.matching.bracket">
+      </command>
+		<!-- Find Occurrences -->
+		<command
+			name="%command.search.find.occurrences.name"
+			description="%command.search.find.occurrences.description"
+			categoryId="org.eclipse.ui.category.edit"
+			id="org.eclipse.wst.sse.ui.search.find.occurrences">
+		</command>
+		<command
+			name="%command.information.quick_outline.name"
+			description="%command.information.quick_outline.description"
+			categoryId="org.eclipse.ui.category.navigate"
+			id="org.eclipse.wst.sse.ui.quick_outline">
+		</command>
+	</extension>
+	<!-- Keybinding scope for source editor -->
+	<extension point="org.eclipse.ui.contexts">
+		<context
+			name="%scope.structuredTextEditor.name"
+			parentId="org.eclipse.ui.textEditorScope"
+			description="%scope.structuredTextEditor.description"
+			id="org.eclipse.wst.sse.ui.structuredTextEditorScope">
+		</context>
+		<context
+			name="%scope.structuredTextEditor.comments.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structuredTextEditor.comments.description"
+			id="org.eclipse.wst.sse.comments">
+		</context>
+	</extension>
+	<!-- Keybindings for source editor -->
+	<extension point="org.eclipse.ui.bindings">
+	    <!--  win32:  M1=CTRL, M2=SHIFT, M3=ALT -->
+		<!-- Edit commands -->
+		<key
+			sequence="M2+M3+ARROW_UP"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.structure.select.enclosing"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+		<key
+			sequence="M2+M3+ARROW_RIGHT"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.structure.select.next"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+		<key
+			sequence="M2+M3+ARROW_RIGHT"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId=""
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			platform="carbon">
+		</key>
+		<key
+			sequence="M2+M4+ARROW_RIGHT"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.structure.select.next"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			platform="carbon">
+		</key>
+		<key
+			sequence="M2+M3+ARROW_LEFT"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.structure.select.previous"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+		<key
+			sequence="M2+M3+ARROW_LEFT"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId=""
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			platform="carbon">
+		</key>
+		<key
+			sequence="M2+M4+ARROW_LEFT"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.structure.select.previous"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			platform="carbon">
+		</key>
+		<key
+			sequence="M2+M3+ARROW_DOWN"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.structure.select.last"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+		<!-- Source commands -->
+		<key
+			sequence="M1+M2+C"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.toggle.comment"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+		<key
+			sequence="M1+O"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.quick_outline"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+		<key
+			sequence="M1+M2+/"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.add.block.comment"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+		<key
+			sequence="M1+/"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.add.block.comment"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			platform="carbon">
+		</key>
+		<key
+			sequence="M1+M2+\"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.remove.block.comment"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+		<key
+			sequence="M1+\"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.remove.block.comment"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			platform="carbon">
+		</key>
+		<key
+			sequence="M1+M2+F"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.format.document"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+		<key
+			sequence="M1+I"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.format.active.elements"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+		<!-- Navigate commands -->
+		<key
+			sequence="F3"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.open.file.from.source"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+		<key
+            sequence="M1+M2+P"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+            commandId="org.eclipse.wst.sse.ui.goto.matching.bracket"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+		<!-- Find Occurrences -->
+		<key
+			sequence="M1+M2+A"
+			contextId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			commandId="org.eclipse.wst.sse.ui.search.find.occurrences"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+		</key>
+	</extension>
+	<!-- Font and colors contributions -->
+	<extension point="org.eclipse.ui.themes">
+		<themeElementCategory
+			label="%Structured_Text_Editor.name"
+			id="org.eclipse.wst.sse.ui">
+		</themeElementCategory>
+		<fontDefinition
+			label="%sourceEditorFontDefiniton.label"
+			categoryId="org.eclipse.wst.sse.ui"
+			defaultsTo="org.eclipse.jface.textfont"
+			id="org.eclipse.wst.sse.ui.textfont">
+			<description>
+				%sourceEditorFontDefintion.description
+			</description>
+		</fontDefinition>
+	</extension>
+	<extension point="org.eclipse.wst.sse.ui.dropTargetTransfers">
+		<dropTargetContribution
+			targetID="org.eclipse.wst.sse.ui.StructuredTextEditor"
+			id="org.eclipse.wst.sse.ui.extension.ExtendedTransfers">
+			<transfer
+				priority="mid"
+				singleton="true"
+				class="org.eclipse.swt.dnd.FileTransfer"
+				method="getInstance"
+				id="org.eclipse.swt.dnd.FileTransfer">
+			</transfer>
+			<dropAction
+				class="org.eclipse.wst.sse.ui.internal.FileDropAction"
+				transferID="org.eclipse.swt.dnd.FileTransfer"
+				id="org.eclipse.wst.sse.ui.internal.FileDropAction">
+			</dropAction>
+			<transfer
+				priority="low"
+				singleton="true"
+				class="org.eclipse.swt.dnd.TextTransfer"
+				method="getInstance"
+				id="org.eclipse.swt.dnd.TextTransfer">
+			</transfer>
+			<dropAction
+				class="org.eclipse.wst.sse.ui.internal.TextDropAction"
+				transferID="org.eclipse.swt.dnd.TextTransfer"
+				id="org.eclipse.wst.sse.ui.internal.TextDropAction">
+			</dropAction>
+		</dropTargetContribution>
+	</extension>
+
+	<extension point="org.eclipse.ui.editors.annotationTypes">
+		<type
+			super="org.eclipse.ui.workbench.texteditor.error"
+			markerType="org.eclipse.wst.sse.problem"
+			name="org.eclipse.wst.sse.ui.temp.error"
+			markerSeverity="2">
+		</type>
+		<type
+			super="org.eclipse.ui.workbench.texteditor.warning"
+			markerType="org.eclipse.wst.sse.problem"
+			name="org.eclipse.wst.sse.ui.temp.warning"
+			markerSeverity="1">
+		</type>
+
+		<type
+			super="org.eclipse.ui.workbench.texteditor.info"
+			markerType="org.eclipse.wst.sse.problem"
+			name="org.eclipse.wst.sse.ui.temp.info"
+			markerSeverity="0">
+		</type>
+	</extension>
+	<extension
+		point="org.eclipse.ui.editors.markerAnnotationSpecification">
+
+		<!--================================================================================================-->
+		<!-- same as eclipse text ui (including preference keys), except for vertical ruler & preference page -->
+		<!--================================================================================================-->
+		<specification
+			annotationType="org.eclipse.wst.sse.ui.temp.error"
+			annotationImageProvider="org.eclipse.wst.sse.ui.internal.ui.StructuredTextAnnotationImageProvider"
+			verticalRulerPreferenceValue="true"
+			verticalRulerPreferenceKey="sseErrorIndicationInVerticalRuler"
+			includeOnPreferencePage="false">
+		</specification>
+		<specification
+			annotationType="org.eclipse.wst.sse.ui.temp.warning"
+			annotationImageProvider="org.eclipse.wst.sse.ui.internal.ui.StructuredTextAnnotationImageProvider"
+			verticalRulerPreferenceValue="false"
+			verticalRulerPreferenceKey="sseWarningIndicationInVerticalRuler"
+			includeOnPreferencePage="false">
+		</specification>
+		<specification
+			annotationImageProvider="org.eclipse.wst.sse.ui.internal.ui.StructuredTextAnnotationImageProvider"
+			annotationType="org.eclipse.wst.sse.ui.temp.info">
+		</specification>
+	</extension>
+<!--	<extension point="org.eclipse.ui.popupMenus">
+		<objectContribution
+			objectClass="org.eclipse.core.resources.IContainer"
+			id="org.eclipse.wst.sse.ui.actions.ContainerSourceActions">
+			<menu
+				label="%Source"
+				path="additions"
+				id="source">
+				<groupMarker name="sourceGroup"></groupMarker>
+			</menu>
+			<action
+				label="%FormatDocument"
+				class="org.eclipse.wst.sse.ui.internal.actions.FormatActionDelegate"
+				menubarPath="source/sourceGroup"
+				enablesFor="+"
+				id="org.eclipse.wst.sse.ui.actions.ContainerSourceActions.Format">
+			</action>
+		</objectContribution>
+		<objectContribution
+			objectClass="org.eclipse.core.resources.IFile"
+			id="org.eclipse.wst.sse.ui.actions.FileSourceActions">
+			<menu
+				label="%Source"
+				path="additions"
+				id="source">
+				<groupMarker name="sourceGroup"></groupMarker>
+			</menu>
+			<action
+				label="%FormatDocument"
+				class="org.eclipse.wst.sse.ui.internal.actions.FormatActionDelegate"
+				menubarPath="source/sourceGroup"
+				enablesFor="+"
+				id="org.eclipse.wst.sse.ui.actions.FileSourceActions.Format">
+			</action>
+		</objectContribution>
+   	</extension>
+   	-->
+   <!--
+   <extension
+         point="org.eclipse.ui.editorActions">
+      <editorContribution
+            targetID="org.eclipse.wst.sse.ui.StructuredTextEditor"
+            id="org.eclipse.wst.sse.ui.StructuredTextEditor.ruler.actions">
+         <action
+               label="%AddBookmark.label"
+               helpContextId="org.eclipse.ui.bookmark_action_context"
+               class="org.eclipse.ui.texteditor.BookmarkRulerAction"
+               actionID="RulerDoubleClick"
+               id="org.eclipse.ui.texteditor.BookmarkRulerAction">
+         </action>
+         <action
+               label="%SelectRuler.label"
+               class="org.eclipse.ui.texteditor.SelectRulerAction"
+               actionID="RulerClick"
+               id="org.eclipse.ui.texteditor.SelectRulerAction">
+         </action>
+      </editorContribution>
+   </extension>
+   -->
+   
+	<!--================================================================================================-->
+	<!-- contribute a SearchResultViewPage for Occurrences in file                                      -->
+	<!--================================================================================================-->
+	<extension
+		id="Occurrences search page"
+		point="org.eclipse.search.searchResultViewPages">
+		<viewPage
+			id="org.eclipse.wst.sse.ui.search.OccurrencesSearchResultPage"
+			searchResultClass="org.eclipse.wst.sse.ui.internal.search.OccurrencesSearchResult"
+			class="org.eclipse.wst.sse.ui.internal.search.OccurrencesSearchViewPage">
+		</viewPage>
+	</extension>
+
+	<!-- extension point for toggling breakpoints -->
+	<extension-point
+		id="breakpoint"
+		name="%Breakpoint_Extension_Point.name" 
+		schema="schema/org.eclipse.wst.sse.ui.breakpoint.exsd" />
+	<!-- extension point for source validation -->
+	<!-- interfaces for this extension point can be found in org.eclipse.wst.validation -->
+	<extension-point
+		id="sourcevalidation"
+		name="%Source_Validation_Extension_Point.name"
+		schema="schema/org.eclipse.wst.sse.ui.sourcevalidation.exsd" />
+	<extension-point 
+		id="quickFixProcessor" 
+		name="%quickFixProcessor" 
+		schema="schema/quickFixProcessor.exsd"/>
+ <extension-point id="commentingStrategy" name="%Commenting_Strategy_Extension.name" schema="schema/commentingStrategy.exsd"/>
+ <extension-point id="completionProposal" name="%Completion_Proposal.name" schema="schema/completionProposal.exsd"/>
+ <extension-point id="completionProposalCategoriesConfiguration" name="%Completion_Proposal_Categories_Configuration.name" schema="schema/completionProposalCategoriesConfiguration.exsd"/>
+ 
+	<extension point="org.eclipse.ui.menus">
+		<menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=edit">
+			<menu id="sourceMenuId" label="%Source"></menu>
+		</menuContribution>
+		<menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=sourceMenuId">
+			<menu id="refactorMenuId" label="%Refactor"></menu>
+		</menuContribution>
+	    <menuContribution locationURI="menu:edit?after=additions">
+	       <menu id="expandSelectionToMenuId" label="%ExpandSelectionTo"></menu>
+		</menuContribution>
+		<menuContribution locationURI="menu:sourceMenuId">
+			<separator name="sourceBegin" visible="false"></separator>
+			<separator name="shiftBegin" visible="true"></separator>
+			<separator name="shiftEnd" visible="true"></separator>
+			<separator name="additions" visible="true"></separator>
+			<separator name="sourceEnd" visible="false"></separator>	
+		</menuContribution>
+
+	    <menuContribution locationURI="menu:goTo?after=additions">
+		    <separator name="matchingBegin" visible="false"></separator>
+		    <command commandId="org.eclipse.wst.sse.ui.goto.matching.bracket" id="org.eclipse.wst.sse.ui.goto.matching.bracket" label="%ActionDefinition.gotoMatchingBracket.name" style="push">
+				<visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
+				</visibleWhen>
+		    </command>
+			<separator name="matchingEnd" visible="false"></separator>
+		</menuContribution>
+		<!-- Contribute a Source menu for containers -->
+     <menuContribution
+           locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+        <menu
+              id="sourceMenuId"
+              label="%Source">
+	        <command
+	              commandId="org.eclipse.wst.sse.ui.format"
+	              id="sourceFormat"
+	              style="push">
+	           <!-- Check to make sure that the handler is enabled before making visible -->
+				<visibleWhen checkEnabled="true" />
+	        </command>
+        </menu>
+     </menuContribution>
+		<menuContribution locationURI="menu:sourceMenuId?after=additions">
+			<command commandId="org.eclipse.wst.sse.ui.search.find.occurrences" id="OccurencesFile" style="push">
+			   <visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
+				</visibleWhen>
+			</command>
+		</menuContribution>
+	    <!--<menuContribution locationURI="menu:edit?after=additions">
+	       <command commandId="org.eclipse.ui.edit.text.toggleInsertMode" id="ToggleInsertMode" label="%SmartInsert_label" style="toggle">
+			   <visibleWhen checkEnabled="false">
+				   <reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
+			   </visibleWhen>
+	       </command>	       
+		</menuContribution> -->
+	    <menuContribution locationURI="menu:expandSelectionToMenuId">
+	       <command commandId="org.eclipse.wst.sse.ui.structure.select.enclosing" id="org.eclipse.wst.sse.ui.structure.select.enclosing" label="%StructureSelectEnclosing_label" style="push">
+			   <visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
+				</visibleWhen>
+	       </command>	       
+	       <command commandId="org.eclipse.wst.sse.ui.structure.select.next" id="org.eclipse.wst.sse.ui.structure.select.next" label="%StructureSelectNext_label" style="push">
+			   <visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
+				</visibleWhen>
+	       </command>
+	       <command commandId="org.eclipse.wst.sse.ui.structure.select.previous" id="org.eclipse.wst.sse.ui.structure.select.previous" label="%StructureSelectPrevious_label" style="push">
+			   <visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
+				</visibleWhen>
+	       </command>
+	       <command commandId="org.eclipse.wst.sse.ui.structure.select.last" id="org.eclipse.wst.sse.ui.structure.select.last" label="%StructureSelectHistory_label" style="push">
+			   <visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
+				</visibleWhen>
+	       </command>
+		</menuContribution>
+		
+
+		<menuContribution locationURI="menu:sourceMenuId?after=shiftBegin">
+			<command commandId="org.eclipse.ui.edit.text.shiftLeft"
+			         id="ShiftLeft"
+			         style="push">
+				<visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"/>
+				</visibleWhen>
+			</command>
+			<command commandId="org.eclipse.ui.edit.text.shiftRight"
+                     id="ShiftRight"
+                     style="push">
+				<visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"/>
+				</visibleWhen>
+			</command>
+		</menuContribution>
+
+		<menuContribution locationURI="menu:sourceMenuId?after=shiftEnd">
+	        <command
+		           commandId="org.eclipse.wst.sse.ui.cleanup.document"
+		           id="CleanupDocument"
+			       mnemonic="%command.cleanup.document.mnemonic"
+		           style="push">
+				<visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"/>
+				</visibleWhen>
+		    </command>
+			<command 
+				commandId="org.eclipse.wst.sse.ui.format.document" 
+				id="FormatDocument" 
+			    mnemonic="%command.format.document.mnemonic"
+				style="push">
+				<visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"/>
+				</visibleWhen>
+			</command>
+			<command 
+				commandId="org.eclipse.wst.sse.ui.format.active.elements" 
+				id="FormatElements" 
+				mnemonic="%command.format.active.elements.mnemonic"
+				style="push">
+				<visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
+				</visibleWhen>
+			</command>
+		</menuContribution>
+
+		<menuContribution
+	           locationURI="popup:sourcePopupMenuId?after=sourceBegin">
+			<command
+					commandId="org.eclipse.wst.sse.ui.toggle.comment"
+					id="ToggleComment"
+					style="push">
+				<visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.commentingActiveContext.definition"></reference>
+				</visibleWhen>
+			</command>
+			<command
+					commandId="org.eclipse.wst.sse.ui.add.block.comment"
+					id="AddBlockComment"
+					style="push">
+				<visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.commentingActiveContext.definition"></reference>
+				</visibleWhen>
+			</command>
+			<command
+					commandId="org.eclipse.wst.sse.ui.remove.block.comment"
+					id="RemoveBlockComment"
+					style="push">
+				<visibleWhen checkEnabled="false">
+					<reference definitionId="org.eclipse.wst.sse.ui.commentingActiveContext.definition"></reference>
+				</visibleWhen>
+			</command>
+			<separator name="format" visible="true"></separator>
+				<command
+			           commandId="org.eclipse.wst.sse.ui.cleanup.document"
+			           id="CleanupDocument"
+			           style="push">
+					<visibleWhen checkEnabled="false">
+						<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
+					</visibleWhen>
+			    </command>
+				<command 
+					commandId="org.eclipse.wst.sse.ui.format.document" 
+					id="FormatDocument" 
+					mnemonic="%command.format.document.mnemonic" 
+					style="push">
+						<visibleWhen checkEnabled="false">
+							<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
+						</visibleWhen>
+				</command>
+				<command 
+					commandId="org.eclipse.wst.sse.ui.format.active.elements" 
+					id="FormatElements" 
+					mnemonic="%command.format.active.elements.mnemonic" 
+					style="push">
+						<visibleWhen checkEnabled="false">
+							<reference definitionId="org.eclipse.wst.sse.ui.sseActiveContext.definition"></reference>
+						</visibleWhen>
+				</command>
+				
+	     </menuContribution>
+			<menuContribution locationURI="menu:sourceMenuId?after=sourceBegin">
+				<command commandId="org.eclipse.wst.sse.ui.toggle.comment"
+						id="ToggleComment"
+				    mnemonic="%command.toggle.comment.mnemonic"
+				    style="push">
+					<visibleWhen checkEnabled="false">
+						<reference definitionId="org.eclipse.wst.sse.ui.commentingActiveContext.definition"/>
+					</visibleWhen>
+				</command>
+				<command commandId="org.eclipse.wst.sse.ui.add.block.comment"
+						id="AddBlockComment"
+				    mnemonic="%command.add.block.comment.mnemonic"
+				    style="push">
+					<visibleWhen checkEnabled="false">
+						<reference definitionId="org.eclipse.wst.sse.ui.commentingActiveContext.definition"/>
+					</visibleWhen>
+				</command>
+				<command commandId="org.eclipse.wst.sse.ui.remove.block.comment"
+						id="RemoveBlockComment"
+						mnemonic="%command.remove.block.comment.mnemonic"
+						style="push">
+					<visibleWhen checkEnabled="false">
+						<reference definitionId="org.eclipse.wst.sse.ui.commentingActiveContext.definition"/>
+					</visibleWhen>
+				</command>
+			</menuContribution>
+	     <!-- content outline  -->
+	     <menuContribution locationURI="menu:org.eclipse.ui.views.ContentOutline?after=additions">
+			<command 
+				commandId="org.eclipse.wst.sse.ui.outline.customFilter" 
+				id="org.eclipse.wst.sse.ui.outline.customFilter"
+				label="%command.outline.customFilter" 
+				icon ="icons/full/elcl16/filter_ps.gif"
+				style="push">
+		        <visibleWhen checkEnabled="false">
+				   <with variable="activeEditor">
+				   		<test property="org.eclipse.wst.sse.ui.outline.isConfigurableOutlinePage" forcePluginActivation="true"/>
+    				</with>
+				</visibleWhen>
+			</command>
+		</menuContribution>
+	</extension>
+	<extension
+       point="org.eclipse.ui.commands">
+	    <command
+	          id="org.eclipse.wst.sse.ui.outline.customFilter"
+	          name="%command.outline.customFilter">
+	    </command>
+	    <command
+	          id="org.eclipse.wst.sse.ui.format"
+	          name="%command.format.document.name">
+	    </command>
+	</extension>
+	
+	<!-- Enable the FormatHandler for Containers -->
+	<extension point="org.eclipse.ui.handlers">
+		<handler 
+			class="org.eclipse.wst.sse.ui.internal.handlers.FormatHandler"
+			commandId="org.eclipse.wst.sse.ui.format">
+			<activeWhen>
+				<iterate ifEmpty="false">
+					<adapt
+						type="org.eclipse.core.resources.IContainer">
+					</adapt>
+				</iterate>
+			</activeWhen>
+			<enabledWhen>
+				<iterate ifEmpty="false">
+					<adapt
+						type="org.eclipse.core.resources.IContainer">
+					</adapt>
+				</iterate>
+			</enabledWhen>
+		</handler>
+		
+		<handler
+			class="org.eclipse.wst.sse.ui.internal.handlers.CustomFilterHandler"
+			commandId="org.eclipse.wst.sse.ui.outline.customFilter">
+		</handler>
+		
+	</extension>
+	
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.sse.ui.sseActiveContext.definition">
+            <with variable="activeContexts">
+	           <iterate operator="or">
+	              <equals value="org.eclipse.wst.sse.ui.structuredTextEditorScope"/>
+	           </iterate>
+            </with>
+		</definition>
+	  <definition 
+	  		id="org.eclipse.wst.sse.ui.commentingActiveContext.definition">
+	  	<with variable="activeContexts">
+				<iterate operator="or">
+					<equals value="org.eclipse.wst.sse.comments"/>
+				</iterate>
+			</with>
+	  </definition>
+	</extension>
+	
+	<!-- Define theme -->
+	<extension
+		point="org.eclipse.ui.themes">
+		<theme
+			id="org.eclipse.ui.ide.systemDefault">
+			<colorOverride
+				id="content_assist_proposals_background"
+				value="COLOR_LIST_BACKGROUND">
+			</colorOverride>
+			<colorOverride
+				id="content_assist_proposals_foreground"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+			<colorOverride
+				id="content_assist_parameters_background"
+				value="COLOR_LIST_BACKGROUND">
+			</colorOverride>
+			<colorOverride
+				id="content_assist_parameters_foreground"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+		</theme>
+		<colorDefinition
+			id="content_assist_proposals_background"
+			isEditable="false"
+			label="%Colors.content_assist_proposals_background"
+			value="255,255,255">
+		</colorDefinition>
+		<colorDefinition
+			id="content_assist_proposals_foreground"
+			isEditable="false"
+			label="%Colors.content_assist_proposals_foreground"
+			value="0,0,0">
+		</colorDefinition>
+		<colorDefinition
+			id="content_assist_parameters_background"
+			isEditable="false"
+			label="%Colors.content_assist_parameters_background"
+			value="255,255,255">
+		</colorDefinition>
+		<colorDefinition
+			id="content_assist_parameters_foreground"
+			isEditable="false"
+			label="%Colors.content_assist_parameters_foreground"
+			value="0,0,0">
+		</colorDefinition>
+	</extension>
+	
+	<extension
+         point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            class="org.eclipse.wst.sse.ui.internal.propertytester.CustomFilterPropertyTester"
+            id="org.eclipse.wst.sse.ui.internal.handlers.CustomFilterPropertyTester"
+            namespace="org.eclipse.wst.sse.ui.outline"
+            properties="isConfigurableOutlinePage"
+            type="org.eclipse.ui.IEditorPart">
+      </propertyTester>
+   </extension>
+</plugin>
+

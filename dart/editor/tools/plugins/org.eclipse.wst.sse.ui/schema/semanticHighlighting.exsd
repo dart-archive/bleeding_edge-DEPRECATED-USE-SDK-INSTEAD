@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.eclipse.wst.sse.ui" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="org.eclipse.wst.sse.ui" id="semanticHighlighting" name="Semantic Highlighting"/>
+      </appInfo>
+      <documentation>
+         The Semantic Highlighting extension point allows plug-ins to contribute rules to the Structured Source Editor&apos;s semantic highlighting framework. Semantic highlighting is performed as a second pass after syntax highlighting.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element />
+         </appInfo>
+      </annotation>
+      <complexType>
+         <sequence>
+            <element ref="highlighting" minOccurs="0" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="highlighting">
+      <complexType>
+         <attribute name="target" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A string defining when to use this extension.  It is the content type id.  Multiple targets may be given as a comma delimited value.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Must implement org.eclipse.wst.sse.ui.ISemanticHighlighting to provide basic semantic highlighting information.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.wst.sse.ui.ISemanticHighlighting"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="styleStringKey" type="string">
+            <annotation>
+               <documentation>
+                  The preference key that controls the style of the semantic highlighting. The style&apos;s value should be in the form: RGB foreground (#rrggbb) | RGB background (#rrggbb) | bold (true/false) | italic (true/false) | strikethrough (true/false) | underline (true/false)
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         3.1
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         The following is the declaration of a semantic highlighting that is effective on org.eclipse.core.runtime.xml and org.eclipse.wst.xml.core.xmlsource content types. The &lt;code&gt;org.eclipse.wst.xml.ui.internal.style.NamespaceHighlighting&lt;/code&gt; determines the consumable regions of the document.
+&lt;pre&gt;
+ &lt;extension point=&quot;org.eclipse.wst.sse.ui.semanticHighlighting&quot;&gt;
+  &lt;highlighting
+        class=&quot;org.eclipse.wst.xml.ui.internal.style.NamespaceHighlighting&quot;
+        target=&quot;org.eclipse.core.runtime.xml, org.eclipse.wst.xml.core.xmlsource&quot;&gt;
+  &lt;/highlighting&gt;
+ &lt;/extension&gt;
+&lt;/pre&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiinfo"/>
+      </appInfo>
+      <documentation>
+         See &lt;code&gt;org.eclipse.wst.sse.ui.ISemanticHighlighting&lt;/code&gt;
+      </documentation>
+   </annotation>
+
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         Copyright (c) 2009 IBM Corporation and others.
+All rights reserved. This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution, and is available at &lt;a href=&quot;http://www.eclipse.org/legal/epl-v10.html&quot;&gt;http://www.eclipse.org/legal/epl-v10.html&lt;/a&gt;
+      </documentation>
+   </annotation>
+
+</schema>

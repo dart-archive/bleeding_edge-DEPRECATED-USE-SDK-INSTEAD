@@ -1,0 +1,292 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.eclipse.wst.sse.ui" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="org.eclipse.wst.sse.ui" id="completionProposal" name="SSE Completion Proposal"/>
+      </appInfo>
+      <documentation>
+         This extension point allows the contribution of SSE completion proposal computers and categories to participate in the content assist process of SSE editors.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appInfo>
+            <meta.element labelAttribute="name" />
+         </appInfo>
+      </annotation>
+      <complexType>
+         <sequence>
+            <choice minOccurs="0" maxOccurs="unbounded">
+               <element ref="proposalCategory" minOccurs="0" maxOccurs="unbounded"/>
+               <element ref="proposalComputer" minOccurs="0" maxOccurs="unbounded"/>
+               <element ref="proposalComputerExtendedActivation" minOccurs="0" maxOccurs="unbounded"/>
+            </choice>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  a fully qualified identifier of the target extension point
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  an optional identifier of the extension instance
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  an optional name of the extension instance
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="proposalCategory">
+      <annotation>
+         <documentation>
+            A proposal category contribution defines categories of proposals used to group them in the UI.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The unique ID of the proposal category
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  The name of the proposal category.  If a name is not provided the proposal category ID will be used as the name.
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="icon" type="string">
+            <annotation>
+               <documentation>
+                  An optional icon of the category, which can be displayed in the user preferences
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="resource"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="proposalComputer">
+      <annotation>
+         <documentation>
+            A proposal computer contribution which is associated with at least one content type.
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence>
+            <element ref="contentType" minOccurs="1" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The unique ID of the proposal computer.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  The human readable name of the proposal computer.  If none is given the ID of the proposal computer will be used.
+               </documentation>
+               <appInfo>
+                  <meta.attribute translatable="true"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="icon" type="string">
+            <annotation>
+               <documentation>
+                  An optional icon of the computer, which will be used when creating the proposals suggested by this computer.  This preference can be programicly overwriten by the implimentation of &lt;code&gt;org.eclipse.wst.sse.ui.internal.provisional.contentassist.ICompletionProposalComputer&lt;/code&gt; specified by the &lt;tt&gt;class&lt;/tt&gt; attribute.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="resource"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The class that implements the contributed computer. The
+class must be public and implement
+&lt;code&gt;org.eclipse.wst.sse.ui.contentassist.ICompletionProposalComputer&lt;/code&gt;
+and must have a public 0-argument constructor.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.wst.sse.ui.contentassist.ICompletionProposalComputer"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="activate" type="boolean" use="default" value="false">
+            <annotation>
+               <documentation>
+                  If the attribute is set to &lt;code&gt;true&lt;/code&gt; it will force this plug-in to be loaded on content assist invocation
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="categoryId" type="string" use="default" value="org.eclipse.wst.sse.ui.defaultProposalCategory">
+            <annotation>
+               <documentation>
+                  The id of a &lt;tt&gt;proposalCategory&lt;/tt&gt; that this proposal computer should be a part of
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="identifier" basedOn="org.eclipse.wst.sse.ui.completionProposal/proposalCategory/@id"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="contentType">
+      <annotation>
+         <documentation>
+            A SSE content type. If no partition types are provided then computer will be associated with all partition types in the content type.
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence>
+            <element ref="partitionType" minOccurs="0" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The ID of the content type
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="identifier" basedOn="org.eclipse.core.contenttype.contentTypes/content-type/@id"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="partitionType">
+      <annotation>
+         <documentation>
+            A SSE partition type.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The ID of the partition type.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="autoActivationDelegate" type="string">
+            <annotation>
+               <documentation>
+                  Identifies a class that is responsible for identifying auto-activation characters for the associated content and partition type.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.wst.sse.ui.contentassist.AutoActivationDelegate:"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="proposalComputerExtendedActivation">
+      <annotation>
+         <documentation>
+            Used to extended the activation context of an already existing proposal computer.  Use this if there is a plugin A that has defined a proposal comptuer that should be activated for a content type defined in plugin B.
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence>
+            <element ref="contentType" minOccurs="1" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The ID of the &lt;tt&gt;proposalComputer&lt;/tt&gt; whos activation context should be extended.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="identifier" basedOn="org.eclipse.wst.sse.ui.completionProposal/proposalComputer/@id"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         &lt;p&gt;The following are examples of SSE completion proposal contributions:&lt;/p&gt;
+
+&lt;b&gt;Plugin A:&lt;/b&gt;&lt;pre&gt;&lt;extension point=&quot;org.eclipse.wst.sse.ui.completionProposal&quot;&gt;
+  &lt;proposalCategory
+      icon=&quot;icons/full/obj16/tag-macro.gif&quot;
+      id=&quot;org.eclipse.wst.xml.ui.proposalCategory.xmlTemplates&quot;
+      name=&quot;XML Templates&quot;&gt;
+  &lt;/proposalCategory&gt;
+  &lt;proposalComputer
+      activate=&quot;false&quot;
+      categoryId=&quot;org.eclipse.wst.xml.ui.proposalCategory.xmlTemplates&quot;
+      class=&quot;org.eclipse.wst.xml.ui.internal.contentassist.XMLTemplatesCompletionProposalComputer&quot;
+      id=&quot;org.eclipse.wst.xml.ui.proposalComputer.xmlTemplates&quot;&gt;
+    &lt;contentType
+        id=&quot;org.eclipse.core.runtime.xml&quot;&gt;
+    &lt;/contentType&gt;
+  &lt;/proposalComputer&gt;
+&lt;/extension&gt;&lt;/pre&gt;
+&lt;b&gt;Plugin B:&lt;/b&gt; (extending the activation context of an existing computer)&lt;pre&gt;&lt;extension point=&quot;org.eclipse.wst.sse.ui.completionProposal&quot;&gt;
+  &lt;proposalComputerExtendedActivation
+      id=&quot;org.eclipse.wst.xml.ui.proposalCategory.xmlTemplates&quot;&gt;
+    &lt;contentType
+        id=&quot;org.eclipse.jst.jsp.core.jspsource&quot;&gt;
+      &lt;partitionType
+          id=&quot;org.eclipse.wst.xml.XML_DEFAULT&quot;&gt;
+      &lt;/partitionType&gt;
+    &lt;/contentType&gt;
+  &lt;/proposalComputerExtendedActivation&gt;
+&lt;/extension&gt;&lt;/pre&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiinfo"/>
+      </appInfo>
+      <documentation>
+         The contributed class must impliment &lt;code&gt;org.eclipse.wst.sse.ui.internal.provisional.contentassist.ICompletionProposalComputer&lt;/code&gt;
+      </documentation>
+   </annotation>
+
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         Copyright (c) 2010 IBM Corporation and others.
+All rights reserved. This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution, and is available at &lt;a href=&quot;http://www.eclipse.org/legal/epl-v10.html&quot;&gt;http://www.eclipse.org/legal/epl-v10.html&lt;/a&gt;
+      </documentation>
+   </annotation>
+
+</schema>
