@@ -20,6 +20,8 @@ import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.UriKind;
 
 /**
  * Abstract implementation of {@link Refactoring}.
@@ -33,6 +35,23 @@ public abstract class RefactoringImpl implements Refactoring {
       return pm;
     }
     return new NullProgressMonitor();
+  }
+
+  /**
+   * @return {@code true} if given {@link Source} can be updated during refactoring.
+   */
+  static boolean canUpdateSource(Source source) {
+    // SDK
+    if (source.isInSystemLibrary()) {
+      return false;
+    }
+    // package
+    if (source.getUriKind() == UriKind.PACKAGE_URI) {
+      // TODO(scheglov) remove or replace with better API from Source
+      return !source.getFullName().contains("/.pub-cache/");
+    }
+    // OK
+    return true;
   }
 
   @Override

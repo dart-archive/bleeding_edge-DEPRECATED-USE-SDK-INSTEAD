@@ -33,12 +33,30 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
     createRenameRefactoring("test() {}");
     // check status
+    refactoring.checkInitialConditions(pm);
     refactoring.setNewName("newName");
     assertRefactoringStatus(
         refactoring.checkFinalConditions(pm),
         RefactoringStatusSeverity.ERROR,
         "Class 'A' already declares method with name 'newName'.",
         findRangeIdentifier("newName() {} // existing"));
+  }
+
+  public void test_checkFinalConditions_ignoredSdkElements() throws Exception {
+    verifyNoTestUnitErrors = false;
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A extends List<int> {",
+        "  add(x) {}",
+        "}");
+    createRenameRefactoring("add(x) {}");
+    // check status
+    refactoring.checkInitialConditions(pm);
+    refactoring.setNewName("newName");
+    assertRefactoringStatus(
+        refactoring.checkFinalConditions(pm),
+        RefactoringStatusSeverity.WARNING,
+        "Elements and references in SDK and external packages will not be renamed.");
   }
 
   public void test_checkFinalConditions_OK_noShadow() throws Exception {
@@ -57,6 +75,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
     createRenameRefactoring("test() {}");
     // check status
+    refactoring.checkInitialConditions(pm);
     refactoring.setNewName("newName");
     assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
   }
@@ -73,6 +92,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
     createRenameRefactoring("test() {}");
     // check status
+    refactoring.checkInitialConditions(pm);
     refactoring.setNewName("newName");
     assertRefactoringStatus(
         refactoring.checkFinalConditions(pm),
@@ -97,6 +117,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "");
     createRenameRefactoring("test() {}");
     // check status
+    refactoring.checkInitialConditions(pm);
     refactoring.setNewName("newName");
     assertRefactoringStatus(
         refactoring.checkFinalConditions(pm),
@@ -116,6 +137,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
     createRenameRefactoring("test() {}");
     // check status
+    refactoring.checkInitialConditions(pm);
     refactoring.setNewName("newName");
     assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
   }
@@ -132,6 +154,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
     createRenameRefactoring("test() {}");
     // check status
+    refactoring.checkInitialConditions(pm);
     refactoring.setNewName("newName");
     assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
   }
@@ -150,6 +173,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
     createRenameRefactoring("test() {}");
     // check status
+    refactoring.checkInitialConditions(pm);
     refactoring.setNewName("newName");
     assertRefactoringStatus(
         refactoring.checkFinalConditions(pm),
@@ -174,6 +198,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
     createRenameRefactoring("test() {}");
     // check status
+    refactoring.checkInitialConditions(pm);
     refactoring.setNewName("newName");
     assertRefactoringStatus(
         refactoring.checkFinalConditions(pm),
@@ -196,6 +221,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
     createRenameRefactoring("test() {}");
     // check status
+    refactoring.checkInitialConditions(pm);
     refactoring.setNewName("newName");
     assertRefactoringStatus(
         refactoring.checkFinalConditions(pm),

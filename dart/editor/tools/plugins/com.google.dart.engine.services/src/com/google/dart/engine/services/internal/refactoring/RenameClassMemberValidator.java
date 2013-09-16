@@ -27,6 +27,7 @@ import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
 import com.google.dart.engine.services.util.HierarchyUtils;
+import com.google.dart.engine.source.Source;
 
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getChildren;
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementKindName;
@@ -48,6 +49,7 @@ class RenameClassMemberValidator {
   private Set<ClassElement> superClasses;
   private Set<ClassElement> subClasses;
   private Set<ClassElement> hierarchyClasses;
+  boolean hasIgnoredElements = false;
   Set<Element> renameElements = Sets.newHashSet();
   List<SearchMatch> renameElementsReferences = Lists.newArrayList();
 
@@ -65,7 +67,7 @@ class RenameClassMemberValidator {
     try {
       final RefactoringStatus result = new RefactoringStatus();
       // prepare
-      prepareHierarchyClasses();
+      prepareHierarchyClasses(result);
       // check if there are members with "newName" in the same ClassElement
       for (Element newNameMember : getChildren(elementClass, newName)) {
         String message = MessageFormat.format(
@@ -143,7 +145,7 @@ class RenameClassMemberValidator {
    * {@link #renameElements} with all {@link Element}s which should be renamed, i.e. overridden in
    * super- and overrides in sub-classes.
    */
-  private void prepareHierarchyClasses() {
+  private void prepareHierarchyClasses(RefactoringStatus status) {
     // prepare super/sub-classes
     superClasses = HierarchyUtils.getSuperClasses(elementClass);
     subClasses = HierarchyUtils.getSubClasses(searchEngine, elementClass);
@@ -156,9 +158,18 @@ class RenameClassMemberValidator {
     renameElements.clear();
     for (ClassElement superClass : hierarchyClasses) {
       for (Element child : getChildren(superClass, oldName)) {
-        if (!child.isSynthetic()) {
-          renameElements.add(child);
+        // ignore synthetic
+        if (child.isSynthetic()) {
+          continue;
         }
+        // ignore if Source cannot be updated
+        Source source = child.getSource();
+        if (!RefactoringImpl.canUpdateSource(source)) {
+          hasIgnoredElements = true;
+          continue;
+        }
+        // add element to rename
+        renameElements.add(child);
       }
     }
     // prepare references

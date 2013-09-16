@@ -38,6 +38,7 @@ import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.source.Source;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -47,6 +48,7 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   private final Element element;
   private RenameClassMemberValidator validator;
   private List<SearchMatch> nameReferences;
+  private boolean hasIgnoredElements = false;
 
   public RenameClassMemberRefactoringImpl(SearchEngine searchEngine, Element element) {
     super(searchEngine, element);
@@ -66,6 +68,14 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           element.getDisplayName(),
           newName);
       result.merge(validator.validate(new SubProgressMonitor(pm, 1), true));
+      // add warning if some elements/reference are ignored
+      hasIgnoredElements = validator.hasIgnoredElements;
+      removeReferencesIfCannotUpdateSource(nameReferences);
+      removeReferencesIfCannotUpdateSource(validator.renameElementsReferences);
+      if (hasIgnoredElements) {
+        result.addWarning("Elements and references in SDK and external packages will not be renamed.");
+      }
+      // done
       return result;
     } finally {
       pm.done();
@@ -78,7 +88,7 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       return RefactoringStatus.createFatalErrorStatus("Cannot rename operator.");
     }
     preparePotentialMatchers();
-    return super.checkInitialConditions(pm);
+    return new RefactoringStatus();
   }
 
   @Override
@@ -177,6 +187,17 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           });
     } else {
       nameReferences = Lists.newArrayList();
+    }
+  }
+
+  private void removeReferencesIfCannotUpdateSource(List<SearchMatch> references) {
+    for (Iterator<SearchMatch> iter = references.iterator(); iter.hasNext();) {
+      SearchMatch reference = iter.next();
+      Source refSource = reference.getElement().getSource();
+      if (!canUpdateSource(refSource)) {
+        iter.remove();
+        hasIgnoredElements = true;
+      }
     }
   }
 }
