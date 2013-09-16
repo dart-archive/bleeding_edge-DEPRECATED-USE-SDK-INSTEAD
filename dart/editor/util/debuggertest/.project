@@ -39,5 +39,13 @@
 				<id>com.google.dart.tools.core.packagesFolderMatcher</id>
 			</matcher>
 		</filter>
+		<filter>
+			<id>1376931555930</id>
+			<name></name>
+			<type>30</type>
+			<matcher>
+				<id>com.google.dart.tools.core.packagesFolderMatcher</id>
+			</matcher>
+		</filter>
 	</filteredResources>
 </projectDescription>

@@ -6,7 +6,7 @@ library cmd_test;
 
 import 'dart:async';
 
-import 'pets.dart' as pets;
+import '../lib/pets.dart' as pets;
 
 num petCount = 0;
 double fooCount = 10.0;

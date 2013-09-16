@@ -1,7 +1,6 @@
 
 library isolates;
 
-import 'dart:async';
 import 'dart:isolate';
 
 String strVar = 'foo';

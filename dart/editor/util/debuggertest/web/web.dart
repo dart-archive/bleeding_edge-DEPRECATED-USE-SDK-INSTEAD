@@ -5,7 +5,11 @@
 library web_test;
 
 import 'dart:html';
-import 'pets.dart';
+
+import 'package:unittest/unittest.dart';
+
+//import 'package:debuggertest/pets.dart';
+import '../lib/pets.dart';
 
 num rotatePos = 0;
 
@@ -35,10 +39,12 @@ void testAnimals() {
   // loaded, dartium does not send us the adjusted bp location.
   var tempCat = SPARKY;
 
+  unittestConfiguration;
+
   spawnAnimalsIsolate();
   spawnAnimalsIsolate();
   spawnAnimalsIsolate();
-  
+
   tempCat.color;
   tempCat.color = "dsdf";
 
@@ -47,13 +53,13 @@ void testAnimals() {
   print("${tempCat}:");
 
   tempCat.performAction();
-  
+
   checkTypes();
 
   createARealBigArray();
 
   Ferret ferret = new Ferret("Fanny");
-  
+
   var dog = new Dog("Scooter");
 
   dog.performAction();

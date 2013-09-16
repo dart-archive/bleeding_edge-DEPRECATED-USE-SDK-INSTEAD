@@ -127,15 +127,15 @@ class Dog extends FloppyEars implements Animal {
   static getStaticDog() {
     return new Dog("BowWow");
   }
-  
+
   void performAction() {
     String name = "iHideAnInstanceVariable";
-  
+
     fleaCount++;
-    
-    String temp = 
+
+    String temp =
         this.name + "\n\n" + bornOn.toString() + this.collar.toString();
-    
+
     print("bark");
 
     var closure = () {
@@ -148,7 +148,7 @@ class Dog extends FloppyEars implements Animal {
     closure();
   }
 
-  String toString() => "dog ${name}";
+  String toString() => "dog ${name}, fleaCount=${fleaCount}";
 }
 
 /**
@@ -157,15 +157,15 @@ class Dog extends FloppyEars implements Animal {
 class Ferret extends Animal {
   String name;
   int clawCount;
-  
+
   Ferret(this.name) {
     clawCount = 4;
   }
-  
+
   bool livesWith(Animal other) => false;
-  
+
   void performAction() {
-    
+
   }
 
   String toString() {
@@ -226,7 +226,7 @@ void _spawnAnimals() {
   int count = new Random().nextInt(10);
 
   print("isolate started");
-  
+
   new Timer(new Duration(seconds: count), () {
     print("isolate finished after ${count} seconds");
   });
