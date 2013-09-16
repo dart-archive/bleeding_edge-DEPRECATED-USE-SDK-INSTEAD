@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+
+	<extension-point id="deviceProfileEntryProvider" name="%Device_Profile_Entry_Provider_Extension.name" schema="schema/deviceProfileEntryProvider.exsd"/>
+
+	<extension point="org.eclipse.ui.editors">
+		<editor
+			name="%HTML_Source_Page_Editor.name"
+			icon="$nl$/icons/full/obj16/sourceEditor.gif"
+			contributorClass="org.eclipse.wst.html.ui.internal.edit.ui.ActionContributorHTML"
+			class="org.eclipse.wst.sse.ui.StructuredTextEditor"
+			symbolicFontName="org.eclipse.wst.sse.ui.textfont"
+			id="org.eclipse.wst.html.core.htmlsource.source">
+			<contentTypeBinding
+				contentTypeId="org.eclipse.wst.html.core.htmlsource" />
+		</editor>
+	</extension>
+	<extension point="org.eclipse.wst.sse.ui.editorConfiguration">
+		<sourceViewerConfiguration
+			class="org.eclipse.wst.html.ui.StructuredTextViewerConfigurationHTML"
+			target="org.eclipse.wst.html.core.htmlsource" />
+		<contentOutlineConfiguration
+			class="org.eclipse.wst.html.ui.views.contentoutline.HTMLContentOutlineConfiguration"
+			target="org.eclipse.wst.html.core.htmlsource" />
+		<quickOutlineConfiguration
+			class="org.eclipse.wst.xml.ui.internal.quickoutline.XMLQuickOutlineConfiguration"
+			target="org.eclipse.wst.html.core.htmlsource"/>
+		<propertySheetConfiguration
+			class="org.eclipse.wst.xml.ui.views.properties.XMLPropertySheetConfiguration"
+			target="org.eclipse.wst.html.core.htmlsource" />
+  		<documentationTextHover
+        	class="org.eclipse.wst.html.ui.internal.taginfo.HTMLTagInfoHoverProcessor"
+        	target="org.eclipse.wst.html.HTML_DEFAULT">
+  		</documentationTextHover>
+		<provisionalConfiguration
+			type="sourceeditingtexttools"
+			class="org.eclipse.wst.xml.ui.internal.provisional.XMLSourceEditingTextTools"
+			target="org.eclipse.wst.html.core.htmlsource" />
+		<provisionalConfiguration
+			type="characterpairmatcher"
+			class="org.eclipse.wst.html.ui.internal.text.HTMLDocumentRegionEdgeMatcher"
+			target="org.eclipse.wst.html.core.htmlsource" />
+		<provisionalConfiguration
+			type="foldingstrategy"
+			class="org.eclipse.wst.xml.ui.internal.projection.XMLFoldingStrategy"
+			target="org.eclipse.wst.html.core.htmlsource" />
+		<provisionalConfiguration
+			type="org.eclipse.jface.text.quickassist.IQuickAssistProcessor"
+			class="org.eclipse.wst.xml.ui.internal.correction.XMLQuickAssistProcessor"
+			target="org.eclipse.wst.html.HTML_DEFAULT" />
+		<provisionalConfiguration
+			type="autoeditstrategy"
+			class="org.eclipse.wst.html.ui.internal.autoedit.StructuredAutoEditStrategyHTML"
+			target="org.eclipse.wst.html.HTML_DEFAULT, org.eclipse.wst.html.HTML_DECLARATION" />
+		<provisionalDefinition
+			type="preferencepages"
+			value="org.eclipse.wst.html.ui.preferences.html, org.eclipse.wst.html.ui.preferences.source, org.eclipse.wst.html.ui.preferences.templates, org.eclipse.wst.html.ui.preferences.styles,org.eclipse.wst.html.ui.preferences.validation, org.eclipse.wst.html.ui.preferences.contentassist"
+			target="org.eclipse.wst.html.core.htmlsource" />
+		<provisionalDefinition
+			type="spellingregions"
+			value="XML_COMMENT_TEXT, XML_CONTENT"
+			target="org.eclipse.wst.html.core.htmlsource" />
+		<provisionalDefinition
+			type="activecontexts"
+			value="org.eclipse.wst.html.core.htmlsource, org.eclipse.wst.html.occurrences, org.eclipse.core.runtime.xml, org.eclipse.wst.xml.navigation, org.eclipse.wst.xml.selection, org.eclipse.wst.sse.comments"
+        	target="org.eclipse.wst.html.core.htmlsource" />
+	</extension>
+	<extension
+		point="org.eclipse.core.filebuffers.annotationModelCreation">
+		<factory
+			contentTypeId="org.eclipse.wst.html.core.htmlsource"
+			class="org.eclipse.wst.sse.ui.internal.StructuredResourceMarkerAnnotationModelFactory" />
+	</extension>
+	<extension
+		point="org.eclipse.wst.sse.ui.adapterFactoryDescription">
+		<adapterFactoryDescription
+			class="org.eclipse.wst.html.ui.internal.registry.AdapterFactoryProviderForHTML">
+			<contentType id="org.eclipse.wst.html.core.htmlsource" />
+		</adapterFactoryDescription>
+	</extension>
+	<extension point="org.eclipse.ui.preferencePages">
+		<page
+			name="%WEB.name"
+			class="org.eclipse.wst.html.ui.internal.preferences.ui.EmptyFilePreferencePage"
+			id="org.eclipse.wst.html.ui.preferences.web">
+		</page>
+		<!-- HTML PREFERENCE PAGES-->
+		<page
+			name="%HTML_Files.name"
+			category="org.eclipse.wst.html.ui.preferences.web"
+			class="org.eclipse.wst.html.ui.internal.preferences.ui.HTMLFilesPreferencePage"
+			id="org.eclipse.wst.html.ui.preferences.html">
+			<keywordReference id="org.eclipse.wst.html.ui.files"/>
+		</page>
+		<page
+			name="%HTML_Source.name"
+			category="org.eclipse.wst.html.ui.preferences.html"
+			class="org.eclipse.wst.html.ui.internal.preferences.ui.HTMLSourcePreferencePage"
+			id="org.eclipse.wst.html.ui.preferences.source">
+			<keywordReference id="org.eclipse.wst.html.ui.source"/>
+		</page>
+  <page
+        category="org.eclipse.wst.html.ui.preferences.source"
+        class="org.eclipse.wst.html.ui.internal.preferences.ui.HTMLContentAssistPreferencePage"
+        id="org.eclipse.wst.html.ui.preferences.contentassist"
+        name="%HTML_Content_Assist.name">
+     <keywordReference
+           id="org.eclipse.wst.html.ui.contentassist">
+     </keywordReference>
+  </page>
+		<page
+			name="%HTML_Templates.name"
+			category="org.eclipse.wst.html.ui.preferences.source"
+			class="org.eclipse.wst.html.ui.internal.preferences.ui.HTMLTemplatePreferencePage"
+			id="org.eclipse.wst.html.ui.preferences.templates">
+			<keywordReference id="org.eclipse.wst.html.ui.templates"/>
+		</page>
+		<page
+			name="%HTML_Syntax_Coloring"
+			category="org.eclipse.wst.html.ui.preferences.source"
+			class="org.eclipse.wst.html.ui.internal.preferences.ui.HTMLSyntaxColoringPage"
+			id="org.eclipse.wst.html.ui.preferences.styles">
+			<keywordReference id="org.eclipse.wst.html.ui.styles"/>
+		</page>
+		<page
+			name="%HTML_Validation"
+			category="org.eclipse.wst.html.ui.preferences.html"
+			class="org.eclipse.wst.html.ui.internal.preferences.ui.HTMLValidationPreferencePage"
+			id="org.eclipse.wst.html.ui.preferences.validation">
+		</page>
+		<page
+			name="%HTML_Typing"
+			category="org.eclipse.wst.html.ui.preferences.source"
+			class="org.eclipse.wst.html.ui.internal.preferences.ui.HTMLTypingPreferencePage"
+			id="org.eclipse.wst.html.ui.preferences.typing">
+		</page>
+	</extension>
+	<!-- Web content settings -->
+	<extension point="org.eclipse.ui.propertyPages">
+		<!-- for dynamic web project -->
+		<page
+			name="%WebContentSettings.name"
+			class="org.eclipse.wst.html.ui.internal.contentproperties.ui.ProjectWebContentSettingsPropertyPage"
+			id="org.eclipse.wst.html.ui.dynamicprojectpropertypage">
+         	<enabledWhen>
+               	<and>
+					<adapt type="org.eclipse.core.resources.IProject">
+						<or> 
+							<test 
+								forcePluginActivation="true"
+								property="org.eclipse.wst.common.project.facet.core.projectFacet"
+								value="jst.web" />
+							<test 
+								forcePluginActivation="true"
+								property="org.eclipse.wst.common.project.facet.core.projectFacet"
+								value="wst.web" />
+						</or>
+					</adapt>
+				</and> 
+			</enabledWhen>
+         	<keywordReference id="org.eclipse.wst.html.ui.webcontent"/>
+		</page>
+		<page
+			name="%WebContentSettings.name"
+			class="org.eclipse.wst.html.ui.internal.contentproperties.ui.WebContentSettingsPropertyPage"
+			id="org.eclipse.wst.html.ui.internal.contentproperties.ui.WebContentSettingsPropertyPage">
+         	<enabledWhen>
+               	<and>
+					<adapt type="org.eclipse.core.resources.IFile">
+						<or> 
+							<test 
+								forcePluginActivation="true"
+								property="org.eclipse.core.resources.contentTypeId"
+								value="org.eclipse.wst.html.core.htmlsource" />
+							<test 
+								forcePluginActivation="true"
+								property="org.eclipse.core.resources.contentTypeId"
+								value="org.eclipse.jst.jsp.core.jspsource" />
+							<test 
+								forcePluginActivation="true"
+								property="org.eclipse.core.resources.contentTypeId"
+								value="org.eclipse.jst.jsp.core.jspfragmentsource" />
+							<test 
+								forcePluginActivation="true"
+								property="org.eclipse.core.resources.contentTypeId"
+								value="org.eclipse.jst.jsp.core.cssjspfragmentsource" />
+						</or>
+					</adapt>
+				</and> 
+			</enabledWhen>
+         	<keywordReference id="org.eclipse.wst.html.ui.webcontent"/>
+		</page>
+		<page
+			name="%HTML_Property_validation"
+			class="org.eclipse.wst.html.ui.internal.preferences.ui.HTMLValidationPreferencePage"
+			id="org.eclipse.wst.html.ui.propertyPage.project.validation"
+			category="ValidationPropertiesPage">
+			<enabledWhen>
+				<adapt type="org.eclipse.core.resources.IProject">
+					
+				</adapt>
+			</enabledWhen>
+		</page>
+	</extension>
+	
+	<!-- Keywords for preference and properties pages -->
+	<extension point="org.eclipse.ui.keywords">
+		<keyword
+			label="%preferenceKeywords.files"
+			id="org.eclipse.wst.html.ui.files"/>
+		<keyword
+			label="%preferenceKeywords.source"
+			id="org.eclipse.wst.html.ui.source"/>
+		<keyword
+			label="%preferenceKeywords.contentassist"
+			id="org.eclipse.wst.html.ui.contentassist"/>
+		<keyword
+			label="%preferenceKeywords.templates"
+			id="org.eclipse.wst.html.ui.templates"/>
+		<keyword
+			label="%preferenceKeywords.styles"
+			id="org.eclipse.wst.html.ui.styles"/>
+		<keyword
+			label="%preferenceKeywords.webcontent"
+			id="org.eclipse.wst.html.ui.webcontent"/>
+		<keyword
+			label="%preferenceKeywords.severities"
+			id="org.eclipse.wst.html.ui.severities"/>
+    </extension>
+	
+	<!-- Editor actionsets -->
+	<extension point="org.eclipse.ui.actionSetPartAssociations">
+		<actionSetPartAssociation
+			targetID="org.eclipse.ui.edit.text.actionSet.annotationNavigation">
+			<part id="org.eclipse.wst.html.core.htmlsource.source">
+			</part>
+		</actionSetPartAssociation>
+		<actionSetPartAssociation
+			targetID="org.eclipse.ui.NavigateActionSet">
+			<part id="org.eclipse.wst.html.core.htmlsource.source">
+			</part>
+		</actionSetPartAssociation>
+	</extension>
+
+	<!-- Templates -->
+	<extension point="org.eclipse.ui.editors.templates">
+		<contextType
+			name="%All_HTML_context_type_Extension_Element.name"
+			class="org.eclipse.wst.html.ui.internal.templates.TemplateContextTypeHTML"
+			id="html_all">
+		</contextType>
+		<contextType
+			name="%HTML_New_context_type_Extension_Element.name"
+			class="org.eclipse.wst.html.ui.internal.templates.TemplateContextTypeHTML"
+			id="html_new">
+		</contextType>
+		<contextType
+			name="%HTML_Tag_context_type_Extension_Element.name"
+			class="org.eclipse.wst.html.ui.internal.templates.TemplateContextTypeHTML"
+			id="html_tag">
+		</contextType>
+		<contextType
+			name="%HTML_Attribute_context_type_Extension_Element.name"
+			class="org.eclipse.wst.html.ui.internal.templates.TemplateContextTypeHTML"
+			id="html_attribute">
+		</contextType>
+		<contextType
+			name="%HTML_Attribute_value_context_type_Extension_Element.name"
+			class="org.eclipse.wst.html.ui.internal.templates.TemplateContextTypeHTML"
+			id="html_attribute_value">
+		</contextType>
+		<include
+			file="templates/htmldefault-templates.xml"
+			translations="$nl$/templates/htmldefault-templates.properties">
+		</include>
+	</extension>
+	
+	<!-- Define the HTML Contexts -->
+	<extension point="org.eclipse.ui.contexts">
+		<context
+			name="%scope.structured.text.editor.html.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structured.text.editor.html.description"
+			id="org.eclipse.wst.html.core.htmlsource">
+		</context>
+		<context
+			name="%scope.structured.text.editor.html.occurrences.name"
+			parentId="org.eclipse.wst.sse.ui.structuredTextEditorScope"
+			description="%scope.structured.text.editor.html.occurrences.description"
+			id="org.eclipse.wst.html.occurrences">
+		</context>
+	</extension>
+	
+	<!-- initialize html ui preferences -->
+	<extension point="org.eclipse.core.runtime.preferences">
+		<initializer
+			class="org.eclipse.wst.html.ui.internal.preferences.HTMLUIPreferenceInitializer" />
+	</extension>
+
+	<!--======================================================================================-->
+	<!-- Document provider for ExternalFileEditorInput                                        -->
+	<!--======================================================================================-->
+	<extension point="org.eclipse.ui.editors.documentProviders">
+		<provider
+			inputTypes="org.eclipse.wst.html.ui.internal.hyperlink.ExternalFileEditorInput"
+			class="org.eclipse.ui.editors.text.TextFileDocumentProvider"
+			id="org.eclipse.wst.html.ui.internal.ExternalFileDocumentProvider">
+		</provider>
+	</extension>
+
+	<!--======================================================================================-->
+	<!-- As you type validation                                      						  -->
+	<!--======================================================================================-->
+
+	<extension point="org.eclipse.wst.sse.ui.sourcevalidation">
+		<validator
+			scope="total"
+			class="org.eclipse.wst.html.internal.validation.HTMLSourceValidator"
+			id="org.eclipse.wst.html.ui.internal.validation.htmlsyntaxvalidator">
+			<contentTypeIdentifier
+				id="org.eclipse.wst.html.core.htmlsource">
+				<partitionType id="org.eclipse.wst.html.HTML_DEFAULT"/>
+				<partitionType id="org.eclipse.wst.html.HTML_DECLARATION"/>
+				<partitionType id="org.eclipse.wst.html.HTML_COMMENT"/>
+				<partitionType id="org.eclipse.wst.xml.XML_DEFAULT"/>
+				<partitionType id="org.eclipse.wst.sse.ST_DEFAULT"/>
+			</contentTypeIdentifier>
+		</validator>
+	</extension>
+
+	<!-- New HTML wizard -->
+	<extension point="org.eclipse.ui.newWizards">
+		<wizard
+			id="org.eclipse.wst.html.ui.internal.wizard.NewHTMLWizard"
+			name="%_UI_WIZARD_NAME"
+			class="org.eclipse.wst.html.ui.internal.wizard.NewHTMLWizard"
+			category="org.eclipse.wst.web.ui"
+			icon="$nl$/icons/full/etool16/newhtml_wiz.gif">
+			<description>%_UI_WIZARD_CREATE_NEW_FILE</description>
+			<selection class="org.eclipse.core.resources.IResource" />
+		</wizard>
+	</extension>
+
+	<!-- Add new HTML wizard to Common Navigator -->
+	<extension
+		id="org.eclipse.wst.html.commonWizard.newHTML"
+		point="org.eclipse.ui.navigator.navigatorContent">
+		<commonWizard
+        menuGroupId="org.eclipse.wst.web.ui"
+        type="new"
+        wizardId="org.eclipse.wst.html.ui.internal.wizard.NewHTMLWizard">
+			<enablement>
+				<or>
+					<adapt type="org.eclipse.core.resources.IResource">
+						<or>
+							<test
+								property="org.eclipse.wst.common.project.facet.core.projectFacet"
+								value="wst.web"/>
+							<test
+								property="org.eclipse.wst.common.project.facet.core.projectFacet"
+								value="jst.web"/>
+						</or>
+					</adapt>
+				</or>
+			</enablement>
+		</commonWizard>
+	</extension>
+
+	<extension point="org.eclipse.ui.popupMenus">
+		<viewerContribution
+			targetID="org.eclipse.wst.html.core.htmlsource.source.RulerContext"
+			id="org.eclipse.ui.texteditor.ruler.context.actions">
+			<action
+				label="%AddTask.label"
+				helpContextId="org.eclipse.ui.AddTask_action_context"
+				class="org.eclipse.ui.texteditor.TaskRulerAction"
+				tooltip="%AddTask.tooltip"
+				menubarPath="additions"
+				id="org.eclipse.ui.texteditor.TaskRulerAction">
+			</action>
+			<action
+				label="%AddBookmark.label"
+				helpContextId="org.eclipse.ui.bookmark_action_context"
+				class="org.eclipse.ui.texteditor.BookmarkRulerAction"
+				tooltip="%AddBookmark.tooltip"
+				menubarPath="additions"
+				id="org.eclipse.ui.texteditor.BookmarkRulerAction">
+			</action>
+		</viewerContribution>
+	</extension>
+	
+	<extension point="org.eclipse.ui.editorActions">
+	<!--	<editorContribution
+			id="org.eclipse.wst.html.core.htmlsource.source.editorActions"
+			targetID="org.eclipse.wst.html.core.htmlsource.source">
+			<action
+				id="CleanupDocument"
+				label="%CleanupDocument_label"
+				definitionId="org.eclipse.wst.sse.ui.cleanup.document"
+				tooltip="%CleanupDocument_tooltip"
+				class="org.eclipse.wst.html.ui.internal.edit.ui.CleanupActionHTMLDelegate"
+				actionID="CleanupDocument">
+			</action>
+			<action
+				id="ToggleComment"
+				label="%ToggleComment_label"
+				definitionId="org.eclipse.wst.sse.ui.toggle.comment"
+				tooltip="%ToggleComment_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.actions.ToggleCommentActionXMLDelegate"
+				actionID="ToggleComment">
+			</action>
+			<action
+				id="AddBlockComment"
+				label="%AddBlockComment_label"
+				definitionId="org.eclipse.wst.sse.ui.add.block.comment"
+				tooltip="%AddBlockComment_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.actions.AddBlockCommentActionXMLDelegate"
+				actionID="AddBlockComment">
+			</action>
+			<action
+				id="RemoveBlockComment"
+				label="%RemoveBlockComment_label"
+				definitionId="org.eclipse.wst.sse.ui.remove.block.comment"
+				tooltip="%RemoveBlockComment_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.actions.RemoveBlockCommentActionXMLDelegate"
+				actionID="RemoveBlockComment">
+			</action>
+			<action
+				id="FindOccurrences"
+				label="%FindOccurrences_label"
+				definitionId="org.eclipse.wst.sse.ui.search.find.occurrences"
+				class="org.eclipse.wst.html.ui.internal.search.HTMLFindOccurrencesActionDelegate"
+				actionID="FindOccurrences">
+			</action>
+			<action
+				id="StructureSelectEnclosing"
+				label="%StructureSelectEnclosing_label"
+				definitionId="org.eclipse.wst.sse.ui.structure.select.enclosing"
+				tooltip="%StructureSelectEnclosing_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.selection.StructuredSelectEnclosingXMLActionDelegate"
+				actionID="StructureSelectEnclosing">
+			</action>
+			<action
+				id="StructureSelectNext"
+				label="%StructureSelectNext_label"
+				definitionId="org.eclipse.wst.sse.ui.structure.select.next"
+				tooltip="%StructureSelectNext_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.selection.StructuredSelectNextXMLActionDelegate"
+				actionID="StructureSelectNext">
+			</action>
+			<action
+				id="StructureSelectPrevious"
+				label="%StructureSelectPrevious_label"
+				definitionId="org.eclipse.wst.sse.ui.structure.select.previous"
+				tooltip="%StructureSelectPrevious_tooltip"
+				class="org.eclipse.wst.xml.ui.internal.selection.StructuredSelectPreviousXMLActionDelegate"
+				actionID="StructureSelectPrevious">
+			</action>
+			<action
+				id="StructureSelectHistory"
+				label="%StructureSelectHistory_label"
+				definitionId="org.eclipse.wst.sse.ui.structure.select.last"
+				tooltip="%StructureSelectHistory_tooltip"
+				class="org.eclipse.wst.sse.ui.internal.selection.StructuredSelectHistoryActionDelegate"
+				actionID="StructureSelectHistory">
+			</action>
+		</editorContribution>-->
+        <editorContribution
+            targetID="org.eclipse.wst.html.core.htmlsource.source"
+            id="org.eclipse.wst.html.core.htmlsource.ruler.actions">
+         <action
+               label="%AddBookmark.label"
+               helpContextId="org.eclipse.ui.bookmark_action_context"
+               class="org.eclipse.ui.texteditor.BookmarkRulerAction"
+               actionID="RulerDoubleClick"
+               id="org.eclipse.ui.texteditor.BookmarkRulerAction"/>
+         <action
+               label="%SelectRuler.label"
+               class="org.eclipse.ui.texteditor.SelectRulerAction"
+               actionID="RulerClick"
+               id="org.eclipse.ui.texteditor.SelectRulerAction"/>
+        </editorContribution>
+	</extension>
+	
+	<extension
+       point="org.eclipse.ui.handlers">
+       <handler
+             class="org.eclipse.wst.html.ui.internal.edit.ui.CleanupDocumentHandler"
+             commandId="org.eclipse.wst.sse.ui.cleanup.document">
+             <activeWhen>
+             	<reference
+                    definitionId="org.eclipse.wst.html.ui.htmlSourceContributions.definition">
+             	</reference>
+             </activeWhen>
+       </handler>
+       <handler
+             class="org.eclipse.wst.html.ui.internal.handlers.HTMLFindOccurrencesHandler"
+             commandId="org.eclipse.wst.sse.ui.search.find.occurrences">
+             <activeWhen>
+             	<reference
+                    definitionId="org.eclipse.wst.html.ui.occurrences">
+             	</reference>
+             </activeWhen>
+       </handler>
+       
+	</extension>
+	
+	<extension
+		point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectorTargets">
+		<target
+			id="org.eclipse.wst.html.core.htmlsource"
+			name="%HTML_Editors_target_name"/>
+		<target
+			id="org.eclipse.wst.html.SCRIPT"
+			name="%hyperlink.target.script.name"/>
+		<target
+			id="org.eclipse.wst.html.SCRIPT.EVENTHANDLER"
+			name="%hyperlink.target.eventhandler.name"/>
+	</extension>
+	
+	<extension
+		point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
+		<hyperlinkDetector
+			class="org.eclipse.wst.html.ui.internal.hyperlink.AnchorHyperlinkDetector"
+			id="org.eclipse.wst.html.ui.internal.hyperlink.AnchorHyperlinkDetector"
+			name="%hyperlinkDetector.anchor.name"
+			targetId="org.eclipse.core.runtime.xml">
+		</hyperlinkDetector>
+		
+   </extension>
+
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.html.ui.htmlSourceContributions.definition">
+            <with variable="activeContexts">
+	           <iterate operator="or">
+	              <equals value="org.eclipse.wst.html.core.htmlsource"/>
+	           </iterate>
+            </with>
+		</definition>
+	</extension>
+	
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.html.ui.occurrences">
+            <with variable="activeContexts">
+	           <iterate operator="or">
+	              <equals value="org.eclipse.wst.html.occurrences"/>
+	           </iterate>
+            </with>
+		</definition>
+	</extension>
+	
+	<!-- Define theme - Many of the color overrides and definitions come from 
+	     the XML plugin -->
+	<extension
+		point="org.eclipse.ui.themes">
+		<theme
+			id="org.eclipse.ui.ide.systemDefault">
+			<colorOverride
+				id="SCRIPT_AREA_BORDER"
+				value="COLOR_LIST_FOREGROUND">
+			</colorOverride>
+		</theme>
+		<colorDefinition
+			id="SCRIPT_AREA_BORDER"
+			isEditable="false"
+			label="%Colors.scriptAreaBorder"
+			value="191, 95, 63">
+		</colorDefinition>
+	</extension>
+	
+	<!-- Enable the FormatHandler for HTML Content Type -->
+	<extension point="org.eclipse.ui.handlers">
+		<handler 
+			class="org.eclipse.wst.sse.ui.internal.handlers.FormatHandler"
+			commandId="org.eclipse.wst.sse.ui.format">
+			<activeWhen>
+				<reference definitionId="org.eclipse.wst.html.ui.htmlContentType.definition"></reference>
+			</activeWhen>
+		</handler>
+	</extension>
+
+	<extension
+       point="org.eclipse.wst.sse.ui.commentingStrategy">
+    <blockCommentingStrategy
+          prefix="&lt;!--"
+          suffix="--&gt;">
+       <contentType
+             id="org.eclipse.wst.html.core.htmlsource"
+             associatedCommentPartitionTypeID="org.eclipse.wst.html.HTML_COMMENT">
+          <requiredPartitionTypes>
+             <partitionType
+                   id="org.eclipse.wst.html.HTML_DEFAULT">
+             </partitionType>
+             <partitionType
+                   id="org.eclipse.wst.html.HTML_DECLARATION">
+             </partitionType>
+             <partitionType
+                   id="org.eclipse.wst.html.SCRIPT.EVENTHANDLER">
+             </partitionType>
+             <partitionType
+                   id="org.eclipse.wst.xml.XML_PI">
+             </partitionType>
+          </requiredPartitionTypes>
+          <allowablePartitionTypes
+                anyPartitionType="false">
+             <partitionType
+                   id="org.eclipse.wst.css.STYLE">
+             </partitionType>
+             <partitionType
+                   id="org.eclipse.wst.html.SCRIPT">
+             </partitionType>
+          </allowablePartitionTypes>
+       </contentType>
+    </blockCommentingStrategy>
+ </extension>
+	<!-- Set up a definition for HTML Content Types -->
+	<extension point="org.eclipse.core.expressions.definitions">
+		<definition id="org.eclipse.wst.html.ui.htmlContentType.definition">
+			<iterate ifEmpty="false">
+				<adapt type="org.eclipse.core.resources.IFile">
+					<!-- Force property tester to load, should not cause entire plug-in to start -->
+					<test property="org.eclipse.wst.sse.core.resources.contentTypeId"
+						value="org.eclipse.wst.html.core.htmlsource" forcePluginActivation="true"/>
+				</adapt>
+			</iterate>
+		</definition>
+	</extension>
+	<extension point="org.eclipse.wst.sse.ui.characterPairing">
+		<inserter class="org.eclipse.wst.html.ui.internal.text.CharacterPairInserter" id="org.eclipse.wst.html.ui.inserter">
+			<contentTypeIdentifier
+				id="org.eclipse.wst.html.core.htmlsource"
+				partitions="org.eclipse.wst.html.HTML_DEFAULT">
+			</contentTypeIdentifier>
+		</inserter>
+	</extension>
+ <extension
+       point="org.eclipse.wst.sse.ui.completionProposal">
+    <proposalCategory
+          icon="icons/full/obj16/tag-generic.gif"
+          id="org.eclipse.wst.html.ui.proposalCategory.htmlTags"
+          name="%proposalCategory.htmlTags">
+    </proposalCategory>
+    <proposalCategory
+          icon="icons/full/obj16/tag-template.gif"
+          id="org.eclipse.wst.html.ui.proposalCategory.htmlTemplates"
+          name="%proposalCategory.htmlTemplates">
+    </proposalCategory>
+    <proposalComputer
+          activate="false"
+          categoryId="org.eclipse.wst.html.ui.proposalCategory.htmlTags"
+          class="org.eclipse.wst.html.ui.internal.contentassist.HTMLTagsCompletionProposalComputer"
+          id="org.eclipse.wst.html.ui.proposalComputer.htmlTags">
+       <contentType
+             id="org.eclipse.wst.html.core.htmlsource">
+          <partitionType
+                id="org.eclipse.wst.html.HTML_DEFAULT">
+          </partitionType>
+       </contentType>
+    </proposalComputer>
+    <proposalComputer
+          activate="false"
+          categoryId="org.eclipse.wst.html.ui.proposalCategory.htmlTemplates"
+          class="org.eclipse.wst.html.ui.internal.contentassist.HTMLTemplatesCompletionProposalComputer"
+          id="org.eclipse.wst.html.ui.proposalComputer.htmlTemplates">
+       <contentType
+             id="org.eclipse.wst.html.core.htmlsource">
+          <partitionType
+                id="org.eclipse.wst.html.HTML_DEFAULT">
+          </partitionType>
+       </contentType>
+    </proposalComputer>
+    <proposalComputerExtendedActivation
+          id="org.eclipse.wst.css.ui.proposalComputer.css">
+       <contentType
+             id="org.eclipse.wst.html.core.htmlsource">
+          <partitionType
+                id="org.eclipse.wst.css.STYLE">
+          </partitionType>
+       </contentType>
+    </proposalComputerExtendedActivation>
+    <proposalComputerExtendedActivation
+          id="org.eclipse.wst.css.ui.proposalComputer.cssTemplates">
+       <contentType
+             id="org.eclipse.wst.html.core.htmlsource">
+          <partitionType
+                id="org.eclipse.wst.css.STYLE">
+          </partitionType>
+       </contentType>
+    </proposalComputerExtendedActivation>
+ </extension>
+ <extension
+       point="org.eclipse.wst.sse.ui.completionProposalCategoriesConfiguration">
+    <categoriesConfiguration
+          class="org.eclipse.wst.html.ui.internal.preferences.HTMLCompletionProposalCategoriesConfiguration"
+          contentTypeID="org.eclipse.wst.html.core.htmlsource">
+    </categoriesConfiguration>
+ </extension>
+ 
+<extension
+      point="org.eclipse.wst.sse.ui.outlineFilters">
+      <filter
+            targetId="org.eclipse.wst.html.ui.OutlinePage"
+            name="%HideComments.label"
+            enabled="false"
+            description="%HideComments.description"
+            class="org.eclipse.wst.xml.ui.views.contentoutline.XMLCommentFilter"
+            id="org.eclipse.wst.html.ui.views.contentoutline.XMLCommentFilter">
+      </filter>
+</extension>
+	
+</plugin>

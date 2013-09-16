@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/*******************************************************************************
+ * Copyright (c) 2004, 2010 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *     Benjamin Muskalla, b.muskalla@gmx.net - [156040] no new html template for xhtml 1.0 strict
+ *     
+ *******************************************************************************/
+ -->
+<templates>
+
+<template name="%Templates.comment.name" description="%Templates.comment.desc" id="org.eclipse.wst.html.ui.templates.comment" context="html_tag" enabled="true">&lt;!-- ${cursor} --&gt;</template>
+
+<template name="%Templates.imgmap.name" description="%Templates.imgmap.desc" id="org.eclipse.wst.html.ui.templates.imgmap" context="html_tag" enabled="true">&lt;img ismap&gt;</template>
+
+<template name="%Templates.ul.name" description="%Templates.ul.desc" id="org.eclipse.wst.html.ui.templates.ul" context="html_tag" enabled="true">%Templates.ul.content</template>
+
+<template name="%Templates.dl.name" description="%Templates.dl.desc" id="org.eclipse.wst.html.ui.templates.dl" context="html_tag" enabled="true">%Templates.dl.content</template>
+
+<template name="%Templates.table.name" description="%Templates.table.desc" id="org.eclipse.wst.html.ui.templates.table" context="html_tag" enabled="true">%Templates.table.content</template>
+
+<template name="%Templates.ol.name" description="%Templates.ol.desc" id="org.eclipse.wst.html.ui.templates.ol" context="html_tag" enabled="true">%Templates.ol.content</template>
+
+<template name="%Templates.html.name" description="%Templates.html.desc" id="org.eclipse.wst.html.ui.templates.html" context="html_new" enabled="true">%Templates.html.content</template>
+
+<template name="%Templates.htmlframeset.name" description="%Templates.htmlframeset.desc" id="org.eclipse.wst.html.ui.templates.htmlframeset" context="html_new" enabled="true">%Templates.htmlframeset.content</template>
+
+<template name="%Templates.htmlstrict.name" description="%Templates.htmlstrict.desc" id="org.eclipse.wst.html.ui.templates.htmlstrict" context="html_new" enabled="true">%Templates.htmlstrict.content</template>
+
+<template name="%Templates.xhtml.name" description="%Templates.xhtml.desc" id="org.eclipse.wst.html.ui.templates.xhtml" context="html_new" enabled="true">%Templates.xhtml.content</template>
+
+<template name="%Templates.xhtmlframeset.name" description="%Templates.xhtmlframeset.desc" id="org.eclipse.wst.html.ui.templates.xhtmlframeset" context="html_new" enabled="true">%Templates.xhtmlframeset.content</template>
+
+<template name="%Templates.xhtmlstrict.name" description="%Templates.xhtmlstrict.desc" id="org.eclipse.wst.html.ui.templates.xhtmlstrict" context="html_new" enabled="true">%Templates.xhtmlstrict.content</template>
+
+<template name="%Templates.script.name" description="%Templates.script.desc" id="org.eclipse.wst.html.ui.templates.script" context="html_tag" enabled="true">%Templates.script.content</template>
+
+<template name="%Templates.style.name" description="%Templates.style.desc" id="org.eclipse.wst.html.ui.templates.style" context="html_tag" enabled="true">%Templates.style.content</template>
+
+<template name="%Templates.html5.name" description="%Templates.html5.desc" id="org.eclipse.wst.html.ui.templates.html5" context="html_new" enabled="true">%Templates.html5.content</template>
+
+</templates>
