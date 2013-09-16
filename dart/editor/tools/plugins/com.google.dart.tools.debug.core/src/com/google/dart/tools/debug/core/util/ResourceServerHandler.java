@@ -21,8 +21,10 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -65,10 +67,6 @@ import java.util.Map;
 // Content-Length: 438
 // Connection: close
 // Content-Type: text/html; charset=UTF-8
-
-// TODO(devoncarew): the log back data may not be coming in utf8
-
-// TODO(devoncarew): the log back data is coming out-of-order (due to the http post)
 
 /**
  * Handles an incoming http request, serving files from the workspace (or error pages) as necessary.
@@ -176,6 +174,12 @@ class ResourceServerHandler implements Runnable {
       return "[" + responseCode + " " + responseText + "]";
     }
   }
+
+  /**
+   * This flag controls whether the Editor's JS debug agent is appended to compiled .dart.js
+   * scripts.
+   */
+  private static boolean APPEND_DEBUG_AGENT = false;
 
   private static final String CONTENT_TYPE = "Content-Type";
   private static final String CACHE_CONTROL = "Cache-Control";
@@ -349,13 +353,7 @@ class ResourceServerHandler implements Runnable {
    * @return
    */
   private boolean canServeFile(File file) {
-    if (file.getName().startsWith(".")) {
-      return false;
-    }
-
-    File parentFile = file.getParentFile();
-
-    return parentFile == null ? true : canServeFile(parentFile);
+    return !file.getName().startsWith(".");
   }
 
   private HttpResponse createErrorResponse() {
@@ -433,7 +431,11 @@ class ResourceServerHandler implements Runnable {
         return createErrorResponse("File not found: " + header.file);
       }
 
-      javaScriptContent = getCombinedContentAndAgent(javaFile);
+      if (APPEND_DEBUG_AGENT) {
+        javaScriptContent = getCombinedContentAndAgent(javaFile);
+      } else {
+        javaScriptContent = null;
+      }
     }
 
     HttpResponse response = new HttpResponse();
@@ -740,32 +742,30 @@ class ResourceServerHandler implements Runnable {
     return false;
   }
 
-  private File locateAbsoluteFile(String path) {
-    File file = new File(path);
+  private File locateFile(String filePath) {
+    IPath path = Path.fromPortableString(filePath);
 
-    if (file.exists() && !file.isDirectory()) {
-      return file;
-    } else {
+    if (path.segmentCount() == 0) {
       return null;
     }
-  }
 
-  private File locateFile(String filePath) {
-    File javaFile = null;
+    IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(path.segment(0));
 
-    IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(new Path(filePath));
-
-    if (resource instanceof IFile) {
-      IFile file = (IFile) resource;
-
-      if (file.getRawLocation() != null) {
-        javaFile = file.getRawLocation().toFile();
-      }
-    } else if (resource == null) {
-      javaFile = locateAbsoluteFile(filePath);
+    if (!project.exists() || !project.isOpen()) {
+      return null;
     }
 
-    return javaFile;
+    IPath projectLocation = project.getLocation();
+
+    if (projectLocation == null) {
+      return null;
+    }
+
+    IPath childPath = path.removeFirstSegments(1);
+
+    File file = new File(projectLocation.toFile(), childPath.toOSString());
+
+    return file.exists() ? file : null;
   }
 
   private IResource locateMappedFile(File file) {

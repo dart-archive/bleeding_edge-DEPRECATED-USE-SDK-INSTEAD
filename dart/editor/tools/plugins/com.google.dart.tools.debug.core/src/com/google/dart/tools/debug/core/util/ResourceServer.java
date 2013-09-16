@@ -93,14 +93,18 @@ public class ResourceServer implements IResourceResolver {
 
   @Override
   public String getUrlForFile(File file) {
-    return getUrlForUri(file.toURI());
+    IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(file.toURI());
+
+    if (files.length > 0) {
+      return getUrlForResource(files[0]);
+    } else {
+      return null;
+    }
   }
 
   @Override
   public String getUrlForResource(IResource resource) {
-    URI fileUri = resource.getLocation().toFile().toURI();
-
-    return getUrlForUri(fileUri);
+    return getUrlForFilePath(resource.getFullPath().toPortableString());
   }
 
   @Override
@@ -228,16 +232,14 @@ public class ResourceServer implements IResourceResolver {
     return URI.create(url).getPath();
   }
 
-  private String getUrlForUri(URI fileUri) {
+  private String getUrlForFilePath(String path) {
     try {
-      String pathSegment = fileUri.getPath();
-
       URI uri = new URI(
           "http",
           null,
           NetUtils.getLoopbackAddress(),
           serverSocket.getLocalPort(),
-          pathSegment,
+          path,
           null,
           null);
       return uri.toString();

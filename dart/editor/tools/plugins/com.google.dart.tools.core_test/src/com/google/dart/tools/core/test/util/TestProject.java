@@ -16,7 +16,6 @@ package com.google.dart.tools.core.test.util;
 
 import com.google.common.io.CharStreams;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 
@@ -67,8 +66,6 @@ public class TestProject {
 
   private final IProject project;
 
-  private final DartProject dartProject;
-
   static int testCount = 0;
 
   /**
@@ -112,13 +109,6 @@ public class TestProject {
         }
       }
     }, workspace.getRoot(), 0, null);
-
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      // remember DartProject
-      dartProject = DartCore.create(project);
-    } else {
-      dartProject = null;
-    }
   }
 
   public IFolder createFolder(String path) throws Exception {
@@ -149,13 +139,6 @@ public class TestProject {
 
     // do dispose
     TestUtilities.deleteProject(project);
-  }
-
-  /**
-   * @return the {@link DartProject}.
-   */
-  public DartProject getDartProject() {
-    return dartProject;
   }
 
   /**

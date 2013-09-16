@@ -23,6 +23,7 @@ public class TestAll {
     suite.addTestSuite(HistoryListTest.class);
     suite.addTestSuite(HttpUrlConnectorTest.class);
     suite.addTestSuite(JsonTests.class);
+    suite.addTestSuite(ResourceServerTest.class);
     return suite;
   }
 }
