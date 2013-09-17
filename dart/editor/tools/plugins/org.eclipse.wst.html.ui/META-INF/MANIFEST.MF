@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: org.eclipse.wst.html.ui;singleton:=true
 Bundle-Version: 1.0.702.v201211262010
-Bundle-ClassPath: org.eclipse.wst.html.ui_1.0.702.v201211262010.jar
 Bundle-Activator: org.eclipse.wst.html.ui.internal.HTMLUIPlugin
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
@@ -47,7 +46,7 @@ Require-Bundle: org.eclipse.ui.ide;bundle-version="[3.5.0,4.0.0)",
  org.eclipse.wst.validation;bundle-version="[1.2.100,1.3.0)",
  org.eclipse.wst.common.project.facet.core;bundle-version="[1.4.0,2.0.0)";resolution:=optional,
  org.eclipse.wst.common.modulecore;bundle-version="[1.2.0,2.0.0)";resolution:=optional
-Bundle-RequiredExecutionEnvironment: J2SE-1.4
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Eclipse-SourceReferences: scm:git:git://git.eclipse.org/gitroot/sourceediting/webtools.sourceediting.git;path="bundles/org.eclipse.wst.html.ui";tag=v201211262010
 Import-Package: com.ibm.icu.text;version="3.8",
