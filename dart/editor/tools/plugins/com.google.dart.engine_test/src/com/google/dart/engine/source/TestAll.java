@@ -29,6 +29,7 @@ public class TestAll {
     suite.addTestSuite(DirectoryBasedSourceContainerTest.class);
     suite.addTestSuite(SourceFactoryTest.class);
     suite.addTestSuite(FileBasedSourceTest.class);
+    suite.addTestSuite(UriKindTest.class);
     return suite;
   }
 }

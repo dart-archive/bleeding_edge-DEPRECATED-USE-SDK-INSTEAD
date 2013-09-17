@@ -69,44 +69,57 @@ public class PackageUriResolverTest extends TestCase {
       return;
     }
 
-    File libDir = FileUtilities2.createTempDir("lib").getCanonicalFile();
-    File otherDir = FileUtilities2.createTempDir("other").getCanonicalFile();
-    File packagesDir = FileUtilities2.createTempDir("packages");
+    File lib1Dir = FileUtilities2.createTempDir("pkg1/lib").getCanonicalFile();
+    File otherDir = FileUtilities2.createTempDir("pkg1/other").getCanonicalFile();
+    File packagesDir = FileUtilities2.createTempDir("pkg1/packages").getCanonicalFile();
+    File lib2Dir = FileUtilities2.createTempDir("pkg2/lib").getCanonicalFile();
 
     // Create symlink packages/pkg1 --> lib
     File pkg1Dir = new File(packagesDir, "pkg1");
-    FileUtilities2.createSymLink(libDir, pkg1Dir);
+    FileUtilities2.createSymLink(lib1Dir, pkg1Dir);
 
     // Create symlink packages/pkg1/other --> other
-    FileUtilities2.createSymLink(otherDir, new File(libDir, "other"));
+    FileUtilities2.createSymLink(otherDir, new File(lib1Dir, "other"));
+
+    // Create symlink packages/pkg2 --> lib2
+    File pkg2Dir = new File(packagesDir, "pkg2");
+    FileUtilities2.createSymLink(lib2Dir, pkg2Dir);
 
     ContentCache contentCache = new ContentCache();
     UriResolver resolver = new PackageUriResolver(packagesDir);
 
-    // Assert that package:pkg1 resolves to lib
+    // Assert that package:pkg1 resolves to lib1
     Source result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1"));
-    assertEquals(libDir, new File(result.getFullName()));
+    assertEquals(lib1Dir, new File(result.getFullName()));
+    assertSame(UriKind.PACKAGE_SELF_URI, result.getUriKind());
 
-    // Assert that package:pkg1/ resolves to lib
+    // Assert that package:pkg1/ resolves to lib1
     result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1/"));
-    assertEquals(libDir, new File(result.getFullName()));
+    assertEquals(lib1Dir, new File(result.getFullName()));
+    assertSame(UriKind.PACKAGE_SELF_URI, result.getUriKind());
 
-    // Assert that package:pkg1/other resolves to lib/other not other
+    // Assert that package:pkg1/other resolves to lib1/other not other
     result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1/other"));
-    assertEquals(new File(libDir, "other"), new File(result.getFullName()));
+    assertEquals(new File(lib1Dir, "other"), new File(result.getFullName()));
+    assertSame(UriKind.PACKAGE_SELF_URI, result.getUriKind());
 
-    // Assert that package:pkg1/other/some.dart resolves to lib/other/some.dart not other.dart
+    // Assert that package:pkg1/other/some.dart resolves to lib1/other/some.dart not other.dart
     // when some.dart does NOT exist
-    File someDart = new File(new File(libDir, "other"), "some.dart");
+    File someDart = new File(new File(lib1Dir, "other"), "some.dart");
     result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1/other/some.dart"));
     assertEquals(someDart, new File(result.getFullName()));
 
-    // Assert that package:pkg1/other/some.dart resolves to lib/other/some.dart not other.dart
+    // Assert that package:pkg1/other/some.dart resolves to lib1/other/some.dart not other.dart
     // when some.dart exists
     assertTrue(new File(otherDir, someDart.getName()).createNewFile());
     assertTrue(someDart.exists());
     result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1/other/some.dart"));
     assertEquals(someDart, new File(result.getFullName()));
+
+    // Assert that package:pkg2/ resolves to lib2
+    result = resolver.resolveAbsolute(contentCache, new URI("package:pkg2/"));
+    assertEquals(lib2Dir, new File(result.getFullName()));
+    assertSame(UriKind.PACKAGE_URI, result.getUriKind());
   }
 
   public void test_resolve_invalid() throws Exception {

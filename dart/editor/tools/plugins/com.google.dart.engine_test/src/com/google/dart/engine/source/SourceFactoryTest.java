@@ -83,6 +83,25 @@ public class SourceFactoryTest extends TestCase {
     assertTrue(invoked[0]);
   }
 
+  public void test_fromEncoding_valid_packageSelf() throws Exception {
+    final boolean[] invoked = {false};
+    SourceFactory factory = new SourceFactory(new UriResolver() {
+      @Override
+      public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
+        assertSame(UriKind.PACKAGE_SELF_URI, kind);
+        invoked[0] = true;
+        return new FileBasedSource(contentCache, new File(uri), kind);
+      }
+
+      @Override
+      public Source resolveAbsolute(ContentCache contentCache, URI uri) {
+        return null;
+      }
+    });
+    factory.fromEncoding("sfile:/does/not/exist.dart");
+    assertTrue(invoked[0]);
+  }
+
   public void test_resolveUri_absolute() throws Exception {
     final boolean[] invoked = {false};
     SourceFactory factory = new SourceFactory(new UriResolver() {

@@ -47,8 +47,7 @@ public abstract class RefactoringImpl implements Refactoring {
     }
     // package
     if (source.getUriKind() == UriKind.PACKAGE_URI) {
-      // TODO(scheglov) remove or replace with better API from Source
-      return !source.getFullName().contains("/.pub-cache/");
+      return false;
     }
     // OK
     return true;

@@ -31,23 +31,14 @@ public enum UriKind {
   FILE_URI('f'),
 
   /**
+   * A 'package:' URI referencing source package itself.
+   */
+  PACKAGE_SELF_URI('s'),
+
+  /**
    * A 'package:' URI.
    */
   PACKAGE_URI('p');
-
-  /**
-   * The single character encoding used to identify this kind of URI.
-   */
-  private char encoding;
-
-  /**
-   * Initialize a newly created URI kind to have the given encoding.
-   * 
-   * @param encoding the single character encoding used to identify this kind of URI.
-   */
-  private UriKind(char encoding) {
-    this.encoding = encoding;
-  }
 
   /**
    * Return the URI kind represented by the given encoding, or {@code null} if there is no kind with
@@ -62,10 +53,26 @@ public enum UriKind {
         return DART_URI;
       case 'f':
         return FILE_URI;
+      case 's':
+        return PACKAGE_SELF_URI;
       case 'p':
         return PACKAGE_URI;
     }
     return null;
+  }
+
+  /**
+   * The single character encoding used to identify this kind of URI.
+   */
+  private char encoding;
+
+  /**
+   * Initialize a newly created URI kind to have the given encoding.
+   * 
+   * @param encoding the single character encoding used to identify this kind of URI.
+   */
+  private UriKind(char encoding) {
+    this.encoding = encoding;
   }
 
   /**

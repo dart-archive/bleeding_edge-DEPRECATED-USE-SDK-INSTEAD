@@ -72,7 +72,7 @@ public class PackageUriResolver extends UriResolver {
 
   @Override
   public Source fromEncoding(ContentCache contentCache, UriKind kind, URI uri) {
-    if (kind == UriKind.PACKAGE_URI) {
+    if (kind == UriKind.PACKAGE_SELF_URI || kind == UriKind.PACKAGE_URI) {
       return new FileBasedSource(contentCache, new File(uri), kind);
     }
     return null;
@@ -108,10 +108,10 @@ public class PackageUriResolver extends UriResolver {
     for (File packagesDirectory : packagesDirectories) {
       File resolvedFile = new File(packagesDirectory, path);
       if (resolvedFile.exists()) {
-        return new FileBasedSource( //
-            contentCache,
-            getCanonicalFile(packagesDirectory, pkgName, relPath),
-            UriKind.PACKAGE_URI);
+        File canonicalFile = getCanonicalFile(packagesDirectory, pkgName, relPath);
+        UriKind uriKind = isSelfReference(packagesDirectory, canonicalFile)
+            ? UriKind.PACKAGE_SELF_URI : UriKind.PACKAGE_URI;
+        return new FileBasedSource(contentCache, canonicalFile, uriKind);
       }
     }
     return new FileBasedSource( //
@@ -165,5 +165,16 @@ public class PackageUriResolver extends UriResolver {
       }
     }
     return new File(pkgDir, relPath.replace('/', File.separatorChar));
+  }
+
+  /**
+   * @return {@code true} if "file" was found in "packagesDir", and it is part of the "lib" folder
+   *         of the application that contains in this "packagesDir".
+   */
+  private boolean isSelfReference(File packagesDir, File file) {
+    File rootDir = packagesDir.getParentFile();
+    String rootPath = rootDir.getAbsolutePath();
+    String filePath = file.getAbsolutePath();
+    return filePath.startsWith(rootPath + "/lib");
   }
 }
