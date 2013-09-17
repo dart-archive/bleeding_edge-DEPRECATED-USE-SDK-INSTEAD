@@ -152,6 +152,53 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_duplicateImport_as() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';",
+        "import 'lib1.dart' as one;",
+        "A a;",
+        "one.A a2;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_duplicateImport_hide() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';",
+        "import 'lib1.dart' hide A;",
+        "A a;",
+        "B b;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}",
+        "class B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_duplicateImport_show() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';",
+        "import 'lib1.dart' show A;",
+        "A a;",
+        "B b;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}",
+        "class B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_unusedImport_export() throws Exception {
     Source source = addSource(createSource(//
         "library L;",

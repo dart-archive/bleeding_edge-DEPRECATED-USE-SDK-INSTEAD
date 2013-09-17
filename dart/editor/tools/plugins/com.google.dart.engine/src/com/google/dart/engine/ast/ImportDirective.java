@@ -18,6 +18,8 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.scanner.Token;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -31,6 +33,106 @@ import java.util.List;
  * @coverage dart.engine.ast
  */
 public class ImportDirective extends NamespaceDirective {
+
+  private static final class ImportDirectiveComparator implements Comparator<ImportDirective> {
+    @Override
+    public int compare(ImportDirective import1, ImportDirective import2) {
+      //
+      // uri
+      //
+      StringLiteral uri1 = import1.getUri();
+      StringLiteral uri2 = import2.getUri();
+      String uriStr1 = uri1.getStringValue();
+      String uriStr2 = uri2.getStringValue();
+      if (uriStr1 != null || uriStr2 != null) {
+        if (uriStr1 == null) {
+          return -1;
+        } else if (uriStr2 == null) {
+          return 1;
+        } else {
+          int compare = uriStr1.compareTo(uriStr2);
+          if (compare != 0) {
+            return compare;
+          }
+        }
+      }
+
+      //
+      // as
+      //
+      SimpleIdentifier prefix1 = import1.getPrefix();
+      SimpleIdentifier prefix2 = import2.getPrefix();
+      String prefixStr1 = prefix1 != null ? prefix1.getName() : null;
+      String prefixStr2 = prefix2 != null ? prefix2.getName() : null;
+      if (prefixStr1 != null || prefixStr2 != null) {
+        if (prefixStr1 == null) {
+          return -1;
+        } else if (prefixStr2 == null) {
+          return 1;
+        } else {
+          int compare = prefixStr1.compareTo(prefixStr2);
+          if (compare != 0) {
+            return compare;
+          }
+        }
+      }
+
+      //
+      // hides and shows
+      //
+      NodeList<Combinator> combinators1 = import1.getCombinators();
+      ArrayList<String> allHides1 = new ArrayList<String>();
+      ArrayList<String> allShows1 = new ArrayList<String>();
+      for (Combinator combinator : combinators1) {
+        if (combinator instanceof HideCombinator) {
+          NodeList<SimpleIdentifier> hides = ((HideCombinator) combinator).getHiddenNames();
+          for (SimpleIdentifier simpleIdentifier : hides) {
+            allHides1.add(simpleIdentifier.getName());
+          }
+        } else {
+          NodeList<SimpleIdentifier> shows = ((ShowCombinator) combinator).getShownNames();
+          for (SimpleIdentifier simpleIdentifier : shows) {
+            allShows1.add(simpleIdentifier.getName());
+          }
+        }
+      }
+      NodeList<Combinator> combinators2 = import2.getCombinators();
+      ArrayList<String> allHides2 = new ArrayList<String>();
+      ArrayList<String> allShows2 = new ArrayList<String>();
+      for (Combinator combinator : combinators2) {
+        if (combinator instanceof HideCombinator) {
+          NodeList<SimpleIdentifier> hides = ((HideCombinator) combinator).getHiddenNames();
+          for (SimpleIdentifier simpleIdentifier : hides) {
+            allHides2.add(simpleIdentifier.getName());
+          }
+        } else {
+          NodeList<SimpleIdentifier> shows = ((ShowCombinator) combinator).getShownNames();
+          for (SimpleIdentifier simpleIdentifier : shows) {
+            allShows2.add(simpleIdentifier.getName());
+          }
+        }
+      }
+      // test lengths of combinator lists first
+      if (allHides1.size() != allHides2.size()) {
+        return allHides1.size() - allHides2.size();
+      }
+      if (allShows1.size() != allShows2.size()) {
+        return allShows1.size() - allShows2.size();
+      }
+      // next ensure that the lists are equivalent
+      if (!allHides1.containsAll(allHides2)) {
+        return -1;
+      }
+      if (!allShows1.containsAll(allShows2)) {
+        return -1;
+      }
+      return 0;
+    }
+
+  }
+
+  public static final Comparator<ImportDirective> COMPARATOR = new ImportDirectiveComparator();
+
   /**
    * The token representing the 'as' token, or {@code null} if the imported names are not prefixed.
    */

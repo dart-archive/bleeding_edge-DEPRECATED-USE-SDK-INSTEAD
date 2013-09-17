@@ -65,9 +65,11 @@ public class HintGenerator {
         }
       }
     }
-    importsVerifier.generateUnusedImportHints(new ErrorReporter(
+    ErrorReporter definingCompilationUnitErrorReporter = new ErrorReporter(
         errorListener,
-        compilationUnits[0].getElement().getSource()));
+        compilationUnits[0].getElement().getSource());
+    importsVerifier.generateDuplicateImportHints(definingCompilationUnitErrorReporter);
+    importsVerifier.generateUnusedImportHints(definingCompilationUnitErrorReporter);
   }
 
   private void generateForCompilationUnit(CompilationUnit unit, Source source) {

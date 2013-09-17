@@ -34,6 +34,7 @@ import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -72,6 +73,12 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
   private final ArrayList<ImportDirective> unusedImports;
 
   /**
+   * After the list of {@link #unusedImports} has been computed, this list is a proper subset of the
+   * unused imports that are listed more than once.
+   */
+  private final ArrayList<ImportDirective> duplicateImports;
+
+  /**
    * This is a map between the set of {@link LibraryElement}s that the current library imports, and
    * a list of {@link ImportDirective}s that imports the library. In cases where the current library
    * imports a library with a single directive (such as {@code import lib1.dart;}), the library
@@ -108,9 +115,24 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
   public ImportsVerifier(LibraryElement library) {
     this.currentLibrary = library;
     this.unusedImports = new ArrayList<ImportDirective>();
+    this.duplicateImports = new ArrayList<ImportDirective>();
     this.libraryMap = new HashMap<LibraryElement, ArrayList<ImportDirective>>();
     this.namespaceMap = new HashMap<ImportDirective, Namespace>();
     this.prefixElementMap = new HashMap<PrefixElement, ImportDirective>();
+  }
+
+  /**
+   * Any time after the defining compilation unit has been visited by this visitor, this method can
+   * be called to report an {@link HintCode#DUPLICATE_IMPORT} hint for each of the import directives
+   * in the {@link #duplicateImports} list.
+   * 
+   * @param errorReporter the error reporter to report the set of {@link HintCode#DUPLICATE_IMPORT}
+   *          hints to
+   */
+  public void generateDuplicateImportHints(ErrorReporter errorReporter) {
+    for (ImportDirective duplicateImport : duplicateImports) {
+      errorReporter.reportError(HintCode.DUPLICATE_IMPORT, duplicateImport.getUri());
+    }
   }
 
   /**
@@ -183,6 +205,26 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
     if (unusedImports.isEmpty()) {
       return null;
     }
+    if (unusedImports.size() > 1) {
+      // order the list of unusedImports to find duplicates in faster than O(n^2) time
+      ImportDirective[] importDirectiveArray = unusedImports.toArray(new ImportDirective[unusedImports.size()]);
+      Arrays.sort(importDirectiveArray, ImportDirective.COMPARATOR);
+      ImportDirective currentDirective = importDirectiveArray[0];
+      for (int i = 1; i < importDirectiveArray.length; i++) {
+        ImportDirective nextDirective = importDirectiveArray[i];
+        if (ImportDirective.COMPARATOR.compare(currentDirective, nextDirective) == 0) {
+          // Add either the currentDirective or nextDirective depending on which comes second, this
+          // guarantees that the first of the duplicates won't be highlighted.
+          if (currentDirective.getOffset() < nextDirective.getOffset()) {
+            duplicateImports.add(nextDirective);
+          } else {
+            duplicateImports.add(currentDirective);
+          }
+        }
+        currentDirective = nextDirective;
+      }
+    }
+
     return super.visitCompilationUnit(node);
   }
 

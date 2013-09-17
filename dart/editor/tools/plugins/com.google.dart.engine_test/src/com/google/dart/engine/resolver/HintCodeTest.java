@@ -297,6 +297,51 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_duplicateImport() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';",
+        "import 'lib1.dart';", // duplicate
+        "A a;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    resolve(source);
+    assertErrors(source, HintCode.DUPLICATE_IMPORT);
+    verify(source);
+  }
+
+  public void test_duplicateImport2() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart';",
+        "import 'lib1.dart';", // duplicate
+        "import 'lib1.dart';", // duplicate
+        "A a;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}"));
+    resolve(source);
+    assertErrors(source, HintCode.DUPLICATE_IMPORT, HintCode.DUPLICATE_IMPORT);
+    verify(source);
+  }
+
+  public void test_duplicateImport3() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'lib1.dart' as M show A hide B;",
+        "import 'lib1.dart' as M show A hide B;", // duplicate
+        "M.A a;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;",
+        "class A {}",
+        "class B {}"));
+    resolve(source);
+    // TODO(jwren) the following shouldn't have a HintCode.UNUSED_IMPORT, see test_duplicateImport2()
+    assertErrors(source, HintCode.DUPLICATE_IMPORT, HintCode.UNUSED_IMPORT);
+    verify(source);
+  }
+
   public void test_isDouble() throws Exception {
     Source source = addSource(createSource(//
     "var v = 1 is double;"));
@@ -333,11 +378,12 @@ public class HintCodeTest extends ResolverTestCase {
     Source source = addSource(createSource(//
         "library L;",
         "import 'lib1.dart';"));
-    addSource("/lib1.dart", createSource(//
+    Source source2 = addSource("/lib1.dart", createSource(//
         "library lib1;"));
     resolve(source);
     assertErrors(source, HintCode.UNUSED_IMPORT);
-    verify(source);
+    assertNoErrors(source2);
+    verify(source, source2);
   }
 
   public void test_unusedImport_as() throws Exception {
@@ -346,12 +392,13 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart';", // unused
         "import 'lib1.dart' as one;",
         "one.A a;"));
-    addSource("/lib1.dart", createSource(//
+    Source source2 = addSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
     assertErrors(source, HintCode.UNUSED_IMPORT);
-    verify(source);
+    assertNoErrors(source2);
+    verify(source, source2);
   }
 
   public void test_unusedImport_hide() throws Exception {
@@ -360,12 +407,13 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart';",
         "import 'lib1.dart' hide A;", // unused
         "A a;"));
-    addSource("/lib1.dart", createSource(//
+    Source source2 = addSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}"));
     resolve(source);
     assertErrors(source, HintCode.UNUSED_IMPORT);
-    verify(source);
+    assertNoErrors(source2);
+    verify(source, source2);
   }
 
   public void test_unusedImport_show() throws Exception {
@@ -374,12 +422,13 @@ public class HintCodeTest extends ResolverTestCase {
         "import 'lib1.dart' show A;",
         "import 'lib1.dart' show B;", // unused
         "A a;"));
-    addSource("/lib1.dart", createSource(//
+    Source source2 = addSource("/lib1.dart", createSource(//
         "library lib1;",
         "class A {}",
         "class B {}"));
     resolve(source);
     assertErrors(source, HintCode.UNUSED_IMPORT);
-    verify(source);
+    assertNoErrors(source2);
+    verify(source, source2);
   }
 }
