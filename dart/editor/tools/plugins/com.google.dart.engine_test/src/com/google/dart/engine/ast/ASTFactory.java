@@ -97,6 +97,10 @@ public final class ASTFactory {
         token(TokenType.CLOSE_CURLY_BRACKET));
   }
 
+  public static BlockFunctionBody blockFunctionBody(Block block) {
+    return new BlockFunctionBody(block);
+  }
+
   public static BlockFunctionBody blockFunctionBody(Statement... statements) {
     return new BlockFunctionBody(block(statements));
   }

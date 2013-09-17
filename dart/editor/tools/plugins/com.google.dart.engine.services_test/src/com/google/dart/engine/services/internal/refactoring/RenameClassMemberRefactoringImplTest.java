@@ -159,6 +159,26 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
     assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
   }
 
+  public void test_checkFinalConditions_shadowed_byParameter_inSameClass() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "  A(newName) {",
+        "    test(); // marker",
+        "  }",
+        "}");
+    createRenameRefactoring("test() {}");
+    // check status
+    refactoring.checkInitialConditions(pm);
+    refactoring.setNewName("newName");
+    assertRefactoringStatus(
+        refactoring.checkFinalConditions(pm),
+        RefactoringStatusSeverity.ERROR,
+        "Usage of renamed method will be shadowed by parameter 'newName'.",
+        findRangeIdentifier("test(); // marker"));
+  }
+
   public void test_checkFinalConditions_shadowed_inSubClass() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

@@ -14,6 +14,8 @@
 package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ConstructorDeclaration;
@@ -21,6 +23,7 @@ import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
+import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
@@ -78,6 +81,7 @@ import static com.google.dart.engine.ast.ASTFactory.typeParameterList;
 import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.variableDeclarationList;
 import static com.google.dart.engine.ast.ASTFactory.variableDeclarationStatement;
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
 
 public class ElementBuilderTest extends EngineTestCase {
   public void test_visitCatchClause() {
@@ -543,6 +547,8 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String parameterName = "p";
     FunctionTypedFormalParameter formalParameter = functionTypedFormalParameter(null, parameterName);
+    useParameterInMethod(formalParameter, 100, 110);
+
     formalParameter.accept(builder);
     ParameterElement[] parameters = holder.getParameters();
     assertLength(1, parameters);
@@ -555,6 +561,7 @@ public class ElementBuilderTest extends EngineTestCase {
     assertFalse(parameter.isFinal());
     assertFalse(parameter.isSynthetic());
     assertEquals(ParameterKind.REQUIRED, parameter.getParameterKind());
+    assertEquals(rangeStartEnd(100, 110), parameter.getVisibleRange());
   }
 
   public void test_visitLabeledStatement() {
@@ -951,6 +958,8 @@ public class ElementBuilderTest extends EngineTestCase {
     DefaultFormalParameter formalParameter = namedFormalParameter(
         simpleFormalParameter(parameterName),
         identifier("b"));
+    useParameterInMethod(formalParameter, 100, 110);
+
     formalParameter.accept(builder);
     ParameterElement[] parameters = holder.getParameters();
     assertLength(1, parameters);
@@ -962,6 +971,8 @@ public class ElementBuilderTest extends EngineTestCase {
     assertFalse(parameter.isFinal());
     assertFalse(parameter.isSynthetic());
     assertEquals(ParameterKind.NAMED, parameter.getParameterKind());
+    assertEquals(rangeStartEnd(100, 110), parameter.getVisibleRange());
+
     FunctionElement initializer = parameter.getInitializer();
     assertNotNull(initializer);
     assertTrue(initializer.isSynthetic());
@@ -972,6 +983,8 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String parameterName = "p";
     SimpleFormalParameter formalParameter = simpleFormalParameter(parameterName);
+    useParameterInMethod(formalParameter, 100, 110);
+
     formalParameter.accept(builder);
     ParameterElement[] parameters = holder.getParameters();
     assertLength(1, parameters);
@@ -984,6 +997,7 @@ public class ElementBuilderTest extends EngineTestCase {
     assertFalse(parameter.isFinal());
     assertFalse(parameter.isSynthetic());
     assertEquals(ParameterKind.REQUIRED, parameter.getParameterKind());
+    assertEquals(rangeStartEnd(100, 110), parameter.getVisibleRange());
   }
 
   public void test_visitTypeAlias_minimal() {
@@ -1184,5 +1198,20 @@ public class ElementBuilderTest extends EngineTestCase {
     assertFalse(variable.isSynthetic());
     assertNotNull(variable.getGetter());
     assertNotNull(variable.getSetter());
+  }
+
+  private void useParameterInMethod(FormalParameter formalParameter, int blockOffset, int blockEnd) {
+    Block block = block();
+    block.getLeftBracket().setOffset(blockOffset);
+    block.getRightBracket().setOffset(blockEnd - 1);
+    BlockFunctionBody body = blockFunctionBody(block);
+    methodDeclaration(
+        null,
+        null,
+        null,
+        null,
+        identifier("main"),
+        formalParameterList(formalParameter),
+        body);
   }
 }

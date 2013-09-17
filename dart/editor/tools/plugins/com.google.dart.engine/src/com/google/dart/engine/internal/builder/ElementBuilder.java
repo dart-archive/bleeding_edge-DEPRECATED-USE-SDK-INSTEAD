@@ -313,10 +313,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
 
     // visible range
-    FunctionBody body = getFunctionBody(node);
-    if (body != null) {
-      parameter.setVisibleRange(body.getOffset(), body.getLength());
-    }
+    setParameterVisibleRange(node, parameter);
 
     currentHolder.addParameter(parameter);
     parameterName.setStaticElement(parameter);
@@ -510,6 +507,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       SimpleIdentifier parameterName = node.getIdentifier();
       ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
       parameter.setParameterKind(node.getKind());
+      setParameterVisibleRange(node, parameter);
 
       currentHolder.addParameter(parameter);
       parameterName.setStaticElement(parameter);
@@ -625,6 +623,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       parameter.setConst(node.isConst());
       parameter.setFinal(node.isFinal());
       parameter.setParameterKind(node.getKind());
+      setParameterVisibleRange(node, parameter);
 
       currentHolder.addParameter(parameter);
       parameterName.setStaticElement(parameter);
@@ -824,7 +823,9 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   private FunctionBody getFunctionBody(FormalParameter node) {
     ASTNode parent = node.getParent();
     while (parent != null) {
-      if (parent instanceof FunctionExpression) {
+      if (parent instanceof ConstructorDeclaration) {
+        return ((ConstructorDeclaration) parent).getBody();
+      } else if (parent instanceof FunctionExpression) {
         return ((FunctionExpression) parent).getBody();
       } else if (parent instanceof MethodDeclaration) {
         return ((MethodDeclaration) parent).getBody();
@@ -844,6 +845,16 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   private boolean matches(Token token, Keyword keyword) {
     return token != null && token.getType() == TokenType.KEYWORD
         && ((KeywordToken) token).getKeyword() == keyword;
+  }
+
+  /**
+   * Sets the visible source range for formal parameter.
+   */
+  private void setParameterVisibleRange(FormalParameter node, ParameterElementImpl element) {
+    FunctionBody body = getFunctionBody(node);
+    if (body != null) {
+      element.setVisibleRange(body.getOffset(), body.getLength());
+    }
   }
 
   /**
