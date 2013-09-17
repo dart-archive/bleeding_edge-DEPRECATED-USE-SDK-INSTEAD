@@ -108,6 +108,65 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "}"));
   }
 
+  public void test_changeToStaticAccess_method_prefixLibrary() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async' as pref;",
+        "main(pref.Future f) {",
+        "  f.wait([]);",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CHANGE_TO_STATIC_ACCESS,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'dart:async' as pref;",
+            "main(pref.Future f) {",
+            "  pref.Future.wait([]);",
+            "}"));
+  }
+
+  public void test_changeToStaticAccess_method_thisLibrary() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static foo() {}",
+        "}",
+        "main(A a) {",
+        "  a.foo();",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CHANGE_TO_STATIC_ACCESS,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static foo() {}",
+            "}",
+            "main(A a) {",
+            "  A.foo();",
+            "}"));
+  }
+
+  public void test_changeToStaticAccess_property_thisLibrary() throws Exception {
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static get foo => 42;",
+        "}",
+        "main(A a) {",
+        "  a.foo;",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_CHANGE_TO_STATIC_ACCESS,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static get foo => 42;",
+            "}",
+            "main(A a) {",
+            "  A.foo;",
+            "}"));
+  }
+
   public void test_computeProposals_noContext() throws Exception {
     AnalysisError emptyError = new AnalysisError(
         testSource,

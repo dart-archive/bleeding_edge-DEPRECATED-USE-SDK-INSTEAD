@@ -46,6 +46,7 @@ public enum CorrectionKind {
   QA_SURROUND_WITH_WHILE(30, "Surround with 'while'"),
   QF_ADD_SUPER_CONSTRUCTOR_INVOCATION(50, "Add super constructor %s invocation"),
   QF_CHANGE_TO(51, "Change to '%s'"),
+  QF_CHANGE_TO_STATIC_ACCESS(50, "Change access to static using '%s'"),
   QF_CREATE_CLASS(50, CorrectionImage.IMG_CORRECTION_CLASS, "Create class '%s'"),
   QF_CREATE_CONSTRUCTOR_SUPER(50, "Create constructor to call %s"),
   QF_CREATE_FUNCTION(49, "Create function '%s'"),

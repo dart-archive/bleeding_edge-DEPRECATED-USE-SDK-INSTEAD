@@ -425,6 +425,10 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         addFix_importLibrary_withType();
         addFix_importLibrary_withTopLevelVariable();
       }
+      if (errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER) {
+        addFix_useStaticAccess_method();
+        addFix_useStaticAccess_property();
+      }
       if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
         addFix_removeParentheses_inGetterInvocation();
       }
@@ -474,6 +478,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == StaticWarningCode.UNDEFINED_CLASS
         || errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN
         || errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER
+        || errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER
         || errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION
         || errorCode == StaticTypeWarningCode.UNDEFINED_GETTER
         || errorCode == StaticTypeWarningCode.UNDEFINED_METHOD;
@@ -1318,6 +1323,38 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
+  private void addFix_useStaticAccess_method() throws Exception {
+    if (node instanceof SimpleIdentifier && node.getParent() instanceof MethodInvocation) {
+      MethodInvocation invocation = (MethodInvocation) node.getParent();
+      if (invocation.getMethodName() == node) {
+        Expression target = invocation.getTarget();
+        String targetType = utils.getTypeSource(target);
+        // replace "target" with class name
+        SourceRange range = SourceRangeFactory.rangeNode(target);
+        addReplaceEdit(range, targetType);
+        // add proposal
+        addUnitCorrectionProposal(CorrectionKind.QF_CHANGE_TO_STATIC_ACCESS, targetType);
+      }
+    }
+  }
+
+  private void addFix_useStaticAccess_property() throws Exception {
+    if (node instanceof SimpleIdentifier) {
+      if (node.getParent() instanceof PrefixedIdentifier) {
+        PrefixedIdentifier prefixed = (PrefixedIdentifier) node.getParent();
+        if (prefixed.getIdentifier() == node) {
+          Expression target = prefixed.getPrefix();
+          String targetType = utils.getTypeSource(target);
+          // replace "target" with class name
+          SourceRange range = SourceRangeFactory.rangeNode(target);
+          addReplaceEdit(range, targetType);
+          // add proposal
+          addUnitCorrectionProposal(CorrectionKind.QF_CHANGE_TO_STATIC_ACCESS, targetType);
+        }
+      }
+    }
+  }
+
   private void addInsertEdit(int offset, String text) {
     textEdits.add(createInsertEdit(offset, text));
   }
@@ -1378,46 +1415,6 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       }
     }
   }
-
-  // https://code.google.com/p/dart/issues/detail?id=10058
-  // TODO(scheglov) implement this
-//  private void addFix_useStaticAccess_method() throws Exception {
-//    if (getLocationInParent(node) == DART_METHOD_INVOCATION_FUNCTION_NAME) {
-//      DartMethodInvocation invocation = (DartMethodInvocation) node.getParent();
-//      Element methodElement = node.getElement();
-//      if (methodElement instanceof MethodElement
-//          && methodElement.getEnclosingElement() instanceof ClassElement) {
-//        ClassElement classElement = (ClassElement) methodElement.getEnclosingElement();
-//        String className = classElement.getName();
-//        // if has this class in current library, use name as is
-//        if (unit.getLibrary().findType(className) != null) {
-//          addFix_useStaticAccess_method_proposal(invocation, className);
-//          return;
-//        }
-//        // class from other library, may be use prefix
-//        for (DartImport imp : unit.getLibrary().getImports()) {
-//          if (imp.getLibrary().findType(className) != null) {
-//            className = imp.getPrefix() + "." + className;
-//            addFix_useStaticAccess_method_proposal(invocation, className);
-//          }
-//        }
-//      }
-//    }
-//  }
-
-//  private void addFix_useStaticAccess_method_proposal(MethodInvocation invocation, String className) {
-//    DartExpression target = invocation.getTarget();
-//    if (target == null) {
-//      return;
-//    }
-//    // replace "target" with class name
-//    SourceRange range = SourceRangeFactory.create(target);
-//    addReplaceEdit(range, className);
-//    // add proposal
-//    addUnitCorrectionProposal(
-//        Messages.format(CorrectionMessages.QuickFixProcessor_useStaticAccess_method, className),
-//        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
-//  }
 
   /**
    * Prepares proposal for creating function corresponding to the given {@link FunctionType}.
