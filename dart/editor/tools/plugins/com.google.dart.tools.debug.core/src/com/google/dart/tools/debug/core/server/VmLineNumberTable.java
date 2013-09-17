@@ -47,7 +47,7 @@ public class VmLineNumberTable {
         Integer tokenOffset = lineInfo.getInt(index);
 
         // We don't use this info currently, so we don't decode it.
-        //Integer charOffset = lineInfo.getInt(index + 1);
+        //Integer columnNumber = lineInfo.getInt(index + 1);
 
         lineNumberTable.lineMap.put(tokenOffset, lineNumber);
       }
