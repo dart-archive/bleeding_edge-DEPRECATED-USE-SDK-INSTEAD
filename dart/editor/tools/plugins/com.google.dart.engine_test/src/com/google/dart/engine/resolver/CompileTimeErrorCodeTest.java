@@ -229,6 +229,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  bool operator ==(IntWrapper x) {",
         "    return value == x.value;",
         "  }",
+        "  get hashCode => value;",
         "}",
         "",
         "f(var a) {",

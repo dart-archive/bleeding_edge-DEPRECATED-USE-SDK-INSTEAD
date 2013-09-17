@@ -42,9 +42,14 @@ public enum HintCode implements ErrorCode {
       "Dead code, this on-catch block will never be executed since '%s' is a subtype of '%s'"),
 
   /**
-   * Unused imports are imports which are never not used.
+   * Duplicate imports.
    */
   DUPLICATE_IMPORT("Duplicate import"),
+
+  /**
+   * Hint to use the ~/ operator.
+   */
+  DIVISION_OPTIMIZATION("The operator x ~/ y is more efficient than (x / y).toInt()"),
 
   /**
    * Hint for the {@code x is double} type checks.
@@ -66,6 +71,25 @@ public enum HintCode implements ErrorCode {
    * Hint for the {@code x is! int} type checks.
    */
   IS_NOT_INT("When compiled to JS, this test will return false when the left hand side is a double"),
+
+  /**
+   * It is not in best practice to declare a private method that happens to override the method in a
+   * superclass- depending on where the superclass is (either in the same library, or out of the
+   * same library), behavior can be different.
+   * 
+   * @param memberType this is either "method", "getter" or "setter"
+   * @param memberName some private member name
+   * @param className the class name where the member is overriding the functionality
+   */
+  OVERRIDDING_PRIVATE_MEMBER(
+      "The %s '%s' does not override the definition from '%s' because it is private and in a different library"),
+
+  /**
+   * Hint for classes that override equals, but not hashCode.
+   * 
+   * @param className the name of the current class
+   */
+  OVERRIDE_EQUALS_BUT_NOT_HASH_CODE("The class '%s' overrides 'operator==', but not 'get hashCode'"),
 
   /**
    * Unused imports are imports which are never not used.

@@ -152,6 +152,16 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_divisionOptimization() throws Exception {
+    Source source = addSource(createSource(//
+        "f(x, y) {",
+        "  var v = x / y.toInt();",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_duplicateImport_as() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
@@ -194,6 +204,30 @@ public class NonHintCodeTest extends ResolverTestCase {
         "library lib1;",
         "class A {}",
         "class B {}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overriddingPrivateMember_sameLibrary() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  _m(int x) => 0;",
+        "}",
+        "class B extends A {",
+        "  _m(int x) => 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_overrideEqualsButNotHashCode() throws Exception {
+    Source source = addSource(createSource(//
+        "class A {",
+        "  bool operator ==(x) {}",
+        "  get hashCode => 0;",
+        "}"));
     resolve(source);
     assertNoErrors(source);
     verify(source);

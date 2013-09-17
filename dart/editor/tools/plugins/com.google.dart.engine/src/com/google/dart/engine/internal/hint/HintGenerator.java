@@ -85,7 +85,11 @@ public class HintGenerator {
       new Dart2JSVerifier(errorReporter).visitCompilationUnit(unit);
     }
 
+    // Dart best practices
+    new BestPracticesVerifier(errorReporter).visitCompilationUnit(unit);
+
     // pub analysis
+    // TODO(danrubel/jwren) Commented out until bugs in the pub verifier are fixed
 //    new PubVerifier(context, errorReporter).visitCompilationUnit(unit);
   }
 }
