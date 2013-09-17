@@ -128,7 +128,8 @@ public abstract class SearchMatchPage extends SearchPage {
       }
       // new LineItem
       if (targetLineItem == null) {
-        targetLineItem = new LineItem(this, sourceLine);
+        boolean potential = FILTER_POTENTIAL.apply(match);
+        targetLineItem = new LineItem(this, potential, sourceLine);
         lines.add(targetLineItem);
       }
       // prepare position
@@ -292,11 +293,13 @@ public abstract class SearchMatchPage extends SearchPage {
    */
   private static class LineItem {
     private ElementItem item;
+    private boolean potential;
     private final SourceLine line;
     private final List<LinePosition> positions = Lists.newArrayList();
 
-    public LineItem(ElementItem item, SourceLine line) {
+    public LineItem(ElementItem item, boolean potential, SourceLine line) {
       this.item = item;
+      this.potential = potential;
       this.line = line;
     }
 
@@ -316,6 +319,7 @@ public abstract class SearchMatchPage extends SearchPage {
       if (!other.line.equals(line)) {
         return false;
       }
+      potential |= other.potential;
       positions.addAll(other.positions);
       return true;
     }
@@ -464,6 +468,12 @@ public abstract class SearchMatchPage extends SearchPage {
           int styleLength = linePosition.positionSrc.length;
           styledText.setStyle(styleOffset, styleLength, style);
         }
+        // may be potential match
+        if (item.potential) {
+          styledText.append(" ");
+          styledText.append(" (potential match)", StyledString.DECORATIONS_STYLER);
+        }
+        // done
         return styledText;
       }
     }
