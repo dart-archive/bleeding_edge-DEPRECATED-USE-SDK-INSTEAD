@@ -28,18 +28,105 @@ GSU_PATH_LATEST = None
 GSU_API_DOCS_PATH = None
 GSU_API_DOCS_BUCKET = 'gs://dartlang-api-docs'
 
-REVISION = None
-TRUNK_BUILD = None
+CHANNEL = None
 PLUGINS_BUILD = None
+REVISION = None
+SYSTEM = None
+TRUNK_BUILD = None
 
 NO_UPLOAD = None
 
-def GetUtils():
-  '''Dynamically load the tools/utils.py python module.'''
-  dart_dir = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
-  return imp.load_source('utils', os.path.join(dart_dir, 'tools', 'utils.py'))
+DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
+utils = imp.load_source('utils', os.path.join(DART_DIR, 'tools', 'utils.py'))
+bot_utils = imp.load_source('bot_utils',
+    os.path.join(DART_DIR, 'tools', 'bots', 'bot_utils.py'))
 
-utils = GetUtils()
+def DartArchiveFile(local_path, remote_path, create_md5sum=False):
+  # Copy it to the new unified gs://dart-archive bucket
+  # TODO(kustermann/ricow): Remove all the old archiving code, once everything
+  # points to the new location
+  gsutil = bot_utils.GSUtil()
+  gsutil.upload(local_path, remote_path, public=True)
+  if create_md5sum:
+    # 'local_path' may have a different filename than 'remote_path'. So we need
+    # to make sure the *.md5sum file contains the correct name.
+    assert '/' in remote_path and not remote_path.endswith('/')
+    mangled_filename = remote_path[remote_path.rfind('/') + 1:]
+    local_md5sum = bot_utils.CreateChecksumFile(local_path, mangled_filename)
+    gsutil.upload(local_md5sum, remote_path + '.md5sum', public=True)
+
+def DartArchiveUploadEditorZipFile(zipfile):
+  # TODO(kustermann): We don't archive trunk builds to gs://dart-archive/
+  # Remove this once the channel transition is done.
+  if CHANNEL == 'trunk': return
+  namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
+  gsutil = bot_utils.GSUtil()
+
+  basename = os.path.basename(zipfile)
+  system = None
+  arch = None
+  if basename.startswith('darteditor-linux'):
+    system = 'linux'
+  elif basename.startswith('darteditor-mac'):
+    system = 'macos'
+  elif basename.startswith('darteditor-win'):
+    system = 'windows'
+
+  if basename.endswith('-32.zip'):
+    arch = 'ia32'
+  elif basename.endswith('-64.zip'):
+    arch = 'x64'
+
+  assert system and arch
+
+  for revision in [REVISION, 'latest']:
+    DartArchiveFile(zipfile, namer.editor_zipfilepath(revision, system, arch),
+        create_md5sum=True)
+
+def DartArchiveUploadUpdateSite(local_path):
+  # TODO(kustermann): We don't archive trunk builds to gs://dart-archive/
+  # Remove this once the channel transition is done.
+  if CHANNEL == 'trunk': return
+  namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
+  gsutil = bot_utils.GSUtil()
+  for revision in [REVISION, 'latest']:
+    update_site_dir = namer.editor_eclipse_update_directory(revision)
+    try:
+      gsutil.remove(update_site_dir, recursive=True)
+    except:
+      # Ignore this, in the general case there is nothing.
+      pass
+    gsutil.upload(local_path, update_site_dir, recursive=True, public=True)
+
+def DartArchiveUploadSDKs(system, sdk32_zip, sdk64_zip):
+  # TODO(kustermann): We don't archive trunk builds to gs://dart-archive/
+  # Remove this once the channel transition is done.
+  if CHANNEL == 'trunk': return
+  namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
+  for revision in [REVISION, 'latest']:
+    path32 = namer.sdk_zipfilepath(revision, system, 'ia32', 'release')
+    path64 = namer.sdk_zipfilepath(revision, system, 'x64', 'release')
+    DartArchiveFile(sdk32_zip, path32, create_md5sum=True)
+    DartArchiveFile(sdk64_zip, path64, create_md5sum=True)
+
+def DartArchiveUploadAPIDocs(api_zip):
+  # TODO(kustermann): We don't archive trunk builds to gs://dart-archive/
+  # Remove this once the channel transition is done.
+  if CHANNEL == 'trunk': return
+  namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
+  for revision in [REVISION, 'latest']:
+    destination = (namer.apidocs_directory(revision) + '/' +
+        namer.apidocs_zipfilename())
+    DartArchiveFile(api_zip, destination, create_md5sum=False)
+
+def DartArchiveUploadVersionFile(version_file):
+  # TODO(kustermann): We don't archive trunk builds to gs://dart-archive/.
+  # Remove this once the channel transition is done.
+  if CHANNEL == 'trunk': return
+  namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
+  for revision in [REVISION, 'latest']:
+    DartArchiveFile(version_file, namer.version_filepath(revision),
+        create_md5sum=False)
 
 class AntWrapper(object):
   """A wrapper for ant build invocations"""
@@ -179,15 +266,17 @@ def BuildOptions():
 def main():
   """Main entry point for the build program."""
   global BUILD_OS
+  global CHANNEL
   global DART_PATH
-  global TOOLS_PATH
-  global GSU_PATH_REV
   global GSU_API_DOCS_PATH
   global GSU_PATH_LATEST
-  global REVISION
-  global TRUNK_BUILD
-  global PLUGINS_BUILD
+  global GSU_PATH_REV
   global NO_UPLOAD
+  global PLUGINS_BUILD
+  global REVISION
+  global SYSTEM
+  global TOOLS_PATH
+  global TRUNK_BUILD
 
   if not sys.argv:
     print 'Script pathname not known, giving up.'
@@ -298,12 +387,22 @@ def main():
       print 'Could not find username'
       return 6
 
-    # dart-editor[-trunk], dart-editor-(win/mac/linux)[-trunk]
+    # dart-editor[-trunk], dart-editor-(win/mac/linux)[-trunk/be/dev/stable]
     builder_name = str(options.name)
 
-    TRUNK_BUILD = builder_name.endswith("-trunk")
-    PLUGINS_BUILD = (builder_name == 'dart-editor' or
-                     builder_name == 'dart-editor-trunk')
+    EDITOR_REGEXP = (r'^dart-editor(-(?P<system>(win|mac|linux)))?' +
+                      '(-(?P<channel>(trunk|be|dev|stable)))?$')
+    match = re.match(EDITOR_REGEXP, builder_name)
+    if not match:
+      raise Exception("Buildername '%s' does not match pattern '%s'."
+                      % (builder_name, EDITOR_REGEXP))
+
+    CHANNEL = match.groupdict()['channel'] or 'be'
+    SYSTEM = match.groupdict()['system']
+
+    TRUNK_BUILD = CHANNEL == 'trunk'
+    PLUGINS_BUILD = SYSTEM is None
+    REVISION = revision
 
     build_skip_tests = os.environ.get('DART_SKIP_RUNNING_TESTS')
     sdk_environment = os.environ
@@ -318,7 +417,6 @@ def main():
       running_on_buildbot = False
       sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
 
-    REVISION = revision
     GSU_PATH_REV = '%s/%s' % (to_bucket, REVISION)
     GSU_PATH_LATEST = '%s/%s' % (to_bucket, 'latest')
     GSU_API_DOCS_PATH = '%s/%s' % (GSU_API_DOCS_BUCKET, REVISION)
@@ -407,10 +505,12 @@ def main():
           version_file = _FindVersionFile(buildout)
           if version_file:
             UploadFile(version_file, False)
+            DartArchiveUploadVersionFile(version_file)
 
           found_zips = _FindRcpZipFiles(buildout)
           for zipfile in found_zips:
             UploadFile(zipfile)
+            DartArchiveUploadEditorZipFile(zipfile)
 
       return 0
   finally:
@@ -613,7 +713,7 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
 
         if not os.path.exists(tmp_zip_file):
           gsu.Copy(dartiumFile, tmp_zip_file, False)
-   
+
           # Upload dartium zip to make sure we have consistent dartium downloads
           UploadFile(tmp_zip_file)
 
@@ -704,32 +804,6 @@ def PostProcessEditorBuilds(out_dir):
             '<dict>\n\t<key>NSHighResolutionCapable</key>\n\t\t<true/>')])
       subprocess.call(['zip', '-q', zipFile, infofile], env=os.environ)
       os.remove(infofile)
-
-
-def CalculateChecksum(filename):
-  """Calculate the MD5 checksum for filename."""
-
-  md5 = hashlib.md5()
-
-  with open(filename, 'rb') as f:
-    data = f.read(65536)
-    while len(data) > 0:
-      md5.update(data)
-      data = f.read(65536)
-
-  return md5.hexdigest()
-
-
-def CreateChecksumFile(filename):
-  """Create and upload an MD5 checksum file for filename."""
-
-  checksum = CalculateChecksum(filename)
-  checksum_filename = '%s.md5sum' % filename
-
-  with open(checksum_filename, 'w') as f:
-    f.write('%s *%s' % (checksum, os.path.basename(filename)))
-
-  return checksum_filename
 
 
 def RunEditorTests(buildout, buildos):
@@ -839,9 +913,10 @@ def UploadSite(buildout, gsPath) :
   Gsutil(['cp', '-a', 'public-read',
           r'file://' + join(buildout, 'buildRepo', 'index.html'),
           join(gsPath,'index.html')])
+
   # recursively copy update site contents
   UploadDirectory(glob.glob(join(buildout, 'buildRepo', '*')), gsPath)
-
+  DartArchiveUploadUpdateSite(join(buildout, 'buildRepo'))
 
 def CreateApiDocs(buildLocation):
   """Zip up api_docs, upload it, and upload the raw tree of docs"""
@@ -863,6 +938,8 @@ def CreateApiDocs(buildLocation):
   # upload to continuous/svn_rev and to continuous/latest
   UploadFile(api_zip, False)
 
+  DartArchiveUploadAPIDocs(api_zip)
+
 
 def CreateSDK(sdkpath):
   """Create the dart-sdk's for the current OS"""
@@ -873,7 +950,6 @@ def CreateSDK(sdkpath):
     return CreateMacosSDK(sdkpath)
   if BUILD_OS == 'win32':
     return CreateWin32SDK(sdkpath)
-
 
 def CreateLinuxSDK(sdkpath):
   sdkdir32 = join(DART_PATH, utils.GetBuildRoot('linux', 'release', 'ia32'),
@@ -898,6 +974,8 @@ def CreateLinuxSDK(sdkpath):
   UploadFile(sdk32_tgz)
   UploadFile(sdk64_zip)
   UploadFile(sdk64_tgz)
+
+  DartArchiveUploadSDKs('linux', sdk32_zip, sdk64_zip)
 
   return sdk32_zip
 
@@ -925,6 +1003,8 @@ def CreateMacosSDK(sdkpath):
   UploadFile(sdk32_tgz)
   UploadFile(sdk64_tgz)
 
+  DartArchiveUploadSDKs('macos', sdk32_zip, sdk64_zip)
+
   return sdk32_zip
 
 
@@ -944,6 +1024,8 @@ def CreateWin32SDK(sdkpath):
 
   UploadFile(sdk32_zip)
   UploadFile(sdk64_zip)
+
+  DartArchiveUploadSDKs('win32', sdk32_zip, sdk64_zip)
 
   return sdk32_zip
 
@@ -992,12 +1074,12 @@ def UploadFile(targetFile, createChecksum=True):
 
   if (NO_UPLOAD):
     return
-    
+
   filePathRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(targetFile))
   filePathLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(targetFile))
 
-  if (createChecksum):
-    checksum = CreateChecksumFile(targetFile)
+  if createChecksum:
+    checksum = bot_utils.CreateChecksumFile(targetFile)
 
     checksumRev = "%s/%s" % (GSU_PATH_REV, os.path.basename(checksum))
     checksumLatest = "%s/%s" % (GSU_PATH_LATEST, os.path.basename(checksum))
