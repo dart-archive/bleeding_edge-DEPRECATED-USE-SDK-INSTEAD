@@ -28,7 +28,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.SimpleElementVisitor;
 import com.google.dart.engine.source.Source;
@@ -134,7 +134,7 @@ public final class DartDocUtilities {
     }
 
     @Override
-    public String visitTypeVariableElement(TypeVariableElement element) {
+    public String visitTypeParameterElement(TypeParameterElement element) {
       StringBuilder sb = new StringBuilder();
 
       sb.append("<");

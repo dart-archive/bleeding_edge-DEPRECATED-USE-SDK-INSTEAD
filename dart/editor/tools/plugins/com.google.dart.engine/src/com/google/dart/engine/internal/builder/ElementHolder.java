@@ -25,7 +25,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
@@ -38,7 +38,7 @@ import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
-import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 
 import java.util.ArrayList;
 
@@ -60,7 +60,7 @@ public class ElementHolder {
   private ArrayList<TopLevelVariableElement> topLevelVariables;
   private ArrayList<ClassElement> types;
   private ArrayList<FunctionTypeAliasElement> typeAliases;
-  private ArrayList<TypeVariableElement> typeVariables;
+  private ArrayList<TypeParameterElement> typeParameters;
 
   /**
    * Initialize a newly created element holder.
@@ -146,11 +146,11 @@ public class ElementHolder {
     typeAliases.add(element);
   }
 
-  public void addTypeVariable(TypeVariableElement element) {
-    if (typeVariables == null) {
-      typeVariables = new ArrayList<TypeVariableElement>();
+  public void addTypeParameter(TypeParameterElement element) {
+    if (typeParameters == null) {
+      typeParameters = new ArrayList<TypeParameterElement>();
     }
-    typeVariables.add(element);
+    typeParameters.add(element);
   }
 
   public PropertyAccessorElement[] getAccessors() {
@@ -267,21 +267,21 @@ public class ElementHolder {
     return result;
   }
 
+  public TypeParameterElement[] getTypeParameters() {
+    if (typeParameters == null) {
+      return TypeParameterElementImpl.EMPTY_ARRAY;
+    }
+    TypeParameterElement[] result = typeParameters.toArray(new TypeParameterElement[typeParameters.size()]);
+    typeParameters = null;
+    return result;
+  }
+
   public ClassElement[] getTypes() {
     if (types == null) {
       return ClassElementImpl.EMPTY_ARRAY;
     }
     ClassElement[] result = types.toArray(new ClassElement[types.size()]);
     types = null;
-    return result;
-  }
-
-  public TypeVariableElement[] getTypeVariables() {
-    if (typeVariables == null) {
-      return TypeVariableElementImpl.EMPTY_ARRAY;
-    }
-    TypeVariableElement[] result = typeVariables.toArray(new TypeVariableElement[typeVariables.size()]);
-    typeVariables = null;
     return result;
   }
 
@@ -361,12 +361,12 @@ public class ElementHolder {
       builder.append(typeAliases.size());
       builder.append(" type aliases");
     }
-    if (typeVariables != null) {
+    if (typeParameters != null) {
       if (builder.length() > 0) {
         builder.append("; ");
       }
-      builder.append(typeVariables.size());
-      builder.append(" type variables");
+      builder.append(typeParameters.size());
+      builder.append(" type parameters");
     }
     if (builder.length() > 0) {
       AnalysisEngine.getInstance().getLogger().logError(

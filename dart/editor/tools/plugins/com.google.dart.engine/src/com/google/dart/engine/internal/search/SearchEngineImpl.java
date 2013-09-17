@@ -29,7 +29,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.Location;
@@ -371,8 +371,8 @@ public class SearchEngineImpl implements SearchEngine {
         case FUNCTION_TYPE_ALIAS:
           searchReferences((FunctionTypeAliasElement) element, scope, filter, listener);
           return;
-        case TYPE_VARIABLE:
-          searchReferences((TypeVariableElement) element, scope, filter, listener);
+        case TYPE_PARAMETER:
+          searchReferences((TypeParameterElement) element, scope, filter, listener);
           return;
       }
     }
@@ -686,14 +686,14 @@ public class SearchEngineImpl implements SearchEngine {
 //    }
   }
 
-  private void searchReferences(TypeVariableElement typeVariable, SearchScope scope,
+  private void searchReferences(TypeParameterElement typeParameter, SearchScope scope,
       SearchFilter filter, SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     index.getRelationships(
-        typeVariable,
+        typeParameter,
         IndexConstants.IS_REFERENCED_BY,
-        newCallback(MatchKind.TYPE_VARIABLE_REFERENCE, scope, listener));
+        newCallback(MatchKind.TYPE_PARAMETER_REFERENCE, scope, listener));
   }
 
   private void searchReferences(VariableElement variable, SearchScope scope, SearchFilter filter,

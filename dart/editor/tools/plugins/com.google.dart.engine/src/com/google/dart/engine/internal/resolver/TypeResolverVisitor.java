@@ -54,7 +54,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -73,7 +73,6 @@ import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeImpl;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.source.Source;
@@ -500,11 +499,11 @@ public class TypeResolverVisitor extends ScopedVisitor {
     } else if (element instanceof FunctionTypeAliasElement) {
       setElement(typeName, element);
       type = ((FunctionTypeAliasElement) element).getType();
-    } else if (element instanceof TypeVariableElement) {
+    } else if (element instanceof TypeParameterElement) {
       setElement(typeName, element);
-      type = ((TypeVariableElement) element).getType();
+      type = ((TypeParameterElement) element).getType();
       if (argumentList != null) {
-        // Type variables cannot have type arguments.
+        // Type parameters cannot have type arguments.
         // TODO(brianwilkerson) Report this error.
 //      resolver.reportError(ResolverErrorCode.?, keyType);
       }
@@ -1031,7 +1030,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     FunctionTypeImpl type = new FunctionTypeImpl(aliasElement);
     ClassElement definingClass = element.getAncestor(ClassElement.class);
     if (definingClass != null) {
-      aliasElement.shareTypeVariables(definingClass.getTypeVariables());
+      aliasElement.shareTypeParameters(definingClass.getTypeParameters());
       type.setTypeArguments(definingClass.getType().getTypeArguments());
     } else {
       FunctionTypeAliasElement alias = element.getAncestor(FunctionTypeAliasElement.class);
@@ -1039,10 +1038,10 @@ public class TypeResolverVisitor extends ScopedVisitor {
         alias = alias.getAncestor(FunctionTypeAliasElement.class);
       }
       if (alias != null) {
-        aliasElement.setTypeVariables(alias.getTypeVariables());
+        aliasElement.setTypeParameters(alias.getTypeParameters());
         type.setTypeArguments(alias.getType().getTypeArguments());
       } else {
-        type.setTypeArguments(TypeVariableTypeImpl.EMPTY_ARRAY);
+        type.setTypeArguments(TypeImpl.EMPTY_ARRAY);
       }
     }
     element.setType(type);

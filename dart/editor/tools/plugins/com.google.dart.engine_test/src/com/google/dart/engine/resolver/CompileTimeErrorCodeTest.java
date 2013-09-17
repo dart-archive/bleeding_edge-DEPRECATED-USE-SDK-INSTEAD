@@ -213,11 +213,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_builtInIdentifierAsTypeVariableName() throws Exception {
+  public void test_builtInIdentifierAsTypeParameterName() throws Exception {
     Source source = addSource(createSource(//
     "class A<as> {}"));
     resolve(source);
-    assertErrors(source, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
+    assertErrors(source, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME);
     verify(source);
   }
 

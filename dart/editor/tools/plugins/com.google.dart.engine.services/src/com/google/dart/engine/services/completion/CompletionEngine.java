@@ -98,7 +98,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.internal.resolver.TypeProvider;
@@ -225,7 +225,7 @@ public class CompletionEngine {
       mergeNames(accessors);
       MethodElement[] methods = type.getMethods();
       mergeNames(methods);
-      mergeNames(type.getElement().getTypeVariables());
+      mergeNames(type.getElement().getTypeParameters());
       filterStaticRefs(accessors);
       filterStaticRefs(methods);
     }
@@ -1681,9 +1681,9 @@ public class CompletionEngine {
       }
       if (rcvrTypeElem instanceof ClassElement) {
         prefixedAccess((ClassElement) rcvrTypeElem, completionNode);
-      } else if (rcvrTypeElem instanceof TypeVariableElement) {
-        TypeVariableElement typeVarElem = (TypeVariableElement) rcvrTypeElem;
-        analyzePrefixedAccess(typeVarElem.getBound(), completionNode);
+      } else if (rcvrTypeElem instanceof TypeParameterElement) {
+        TypeParameterElement typeParamElem = (TypeParameterElement) rcvrTypeElem;
+        analyzePrefixedAccess(typeParamElem.getBound(), completionNode);
       }
     }
   }
@@ -1721,8 +1721,8 @@ public class CompletionEngine {
       ClassDeclaration classDecl = identifier.getAncestor(ClassDeclaration.class);
       if (classDecl != null) {
         ClassElement classElement = classDecl.getElement();
-        for (TypeVariableElement var : classElement.getTypeVariables()) {
-          pName(var);
+        for (TypeParameterElement param : classElement.getTypeParameters()) {
+          pName(param);
         }
       }
     }
@@ -2450,8 +2450,8 @@ public class CompletionEngine {
       case FUNCTION_TYPE_ALIAS:
         kind = ProposalKind.CLASS_ALIAS;
         break;
-      case TYPE_VARIABLE:
-        kind = ProposalKind.TYPE_VARIABLE;
+      case TYPE_PARAMETER:
+        kind = ProposalKind.TYPE_PARAMETER;
         break;
       case LOCAL_VARIABLE:
       case TOP_LEVEL_VARIABLE:

@@ -149,9 +149,9 @@ public enum MatchKind {
   TYPE_REFERENCE,
 
   /**
-   * A reference to a type variable.
+   * A reference to a type parameter.
    */
-  TYPE_VARIABLE_REFERENCE,
+  TYPE_PARAMETER_REFERENCE,
 
   /**
    * A reference to a {@link CompilationUnitElement}.

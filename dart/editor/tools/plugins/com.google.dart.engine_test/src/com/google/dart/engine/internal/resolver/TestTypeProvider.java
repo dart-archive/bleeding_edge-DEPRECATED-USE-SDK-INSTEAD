@@ -21,7 +21,7 @@ import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
+import com.google.dart.engine.internal.type.TypeParameterTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -183,7 +183,7 @@ public class TestTypeProvider implements TypeProvider {
     if (iterableType == null) {
       ClassElementImpl iterableElement = classElement("Iterable", "E");
       iterableType = iterableElement.getType();
-      Type eType = iterableElement.getTypeVariables()[0].getType();
+      Type eType = iterableElement.getTypeParameters()[0].getType();
       iterableElement.setAccessors(new PropertyAccessorElement[] {//
           getterElement("iterator", false, getIteratorType().substitute(new Type[] {eType})),
           getterElement("last", false, eType),});
@@ -196,7 +196,7 @@ public class TestTypeProvider implements TypeProvider {
     if (iteratorType == null) {
       ClassElementImpl iteratorElement = classElement("Iterator", "E");
       iteratorType = iteratorElement.getType();
-      Type eType = iteratorElement.getTypeVariables()[0].getType();
+      Type eType = iteratorElement.getTypeParameters()[0].getType();
       iteratorElement.setAccessors(new PropertyAccessorElement[] {//
       getterElement("current", false, eType),});
       propagateTypeArguments(iteratorElement);
@@ -210,7 +210,7 @@ public class TestTypeProvider implements TypeProvider {
       ClassElementImpl listElement = classElement("List", "E");
       listElement.setConstructors(new ConstructorElement[] {constructorElement(listElement, null)});
       listType = listElement.getType();
-      Type eType = listElement.getTypeVariables()[0].getType();
+      Type eType = listElement.getTypeParameters()[0].getType();
       InterfaceType iterableType = getIterableType().substitute(new Type[] {eType});
       listElement.setInterfaces(new InterfaceType[] {iterableType});
       listElement.setAccessors(new PropertyAccessorElement[] {getterElement(
@@ -402,7 +402,7 @@ public class TestTypeProvider implements TypeProvider {
    * @param classElement the element representing the class with type parameters
    */
   private void propagateTypeArguments(ClassElementImpl classElement) {
-    Type[] typeArguments = TypeVariableTypeImpl.getTypes(classElement.getTypeVariables());
+    Type[] typeArguments = TypeParameterTypeImpl.getTypes(classElement.getTypeParameters());
     for (PropertyAccessorElement accessor : classElement.getAccessors()) {
       FunctionTypeImpl functionType = (FunctionTypeImpl) accessor.getType();
       functionType.setTypeArguments(typeArguments);

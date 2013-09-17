@@ -24,7 +24,7 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
-import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
@@ -1475,10 +1475,10 @@ public class InterfaceTypeImplTest extends EngineTestCase {
 
   public void test_substitute_equal() {
     ClassElementImpl classA = classElement("A");
-    TypeVariableElementImpl parameterElement = new TypeVariableElementImpl(identifier("E"));
+    TypeParameterElementImpl parameterElement = new TypeParameterElementImpl(identifier("E"));
 
     InterfaceTypeImpl type = new InterfaceTypeImpl(classA);
-    TypeVariableTypeImpl parameter = new TypeVariableTypeImpl(parameterElement);
+    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(parameterElement);
     type.setTypeArguments(new Type[] {parameter});
 
     InterfaceType argumentType = classElement("B").getType();
@@ -1505,14 +1505,14 @@ public class InterfaceTypeImplTest extends EngineTestCase {
 
   public void test_substitute_notEqual() {
     ClassElementImpl classA = classElement("A");
-    TypeVariableElementImpl parameterElement = new TypeVariableElementImpl(identifier("E"));
+    TypeParameterElementImpl parameterElement = new TypeParameterElementImpl(identifier("E"));
 
     InterfaceTypeImpl type = new InterfaceTypeImpl(classA);
-    TypeVariableTypeImpl parameter = new TypeVariableTypeImpl(parameterElement);
+    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(parameterElement);
     type.setTypeArguments(new Type[] {parameter});
 
     InterfaceType argumentType = classElement("B").getType();
-    TypeVariableTypeImpl parameterType = new TypeVariableTypeImpl(new TypeVariableElementImpl(
+    TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(new TypeParameterElementImpl(
         identifier("F")));
 
     InterfaceType result = type.substitute(new Type[] {argumentType}, new Type[] {parameterType});

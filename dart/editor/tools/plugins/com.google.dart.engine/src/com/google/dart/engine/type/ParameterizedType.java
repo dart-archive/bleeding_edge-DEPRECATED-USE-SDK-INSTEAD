@@ -13,11 +13,11 @@
  */
 package com.google.dart.engine.type;
 
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 
 /**
- * The interface {@code ParameterizedType} defines the behavior common to objects representing the
- * type with type parameters, such as class and function type alias.
+ * The interface {@code ParameterizedType} defines the behavior common to objects representing a
+ * type with type parameters, such as a class or function type alias.
  * 
  * @coverage dart.engine.type
  */
@@ -34,9 +34,9 @@ public interface ParameterizedType extends Type {
   public Type[] getTypeArguments();
 
   /**
-   * Return an array containing all of the type variables declared for this type.
+   * Return an array containing all of the type parameters declared for this type.
    * 
-   * @return the type variables declared for this type
+   * @return the type parameters declared for this type
    */
-  public TypeVariableElement[] getTypeVariables();
+  public TypeParameterElement[] getTypeParameters();
 }

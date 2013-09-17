@@ -32,7 +32,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.index.IndexStore;
@@ -781,10 +781,10 @@ public class SearchEngineImplTest extends EngineTestCase {
         new ExpectedMatch(elementB, MatchKind.FUNCTION_TYPE_REFERENCE, 10, 20));
   }
 
-  public void test_searchReferences_TypeVariableElement() throws Exception {
-    TypeVariableElement referencedElement = mock2(
-        TypeVariableElement.class,
-        ElementKind.TYPE_VARIABLE);
+  public void test_searchReferences_TypeParameterElement() throws Exception {
+    TypeParameterElement referencedElement = mock2(
+        TypeParameterElement.class,
+        ElementKind.TYPE_PARAMETER);
     {
       Location locationA = new Location(elementA, 1, 2, null);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
@@ -798,8 +798,8 @@ public class SearchEngineImplTest extends EngineTestCase {
     // verify
     assertMatches(
         matches,
-        new ExpectedMatch(elementA, MatchKind.TYPE_VARIABLE_REFERENCE, 1, 2),
-        new ExpectedMatch(elementB, MatchKind.TYPE_VARIABLE_REFERENCE, 10, 20));
+        new ExpectedMatch(elementA, MatchKind.TYPE_PARAMETER_REFERENCE, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.TYPE_PARAMETER_REFERENCE, 10, 20));
   }
 
   public void test_searchReferences_VariableElement() throws Exception {

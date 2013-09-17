@@ -21,7 +21,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
+import com.google.dart.engine.internal.type.TypeParameterTypeImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.ParameterizedType;
@@ -183,7 +183,7 @@ public abstract class Member implements Element {
   @SuppressWarnings("unchecked")
   protected <E extends Type> E substituteFor(E type) {
     Type[] argumentTypes = definingType.getTypeArguments();
-    Type[] parameterTypes = TypeVariableTypeImpl.getTypes(definingType.getTypeVariables());
+    Type[] parameterTypes = TypeParameterTypeImpl.getTypes(definingType.getTypeParameters());
     return (E) type.substitute(argumentTypes, parameterTypes);
   }
 

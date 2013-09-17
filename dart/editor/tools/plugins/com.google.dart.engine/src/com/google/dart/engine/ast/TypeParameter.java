@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -79,8 +79,8 @@ public class TypeParameter extends Declaration {
   }
 
   @Override
-  public TypeVariableElement getElement() {
-    return name != null ? (TypeVariableElement) name.getStaticElement() : null;
+  public TypeParameterElement getElement() {
+    return name != null ? (TypeParameterElement) name.getStaticElement() : null;
   }
 
   @Override

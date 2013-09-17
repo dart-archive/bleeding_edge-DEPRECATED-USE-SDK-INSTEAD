@@ -434,9 +434,9 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   public Void visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.getName();
     if (enclosingClass != null) {
-      find(enclosingClass.getTypeVariables(), parameterName);
+      find(enclosingClass.getTypeParameters(), parameterName);
     } else if (enclosingAlias != null) {
-      find(enclosingAlias.getTypeVariables(), parameterName);
+      find(enclosingAlias.getTypeParameters(), parameterName);
     }
     return super.visitTypeParameter(node);
   }

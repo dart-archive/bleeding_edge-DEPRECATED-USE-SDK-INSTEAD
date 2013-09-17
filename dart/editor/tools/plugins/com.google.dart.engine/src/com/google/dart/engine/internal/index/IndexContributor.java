@@ -73,7 +73,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
@@ -557,7 +557,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     // record specific relations
     if (element instanceof ClassElement || element instanceof FunctionElement
         || element instanceof FunctionTypeAliasElement || element instanceof LabelElement
-        || element instanceof TypeVariableElement) {
+        || element instanceof TypeParameterElement) {
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     } else if (element instanceof FieldElement) {
       location = getLocationWithInitializerType(node, location);
@@ -621,7 +621,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitTypeParameter(TypeParameter node) {
-    TypeVariableElement element = node.getElement();
+    TypeParameterElement element = node.getElement();
     enterScope(element);
     try {
       return super.visitTypeParameter(node);

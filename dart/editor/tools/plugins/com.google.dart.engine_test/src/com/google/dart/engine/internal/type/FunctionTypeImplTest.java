@@ -21,12 +21,12 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
-import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.type.TypeVariableType;
+import com.google.dart.engine.type.TypeParameterType;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
@@ -414,13 +414,13 @@ public class FunctionTypeImplTest extends EngineTestCase {
     InterfaceType boolType = provider.getBoolType();
     InterfaceType stringType = provider.getStringType();
 
-    TypeVariableElementImpl variableB = new TypeVariableElementImpl(identifier("B"));
-    variableB.setBound(boolType);
-    TypeVariableTypeImpl typeB = new TypeVariableTypeImpl(variableB);
+    TypeParameterElementImpl parameterB = new TypeParameterElementImpl(identifier("B"));
+    parameterB.setBound(boolType);
+    TypeParameterTypeImpl typeB = new TypeParameterTypeImpl(parameterB);
 
-    TypeVariableElementImpl variableS = new TypeVariableElementImpl(identifier("S"));
-    variableS.setBound(stringType);
-    TypeVariableTypeImpl typeS = new TypeVariableTypeImpl(variableS);
+    TypeParameterElementImpl parameterS = new TypeParameterElementImpl(identifier("S"));
+    parameterS.setBound(stringType);
+    TypeParameterTypeImpl typeS = new TypeParameterTypeImpl(parameterS);
 
     FunctionElementImpl functionAliasElement = new FunctionElementImpl(identifier("func"));
     functionAliasElement.setParameters(new ParameterElement[] {
@@ -464,7 +464,7 @@ public class FunctionTypeImplTest extends EngineTestCase {
     MethodElementImpl methodElement = new MethodElementImpl(identifier("m"));
     enclosingClass.setMethods(new MethodElement[] {methodElement});
     FunctionTypeImpl type = new FunctionTypeImpl(methodElement);
-    Type expectedType = enclosingClass.getTypeVariables()[0].getType();
+    Type expectedType = enclosingClass.getTypeParameters()[0].getType();
     type.setTypeArguments(new Type[] {expectedType});
     Type[] arguments = type.getTypeArguments();
     assertLength(1, arguments);
@@ -473,7 +473,7 @@ public class FunctionTypeImplTest extends EngineTestCase {
 
   public void test_substitute2_equal() {
     ClassElementImpl definingClass = classElement("C", "E");
-    TypeVariableType parameterType = definingClass.getTypeVariables()[0].getType();
+    TypeParameterType parameterType = definingClass.getTypeParameters()[0].getType();
     MethodElementImpl functionElement = new MethodElementImpl(identifier("m"));
     String namedParameterName = "c";
     functionElement.setParameters(new ParameterElement[] {
@@ -519,7 +519,7 @@ public class FunctionTypeImplTest extends EngineTestCase {
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
 
     InterfaceTypeImpl argumentType = new InterfaceTypeImpl(new ClassElementImpl(identifier("D")));
-    TypeVariableTypeImpl parameterType = new TypeVariableTypeImpl(new TypeVariableElementImpl(
+    TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(new TypeParameterElementImpl(
         identifier("E")));
 
     FunctionType result = functionType.substitute(

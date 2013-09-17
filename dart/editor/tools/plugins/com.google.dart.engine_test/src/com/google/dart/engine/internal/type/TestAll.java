@@ -23,7 +23,7 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(FunctionTypeImplTest.class);
     suite.addTestSuite(InterfaceTypeImplTest.class);
-    suite.addTestSuite(TypeVariableTypeImplTest.class);
+    suite.addTestSuite(TypeParameterTypeImplTest.class);
     return suite;
   }
 }

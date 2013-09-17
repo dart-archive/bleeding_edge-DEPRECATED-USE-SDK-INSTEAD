@@ -22,7 +22,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 
@@ -77,9 +77,9 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   private InterfaceType type;
 
   /**
-   * An array containing all of the type variables defined for this class.
+   * An array containing all of the type parameters defined for this class.
    */
-  private TypeVariableElement[] typeVariables = TypeVariableElementImpl.EMPTY_ARRAY;
+  private TypeParameterElement[] typeParameters = TypeParameterElementImpl.EMPTY_ARRAY;
 
   /**
    * An empty array of type elements.
@@ -138,9 +138,9 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
         return (MethodElementImpl) method;
       }
     }
-    for (TypeVariableElement typeVariable : typeVariables) {
-      if (((TypeVariableElementImpl) typeVariable).getIdentifier().equals(identifier)) {
-        return (TypeVariableElementImpl) typeVariable;
+    for (TypeParameterElement typeParameter : typeParameters) {
+      if (((TypeParameterElementImpl) typeParameter).getIdentifier().equals(identifier)) {
+        return (TypeParameterElementImpl) typeParameter;
       }
     }
     return null;
@@ -249,8 +249,8 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
-  public TypeVariableElement[] getTypeVariables() {
-    return typeVariables;
+  public TypeParameterElement[] getTypeParameters() {
+    return typeParameters;
   }
 
   @Override
@@ -514,15 +514,15 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   /**
-   * Set the type variables defined for this class to the given type variables.
+   * Set the type parameters defined for this class to the given type parameters.
    * 
-   * @param typeVariables the type variables defined for this class
+   * @param typeParameters the type parameters defined for this class
    */
-  public void setTypeVariables(TypeVariableElement[] typeVariables) {
-    for (TypeVariableElement typeVariable : typeVariables) {
-      ((TypeVariableElementImpl) typeVariable).setEnclosingElement(this);
+  public void setTypeParameters(TypeParameterElement[] typeParameters) {
+    for (TypeParameterElement typeParameter : typeParameters) {
+      ((TypeParameterElementImpl) typeParameter).setEnclosingElement(this);
     }
-    this.typeVariables = typeVariables;
+    this.typeParameters = typeParameters;
   }
 
   /**
@@ -541,7 +541,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     safelyVisitChildren(constructors, visitor);
     safelyVisitChildren(fields, visitor);
     safelyVisitChildren(methods, visitor);
-    safelyVisitChildren(typeVariables, visitor);
+    safelyVisitChildren(typeParameters, visitor);
   }
 
   @Override
@@ -552,14 +552,14 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     } else {
       builder.append(name);
     }
-    int variableCount = typeVariables.length;
+    int variableCount = typeParameters.length;
     if (variableCount > 0) {
       builder.append("<");
       for (int i = 0; i < variableCount; i++) {
         if (i > 0) {
           builder.append(", ");
         }
-        ((TypeVariableElementImpl) typeVariables[i]).appendTo(builder);
+        ((TypeParameterElementImpl) typeParameters[i]).appendTo(builder);
       }
       builder.append(">");
     }

@@ -16,44 +16,44 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.type.TypeVariableType;
+import com.google.dart.engine.type.TypeParameterType;
 
 /**
- * Instances of the class {@code TypeVariableElementImpl} implement a {@code TypeVariableElement}.
+ * Instances of the class {@code TypeParameterElementImpl} implement a {@link TypeParameterElement}.
  * 
  * @coverage dart.engine.element
  */
-public class TypeVariableElementImpl extends ElementImpl implements TypeVariableElement {
+public class TypeParameterElementImpl extends ElementImpl implements TypeParameterElement {
   /**
-   * The type defined by this type variable.
+   * The type defined by this type parameter.
    */
-  private TypeVariableType type;
+  private TypeParameterType type;
 
   /**
-   * The type representing the bound associated with this variable, or {@code null} if this variable
-   * does not have an explicit bound.
+   * The type representing the bound associated with this parameter, or {@code null} if this
+   * parameter does not have an explicit bound.
    */
   private Type bound;
 
   /**
-   * An empty array of type variable elements.
+   * An empty array of type parameter elements.
    */
-  public static final TypeVariableElement[] EMPTY_ARRAY = new TypeVariableElement[0];
+  public static final TypeParameterElement[] EMPTY_ARRAY = new TypeParameterElement[0];
 
   /**
-   * Initialize a newly created type variable element to have the given name.
+   * Initialize a newly created type parameter element to have the given name.
    * 
    * @param name the name of this element
    */
-  public TypeVariableElementImpl(Identifier name) {
+  public TypeParameterElementImpl(Identifier name) {
     super(name);
   }
 
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
-    return visitor.visitTypeVariableElement(this);
+    return visitor.visitTypeParameterElement(this);
   }
 
   @Override
@@ -63,29 +63,29 @@ public class TypeVariableElementImpl extends ElementImpl implements TypeVariable
 
   @Override
   public ElementKind getKind() {
-    return ElementKind.TYPE_VARIABLE;
+    return ElementKind.TYPE_PARAMETER;
   }
 
   @Override
-  public TypeVariableType getType() {
+  public TypeParameterType getType() {
     return type;
   }
 
   /**
-   * Set the type representing the bound associated with this variable to the given type.
+   * Set the type representing the bound associated with this parameter to the given type.
    * 
-   * @param bound the type representing the bound associated with this variable
+   * @param bound the type representing the bound associated with this parameter
    */
   public void setBound(Type bound) {
     this.bound = bound;
   }
 
   /**
-   * Set the type defined by this type variable to the given type
+   * Set the type defined by this type parameter to the given type
    * 
-   * @param type the type defined by this type variable
+   * @param type the type defined by this type parameter
    */
-  public void setType(TypeVariableType type) {
+  public void setType(TypeParameterType type) {
     this.type = type;
   }
 

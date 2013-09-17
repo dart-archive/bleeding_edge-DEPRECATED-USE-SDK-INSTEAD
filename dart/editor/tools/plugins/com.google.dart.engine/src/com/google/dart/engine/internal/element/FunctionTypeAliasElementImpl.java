@@ -19,7 +19,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.resolver.TypeResolverVisitor;
 import com.google.dart.engine.type.FunctionType;
@@ -48,9 +48,9 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
   private FunctionType type;
 
   /**
-   * An array containing all of the type variables defined for this type.
+   * An array containing all of the type parameters defined for this type.
    */
-  private TypeVariableElement[] typeVariables = TypeVariableElementImpl.EMPTY_ARRAY;
+  private TypeParameterElement[] typeParameters = TypeParameterElementImpl.EMPTY_ARRAY;
 
   /**
    * An empty array of type alias elements.
@@ -78,9 +78,9 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
         return (VariableElementImpl) parameter;
       }
     }
-    for (TypeVariableElement typeVariable : typeVariables) {
-      if (((TypeVariableElementImpl) typeVariable).getIdentifier().equals(identifier)) {
-        return (TypeVariableElementImpl) typeVariable;
+    for (TypeParameterElement typeParameter : typeParameters) {
+      if (((TypeParameterElementImpl) typeParameter).getIdentifier().equals(identifier)) {
+        return (TypeParameterElementImpl) typeParameter;
       }
     }
     return null;
@@ -112,8 +112,8 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
   }
 
   @Override
-  public TypeVariableElement[] getTypeVariables() {
-    return typeVariables;
+  public TypeParameterElement[] getTypeParameters() {
+    return typeParameters;
   }
 
   /**
@@ -149,15 +149,15 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
   }
 
   /**
-   * Set the type variables defined for this type to the given variables.
+   * Set the type parameters defined for this type to the given parameters.
    * 
-   * @param typeVariables the type variables defined for this type
+   * @param typeParameters the type parameters defined for this type
    */
-  public void setTypeVariables(TypeVariableElement[] typeVariables) {
-    for (TypeVariableElement variable : typeVariables) {
-      ((TypeVariableElementImpl) variable).setEnclosingElement(this);
+  public void setTypeParameters(TypeParameterElement[] typeParameters) {
+    for (TypeParameterElement typeParameter : typeParameters) {
+      ((TypeParameterElementImpl) typeParameter).setEnclosingElement(this);
     }
-    this.typeVariables = typeVariables;
+    this.typeParameters = typeParameters;
   }
 
   /**
@@ -172,35 +172,35 @@ public class FunctionTypeAliasElementImpl extends ElementImpl implements Functio
   }
 
   /**
-   * Set the type variables defined for this type to the given variables without becoming the parent
-   * of the variables. This should only be used by the {@link TypeResolverVisitor} when creating a
-   * synthetic type alias.
+   * Set the type parameters defined for this type to the given parameters without becoming the
+   * parent of the parameters. This should only be used by the {@link TypeResolverVisitor} when
+   * creating a synthetic type alias.
    * 
-   * @param typeVariables the type variables defined for this type
+   * @param typeParameters the type parameters defined for this type
    */
-  public void shareTypeVariables(TypeVariableElement[] typeVariables) {
-    this.typeVariables = typeVariables;
+  public void shareTypeParameters(TypeParameterElement[] typeParameters) {
+    this.typeParameters = typeParameters;
   }
 
   @Override
   public void visitChildren(ElementVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(parameters, visitor);
-    safelyVisitChildren(typeVariables, visitor);
+    safelyVisitChildren(typeParameters, visitor);
   }
 
   @Override
   protected void appendTo(StringBuilder builder) {
     builder.append("typedef ");
     builder.append(getDisplayName());
-    int variableCount = typeVariables.length;
-    if (variableCount > 0) {
+    int typeParameterCount = typeParameters.length;
+    if (typeParameterCount > 0) {
       builder.append("<");
-      for (int i = 0; i < variableCount; i++) {
+      for (int i = 0; i < typeParameterCount; i++) {
         if (i > 0) {
           builder.append(", ");
         }
-        ((TypeVariableElementImpl) typeVariables[i]).appendTo(builder);
+        ((TypeParameterElementImpl) typeParameters[i]).appendTo(builder);
       }
       builder.append(">");
     }

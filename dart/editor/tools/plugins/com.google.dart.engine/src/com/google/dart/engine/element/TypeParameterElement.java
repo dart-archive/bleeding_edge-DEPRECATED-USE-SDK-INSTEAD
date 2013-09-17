@@ -14,27 +14,27 @@
 package com.google.dart.engine.element;
 
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.type.TypeVariableType;
+import com.google.dart.engine.type.TypeParameterType;
 
 /**
- * The interface {@code TypeVariableElement} defines the behavior of elements representing a type
- * variable.
+ * The interface {@code TypeParameterElement} defines the behavior of elements representing a type
+ * parameter.
  * 
  * @coverage dart.engine.element
  */
-public interface TypeVariableElement extends Element {
+public interface TypeParameterElement extends Element {
   /**
-   * Return the type representing the bound associated with this variable, or {@code null} if this
-   * variable does not have an explicit bound.
+   * Return the type representing the bound associated with this parameter, or {@code null} if this
+   * parameter does not have an explicit bound.
    * 
-   * @return the type representing the bound associated with this variable
+   * @return the type representing the bound associated with this parameter
    */
   public Type getBound();
 
   /**
-   * Return the type defined by this type variable.
+   * Return the type defined by this type parameter.
    * 
-   * @return the type defined by this type variable
+   * @return the type defined by this type parameter
    */
-  public TypeVariableType getType();
+  public TypeParameterType getType();
 }

@@ -656,7 +656,7 @@ public enum StaticWarningCode implements ErrorCode {
   /**
    * 15.1 Static Types: A type <i>T</i> is malformed iff: <li><i>T</i> has the form <i>id</i> or the
    * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
-   * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type variable in the
+   * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type parameter in the
    * enclosing lexical scope, but occurs in the signature or body of a static member.</li> <li>
    * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
    * and <i>G</i> is malformed.</li></ul>

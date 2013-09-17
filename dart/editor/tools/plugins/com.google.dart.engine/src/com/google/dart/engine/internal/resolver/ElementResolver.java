@@ -98,7 +98,7 @@ import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
-import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
@@ -110,7 +110,7 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.type.TypeVariableType;
+import com.google.dart.engine.type.TypeParameterType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
@@ -1260,9 +1260,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   public Void visitTypeParameter(TypeParameter node) {
     TypeName bound = node.getBound();
     if (bound != null) {
-      TypeVariableElementImpl variable = (TypeVariableElementImpl) node.getName().getStaticElement();
-      if (variable != null) {
-        variable.setBound(bound.getType());
+      TypeParameterElementImpl typeParameter = (TypeParameterElementImpl) node.getName().getStaticElement();
+      if (typeParameter != null) {
+        typeParameter.setBound(bound.getType());
       }
     }
     setMetadata(node.getElement(), node);
@@ -1557,7 +1557,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return the type of the given expression
    */
   private Type getPropagatedType(Expression expression) {
-    Type propagatedType = resolveTypeVariable(expression.getPropagatedType());
+    Type propagatedType = resolveTypeParameter(expression.getPropagatedType());
     if (propagatedType instanceof FunctionType) {
       //
       // All function types are subtypes of 'Function', which is itself a subclass of 'Object'.
@@ -1577,7 +1577,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (expression instanceof NullLiteral) {
       return resolver.getTypeProvider().getObjectType();
     }
-    Type staticType = resolveTypeVariable(expression.getStaticType());
+    Type staticType = resolveTypeParameter(expression.getStaticType());
     if (staticType instanceof FunctionType) {
       //
       // All function types are subtypes of 'Function', which is itself a subclass of 'Object'.
@@ -1680,7 +1680,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return the element representing the getter that was found
    */
   private PropertyAccessorElement lookUpGetter(Expression target, Type type, String getterName) {
-    type = resolveTypeVariable(type);
+    type = resolveTypeParameter(type);
     if (type instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) type;
       PropertyAccessorElement accessor;
@@ -1763,7 +1763,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return the element representing the method or getter that was found
    */
   private ExecutableElement lookupGetterOrMethod(Type type, String memberName) {
-    type = resolveTypeVariable(type);
+    type = resolveTypeParameter(type);
     if (type instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) type;
       ExecutableElement member = interfaceType.lookUpMethod(
@@ -1906,7 +1906,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return the element representing the method that was found
    */
   private MethodElement lookUpMethod(Expression target, Type type, String methodName) {
-    type = resolveTypeVariable(type);
+    type = resolveTypeParameter(type);
     if (type instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) type;
       MethodElement method;
@@ -1989,7 +1989,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return the element representing the setter that was found
    */
   private PropertyAccessorElement lookUpSetter(Expression target, Type type, String setterName) {
-    type = resolveTypeVariable(type);
+    type = resolveTypeParameter(type);
     if (type instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) type;
       PropertyAccessorElement accessor;
@@ -2527,16 +2527,16 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * If the given type is a type variable, resolve it to the type that should be used when looking
+   * If the given type is a type parameter, resolve it to the type that should be used when looking
    * up members. Otherwise, return the original type.
    * 
-   * @param type the type that is to be resolved if it is a type variable
-   * @return the type that should be used in place of the argument if it is a type variable, or the
-   *         original argument if it isn't a type variable
+   * @param type the type that is to be resolved if it is a type parameter
+   * @return the type that should be used in place of the argument if it is a type parameter, or the
+   *         original argument if it isn't a type parameter
    */
-  private Type resolveTypeVariable(Type type) {
-    if (type instanceof TypeVariableType) {
-      Type bound = ((TypeVariableType) type).getElement().getBound();
+  private Type resolveTypeParameter(Type type) {
+    if (type instanceof TypeParameterType) {
+      Type bound = ((TypeParameterType) type).getElement().getBound();
       if (bound == null) {
         return resolver.getTypeProvider().getObjectType();
       }

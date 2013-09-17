@@ -55,7 +55,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.type.Type;
@@ -1054,7 +1054,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       SimpleIdentifier node = token.getNodeIdentifier();
-      return node.getStaticElement() instanceof TypeVariableElement;
+      return node.getStaticElement() instanceof TypeParameterElement;
     }
 
     @Override

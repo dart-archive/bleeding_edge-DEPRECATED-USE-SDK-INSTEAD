@@ -19,9 +19,9 @@ import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class StaticWarningCodeTest extends ResolverTestCase {
-  // TODO(scheglov) requires fix for TypeVariableTypeImpl.isSubtypeOf()
   public void fail_argumentTypeNotAssignable_invocation_functionParameter_generic()
       throws Exception {
+    // TODO(scheglov) requires fix for TypeParameterTypeImpl.isSubtypeOf()
     Source source = addSource(createSource(//
         "class A<K, V> {",
         "  m(f(K k), V v) {",

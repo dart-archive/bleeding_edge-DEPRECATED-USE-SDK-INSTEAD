@@ -53,9 +53,9 @@ public interface FunctionTypeAliasElement extends Element {
   public FunctionType getType();
 
   /**
-   * Return an array containing all of the type variables defined for this type.
+   * Return an array containing all of the type parameters defined for this type.
    * 
-   * @return the type variables defined for this type
+   * @return the type parameters defined for this type
    */
-  public TypeVariableElement[] getTypeVariables();
+  public TypeParameterElement[] getTypeParameters();
 }

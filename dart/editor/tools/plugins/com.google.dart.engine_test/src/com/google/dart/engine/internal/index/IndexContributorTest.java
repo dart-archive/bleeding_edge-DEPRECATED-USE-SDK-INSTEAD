@@ -40,7 +40,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
@@ -1295,7 +1295,7 @@ public class IndexContributorTest extends AbstractDartTest {
         new ExpectedLocation(variableElement, findOffset("A myVa"), "A"));
   }
 
-  public void test_isReferencedBy_TypeVariableElement() throws Exception {
+  public void test_isReferencedBy_TypeParameterElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A<T> {",
@@ -1306,14 +1306,14 @@ public class IndexContributorTest extends AbstractDartTest {
         "}");
     // prepare elements
     VariableElement fieldElement = findElement("f;");
-    TypeVariableElement typeVariableElement = findElement("T>");
+    TypeParameterElement typeParameterElement = findElement("T>");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
     assertRecordedRelation(
         relations,
-        typeVariableElement,
+        typeParameterElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(fieldElement, findOffset("T f"), "T"));
   }

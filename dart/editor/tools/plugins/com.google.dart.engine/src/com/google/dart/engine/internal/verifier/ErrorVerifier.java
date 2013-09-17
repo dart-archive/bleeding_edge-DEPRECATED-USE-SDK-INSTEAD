@@ -106,7 +106,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.error.AnalysisError;
@@ -141,7 +141,7 @@ import com.google.dart.engine.sdk.SdkLibrary;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.type.TypeVariableType;
+import com.google.dart.engine.type.TypeParameterType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
@@ -933,7 +933,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitTypeParameter(TypeParameter node) {
     checkForBuiltInIdentifierAsName(
         node.getName(),
-        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
+        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME);
     return super.visitTypeParameter(node);
   }
 
@@ -1876,11 +1876,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @param errorCode if the passed identifier is a keyword then this error code is created on the
    *          identifier, the error code will be one of
    *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_NAME},
-   *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME} or
+   *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME} or
    *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME}
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_NAME
-   * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME
+   * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME
    * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME
    */
   private boolean checkForBuiltInIdentifierAsName(SimpleIdentifier identifier, ErrorCode errorCode) {
@@ -2491,7 +2491,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     // should not be a type parameter
-    if (name.getStaticElement() instanceof TypeVariableElement) {
+    if (name.getStaticElement() instanceof TypeParameterElement) {
       errorReporter.reportError(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, name);
     }
     // check type arguments
@@ -3348,7 +3348,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       ErrorCode errorCode) {
     boolean foundError = false;
     for (TypeName typeName : arguments) {
-      if (typeName.getType() instanceof TypeVariableType) {
+      if (typeName.getType() instanceof TypeParameterType) {
         errorReporter.reportError(errorCode, typeName, typeName.getName());
         foundError = true;
       }
@@ -4507,14 +4507,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (node.getTypeArguments() == null) {
       return false;
     }
-    TypeVariableElement[] boundingElts = null;
+    TypeParameterElement[] boundingElts = null;
     Type type = node.getType();
     if (type == null) {
       return false;
     }
     Element element = type.getElement();
     if (element instanceof ClassElement) {
-      boundingElts = ((ClassElement) element).getTypeVariables();
+      boundingElts = ((ClassElement) element).getTypeParameters();
     } else {
       return false;
     }
@@ -4556,7 +4556,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean checkForTypeParameterReferencedByStatic(TypeName node) {
     if (isInStaticMethod || isInStaticVariableDeclaration) {
       Type type = node.getType();
-      if (type instanceof TypeVariableType) {
+      if (type instanceof TypeParameterType) {
         errorReporter.reportError(StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, node);
         return true;
       }
@@ -4646,7 +4646,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private boolean checkForUnqualifiedReferenceToNonLocalStaticMember(SimpleIdentifier name) {
     Element element = name.getStaticElement();
-    if (element == null || element instanceof TypeVariableElement) {
+    if (element == null || element instanceof TypeParameterElement) {
       return false;
     }
     Element enclosingElement = element.getEnclosingElement();
@@ -4869,7 +4869,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   /**
    * @return <code>true</code> if given {@link Element} has direct or indirect reference to itself
-   *         form anywhere except {@link ClassElement} or type variable bounds.
+   *         from anywhere except {@link ClassElement} or type parameter bounds.
    */
   private boolean hasTypedefSelfReference(final Element target) {
     final Set<Element> checked = new HashSet<Element>();
@@ -4938,8 +4938,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         }
 
         @Override
-        public Void visitTypeVariableElement(TypeVariableElement element) {
-          // it is OK to use typedef in a type variable
+        public Void visitTypeParameterElement(TypeParameterElement element) {
+          // it is OK to use typedef in a type parameter
           return null;
         }
 

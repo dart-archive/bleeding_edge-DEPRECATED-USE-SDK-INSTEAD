@@ -67,7 +67,7 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
     assertEquals(null, value);
   }
 
-  public void fail_identifier_typeVariable() throws Exception {
+  public void fail_identifier_typeParameter() throws Exception {
     EvaluationResult result = getExpressionValue("?");
     assertTrue(result.isValid());
     Object value = result.getValue();

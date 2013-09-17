@@ -144,7 +144,7 @@ public interface InterfaceType extends ParameterizedType {
    * <li><i>T</i> is bottom.
    * <li><i>S</i> is dynamic.
    * <li>Direct supertype: <i>S</i> is a direct supertype of <i>T</i>.
-   * <li><i>T</i> is a type variable and <i>S</i> is the upper bound of <i>T</i>.
+   * <li><i>T</i> is a type parameter and <i>S</i> is the upper bound of <i>T</i>.
    * <li>Covariance: <i>T</i> is of the form <i>I&lt;T<sub>1</sub>, &hellip;, T<sub>n</sub>&gt;</i>
    * and S</i> is of the form <i>I&lt;S<sub>1</sub>, &hellip;, S<sub>n</sub>&gt;</i> and
    * <i>T<sub>i</sub> &laquo; S<sub>i</sub></i>, <i>1 <= i <= n</i>.

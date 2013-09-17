@@ -58,7 +58,7 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.services.change.SourceChange;
@@ -354,10 +354,10 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals("function type alias", CorrectionUtils.getElementKindName(element));
   }
 
-  public void test_getElementKindName_TypeVariableElement() throws Exception {
-    TypeVariableElement element = mock(TypeVariableElement.class);
-    when(element.getKind()).thenReturn(ElementKind.TYPE_VARIABLE);
-    assertEquals("type variable", CorrectionUtils.getElementKindName(element));
+  public void test_getElementKindName_TypeParameterElement() throws Exception {
+    TypeParameterElement element = mock(TypeParameterElement.class);
+    when(element.getKind()).thenReturn(ElementKind.TYPE_PARAMETER);
+    assertEquals("type parameter", CorrectionUtils.getElementKindName(element));
   }
 
   public void test_getElementQualifiedName() throws Exception {

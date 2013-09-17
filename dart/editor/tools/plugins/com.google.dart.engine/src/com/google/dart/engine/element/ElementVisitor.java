@@ -62,5 +62,5 @@ public interface ElementVisitor<R> {
 
   public R visitTopLevelVariableElement(TopLevelVariableElement element);
 
-  public R visitTypeVariableElement(TypeVariableElement element);
+  public R visitTypeParameterElement(TypeParameterElement element);
 }

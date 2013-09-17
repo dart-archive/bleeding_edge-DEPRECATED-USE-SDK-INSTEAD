@@ -30,10 +30,10 @@ import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
-import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
+import com.google.dart.engine.internal.type.TypeParameterTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.type.InterfaceType;
@@ -64,17 +64,17 @@ public final class ElementFactory {
 
     int count = parameterNames.length;
     if (count > 0) {
-      TypeVariableElementImpl[] typeVariables = new TypeVariableElementImpl[count];
-      TypeVariableTypeImpl[] typeArguments = new TypeVariableTypeImpl[count];
+      TypeParameterElementImpl[] typeParameters = new TypeParameterElementImpl[count];
+      TypeParameterTypeImpl[] typeParameterTypes = new TypeParameterTypeImpl[count];
       for (int i = 0; i < count; i++) {
-        TypeVariableElementImpl variable = new TypeVariableElementImpl(
+        TypeParameterElementImpl typeParameter = new TypeParameterElementImpl(
             identifier(parameterNames[i]));
-        typeVariables[i] = variable;
-        typeArguments[i] = new TypeVariableTypeImpl(variable);
-        variable.setType(typeArguments[i]);
+        typeParameters[i] = typeParameter;
+        typeParameterTypes[i] = new TypeParameterTypeImpl(typeParameter);
+        typeParameter.setType(typeParameterTypes[i]);
       }
-      element.setTypeVariables(typeVariables);
-      type.setTypeArguments(typeArguments);
+      element.setTypeParameters(typeParameters);
+      type.setTypeArguments(typeParameterTypes);
     }
 
     return element;

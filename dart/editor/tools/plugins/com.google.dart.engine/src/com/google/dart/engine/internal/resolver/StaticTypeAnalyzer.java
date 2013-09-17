@@ -72,7 +72,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
@@ -81,7 +81,7 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.type.TypeVariableType;
+import com.google.dart.engine.type.TypeParameterType;
 import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.HashMap;
@@ -1057,8 +1057,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
           node.getPrefix().getStaticType());
     } else if (staticElement instanceof ExecutableElement) {
       staticType = ((ExecutableElement) staticElement).getType();
-    } else if (staticElement instanceof TypeVariableElement) {
-      staticType = ((TypeVariableElement) staticElement).getType();
+    } else if (staticElement instanceof TypeParameterElement) {
+      staticType = ((TypeParameterElement) staticElement).getType();
     } else if (staticElement instanceof VariableElement) {
       staticType = ((VariableElement) staticElement).getType();
     }
@@ -1083,8 +1083,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
           node.getPrefix().getStaticType());
     } else if (propagatedElement instanceof ExecutableElement) {
       propagatedType = ((ExecutableElement) propagatedElement).getType();
-    } else if (propagatedElement instanceof TypeVariableElement) {
-      propagatedType = ((TypeVariableElement) propagatedElement).getType();
+    } else if (propagatedElement instanceof TypeParameterElement) {
+      propagatedType = ((TypeParameterElement) propagatedElement).getType();
     } else if (propagatedElement instanceof VariableElement) {
       propagatedType = ((VariableElement) propagatedElement).getType();
     }
@@ -1270,9 +1270,9 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       staticType = getType((PropertyAccessorElement) element, null);
     } else if (element instanceof ExecutableElement) {
       staticType = ((ExecutableElement) element).getType();
-    } else if (element instanceof TypeVariableElement) {
+    } else if (element instanceof TypeParameterElement) {
 //      if (isTypeName(node)) {
-      staticType = ((TypeVariableElement) element).getType();
+      staticType = ((TypeParameterElement) element).getType();
 //      } else {
 //        type = typeProvider.getTypeType());
 //      }
@@ -1683,22 +1683,22 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       return dynamicType;
     }
     Type returnType = functionType.getReturnType();
-    if (returnType instanceof TypeVariableType && context instanceof InterfaceType) {
-      // if the return type is a TypeVariable, we try to use the context [that the function is being
+    if (returnType instanceof TypeParameterType && context instanceof InterfaceType) {
+      // if the return type is a TypeParameter, we try to use the context [that the function is being
       // called on] to get a more accurate returnType type
       InterfaceType interfaceTypeContext = ((InterfaceType) context);
 //      Type[] argumentTypes = interfaceTypeContext.getTypeArguments();
-      TypeVariableElement[] parameterElements = interfaceTypeContext.getElement() != null
-          ? interfaceTypeContext.getElement().getTypeVariables() : null;
-      if (parameterElements != null) {
-        for (int i = 0; i < parameterElements.length; i++) {
-          TypeVariableElement varElt = parameterElements[i];
-          if (returnType.getName().equals(varElt.getName())) {
+      TypeParameterElement[] typeParameterElements = interfaceTypeContext.getElement() != null
+          ? interfaceTypeContext.getElement().getTypeParameters() : null;
+      if (typeParameterElements != null) {
+        for (int i = 0; i < typeParameterElements.length; i++) {
+          TypeParameterElement typeParameterElement = typeParameterElements[i];
+          if (returnType.getName().equals(typeParameterElement.getName())) {
             return interfaceTypeContext.getTypeArguments()[i];
           }
         }
         // TODO(jwren) troubleshoot why call to substitute doesn't work
-//        Type[] parameterTypes = TypeVariableTypeImpl.getTypes(parameterElements);
+//        Type[] parameterTypes = TypeParameterTypeImpl.getTypes(parameterElements);
 //        return returnType.substitute(argumentTypes, parameterTypes);
       }
     }

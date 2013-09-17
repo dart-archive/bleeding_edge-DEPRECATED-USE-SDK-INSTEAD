@@ -972,7 +972,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_implicitThisReferenceInInitializer_typeVariable() throws Exception {
+  public void test_implicitThisReferenceInInitializer_typeParameter() throws Exception {
     Source source = addSource(createSource(//
         "class A<T> {",
         "  var v;",
@@ -1034,7 +1034,23 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_inconsistentMethodInheritance_accessors_typeVariables_diamond() throws Exception {
+  public void test_inconsistentMethodInheritance_accessors_typeParameter2() throws Exception {
+    Source source = addSource(createSource(//
+        "abstract class A<E> {",
+        "  E get x {return 1;}",
+        "}",
+        "class B<E> {",
+        "  E get x {return 1;}",
+        "}",
+        "class C<E> extends A<E> implements B<E> {",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_inconsistentMethodInheritance_accessors_typeParameters_diamond()
+      throws Exception {
     Source source = addSource(createSource(//
         "abstract class F<E> extends B<E> {}",
         "class D<E> extends F<E> {",
@@ -1053,7 +1069,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_inconsistentMethodInheritance_accessors_typeVariables1() throws Exception {
+  public void test_inconsistentMethodInheritance_accessors_typeParameters1() throws Exception {
     Source source = addSource(createSource(//
         "abstract class A<E> {",
         "  E get x;",
@@ -1069,22 +1085,23 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_inconsistentMethodInheritance_accessors_typeVariables2() throws Exception {
+  public void test_inconsistentMethodInheritance_methods_typeParameter2() throws Exception {
     Source source = addSource(createSource(//
-        "abstract class A<E> {",
-        "  E get x {return 1;}",
+        "class A<E> {",
+        "  x(E e) {}",
         "}",
         "class B<E> {",
-        "  E get x {return 1;}",
+        "  x(E e) {}",
         "}",
         "class C<E> extends A<E> implements B<E> {",
+        "  x(E e) {}",
         "}"));
     resolve(source);
     assertNoErrors(source);
     verify(source);
   }
 
-  public void test_inconsistentMethodInheritance_methods_typeVariables1() throws Exception {
+  public void test_inconsistentMethodInheritance_methods_typeParameters1() throws Exception {
     Source source = addSource(createSource(//
         "class A<E> {",
         "  x(E e) {}",
@@ -1093,22 +1110,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  x(E e) {}",
         "}",
         "class C<E> implements A<E>, B<E> {",
-        "  x(E e) {}",
-        "}"));
-    resolve(source);
-    assertNoErrors(source);
-    verify(source);
-  }
-
-  public void test_inconsistentMethodInheritance_methods_typeVariables2() throws Exception {
-    Source source = addSource(createSource(//
-        "class A<E> {",
-        "  x(E e) {}",
-        "}",
-        "class B<E> {",
-        "  x(E e) {}",
-        "}",
-        "class C<E> extends A<E> implements B<E> {",
         "  x(E e) {}",
         "}"));
     resolve(source);
@@ -2141,7 +2142,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_nonTypeInCatchClause_isTypeVariable() throws Exception {
+  public void test_nonTypeInCatchClause_isTypeParameter() throws Exception {
     Source source = addSource(createSource(//
         "class A<T> {",
         "  f() {",
@@ -2618,7 +2619,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_typeAliasCannotReferenceItself_typeVariableBounds() throws Exception {
+  public void test_typeAliasCannotReferenceItself_typeParameterBounds() throws Exception {
     Source source = addSource(createSource(//
     "typedef A<T extends A>();"));
     resolve(source);

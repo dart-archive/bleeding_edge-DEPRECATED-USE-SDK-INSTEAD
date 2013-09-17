@@ -19,9 +19,9 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
-import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
+import com.google.dart.engine.internal.type.TypeParameterTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
@@ -84,16 +84,16 @@ public class TypeProviderImplTest extends EngineTestCase {
 
     int count = parameterNames.length;
     if (count > 0) {
-      TypeVariableElementImpl[] typeVariables = new TypeVariableElementImpl[count];
-      TypeVariableTypeImpl[] typeArguments = new TypeVariableTypeImpl[count];
+      TypeParameterElementImpl[] typeParameters = new TypeParameterElementImpl[count];
+      TypeParameterTypeImpl[] typeArguments = new TypeParameterTypeImpl[count];
       for (int i = 0; i < count; i++) {
-        TypeVariableElementImpl variable = new TypeVariableElementImpl(
+        TypeParameterElementImpl typeParameter = new TypeParameterElementImpl(
             identifier(parameterNames[i]));
-        typeVariables[i] = variable;
-        typeArguments[i] = new TypeVariableTypeImpl(variable);
-        variable.setType(typeArguments[i]);
+        typeParameters[i] = typeParameter;
+        typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
+        typeParameter.setType(typeArguments[i]);
       }
-      element.setTypeVariables(typeVariables);
+      element.setTypeParameters(typeParameters);
       type.setTypeArguments(typeArguments);
     }
 

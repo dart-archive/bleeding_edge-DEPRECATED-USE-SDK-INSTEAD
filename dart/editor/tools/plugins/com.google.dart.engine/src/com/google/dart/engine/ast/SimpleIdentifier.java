@@ -20,7 +20,7 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.AuxiliaryElements;
 import com.google.dart.engine.scanner.Token;
@@ -347,7 +347,7 @@ public class SimpleIdentifier extends Identifier {
         && ((MethodDeclaration) parent).getName() == this) {
       return validateElement(parent, ExecutableElement.class, element);
     } else if (parent instanceof TypeParameter && ((TypeParameter) parent).getName() == this) {
-      return validateElement(parent, TypeVariableElement.class, element);
+      return validateElement(parent, TypeParameterElement.class, element);
     } else if (parent instanceof VariableDeclaration
         && ((VariableDeclaration) parent).getName() == this) {
       return validateElement(parent, VariableElement.class, element);

@@ -50,7 +50,7 @@ public class ConstantEvaluatorTest extends ParserTestCase {
     assertEquals(null, value);
   }
 
-  public void fail_identifier_typeVariable() throws Exception {
+  public void fail_identifier_typeParameter() throws Exception {
     Object value = getConstantValue("?");
     assertEquals(null, value);
   }

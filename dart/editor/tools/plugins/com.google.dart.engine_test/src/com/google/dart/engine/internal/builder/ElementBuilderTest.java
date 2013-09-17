@@ -48,7 +48,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.utilities.dart.ParameterKind;
@@ -129,8 +129,8 @@ public class ElementBuilderTest extends EngineTestCase {
     ClassElement type = types[0];
     assertNotNull(type);
     assertEquals(className, type.getName());
-    TypeVariableElement[] typeVariables = type.getTypeVariables();
-    assertLength(0, typeVariables);
+    TypeParameterElement[] typeParameters = type.getTypeParameters();
+    assertLength(0, typeParameters);
     assertTrue(type.isAbstract());
     assertFalse(type.isSynthetic());
   }
@@ -147,8 +147,8 @@ public class ElementBuilderTest extends EngineTestCase {
     ClassElement type = types[0];
     assertNotNull(type);
     assertEquals(className, type.getName());
-    TypeVariableElement[] typeVariables = type.getTypeVariables();
-    assertLength(0, typeVariables);
+    TypeParameterElement[] typeParameters = type.getTypeParameters();
+    assertLength(0, typeParameters);
     assertFalse(type.isAbstract());
     assertFalse(type.isSynthetic());
   }
@@ -173,10 +173,10 @@ public class ElementBuilderTest extends EngineTestCase {
     ClassElement type = types[0];
     assertNotNull(type);
     assertEquals(className, type.getName());
-    TypeVariableElement[] typeVariables = type.getTypeVariables();
-    assertLength(2, typeVariables);
-    assertEquals(firstVariableName, typeVariables[0].getName());
-    assertEquals(secondVariableName, typeVariables[1].getName());
+    TypeParameterElement[] typeParameters = type.getTypeParameters();
+    assertLength(2, typeParameters);
+    assertEquals(firstVariableName, typeParameters[0].getName());
+    assertEquals(secondVariableName, typeParameters[1].getName());
     assertFalse(type.isAbstract());
     assertFalse(type.isSynthetic());
   }
@@ -185,13 +185,13 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String className = "C";
-    String typeVariableName = "E";
+    String typeParameterName = "E";
     String fieldName = "f";
     String methodName = "m";
     ClassDeclaration classDeclaration = classDeclaration(
         null,
         className,
-        typeParameterList(typeVariableName),
+        typeParameterList(typeParameterName),
         null,
         null,
         null,
@@ -214,11 +214,11 @@ public class ElementBuilderTest extends EngineTestCase {
     assertFalse(type.isAbstract());
     assertFalse(type.isSynthetic());
 
-    TypeVariableElement[] typeVariables = type.getTypeVariables();
-    assertLength(1, typeVariables);
-    TypeVariableElement typeVariable = typeVariables[0];
-    assertNotNull(typeVariable);
-    assertEquals(typeVariableName, typeVariable.getName());
+    TypeParameterElement[] typeParameters = type.getTypeParameters();
+    assertLength(1, typeParameters);
+    TypeParameterElement typeParameter = typeParameters[0];
+    assertNotNull(typeParameter);
+    assertEquals(typeParameterName, typeParameter.getName());
 
     FieldElement[] fields = type.getFields();
     assertLength(1, fields);
@@ -534,12 +534,12 @@ public class ElementBuilderTest extends EngineTestCase {
     assertNotNull(alias);
     assertEquals(aliasName, alias.getName());
     assertLength(0, alias.getParameters());
-    TypeVariableElement[] parameters = alias.getTypeVariables();
-    assertLength(1, parameters);
+    TypeParameterElement[] typeParameters = alias.getTypeParameters();
+    assertLength(1, typeParameters);
 
-    TypeVariableElement parameter = parameters[0];
-    assertNotNull(parameter);
-    assertEquals(parameterName, parameter.getName());
+    TypeParameterElement typeParameter = typeParameters[0];
+    assertNotNull(typeParameter);
+    assertEquals(parameterName, typeParameter.getName());
   }
 
   public void test_visitFunctionTypedFormalParameter() {
@@ -1042,9 +1042,9 @@ public class ElementBuilderTest extends EngineTestCase {
     assertLength(2, parameters);
     assertEquals(firstParameterName, parameters[0].getName());
     assertEquals(secondParameterName, parameters[1].getName());
-    TypeVariableElement[] typeVariables = alias.getTypeVariables();
-    assertNotNull(typeVariables);
-    assertLength(0, typeVariables);
+    TypeParameterElement[] typeParameters = alias.getTypeParameters();
+    assertNotNull(typeParameters);
+    assertLength(0, typeParameters);
   }
 
   public void test_visitTypeAlias_withTypeParameters() {
@@ -1070,10 +1070,10 @@ public class ElementBuilderTest extends EngineTestCase {
     VariableElement[] parameters = alias.getParameters();
     assertNotNull(parameters);
     assertLength(0, parameters);
-    TypeVariableElement[] typeVariables = alias.getTypeVariables();
-    assertLength(2, typeVariables);
-    assertEquals(firstTypeParameterName, typeVariables[0].getName());
-    assertEquals(secondTypeParameterName, typeVariables[1].getName());
+    TypeParameterElement[] typeParameters = alias.getTypeParameters();
+    assertLength(2, typeParameters);
+    assertEquals(firstTypeParameterName, typeParameters[0].getName());
+    assertEquals(secondTypeParameterName, typeParameters[1].getName());
   }
 
   public void test_visitTypeParameter() {
@@ -1082,14 +1082,14 @@ public class ElementBuilderTest extends EngineTestCase {
     String parameterName = "E";
     TypeParameter typeParameter = typeParameter(parameterName);
     typeParameter.accept(builder);
-    TypeVariableElement[] typeVariables = holder.getTypeVariables();
-    assertLength(1, typeVariables);
+    TypeParameterElement[] typeParameters = holder.getTypeParameters();
+    assertLength(1, typeParameters);
 
-    TypeVariableElement typeVariable = typeVariables[0];
-    assertNotNull(typeVariable);
-    assertEquals(parameterName, typeVariable.getName());
-    assertNull(typeVariable.getBound());
-    assertFalse(typeVariable.isSynthetic());
+    TypeParameterElement typeParameterElement = typeParameters[0];
+    assertNotNull(typeParameterElement);
+    assertEquals(parameterName, typeParameterElement.getName());
+    assertNull(typeParameterElement.getBound());
+    assertFalse(typeParameterElement.isSynthetic());
   }
 
   public void test_visitVariableDeclaration_inConstructor() {

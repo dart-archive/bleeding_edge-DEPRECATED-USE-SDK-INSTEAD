@@ -14,23 +14,23 @@
 package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.type.TypeVariableType;
+import com.google.dart.engine.type.TypeParameterType;
 
 /**
- * Instances of the class {@code TypeVariableElementHandle} implement a handle to a
- * {@code TypeVariableElement}.
+ * Instances of the class {@code TypeParameterElementHandle} implement a handle to a
+ * {@link TypeParameterElement}.
  * 
  * @coverage dart.engine.element
  */
-public class TypeVariableElementHandle extends ElementHandle implements TypeVariableElement {
+public class TypeParameterElementHandle extends ElementHandle implements TypeParameterElement {
   /**
    * Initialize a newly created element handle to represent the given element.
    * 
    * @param element the element being represented
    */
-  public TypeVariableElementHandle(TypeVariableElement element) {
+  public TypeParameterElementHandle(TypeParameterElement element) {
     super(element);
   }
 
@@ -41,16 +41,16 @@ public class TypeVariableElementHandle extends ElementHandle implements TypeVari
 
   @Override
   public ElementKind getKind() {
-    return ElementKind.TYPE_VARIABLE;
+    return ElementKind.TYPE_PARAMETER;
   }
 
   @Override
-  public TypeVariableType getType() {
+  public TypeParameterType getType() {
     return getActualElement().getType();
   }
 
   @Override
-  protected TypeVariableElement getActualElement() {
-    return (TypeVariableElement) super.getActualElement();
+  protected TypeParameterElement getActualElement() {
+    return (TypeParameterElement) super.getActualElement();
   }
 }

@@ -40,7 +40,7 @@ import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.element.VariableElement;
 
 /**
@@ -81,7 +81,7 @@ import com.google.dart.engine.element.VariableElement;
  *   MultiplyDefinedElement
  *   PrefixElement
  *   TypeAliasElement
- *   TypeVariableElement
+ *   TypeParameterElement
  *   UndefinedElement
  *   VariableElement
  *      PropertyInducingElement
@@ -235,7 +235,7 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @Override
-  public R visitTypeVariableElement(TypeVariableElement element) {
+  public R visitTypeParameterElement(TypeParameterElement element) {
     return visitElement(element);
   }
 

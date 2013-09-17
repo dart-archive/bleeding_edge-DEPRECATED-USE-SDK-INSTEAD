@@ -733,7 +733,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
   }
 
-  public void test_createChange_TypeVariableElement() throws Exception {
+  public void test_createChange_TypeParameterElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A<Test> {",
@@ -742,7 +742,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "}");
     // configure refactoring
     createRenameRefactoring("Test>");
-    assertEquals("Rename Type Variable", refactoring.getRefactoringName());
+    assertEquals("Rename Type Parameter", refactoring.getRefactoringName());
     refactoring.setNewName("NewName");
     // validate change
     assertSuccessfulRename(

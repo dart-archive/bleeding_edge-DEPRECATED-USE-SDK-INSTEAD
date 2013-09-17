@@ -35,7 +35,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.source.Source;
 
 import java.lang.ref.WeakReference;
@@ -95,8 +95,8 @@ public abstract class ElementHandle implements Element {
         return (E) new TopLevelVariableElementHandle((TopLevelVariableElement) element);
       case FUNCTION_TYPE_ALIAS:
         return (E) new FunctionTypeAliasElementHandle((FunctionTypeAliasElement) element);
-      case TYPE_VARIABLE:
-        return (E) new TypeVariableElementHandle((TypeVariableElement) element);
+      case TYPE_PARAMETER:
+        return (E) new TypeParameterElementHandle((TypeParameterElement) element);
       case ERROR:
       default:
         throw new UnsupportedOperationException();

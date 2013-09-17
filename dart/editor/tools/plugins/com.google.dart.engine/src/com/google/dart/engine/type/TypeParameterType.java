@@ -13,15 +13,15 @@
  */
 package com.google.dart.engine.type;
 
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 
 /**
- * The interface {@code TypeVariableType} defines the behavior of objects representing the type
- * introduced by a type variable.
+ * The interface {@code TypeParameterType} defines the behavior of objects representing the type
+ * introduced by a type parameter.
  * 
  * @coverage dart.engine.type
  */
-public interface TypeVariableType extends Type {
+public interface TypeParameterType extends Type {
   @Override
-  public TypeVariableElement getElement();
+  public TypeParameterElement getElement();
 }

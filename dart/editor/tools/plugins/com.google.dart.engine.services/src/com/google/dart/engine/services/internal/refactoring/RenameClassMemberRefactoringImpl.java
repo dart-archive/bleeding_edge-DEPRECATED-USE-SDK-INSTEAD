@@ -20,7 +20,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
@@ -159,8 +159,8 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @Override
   public String getRefactoringName() {
-    if (element instanceof TypeVariableElement) {
-      return "Rename Type Variable";
+    if (element instanceof TypeParameterElement) {
+      return "Rename Type Parameter";
     }
     if (element instanceof FieldElement) {
       return "Rename Field";

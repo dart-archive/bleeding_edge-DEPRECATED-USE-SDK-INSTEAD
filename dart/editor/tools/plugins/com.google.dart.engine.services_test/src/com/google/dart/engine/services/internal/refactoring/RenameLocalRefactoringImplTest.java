@@ -159,7 +159,7 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         findRangeIdentifier("newName(); // ref"));
   }
 
-  public void test_checkFinalConditions_shadows_typeVariable() throws Exception {
+  public void test_checkFinalConditions_shadows_typeParameter() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A<newName> {",
@@ -174,7 +174,7 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
     assertRefactoringStatus(
         refactoring.checkFinalConditions(pm),
         RefactoringStatusSeverity.ERROR,
-        "Usage of type variable 'newName' declared in 'Test.dart' will be shadowed by renamed local variable.",
+        "Usage of type parameter 'newName' declared in 'Test.dart' will be shadowed by renamed local variable.",
         findRangeIdentifier("newName v;"));
   }
 

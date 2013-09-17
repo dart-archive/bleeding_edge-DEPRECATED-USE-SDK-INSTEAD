@@ -19,7 +19,7 @@ import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
+import com.google.dart.engine.internal.type.TypeParameterTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.ParameterizedType;
 import com.google.dart.engine.type.Type;
@@ -48,7 +48,7 @@ public class ParameterMember extends VariableMember implements ParameterElement 
     }
     Type baseType = baseParameter.getType();
     Type[] argumentTypes = definingType.getTypeArguments();
-    Type[] parameterTypes = TypeVariableTypeImpl.getTypes(definingType.getTypeVariables());
+    Type[] parameterTypes = TypeParameterTypeImpl.getTypes(definingType.getTypeParameters());
     Type substitutedType = baseType.substitute(argumentTypes, parameterTypes);
     if (baseType.equals(substitutedType)) {
       return baseParameter;

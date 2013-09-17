@@ -48,7 +48,7 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ConstFieldElementImpl;
 import com.google.dart.engine.internal.element.ConstLocalVariableElementImpl;
@@ -67,11 +67,11 @@ import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
 import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
-import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
+import com.google.dart.engine.internal.type.TypeParameterTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
@@ -165,9 +165,9 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     SimpleIdentifier className = node.getName();
     ClassElementImpl element = new ClassElementImpl(className);
-    TypeVariableElement[] typeVariables = holder.getTypeVariables();
+    TypeParameterElement[] typeParameters = holder.getTypeParameters();
 
-    Type[] typeArguments = createTypeVariableTypes(typeVariables);
+    Type[] typeArguments = createTypeParameterTypes(typeParameters);
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
     interfaceType.setTypeArguments(typeArguments);
     element.setType(interfaceType);
@@ -184,7 +184,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setConstructors(constructors);
     element.setFields(holder.getFields());
     element.setMethods(holder.getMethods());
-    element.setTypeVariables(typeVariables);
+    element.setTypeParameters(typeParameters);
     element.setValidMixin(isValidMixin);
 
     for (FunctionTypeImpl functionType : functionTypesToFix) {
@@ -207,10 +207,10 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     ClassElementImpl element = new ClassElementImpl(className);
     element.setAbstract(node.getAbstractKeyword() != null);
     element.setTypedef(true);
-    TypeVariableElement[] typeVariables = holder.getTypeVariables();
-    element.setTypeVariables(typeVariables);
+    TypeParameterElement[] typeParameters = holder.getTypeParameters();
+    element.setTypeParameters(typeParameters);
 
-    Type[] typeArguments = createTypeVariableTypes(typeVariables);
+    Type[] typeArguments = createTypeParameterTypes(typeParameters);
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
     interfaceType.setTypeArguments(typeArguments);
     element.setType(interfaceType);
@@ -486,13 +486,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     SimpleIdentifier aliasName = node.getName();
     ParameterElement[] parameters = holder.getParameters();
-    TypeVariableElement[] typeVariables = holder.getTypeVariables();
+    TypeParameterElement[] typeParameters = holder.getTypeParameters();
     FunctionTypeAliasElementImpl element = new FunctionTypeAliasElementImpl(aliasName);
     element.setParameters(parameters);
-    element.setTypeVariables(typeVariables);
+    element.setTypeParameters(typeParameters);
 
     FunctionTypeImpl type = new FunctionTypeImpl(element);
-    type.setTypeArguments(createTypeVariableTypes(typeVariables));
+    type.setTypeArguments(createTypeParameterTypes(typeParameters));
     element.setType(type);
 
     currentHolder.addTypeAlias(element);
@@ -664,13 +664,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.getName();
-    TypeVariableElementImpl element = new TypeVariableElementImpl(parameterName);
+    TypeParameterElementImpl typeParameter = new TypeParameterElementImpl(parameterName);
 
-    TypeVariableTypeImpl type = new TypeVariableTypeImpl(element);
-    element.setType(type);
+    TypeParameterTypeImpl typeParameterType = new TypeParameterTypeImpl(typeParameter);
+    typeParameter.setType(typeParameterType);
 
-    currentHolder.addTypeVariable(element);
-    parameterName.setStaticElement(element);
+    currentHolder.addTypeParameter(typeParameter);
+    parameterName.setStaticElement(typeParameter);
     return super.visitTypeParameter(node);
   }
 
@@ -795,20 +795,20 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   }
 
   /**
-   * Create the types associated with the given type variables, setting the type of each type
-   * variable, and return an array of types corresponding to the given variables.
+   * Create the types associated with the given type parameters, setting the type of each type
+   * parameter, and return an array of types corresponding to the given parameters.
    * 
-   * @param typeVariables the type variables for which types are to be created
-   * @return
+   * @param typeParameters the type parameters for which types are to be created
+   * @return an array of types corresponding to the given parameters
    */
-  private Type[] createTypeVariableTypes(TypeVariableElement[] typeVariables) {
-    int typeVariableCount = typeVariables.length;
-    Type[] typeArguments = new Type[typeVariableCount];
-    for (int i = 0; i < typeVariableCount; i++) {
-      TypeVariableElementImpl typeVariable = (TypeVariableElementImpl) typeVariables[i];
-      TypeVariableTypeImpl typeArgument = new TypeVariableTypeImpl(typeVariable);
-      typeVariable.setType(typeArgument);
-      typeArguments[i] = typeArgument;
+  private Type[] createTypeParameterTypes(TypeParameterElement[] typeParameters) {
+    int typeParameterCount = typeParameters.length;
+    Type[] typeArguments = new Type[typeParameterCount];
+    for (int i = 0; i < typeParameterCount; i++) {
+      TypeParameterElementImpl typeParameter = (TypeParameterElementImpl) typeParameters[i];
+      TypeParameterTypeImpl typeParameterType = new TypeParameterTypeImpl(typeParameter);
+      typeParameter.setType(typeParameterType);
+      typeArguments[i] = typeParameterType;
     }
     return typeArguments;
   }

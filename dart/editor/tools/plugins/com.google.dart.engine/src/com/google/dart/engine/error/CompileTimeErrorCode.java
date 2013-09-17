@@ -78,8 +78,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.30 Identifier Reference: It is a compile-time error if a built-in identifier is used as the
    * declared name of a class, type parameter or type alias.
    */
-  BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME(
-      "The built-in identifier '%s' cannot be used as a type variable name"),
+  BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME(
+      "The built-in identifier '%s' cannot be used as a type parameter name"),
 
   /**
    * 13.9 Switch: It is a compile-time error if the class <i>C</i> implements the operator

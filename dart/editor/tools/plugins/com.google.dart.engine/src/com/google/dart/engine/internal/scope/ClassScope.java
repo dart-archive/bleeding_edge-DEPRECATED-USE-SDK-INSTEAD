@@ -17,7 +17,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 
@@ -86,8 +86,8 @@ public class ClassScope extends EnclosedScope {
    */
   private void defineTypeParameters(ClassElement typeElement) {
     Scope parameterScope = getEnclosingScope();
-    for (TypeVariableElement parameter : typeElement.getTypeVariables()) {
-      parameterScope.define(parameter);
+    for (TypeParameterElement typeParameter : typeElement.getTypeParameters()) {
+      parameterScope.define(typeParameter);
     }
   }
 }

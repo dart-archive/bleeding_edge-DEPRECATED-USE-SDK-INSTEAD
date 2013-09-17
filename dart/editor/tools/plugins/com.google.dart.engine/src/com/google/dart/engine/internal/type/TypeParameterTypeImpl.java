@@ -13,61 +13,62 @@
  */
 package com.google.dart.engine.internal.type;
 
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.type.TypeVariableType;
+import com.google.dart.engine.type.TypeParameterType;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 /**
- * Instances of the class {@code TypeVariableTypeImpl} defines the behavior of objects representing
- * the type introduced by a type variable.
+ * Instances of the class {@code TypeParameterTypeImpl} defines the behavior of objects representing
+ * the type introduced by a type parameter.
  * 
  * @coverage dart.engine.type
  */
-public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
+public class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   /**
-   * An empty array of type variable types.
+   * An empty array of type parameter types.
    */
-  public static final TypeVariableType[] EMPTY_ARRAY = new TypeVariableType[0];
+  public static final TypeParameterType[] EMPTY_ARRAY = new TypeParameterType[0];
 
   /**
-   * Return an array containing the type variable types defined by the given array of type variable
-   * elements.
+   * Return an array containing the type parameter types defined by the given array of type
+   * parameter elements.
    * 
-   * @param typeVariables the type variable elements defining the type variable types to be returned
-   * @return the type variable types defined by the type variable elements
+   * @param typeParameters the type parameter elements defining the type parameter types to be
+   *          returned
+   * @return the type parameter types defined by the type parameter elements
    */
-  public static TypeVariableType[] getTypes(TypeVariableElement[] typeVariables) {
-    int count = typeVariables.length;
+  public static TypeParameterType[] getTypes(TypeParameterElement[] typeParameters) {
+    int count = typeParameters.length;
     if (count == 0) {
       return EMPTY_ARRAY;
     }
-    TypeVariableType[] types = new TypeVariableType[count];
+    TypeParameterType[] types = new TypeParameterType[count];
     for (int i = 0; i < count; i++) {
-      types[i] = typeVariables[i].getType();
+      types[i] = typeParameters[i].getType();
     }
     return types;
   }
 
   /**
-   * Initialize a newly created type variable to be declared by the given element and to have the
-   * given name.
+   * Initialize a newly created type parameter type to be declared by the given element and to have
+   * the given name.
    * 
-   * @param element the element representing the declaration of the type variable
+   * @param element the element representing the declaration of the type parameter
    */
-  public TypeVariableTypeImpl(TypeVariableElement element) {
+  public TypeParameterTypeImpl(TypeParameterElement element) {
     super(element, element.getName());
   }
 
   @Override
   public boolean equals(Object object) {
-    return object instanceof TypeVariableTypeImpl
-        && ObjectUtilities.equals(getElement(), ((TypeVariableTypeImpl) object).getElement());
+    return object instanceof TypeParameterTypeImpl
+        && ObjectUtilities.equals(getElement(), ((TypeParameterTypeImpl) object).getElement());
   }
 
   @Override
-  public TypeVariableElement getElement() {
-    return (TypeVariableElement) super.getElement();
+  public TypeParameterElement getElement() {
+    return (TypeParameterElement) super.getElement();
   }
 
   @Override
@@ -78,7 +79,7 @@ public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
   @Override
   public boolean isMoreSpecificThan(Type type) {
     //
-    // T is a type variable and S is the upper bound of T.
+    // T is a type parameter and S is the upper bound of T.
     //
     Type upperBound = getElement().getBound();
     return type.equals(upperBound);
@@ -86,7 +87,7 @@ public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
 
   @Override
   public boolean isSubtypeOf(Type type) {
-    // TODO(scheglov) really? without checking if this is another type variable and bound?
+    // TODO(scheglov) really? without checking if this is another type parameter and bound?
     return true;
   }
 

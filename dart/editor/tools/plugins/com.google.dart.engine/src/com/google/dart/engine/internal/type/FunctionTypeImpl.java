@@ -18,8 +18,8 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.element.TypeVariableElement;
-import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.element.TypeParameterElement;
+import com.google.dart.engine.internal.element.TypeParameterElementImpl;
 import com.google.dart.engine.internal.element.member.ParameterMember;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
@@ -181,7 +181,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (parameters.length == 0) {
       return namedParameterTypes;
     }
-    Type[] typeParameters = TypeVariableTypeImpl.getTypes(getTypeVariables());
+    Type[] typeParameters = TypeParameterTypeImpl.getTypes(getTypeParameters());
     for (ParameterElement parameter : parameters) {
       if (parameter.getParameterKind() == ParameterKind.NAMED) {
         namedParameterTypes.put(
@@ -198,7 +198,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (parameters.length == 0) {
       return TypeImpl.EMPTY_ARRAY;
     }
-    Type[] typeParameters = TypeVariableTypeImpl.getTypes(getTypeVariables());
+    Type[] typeParameters = TypeParameterTypeImpl.getTypes(getTypeParameters());
     ArrayList<Type> types = new ArrayList<Type>();
     for (ParameterElement parameter : parameters) {
       if (parameter.getParameterKind() == ParameterKind.REQUIRED) {
@@ -214,7 +214,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (parameters.length == 0) {
       return TypeImpl.EMPTY_ARRAY;
     }
-    Type[] typeParameters = TypeVariableTypeImpl.getTypes(getTypeVariables());
+    Type[] typeParameters = TypeParameterTypeImpl.getTypes(getTypeParameters());
     ArrayList<Type> types = new ArrayList<Type>();
     for (ParameterElement parameter : parameters) {
       if (parameter.getParameterKind() == ParameterKind.POSITIONAL) {
@@ -250,7 +250,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     return baseReturnType.substitute(
         typeArguments,
-        TypeVariableTypeImpl.getTypes(getTypeVariables()));
+        TypeParameterTypeImpl.getTypes(getTypeParameters()));
   }
 
   @Override
@@ -259,16 +259,16 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @Override
-  public TypeVariableElement[] getTypeVariables() {
+  public TypeParameterElement[] getTypeParameters() {
     Element element = getElement();
     if (element instanceof FunctionTypeAliasElement) {
-      return ((FunctionTypeAliasElement) element).getTypeVariables();
+      return ((FunctionTypeAliasElement) element).getTypeParameters();
     }
     ClassElement definingClass = element.getAncestor(ClassElement.class);
     if (definingClass != null) {
-      return definingClass.getTypeVariables();
+      return definingClass.getTypeParameters();
     }
-    return TypeVariableElementImpl.EMPTY_ARRAY;
+    return TypeParameterElementImpl.EMPTY_ARRAY;
   }
 
   @Override

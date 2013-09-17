@@ -140,11 +140,11 @@ public interface ClassElement extends Element {
   public InterfaceType getType();
 
   /**
-   * Return an array containing all of the type variables declared for this class.
+   * Return an array containing all of the type parameters declared for this class.
    * 
-   * @return the type variables declared for this class
+   * @return the type parameters declared for this class
    */
-  public TypeVariableElement[] getTypeVariables();
+  public TypeParameterElement[] getTypeParameters();
 
   /**
    * Return the unnamed constructor declared in this class, or {@code null} if this class does not

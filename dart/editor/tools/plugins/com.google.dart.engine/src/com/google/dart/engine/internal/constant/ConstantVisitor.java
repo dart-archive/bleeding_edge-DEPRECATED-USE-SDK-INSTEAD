@@ -66,7 +66,7 @@ import com.google.dart.engine.scanner.TokenType;
  * to a numeric, string or boolean value or to {@code null}.</li>
  * <li>{@code null}.</li>
  * <li>A reference to a static constant variable.</li>
- * <li>An identifier expression that denotes a constant variable, a class or a type variable.</li>
+ * <li>An identifier expression that denotes a constant variable, a class or a type parameter.</li>
  * <li>A constant constructor invocation.</li>
  * <li>A constant list literal.</li>
  * <li>A constant map literal.</li>

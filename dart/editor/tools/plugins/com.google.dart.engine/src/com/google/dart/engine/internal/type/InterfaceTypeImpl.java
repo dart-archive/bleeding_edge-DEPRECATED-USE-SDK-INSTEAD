@@ -20,7 +20,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.member.ConstructorMember;
 import com.google.dart.engine.internal.element.member.MethodMember;
@@ -28,7 +28,7 @@ import com.google.dart.engine.internal.element.member.PropertyAccessorMember;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.type.TypeVariableType;
+import com.google.dart.engine.type.TypeParameterType;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.Arrays;
@@ -309,9 +309,9 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   public InterfaceType[] getInterfaces() {
     ClassElement classElement = getElement();
     InterfaceType[] interfaces = classElement.getInterfaces();
-    TypeVariableElement[] typeVariables = classElement.getTypeVariables();
+    TypeParameterElement[] typeParameters = classElement.getTypeParameters();
     Type[] parameterTypes = classElement.getType().getTypeArguments();
-    if (typeVariables.length == 0) {
+    if (typeParameters.length == 0) {
       return interfaces;
     }
     int count = interfaces.length;
@@ -403,9 +403,9 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   public InterfaceType[] getMixins() {
     ClassElement classElement = getElement();
     InterfaceType[] mixins = classElement.getMixins();
-    TypeVariableElement[] typeVariables = classElement.getTypeVariables();
+    TypeParameterElement[] typeParameters = classElement.getTypeParameters();
     Type[] parameterTypes = classElement.getType().getTypeArguments();
-    if (typeVariables.length == 0) {
+    if (typeParameters.length == 0) {
       return mixins;
     }
     int count = mixins.length;
@@ -439,8 +439,8 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
-  public TypeVariableElement[] getTypeVariables() {
-    return getElement().getTypeVariables();
+  public TypeParameterElement[] getTypeParameters() {
+    return getElement().getTypeParameters();
   }
 
   @Override
@@ -530,7 +530,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     if (type == DynamicTypeImpl.getInstance()) {
       return true;
-    } else if (type instanceof TypeVariableType) {
+    } else if (type instanceof TypeParameterType) {
       return true;
     } else if (type instanceof FunctionType) {
       ClassElement element = getElement();

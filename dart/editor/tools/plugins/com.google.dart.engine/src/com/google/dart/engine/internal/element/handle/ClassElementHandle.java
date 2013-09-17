@@ -20,7 +20,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.TypeParameterElement;
 import com.google.dart.engine.type.InterfaceType;
 
 /**
@@ -113,8 +113,8 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
-  public TypeVariableElement[] getTypeVariables() {
-    return getActualElement().getTypeVariables();
+  public TypeParameterElement[] getTypeParameters() {
+    return getActualElement().getTypeParameters();
   }
 
   @Override
