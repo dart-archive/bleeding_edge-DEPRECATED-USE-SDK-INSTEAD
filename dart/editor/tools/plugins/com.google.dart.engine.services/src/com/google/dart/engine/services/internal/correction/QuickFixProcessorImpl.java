@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -35,6 +36,7 @@ import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
@@ -61,6 +63,7 @@ import com.google.dart.engine.error.AnalysisErrorWithProperties;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.ErrorProperty;
+import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -88,6 +91,7 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndStart;
@@ -377,6 +381,9 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
       if (errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST) {
         addFix_createPart();
       }
+      if (errorCode == HintCode.DIVISION_OPTIMIZATION) {
+        addFix_useEffectiveIntegerDivision();
+      }
       if (errorCode == ParserErrorCode.EXPECTED_TOKEN) {
         addFix_insertSemicolon();
       }
@@ -449,6 +456,7 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
         || errorCode == CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
         || errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION
         || errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST
+        || errorCode == HintCode.DIVISION_OPTIMIZATION
         || errorCode == ParserErrorCode.EXPECTED_TOKEN
         || errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS
         || errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
@@ -1281,38 +1289,32 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
     }
   }
 
+  private void addFix_useEffectiveIntegerDivision() throws Exception {
+    for (ASTNode n = node; n != null; n = n.getParent()) {
+      if (n instanceof MethodInvocation && n.getOffset() == selectionOffset
+          && n.getLength() == selectionLength) {
+        MethodInvocation invocation = (MethodInvocation) n;
+        Expression target = invocation.getTarget();
+        while (target instanceof ParenthesizedExpression) {
+          target = ((ParenthesizedExpression) target).getExpression();
+        }
+        // replace "/" with "~/"
+        BinaryExpression binary = (BinaryExpression) target;
+        addReplaceEdit(SourceRangeFactory.rangeToken(binary.getOperator()), "~/");
+        // remove everything before and after
+        addRemoveEdit(SourceRangeFactory.rangeStartStart(invocation, binary.getLeftOperand()));
+        addRemoveEdit(SourceRangeFactory.rangeEndEnd(binary.getRightOperand(), invocation));
+        // add proposal
+        addUnitCorrectionProposal(CorrectionKind.QF_USE_EFFECTIVE_INTEGER_DIVISION);
+        // done
+        break;
+      }
+    }
+  }
+
   private void addInsertEdit(int offset, String text) {
     textEdits.add(createInsertEdit(offset, text));
   }
-
-  // TODO(scheglov) waiting for https://code.google.com/p/dart/issues/detail?id=10053
-//  private void addFix_useEffectiveIntegerDivision(IProblemLocation location) throws Exception {
-//    for (DartNode n = node; n != null; n = n.getParent()) {
-//      if (n instanceof DartMethodInvocation
-//          && n.getSourceInfo().getOffset() == location.getOffset()
-//          && n.getSourceInfo().getLength() == location.getLength()) {
-//        DartMethodInvocation invocation = (DartMethodInvocation) n;
-//        DartExpression target = invocation.getTarget();
-//        while (target instanceof DartParenthesizedExpression) {
-//          target = ((DartParenthesizedExpression) target).getExpression();
-//        }
-//        // replace "/" with "~/"
-//        DartBinaryExpression binary = (DartBinaryExpression) target;
-//        addReplaceEdit(
-//            SourceRangeFactory.forStartLength(binary.getOperatorOffset(), "/".length()),
-//            "~/");
-//        // remove everything before and after
-//        addRemoveEdit(SourceRangeFactory.forStartStart(invocation, binary.getArg1()));
-//        addRemoveEdit(SourceRangeFactory.forEndEnd(binary.getArg2(), invocation));
-//        // add proposal
-//        addUnitCorrectionProposal(
-//            CorrectionMessages.QuickFixProcessor_useEffectiveIntegerDivision,
-//            DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
-//        // done
-//        break;
-//      }
-//    }
-//  }
 
   private void addInsertEdit(SourceBuilder builder) {
     addInsertEdit(builder.getOffset(), builder.toString());

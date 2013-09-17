@@ -59,7 +59,8 @@ public enum CorrectionKind {
   QF_MAKE_CLASS_ABSTRACT(50, "Make class '%s' abstract"),
   QF_REMOVE_PARAMETERS_IN_GETTER_DECLARATION(50, "Remove parameters in getter declaration"),
   QF_REMOVE_PARENTHESIS_IN_GETTER_INVOCATION(50, "Remove parentheses in getter invocation"),
-  QF_REPLACE_BOOLEAN_WITH_BOOL(50, "Replace 'boolean' with 'bool'");
+  QF_REPLACE_BOOLEAN_WITH_BOOL(50, "Replace 'boolean' with 'bool'"),
+  QF_USE_EFFECTIVE_INTEGER_DIVISION(50, "Use effective integer division ~/");
 
   private final int relevance;
   private final CorrectionImage image;

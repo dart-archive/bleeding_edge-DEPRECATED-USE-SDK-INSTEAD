@@ -1279,10 +1279,56 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "}"));
   }
 
+  public void test_useEffectiveIntegerDivision() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var a = 5;",
+        "  var b = 2;",
+        "  print((a / b).toInt());",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_USE_EFFECTIVE_INTEGER_DIVISION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  var a = 5;",
+            "  var b = 2;",
+            "  print(a ~/ b);",
+            "}"));
+  }
+
+  public void test_useEffectiveIntegerDivision_doublePathensesis() throws Exception {
+    enableContextHints();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var a = 5;",
+        "  var b = 2;",
+        "  print(((a / b)).toInt());",
+        "}");
+    assert_runProcessor(
+        CorrectionKind.QF_USE_EFFECTIVE_INTEGER_DIVISION,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  var a = 5;",
+            "  var b = 2;",
+            "  print(a ~/ b);",
+            "}"));
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     verifyNoTestUnitErrors = false;
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    disableContextHints();
+    super.tearDown();
   }
 
   /**
