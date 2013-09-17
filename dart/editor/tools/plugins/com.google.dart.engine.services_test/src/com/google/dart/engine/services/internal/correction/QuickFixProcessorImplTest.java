@@ -827,6 +827,27 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             ""));
   }
 
+  public void test_importLibrary_withType_typeAnnotation_PrefixedIdentifier() throws Exception {
+    ensureSdkLibraryAsync();
+    prepareProblemWithFix(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Future.wait;",
+        "}",
+        "");
+    assert_runProcessor(
+        CorrectionKind.QF_IMPORT_LIBRARY_SDK,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "",
+            "import 'dart:async';",
+            "",
+            "main() {",
+            "  Future.wait;",
+            "}",
+            ""));
+  }
+
   public void test_makeEnclosingClassAbstract_declaresAbstractMethod() throws Exception {
     prepareProblemWithFix(
         "// filler filler filler filler filler filler filler filler filler filler",

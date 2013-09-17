@@ -38,6 +38,7 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.TypeName;
@@ -216,12 +217,17 @@ public class QuickFixProcessorImpl implements QuickFixProcessor {
    */
   private static boolean mayBeTypeIdentifier(ASTNode node) {
     if (node instanceof SimpleIdentifier) {
-      if (node.getParent() instanceof TypeName) {
+      ASTNode parent = node.getParent();
+      if (parent instanceof TypeName) {
         return true;
       }
-      if (node.getParent() instanceof MethodInvocation) {
-        MethodInvocation invocation = (MethodInvocation) node.getParent();
+      if (parent instanceof MethodInvocation) {
+        MethodInvocation invocation = (MethodInvocation) parent;
         return invocation.getRealTarget() == node;
+      }
+      if (parent instanceof PrefixedIdentifier) {
+        PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
+        return prefixed.getPrefix() == node;
       }
     }
     return false;
