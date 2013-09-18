@@ -12,5 +12,7 @@ import '../web/clock.dart' as clock;
  * This test exists to ensure that the clock sample compiles without errors.
  */
 void main() {
-
+  // Reference the clock library so that the import isn't marked as unused.
+  clock.CountDownClock c = null;
+  print(c);
 }

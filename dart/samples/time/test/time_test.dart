@@ -10,5 +10,8 @@ import '../time_server.dart' as time;
  * This test exists to ensure that the time sample compiles without errors.
  */
 void main() {
-
+  // Reference the sunflower library so that the import isn't marked as unused.
+  String s = time.HOST;
+  s = null;
+  print(s);
 }

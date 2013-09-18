@@ -12,5 +12,8 @@ import '../web/sunflower.dart' as sunflower;
  * This test exists to ensure that the sunflower sample compiles without errors.
  */
 void main() {
-
+  // Reference the sunflower library so that the import isn't marked as unused.
+  String s = sunflower.ORANGE;
+  s = null;
+  print(s);
 }

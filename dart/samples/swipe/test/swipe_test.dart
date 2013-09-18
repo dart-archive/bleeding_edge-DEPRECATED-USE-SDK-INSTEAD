@@ -12,5 +12,8 @@ import '../web/swipe.dart' as swipe;
  * This test exists to ensure that the swipe sample compiles without errors.
  */
 void main() {
-
+// Reference the swipe library so that the import isn't marked as unused.
+  var t = swipe.timer;
+  t = null;
+  print(t);
 }
