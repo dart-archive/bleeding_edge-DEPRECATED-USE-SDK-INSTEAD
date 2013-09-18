@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -791,6 +792,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "  AAA a = null;",
             "}",
             ""));
+    testSource = partSource;
     // prepare AnalysisContext
     ensureAnalysisContext();
     {
@@ -831,6 +833,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
         "import 'dart:async' as pref;",
         "main() {",
         "  Future f = null;",
+        "  pref.Stream s = null;",
         "}",
         "");
     assert_runProcessor(
@@ -840,6 +843,7 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
             "import 'dart:async' as pref;",
             "main() {",
             "  pref.Future f = null;",
+            "  pref.Stream s = null;",
             "}",
             ""));
   }
@@ -1498,9 +1502,13 @@ public class QuickFixProcessorImplTest extends RefactoringImplTest {
    * Prepares single error to fix and stores to {@link #error}.
    */
   private void prepareProblem() {
-    AnalysisError[] errors = testUnit.getErrors();
-    assertThat(errors).hasSize(1);
-    error = errors[0];
+    try {
+      AnalysisError[] errors = getAnalysisContext().computeErrors(testSource);
+      assertThat(errors).hasSize(1);
+      error = errors[0];
+    } catch (AnalysisException exception) {
+      fail("Could not access errors for " + testSource.getFullName());
+    }
   }
 
   /**

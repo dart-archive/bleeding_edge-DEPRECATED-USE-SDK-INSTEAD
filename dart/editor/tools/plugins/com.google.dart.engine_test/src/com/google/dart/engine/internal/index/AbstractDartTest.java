@@ -210,10 +210,10 @@ public class AbstractDartTest extends TestCase {
   }
 
   private final Set<Source> sourceWithSetContent = Sets.newHashSet();
+
   protected boolean verifyNoTestUnitErrors = true;
   protected String testCode;
   protected Source testSource;
-
   protected CompilationUnit testUnit;
 
   protected CompilationUnitElement testUnitElement;
@@ -341,6 +341,10 @@ public class AbstractDartTest extends TestCase {
    */
   protected final SimpleIdentifier findSimpleIdentifier(String pattern) {
     return findNode(pattern, SimpleIdentifier.class);
+  }
+
+  protected AnalysisContext getAnalysisContext() {
+    return analysisContext;
   }
 
   /**

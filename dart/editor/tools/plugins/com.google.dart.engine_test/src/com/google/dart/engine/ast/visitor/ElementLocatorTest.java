@@ -133,8 +133,8 @@ public class ElementLocatorTest extends ResolverTestCase {
   }
 
   public void test_libraryElement_import() throws Exception {
-    addSource("/foo.dart", "library foo;");
-    ASTNode id = findNodeIn("'foo.dart'", "import 'foo.dart';");
+    addSource("/foo.dart", "library foo; class A {}");
+    ASTNode id = findNodeIn("'foo.dart'", "import 'foo.dart'; class B extends A {}");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(LibraryElement.class, element);
   }

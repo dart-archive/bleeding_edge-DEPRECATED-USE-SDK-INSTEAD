@@ -148,6 +148,8 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source libB = addSource("/libB.dart", createSource(//
         "library libB;"));
     context.computeLibraryElement(libA);
+    context.computeErrors(libA);
+    context.computeErrors(libB);
     assertSize(0, context.getSourcesNeedingProcessing());
 
     ChangeSet changeSet = new ChangeSet();
@@ -167,6 +169,8 @@ public class AnalysisContextImplTest extends EngineTestCase {
     final Source libB = addSource("/libB.dart", createSource(//
         "library libB;"));
     context.computeLibraryElement(libA);
+    context.computeErrors(libA);
+    context.computeErrors(libB);
     assertSize(0, context.getSourcesNeedingProcessing());
 
     ChangeSet changeSet = new ChangeSet();
@@ -776,7 +780,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     }
     sourceFactory.getContentCache().setContents(source, "library test;");
     assertTrue(initialTime != source.getModificationStamp());
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 11; i++) {
       ChangeNotice[] notice = context.performAnalysisTask();
       if (notice == null) {
         break;
@@ -805,7 +809,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     }
     context.applyChanges(changeSet);
     context.setAnalysisPriorityOrder(sources);
-    for (int i = 0; i < sourceCount * 3; i++) {
+    for (int i = 0; i < sourceCount * 4; i++) {
       ChangeNotice[] notice = context.performAnalysisTask();
       if (notice == null) {
         break;
