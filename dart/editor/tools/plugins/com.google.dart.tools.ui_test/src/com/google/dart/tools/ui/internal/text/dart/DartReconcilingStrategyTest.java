@@ -412,6 +412,26 @@ public class DartReconcilingStrategyTest extends TestCase {
   }
 
   /**
+   * Assert that a document change clears the cached unit and a resolve resets it
+   */
+  public void test_reconcileDirtyRegionIRegion() throws Exception {
+    String newText = "//comment\n";
+
+    mockEditor.expectApply();
+    strategy.initialReconcile();
+    assertNotNull(mockEditor.waitForApply(5000));
+
+    mockEditor.expectApply();
+    mockDocument.replace(0, 0, newText);
+    assertNull(mockEditor.waitForApply(5000));
+
+    mockEditor.expectApply();
+    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
+    CompilationUnit unit = mockEditor.waitForApply(5000);
+    assertNotNull(unit);
+  }
+
+  /**
    * Assert editor with no context does not throw exception
    */
   public void test_reconcileDirtyRegionIRegion_nullContext() throws Exception {
@@ -455,6 +475,23 @@ public class DartReconcilingStrategyTest extends TestCase {
     assertEquals(4, mockContext.getSourceChangedCount());
   }
 
+  public void test_reconcileIRegion() throws Exception {
+    String newText = "//comment\n";
+
+    mockEditor.expectApply();
+    strategy.initialReconcile();
+    assertNotNull(mockEditor.waitForApply(5000));
+
+    mockEditor.expectApply();
+    mockDocument.replace(0, 0, newText);
+    assertNull(mockEditor.waitForApply(5000));
+
+    mockEditor.expectApply();
+    strategy.reconcile(new Region(0, newText.length()));
+    CompilationUnit unit = mockEditor.waitForApply(5000);
+    assertNotNull(unit);
+  }
+
   /**
    * Assert editor with no context does not throw exception
    */
@@ -467,63 +504,6 @@ public class DartReconcilingStrategyTest extends TestCase {
     strategy.reconcile(new Region(0, newText.length()));
 
     // test infrastructure asserts no exceptions
-  }
-
-  /**
-   * Assert unit resolved, applied, and order set during initialReconcile
-   */
-  public void xtest_initialReconcile_alreadyCached() throws Exception {
-    CompilationUnit unit = mockContext.resolveCompilationUnit(mockSource, mockSource);
-    assertNotNull(unit);
-    mockEditor.expectApply();
-    mockContext.expectResolved(mockSource);
-    mockContext.expectSetPriorityOrder();
-
-    strategy.initialReconcile();
-
-    // TODO(brianwilkerson) There is no reason to expect that the returned AST will be identical.
-    assertSame(unit, mockEditor.waitForApply(5000));
-    List<Source> priorityOrder = mockContext.waitForSetPriorityOrder(5000);
-    assertEquals(1, priorityOrder.size());
-    assertSame(mockSource, priorityOrder.get(0));
-    mockContext.assertPrioritySetBeforeBackgroundAnalysis();
-  }
-
-  /**
-   * Assert that a document change clears the cached unit and a resolve resets it
-   */
-  public void xtest_reconcileDirtyRegionIRegion() throws Exception {
-    String newText = "//comment\n";
-
-    mockEditor.expectApply();
-    strategy.initialReconcile();
-    assertNotNull(mockEditor.waitForApply(5000));
-
-    mockEditor.expectApply();
-    mockDocument.replace(0, 0, newText);
-    assertNull(mockEditor.waitForApply(5000));
-
-    mockEditor.expectApply();
-    strategy.reconcile(new DirtyRegion(0, 0, DirtyRegion.INSERT, newText), new Region(0, 0));
-    CompilationUnit unit = mockEditor.waitForApply(5000);
-    assertNotNull(unit);
-  }
-
-  public void xtest_reconcileIRegion() throws Exception {
-    String newText = "//comment\n";
-
-    mockEditor.expectApply();
-    strategy.initialReconcile();
-    assertNotNull(mockEditor.waitForApply(5000));
-
-    mockEditor.expectApply();
-    mockDocument.replace(0, 0, newText);
-    assertNull(mockEditor.waitForApply(5000));
-
-    mockEditor.expectApply();
-    strategy.reconcile(new Region(0, newText.length()));
-    CompilationUnit unit = mockEditor.waitForApply(5000);
-    assertNotNull(unit);
   }
 
   @Override

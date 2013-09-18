@@ -118,54 +118,7 @@ public class FileBasedSource implements Source {
     //
     // If not, read the contents from the file using native I/O.
     //
-    long modificationTime = this.file.lastModified();
-    RandomAccessFile file = new RandomAccessFile(this.file, "r");
-    FileChannel channel = null;
-    ByteBuffer byteBuffer = null;
-    try {
-      channel = file.getChannel();
-      long size = channel.size();
-      if (size > Integer.MAX_VALUE) {
-        throw new IllegalStateException("File is too long to be read");
-      }
-      int length = (int) size;
-      byte[] bytes = new byte[length];
-      byteBuffer = ByteBuffer.wrap(bytes);
-      byteBuffer.position(0);
-      byteBuffer.limit(length);
-      channel.read(byteBuffer);
-    } catch (ClosedByInterruptException exception) {
-      byteBuffer = null;
-    } finally {
-      try {
-        file.close();
-      } catch (IOException closeException) {
-        // Ignored
-      }
-    }
-    if (byteBuffer != null) {
-      byteBuffer.rewind();
-      receiver.accept(UTF_8_CHARSET.decode(byteBuffer), modificationTime);
-      return;
-    }
-    //
-    // Eclipse appears to be interrupting the thread sometimes. If we couldn't read the file using
-    // the native I/O support, try using the non-native support.
-    //
-    InputStreamReader reader = null;
-    try {
-      reader = new InputStreamReader(new FileInputStream(this.file), "UTF-8");
-      contents = FileUtilities.getContents(reader);
-    } finally {
-      if (reader != null) {
-        try {
-          reader.close();
-        } catch (IOException closeException) {
-          // Ignored
-        }
-      }
-    }
-    receiver.accept(contents, modificationTime);
+    getContentsFromFile(receiver);
   }
 
   @Override
@@ -227,6 +180,68 @@ public class FileBasedSource implements Source {
       return "<unknown source>";
     }
     return file.getAbsolutePath();
+  }
+
+  /**
+   * Get the contents of underlying file and pass it to the given receiver. Exactly one of the
+   * methods defined on the receiver will be invoked unless an exception is thrown. The method that
+   * will be invoked depends on which of the possible representations of the contents is the most
+   * efficient. Whichever method is invoked, it will be invoked before this method returns.
+   * 
+   * @param receiver the content receiver to which the content of this source will be passed
+   * @throws Exception if the contents of this source could not be accessed
+   * @see #getContents(com.google.dart.engine.source.Source.ContentReceiver)
+   */
+  protected void getContentsFromFile(ContentReceiver receiver) throws Exception {
+    String contents;
+    long modificationTime = this.file.lastModified();
+    RandomAccessFile file = new RandomAccessFile(this.file, "r");
+    FileChannel channel = null;
+    ByteBuffer byteBuffer = null;
+    try {
+      channel = file.getChannel();
+      long size = channel.size();
+      if (size > Integer.MAX_VALUE) {
+        throw new IllegalStateException("File is too long to be read");
+      }
+      int length = (int) size;
+      byte[] bytes = new byte[length];
+      byteBuffer = ByteBuffer.wrap(bytes);
+      byteBuffer.position(0);
+      byteBuffer.limit(length);
+      channel.read(byteBuffer);
+    } catch (ClosedByInterruptException exception) {
+      byteBuffer = null;
+    } finally {
+      try {
+        file.close();
+      } catch (IOException closeException) {
+        // Ignored
+      }
+    }
+    if (byteBuffer != null) {
+      byteBuffer.rewind();
+      receiver.accept(UTF_8_CHARSET.decode(byteBuffer), modificationTime);
+      return;
+    }
+    //
+    // Eclipse appears to be interrupting the thread sometimes. If we couldn't read the file using
+    // the native I/O support, try using the non-native support.
+    //
+    InputStreamReader reader = null;
+    try {
+      reader = new InputStreamReader(new FileInputStream(this.file), "UTF-8");
+      contents = FileUtilities.getContents(reader);
+    } finally {
+      if (reader != null) {
+        try {
+          reader.close();
+        } catch (IOException closeException) {
+          // Ignored
+        }
+      }
+    }
+    receiver.accept(contents, modificationTime);
   }
 
   /**
