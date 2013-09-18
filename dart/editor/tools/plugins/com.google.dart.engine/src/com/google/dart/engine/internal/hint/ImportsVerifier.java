@@ -145,6 +145,15 @@ public class ImportsVerifier extends RecursiveASTVisitor<Void> {
    */
   public void generateUnusedImportHints(ErrorReporter errorReporter) {
     for (ImportDirective unusedImport : unusedImports) {
+      // Check that the import isn't dart:core
+      Element element = unusedImport.getElement();
+      if (element instanceof ImportElement) {
+        ImportElement importElement = ((ImportElement) element);
+        LibraryElement libraryElement = importElement.getImportedLibrary();
+        if (libraryElement != null && libraryElement.isDartCore()) {
+          continue;
+        }
+      }
       errorReporter.reportError(HintCode.UNUSED_IMPORT, unusedImport.getUri());
     }
   }

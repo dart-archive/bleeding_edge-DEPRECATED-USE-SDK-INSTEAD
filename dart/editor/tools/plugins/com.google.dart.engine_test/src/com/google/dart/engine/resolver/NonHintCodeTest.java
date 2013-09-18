@@ -233,6 +233,15 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_unusedImport_core_library() throws Exception {
+    Source source = addSource(createSource(//
+        "library L;",
+        "import 'dart:core';"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_unusedImport_export() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
