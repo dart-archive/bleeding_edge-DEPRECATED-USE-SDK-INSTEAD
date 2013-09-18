@@ -17,6 +17,22 @@ import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.source.Source;
 
 public class HintCodeTest extends ResolverTestCase {
+  public void fail_isInt() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = 1 is int;"));
+    resolve(source);
+    assertErrors(source, HintCode.IS_INT);
+    verify(source);
+  }
+
+  public void fail_isNotInt() throws Exception {
+    Source source = addSource(createSource(//
+    "var v = 1 is! int;"));
+    resolve(source);
+    assertErrors(source, HintCode.IS_NOT_INT);
+    verify(source);
+  }
+
   public void fail_overrideEqualsButNotHashCode() throws Exception {
     Source source = addSource(createSource(//
         "class A {",
@@ -380,27 +396,11 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_isInt() throws Exception {
-    Source source = addSource(createSource(//
-    "var v = 1 is int;"));
-    resolve(source);
-    assertErrors(source, HintCode.IS_INT);
-    verify(source);
-  }
-
   public void test_isNotDouble() throws Exception {
     Source source = addSource(createSource(//
     "var v = 1 is! double;"));
     resolve(source);
     assertErrors(source, HintCode.IS_NOT_DOUBLE);
-    verify(source);
-  }
-
-  public void test_isNotInt() throws Exception {
-    Source source = addSource(createSource(//
-    "var v = 1 is! int;"));
-    resolve(source);
-    assertErrors(source, HintCode.IS_NOT_INT);
     verify(source);
   }
 

@@ -54,23 +54,24 @@ public enum HintCode implements ErrorCode {
   /**
    * Hint for the {@code x is double} type checks.
    */
-  IS_DOUBLE("When compiled to JS, this test will return true when the left hand side is an int"),
+  IS_DOUBLE("When compiled to JS, this test might return true when the left hand side is an int"),
 
   /**
    * Hint for the {@code x is int} type checks.
    */
-  IS_INT("When compiled to JS, this test will return true when the left hand side is a double"),
+  IS_INT("When compiled to JS, this test might return true when the left hand side is a double"),
 
   /**
    * Hint for the {@code x is! double} type checks.
    */
   IS_NOT_DOUBLE(
-      "When compiled to JS, this test will return false when the left hand side is an int"),
+      "When compiled to JS, this test might return false when the left hand side is an int"),
 
   /**
    * Hint for the {@code x is! int} type checks.
    */
-  IS_NOT_INT("When compiled to JS, this test will return false when the left hand side is a double"),
+  IS_NOT_INT(
+      "When compiled to JS, this test might return false when the left hand side is a double"),
 
   /**
    * It is not in best practice to declare a private method that happens to override the method in a

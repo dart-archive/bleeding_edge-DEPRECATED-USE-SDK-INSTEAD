@@ -41,11 +41,6 @@ public class Dart2JSVerifier extends RecursiveASTVisitor<Void> {
   private static final String DOUBLE_TYPE_NAME = "double";
 
   /**
-   * The name of the {@code int} type.
-   */
-  private static final String INT_TYPE_NAME = "int";
-
-  /**
    * Create a new instance of the {@link Dart2JSVerifier}.
    * 
    * @param errorReporter the error reporter
@@ -78,15 +73,16 @@ public class Dart2JSVerifier extends RecursiveASTVisitor<Void> {
       Element element = type.getElement();
       String typeNameStr = element.getName();
       LibraryElement libraryElement = element.getLibrary();
-      if (typeNameStr.equals(INT_TYPE_NAME) && libraryElement != null
-          && libraryElement.isDartCore()) {
-        if (node.getNotOperator() == null) {
-          errorReporter.reportError(HintCode.IS_INT, node);
-        } else {
-          errorReporter.reportError(HintCode.IS_NOT_INT, node);
-        }
-        return true;
-      } else if (typeNameStr.equals(DOUBLE_TYPE_NAME) && libraryElement != null
+//      if (typeNameStr.equals(INT_TYPE_NAME) && libraryElement != null
+//          && libraryElement.isDartCore()) {
+//        if (node.getNotOperator() == null) {
+//          errorReporter.reportError(HintCode.IS_INT, node);
+//        } else {
+//          errorReporter.reportError(HintCode.IS_NOT_INT, node);
+//        }
+//        return true;
+//      } else
+      if (typeNameStr.equals(DOUBLE_TYPE_NAME) && libraryElement != null
           && libraryElement.isDartCore()) {
         if (node.getNotOperator() == null) {
           errorReporter.reportError(HintCode.IS_DOUBLE, node);
