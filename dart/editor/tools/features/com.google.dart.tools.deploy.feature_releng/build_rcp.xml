@@ -203,6 +203,9 @@ build system.  The PDE build system has to run under Eclipse.
 
                 <!-- the included samples aren't under revision control -->
                 <exclude name="**/.gitignore"/>
+
+                <!-- We do not need to ship the test directories. -->
+                <exclude name="**/test/"/>
             </fileset>
             <fileset dir="${build.source.root}/samples/third_party">
                 <include name="todomvc/**"/>
