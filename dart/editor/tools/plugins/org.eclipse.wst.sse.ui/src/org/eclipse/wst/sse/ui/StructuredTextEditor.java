@@ -7,6 +7,8 @@
  *******************************************************************************/
 package org.eclipse.wst.sse.ui;
 
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -24,6 +26,7 @@ import org.eclipse.core.runtime.content.IContentTypeManager;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
@@ -117,6 +120,11 @@ import org.eclipse.ui.editors.text.ITextEditorHelpContextIds;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.help.IWorkbenchHelpSystem;
+import org.eclipse.ui.internal.editors.quickdiff.RestoreAction;
+import org.eclipse.ui.internal.editors.quickdiff.RevertBlockAction;
+import org.eclipse.ui.internal.editors.quickdiff.RevertLineAction;
+import org.eclipse.ui.internal.editors.quickdiff.RevertSelectionAction;
+import org.eclipse.ui.internal.texteditor.LineNumberColumn;
 import org.eclipse.ui.part.IShowInTargetList;
 import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
 import org.eclipse.ui.texteditor.ChainedPreferenceStore;
@@ -135,6 +143,7 @@ import org.eclipse.ui.texteditor.ITextEditorExtension5;
 import org.eclipse.ui.texteditor.IUpdate;
 import org.eclipse.ui.texteditor.IWorkbenchActionDefinitionIds;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
+import org.eclipse.ui.texteditor.TextEditorAction;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.ContentOutline;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
@@ -236,7 +245,209 @@ import java.util.TimerTask;
  * @since 1.0
  */
 public class StructuredTextEditor extends TextEditor {
+  class TimeOutExpired extends TimerTask {
+    @Override
+    public void run() {
+      final byte[] result = new byte[1]; // Did the busy state end successfully?
+      getDisplay().syncExec(new Runnable() {
+        @Override
+        public void run() {
+          if (getDisplay() != null && !getDisplay().isDisposed()) {
+            endBusyStateInternal(result);
+          }
+        }
+      });
+      if (result[0] == 1) {
+        fBusyTimer.cancel();
+      }
+    }
+
+  }
+
+  private static final class AccessChecker extends SecurityManager {
+    @Override
+    public Class[] getClassContext() {
+      return super.getClassContext();
+    }
+  }
+
+  /**
+   * Representation of a character pairing that includes its priority based on its content type and
+   * how close it is to the content type of the file in the editor.
+   */
+  private class CharacterPairing implements Comparable {
+    int priority;
+    AbstractCharacterPairInserter inserter;
+    Set partitions;
+
+    @Override
+    public int compareTo(Object o) {
+      if (o == this) {
+        return 0;
+      }
+      return this.priority - ((CharacterPairing) o).priority;
+    }
+  }
+
+  private class CharacterPairListener implements VerifyKeyListener {
+    private CharacterPairing[] fInserters = new CharacterPairing[0];
+    private ICompletionListener fCompletionListener;
+    private boolean fIsCompleting = false;
+
+    public void installCompletionListener() {
+      ISourceViewer viewer = getSourceViewer();
+      if (viewer instanceof StructuredTextViewer) {
+        fCompletionListener = new ICompletionListener() {
+
+          @Override
+          public void assistSessionEnded(ContentAssistEvent event) {
+            fIsCompleting = false;
+          }
+
+          @Override
+          public void assistSessionStarted(ContentAssistEvent event) {
+            fIsCompleting = true;
+          }
+
+          @Override
+          public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
+          }
+
+        };
+        ContentAssistantFacade facade = ((StructuredTextViewer) viewer).getContentAssistFacade();
+        if (facade != null) {
+          facade.addCompletionListener(fCompletionListener);
+        }
+      }
+    }
+
+    @Override
+    public void verifyKey(final VerifyEvent event) {
+      if (!event.doit || getInsertMode() != SMART_INSERT || fIsCompleting
+          || isBlockSelectionModeEnabled() && isMultilineSelection()) {
+        return;
+      }
+      final boolean[] paired = {false};
+      for (int i = 0; i < fInserters.length; i++) {
+        final CharacterPairing pairing = fInserters[i];
+        // use a SafeRunner -- this is a critical function (typing)
+        SafeRunner.run(new ISafeRunnable() {
+          @Override
+          public void handleException(Throwable exception) {
+            // rely on default logging
+          }
+
+          @Override
+          public void run() throws Exception {
+            final AbstractCharacterPairInserter inserter = pairing.inserter;
+            if (inserter.hasPair(event.character)) {
+              if (pair(event, inserter, pairing.partitions)) {
+                paired[0] = true;
+              }
+            }
+          }
+        });
+        if (paired[0]) {
+          return;
+        }
+      }
+    }
+
+    /**
+     * Add the pairing to the list of inserters
+     * 
+     * @param pairing
+     */
+    void addInserter(CharacterPairing pairing) {
+      List pairings = new ArrayList(Arrays.asList(fInserters));
+      pairings.add(pairing);
+      fInserters = (CharacterPairing[]) pairings.toArray(new CharacterPairing[pairings.size()]);
+    }
+
+    /**
+     * Perform cleanup on the character pair inserters
+     */
+    void dispose() {
+      ISourceViewer viewer = getSourceViewer();
+      if (viewer instanceof StructuredTextViewer) {
+        ContentAssistantFacade facade = ((StructuredTextViewer) viewer).getContentAssistFacade();
+        if (facade != null) {
+          facade.removeCompletionListener(fCompletionListener);
+        }
+      }
+
+      for (int i = 0; i < fInserters.length; i++) {
+        final AbstractCharacterPairInserter inserter = fInserters[i].inserter;
+        SafeRunner.run(new ISafeRunnable() {
+          @Override
+          public void handleException(Throwable exception) {
+            // rely on default logging
+          }
+
+          @Override
+          public void run() throws Exception {
+            inserter.dispose();
+          }
+        });
+      }
+    }
+
+    void prioritize() {
+      Arrays.sort(fInserters);
+    }
+
+    private boolean isMultilineSelection() {
+      ISelection selection = getSelectionProvider().getSelection();
+      if (selection instanceof ITextSelection) {
+        ITextSelection ts = (ITextSelection) selection;
+        return ts.getStartLine() != ts.getEndLine();
+      }
+      return false;
+    }
+
+    private boolean pair(VerifyEvent event, AbstractCharacterPairInserter inserter, Set partitions) {
+      final ISourceViewer viewer = getSourceViewer();
+      final IDocument document = getSourceViewer().getDocument();
+      if (document != null) {
+        try {
+          final Point selection = viewer.getSelectedRange();
+          final int offset = selection.x;
+          final ITypedRegion partition = document.getPartition(offset);
+          if (partitions.contains(partition.getType())) {
+            // Don't modify if the editor input cannot be changed
+            if (!validateEditorInputState()) {
+              return false;
+            }
+            event.doit = !inserter.pair(viewer, event.character);
+            return true;
+          }
+        } catch (BadLocationException e) {
+        }
+      }
+      return false;
+    }
+  }
+
+  private class ConfigurationAndTarget {
+    private String fTargetId;
+    private StructuredTextViewerConfiguration fConfiguration;
+
+    public ConfigurationAndTarget(String targetId, StructuredTextViewerConfiguration config) {
+      fTargetId = targetId;
+      fConfiguration = config;
+    }
+
+    public StructuredTextViewerConfiguration getConfiguration() {
+      return fConfiguration;
+    }
+
+    public String getTargetId() {
+      return fTargetId;
+    }
+  }
+
   private class GotoMatchingBracketHandler extends AbstractHandler {
+    @Override
     public Object execute(ExecutionEvent arg0) throws ExecutionException {
       gotoMatchingBracket();
       return null;
@@ -244,12 +455,14 @@ public class StructuredTextEditor extends TextEditor {
   }
 
   private class InternalModelStateListener implements IModelStateListener {
+    @Override
     public void modelAboutToBeChanged(IStructuredModel model) {
       if (getTextViewer() != null) {
         // getTextViewer().setRedraw(false);
       }
     }
 
+    @Override
     public void modelAboutToBeReinitialized(IStructuredModel structuredModel) {
       if (getTextViewer() != null) {
         // getTextViewer().setRedraw(false);
@@ -258,6 +471,7 @@ public class StructuredTextEditor extends TextEditor {
       }
     }
 
+    @Override
     public void modelChanged(IStructuredModel model) {
       if (getSourceViewer() != null) {
         // getTextViewer().setRedraw(true);
@@ -269,6 +483,7 @@ public class StructuredTextEditor extends TextEditor {
         // succession, so only need to do one.
         if (!fUpdateMenuTextPending) {
           runOnDisplayThreadIfNeededed(new Runnable() {
+            @Override
             public void run() {
               updateMenuText();
               fUpdateMenuTextPending = false;
@@ -279,10 +494,12 @@ public class StructuredTextEditor extends TextEditor {
       }
     }
 
+    @Override
     public void modelDirtyStateChanged(IStructuredModel model, boolean isDirty) {
       // do nothing
     }
 
+    @Override
     public void modelReinitialized(IStructuredModel structuredModel) {
       try {
         if (getSourceViewer() != null) {
@@ -309,10 +526,12 @@ public class StructuredTextEditor extends TextEditor {
     // Note: this one should probably be used to
     // control viewer
     // instead of viewer having its own listener
+    @Override
     public void modelResourceDeleted(IStructuredModel model) {
       // do nothing
     }
 
+    @Override
     public void modelResourceMoved(IStructuredModel originalmodel, IStructuredModel movedmodel) {
       // do nothing
     }
@@ -340,9 +559,11 @@ public class StructuredTextEditor extends TextEditor {
    * Listens to double-click and selection from the outline page
    */
   private class OutlinePageListener implements IDoubleClickListener, ISelectionChangedListener {
+    @Override
     public void doubleClick(DoubleClickEvent event) {
-      if (event.getSelection().isEmpty())
+      if (event.getSelection().isEmpty()) {
         return;
+      }
 
       int start = -1;
       int length = 0;
@@ -376,6 +597,7 @@ public class StructuredTextEditor extends TextEditor {
       }
     }
 
+    @Override
     public void selectionChanged(SelectionChangedEvent event) {
       /*
        * Do not allow selection from other parts to affect selection in the text widget if it has
@@ -386,8 +608,9 @@ public class StructuredTextEditor extends TextEditor {
        */
 
       /* The isFiringSelection check only works if a selection listener */
-      if (event.getSelection().isEmpty() || fStructuredSelectionProvider.isFiringSelection())
+      if (event.getSelection().isEmpty() || fStructuredSelectionProvider.isFiringSelection()) {
         return;
+      }
 
       if (getSourceViewer() != null && getSourceViewer().getTextWidget() != null
           && !getSourceViewer().getTextWidget().isDisposed()
@@ -451,6 +674,48 @@ public class StructuredTextEditor extends TextEditor {
     }
   }
 
+  private class PartListener implements IPartListener {
+
+    private ITextEditor fEditor;
+
+    public PartListener(ITextEditor editor) {
+      fEditor = editor;
+    }
+
+    @Override
+    public void partActivated(IWorkbenchPart part) {
+      if (part.getAdapter(ITextEditor.class) == fEditor) {
+        SourceViewerConfiguration sourceViewerConfiguration = getSourceViewerConfiguration();
+        /*
+         * Guard against possible tight timing between part creation and viewer configuration
+         */
+        if (sourceViewerConfiguration != null) {
+          IReconciler reconciler = sourceViewerConfiguration.getReconciler(getSourceViewer());
+          if (reconciler instanceof DocumentRegionProcessor) {
+            ((DocumentRegionProcessor) reconciler).forceReconciling();
+          }
+        }
+      }
+    }
+
+    @Override
+    public void partBroughtToTop(IWorkbenchPart part) {
+    }
+
+    @Override
+    public void partClosed(IWorkbenchPart part) {
+    }
+
+    @Override
+    public void partDeactivated(IWorkbenchPart part) {
+    }
+
+    @Override
+    public void partOpened(IWorkbenchPart part) {
+    }
+
+  }
+
   private class ShowInTargetListAdapter implements IShowInTargetList {
     /**
      * Array of ID Strings that define the default show in targets for this editor.
@@ -458,6 +723,7 @@ public class StructuredTextEditor extends TextEditor {
      * @see org.eclipse.ui.part.IShowInTargetList#getShowInTargetIds()
      * @return the array of ID Strings that define the default show in targets for this editor.
      */
+    @Override
     public String[] getShowInTargetIds() {
       return fShowInTargetIds;
     }
@@ -488,38 +754,45 @@ public class StructuredTextEditor extends TextEditor {
         this(document, selection.getOffset(), selection.getLength(), selectedObjects);
       }
 
+      @Override
       public Object getFirstElement() {
         Object[] selectedStructures = getSelectedStructures();
         return selectedStructures.length > 0 ? selectedStructures[0] : null;
       }
 
-      private Object[] getSelectedStructures() {
-        return (selectedStructured != null) ? selectedStructured : new Object[0];
-      }
-
+      @Override
       public boolean isEmpty() {
         // https://bugs.eclipse.org/bugs/show_bug.cgi?id=191327
         return super.isEmpty() || getSelectedStructures().length == 0;
       }
 
+      @Override
       public Iterator iterator() {
         return toList().iterator();
       }
 
+      @Override
       public int size() {
         return (selectedStructured != null) ? selectedStructured.length : 0;
       }
 
+      @Override
       public Object[] toArray() {
         return getSelectedStructures();
       }
 
+      @Override
       public List toList() {
         return Arrays.asList(getSelectedStructures());
       }
 
+      @Override
       public String toString() {
         return getOffset() + ":" + getLength() + "@" + getSelectedStructures(); //$NON-NLS-1$ //$NON-NLS-2$
+      }
+
+      private Object[] getSelectedStructures() {
+        return (selectedStructured != null) ? selectedStructured : new Object[0];
       }
     }
 
@@ -542,12 +815,14 @@ public class StructuredTextEditor extends TextEditor {
       fParentProvider = parentProvider;
       fEditor = structuredTextEditor;
       fParentProvider.addSelectionChangedListener(new ISelectionChangedListener() {
+        @Override
         public void selectionChanged(SelectionChangedEvent event) {
           handleSelectionChanged(event);
         }
       });
       if (fParentProvider instanceof IPostSelectionProvider) {
         ((IPostSelectionProvider) fParentProvider).addPostSelectionChangedListener(new ISelectionChangedListener() {
+          @Override
           public void selectionChanged(SelectionChangedEvent event) {
             handlePostSelectionChanged(event);
           }
@@ -555,10 +830,12 @@ public class StructuredTextEditor extends TextEditor {
       }
     }
 
+    @Override
     public void addPostSelectionChangedListener(ISelectionChangedListener listener) {
       postListeners.add(listener);
     }
 
+    @Override
     public void addSelectionChangedListener(ISelectionChangedListener listener) {
       listeners.add(listener);
     }
@@ -570,24 +847,7 @@ public class StructuredTextEditor extends TextEditor {
       selectionConvertor = null;
     }
 
-    private void fireSelectionChanged(final SelectionChangedEvent event, ListenerList listenerList) {
-      Object[] listeners = listenerList.getListeners();
-      isFiringSelection = true;
-      for (int i = 0; i < listeners.length; ++i) {
-        final ISelectionChangedListener l = (ISelectionChangedListener) listeners[i];
-        SafeRunner.run(new SafeRunnable() {
-          public void run() {
-            l.selectionChanged(event);
-          }
-        });
-      }
-      isFiringSelection = false;
-    }
-
-    private ISelectionProvider getParentProvider() {
-      return fParentProvider;
-    }
-
+    @Override
     public ISelection getSelection() {
       fLastSelection = null;
       fLastSelectionProvider = null;
@@ -638,8 +898,53 @@ public class StructuredTextEditor extends TextEditor {
       return selection;
     }
 
-    private StructuredTextEditor getStructuredTextEditor() {
-      return fEditor;
+    @Override
+    public boolean isValid(ISelection selection) {
+      // ISSUE: is not clear default behavior should be true?
+      // But not clear is this default would apply for our editor.
+      boolean result = true;
+      // if editor is "gone", can not be valid
+      StructuredTextEditor e = getStructuredTextEditor();
+      if (e == null || e.fEditorDisposed) {
+        result = false;
+      }
+      // else defer to parent
+      else if (getParentProvider() instanceof ISelectionValidator) {
+        result = ((ISelectionValidator) getParentProvider()).isValid(selection);
+      }
+      return result;
+    }
+
+    @Override
+    public void removePostSelectionChangedListener(ISelectionChangedListener listener) {
+      postListeners.remove(listener);
+    }
+
+    @Override
+    public void removeSelectionChangedListener(ISelectionChangedListener listener) {
+      listeners.remove(listener);
+    }
+
+    @Override
+    public void setSelection(ISelection selection) {
+      if (isFiringSelection()) {
+        return;
+      }
+
+      fLastSelection = null;
+      fLastSelectionProvider = null;
+      fLastUpdatedSelectionChangedEvent = null;
+
+      ISelection textSelection = updateSelection(selection);
+      getParentProvider().setSelection(textSelection);
+      StructuredTextEditor localEditor = getStructuredTextEditor();
+      if (localEditor != null) {
+        localEditor.updateRangeIndication(textSelection);
+      }
+    }
+
+    IDocument getDocument() {
+      return fEditor.getDocumentProvider().getDocument(fEditor.getEditorInput());
     }
 
     void handlePostSelectionChanged(SelectionChangedEvent event) {
@@ -670,53 +975,31 @@ public class StructuredTextEditor extends TextEditor {
       fireSelectionChanged(updatedEvent, listeners);
     }
 
-    IDocument getDocument() {
-      return fEditor.getDocumentProvider().getDocument(fEditor.getEditorInput());
-    }
-
     boolean isFiringSelection() {
       return isFiringSelection;
     }
 
-    public boolean isValid(ISelection selection) {
-      // ISSUE: is not clear default behavior should be true?
-      // But not clear is this default would apply for our editor.
-      boolean result = true;
-      // if editor is "gone", can not be valid
-      StructuredTextEditor e = getStructuredTextEditor();
-      if (e == null || e.fEditorDisposed) {
-        result = false;
+    private void fireSelectionChanged(final SelectionChangedEvent event, ListenerList listenerList) {
+      Object[] listeners = listenerList.getListeners();
+      isFiringSelection = true;
+      for (int i = 0; i < listeners.length; ++i) {
+        final ISelectionChangedListener l = (ISelectionChangedListener) listeners[i];
+        SafeRunner.run(new SafeRunnable() {
+          @Override
+          public void run() {
+            l.selectionChanged(event);
+          }
+        });
       }
-      // else defer to parent
-      else if (getParentProvider() instanceof ISelectionValidator) {
-        result = ((ISelectionValidator) getParentProvider()).isValid(selection);
-      }
-      return result;
+      isFiringSelection = false;
     }
 
-    public void removePostSelectionChangedListener(ISelectionChangedListener listener) {
-      postListeners.remove(listener);
+    private ISelectionProvider getParentProvider() {
+      return fParentProvider;
     }
 
-    public void removeSelectionChangedListener(ISelectionChangedListener listener) {
-      listeners.remove(listener);
-    }
-
-    public void setSelection(ISelection selection) {
-      if (isFiringSelection()) {
-        return;
-      }
-
-      fLastSelection = null;
-      fLastSelectionProvider = null;
-      fLastUpdatedSelectionChangedEvent = null;
-
-      ISelection textSelection = updateSelection(selection);
-      getParentProvider().setSelection(textSelection);
-      StructuredTextEditor localEditor = getStructuredTextEditor();
-      if (localEditor != null) {
-        localEditor.updateRangeIndication(textSelection);
-      }
+    private StructuredTextEditor getStructuredTextEditor() {
+      return fEditor;
     }
 
     /**
@@ -740,9 +1023,10 @@ public class StructuredTextEditor extends TextEditor {
                     structuredModel, start, end));
           }
         }
-        if (selection == null)
+        if (selection == null) {
           selection = new StructuredTextSelection(getDocument(),
               (ITextSelection) event.getSelection(), new Object[0]);
+        }
       }
       SelectionChangedEvent newEvent = new SelectionChangedEvent(event.getSelectionProvider(),
           selection);
@@ -797,255 +1081,47 @@ public class StructuredTextEditor extends TextEditor {
     }
   }
 
-  class TimeOutExpired extends TimerTask {
-    public void run() {
-      final byte[] result = new byte[1]; // Did the busy state end successfully?
-      getDisplay().syncExec(new Runnable() {
-        public void run() {
-          if (getDisplay() != null && !getDisplay().isDisposed())
-            endBusyStateInternal(result);
-        }
-      });
-      if (result[0] == 1) {
-        fBusyTimer.cancel();
-      }
-    }
-
-  }
-
-  private class ConfigurationAndTarget {
-    private String fTargetId;
-    private StructuredTextViewerConfiguration fConfiguration;
-
-    public ConfigurationAndTarget(String targetId, StructuredTextViewerConfiguration config) {
-      fTargetId = targetId;
-      fConfiguration = config;
-    }
-
-    public String getTargetId() {
-      return fTargetId;
-    }
-
-    public StructuredTextViewerConfiguration getConfiguration() {
-      return fConfiguration;
-    }
-  }
-
-  private class CharacterPairListener implements VerifyKeyListener {
-    private CharacterPairing[] fInserters = new CharacterPairing[0];
-    private ICompletionListener fCompletionListener;
-    private boolean fIsCompleting = false;
-
-    public void installCompletionListener() {
-      ISourceViewer viewer = getSourceViewer();
-      if (viewer instanceof StructuredTextViewer) {
-        fCompletionListener = new ICompletionListener() {
-
-          public void assistSessionStarted(ContentAssistEvent event) {
-            fIsCompleting = true;
-          }
-
-          public void assistSessionEnded(ContentAssistEvent event) {
-            fIsCompleting = false;
-          }
-
-          public void selectionChanged(ICompletionProposal proposal, boolean smartToggle) {
-          }
-
-        };
-        ContentAssistantFacade facade = ((StructuredTextViewer) viewer).getContentAssistFacade();
-        if (facade != null)
-          facade.addCompletionListener(fCompletionListener);
-      }
-    }
-
-    /**
-     * Add the pairing to the list of inserters
-     * 
-     * @param pairing
-     */
-    void addInserter(CharacterPairing pairing) {
-      List pairings = new ArrayList(Arrays.asList(fInserters));
-      pairings.add(pairing);
-      fInserters = (CharacterPairing[]) pairings.toArray(new CharacterPairing[pairings.size()]);
-    }
-
-    void prioritize() {
-      Arrays.sort(fInserters);
-    }
-
-    /**
-     * Perform cleanup on the character pair inserters
-     */
-    void dispose() {
-      ISourceViewer viewer = getSourceViewer();
-      if (viewer instanceof StructuredTextViewer) {
-        ContentAssistantFacade facade = ((StructuredTextViewer) viewer).getContentAssistFacade();
-        if (facade != null)
-          facade.removeCompletionListener(fCompletionListener);
-      }
-
-      for (int i = 0; i < fInserters.length; i++) {
-        final AbstractCharacterPairInserter inserter = fInserters[i].inserter;
-        SafeRunner.run(new ISafeRunnable() {
-          public void handleException(Throwable exception) {
-            // rely on default logging
-          }
-
-          public void run() throws Exception {
-            inserter.dispose();
-          }
-        });
-      }
-    }
-
-    public void verifyKey(final VerifyEvent event) {
-      if (!event.doit || getInsertMode() != SMART_INSERT || fIsCompleting
-          || isBlockSelectionModeEnabled() && isMultilineSelection())
-        return;
-      final boolean[] paired = {false};
-      for (int i = 0; i < fInserters.length; i++) {
-        final CharacterPairing pairing = fInserters[i];
-        // use a SafeRunner -- this is a critical function (typing)
-        SafeRunner.run(new ISafeRunnable() {
-          public void run() throws Exception {
-            final AbstractCharacterPairInserter inserter = pairing.inserter;
-            if (inserter.hasPair(event.character)) {
-              if (pair(event, inserter, pairing.partitions))
-                paired[0] = true;
-            }
-          }
-
-          public void handleException(Throwable exception) {
-            // rely on default logging
-          }
-        });
-        if (paired[0])
-          return;
-      }
-    }
-
-    private boolean pair(VerifyEvent event, AbstractCharacterPairInserter inserter, Set partitions) {
-      final ISourceViewer viewer = getSourceViewer();
-      final IDocument document = getSourceViewer().getDocument();
-      if (document != null) {
-        try {
-          final Point selection = viewer.getSelectedRange();
-          final int offset = selection.x;
-          final ITypedRegion partition = document.getPartition(offset);
-          if (partitions.contains(partition.getType())) {
-            // Don't modify if the editor input cannot be changed
-            if (!validateEditorInputState())
-              return false;
-            event.doit = !inserter.pair(viewer, event.character);
-            return true;
-          }
-        } catch (BadLocationException e) {
-        }
-      }
-      return false;
-    }
-
-    private boolean isMultilineSelection() {
-      ISelection selection = getSelectionProvider().getSelection();
-      if (selection instanceof ITextSelection) {
-        ITextSelection ts = (ITextSelection) selection;
-        return ts.getStartLine() != ts.getEndLine();
-      }
-      return false;
-    }
-  }
-
-  /**
-   * Representation of a character pairing that includes its priority based on its content type and
-   * how close it is to the content type of the file in the editor.
-   */
-  private class CharacterPairing implements Comparable {
-    int priority;
-    AbstractCharacterPairInserter inserter;
-    Set partitions;
-
-    public int compareTo(Object o) {
-      if (o == this)
-        return 0;
-      return this.priority - ((CharacterPairing) o).priority;
-    }
-  }
-
-  private class PartListener implements IPartListener {
-
-    private ITextEditor fEditor;
-
-    public PartListener(ITextEditor editor) {
-      fEditor = editor;
-    }
-
-    public void partActivated(IWorkbenchPart part) {
-      if (part.getAdapter(ITextEditor.class) == fEditor) {
-        SourceViewerConfiguration sourceViewerConfiguration = getSourceViewerConfiguration();
-        /*
-         * Guard against possible tight timing between part creation and viewer configuration
-         */
-        if (sourceViewerConfiguration != null) {
-          IReconciler reconciler = sourceViewerConfiguration.getReconciler(getSourceViewer());
-          if (reconciler instanceof DocumentRegionProcessor) {
-            ((DocumentRegionProcessor) reconciler).forceReconciling();
-          }
-        }
-      }
-    }
-
-    public void partBroughtToTop(IWorkbenchPart part) {
-    }
-
-    public void partClosed(IWorkbenchPart part) {
-    }
-
-    public void partDeactivated(IWorkbenchPart part) {
-    }
-
-    public void partOpened(IWorkbenchPart part) {
-    }
-
-  }
-
   /**
    * Not API. May be removed in the future.
    */
   protected final static char[] BRACKETS = {'{', '}', '(', ')', '[', ']'};
-
   private static final long BUSY_STATE_DELAY = 1000;
   /**
    * Not API. May be removed in the future.
    */
   protected static final String DOT = "."; //$NON-NLS-1$
   private static final String EDITOR_CONTEXT_MENU_ID = "org.eclipse.wst.sse.ui.StructuredTextEditor.EditorContext"; //$NON-NLS-1$
-  private static final String EDITOR_CONTEXT_MENU_SUFFIX = ".source.EditorContext"; //$NON-NLS-1$
 
+  private static final String EDITOR_CONTEXT_MENU_SUFFIX = ".source.EditorContext"; //$NON-NLS-1$
   /** Non-NLS strings */
   private static final String EDITOR_KEYBINDING_SCOPE_ID = "org.eclipse.wst.sse.ui.structuredTextEditorScope"; //$NON-NLS-1$
+
   /**
    * Not API. May be removed in the future.
    */
   public static final String GROUP_NAME_ADDITIONS = IWorkbenchActionConstants.MB_ADDITIONS; //$NON-NLS-1$
-
   private static final String REDO_ACTION_DESC = SSEUIMessages.Redo___0___UI_; //$NON-NLS-1$ = "Redo: {0}."
   private static final String REDO_ACTION_DESC_DEFAULT = SSEUIMessages.Redo_Text_Change__UI_; //$NON-NLS-1$ = "Redo Text Change."
   private static final String REDO_ACTION_TEXT = SSEUIMessages._Redo__0___Ctrl_Y_UI_; //$NON-NLS-1$ = "&Redo {0} @Ctrl+Y"
   private static final String REDO_ACTION_TEXT_DEFAULT = SSEUIMessages._Redo_Text_Change__Ctrl_Y_UI_; //$NON-NLS-1$ = "&Redo Text Change @Ctrl+Y"
   private static final String RULER_CONTEXT_MENU_ID = "org.eclipse.wst.sse.ui.StructuredTextEditor.RulerContext"; //$NON-NLS-1$
-  private static final String RULER_CONTEXT_MENU_SUFFIX = ".source.RulerContext"; //$NON-NLS-1$
 
+  private static final String RULER_CONTEXT_MENU_SUFFIX = ".source.RulerContext"; //$NON-NLS-1$
   private final static String UNDERSCORE = "_"; //$NON-NLS-1$
+
   /** Translatable strings */
   private static final String UNDO_ACTION_DESC = SSEUIMessages.Undo___0___UI_; //$NON-NLS-1$ = "Undo: {0}."
-
   private static final String UNDO_ACTION_DESC_DEFAULT = SSEUIMessages.Undo_Text_Change__UI_; //$NON-NLS-1$ = "Undo Text Change."
   private static final String UNDO_ACTION_TEXT = SSEUIMessages._Undo__0___Ctrl_Z_UI_; //$NON-NLS-1$ = "&Undo {0} @Ctrl+Z"
   private static final String UNDO_ACTION_TEXT_DEFAULT = SSEUIMessages._Undo_Text_Change__Ctrl_Z_UI_; //$NON-NLS-1$ = "&Undo Text Change @Ctrl+Z"
+
+  private static boolean isCalledByOutline() {
+    Class[] elements = new AccessChecker().getClassContext();
+    return elements[4].equals(ContentOutline.class) || elements[5].equals(ContentOutline.class);
+  }
+
   // development time/debug variables only
   private int adapterRequests;
-
   private long adapterTime;
   private boolean fBackgroundJobEnded;
   private boolean fBusyState;
@@ -1056,10 +1132,11 @@ public class StructuredTextEditor extends TextEditor {
   private DropTarget fDropTarget;
   boolean fEditorDisposed = false;
   private IEditorPart fEditorPart;
+
   private InternalModelStateListener fInternalModelStateListener;
   private IContentOutlinePage fOutlinePage;
-
   private OutlinePageListener fOutlinePageListener = null;
+
   /** This editor's projection support */
   private ProjectionSupport fProjectionSupport;
   private IPropertySheetPage fPropertySheetPage;
@@ -1069,12 +1146,11 @@ public class StructuredTextEditor extends TextEditor {
 
   /** The ruler context menu to be disposed. */
   private Menu fRulerContextMenu;
+
   /** The ruler context menu manager to be disposed. */
   private MenuManager fRulerContextMenuManager;
-
   String[] fShowInTargetIds = new String[] {
       IPageLayout.ID_RES_NAV, IPageLayout.ID_PROJECT_EXPLORER, IPageLayout.ID_OUTLINE};
-
   private IAction fShowPropertiesAction = null;
   private IStructuredModel fStructuredModel;
   StructuredSelectionProvider fStructuredSelectionProvider = null;
@@ -1087,13 +1163,15 @@ public class StructuredTextEditor extends TextEditor {
   private SelectionHistory fSelectionHistory;
   /** The information presenter. */
   private InformationPresenter fInformationPresenter;
+
   private boolean fUpdateMenuTextPending;
   /** The quick outline handler */
   private QuickOutlineHandler fOutlineHandler;
-
   private boolean shouldClose = false;
   private long startPerfTime;
+
   private boolean fisReleased;
+
   /**
    * The action group for folding.
    */
@@ -1115,89 +1193,12 @@ public class StructuredTextEditor extends TextEditor {
     initializeDocumentProvider(null);
   }
 
-  private IStructuredModel aboutToSaveModel() {
-    IStructuredModel model = getInternalModel();
-    if (model != null) {
-      model.aboutToChangeModel();
-    }
-    return model;
-  }
-
-  protected void addSourceMenuActions(IMenuManager menu) {
-    IMenuManager subMenu = new MenuManager(SSEUIMessages.SourceMenu_label,
-        IStructuredTextEditorActionConstants.SOURCE_CONTEXT_MENU_ID);
-    subMenu.add(new Separator(IStructuredTextEditorActionConstants.SOURCE_BEGIN));
-    subMenu.add(new Separator(IStructuredTextEditorActionConstants.SOURCE_ADDITIONS));
-    subMenu.add(new Separator(IStructuredTextEditorActionConstants.SOURCE_END));
-    menu.appendToGroup(ITextEditorActionConstants.GROUP_EDIT, subMenu);
-  }
-
-  protected void addRefactorMenuActions(IMenuManager menu) {
-    IMenuManager subMenu = new MenuManager(SSEUIMessages.RefactorMenu_label,
-        IStructuredTextEditorActionConstants.REFACTOR_CONTEXT_MENU_ID);
-    menu.appendToGroup(ITextEditorActionConstants.GROUP_EDIT, subMenu);
-  }
-
-  protected void addContextMenuActions(IMenuManager menu) {
-    // Only offer actions that affect the text if the viewer allows
-    // modification and supports any of these operations
-
-    // Some Design editors (DTD) rely on this view for their own uses
-    menu.appendToGroup(IWorkbenchActionConstants.GROUP_ADD, fShowPropertiesAction);
-  }
-
-  private void addExtendedContextMenuActions(IMenuManager menu) {
-    IEditorActionBarContributor c = getEditorSite().getActionBarContributor();
-    if (c instanceof IPopupMenuContributor) {
-      ((IPopupMenuContributor) c).contributeToPopupMenu(menu);
-    } else {
-      ExtendedEditorActionBuilder builder = new ExtendedEditorActionBuilder();
-      IExtendedContributor pmc = builder.readActionExtensions(getConfigurationPoints());
-      if (pmc != null) {
-        pmc.setActiveEditor(this);
-        pmc.contributeToPopupMenu(menu);
-      }
-    }
-  }
-
-  protected void addExtendedRulerContextMenuActions(IMenuManager menu) {
-    // none at this level
-  }
-
-  /**
-   * Starts background mode.
-   * <p>
-   * Not API. May be removed in the future.
-   * </p>
-   */
-  void beginBackgroundOperation() {
-    fBackgroundJobEnded = false;
-    // if already in busy state, no need to do anything
-    // and, we only start, or reset, the timed busy
-    // state when we get the "endBackgroundOperation" call.
-    if (!inBusyState()) {
-      beginBusyStateInternal();
-    }
-  }
-
-  private void beginBusyStateInternal() {
-
-    fBusyState = true;
-    startBusyTimer();
-
-    ISourceViewer viewer = getSourceViewer();
-    if (viewer instanceof StructuredTextViewer) {
-      ((StructuredTextViewer) viewer).beginBackgroundUpdate();
-
-    }
-    showBusy(true);
-  }
-
   /*
    * (non-Javadoc)
    * 
    * @see org.eclipse.ui.texteditor.ITextEditor#close(boolean)
    */
+  @Override
   public void close(final boolean save) {
     /*
      * Instead of us closing directly, we have to close with our containing (multipage) editor, if
@@ -1213,6 +1214,7 @@ public class StructuredTextEditor extends TextEditor {
         Display display = getSite().getShell().getDisplay();
         display.asyncExec(new Runnable() {
 
+          @Override
           public void run() {
             getSite().getPage().closeEditor(getEditorPart(), save);
           }
@@ -1223,37 +1225,721 @@ public class StructuredTextEditor extends TextEditor {
     }
   }
 
-  private void activateContexts(IContextService service) {
-    if (service == null)
-      return;
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Use StructuredTextViewerConfiguration if a viewerconfiguration has not already been set. Also
+   * initialize StructuredTextViewer.
+   * </p>
+   * 
+   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#createPartControl(org.eclipse.swt.widgets.Composite)
+   */
+  @Override
+  public void createPartControl(Composite parent) {
+    IContextService contextService = (IContextService) getSite().getService(IContextService.class);
+    if (contextService != null) {
+      contextService.activateContext(EDITOR_KEYBINDING_SCOPE_ID);
+    }
 
-    String[] definitions = getDefinitions(getConfigurationPoints());
+    if (getSourceViewerConfiguration() == null) {
+      ConfigurationAndTarget cat = createSourceViewerConfiguration();
+      fViewerConfigurationTargetId = cat.getTargetId();
+      StructuredTextViewerConfiguration newViewerConfiguration = cat.getConfiguration();
+      setSourceViewerConfiguration(newViewerConfiguration);
+    }
 
-    if (definitions != null) {
-      String[] contexts = null;
-      for (int i = 0; i < definitions.length; i++) {
-        contexts = StringUtils.unpack(definitions[i]);
-        for (int j = 0; j < contexts.length; j++)
-          service.activateContext(contexts[j].trim());
+    super.createPartControl(parent);
+
+    // instead of calling setInput twice, use initializeSourceViewer() to
+    // handle source viewer initialization previously handled by setInput
+    initializeSourceViewer();
+
+    // update editor context menu, vertical ruler context menu, infopop
+    if (getInternalModel() != null) {
+      updateEditorControlsForContentType(getInternalModel().getContentTypeIdentifier());
+    } else {
+      updateEditorControlsForContentType(null);
+    }
+
+    // used for Show Tooltip Description
+    IInformationControlCreator informationControlCreator = new IInformationControlCreator() {
+      @Override
+      public IInformationControl createInformationControl(Shell shell) {
+        boolean cutDown = false;
+        int style = cutDown ? SWT.NONE : (SWT.V_SCROLL | SWT.H_SCROLL);
+        return new DefaultInformationControl(shell, SWT.RESIZE | SWT.TOOL, style,
+            new HTMLTextPresenter(cutDown));
+      }
+    };
+
+    fInformationPresenter = new InformationPresenter(informationControlCreator);
+    fInformationPresenter.setSizeConstraints(60, 10, true, true);
+    fInformationPresenter.install(getSourceViewer());
+    addReconcilingListeners(getSourceViewerConfiguration(), getTextViewer());
+    fPartListener = new PartListener(this);
+    getSite().getWorkbenchWindow().getPartService().addPartListener(fPartListener);
+    installSemanticHighlighting();
+    if (fOutlineHandler != null) {
+      IInformationPresenter presenter = configureOutlinePresenter(getSourceViewer(),
+          getSourceViewerConfiguration());
+      if (presenter != null) {
+        presenter.install(getSourceViewer());
+        fOutlineHandler.configure(presenter);
+      }
+    }
+    installCharacterPairing();
+    ISourceViewer viewer = getSourceViewer();
+    if (viewer instanceof ITextViewerExtension) {
+      ((ITextViewerExtension) viewer).appendVerifyKeyListener(fPairInserter);
+      fPairInserter.installCompletionListener();
+    }
+
+    if (Platform.getProduct() != null) {
+      String viewID = Platform.getProduct().getProperty("idPerspectiveHierarchyView"); //$NON-NLS-1$);
+      if (viewID != null) {
+        // make sure the specified view ID is known
+        if (PlatformUI.getWorkbench().getViewRegistry().find(viewID) != null) {
+          fShowInTargetIds = new String[] {
+              viewID, IPageLayout.ID_PROJECT_EXPLORER, IPageLayout.ID_RES_NAV,
+              IPageLayout.ID_OUTLINE};
+        }
+      }
+    }
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.eclipse.ui.IWorkbenchPart#dispose()
+   */
+  @Override
+  public void dispose() {
+    Logger.trace("Source Editor", "StructuredTextEditor::dispose entry"); //$NON-NLS-1$ //$NON-NLS-2$
+    if (org.eclipse.wst.sse.core.internal.util.Debug.perfTestAdapterClassLoading) {
+      System.out.println("Total calls to getAdapter: " + adapterRequests); //$NON-NLS-1$
+      System.out.println("Total time in getAdapter: " + adapterTime); //$NON-NLS-1$
+      System.out.println("Average time per call: " + (adapterTime / adapterRequests)); //$NON-NLS-1$
+    }
+
+    ISourceViewer viewer = getSourceViewer();
+    if (viewer instanceof ITextViewerExtension) {
+      ((ITextViewerExtension) viewer).removeVerifyKeyListener(fPairInserter);
+    }
+
+    // dispose of information presenter
+    if (fInformationPresenter != null) {
+      fInformationPresenter.dispose();
+      fInformationPresenter = null;
+    }
+
+    if (fOutlineHandler != null) {
+      fOutlineHandler.dispose();
+    }
+    // dispose of selection history
+    if (fSelectionHistory != null) {
+      fSelectionHistory.dispose();
+      fSelectionHistory = null;
+    }
+
+    if (fProjectionSupport != null) {
+      fProjectionSupport.dispose();
+      fProjectionSupport = null;
+    }
+
+    if (fFoldingGroup != null) {
+      fFoldingGroup.dispose();
+      fFoldingGroup = null;
+    }
+
+    // dispose of menus that were being tracked
+    if (fTextContextMenu != null) {
+      fTextContextMenu.dispose();
+    }
+    if (fRulerContextMenu != null) {
+      fRulerContextMenu.dispose();
+      fRulerContextMenu = null;
+    }
+    if (fTextContextMenuManager != null) {
+      fTextContextMenuManager.removeMenuListener(getContextMenuListener());
+      fTextContextMenuManager.removeAll();
+      fTextContextMenuManager.dispose();
+    }
+    if (fRulerContextMenuManager != null) {
+      fRulerContextMenuManager.removeMenuListener(getContextMenuListener());
+      fRulerContextMenuManager.removeAll();
+      fRulerContextMenuManager.dispose();
+    }
+
+    // added this 2/20/2004 based on probe results --
+    // seems should be handled by setModel(null), but
+    // that's a more radical change.
+    // and, technically speaking, should not be needed,
+    // but makes a memory leak
+    // less severe.
+    if (fStructuredModel != null) {
+      fStructuredModel.removeModelStateListener(getInternalModelStateListener());
+    }
+
+    // BUG155335 - if there was no document provider, there was nothing
+    // added
+    // to document, so nothing to remove
+    if (getDocumentProvider() != null) {
+      IDocument doc = getDocumentProvider().getDocument(getEditorInput());
+      if (doc != null) {
+        if (doc instanceof IExecutionDelegatable) {
+          ((IExecutionDelegatable) doc).setExecutionDelegate(null);
+        }
       }
     }
 
-  }
+    // some things in the configuration need to clean
+    // up after themselves
+    if (fOutlinePage != null) {
+      if (fOutlinePage instanceof ConfigurableContentOutlinePage && fOutlinePageListener != null) {
+        ((ConfigurableContentOutlinePage) fOutlinePage).removeDoubleClickListener(fOutlinePageListener);
+      }
+      if (fOutlinePageListener != null) {
+        fOutlinePage.removeSelectionChangedListener(fOutlinePageListener);
+      }
+      fOutlinePage = null;
+    }
 
-  private String[] getDefinitions(String[] ids) {
-    ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
-    String[] definitions = null;
+    fEditorDisposed = true;
+    disposeModelDependentFields();
+
+    if (fDropTarget != null) {
+      fDropTarget.dispose();
+    }
+
+    if (fPartListener != null) {
+      getSite().getWorkbenchWindow().getPartService().removePartListener(fPartListener);
+      fPartListener = null;
+    }
+
+    uninstallSemanticHighlighting();
+
+    if (fPairInserter != null) {
+      fPairInserter.dispose();
+    }
+
+    setPreferenceStore(null);
 
     /*
-     * Iterate through the configuration ids until one is found that has an activecontexts
-     * definition
+     * Strictly speaking, but following null outs should not be needed, but in the event of a memory
+     * leak, they make the memory leak less severe
      */
-    for (int i = 0; i < ids.length; i++) {
-      definitions = builder.getDefinitions("activecontexts", ids[i]); //$NON-NLS-1$
-      if (definitions != null && definitions.length > 0)
-        return definitions;
+    fDropAdapter = null;
+    fDropTarget = null;
+
+    if (fStructuredSelectionProvider != null) {
+      fStructuredSelectionProvider.dispose();
     }
-    return null;
+
+    if (fStatusLineLabelProvider != null) {
+      fStatusLineLabelProvider.dispose();
+    }
+
+    setStatusLineMessage(null);
+
+    super.dispose();
+
+    Logger.trace("Source Editor", "StructuredTextEditor::dispose exit"); //$NON-NLS-1$ //$NON-NLS-2$
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.eclipse.ui.texteditor.ITextEditor#doRevertToSaved()
+   */
+  @Override
+  public void doRevertToSaved() {
+    super.doRevertToSaved();
+    if (fOutlinePage != null && fOutlinePage instanceof IUpdate) {
+      ((IUpdate) fOutlinePage).update();
+    }
+    // reset undo
+    IDocument doc = getDocumentProvider().getDocument(getEditorInput());
+    if (doc instanceof IStructuredDocument) {
+      ((IStructuredDocument) doc).getUndoManager().getCommandStack().flush();
+    }
+
+    // update menu text
+    updateMenuText();
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.eclipse.ui.ISaveablePart#doSave(org.eclipse.core.runtime.IProgressMonitor)
+   */
+  @Override
+  public void doSave(IProgressMonitor progressMonitor) {
+    IStructuredModel model = null;
+    try {
+      model = aboutToSaveModel();
+      updateEncodingMemento();
+      super.doSave(progressMonitor);
+    } finally {
+      savedModel(model);
+    }
+  }
+
+  /**
+   * Sets up this editor's context menu before it is made visible.
+   * <p>
+   * Not API. May be reduced to protected method in the future.
+   * </p>
+   * 
+   * @param menu the menu
+   */
+  @Override
+  public void editorContextMenuAboutToShow(IMenuManager menu) {
+    /*
+     * To be consistent with the Java Editor, we want to remove ShiftRight and ShiftLeft from the
+     * context menu.
+     */
+//    super.editorContextMenuAboutToShow(menu);
+    editorContextMenuAboutToShow2(menu);
+//    menu.remove(ITextEditorActionConstants.SHIFT_LEFT);
+//    menu.remove(ITextEditorActionConstants.SHIFT_RIGHT);
+
+    addContextMenuActions(menu);
+    addSourceMenuActions(menu);
+    addRefactorMenuActions(menu);
+    addExtendedContextMenuActions(menu);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.eclipse.core.runtime.IAdaptable#getAdapter(java.lang.Class)
+   */
+  @Override
+  public Object getAdapter(Class required) {
+    if (org.eclipse.wst.sse.core.internal.util.Debug.perfTestAdapterClassLoading) {
+      startPerfTime = System.currentTimeMillis();
+    }
+    Object result = null;
+    // text editor
+    IStructuredModel internalModel = getInternalModel();
+    if (ITextEditor.class.equals(required) || ITextEditorExtension5.class.equals(required)
+        || ITextEditorExtension4.class.equals(required)
+        || ITextEditorExtension3.class.equals(required)
+        || ITextEditorExtension2.class.equals(required)
+        || ITextEditorExtension.class.equals(required)) {
+      result = this;
+    } else if (IWorkbenchSiteProgressService.class.equals(required)) {
+      return getEditorPart().getSite().getAdapter(IWorkbenchSiteProgressService.class);
+    }
+    // content outline page
+    else if (IContentOutlinePage.class.equals(required)) {
+      if (fOutlinePage == null && isCalledByOutline()) {
+        ContentOutlineConfiguration cfg = createContentOutlineConfiguration();
+        if (cfg != null) {
+          ConfigurableContentOutlinePage outlinePage = new ConfigurableContentOutlinePage();
+          outlinePage.setConfiguration(cfg);
+          if (internalModel != null) {
+            outlinePage.setInputContentTypeIdentifier(internalModel.getContentTypeIdentifier());
+            outlinePage.setInput(internalModel);
+          }
+
+          if (fOutlinePageListener == null) {
+            fOutlinePageListener = new OutlinePageListener();
+          }
+
+          outlinePage.addSelectionChangedListener(fOutlinePageListener);
+          outlinePage.addDoubleClickListener(fOutlinePageListener);
+
+          fOutlinePage = outlinePage;
+        }
+      }
+      result = fOutlinePage;
+    }
+    // property sheet page, but only if the input's editable
+    else if (IPropertySheetPage.class.equals(required) && isEditable()) {
+      if (fPropertySheetPage == null || fPropertySheetPage.getControl() == null
+          || fPropertySheetPage.getControl().isDisposed()) {
+        PropertySheetConfiguration cfg = createPropertySheetConfiguration();
+        if (cfg != null) {
+          ConfigurablePropertySheetPage propertySheetPage = new ConfigurablePropertySheetPage();
+          propertySheetPage.setConfiguration(cfg);
+          fPropertySheetPage = propertySheetPage;
+        }
+      }
+      result = fPropertySheetPage;
+    } else if (IDocument.class.equals(required)) {
+      result = getDocumentProvider().getDocument(getEditorInput());
+    } else if (ISourceEditingTextTools.class.equals(required)) {
+      result = createSourceEditingTextTools();
+    } else if (IToggleBreakpointsTarget.class.equals(required)) {
+      result = ToggleBreakpointsTarget.getInstance();
+    } else if (ITextEditorExtension4.class.equals(required)) {
+      result = this;
+    } else if (IShowInTargetList.class.equals(required)) {
+      result = new ShowInTargetListAdapter();
+    } else if (IVerticalRuler.class.equals(required)) {
+      return getVerticalRuler();
+    } else if (SelectionHistory.class.equals(required)) {
+      if (fSelectionHistory == null) {
+        fSelectionHistory = new SelectionHistory(this);
+      }
+      result = fSelectionHistory;
+    } else if (IResource.class.equals(required)) {
+      IEditorInput input = getEditorInput();
+      if (input != null) {
+        result = input.getAdapter(required);
+      }
+    } else {
+      if (result == null && internalModel != null) {
+        result = internalModel.getAdapter(required);
+      }
+      // others
+      if (result == null) {
+        result = super.getAdapter(required);
+      }
+    }
+    if (result == null) {
+//			Logger.log(Logger.INFO_DEBUG, "StructuredTextEditor.getAdapter returning null for " + required); //$NON-NLS-1$
+    }
+    if (org.eclipse.wst.sse.core.internal.util.Debug.perfTestAdapterClassLoading) {
+      long stop = System.currentTimeMillis();
+      adapterRequests++;
+      adapterTime += (stop - startPerfTime);
+    }
+    if (org.eclipse.wst.sse.core.internal.util.Debug.perfTestAdapterClassLoading) {
+      System.out.println("Total calls to getAdapter: " + adapterRequests); //$NON-NLS-1$
+      System.out.println("Total time in getAdapter: " + adapterTime); //$NON-NLS-1$
+      System.out.println("Average time per call: " + (adapterTime / adapterRequests)); //$NON-NLS-1$
+    }
+    return result;
+  }
+
+  /**
+   * Returns this editor part.
+   * <p>
+   * Not API. May be removed in the future.
+   * </p>
+   * 
+   * @return this editor part
+   */
+  public IEditorPart getEditorPart() {
+    if (fEditorPart == null) {
+      return this;
+    }
+    return fEditorPart;
+  }
+
+  /**
+   * Returns this editor's StructuredModel.
+   * <p>
+   * Not API. Will be removed in the future.
+   * </p>
+   * 
+   * @return returns this editor's IStructuredModel
+   * @deprecated - This method allowed for uncontrolled access to the model instance and will be
+   *             removed in the future. It is recommended that the current document provider be
+   *             asked for the current document and the IModelManager then asked for the
+   *             corresponding model with getExistingModelFor*(IDocument). Supported document
+   *             providers ensure that the document maps to a shared structured model.
+   */
+  @Deprecated
+  public IStructuredModel getModel() {
+    IDocumentProvider documentProvider = getDocumentProvider();
+
+    if (documentProvider == null) {
+      // this indicated an error in startup sequence
+      Logger.trace(getClass().getName(),
+          "Program Info Only: document provider was null when model requested"); //$NON-NLS-1$ //$NON-NLS-2$
+    }
+
+    // Remember if we entered this method without a model existing
+    boolean initialModelNull = (fStructuredModel == null);
+
+    if (fStructuredModel == null && documentProvider != null) {
+      // lazily set the model instance, although this is an ABNORMAL
+      // CODE PATH
+      if (documentProvider instanceof IModelProvider) {
+        fStructuredModel = ((IModelProvider) documentProvider).getModel(getEditorInput());
+        fisReleased = false;
+      } else {
+        IDocument doc = documentProvider.getDocument(getEditorInput());
+        if (doc instanceof IStructuredDocument) {
+          /*
+           * Called in this manner because getExistingModel can skip some calculations always
+           * performed in getModelForEdit
+           */
+          IStructuredModel model = StructuredModelManager.getModelManager().getExistingModelForEdit(
+              doc);
+          if (model == null) {
+            model = StructuredModelManager.getModelManager().getModelForEdit(
+                (IStructuredDocument) doc);
+          }
+          fStructuredModel = model;
+          fisReleased = false;
+        }
+      }
+
+      EditorModelUtil.addFactoriesTo(fStructuredModel);
+
+      if (initialModelNull && fStructuredModel != null) {
+        /*
+         * DMW: 9/1/2002 -- why is update called here? No change has been indicated? I'd like to
+         * remove, but will leave for now to avoid breaking this hack. Should measure/breakpoint to
+         * see how large the problem is. May cause performance problems.
+         * 
+         * DMW: 9/8/2002 -- not sure why this was here initially, but the intent/hack must have been
+         * to call update if this was the first time fStructuredModel was set. So, I added the logic
+         * to check for that "first time" case. It would appear we don't really need. may remove in
+         * future when can test more.
+         */
+        update();
+      }
+    }
+    return fStructuredModel;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.eclipse.ui.part.IWorkbenchPartOrientation#getOrientation()
+   */
+  @Override
+  public int getOrientation() {
+    // https://bugs.eclipse.org/bugs/show_bug.cgi?id=88714
+    return SWT.LEFT_TO_RIGHT;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.eclipse.ui.texteditor.ITextEditor#getSelectionProvider()
+   */
+  @Override
+  public ISelectionProvider getSelectionProvider() {
+    if (fStructuredSelectionProvider == null) {
+      ISelectionProvider parentProvider = super.getSelectionProvider();
+      if (parentProvider != null) {
+        fStructuredSelectionProvider = new StructuredSelectionProvider(parentProvider, this);
+        fStructuredSelectionProvider.addPostSelectionChangedListener(new ISelectionChangedListener() {
+          @Override
+          public void selectionChanged(SelectionChangedEvent event) {
+            updateStatusLine(event.getSelection());
+          }
+        });
+        if (fStructuredModel != null) {
+          SelectionConvertor convertor = (SelectionConvertor) fStructuredModel.getAdapter(SelectionConvertor.class);
+          if (convertor != null) {
+            fStructuredSelectionProvider.selectionConvertor = convertor;
+          }
+        }
+      }
+    }
+    if (fStructuredSelectionProvider == null) {
+      return super.getSelectionProvider();
+    }
+    return fStructuredSelectionProvider;
+  }
+
+  /**
+   * Returns the editor's source viewer. This method was created to expose the protected final
+   * getSourceViewer() method.
+   * <p>
+   * Not API. May be removed in the future.
+   * </p>
+   * 
+   * @return the editor's source viewer
+   */
+  public StructuredTextViewer getTextViewer() {
+    return (StructuredTextViewer) getSourceViewer();
+  }
+
+  @Override
+  public Annotation gotoAnnotation(boolean forward) {
+    Annotation result = super.gotoAnnotation(forward);
+    if (result != null) {
+      fSelectionChangedFromGoto = true;
+    }
+    return result;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.eclipse.ui.IEditorPart#init(org.eclipse.ui.IEditorSite, org.eclipse.ui.IEditorInput)
+   */
+  @Override
+  public void init(IEditorSite site, IEditorInput input) throws PartInitException {
+    // if we've gotten an error elsewhere, before
+    // we've actually opened, then don't open.
+    if (shouldClose) {
+      setSite(site);
+      close(false);
+    } else {
+      super.init(site, input);
+    }
+  }
+
+  /**
+   * Set the document provider for this editor.
+   * <p>
+   * Not API. May be removed in the future.
+   * </p>
+   * 
+   * @param documentProvider documentProvider to initialize
+   */
+  public void initializeDocumentProvider(IDocumentProvider documentProvider) {
+    if (documentProvider != null) {
+      setDocumentProvider(documentProvider);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Not API. May be reduced to protected method in the future.
+   * </p>
+   */
+  @Override
+  public void rememberSelection() {
+    /*
+     * This method was made public for use by editors that use StructuredTextEditor (like some
+     * clients)
+     */
+    super.rememberSelection();
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Not API. May be reduced to protected method in the future.
+   * </p>
+   */
+  @Override
+  public void restoreSelection() {
+    /*
+     * This method was made public for use by editors that use StructuredTextEditor (like some
+     * clients)
+     */
+    // catch odd case where source viewer has no text
+    // widget (defect
+    // 227670)
+    if ((getSourceViewer() != null) && (getSourceViewer().getTextWidget() != null)) {
+      super.restoreSelection();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Overridden to expose part activation handling for multi-page editors.
+   * </p>
+   * <p>
+   * Not API. May be reduced to protected method in the future.
+   * </p>
+   * 
+   * @see org.eclipse.ui.texteditor.AbstractTextEditor#safelySanityCheckState(org.eclipse.ui.IEditorInput)
+   */
+  @Override
+  public void safelySanityCheckState(IEditorInput input) {
+    super.safelySanityCheckState(input);
+  }
+
+  /**
+   * Set editor part associated with this editor.
+   * <p>
+   * Not API. May be removed in the future.
+   * </p>
+   * 
+   * @param editorPart editor part associated with this editor
+   */
+  public void setEditorPart(IEditorPart editorPart) {
+    fEditorPart = editorPart;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.eclipse.ui.part.WorkbenchPart#showBusy(boolean)
+   */
+  @Override
+  public void showBusy(boolean busy) {
+    // no-op
+    super.showBusy(busy);
+  }
+
+  /**
+   * Update should be called whenever the model is set or changed (as in swapped)
+   * <p>
+   * Not API. May be removed in the future.
+   * </p>
+   */
+  public void update() {
+    if (fOutlinePage != null && fOutlinePage instanceof ConfigurableContentOutlinePage) {
+      ContentOutlineConfiguration cfg = createContentOutlineConfiguration();
+      ((ConfigurableContentOutlinePage) fOutlinePage).setConfiguration(cfg);
+      IStructuredModel internalModel = getInternalModel();
+      ((ConfigurableContentOutlinePage) fOutlinePage).setInputContentTypeIdentifier(internalModel.getContentTypeIdentifier());
+      ((ConfigurableContentOutlinePage) fOutlinePage).setInput(internalModel);
+    }
+    if (fPropertySheetPage != null && fPropertySheetPage instanceof ConfigurablePropertySheetPage) {
+      PropertySheetConfiguration cfg = createPropertySheetConfiguration();
+      ((ConfigurablePropertySheetPage) fPropertySheetPage).setConfiguration(cfg);
+    }
+    disposeModelDependentFields();
+
+    fShowInTargetIds = createShowInTargetIds();
+
+    if (getSourceViewerConfiguration() instanceof StructuredTextViewerConfiguration
+        && fStatusLineLabelProvider != null) {
+      fStatusLineLabelProvider.dispose();
+    }
+
+    String configurationId = fViewerConfigurationTargetId;
+    updateSourceViewerConfiguration();
+
+    /* Only reinstall if the configuration id has changed */
+    if (configurationId != null && !configurationId.equals(fViewerConfigurationTargetId)) {
+      uninstallSemanticHighlighting();
+      installSemanticHighlighting();
+    }
+
+    if (getSourceViewerConfiguration() instanceof StructuredTextViewerConfiguration) {
+      fStatusLineLabelProvider = ((StructuredTextViewerConfiguration) getSourceViewerConfiguration()).getStatusLineLabelProvider(getSourceViewer());
+      updateStatusLine(null);
+    }
+
+    if (fEncodingSupport != null && fEncodingSupport instanceof EncodingSupport) {
+      ((EncodingSupport) fEncodingSupport).reinitialize(getConfigurationPoints());
+    }
+
+    createModelDependentFields();
+  }
+
+  protected void addContextMenuActions(IMenuManager menu) {
+    // Only offer actions that affect the text if the viewer allows
+    // modification and supports any of these operations
+
+    // Some Design editors (DTD) rely on this view for their own uses
+//    menu.appendToGroup(IWorkbenchActionConstants.GROUP_ADD, fShowPropertiesAction);
+  }
+
+  protected void addExtendedRulerContextMenuActions(IMenuManager menu) {
+    // none at this level
+  }
+
+  protected void addRefactorMenuActions(IMenuManager menu) {
+    IMenuManager subMenu = new MenuManager(SSEUIMessages.RefactorMenu_label,
+        IStructuredTextEditorActionConstants.REFACTOR_CONTEXT_MENU_ID);
+    menu.appendToGroup(ITextEditorActionConstants.GROUP_EDIT, subMenu);
+  }
+
+  protected void addSourceMenuActions(IMenuManager menu) {
+//    IMenuManager subMenu = new MenuManager(SSEUIMessages.SourceMenu_label,
+//        IStructuredTextEditorActionConstants.SOURCE_CONTEXT_MENU_ID);
+//    subMenu.add(new Separator(IStructuredTextEditorActionConstants.SOURCE_BEGIN));
+//    subMenu.add(new Separator(IStructuredTextEditorActionConstants.SOURCE_ADDITIONS));
+//    subMenu.add(new Separator(IStructuredTextEditorActionConstants.SOURCE_END));
+//    menu.appendToGroup(ITextEditorActionConstants.GROUP_EDIT, subMenu);
   }
 
   /*
@@ -1261,6 +1947,7 @@ public class StructuredTextEditor extends TextEditor {
    * 
    * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#collectContextMenuPreferencePages()
    */
+  @Override
   protected String[] collectContextMenuPreferencePages() {
     List allIds = new ArrayList(0);
 
@@ -1299,19 +1986,6 @@ public class StructuredTextEditor extends TextEditor {
     return (String[]) allIds.toArray(new String[0]);
   }
 
-  /**
-   * Compute and set double-click action for the vertical ruler
-   */
-  private void computeAndSetDoubleClickAction() {
-    /*
-     * Make double-clicking on the ruler toggle a breakpoint instead of toggling a bookmark. For
-     * lines where a breakpoint won't be created, create a bookmark through the contributed
-     * RulerDoubleClick action.
-     */
-    setAction(ITextEditorActionConstants.RULER_DOUBLE_CLICK, new ToggleBreakpointAction(this,
-        getVerticalRuler(), getAction(ITextEditorActionConstants.RULER_DOUBLE_CLICK)));
-  }
-
   /*
    * (non-Javadoc)
    * 
@@ -1319,6 +1993,7 @@ public class StructuredTextEditor extends TextEditor {
    * org.eclipse.ui.texteditor.ExtendedTextEditor#configureSourceViewerDecorationSupport(org.eclipse
    * .ui.texteditor.SourceViewerDecorationSupport)
    */
+  @Override
   protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
     support.setCharacterPairMatcher(createCharacterPairMatcher());
     support.setMatchingCharacterPainterPreferenceKeys(EditorPreferenceNames.MATCHING_BRACKETS,
@@ -1327,6 +2002,7 @@ public class StructuredTextEditor extends TextEditor {
     super.configureSourceViewerDecorationSupport(support);
   }
 
+  @Override
   protected void createActions() {
     super.createActions();
     ResourceBundle resourceBundle = SSEUIMessages.getResourceBundle();
@@ -1457,6 +2133,7 @@ public class StructuredTextEditor extends TextEditor {
     fFoldingGroup = new FoldingActionGroup(this, getSourceViewer());
   }
 
+  @Override
   protected LineChangeHover createChangeHover() {
     return super.createChangeHover(); //new StructuredLineChangeHover();
   }
@@ -1476,114 +2153,13 @@ public class StructuredTextEditor extends TextEditor {
     return matcher;
   }
 
-  /**
-   * Create a preference store that combines the source editor preferences with the base editor's
-   * preferences.
-   * 
-   * @return IPreferenceStore
-   */
-  private IPreferenceStore createCombinedPreferenceStore() {
-    IPreferenceStore sseEditorPrefs = SSEUIPlugin.getDefault().getPreferenceStore();
-    IPreferenceStore baseEditorPrefs = EditorsUI.getPreferenceStore();
-    return new ChainedPreferenceStore(new IPreferenceStore[] {sseEditorPrefs, baseEditorPrefs});
-  }
-
-  private ContentOutlineConfiguration createContentOutlineConfiguration() {
-    ContentOutlineConfiguration cfg = null;
-    ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
-    String[] ids = getConfigurationPoints();
-    for (int i = 0; cfg == null && i < ids.length; i++) {
-      cfg = (ContentOutlineConfiguration) builder.getConfiguration(
-          ExtendedConfigurationBuilder.CONTENTOUTLINECONFIGURATION, ids[i]);
-    }
-    return cfg;
-  }
-
   protected void createModelDependentFields() {
     if (fStructuredSelectionProvider != null) {
       SelectionConvertor convertor = (SelectionConvertor) fStructuredModel.getAdapter(SelectionConvertor.class);
-      if (convertor != null)
+      if (convertor != null) {
         fStructuredSelectionProvider.selectionConvertor = convertor;
-      else
+      } else {
         fStructuredSelectionProvider.selectionConvertor = new SelectionConvertor();
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * Use StructuredTextViewerConfiguration if a viewerconfiguration has not already been set. Also
-   * initialize StructuredTextViewer.
-   * </p>
-   * 
-   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#createPartControl(org.eclipse.swt.widgets.Composite)
-   */
-  public void createPartControl(Composite parent) {
-    IContextService contextService = (IContextService) getSite().getService(IContextService.class);
-    if (contextService != null)
-      contextService.activateContext(EDITOR_KEYBINDING_SCOPE_ID);
-
-    if (getSourceViewerConfiguration() == null) {
-      ConfigurationAndTarget cat = createSourceViewerConfiguration();
-      fViewerConfigurationTargetId = cat.getTargetId();
-      StructuredTextViewerConfiguration newViewerConfiguration = cat.getConfiguration();
-      setSourceViewerConfiguration(newViewerConfiguration);
-    }
-
-    super.createPartControl(parent);
-
-    // instead of calling setInput twice, use initializeSourceViewer() to
-    // handle source viewer initialization previously handled by setInput
-    initializeSourceViewer();
-
-    // update editor context menu, vertical ruler context menu, infopop
-    if (getInternalModel() != null) {
-      updateEditorControlsForContentType(getInternalModel().getContentTypeIdentifier());
-    } else {
-      updateEditorControlsForContentType(null);
-    }
-
-    // used for Show Tooltip Description
-    IInformationControlCreator informationControlCreator = new IInformationControlCreator() {
-      public IInformationControl createInformationControl(Shell shell) {
-        boolean cutDown = false;
-        int style = cutDown ? SWT.NONE : (SWT.V_SCROLL | SWT.H_SCROLL);
-        return new DefaultInformationControl(shell, SWT.RESIZE | SWT.TOOL, style,
-            new HTMLTextPresenter(cutDown));
-      }
-    };
-
-    fInformationPresenter = new InformationPresenter(informationControlCreator);
-    fInformationPresenter.setSizeConstraints(60, 10, true, true);
-    fInformationPresenter.install(getSourceViewer());
-    addReconcilingListeners(getSourceViewerConfiguration(), getTextViewer());
-    fPartListener = new PartListener(this);
-    getSite().getWorkbenchWindow().getPartService().addPartListener(fPartListener);
-    installSemanticHighlighting();
-    if (fOutlineHandler != null) {
-      IInformationPresenter presenter = configureOutlinePresenter(getSourceViewer(),
-          getSourceViewerConfiguration());
-      if (presenter != null) {
-        presenter.install(getSourceViewer());
-        fOutlineHandler.configure(presenter);
-      }
-    }
-    installCharacterPairing();
-    ISourceViewer viewer = getSourceViewer();
-    if (viewer instanceof ITextViewerExtension) {
-      ((ITextViewerExtension) viewer).appendVerifyKeyListener(fPairInserter);
-      fPairInserter.installCompletionListener();
-    }
-
-    if (Platform.getProduct() != null) {
-      String viewID = Platform.getProduct().getProperty("idPerspectiveHierarchyView"); //$NON-NLS-1$);
-      if (viewID != null) {
-        // make sure the specified view ID is known
-        if (PlatformUI.getWorkbench().getViewRegistry().find(viewID) != null) {
-          fShowInTargetIds = new String[] {
-              viewID, IPageLayout.ID_PROJECT_EXPLORER, IPageLayout.ID_RES_NAV,
-              IPageLayout.ID_OUTLINE};
-        }
       }
     }
   }
@@ -1600,92 +2176,9 @@ public class StructuredTextEditor extends TextEditor {
   }
 
   /**
-   * Loads the Show In Target IDs from the Extended Configuration extension point.
-   * 
-   * @return
-   */
-  private String[] createShowInTargetIds() {
-    List allIds = new ArrayList(0);
-    ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
-    String[] configurationIds = getConfigurationPoints();
-    for (int i = 0; i < configurationIds.length; i++) {
-      String[] definitions = builder.getDefinitions("showintarget", configurationIds[i]); //$NON-NLS-1$
-      for (int j = 0; j < definitions.length; j++) {
-        String someIds = definitions[j];
-        if (someIds != null && someIds.length() > 0) {
-          String[] ids = StringUtils.unpack(someIds);
-          for (int k = 0; k < ids.length; k++) {
-            // trim, just to keep things clean
-            String id = ids[k].trim();
-            if (!allIds.contains(id)) {
-              allIds.add(id);
-            }
-          }
-        }
-      }
-    }
-
-    if (!allIds.contains(IPageLayout.ID_RES_NAV)) {
-      allIds.add(IPageLayout.ID_RES_NAV);
-    }
-    if (!allIds.contains(IPageLayout.ID_PROJECT_EXPLORER)) {
-      allIds.add(IPageLayout.ID_PROJECT_EXPLORER);
-    }
-    if (!allIds.contains(IPageLayout.ID_OUTLINE)) {
-      allIds.add(IPageLayout.ID_OUTLINE);
-    }
-    return (String[]) allIds.toArray(new String[0]);
-  }
-
-  /**
-   * @return
-   */
-  private ISourceEditingTextTools createSourceEditingTextTools() {
-    ISourceEditingTextTools tools = null;
-    ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
-    String[] ids = getConfigurationPoints();
-    for (int i = 0; tools == null && i < ids.length; i++) {
-      tools = (ISourceEditingTextTools) builder.getConfiguration(NullSourceEditingTextTools.ID,
-          ids[i]);
-    }
-    if (tools == null) {
-      tools = NullSourceEditingTextTools.getInstance();
-      ((NullSourceEditingTextTools) tools).setTextEditor(this);
-    }
-    Method method = null; //$NON-NLS-1$
-    try {
-      method = tools.getClass().getMethod("setTextEditor", new Class[] {StructuredTextEditor.class}); //$NON-NLS-1$
-    } catch (NoSuchMethodException e) {
-    }
-    if (method == null) {
-      try {
-        method = tools.getClass().getMethod("setTextEditor", new Class[] {ITextEditor.class}); //$NON-NLS-1$
-      } catch (NoSuchMethodException e) {
-      }
-    }
-    if (method == null) {
-      try {
-        method = tools.getClass().getMethod("setTextEditor", new Class[] {IEditorPart.class}); //$NON-NLS-1$
-      } catch (NoSuchMethodException e) {
-      }
-    }
-    if (method != null) {
-      if (!method.isAccessible()) {
-        method.setAccessible(true);
-      }
-      try {
-        method.invoke(tools, new Object[] {this});
-      } catch (Exception e) {
-        Logger.logException("Problem creating ISourceEditingTextTools implementation", e); //$NON-NLS-1$
-      }
-    }
-
-    return tools;
-  }
-
-  /**
    * Creates the source viewer to be used by this editor
    */
+  @Override
   protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler verticalRuler,
       int styles) {
     fAnnotationAccess = createAnnotationAccess();
@@ -1695,30 +2188,13 @@ public class StructuredTextEditor extends TextEditor {
     return sourceViewer;
   }
 
-  private ConfigurationAndTarget createSourceViewerConfiguration() {
-    ConfigurationAndTarget cat = null;
-    StructuredTextViewerConfiguration cfg = null;
-    ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
-    String[] ids = getConfigurationPoints();
-    for (int i = 0; cfg == null && i < ids.length; i++) {
-      cfg = (StructuredTextViewerConfiguration) builder.getConfiguration(
-          ExtendedConfigurationBuilder.SOURCEVIEWERCONFIGURATION, ids[i]);
-      cat = new ConfigurationAndTarget(ids[i], cfg);
-    }
-    if (cfg == null) {
-      cfg = new StructuredTextViewerConfiguration();
-      String targetid = getClass().getName() + "#default"; //$NON-NLS-1$
-      cat = new ConfigurationAndTarget(targetid, cfg);
-    }
-    return cat;
-  }
-
   protected StructuredTextViewer createStructedTextViewer(Composite parent,
       IVerticalRuler verticalRuler, int styles) {
     return new StructuredTextViewer(parent, verticalRuler, getOverviewRuler(),
         isOverviewRulerVisible(), styles);
   }
 
+  @Override
   protected void createUndoRedoActions() {
     // overridden to add icons to actions
     // https://bugs.eclipse.org/bugs/show_bug.cgi?id=111877
@@ -1739,144 +2215,9 @@ public class StructuredTextEditor extends TextEditor {
   /*
    * (non-Javadoc)
    * 
-   * @see org.eclipse.ui.IWorkbenchPart#dispose()
-   */
-  public void dispose() {
-    Logger.trace("Source Editor", "StructuredTextEditor::dispose entry"); //$NON-NLS-1$ //$NON-NLS-2$
-    if (org.eclipse.wst.sse.core.internal.util.Debug.perfTestAdapterClassLoading) {
-      System.out.println("Total calls to getAdapter: " + adapterRequests); //$NON-NLS-1$
-      System.out.println("Total time in getAdapter: " + adapterTime); //$NON-NLS-1$
-      System.out.println("Average time per call: " + (adapterTime / adapterRequests)); //$NON-NLS-1$
-    }
-
-    ISourceViewer viewer = getSourceViewer();
-    if (viewer instanceof ITextViewerExtension)
-      ((ITextViewerExtension) viewer).removeVerifyKeyListener(fPairInserter);
-
-    // dispose of information presenter
-    if (fInformationPresenter != null) {
-      fInformationPresenter.dispose();
-      fInformationPresenter = null;
-    }
-
-    if (fOutlineHandler != null) {
-      fOutlineHandler.dispose();
-    }
-    // dispose of selection history
-    if (fSelectionHistory != null) {
-      fSelectionHistory.dispose();
-      fSelectionHistory = null;
-    }
-
-    if (fProjectionSupport != null) {
-      fProjectionSupport.dispose();
-      fProjectionSupport = null;
-    }
-
-    if (fFoldingGroup != null) {
-      fFoldingGroup.dispose();
-      fFoldingGroup = null;
-    }
-
-    // dispose of menus that were being tracked
-    if (fTextContextMenu != null) {
-      fTextContextMenu.dispose();
-    }
-    if (fRulerContextMenu != null) {
-      fRulerContextMenu.dispose();
-      fRulerContextMenu = null;
-    }
-    if (fTextContextMenuManager != null) {
-      fTextContextMenuManager.removeMenuListener(getContextMenuListener());
-      fTextContextMenuManager.removeAll();
-      fTextContextMenuManager.dispose();
-    }
-    if (fRulerContextMenuManager != null) {
-      fRulerContextMenuManager.removeMenuListener(getContextMenuListener());
-      fRulerContextMenuManager.removeAll();
-      fRulerContextMenuManager.dispose();
-    }
-
-    // added this 2/20/2004 based on probe results --
-    // seems should be handled by setModel(null), but
-    // that's a more radical change.
-    // and, technically speaking, should not be needed,
-    // but makes a memory leak
-    // less severe.
-    if (fStructuredModel != null) {
-      fStructuredModel.removeModelStateListener(getInternalModelStateListener());
-    }
-
-    // BUG155335 - if there was no document provider, there was nothing
-    // added
-    // to document, so nothing to remove
-    if (getDocumentProvider() != null) {
-      IDocument doc = getDocumentProvider().getDocument(getEditorInput());
-      if (doc != null) {
-        if (doc instanceof IExecutionDelegatable) {
-          ((IExecutionDelegatable) doc).setExecutionDelegate(null);
-        }
-      }
-    }
-
-    // some things in the configuration need to clean
-    // up after themselves
-    if (fOutlinePage != null) {
-      if (fOutlinePage instanceof ConfigurableContentOutlinePage && fOutlinePageListener != null) {
-        ((ConfigurableContentOutlinePage) fOutlinePage).removeDoubleClickListener(fOutlinePageListener);
-      }
-      if (fOutlinePageListener != null) {
-        fOutlinePage.removeSelectionChangedListener(fOutlinePageListener);
-      }
-      fOutlinePage = null;
-    }
-
-    fEditorDisposed = true;
-    disposeModelDependentFields();
-
-    if (fDropTarget != null)
-      fDropTarget.dispose();
-
-    if (fPartListener != null) {
-      getSite().getWorkbenchWindow().getPartService().removePartListener(fPartListener);
-      fPartListener = null;
-    }
-
-    uninstallSemanticHighlighting();
-
-    if (fPairInserter != null) {
-      fPairInserter.dispose();
-    }
-
-    setPreferenceStore(null);
-
-    /*
-     * Strictly speaking, but following null outs should not be needed, but in the event of a memory
-     * leak, they make the memory leak less severe
-     */
-    fDropAdapter = null;
-    fDropTarget = null;
-
-    if (fStructuredSelectionProvider != null) {
-      fStructuredSelectionProvider.dispose();
-    }
-
-    if (fStatusLineLabelProvider != null) {
-      fStatusLineLabelProvider.dispose();
-    }
-
-    setStatusLineMessage(null);
-
-    super.dispose();
-
-    Logger.trace("Source Editor", "StructuredTextEditor::dispose exit"); //$NON-NLS-1$ //$NON-NLS-2$
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
    * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#disposeDocumentProvider()
    */
+  @Override
   protected void disposeDocumentProvider() {
     if (fStructuredModel != null && !fisReleased
         && !(getDocumentProvider() instanceof IModelProvider)) {
@@ -1886,56 +2227,12 @@ public class StructuredTextEditor extends TextEditor {
     super.disposeDocumentProvider();
   }
 
-  /**
-   * Disposes model specific editor helpers such as statusLineHelper. Basically any code repeated in
-   * update() & dispose() should be placed here.
-   */
-  private void disposeModelDependentFields() {
-    if (fStructuredSelectionProvider != null)
-      fStructuredSelectionProvider.selectionConvertor = new SelectionConvertor();
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.texteditor.ITextEditor#doRevertToSaved()
-   */
-  public void doRevertToSaved() {
-    super.doRevertToSaved();
-    if (fOutlinePage != null && fOutlinePage instanceof IUpdate) {
-      ((IUpdate) fOutlinePage).update();
-    }
-    // reset undo
-    IDocument doc = getDocumentProvider().getDocument(getEditorInput());
-    if (doc instanceof IStructuredDocument) {
-      ((IStructuredDocument) doc).getUndoManager().getCommandStack().flush();
-    }
-
-    // update menu text
-    updateMenuText();
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.ISaveablePart#doSave(org.eclipse.core.runtime.IProgressMonitor)
-   */
-  public void doSave(IProgressMonitor progressMonitor) {
-    IStructuredModel model = null;
-    try {
-      model = aboutToSaveModel();
-      updateEncodingMemento();
-      super.doSave(progressMonitor);
-    } finally {
-      savedModel(model);
-    }
-  }
-
   /*
    * (non-Javadoc)
    * 
    * @see org.eclipse.ui.texteditor.AbstractTextEditor#doSetInput(org.eclipse.ui.IEditorInput)
    */
+  @Override
   protected void doSetInput(IEditorInput input) throws CoreException {
     IEditorInput oldInput = getEditorInput();
     if (oldInput != null) {
@@ -1990,223 +2287,53 @@ public class StructuredTextEditor extends TextEditor {
     setInsertMode(SMART_INSERT);
   }
 
-  /**
-   * <p>
-   * Attempts to get the {@link IStructuredModel} for the given {@link IEditorInput}
-   * </p>
-   * 
-   * @param input the {@link IEditorInput} to try and get the {@link IStructuredModel} for
-   * @return The {@link IStructuredModel} associated with the given {@link IEditorInput} or
-   *         <code>null</code> if no associated {@link IStructuredModel} could be found.
-   */
-  private IStructuredModel tryToGetModel(IEditorInput input) {
-    IStructuredModel model = null;
+  protected void editorContextMenuAboutToShow2(IMenuManager menu) {
 
-    IDocument newDocument = getDocumentProvider().getDocument(input);
-    if (newDocument instanceof IExecutionDelegatable) {
-      ((IExecutionDelegatable) newDocument).setExecutionDelegate(new EditorExecutionContext(this));
-    }
+    menu.add(new Separator(ITextEditorActionConstants.GROUP_UNDO));
+//    menu.add(new GroupMarker(ITextEditorActionConstants.GROUP_SAVE));
+    menu.add(new Separator(ITextEditorActionConstants.GROUP_COPY));
+//    menu.add(new Separator(ITextEditorActionConstants.GROUP_PRINT));
+    menu.add(new Separator(ITextEditorActionConstants.GROUP_EDIT));
+//    menu.add(new Separator(ITextEditorActionConstants.GROUP_FIND));
+//    menu.add(new Separator(IWorkbenchActionConstants.GROUP_ADD));
+//    menu.add(new Separator(ITextEditorActionConstants.GROUP_REST));
+//    menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 
-    // if we have a Model provider, get the model from it
-    if (getDocumentProvider() instanceof IModelProvider) {
-      model = ((IModelProvider) getDocumentProvider()).getModel(getEditorInput());
-      if (!model.isShared()) {
-        EditorModelUtil.addFactoriesTo(model);
-      }
-    } else if (newDocument instanceof IStructuredDocument) {
-      // corresponding releaseFromEdit occurs in dispose()
-      model = StructuredModelManager.getModelManager().getModelForEdit(
-          (IStructuredDocument) newDocument);
-      EditorModelUtil.addFactoriesTo(model);
-    }
-
-    return model;
-  }
-
-  /**
-   * Sets up this editor's context menu before it is made visible.
-   * <p>
-   * Not API. May be reduced to protected method in the future.
-   * </p>
-   * 
-   * @param menu the menu
-   */
-  public void editorContextMenuAboutToShow(IMenuManager menu) {
-    /*
-     * To be consistent with the Java Editor, we want to remove ShiftRight and ShiftLeft from the
-     * context menu.
-     */
-    super.editorContextMenuAboutToShow(menu);
-    menu.remove(ITextEditorActionConstants.SHIFT_LEFT);
-    menu.remove(ITextEditorActionConstants.SHIFT_RIGHT);
-
-    addContextMenuActions(menu);
-    addSourceMenuActions(menu);
-    addRefactorMenuActions(menu);
-    addExtendedContextMenuActions(menu);
-  }
-
-  /**
-   * End background mode.
-   * <p>
-   * Not API. May be removed in the future.
-   * </p>
-   */
-  void endBackgroundOperation() {
-    fBackgroundJobEnded = true;
-    // note, we don't immediately end our 'internal busy' state,
-    // since we may get many calls in a short period of
-    // time. We always wait for the time out.
-    resetBusyState();
-  }
-
-  /**
-   * Note this method can be called indirectly from background job operation ... but expected to be
-   * gaurded there with ILock, plus, can be called directly from timer thread, so the timer's run
-   * method guards with ILock too. Set result[0] to 1 if the busy state was ended successfully
-   */
-  private void endBusyStateInternal(byte[] result) {
-    if (fBackgroundJobEnded) {
-      result[0] = 1;
-      showBusy(false);
-
-      ISourceViewer viewer = getSourceViewer();
-      if (viewer instanceof StructuredTextViewer) {
-        ((StructuredTextViewer) viewer).endBackgroundUpdate();
-      }
-      fBusyState = false;
-    } else {
-      // we will only be in this branch for a back ground job that is
-      // taking
-      // longer than our normal time-out period (meaning we got notified
-      // of
-      // the timeout "inbetween" calls to 'begin' and
-      // 'endBackgroundOperation'.
-      // (which, remember, can only happen since there are many calls to
-      // begin/end in a short period of time, and we only "reset" on the
-      // 'ends').
-      // In this event, there's really nothing to do, we're still in
-      // "busy state"
-      // and should start a new reset cycle once endBackgroundjob is
-      // called.
-    }
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.core.runtime.IAdaptable#getAdapter(java.lang.Class)
-   */
-  public Object getAdapter(Class required) {
-    if (org.eclipse.wst.sse.core.internal.util.Debug.perfTestAdapterClassLoading) {
-      startPerfTime = System.currentTimeMillis();
-    }
-    Object result = null;
-    // text editor
-    IStructuredModel internalModel = getInternalModel();
-    if (ITextEditor.class.equals(required) || ITextEditorExtension5.class.equals(required)
-        || ITextEditorExtension4.class.equals(required)
-        || ITextEditorExtension3.class.equals(required)
-        || ITextEditorExtension2.class.equals(required)
-        || ITextEditorExtension.class.equals(required)) {
-      result = this;
-    } else if (IWorkbenchSiteProgressService.class.equals(required)) {
-      return getEditorPart().getSite().getAdapter(IWorkbenchSiteProgressService.class);
-    }
-    // content outline page
-    else if (IContentOutlinePage.class.equals(required)) {
-      if (fOutlinePage == null && isCalledByOutline()) {
-        ContentOutlineConfiguration cfg = createContentOutlineConfiguration();
-        if (cfg != null) {
-          ConfigurableContentOutlinePage outlinePage = new ConfigurableContentOutlinePage();
-          outlinePage.setConfiguration(cfg);
-          if (internalModel != null) {
-            outlinePage.setInputContentTypeIdentifier(internalModel.getContentTypeIdentifier());
-            outlinePage.setInput(internalModel);
-          }
-
-          if (fOutlinePageListener == null) {
-            fOutlinePageListener = new OutlinePageListener();
-          }
-
-          outlinePage.addSelectionChangedListener(fOutlinePageListener);
-          outlinePage.addDoubleClickListener(fOutlinePageListener);
-
-          fOutlinePage = outlinePage;
-        }
-      }
-      result = fOutlinePage;
-    }
-    // property sheet page, but only if the input's editable
-    else if (IPropertySheetPage.class.equals(required) && isEditable()) {
-      if (fPropertySheetPage == null || fPropertySheetPage.getControl() == null
-          || fPropertySheetPage.getControl().isDisposed()) {
-        PropertySheetConfiguration cfg = createPropertySheetConfiguration();
-        if (cfg != null) {
-          ConfigurablePropertySheetPage propertySheetPage = new ConfigurablePropertySheetPage();
-          propertySheetPage.setConfiguration(cfg);
-          fPropertySheetPage = propertySheetPage;
-        }
-      }
-      result = fPropertySheetPage;
-    } else if (IDocument.class.equals(required)) {
-      result = getDocumentProvider().getDocument(getEditorInput());
-    } else if (ISourceEditingTextTools.class.equals(required)) {
-      result = createSourceEditingTextTools();
-    } else if (IToggleBreakpointsTarget.class.equals(required)) {
-      result = ToggleBreakpointsTarget.getInstance();
-    } else if (ITextEditorExtension4.class.equals(required)) {
-      result = this;
-    } else if (IShowInTargetList.class.equals(required)) {
-      result = new ShowInTargetListAdapter();
-    } else if (IVerticalRuler.class.equals(required)) {
-      return getVerticalRuler();
-    } else if (SelectionHistory.class.equals(required)) {
-      if (fSelectionHistory == null)
-        fSelectionHistory = new SelectionHistory(this);
-      result = fSelectionHistory;
-    } else if (IResource.class.equals(required)) {
-      IEditorInput input = getEditorInput();
-      if (input != null) {
-        result = input.getAdapter(required);
+    if (isEditable()) {
+      addAction(menu, ITextEditorActionConstants.GROUP_UNDO, ITextEditorActionConstants.UNDO);
+      addAction(menu, ITextEditorActionConstants.GROUP_UNDO,
+          ITextEditorActionConstants.REVERT_TO_SAVED);
+//      addAction(menu, ITextEditorActionConstants.GROUP_SAVE, ITextEditorActionConstants.SAVE);
+      addAction(menu, ITextEditorActionConstants.GROUP_COPY, ITextEditorActionConstants.CUT);
+      addAction(menu, ITextEditorActionConstants.GROUP_COPY, ITextEditorActionConstants.COPY);
+      addAction(menu, ITextEditorActionConstants.GROUP_COPY, ITextEditorActionConstants.PASTE);
+      IAction action = getAction(ITextEditorActionConstants.QUICK_ASSIST);
+      if (action != null && action.isEnabled()) {
+        addAction(menu, ITextEditorActionConstants.GROUP_EDIT,
+            ITextEditorActionConstants.QUICK_ASSIST);
       }
     } else {
-      if (result == null && internalModel != null) {
-        result = internalModel.getAdapter(required);
-      }
-      // others
-      if (result == null)
-        result = super.getAdapter(required);
+      addAction(menu, ITextEditorActionConstants.GROUP_COPY, ITextEditorActionConstants.COPY);
     }
-    if (result == null) {
-//			Logger.log(Logger.INFO_DEBUG, "StructuredTextEditor.getAdapter returning null for " + required); //$NON-NLS-1$
-    }
-    if (org.eclipse.wst.sse.core.internal.util.Debug.perfTestAdapterClassLoading) {
-      long stop = System.currentTimeMillis();
-      adapterRequests++;
-      adapterTime += (stop - startPerfTime);
-    }
-    if (org.eclipse.wst.sse.core.internal.util.Debug.perfTestAdapterClassLoading) {
-      System.out.println("Total calls to getAdapter: " + adapterRequests); //$NON-NLS-1$
-      System.out.println("Total time in getAdapter: " + adapterTime); //$NON-NLS-1$
-      System.out.println("Average time per call: " + (adapterTime / adapterRequests)); //$NON-NLS-1$
-    }
-    return result;
-  }
 
-  private String[] getConfigurationPoints() {
-    String contentTypeIdentifierID = null;
-    if (getInternalModel() != null) {
-      contentTypeIdentifierID = getInternalModel().getContentTypeIdentifier();
-    }
-    return ConfigurationPointCalculator.getConfigurationPoints(this, contentTypeIdentifierID,
-        ConfigurationPointCalculator.SOURCE, StructuredTextEditor.class);
+//    IAction preferencesAction = getAction(ITextEditorActionConstants.CONTEXT_PREFERENCES);
+//    menu.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, new Separator(
+//        ITextEditorActionConstants.GROUP_SETTINGS));
+//    menu.appendToGroup(ITextEditorActionConstants.GROUP_SETTINGS, preferencesAction);
+    menu.add(new GroupMarker(ITextEditorActionConstants.GROUP_SAVE));
+    menu.appendToGroup(ITextEditorActionConstants.GROUP_SAVE, new Separator(
+        ITextEditorActionConstants.GROUP_OPEN));
+
+    // Removed Open With submenu
+
+    // Removed Show In submenu
   }
 
   /**
    * added checks to overcome bug such that if we are shutting down in an error condition, then
    * viewer will have already been disposed.
    */
+  @Override
   protected String getCursorPosition() {
     String result = null;
     // this may be too expensive in terms of
@@ -2223,140 +2350,15 @@ public class StructuredTextEditor extends TextEditor {
     return result;
   }
 
-  Display getDisplay() {
-    return PlatformUI.getWorkbench().getDisplay();
-  }
-
-  /**
-   * Returns this editor part.
-   * <p>
-   * Not API. May be removed in the future.
-   * </p>
-   * 
-   * @return this editor part
-   */
-  public IEditorPart getEditorPart() {
-    if (fEditorPart == null)
-      return this;
-    return fEditorPart;
-  }
-
-  IStructuredModel getInternalModel() {
-    return fStructuredModel;
-  }
-
-  private InternalModelStateListener getInternalModelStateListener() {
-    if (fInternalModelStateListener == null) {
-      fInternalModelStateListener = new InternalModelStateListener();
-    }
-    return fInternalModelStateListener;
-  }
-
-  /**
-   * Returns this editor's StructuredModel.
-   * <p>
-   * Not API. Will be removed in the future.
-   * </p>
-   * 
-   * @return returns this editor's IStructuredModel
-   * @deprecated - This method allowed for uncontrolled access to the model instance and will be
-   *             removed in the future. It is recommended that the current document provider be
-   *             asked for the current document and the IModelManager then asked for the
-   *             corresponding model with getExistingModelFor*(IDocument). Supported document
-   *             providers ensure that the document maps to a shared structured model.
-   */
-  public IStructuredModel getModel() {
-    IDocumentProvider documentProvider = getDocumentProvider();
-
-    if (documentProvider == null) {
-      // this indicated an error in startup sequence
-      Logger.trace(getClass().getName(),
-          "Program Info Only: document provider was null when model requested"); //$NON-NLS-1$ //$NON-NLS-2$
-    }
-
-    // Remember if we entered this method without a model existing
-    boolean initialModelNull = (fStructuredModel == null);
-
-    if (fStructuredModel == null && documentProvider != null) {
-      // lazily set the model instance, although this is an ABNORMAL
-      // CODE PATH
-      if (documentProvider instanceof IModelProvider) {
-        fStructuredModel = ((IModelProvider) documentProvider).getModel(getEditorInput());
-        fisReleased = false;
-      } else {
-        IDocument doc = documentProvider.getDocument(getEditorInput());
-        if (doc instanceof IStructuredDocument) {
-          /*
-           * Called in this manner because getExistingModel can skip some calculations always
-           * performed in getModelForEdit
-           */
-          IStructuredModel model = StructuredModelManager.getModelManager().getExistingModelForEdit(
-              doc);
-          if (model == null) {
-            model = StructuredModelManager.getModelManager().getModelForEdit(
-                (IStructuredDocument) doc);
-          }
-          fStructuredModel = model;
-          fisReleased = false;
-        }
-      }
-
-      EditorModelUtil.addFactoriesTo(fStructuredModel);
-
-      if (initialModelNull && fStructuredModel != null) {
-        /*
-         * DMW: 9/1/2002 -- why is update called here? No change has been indicated? I'd like to
-         * remove, but will leave for now to avoid breaking this hack. Should measure/breakpoint to
-         * see how large the problem is. May cause performance problems.
-         * 
-         * DMW: 9/8/2002 -- not sure why this was here initially, but the intent/hack must have been
-         * to call update if this was the first time fStructuredModel was set. So, I added the logic
-         * to check for that "first time" case. It would appear we don't really need. may remove in
-         * future when can test more.
-         */
-        update();
-      }
-    }
-    return fStructuredModel;
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.part.IWorkbenchPartOrientation#getOrientation()
-   */
-  public int getOrientation() {
-    // https://bugs.eclipse.org/bugs/show_bug.cgi?id=88714
-    return SWT.LEFT_TO_RIGHT;
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.texteditor.ITextEditor#getSelectionProvider()
-   */
-  public ISelectionProvider getSelectionProvider() {
-    if (fStructuredSelectionProvider == null) {
-      ISelectionProvider parentProvider = super.getSelectionProvider();
-      if (parentProvider != null) {
-        fStructuredSelectionProvider = new StructuredSelectionProvider(parentProvider, this);
-        fStructuredSelectionProvider.addPostSelectionChangedListener(new ISelectionChangedListener() {
-          public void selectionChanged(SelectionChangedEvent event) {
-            updateStatusLine(event.getSelection());
-          }
-        });
-        if (fStructuredModel != null) {
-          SelectionConvertor convertor = (SelectionConvertor) fStructuredModel.getAdapter(SelectionConvertor.class);
-          if (convertor != null) {
-            fStructuredSelectionProvider.selectionConvertor = convertor;
-          }
-        }
-      }
-    }
-    if (fStructuredSelectionProvider == null) {
-      return super.getSelectionProvider();
-    }
-    return fStructuredSelectionProvider;
+  @Override
+  protected SourceViewerDecorationSupport getSourceViewerDecorationSupport(ISourceViewer viewer) {
+    /*
+     * Removed workaround for Bug [206913] source annotations are not painting in source editors.
+     * With the new presentation reconciler, we no longer need to force the painting. This actually
+     * caused Bug [219776] Wrong annotation display on macs. We forced the Squiggles strategy, even
+     * when the native problem underline was specified for annotations
+     */
+    return super.getSourceViewerDecorationSupport(viewer);
   }
 
   /*
@@ -2366,88 +2368,9 @@ public class StructuredTextEditor extends TextEditor {
    * 
    * Overridden to use the top-level editor part's status line
    */
+  @Override
   protected IStatusLineManager getStatusLineManager() {
     return getEditorPart().getEditorSite().getActionBars().getStatusLineManager();
-  }
-
-  /**
-   * Returns the editor's source viewer. This method was created to expose the protected final
-   * getSourceViewer() method.
-   * <p>
-   * Not API. May be removed in the future.
-   * </p>
-   * 
-   * @return the editor's source viewer
-   */
-  public StructuredTextViewer getTextViewer() {
-    return (StructuredTextViewer) getSourceViewer();
-  }
-
-  /**
-   * Jumps to the matching bracket.
-   */
-  void gotoMatchingBracket() {
-    ICharacterPairMatcher matcher = createCharacterPairMatcher();
-    if (matcher == null)
-      return;
-
-    ISourceViewer sourceViewer = getSourceViewer();
-    IDocument document = sourceViewer.getDocument();
-    if (document == null)
-      return;
-
-    IRegion selection = getSignedSelection(sourceViewer);
-
-    int selectionLength = Math.abs(selection.getLength());
-    if (selectionLength > 1) {
-      setStatusLineErrorMessage(SSEUIMessages.GotoMatchingBracket_error_invalidSelection);
-      sourceViewer.getTextWidget().getDisplay().beep();
-      return;
-    }
-
-    int sourceCaretOffset = selection.getOffset() + selection.getLength();
-    IRegion region = matcher.match(document, sourceCaretOffset);
-    if (region == null) {
-      setStatusLineErrorMessage(SSEUIMessages.GotoMatchingBracket_error_noMatchingBracket);
-      sourceViewer.getTextWidget().getDisplay().beep();
-      return;
-    }
-
-    int offset = region.getOffset();
-    int length = region.getLength();
-
-    if (length < 1)
-      return;
-
-    int anchor = matcher.getAnchor();
-
-    // go to after the match if matching to the right
-    int targetOffset = (ICharacterPairMatcher.RIGHT == anchor) ? offset : offset + length;
-
-    boolean visible = false;
-    if (sourceViewer instanceof ITextViewerExtension5) {
-      ITextViewerExtension5 extension = (ITextViewerExtension5) sourceViewer;
-      visible = (extension.modelOffset2WidgetOffset(targetOffset) > -1);
-    } else {
-      IRegion visibleRegion = sourceViewer.getVisibleRegion();
-      // http://dev.eclipse.org/bugs/show_bug.cgi?id=34195
-      visible = (targetOffset >= visibleRegion.getOffset() && targetOffset <= visibleRegion.getOffset()
-          + visibleRegion.getLength());
-    }
-
-    if (!visible) {
-      setStatusLineErrorMessage(SSEUIMessages.GotoMatchingBracket_error_bracketOutsideSelectedElement);
-      sourceViewer.getTextWidget().getDisplay().beep();
-      return;
-    }
-
-    if (selection.getLength() < 0)
-      targetOffset -= selection.getLength();
-
-    if (sourceViewer != null) {
-      sourceViewer.setSelectedRange(targetOffset, selection.getLength());
-      sourceViewer.revealRange(targetOffset, selection.getLength());
-    }
   }
 
   /*
@@ -2455,11 +2378,13 @@ public class StructuredTextEditor extends TextEditor {
    * 
    * @see org.eclipse.ui.texteditor.AbstractTextEditor#handleCursorPositionChanged()
    */
+  @Override
   protected void handleCursorPositionChanged() {
     super.handleCursorPositionChanged();
     updateStatusField(StructuredTextEditorActionConstants.STATUS_CATEGORY_OFFSET);
   }
 
+  @Override
   protected void handleElementContentReplaced() {
     super.handleElementContentReplaced();
 
@@ -2504,6 +2429,7 @@ public class StructuredTextEditor extends TextEditor {
    * org.eclipse.ui.texteditor.AbstractTextEditor#handlePreferenceStoreChanged(org.eclipse.jface
    * .util.PropertyChangeEvent)
    */
+  @Override
   protected void handlePreferenceStoreChanged(PropertyChangeEvent event) {
     String property = event.getProperty();
 
@@ -2613,40 +2539,6 @@ public class StructuredTextEditor extends TextEditor {
     super.handlePreferenceStoreChanged(event);
   }
 
-  private boolean inBusyState() {
-    return fBusyState;
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.IEditorPart#init(org.eclipse.ui.IEditorSite, org.eclipse.ui.IEditorInput)
-   */
-  public void init(IEditorSite site, IEditorInput input) throws PartInitException {
-    // if we've gotten an error elsewhere, before
-    // we've actually opened, then don't open.
-    if (shouldClose) {
-      setSite(site);
-      close(false);
-    } else {
-      super.init(site, input);
-    }
-  }
-
-  /**
-   * Set the document provider for this editor.
-   * <p>
-   * Not API. May be removed in the future.
-   * </p>
-   * 
-   * @param documentProvider documentProvider to initialize
-   */
-  public void initializeDocumentProvider(IDocumentProvider documentProvider) {
-    if (documentProvider != null) {
-      setDocumentProvider(documentProvider);
-    }
-  }
-
   /*
    * (non-Javadoc)
    * 
@@ -2654,10 +2546,12 @@ public class StructuredTextEditor extends TextEditor {
    * org.eclipse.ui.texteditor.AbstractTextEditor#initializeDragAndDrop(org.eclipse.jface.text.source
    * .ISourceViewer)
    */
+  @Override
   protected void initializeDragAndDrop(ISourceViewer viewer) {
     IPreferenceStore store = getPreferenceStore();
-    if (store != null && store.getBoolean(PREFERENCE_TEXT_DRAG_AND_DROP_ENABLED))
+    if (store != null && store.getBoolean(PREFERENCE_TEXT_DRAG_AND_DROP_ENABLED)) {
       initializeDrop(viewer);
+    }
   }
 
   protected void initializeDrop(ITextViewer textViewer) {
@@ -2671,6 +2565,7 @@ public class StructuredTextEditor extends TextEditor {
     fDropTarget.addDropListener(fDropAdapter);
     fDropTarget.addDisposeListener(new DisposeListener() {
 
+      @Override
       public void widgetDisposed(DisposeEvent e) {
         fDropTarget.removeDropListener(fDropAdapter);
         fDropTarget.removeDisposeListener(this);
@@ -2684,6 +2579,7 @@ public class StructuredTextEditor extends TextEditor {
    * 
    * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#initializeEditor()
    */
+  @Override
   protected void initializeEditor() {
     super.initializeEditor();
 
@@ -2695,8 +2591,9 @@ public class StructuredTextEditor extends TextEditor {
     // set the infopop for source viewer
     String helpId = getHelpContextId();
     // no infopop set or using default text editor help, use default
-    if (helpId == null || ITextEditorHelpContextIds.TEXT_EDITOR.equals(helpId))
+    if (helpId == null || ITextEditorHelpContextIds.TEXT_EDITOR.equals(helpId)) {
       helpId = IHelpContextIds.XML_SOURCE_VIEW_HELPID;
+    }
     setHelpContextId(helpId);
     // defect 203158 - disable ruler context menu for
     // beta
@@ -2722,8 +2619,866 @@ public class StructuredTextEditor extends TextEditor {
    * 
    * @see org.eclipse.ui.editors.text.TextEditor#initializeKeyBindingScopes()
    */
+  @Override
   protected void initializeKeyBindingScopes() {
     setKeyBindingScopes(new String[] {EDITOR_KEYBINDING_SCOPE_ID});
+  }
+
+  protected void initSourceViewer(StructuredTextViewer sourceViewer) {
+    // ensure decoration support is configured
+    getSourceViewerDecorationSupport(sourceViewer);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.eclipse.ui.editors.text.TextEditor#installEncodingSupport()
+   */
+  @Override
+  protected void installEncodingSupport() {
+    fEncodingSupport = new EncodingSupport(getConfigurationPoints());
+    fEncodingSupport.initialize(this);
+  }
+
+  @Override
+  protected void installTextDragAndDrop(ISourceViewer viewer) {
+    // do nothing
+  }
+
+  /*
+   * @see org.eclipse.ui.texteditor.AbstractTextEditor#performRevert()
+   */
+  @Override
+  protected void performRevert() {
+    ProjectionViewer projectionViewer = (ProjectionViewer) getSourceViewer();
+    projectionViewer.setRedraw(false);
+    try {
+
+      boolean projectionMode = projectionViewer.isProjectionMode();
+      if (projectionMode) {
+        projectionViewer.disableProjection();
+      }
+
+      super.performRevert();
+
+      if (projectionMode) {
+        projectionViewer.enableProjection();
+      }
+
+    } finally {
+      projectionViewer.setRedraw(true);
+    }
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * org.eclipse.ui.texteditor.AbstractTextEditor#rulerContextMenuAboutToShow(org.eclipse.jface.
+   * action.IMenuManager)
+   */
+  @Override
+  protected void rulerContextMenuAboutToShow(IMenuManager menu) {
+//    super.rulerContextMenuAboutToShow(menu);
+    rulerContextMenuAboutToShow2(menu);
+
+//    IMenuManager foldingMenu = new MenuManager(SSEUIMessages.Folding, "projection"); //$NON-NLS-1$
+//    menu.appendToGroup(ITextEditorActionConstants.GROUP_RULERS, foldingMenu);
+
+    IAction action = getAction("FoldingToggle"); //$NON-NLS-1$
+    menu.add(action);
+    action = getAction("FoldingExpandAll"); //$NON-NLS-1$
+    menu.add(action);
+    action = getAction("FoldingCollapseAll"); //$NON-NLS-1$
+    menu.add(action);
+
+    IStructuredModel internalModel = getInternalModel();
+    if (internalModel != null) {
+      boolean debuggingAvailable = BreakpointProviderBuilder.getInstance().isAvailable(
+          internalModel.getContentTypeIdentifier(),
+          BreakpointRulerAction.getFileExtension(getEditorInput()));
+      if (debuggingAvailable) {
+        // append actions to "debug" group (created in
+        // AbstractDecoratedTextEditor.rulerContextMenuAboutToShow(IMenuManager)
+        menu.appendToGroup("debug", getAction(ActionDefinitionIds.TOGGLE_BREAKPOINTS)); //$NON-NLS-1$
+        menu.appendToGroup("debug", getAction(ActionDefinitionIds.MANAGE_BREAKPOINTS)); //$NON-NLS-1$
+        menu.appendToGroup("debug", getAction(ActionDefinitionIds.EDIT_BREAKPOINTS)); //$NON-NLS-1$
+      }
+      addExtendedRulerContextMenuActions(menu);
+    }
+  }
+
+  protected void rulerContextMenuAboutToShow2(IMenuManager menu) {
+    /*
+     * XXX: workaround for reliable menu item ordering. This can be changed once the action
+     * contribution story converges, see
+     * http://dev.eclipse.org/viewcvs/index.cgi/~checkout~/platform
+     * -ui-home/R3_1/dynamic_teams/dynamic_teams.html#actionContributions
+     */
+    // pre-install menus for contributions and call super
+    menu.add(new Separator("debug")); //$NON-NLS-1$
+    menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+    menu.add(new GroupMarker(ITextEditorActionConstants.GROUP_RESTORE));
+    menu.add(new Separator("add")); //$NON-NLS-1$
+    menu.add(new Separator(ITextEditorActionConstants.GROUP_RULERS));
+    menu.add(new Separator(ITextEditorActionConstants.GROUP_REST));
+
+//    super.rulerContextMenuAboutToShow(menu); (inlined)
+//    menu.add(new Separator(ITextEditorActionConstants.GROUP_REST));
+//    menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+
+//    for (Iterator i = getRulerContextMenuListeners().iterator(); i.hasNext();) {
+//      ((IMenuListener) i.next()).menuAboutToShow(menu);
+//    }
+
+//    addAction(menu, ITextEditorActionConstants.RULER_MANAGE_BOOKMARKS);
+//    addAction(menu, ITextEditorActionConstants.RULER_MANAGE_TASKS);
+
+//    addRulerContributionActions(menu); (deleted)
+
+    /* quick diff */
+    if (isEditorInputModifiable()) {
+      IAction quickdiffAction = getAction(ITextEditorActionConstants.QUICKDIFF_TOGGLE);
+      quickdiffAction.setChecked(isChangeInformationShowing());
+      menu.appendToGroup(ITextEditorActionConstants.GROUP_RULERS, quickdiffAction);
+
+      if (isChangeInformationShowing()) {
+        TextEditorAction revertLine = new RevertLineAction(this, true);
+        TextEditorAction revertSelection = new RevertSelectionAction(this, true);
+        TextEditorAction revertBlock = new RevertBlockAction(this, true);
+        TextEditorAction revertDeletion = new RestoreAction(this, true);
+
+        revertSelection.update();
+        revertBlock.update();
+        revertLine.update();
+        revertDeletion.update();
+
+        // only add block action if selection action is not enabled
+        if (revertSelection.isEnabled()) {
+          menu.appendToGroup(ITextEditorActionConstants.GROUP_RESTORE, revertSelection);
+        } else if (revertBlock.isEnabled()) {
+          menu.appendToGroup(ITextEditorActionConstants.GROUP_RESTORE, revertBlock);
+        }
+        if (revertLine.isEnabled()) {
+          menu.appendToGroup(ITextEditorActionConstants.GROUP_RESTORE, revertLine);
+        }
+        if (revertDeletion.isEnabled()) {
+          menu.appendToGroup(ITextEditorActionConstants.GROUP_RESTORE, revertDeletion);
+        }
+      }
+    }
+
+    // revision info
+    LineNumberColumn fLineColumn = getLineColumn();
+//    if (fLineColumn != null && fLineColumn.isShowingRevisionInformation()) {
+//      IMenuManager revisionMenu = new MenuManager(
+//          TextEditorMessages.AbstractDecoratedTextEditor_revisions_menu);
+//      menu.appendToGroup(ITextEditorActionConstants.GROUP_RULERS, revisionMenu);
+//
+//      IAction hideRevisionInfoAction = getAction(ITextEditorActionConstants.REVISION_HIDE_INFO);
+//      revisionMenu.add(hideRevisionInfoAction);
+//      revisionMenu.add(new Separator());
+//
+//      String[] labels = {
+//          TextEditorMessages.AbstractDecoratedTextEditor_revision_colors_option_by_date,
+//          TextEditorMessages.AbstractDecoratedTextEditor_revision_colors_option_by_author,
+//          TextEditorMessages.AbstractDecoratedTextEditor_revision_colors_option_by_author_and_date};
+//      final RenderingMode[] modes = {
+//          IRevisionRulerColumnExtension.AGE, IRevisionRulerColumnExtension.AUTHOR,
+//          IRevisionRulerColumnExtension.AUTHOR_SHADED_BY_AGE};
+//      final IPreferenceStore uiStore = EditorsUI.getPreferenceStore();
+//      String current = uiStore.getString(AbstractDecoratedTextEditorPreferenceConstants.REVISION_RULER_RENDERING_MODE);
+//      for (int i = 0; i < modes.length; i++) {
+//        final String mode = modes[i].name();
+//        IAction action = new Action(labels[i], IAction.AS_RADIO_BUTTON) {
+//          @Override
+//          public void run() {
+//            // set preference globally, LineNumberColumn reacts on preference change
+//            uiStore.setValue(
+//                AbstractDecoratedTextEditorPreferenceConstants.REVISION_RULER_RENDERING_MODE, mode);
+//          }
+//        };
+//        action.setChecked(mode.equals(current));
+//        revisionMenu.add(action);
+//      }
+//
+//      revisionMenu.add(new Separator());
+//
+//      IAction action = getAction(ITextEditorActionConstants.REVISION_SHOW_AUTHOR_TOGGLE);
+//      if (action instanceof IUpdate) {
+//        ((IUpdate) action).update();
+//      }
+//      revisionMenu.add(action);
+//      action = getAction(ITextEditorActionConstants.REVISION_SHOW_ID_TOGGLE);
+//      if (action instanceof IUpdate) {
+//        ((IUpdate) action).update();
+//      }
+//      revisionMenu.add(action);
+//    }
+
+    IAction lineNumberAction = getAction(ITextEditorActionConstants.LINENUMBERS_TOGGLE);
+    lineNumberAction.setChecked(fLineColumn != null && fLineColumn.isShowingLineNumbers());
+    menu.appendToGroup(ITextEditorActionConstants.GROUP_RULERS, lineNumberAction);
+
+//    IAction preferencesAction= getAction(ITextEditorActionConstants.RULER_PREFERENCES);
+//    menu.appendToGroup(ITextEditorActionConstants.GROUP_RULERS, new Separator(ITextEditorActionConstants.GROUP_SETTINGS));
+//    menu.appendToGroup(ITextEditorActionConstants.GROUP_SETTINGS, preferencesAction);
+  }
+
+  @Override
+  protected void sanityCheckState(IEditorInput input) {
+    try {
+      ++validateEditCount;
+      super.sanityCheckState(input);
+    } finally {
+      --validateEditCount;
+    }
+  }
+
+  /**
+   * Ensure that the correct IDocumentProvider is used. For direct models, a special provider is
+   * used. For StorageEditorInputs, use a custom provider that creates a usable
+   * ResourceAnnotationModel. For everything else, use the base support.
+   * 
+   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#setDocumentProvider(org.eclipse.ui.IEditorInput)
+   */
+  @Override
+  protected void setDocumentProvider(IEditorInput input) {
+    if (input instanceof IStructuredModel) {
+      // largely untested
+      setDocumentProvider(StructuredModelDocumentProvider.getInstance());
+    } else if (input instanceof IStorageEditorInput && !(input instanceof IFileEditorInput)) {
+      setDocumentProvider(StorageModelProvider.getInstance());
+    } else {
+      super.setDocumentProvider(input);
+    }
+  }
+
+  /**
+   * Sets the editor's source viewer configuration which it uses to configure it's internal source
+   * viewer. This method was overwritten so that viewer configuration could be set after editor part
+   * was created.
+   */
+  @Override
+  protected void setSourceViewerConfiguration(SourceViewerConfiguration config) {
+    SourceViewerConfiguration oldSourceViewerConfiguration = getSourceViewerConfiguration();
+    super.setSourceViewerConfiguration(config);
+    StructuredTextViewer stv = getTextViewer();
+    if (stv != null) {
+      /*
+       * There should be no need to unconfigure before configure because configure will also
+       * unconfigure before configuring
+       */
+      removeReconcilingListeners(oldSourceViewerConfiguration, stv);
+      stv.unconfigure();
+      setStatusLineMessage(null);
+      stv.configure(config);
+      addReconcilingListeners(config, stv);
+    }
+  }
+
+  @Override
+  protected void uninstallTextDragAndDrop(ISourceViewer viewer) {
+    // do nothing
+  }
+
+  /**
+   * Updates all content dependent actions.
+   */
+  @Override
+  protected void updateContentDependentActions() {
+    super.updateContentDependentActions();
+    // super.updateContentDependentActions only updates
+    // the enable/disable
+    // state of all
+    // the content dependent actions.
+    // StructuredTextEditor's undo and redo actions
+    // have a detail label and
+    // description.
+    // They needed to be updated.
+    if (!fEditorDisposed) {
+      updateMenuText();
+    }
+  }
+
+  @Override
+  protected void updateStatusField(String category) {
+    super.updateStatusField(category);
+
+    if (category == null) {
+      return;
+    }
+
+    if (StructuredTextEditorActionConstants.STATUS_CATEGORY_OFFSET.equals(category)) {
+      IStatusField field = getStatusField(category);
+      ISourceViewer sourceViewer = getSourceViewer();
+      if (field != null && sourceViewer != null) {
+        Point selection = sourceViewer.getTextWidget().getSelection();
+        int offset1 = widgetOffset2ModelOffset(sourceViewer, selection.x);
+        int offset2 = widgetOffset2ModelOffset(sourceViewer, selection.y);
+        String text = null;
+        if (offset1 != offset2) {
+          text = "[" + offset1 + "-" + offset2 + "]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        } else {
+          text = "[ " + offset1 + " ]"; //$NON-NLS-1$ //$NON-NLS-2$
+        }
+        field.setText(text == null ? fErrorLabel : text);
+      }
+    }
+  }
+
+  /**
+   * Starts background mode.
+   * <p>
+   * Not API. May be removed in the future.
+   * </p>
+   */
+  void beginBackgroundOperation() {
+    fBackgroundJobEnded = false;
+    // if already in busy state, no need to do anything
+    // and, we only start, or reset, the timed busy
+    // state when we get the "endBackgroundOperation" call.
+    if (!inBusyState()) {
+      beginBusyStateInternal();
+    }
+  }
+
+  /**
+   * End background mode.
+   * <p>
+   * Not API. May be removed in the future.
+   * </p>
+   */
+  void endBackgroundOperation() {
+    fBackgroundJobEnded = true;
+    // note, we don't immediately end our 'internal busy' state,
+    // since we may get many calls in a short period of
+    // time. We always wait for the time out.
+    resetBusyState();
+  }
+
+  Display getDisplay() {
+    return PlatformUI.getWorkbench().getDisplay();
+  }
+
+  IStructuredModel getInternalModel() {
+    return fStructuredModel;
+  }
+
+  /**
+   * Returns the signed current selection. The length will be negative if the resulting selection is
+   * right-to-left (RtoL).
+   * <p>
+   * The selection offset is model based.
+   * </p>
+   * 
+   * @param sourceViewer the source viewer
+   * @return a region denoting the current signed selection, for a resulting RtoL selections length
+   *         is < 0
+   */
+  IRegion getSignedSelection(ISourceViewer sourceViewer) {
+    StyledText text = sourceViewer.getTextWidget();
+    Point selection = text.getSelectionRange();
+
+    if (text.getCaretOffset() == selection.x) {
+      selection.x = selection.x + selection.y;
+      selection.y = -selection.y;
+    }
+
+    selection.x = widgetOffset2ModelOffset(sourceViewer, selection.x);
+
+    return new Region(selection.x, selection.y);
+  }
+
+  /**
+   * Jumps to the matching bracket.
+   */
+  void gotoMatchingBracket() {
+    ICharacterPairMatcher matcher = createCharacterPairMatcher();
+    if (matcher == null) {
+      return;
+    }
+
+    ISourceViewer sourceViewer = getSourceViewer();
+    IDocument document = sourceViewer.getDocument();
+    if (document == null) {
+      return;
+    }
+
+    IRegion selection = getSignedSelection(sourceViewer);
+
+    int selectionLength = Math.abs(selection.getLength());
+    if (selectionLength > 1) {
+      setStatusLineErrorMessage(SSEUIMessages.GotoMatchingBracket_error_invalidSelection);
+      sourceViewer.getTextWidget().getDisplay().beep();
+      return;
+    }
+
+    int sourceCaretOffset = selection.getOffset() + selection.getLength();
+    IRegion region = matcher.match(document, sourceCaretOffset);
+    if (region == null) {
+      setStatusLineErrorMessage(SSEUIMessages.GotoMatchingBracket_error_noMatchingBracket);
+      sourceViewer.getTextWidget().getDisplay().beep();
+      return;
+    }
+
+    int offset = region.getOffset();
+    int length = region.getLength();
+
+    if (length < 1) {
+      return;
+    }
+
+    int anchor = matcher.getAnchor();
+
+    // go to after the match if matching to the right
+    int targetOffset = (ICharacterPairMatcher.RIGHT == anchor) ? offset : offset + length;
+
+    boolean visible = false;
+    if (sourceViewer instanceof ITextViewerExtension5) {
+      ITextViewerExtension5 extension = (ITextViewerExtension5) sourceViewer;
+      visible = (extension.modelOffset2WidgetOffset(targetOffset) > -1);
+    } else {
+      IRegion visibleRegion = sourceViewer.getVisibleRegion();
+      // http://dev.eclipse.org/bugs/show_bug.cgi?id=34195
+      visible = (targetOffset >= visibleRegion.getOffset() && targetOffset <= visibleRegion.getOffset()
+          + visibleRegion.getLength());
+    }
+
+    if (!visible) {
+      setStatusLineErrorMessage(SSEUIMessages.GotoMatchingBracket_error_bracketOutsideSelectedElement);
+      sourceViewer.getTextWidget().getDisplay().beep();
+      return;
+    }
+
+    if (selection.getLength() < 0) {
+      targetOffset -= selection.getLength();
+    }
+
+    if (sourceViewer != null) {
+      sourceViewer.setSelectedRange(targetOffset, selection.getLength());
+      sourceViewer.revealRange(targetOffset, selection.getLength());
+    }
+  }
+
+  void updateRangeIndication(ISelection selection) {
+    boolean rangeUpdated = false;
+    if (selection instanceof IStructuredSelection && !((IStructuredSelection) selection).isEmpty()) {
+      Object[] objects = ((IStructuredSelection) selection).toArray();
+      if (objects.length > 0 && objects[0] instanceof IndexedRegion) {
+        int start = ((IndexedRegion) objects[0]).getStartOffset();
+        int end = ((IndexedRegion) objects[0]).getEndOffset();
+        if (objects.length > 1) {
+          for (int i = 1; i < objects.length; i++) {
+            start = Math.min(start, ((IndexedRegion) objects[i]).getStartOffset());
+            end = Math.max(end, ((IndexedRegion) objects[i]).getEndOffset());
+          }
+        }
+        getSourceViewer().setRangeIndication(start, end - start, false);
+        rangeUpdated = true;
+      }
+    }
+    if (!rangeUpdated && getSourceViewer() != null) {
+      if (selection instanceof ITextSelection) {
+        getSourceViewer().setRangeIndication(((ITextSelection) selection).getOffset(),
+            ((ITextSelection) selection).getLength(), false);
+      } else {
+        getSourceViewer().removeRangeIndication();
+      }
+    }
+  }
+
+  void updateStatusLine(ISelection selection) {
+    // Bug 210481 - Don't update the status line if the selection
+    // was caused by go to navigation
+    if (fSelectionChangedFromGoto) {
+      fSelectionChangedFromGoto = false;
+      return;
+    }
+    IStatusLineManager statusLineManager = getEditorSite().getActionBars().getStatusLineManager();
+    if (fStatusLineLabelProvider != null && statusLineManager != null) {
+      String text = null;
+      Image image = null;
+      if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
+        Object firstElement = ((IStructuredSelection) selection).getFirstElement();
+        if (firstElement != null) {
+          text = fStatusLineLabelProvider.getText(firstElement);
+          image = fStatusLineLabelProvider.getImage((firstElement));
+        }
+      }
+      if (image == null) {
+        statusLineManager.setMessage(text);
+      } else {
+        statusLineManager.setMessage(image, text);
+      }
+    }
+  }
+
+  private IStructuredModel aboutToSaveModel() {
+    IStructuredModel model = getInternalModel();
+    if (model != null) {
+      model.aboutToChangeModel();
+    }
+    return model;
+  }
+
+  private void activateContexts(IContextService service) {
+    if (service == null) {
+      return;
+    }
+
+    String[] definitions = getDefinitions(getConfigurationPoints());
+
+    if (definitions != null) {
+      String[] contexts = null;
+      for (int i = 0; i < definitions.length; i++) {
+        contexts = StringUtils.unpack(definitions[i]);
+        for (int j = 0; j < contexts.length; j++) {
+          service.activateContext(contexts[j].trim());
+        }
+      }
+    }
+
+  }
+
+  private void addExtendedContextMenuActions(IMenuManager menu) {
+    IEditorActionBarContributor c = getEditorSite().getActionBarContributor();
+    if (c instanceof IPopupMenuContributor) {
+      ((IPopupMenuContributor) c).contributeToPopupMenu(menu);
+    } else {
+      ExtendedEditorActionBuilder builder = new ExtendedEditorActionBuilder();
+      IExtendedContributor pmc = builder.readActionExtensions(getConfigurationPoints());
+      if (pmc != null) {
+        pmc.setActiveEditor(this);
+        pmc.contributeToPopupMenu(menu);
+      }
+    }
+  }
+
+  private void addReconcilingListeners(SourceViewerConfiguration config, StructuredTextViewer stv) {
+    try {
+      List reconcilingListeners = new ArrayList(fReconcilingListeners.length);
+      String[] ids = getConfigurationPoints();
+      for (int i = 0; i < ids.length; i++) {
+        reconcilingListeners.addAll(ExtendedConfigurationBuilder.getInstance().getConfigurations(
+            "sourceReconcilingListener", ids[i])); //$NON-NLS-1$
+      }
+      fReconcilingListeners = (ISourceReconcilingListener[]) reconcilingListeners.toArray(new ISourceReconcilingListener[reconcilingListeners.size()]);
+    } catch (ClassCastException e) {
+      Logger.log(Logger.ERROR,
+          "Configuration has a reconciling listener that does not implement ISourceReconcilingListener."); //$NON-NLS-1$
+    }
+
+    IReconciler reconciler = config.getReconciler(stv);
+    if (reconciler instanceof DocumentRegionProcessor) {
+      for (int i = 0; i < fReconcilingListeners.length; i++) {
+        ((DocumentRegionProcessor) reconciler).addReconcilingListener(fReconcilingListeners[i]);
+      }
+    }
+  }
+
+  private void beginBusyStateInternal() {
+
+    fBusyState = true;
+    startBusyTimer();
+
+    ISourceViewer viewer = getSourceViewer();
+    if (viewer instanceof StructuredTextViewer) {
+      ((StructuredTextViewer) viewer).beginBackgroundUpdate();
+
+    }
+    showBusy(true);
+  }
+
+  /**
+   * Calculates the priority of the target content type. The closer <code>targetType</code> is to
+   * <code>type</code> the higher its priority.
+   * 
+   * @param type
+   * @param targetType
+   * @param priority
+   * @return
+   */
+  private int calculatePriority(IContentType type, IContentType targetType, int priority) {
+    if (type == null || targetType == null) {
+      return -1;
+    }
+    if (type.getId().equals(targetType.getId())) {
+      return priority;
+    }
+    return calculatePriority(type.getBaseType(), targetType, ++priority);
+  }
+
+  /**
+   * Compute and set double-click action for the vertical ruler
+   */
+  private void computeAndSetDoubleClickAction() {
+    /*
+     * Make double-clicking on the ruler toggle a breakpoint instead of toggling a bookmark. For
+     * lines where a breakpoint won't be created, create a bookmark through the contributed
+     * RulerDoubleClick action.
+     */
+    setAction(ITextEditorActionConstants.RULER_DOUBLE_CLICK, new ToggleBreakpointAction(this,
+        getVerticalRuler(), getAction(ITextEditorActionConstants.RULER_DOUBLE_CLICK)));
+  }
+
+  private IInformationPresenter configureOutlinePresenter(ISourceViewer sourceViewer,
+      SourceViewerConfiguration config) {
+    InformationPresenter presenter = null;
+
+    // Get the quick outline configuration
+    AbstractQuickOutlineConfiguration cfg = null;
+    ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
+    String[] ids = getConfigurationPoints();
+    for (int i = 0; cfg == null && i < ids.length; i++) {
+      cfg = (AbstractQuickOutlineConfiguration) builder.getConfiguration(
+          ExtendedConfigurationBuilder.QUICKOUTLINECONFIGURATION, ids[i]);
+    }
+
+    if (cfg != null) {
+      presenter = new InformationPresenter(getOutlinePresenterControlCreator(cfg));
+      presenter.setDocumentPartitioning(config.getConfiguredDocumentPartitioning(sourceViewer));
+      presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
+      IInformationProvider provider = new SourceInfoProvider(this);
+      String[] contentTypes = config.getConfiguredContentTypes(sourceViewer);
+      for (int i = 0; i < contentTypes.length; i++) {
+        presenter.setInformationProvider(provider, contentTypes[i]);
+      }
+      presenter.setSizeConstraints(50, 20, true, false);
+    }
+    return presenter;
+  }
+
+  /**
+   * Create a preference store that combines the source editor preferences with the base editor's
+   * preferences.
+   * 
+   * @return IPreferenceStore
+   */
+  private IPreferenceStore createCombinedPreferenceStore() {
+    IPreferenceStore sseEditorPrefs = SSEUIPlugin.getDefault().getPreferenceStore();
+    IPreferenceStore baseEditorPrefs = EditorsUI.getPreferenceStore();
+    return new ChainedPreferenceStore(new IPreferenceStore[] {sseEditorPrefs, baseEditorPrefs});
+  }
+
+  private ContentOutlineConfiguration createContentOutlineConfiguration() {
+    ContentOutlineConfiguration cfg = null;
+    ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
+    String[] ids = getConfigurationPoints();
+    for (int i = 0; cfg == null && i < ids.length; i++) {
+      cfg = (ContentOutlineConfiguration) builder.getConfiguration(
+          ExtendedConfigurationBuilder.CONTENTOUTLINECONFIGURATION, ids[i]);
+    }
+    return cfg;
+  }
+
+  /**
+   * Loads the Show In Target IDs from the Extended Configuration extension point.
+   * 
+   * @return
+   */
+  private String[] createShowInTargetIds() {
+    List allIds = new ArrayList(0);
+    ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
+    String[] configurationIds = getConfigurationPoints();
+    for (int i = 0; i < configurationIds.length; i++) {
+      String[] definitions = builder.getDefinitions("showintarget", configurationIds[i]); //$NON-NLS-1$
+      for (int j = 0; j < definitions.length; j++) {
+        String someIds = definitions[j];
+        if (someIds != null && someIds.length() > 0) {
+          String[] ids = StringUtils.unpack(someIds);
+          for (int k = 0; k < ids.length; k++) {
+            // trim, just to keep things clean
+            String id = ids[k].trim();
+            if (!allIds.contains(id)) {
+              allIds.add(id);
+            }
+          }
+        }
+      }
+    }
+
+    if (!allIds.contains(IPageLayout.ID_RES_NAV)) {
+      allIds.add(IPageLayout.ID_RES_NAV);
+    }
+    if (!allIds.contains(IPageLayout.ID_PROJECT_EXPLORER)) {
+      allIds.add(IPageLayout.ID_PROJECT_EXPLORER);
+    }
+    if (!allIds.contains(IPageLayout.ID_OUTLINE)) {
+      allIds.add(IPageLayout.ID_OUTLINE);
+    }
+    return (String[]) allIds.toArray(new String[0]);
+  }
+
+  /**
+   * @return
+   */
+  private ISourceEditingTextTools createSourceEditingTextTools() {
+    ISourceEditingTextTools tools = null;
+    ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
+    String[] ids = getConfigurationPoints();
+    for (int i = 0; tools == null && i < ids.length; i++) {
+      tools = (ISourceEditingTextTools) builder.getConfiguration(NullSourceEditingTextTools.ID,
+          ids[i]);
+    }
+    if (tools == null) {
+      tools = NullSourceEditingTextTools.getInstance();
+      ((NullSourceEditingTextTools) tools).setTextEditor(this);
+    }
+    Method method = null; //$NON-NLS-1$
+    try {
+      method = tools.getClass().getMethod("setTextEditor", new Class[] {StructuredTextEditor.class}); //$NON-NLS-1$
+    } catch (NoSuchMethodException e) {
+    }
+    if (method == null) {
+      try {
+        method = tools.getClass().getMethod("setTextEditor", new Class[] {ITextEditor.class}); //$NON-NLS-1$
+      } catch (NoSuchMethodException e) {
+      }
+    }
+    if (method == null) {
+      try {
+        method = tools.getClass().getMethod("setTextEditor", new Class[] {IEditorPart.class}); //$NON-NLS-1$
+      } catch (NoSuchMethodException e) {
+      }
+    }
+    if (method != null) {
+      if (!method.isAccessible()) {
+        method.setAccessible(true);
+      }
+      try {
+        method.invoke(tools, new Object[] {this});
+      } catch (Exception e) {
+        Logger.logException("Problem creating ISourceEditingTextTools implementation", e); //$NON-NLS-1$
+      }
+    }
+
+    return tools;
+  }
+
+  private ConfigurationAndTarget createSourceViewerConfiguration() {
+    ConfigurationAndTarget cat = null;
+    StructuredTextViewerConfiguration cfg = null;
+    ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
+    String[] ids = getConfigurationPoints();
+    for (int i = 0; cfg == null && i < ids.length; i++) {
+      cfg = (StructuredTextViewerConfiguration) builder.getConfiguration(
+          ExtendedConfigurationBuilder.SOURCEVIEWERCONFIGURATION, ids[i]);
+      cat = new ConfigurationAndTarget(ids[i], cfg);
+    }
+    if (cfg == null) {
+      cfg = new StructuredTextViewerConfiguration();
+      String targetid = getClass().getName() + "#default"; //$NON-NLS-1$
+      cat = new ConfigurationAndTarget(targetid, cfg);
+    }
+    return cat;
+  }
+
+  /**
+   * Disposes model specific editor helpers such as statusLineHelper. Basically any code repeated in
+   * update() & dispose() should be placed here.
+   */
+  private void disposeModelDependentFields() {
+    if (fStructuredSelectionProvider != null) {
+      fStructuredSelectionProvider.selectionConvertor = new SelectionConvertor();
+    }
+  }
+
+  /**
+   * Note this method can be called indirectly from background job operation ... but expected to be
+   * gaurded there with ILock, plus, can be called directly from timer thread, so the timer's run
+   * method guards with ILock too. Set result[0] to 1 if the busy state was ended successfully
+   */
+  private void endBusyStateInternal(byte[] result) {
+    if (fBackgroundJobEnded) {
+      result[0] = 1;
+      showBusy(false);
+
+      ISourceViewer viewer = getSourceViewer();
+      if (viewer instanceof StructuredTextViewer) {
+        ((StructuredTextViewer) viewer).endBackgroundUpdate();
+      }
+      fBusyState = false;
+    } else {
+      // we will only be in this branch for a back ground job that is
+      // taking
+      // longer than our normal time-out period (meaning we got notified
+      // of
+      // the timeout "inbetween" calls to 'begin' and
+      // 'endBackgroundOperation'.
+      // (which, remember, can only happen since there are many calls to
+      // begin/end in a short period of time, and we only "reset" on the
+      // 'ends').
+      // In this event, there's really nothing to do, we're still in
+      // "busy state"
+      // and should start a new reset cycle once endBackgroundjob is
+      // called.
+    }
+  }
+
+  private String[] getConfigurationPoints() {
+    String contentTypeIdentifierID = null;
+    if (getInternalModel() != null) {
+      contentTypeIdentifierID = getInternalModel().getContentTypeIdentifier();
+    }
+    return ConfigurationPointCalculator.getConfigurationPoints(this, contentTypeIdentifierID,
+        ConfigurationPointCalculator.SOURCE, StructuredTextEditor.class);
+  }
+
+  private String[] getDefinitions(String[] ids) {
+    ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
+    String[] definitions = null;
+
+    /*
+     * Iterate through the configuration ids until one is found that has an activecontexts
+     * definition
+     */
+    for (int i = 0; i < ids.length; i++) {
+      definitions = builder.getDefinitions("activecontexts", ids[i]); //$NON-NLS-1$
+      if (definitions != null && definitions.length > 0) {
+        return definitions;
+      }
+    }
+    return null;
+  }
+
+  private InternalModelStateListener getInternalModelStateListener() {
+    if (fInternalModelStateListener == null) {
+      fInternalModelStateListener = new InternalModelStateListener();
+    }
+    return fInternalModelStateListener;
+  }
+
+  private LineNumberColumn getLineColumn() {
+    String var = "fLineColumn";
+    return (LineNumberColumn) ReflectionUtils.getFieldObject(this, var);
+  }
+
+  /**
+   * Returns the outline presenter control creator. The creator is a factory creating outline
+   * presenter controls for the given source viewer.
+   * 
+   * @param sourceViewer the source viewer to be configured by this configuration
+   * @return an information control creator
+   */
+  private IInformationControlCreator getOutlinePresenterControlCreator(
+      final AbstractQuickOutlineConfiguration config) {
+    return new IInformationControlCreator() {
+      @Override
+      public IInformationControl createInformationControl(Shell parent) {
+        int shellStyle = SWT.RESIZE;
+        return new QuickOutlinePopupDialog(parent, shellStyle, getInternalModel(), config);
+      }
+    };
+  }
+
+  private List<Object> getRulerContextMenuListeners() {
+    String var = "fRulerContextMenuListeners";
+    return (List<Object>) ReflectionUtils.getFieldObject(this, var);
+  }
+
+  private boolean inBusyState() {
+    return fBusyState;
   }
 
   /**
@@ -2743,23 +3498,60 @@ public class StructuredTextEditor extends TextEditor {
     }
   }
 
-  protected void initSourceViewer(StructuredTextViewer sourceViewer) {
-    // ensure decoration support is configured
-    getSourceViewerDecorationSupport(sourceViewer);
-  }
+  private void installCharacterPairing() {
+    IStructuredModel model = getInternalModel();
+    if (model != null) {
+      IConfigurationElement[] elements = Platform.getExtensionRegistry().getConfigurationElementsFor(
+          SSEUIPlugin.ID, "characterPairing"); //$NON-NLS-1$
+      IContentTypeManager mgr = Platform.getContentTypeManager();
+      IContentType type = mgr.getContentType(model.getContentTypeIdentifier());
+      if (type != null) {
+        for (int i = 0; i < elements.length; i++) {
+          // Create the inserter
+          IConfigurationElement element = elements[i];
+          try {
+            IConfigurationElement[] contentTypes = element.getChildren("contentTypeIdentifier");
+            for (int j = 0; j < contentTypes.length; j++) {
+              String id = contentTypes[j].getAttribute("id");
+              if (id != null) {
+                IContentType targetType = mgr.getContentType(id);
+                int priority = calculatePriority(type, targetType, 0);
+                if (priority >= 0) {
+                  final CharacterPairing pairing = new CharacterPairing();
+                  pairing.priority = priority;
+                  String[] partitions = StringUtils.unpack(contentTypes[j].getAttribute("partitions"));
+                  pairing.partitions = new HashSet(partitions.length);
+                  // Only add the inserter if there is at least one partition for the content type
+                  for (int k = 0; k < partitions.length; k++) {
+                    pairing.partitions.add(partitions[k]);
+                  }
 
-  protected void installTextDragAndDrop(ISourceViewer viewer) {
-    // do nothing
-  }
+                  pairing.inserter = (AbstractCharacterPairInserter) element.createExecutableExtension("class");
+                  if (pairing.inserter != null && partitions.length > 0) {
+                    fPairInserter.addInserter(pairing);
+                    /* use a SafeRunner since this method is also invoked during Part creation */
+                    SafeRunner.run(new ISafeRunnable() {
+                      @Override
+                      public void handleException(Throwable exception) {
+                        // rely on default logging
+                      }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.editors.text.TextEditor#installEncodingSupport()
-   */
-  protected void installEncodingSupport() {
-    fEncodingSupport = new EncodingSupport(getConfigurationPoints());
-    fEncodingSupport.initialize(this);
+                      @Override
+                      public void run() throws Exception {
+                        pairing.inserter.initialize();
+                      }
+                    });
+                  }
+                }
+              }
+            }
+          } catch (CoreException e) {
+            Logger.logException(e);
+          }
+        }
+        fPairInserter.prioritize();
+      }
+    }
   }
 
   /**
@@ -2773,14 +3565,28 @@ public class StructuredTextEditor extends TextEditor {
     fProjectionSupport.addSummarizableAnnotationType("org.eclipse.ui.workbench.texteditor.error"); //$NON-NLS-1$
     fProjectionSupport.addSummarizableAnnotationType("org.eclipse.ui.workbench.texteditor.warning"); //$NON-NLS-1$
     fProjectionSupport.setHoverControlCreator(new IInformationControlCreator() {
+      @Override
       public IInformationControl createInformationControl(Shell parent) {
         return new DefaultInformationControl(parent);
       }
     });
     fProjectionSupport.install();
 
-    if (isFoldingEnabled())
+    if (isFoldingEnabled()) {
       projectionViewer.doOperation(ProjectionViewer.TOGGLE);
+    }
+  }
+
+  /**
+   * Installs semantic highlighting on the editor
+   */
+  private void installSemanticHighlighting() {
+    IStructuredModel model = getInternalModel();
+    if (fSemanticManager == null && model != null) {
+      fSemanticManager = new SemanticHighlightingManager();
+      fSemanticManager.install(getSourceViewer(), getPreferenceStore(),
+          getSourceViewerConfiguration(), model.getContentTypeIdentifier());
+    }
   }
 
   /**
@@ -2832,42 +3638,13 @@ public class StructuredTextEditor extends TextEditor {
     Logger.log(Logger.WARNING, "        Unexpected IDocument implementation: " + implClass); //$NON-NLS-1$
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractTextEditor#performRevert()
-   */
-  protected void performRevert() {
-    ProjectionViewer projectionViewer = (ProjectionViewer) getSourceViewer();
-    projectionViewer.setRedraw(false);
-    try {
-
-      boolean projectionMode = projectionViewer.isProjectionMode();
-      if (projectionMode) {
-        projectionViewer.disableProjection();
+  private void removeReconcilingListeners(SourceViewerConfiguration config, StructuredTextViewer stv) {
+    IReconciler reconciler = config.getReconciler(stv);
+    if (reconciler instanceof DocumentRegionProcessor) {
+      for (int i = 0; i < fReconcilingListeners.length; i++) {
+        ((DocumentRegionProcessor) reconciler).removeReconcilingListener(fReconcilingListeners[i]);
       }
-
-      super.performRevert();
-
-      if (projectionMode) {
-        projectionViewer.enableProjection();
-      }
-
-    } finally {
-      projectionViewer.setRedraw(true);
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * Not API. May be reduced to protected method in the future.
-   * </p>
-   */
-  public void rememberSelection() {
-    /*
-     * This method was made public for use by editors that use StructuredTextEditor (like some
-     * clients)
-     */
-    super.rememberSelection();
   }
 
   /**
@@ -2881,84 +3658,6 @@ public class StructuredTextEditor extends TextEditor {
     startBusyTimer();
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * Not API. May be reduced to protected method in the future.
-   * </p>
-   */
-  public void restoreSelection() {
-    /*
-     * This method was made public for use by editors that use StructuredTextEditor (like some
-     * clients)
-     */
-    // catch odd case where source viewer has no text
-    // widget (defect
-    // 227670)
-    if ((getSourceViewer() != null) && (getSourceViewer().getTextWidget() != null))
-      super.restoreSelection();
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * org.eclipse.ui.texteditor.AbstractTextEditor#rulerContextMenuAboutToShow(org.eclipse.jface.
-   * action.IMenuManager)
-   */
-  protected void rulerContextMenuAboutToShow(IMenuManager menu) {
-    super.rulerContextMenuAboutToShow(menu);
-
-    IMenuManager foldingMenu = new MenuManager(SSEUIMessages.Folding, "projection"); //$NON-NLS-1$
-    menu.appendToGroup(ITextEditorActionConstants.GROUP_RULERS, foldingMenu);
-
-    IAction action = getAction("FoldingToggle"); //$NON-NLS-1$
-    foldingMenu.add(action);
-    action = getAction("FoldingExpandAll"); //$NON-NLS-1$
-    foldingMenu.add(action);
-    action = getAction("FoldingCollapseAll"); //$NON-NLS-1$
-    foldingMenu.add(action);
-
-    IStructuredModel internalModel = getInternalModel();
-    if (internalModel != null) {
-      boolean debuggingAvailable = BreakpointProviderBuilder.getInstance().isAvailable(
-          internalModel.getContentTypeIdentifier(),
-          BreakpointRulerAction.getFileExtension(getEditorInput()));
-      if (debuggingAvailable) {
-        // append actions to "debug" group (created in
-        // AbstractDecoratedTextEditor.rulerContextMenuAboutToShow(IMenuManager)
-        menu.appendToGroup("debug", getAction(ActionDefinitionIds.TOGGLE_BREAKPOINTS)); //$NON-NLS-1$
-        menu.appendToGroup("debug", getAction(ActionDefinitionIds.MANAGE_BREAKPOINTS)); //$NON-NLS-1$
-        menu.appendToGroup("debug", getAction(ActionDefinitionIds.EDIT_BREAKPOINTS)); //$NON-NLS-1$
-      }
-      addExtendedRulerContextMenuActions(menu);
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * Overridden to expose part activation handling for multi-page editors.
-   * </p>
-   * <p>
-   * Not API. May be reduced to protected method in the future.
-   * </p>
-   * 
-   * @see org.eclipse.ui.texteditor.AbstractTextEditor#safelySanityCheckState(org.eclipse.ui.IEditorInput)
-   */
-  public void safelySanityCheckState(IEditorInput input) {
-    super.safelySanityCheckState(input);
-  }
-
-  protected void sanityCheckState(IEditorInput input) {
-    try {
-      ++validateEditCount;
-      super.sanityCheckState(input);
-    } finally {
-      --validateEditCount;
-    }
-  }
-
   private void savedModel(IStructuredModel model) {
     if (model != null) {
       model.changedModel();
@@ -2966,40 +3665,11 @@ public class StructuredTextEditor extends TextEditor {
   }
 
   /**
-   * Ensure that the correct IDocumentProvider is used. For direct models, a special provider is
-   * used. For StorageEditorInputs, use a custom provider that creates a usable
-   * ResourceAnnotationModel. For everything else, use the base support.
-   * 
-   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#setDocumentProvider(org.eclipse.ui.IEditorInput)
-   */
-  protected void setDocumentProvider(IEditorInput input) {
-    if (input instanceof IStructuredModel) {
-      // largely untested
-      setDocumentProvider(StructuredModelDocumentProvider.getInstance());
-    } else if (input instanceof IStorageEditorInput && !(input instanceof IFileEditorInput)) {
-      setDocumentProvider(StorageModelProvider.getInstance());
-    } else {
-      super.setDocumentProvider(input);
-    }
-  }
-
-  /**
-   * Set editor part associated with this editor.
-   * <p>
-   * Not API. May be removed in the future.
-   * </p>
-   * 
-   * @param editorPart editor part associated with this editor
-   */
-  public void setEditorPart(IEditorPart editorPart) {
-    fEditorPart = editorPart;
-  }
-
-  /**
    * Sets the model field within this editor.
    * 
    * @deprecated - can eventually be eliminated
    */
+  @Deprecated
   private void setModel(IStructuredModel newModel) {
     Assert.isNotNull(getDocumentProvider(), "document provider can not be null when setting model"); //$NON-NLS-1$
     if (fStructuredModel != null) {
@@ -3014,68 +3684,6 @@ public class StructuredTextEditor extends TextEditor {
     update();
   }
 
-  /**
-   * Sets the editor's source viewer configuration which it uses to configure it's internal source
-   * viewer. This method was overwritten so that viewer configuration could be set after editor part
-   * was created.
-   */
-  protected void setSourceViewerConfiguration(SourceViewerConfiguration config) {
-    SourceViewerConfiguration oldSourceViewerConfiguration = getSourceViewerConfiguration();
-    super.setSourceViewerConfiguration(config);
-    StructuredTextViewer stv = getTextViewer();
-    if (stv != null) {
-      /*
-       * There should be no need to unconfigure before configure because configure will also
-       * unconfigure before configuring
-       */
-      removeReconcilingListeners(oldSourceViewerConfiguration, stv);
-      stv.unconfigure();
-      setStatusLineMessage(null);
-      stv.configure(config);
-      addReconcilingListeners(config, stv);
-    }
-  }
-
-  private void removeReconcilingListeners(SourceViewerConfiguration config, StructuredTextViewer stv) {
-    IReconciler reconciler = config.getReconciler(stv);
-    if (reconciler instanceof DocumentRegionProcessor) {
-      for (int i = 0; i < fReconcilingListeners.length; i++) {
-        ((DocumentRegionProcessor) reconciler).removeReconcilingListener(fReconcilingListeners[i]);
-      }
-    }
-  }
-
-  private void addReconcilingListeners(SourceViewerConfiguration config, StructuredTextViewer stv) {
-    try {
-      List reconcilingListeners = new ArrayList(fReconcilingListeners.length);
-      String[] ids = getConfigurationPoints();
-      for (int i = 0; i < ids.length; i++) {
-        reconcilingListeners.addAll(ExtendedConfigurationBuilder.getInstance().getConfigurations(
-            "sourceReconcilingListener", ids[i])); //$NON-NLS-1$
-      }
-      fReconcilingListeners = (ISourceReconcilingListener[]) reconcilingListeners.toArray(new ISourceReconcilingListener[reconcilingListeners.size()]);
-    } catch (ClassCastException e) {
-      Logger.log(Logger.ERROR,
-          "Configuration has a reconciling listener that does not implement ISourceReconcilingListener."); //$NON-NLS-1$
-    }
-
-    IReconciler reconciler = config.getReconciler(stv);
-    if (reconciler instanceof DocumentRegionProcessor) {
-      for (int i = 0; i < fReconcilingListeners.length; i++)
-        ((DocumentRegionProcessor) reconciler).addReconcilingListener(fReconcilingListeners[i]);
-    }
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.part.WorkbenchPart#showBusy(boolean)
-   */
-  public void showBusy(boolean busy) {
-    // no-op
-    super.showBusy(busy);
-  }
-
   private void startBusyTimer() {
     // TODO: we need a resettable timer, so not so
     // many are created
@@ -3083,73 +3691,47 @@ public class StructuredTextEditor extends TextEditor {
     fBusyTimer.schedule(new TimeOutExpired(), BUSY_STATE_DELAY);
   }
 
-  protected void uninstallTextDragAndDrop(ISourceViewer viewer) {
-    // do nothing
-  }
-
   /**
-   * Update should be called whenever the model is set or changed (as in swapped)
    * <p>
-   * Not API. May be removed in the future.
+   * Attempts to get the {@link IStructuredModel} for the given {@link IEditorInput}
    * </p>
+   * 
+   * @param input the {@link IEditorInput} to try and get the {@link IStructuredModel} for
+   * @return The {@link IStructuredModel} associated with the given {@link IEditorInput} or
+   *         <code>null</code> if no associated {@link IStructuredModel} could be found.
    */
-  public void update() {
-    if (fOutlinePage != null && fOutlinePage instanceof ConfigurableContentOutlinePage) {
-      ContentOutlineConfiguration cfg = createContentOutlineConfiguration();
-      ((ConfigurableContentOutlinePage) fOutlinePage).setConfiguration(cfg);
-      IStructuredModel internalModel = getInternalModel();
-      ((ConfigurableContentOutlinePage) fOutlinePage).setInputContentTypeIdentifier(internalModel.getContentTypeIdentifier());
-      ((ConfigurableContentOutlinePage) fOutlinePage).setInput(internalModel);
-    }
-    if (fPropertySheetPage != null && fPropertySheetPage instanceof ConfigurablePropertySheetPage) {
-      PropertySheetConfiguration cfg = createPropertySheetConfiguration();
-      ((ConfigurablePropertySheetPage) fPropertySheetPage).setConfiguration(cfg);
-    }
-    disposeModelDependentFields();
+  private IStructuredModel tryToGetModel(IEditorInput input) {
+    IStructuredModel model = null;
 
-    fShowInTargetIds = createShowInTargetIds();
-
-    if (getSourceViewerConfiguration() instanceof StructuredTextViewerConfiguration
-        && fStatusLineLabelProvider != null) {
-      fStatusLineLabelProvider.dispose();
+    IDocument newDocument = getDocumentProvider().getDocument(input);
+    if (newDocument instanceof IExecutionDelegatable) {
+      ((IExecutionDelegatable) newDocument).setExecutionDelegate(new EditorExecutionContext(this));
     }
 
-    String configurationId = fViewerConfigurationTargetId;
-    updateSourceViewerConfiguration();
-
-    /* Only reinstall if the configuration id has changed */
-    if (configurationId != null && !configurationId.equals(fViewerConfigurationTargetId)) {
-      uninstallSemanticHighlighting();
-      installSemanticHighlighting();
+    // if we have a Model provider, get the model from it
+    if (getDocumentProvider() instanceof IModelProvider) {
+      model = ((IModelProvider) getDocumentProvider()).getModel(getEditorInput());
+      if (!model.isShared()) {
+        EditorModelUtil.addFactoriesTo(model);
+      }
+    } else if (newDocument instanceof IStructuredDocument) {
+      // corresponding releaseFromEdit occurs in dispose()
+      model = StructuredModelManager.getModelManager().getModelForEdit(
+          (IStructuredDocument) newDocument);
+      EditorModelUtil.addFactoriesTo(model);
     }
 
-    if (getSourceViewerConfiguration() instanceof StructuredTextViewerConfiguration) {
-      fStatusLineLabelProvider = ((StructuredTextViewerConfiguration) getSourceViewerConfiguration()).getStatusLineLabelProvider(getSourceViewer());
-      updateStatusLine(null);
-    }
-
-    if (fEncodingSupport != null && fEncodingSupport instanceof EncodingSupport) {
-      ((EncodingSupport) fEncodingSupport).reinitialize(getConfigurationPoints());
-    }
-
-    createModelDependentFields();
+    return model;
   }
 
   /**
-   * Updates all content dependent actions.
+   * Uninstalls semantic highlighting on the editor and performs cleanup
    */
-  protected void updateContentDependentActions() {
-    super.updateContentDependentActions();
-    // super.updateContentDependentActions only updates
-    // the enable/disable
-    // state of all
-    // the content dependent actions.
-    // StructuredTextEditor's undo and redo actions
-    // have a detail label and
-    // description.
-    // They needed to be updated.
-    if (!fEditorDisposed)
-      updateMenuText();
+  private void uninstallSemanticHighlighting() {
+    if (fSemanticManager != null) {
+      fSemanticManager.uninstall();
+      fSemanticManager = null;
+    }
   }
 
   /**
@@ -3277,8 +3859,9 @@ public class StructuredTextEditor extends TextEditor {
     String[] types = configuration.getConfiguredContentTypes(getSourceViewer());
 
     ISourceViewer sourceViewer = getSourceViewer();
-    if (sourceViewer == null)
+    if (sourceViewer == null) {
       return;
+    }
 
     for (int i = 0; i < types.length; i++) {
 
@@ -3301,16 +3884,18 @@ public class StructuredTextEditor extends TextEditor {
           ((ITextViewerExtension2) sourceViewer).setTextHover(textHover, t,
               ITextViewerExtension2.DEFAULT_HOVER_STATE_MASK);
         }
-      } else
+      } else {
         sourceViewer.setTextHover(configuration.getTextHover(sourceViewer, t), t);
+      }
     }
   }
 
   private void updateMenuText() {
     ITextViewer viewer = getTextViewer();
     StyledText widget = null;
-    if (viewer != null)
+    if (viewer != null) {
       widget = viewer.getTextWidget();
+    }
 
     if (fStructuredModel != null && !fStructuredModel.isModelStateChanging() && viewer != null
         && widget != null && !widget.isDisposed()) {
@@ -3396,33 +3981,6 @@ public class StructuredTextEditor extends TextEditor {
     }
   }
 
-  void updateRangeIndication(ISelection selection) {
-    boolean rangeUpdated = false;
-    if (selection instanceof IStructuredSelection && !((IStructuredSelection) selection).isEmpty()) {
-      Object[] objects = ((IStructuredSelection) selection).toArray();
-      if (objects.length > 0 && objects[0] instanceof IndexedRegion) {
-        int start = ((IndexedRegion) objects[0]).getStartOffset();
-        int end = ((IndexedRegion) objects[0]).getEndOffset();
-        if (objects.length > 1) {
-          for (int i = 1; i < objects.length; i++) {
-            start = Math.min(start, ((IndexedRegion) objects[i]).getStartOffset());
-            end = Math.max(end, ((IndexedRegion) objects[i]).getEndOffset());
-          }
-        }
-        getSourceViewer().setRangeIndication(start, end - start, false);
-        rangeUpdated = true;
-      }
-    }
-    if (!rangeUpdated && getSourceViewer() != null) {
-      if (selection instanceof ITextSelection) {
-        getSourceViewer().setRangeIndication(((ITextSelection) selection).getOffset(),
-            ((ITextSelection) selection).getLength(), false);
-      } else {
-        getSourceViewer().removeRangeIndication();
-      }
-    }
-  }
-
   /**
    * Updates the editor vertical ruler menu by creating a new vertical ruler context menu with the
    * given menu id
@@ -3503,252 +4061,14 @@ public class StructuredTextEditor extends TextEditor {
     if (getSourceViewer() != null) {
       // not sure if really need to reconfigure when input changes
       // (maybe only need to reset viewerconfig's document)
-      if (!configured)
+      if (!configured) {
         getSourceViewer().configure(configuration);
+      }
       IAction openHyperlinkAction = getAction(StructuredTextEditorActionConstants.ACTION_NAME_OPEN_FILE);
       if (openHyperlinkAction instanceof OpenHyperlinkAction) {
         ((OpenHyperlinkAction) openHyperlinkAction).setHyperlinkDetectors(getSourceViewerConfiguration().getHyperlinkDetectors(
             getSourceViewer()));
       }
     }
-  }
-
-  protected void updateStatusField(String category) {
-    super.updateStatusField(category);
-
-    if (category == null)
-      return;
-
-    if (StructuredTextEditorActionConstants.STATUS_CATEGORY_OFFSET.equals(category)) {
-      IStatusField field = getStatusField(category);
-      ISourceViewer sourceViewer = getSourceViewer();
-      if (field != null && sourceViewer != null) {
-        Point selection = sourceViewer.getTextWidget().getSelection();
-        int offset1 = widgetOffset2ModelOffset(sourceViewer, selection.x);
-        int offset2 = widgetOffset2ModelOffset(sourceViewer, selection.y);
-        String text = null;
-        if (offset1 != offset2)
-          text = "[" + offset1 + "-" + offset2 + "]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        else
-          text = "[ " + offset1 + " ]"; //$NON-NLS-1$ //$NON-NLS-2$
-        field.setText(text == null ? fErrorLabel : text);
-      }
-    }
-  }
-
-  public Annotation gotoAnnotation(boolean forward) {
-    Annotation result = super.gotoAnnotation(forward);
-    if (result != null)
-      fSelectionChangedFromGoto = true;
-    return result;
-  }
-
-  void updateStatusLine(ISelection selection) {
-    // Bug 210481 - Don't update the status line if the selection
-    // was caused by go to navigation
-    if (fSelectionChangedFromGoto) {
-      fSelectionChangedFromGoto = false;
-      return;
-    }
-    IStatusLineManager statusLineManager = getEditorSite().getActionBars().getStatusLineManager();
-    if (fStatusLineLabelProvider != null && statusLineManager != null) {
-      String text = null;
-      Image image = null;
-      if (selection instanceof IStructuredSelection && !selection.isEmpty()) {
-        Object firstElement = ((IStructuredSelection) selection).getFirstElement();
-        if (firstElement != null) {
-          text = fStatusLineLabelProvider.getText(firstElement);
-          image = fStatusLineLabelProvider.getImage((firstElement));
-        }
-      }
-      if (image == null) {
-        statusLineManager.setMessage(text);
-      } else {
-        statusLineManager.setMessage(image, text);
-      }
-    }
-  }
-
-  /**
-   * Returns the signed current selection. The length will be negative if the resulting selection is
-   * right-to-left (RtoL).
-   * <p>
-   * The selection offset is model based.
-   * </p>
-   * 
-   * @param sourceViewer the source viewer
-   * @return a region denoting the current signed selection, for a resulting RtoL selections length
-   *         is < 0
-   */
-  IRegion getSignedSelection(ISourceViewer sourceViewer) {
-    StyledText text = sourceViewer.getTextWidget();
-    Point selection = text.getSelectionRange();
-
-    if (text.getCaretOffset() == selection.x) {
-      selection.x = selection.x + selection.y;
-      selection.y = -selection.y;
-    }
-
-    selection.x = widgetOffset2ModelOffset(sourceViewer, selection.x);
-
-    return new Region(selection.x, selection.y);
-  }
-
-  protected SourceViewerDecorationSupport getSourceViewerDecorationSupport(ISourceViewer viewer) {
-    /*
-     * Removed workaround for Bug [206913] source annotations are not painting in source editors.
-     * With the new presentation reconciler, we no longer need to force the painting. This actually
-     * caused Bug [219776] Wrong annotation display on macs. We forced the Squiggles strategy, even
-     * when the native problem underline was specified for annotations
-     */
-    return super.getSourceViewerDecorationSupport(viewer);
-  }
-
-  private void installCharacterPairing() {
-    IStructuredModel model = getInternalModel();
-    if (model != null) {
-      IConfigurationElement[] elements = Platform.getExtensionRegistry().getConfigurationElementsFor(
-          SSEUIPlugin.ID, "characterPairing"); //$NON-NLS-1$
-      IContentTypeManager mgr = Platform.getContentTypeManager();
-      IContentType type = mgr.getContentType(model.getContentTypeIdentifier());
-      if (type != null) {
-        for (int i = 0; i < elements.length; i++) {
-          // Create the inserter
-          IConfigurationElement element = elements[i];
-          try {
-            IConfigurationElement[] contentTypes = element.getChildren("contentTypeIdentifier");
-            for (int j = 0; j < contentTypes.length; j++) {
-              String id = contentTypes[j].getAttribute("id");
-              if (id != null) {
-                IContentType targetType = mgr.getContentType(id);
-                int priority = calculatePriority(type, targetType, 0);
-                if (priority >= 0) {
-                  final CharacterPairing pairing = new CharacterPairing();
-                  pairing.priority = priority;
-                  String[] partitions = StringUtils.unpack(contentTypes[j].getAttribute("partitions"));
-                  pairing.partitions = new HashSet(partitions.length);
-                  // Only add the inserter if there is at least one partition for the content type
-                  for (int k = 0; k < partitions.length; k++) {
-                    pairing.partitions.add(partitions[k]);
-                  }
-
-                  pairing.inserter = (AbstractCharacterPairInserter) element.createExecutableExtension("class");
-                  if (pairing.inserter != null && partitions.length > 0) {
-                    fPairInserter.addInserter(pairing);
-                    /* use a SafeRunner since this method is also invoked during Part creation */
-                    SafeRunner.run(new ISafeRunnable() {
-                      public void run() throws Exception {
-                        pairing.inserter.initialize();
-                      }
-
-                      public void handleException(Throwable exception) {
-                        // rely on default logging
-                      }
-                    });
-                  }
-                }
-              }
-            }
-          } catch (CoreException e) {
-            Logger.logException(e);
-          }
-        }
-        fPairInserter.prioritize();
-      }
-    }
-  }
-
-  /**
-   * Calculates the priority of the target content type. The closer <code>targetType</code> is to
-   * <code>type</code> the higher its priority.
-   * 
-   * @param type
-   * @param targetType
-   * @param priority
-   * @return
-   */
-  private int calculatePriority(IContentType type, IContentType targetType, int priority) {
-    if (type == null || targetType == null)
-      return -1;
-    if (type.getId().equals(targetType.getId()))
-      return priority;
-    return calculatePriority(type.getBaseType(), targetType, ++priority);
-  }
-
-  /**
-   * Installs semantic highlighting on the editor
-   */
-  private void installSemanticHighlighting() {
-    IStructuredModel model = getInternalModel();
-    if (fSemanticManager == null && model != null) {
-      fSemanticManager = new SemanticHighlightingManager();
-      fSemanticManager.install(getSourceViewer(), getPreferenceStore(),
-          getSourceViewerConfiguration(), model.getContentTypeIdentifier());
-    }
-  }
-
-  /**
-   * Uninstalls semantic highlighting on the editor and performs cleanup
-   */
-  private void uninstallSemanticHighlighting() {
-    if (fSemanticManager != null) {
-      fSemanticManager.uninstall();
-      fSemanticManager = null;
-    }
-  }
-
-  private static boolean isCalledByOutline() {
-    Class[] elements = new AccessChecker().getClassContext();
-    return elements[4].equals(ContentOutline.class) || elements[5].equals(ContentOutline.class);
-  }
-
-  private static final class AccessChecker extends SecurityManager {
-    public Class[] getClassContext() {
-      return super.getClassContext();
-    }
-  }
-
-  private IInformationPresenter configureOutlinePresenter(ISourceViewer sourceViewer,
-      SourceViewerConfiguration config) {
-    InformationPresenter presenter = null;
-
-    // Get the quick outline configuration
-    AbstractQuickOutlineConfiguration cfg = null;
-    ExtendedConfigurationBuilder builder = ExtendedConfigurationBuilder.getInstance();
-    String[] ids = getConfigurationPoints();
-    for (int i = 0; cfg == null && i < ids.length; i++) {
-      cfg = (AbstractQuickOutlineConfiguration) builder.getConfiguration(
-          ExtendedConfigurationBuilder.QUICKOUTLINECONFIGURATION, ids[i]);
-    }
-
-    if (cfg != null) {
-      presenter = new InformationPresenter(getOutlinePresenterControlCreator(cfg));
-      presenter.setDocumentPartitioning(config.getConfiguredDocumentPartitioning(sourceViewer));
-      presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
-      IInformationProvider provider = new SourceInfoProvider(this);
-      String[] contentTypes = config.getConfiguredContentTypes(sourceViewer);
-      for (int i = 0; i < contentTypes.length; i++) {
-        presenter.setInformationProvider(provider, contentTypes[i]);
-      }
-      presenter.setSizeConstraints(50, 20, true, false);
-    }
-    return presenter;
-  }
-
-  /**
-   * Returns the outline presenter control creator. The creator is a factory creating outline
-   * presenter controls for the given source viewer.
-   * 
-   * @param sourceViewer the source viewer to be configured by this configuration
-   * @return an information control creator
-   */
-  private IInformationControlCreator getOutlinePresenterControlCreator(
-      final AbstractQuickOutlineConfiguration config) {
-    return new IInformationControlCreator() {
-      public IInformationControl createInformationControl(Shell parent) {
-        int shellStyle = SWT.RESIZE;
-        return new QuickOutlinePopupDialog(parent, shellStyle, getInternalModel(), config);
-      }
-    };
   }
 }

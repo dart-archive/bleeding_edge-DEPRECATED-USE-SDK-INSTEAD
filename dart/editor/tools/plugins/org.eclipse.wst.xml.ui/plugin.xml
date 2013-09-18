@@ -542,6 +542,7 @@
 	</extension>
 
 	<!-- To Do: migrate this to the org.eclipse.ui.menus popup: format -->
+<!--
 	<extension point="org.eclipse.ui.popupMenus">
 		<viewerContribution
 			targetID="org.eclipse.core.runtime.xml.source.RulerContext"
@@ -564,7 +565,7 @@
 			</action>
 		</viewerContribution>
 	</extension>
-
+-->
 	<!--======================================================================================-->
 	<!-- Pop-up menu and associated command/handler for nested validation messages.           -->
 	<!--======================================================================================-->
@@ -702,12 +703,12 @@
         <editorContribution
             targetID="org.eclipse.core.runtime.xml.source"
             id="org.eclipse.core.runtime.xml.source.ruler.actions">
-         <action
+         <!-- <action
                label="%AddBookmark.label"
                helpContextId="org.eclipse.ui.bookmark_action_context"
                class="org.eclipse.ui.texteditor.BookmarkRulerAction"
                actionID="RulerDoubleClick"
-               id="org.eclipse.ui.texteditor.BookmarkRulerAction"/>
+               id="org.eclipse.ui.texteditor.BookmarkRulerAction"/> -->
          <action
                label="%SelectRuler.label"
                class="org.eclipse.ui.texteditor.SelectRulerAction"

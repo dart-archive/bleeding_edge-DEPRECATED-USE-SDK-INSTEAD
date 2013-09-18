@@ -217,7 +217,7 @@
 			</command>
 		</menuContribution>
 	</extension>
-
+<!--
 	<extension point="org.eclipse.ui.popupMenus">
 		<viewerContribution
 			targetID="org.eclipse.wst.css.core.csssource.source.RulerContext"
@@ -240,7 +240,7 @@
 			</action>
 		</viewerContribution>
 	</extension>
-
+-->
 	<!-- Templates -->
 	<extension point="org.eclipse.ui.editors.templates">
 		<contextType
@@ -365,12 +365,12 @@
         <editorContribution
             targetID="org.eclipse.wst.css.core.csssource.source"
             id="org.eclipse.wst.css.core.csssource.ruler.actions">
-         <action
+         <!-- <action
                label="%AddBookmark.label"
                helpContextId="org.eclipse.ui.bookmark_action_context"
                class="org.eclipse.ui.texteditor.BookmarkRulerAction"
                actionID="RulerDoubleClick"
-               id="org.eclipse.ui.texteditor.BookmarkRulerAction"/>
+               id="org.eclipse.ui.texteditor.BookmarkRulerAction"/> -->
          <action
                label="%SelectRuler.label"
                class="org.eclipse.ui.texteditor.SelectRulerAction"

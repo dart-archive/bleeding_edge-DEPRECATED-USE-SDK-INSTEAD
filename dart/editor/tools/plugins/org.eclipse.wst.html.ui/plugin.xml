@@ -366,7 +366,7 @@
 			</enablement>
 		</commonWizard>
 	</extension>
-
+<!--
 	<extension point="org.eclipse.ui.popupMenus">
 		<viewerContribution
 			targetID="org.eclipse.wst.html.core.htmlsource.source.RulerContext"
@@ -389,7 +389,7 @@
 			</action>
 		</viewerContribution>
 	</extension>
-	
+-->
 	<extension point="org.eclipse.ui.editorActions">
 	<!--	<editorContribution
 			id="org.eclipse.wst.html.core.htmlsource.source.editorActions"
@@ -469,12 +469,12 @@
         <editorContribution
             targetID="org.eclipse.wst.html.core.htmlsource.source"
             id="org.eclipse.wst.html.core.htmlsource.ruler.actions">
-         <action
+         <!-- <action
                label="%AddBookmark.label"
                helpContextId="org.eclipse.ui.bookmark_action_context"
                class="org.eclipse.ui.texteditor.BookmarkRulerAction"
                actionID="RulerDoubleClick"
-               id="org.eclipse.ui.texteditor.BookmarkRulerAction"/>
+               id="org.eclipse.ui.texteditor.BookmarkRulerAction"/> -->
          <action
                label="%SelectRuler.label"
                class="org.eclipse.ui.texteditor.SelectRulerAction"
