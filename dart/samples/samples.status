@@ -51,6 +51,10 @@ third_party/todomvc: Skip
 [ $compiler == dart2js && $browser ]
 dartcombat/test/dartcombat_test: Skip
 
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+swarm/test/swarm_test: Pass, Slow # TODO(kasperl): Please triage.
+swarm/test/swarm_ui_lib/layout/layout_test: Fail # TODO(kasperl): Please triage.
+
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
