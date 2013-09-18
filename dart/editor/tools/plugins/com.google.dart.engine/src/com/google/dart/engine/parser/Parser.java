@@ -1186,8 +1186,8 @@ public class Parser {
    * 
    * <pre>
    * bitwiseAndExpression ::=
-   *     shiftExpression ('&' shiftExpression)*
-   *   | 'super' ('&' shiftExpression)+
+   *     equalityExpression ('&' equalityExpression)*
+   *   | 'super' ('&' equalityExpression)+
    * </pre>
    * 
    * @return the bitwise and expression that was parsed
@@ -1197,11 +1197,11 @@ public class Parser {
     if (matches(Keyword.SUPER) && matches(peek(), TokenType.AMPERSAND)) {
       expression = new SuperExpression(getAndAdvance());
     } else {
-      expression = parseShiftExpression();
+      expression = parseEqualityExpression();
     }
     while (matches(TokenType.AMPERSAND)) {
       Token operator = getAndAdvance();
-      expression = new BinaryExpression(expression, operator, parseShiftExpression());
+      expression = new BinaryExpression(expression, operator, parseEqualityExpression());
     }
     return expression;
   }
@@ -3718,16 +3718,16 @@ public class Parser {
    * 
    * <pre>
    * logicalAndExpression ::=
-   *     equalityExpression ('&&' equalityExpression)*
+   *     bitwiseOrExpression ('&&' bitwiseOrExpression)*
    * </pre>
    * 
    * @return the logical and expression that was parsed
    */
   private Expression parseLogicalAndExpression() {
-    Expression expression = parseEqualityExpression();
+    Expression expression = parseBitwiseOrExpression();
     while (matches(TokenType.AMPERSAND_AMPERSAND)) {
       Token operator = getAndAdvance();
-      expression = new BinaryExpression(expression, operator, parseEqualityExpression());
+      expression = new BinaryExpression(expression, operator, parseBitwiseOrExpression());
     }
     return expression;
   }
@@ -4571,8 +4571,8 @@ public class Parser {
    * 
    * <pre>
    * relationalExpression ::=
-   *     bitwiseOrExpression ('is' '!'? type | 'as' type | relationalOperator bitwiseOrExpression)?
-   *   | 'super' relationalOperator bitwiseOrExpression
+   *     shiftExpression ('is' '!'? type | 'as' type | relationalOperator shiftExpression)?
+   *   | 'super' relationalOperator shiftExpression
    * </pre>
    * 
    * @return the relational expression that was parsed
@@ -4581,10 +4581,10 @@ public class Parser {
     if (matches(Keyword.SUPER) && currentToken.getNext().getType().isRelationalOperator()) {
       Expression expression = new SuperExpression(getAndAdvance());
       Token operator = getAndAdvance();
-      expression = new BinaryExpression(expression, operator, parseBitwiseOrExpression());
+      expression = new BinaryExpression(expression, operator, parseShiftExpression());
       return expression;
     }
-    Expression expression = parseBitwiseOrExpression();
+    Expression expression = parseShiftExpression();
     if (matches(Keyword.AS)) {
       Token asOperator = getAndAdvance();
       expression = new AsExpression(expression, asOperator, parseTypeName());
@@ -4597,7 +4597,7 @@ public class Parser {
       expression = new IsExpression(expression, isOperator, notOperator, parseTypeName());
     } else if (currentToken.getType().isRelationalOperator()) {
       Token operator = getAndAdvance();
-      expression = new BinaryExpression(expression, operator, parseBitwiseOrExpression());
+      expression = new BinaryExpression(expression, operator, parseShiftExpression());
     }
     return expression;
   }
