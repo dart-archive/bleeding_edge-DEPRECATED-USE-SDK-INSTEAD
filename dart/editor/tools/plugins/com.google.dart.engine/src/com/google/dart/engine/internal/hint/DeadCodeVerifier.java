@@ -34,8 +34,6 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.error.HintCode;
-import com.google.dart.engine.internal.constant.ConstantVisitor;
-import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.internal.constant.ValidResult;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.scanner.Token;
@@ -304,15 +302,19 @@ public class DeadCodeVerifier extends RecursiveASTVisitor<Void> {
       } else {
         return ValidResult.RESULT_FALSE;
       }
-    } else {
-      EvaluationResultImpl result = expression.accept(new ConstantVisitor());
-      if (result == ValidResult.RESULT_TRUE) {
-        return ValidResult.RESULT_TRUE;
-      } else if (result == ValidResult.RESULT_FALSE) {
-        return ValidResult.RESULT_FALSE;
-      }
-      return null;
     }
+    // Don't consider situations where we could evaluate to a constant boolean expression with the
+    // ConstantVisitor
+//    else {
+//      EvaluationResultImpl result = expression.accept(new ConstantVisitor());
+//      if (result == ValidResult.RESULT_TRUE) {
+//        return ValidResult.RESULT_TRUE;
+//      } else if (result == ValidResult.RESULT_FALSE) {
+//        return ValidResult.RESULT_FALSE;
+//      }
+//      return null;
+//    }
+    return null;
   }
 
   /**
