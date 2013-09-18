@@ -233,6 +233,26 @@ public class NonHintCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_unnecessaryCast_dynamic_type() throws Exception {
+    Source source = addSource(createSource(//
+        "m(v) {",
+        "  var b = v as Object;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
+  public void test_unnecessaryCast_type_dynamic() throws Exception {
+    Source source = addSource(createSource(//
+        "m(v) {",
+        "  var b = Object as dynamic;",
+        "}"));
+    resolve(source);
+    assertNoErrors(source);
+    verify(source);
+  }
+
   public void test_unusedImport_core_library() throws Exception {
     Source source = addSource(createSource(//
         "library L;",

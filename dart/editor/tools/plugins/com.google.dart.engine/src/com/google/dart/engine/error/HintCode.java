@@ -93,6 +93,11 @@ public enum HintCode implements ErrorCode {
   OVERRIDE_EQUALS_BUT_NOT_HASH_CODE("The class '%s' overrides 'operator==', but not 'get hashCode'"),
 
   /**
+   * Unnecessary cast.
+   */
+  UNNECESSARY_CAST("Unnecessary cast"),
+
+  /**
    * Unused imports are imports which are never not used.
    */
   UNUSED_IMPORT("Unused import");

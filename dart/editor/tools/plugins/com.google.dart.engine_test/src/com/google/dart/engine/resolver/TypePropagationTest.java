@@ -764,9 +764,9 @@ public class TypePropagationTest extends ResolverTestCase {
 
   public void test_propagatedReturnType_function_moreSpecificStaticReturnType() throws Exception {
     String code = createSource(//
-        "int f() => (42 as Object);",
+        "int f(v) => (v as num);",
         "main() {",
-        "  var v = f();",
+        "  var v = f(3);",
         "}");
     check_propagatedReturnType(
         code,

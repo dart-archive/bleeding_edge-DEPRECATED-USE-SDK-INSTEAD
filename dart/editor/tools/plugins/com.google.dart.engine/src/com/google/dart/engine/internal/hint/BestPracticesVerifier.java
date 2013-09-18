@@ -13,12 +13,15 @@
  */
 package com.google.dart.engine.internal.hint;
 
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.ParenthesizedExpression;
+import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ExecutableElement;
@@ -28,6 +31,7 @@ import com.google.dart.engine.error.HintCode;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 
 /**
  * Instances of the class {@code BestPracticesVerifier} traverse an AST structure looking for
@@ -84,6 +88,12 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
    */
   public BestPracticesVerifier(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
+  }
+
+  @Override
+  public Void visitAsExpression(AsExpression node) {
+    checkForUnnecessaryCast(node);
+    return super.visitAsExpression(node);
   }
 
   @Override
@@ -239,4 +249,26 @@ public class BestPracticesVerifier extends RecursiveASTVisitor<Void> {
     return false;
   }
 
+  /**
+   * Check for the passed class declaration for the
+   * {@link HintCode#OVERRIDE_EQUALS_BUT_NOT_HASH_CODE} hint code.
+   * 
+   * @param node the class declaration to check
+   * @return {@code true} if and only if a hint code is generated on the passed node
+   * @see HintCode#OVERRIDDING_PRIVATE_MEMBER
+   */
+  private boolean checkForUnnecessaryCast(AsExpression node) {
+    Expression expression = node.getExpression();
+    TypeName typeName = node.getType();
+    Type lhsType = expression.getStaticType();
+    Type rhsType = typeName.getType();
+    if (lhsType == null || rhsType == null) {
+      return false;
+    }
+    if (lhsType != null && rhsType != null && !lhsType.isDynamic() && !rhsType.isDynamic()
+        && lhsType.isSubtypeOf(rhsType)) {
+      errorReporter.reportError(HintCode.UNNECESSARY_CAST, node);
+    }
+    return false;
+  }
 }

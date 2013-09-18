@@ -469,6 +469,26 @@ public class HintCodeTest extends ResolverTestCase {
     verify(source, source2);
   }
 
+  public void test_unnecessaryCast_type_supertype() throws Exception {
+    Source source = addSource(createSource(//
+        "m(int i) {",
+        "  var b = i as Object;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNNECESSARY_CAST);
+    verify(source);
+  }
+
+  public void test_unnecessaryCast_type_type() throws Exception {
+    Source source = addSource(createSource(//
+        "m(num i) {",
+        "  var b = i as num;",
+        "}"));
+    resolve(source);
+    assertErrors(source, HintCode.UNNECESSARY_CAST);
+    verify(source);
+  }
+
   public void test_unusedImport() throws Exception {
     Source source = addSource(createSource(//
         "library L;",
