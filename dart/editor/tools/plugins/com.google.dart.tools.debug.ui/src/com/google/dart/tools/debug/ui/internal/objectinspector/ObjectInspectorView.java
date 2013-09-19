@@ -83,11 +83,10 @@ import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.VerifyKeyListener;
+import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
@@ -112,6 +111,16 @@ import java.util.Map;
 // TODO: we need to populate the tree in a lazy manner
 
 // TODO: add the ability to navigate to the source code definition
+
+// TODO: refresh the view after an assignment (or any evaluation)
+
+// TODO: make the context menus on the objects consistent (add the ‘Watch’ menu to the variables view)
+
+// TODO: make the expr. eval text area more discoverable
+
+// TODO: multiple open inspectors?
+
+// TODO: navigate to the code for an object
 
 /**
  * The Dart object inspector view.
@@ -387,12 +396,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     configureToolBar(getViewSite().getActionBars().getToolBarManager());
 
     sash.setWeights(new int[] {60, 40});
-    sash.addControlListener(new ControlListener() {
-      @Override
-      public void controlMoved(ControlEvent e) {
-
-      }
-
+    sash.addControlListener(new ControlAdapter() {
       @Override
       public void controlResized(ControlEvent e) {
         updateSashOrientation(sash);
@@ -607,9 +611,10 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
   }
 
   void updateSashOrientation(SashForm sash) {
-    Rectangle r = sash.getBounds();
+    //Rectangle r = sash.getBounds();
 
-    int orientation = (r.height * 1.25) >= r.width ? SWT.VERTICAL : SWT.HORIZONTAL;
+    //int orientation = (r.height * 1.25) >= r.width ? SWT.VERTICAL : SWT.HORIZONTAL;
+    int orientation = SWT.VERTICAL;
 
     if (sash.getOrientation() != orientation) {
       sash.setOrientation(orientation);

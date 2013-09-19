@@ -41,8 +41,11 @@ import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -139,6 +142,13 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     variablesView.becomesVisible();
 
     restoreSashWeights(getMemento());
+    updateSashOrientation(sashForm);
+    sashForm.addControlListener(new ControlAdapter() {
+      @Override
+      public void controlResized(ControlEvent e) {
+        updateSashOrientation(sashForm);
+      }
+    });
 
     IActionBars actionBars = getViewSite().getActionBars();
 
@@ -278,6 +288,16 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     Font oldFont = treeViewer.getTree().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
     treeViewer.getTree().setFont(font);
+  }
+
+  void updateSashOrientation(SashForm sash) {
+    Rectangle r = sash.getBounds();
+
+    int orientation = (r.height * 1.25) >= r.width ? SWT.VERTICAL : SWT.HORIZONTAL;
+
+    if (sash.getOrientation() != orientation) {
+      sash.setOrientation(orientation);
+    }
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {
