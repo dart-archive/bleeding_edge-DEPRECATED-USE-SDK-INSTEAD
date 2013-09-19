@@ -39,6 +39,7 @@ public class NamedArgumentCompletionProposal extends AbstractDartCompletionPropo
     setReplacementLength(proxy.getReplaceEnd() - proxy.getReceiverStart());
     String completion = new String(proxy.getCompletion()) + ": ";
     setReplacementString(completion);
+    setSortString(completion);
     setCursorPosition(completion.length());
     name = proxy.getParameterName();
     type = proxy.getParameterType();
