@@ -1472,7 +1472,6 @@ public class DartCore extends Plugin implements DartSdkListener {
     }
 
     AnalysisEngine analysisEngine = AnalysisEngine.getInstance();
-    analysisEngine.setUseExperimentalContext(DartCoreDebug.EXPERIMENTAL);
     analysisEngine.setLogger(new Logger() {
       @Override
       public void logError(String message) {

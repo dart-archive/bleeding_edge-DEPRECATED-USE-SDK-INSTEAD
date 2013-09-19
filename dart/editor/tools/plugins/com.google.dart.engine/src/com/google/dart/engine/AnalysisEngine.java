@@ -129,13 +129,4 @@ public final class AnalysisEngine {
   public void setLogger(Logger logger) {
     this.logger = logger == null ? Logger.NULL : logger;
   }
-
-  /**
-   * Set whether the new analysis context should be created to the given flag.
-   * 
-   * @param use {@code true} if the new analysis context should be created
-   */
-  public void setUseExperimentalContext(boolean use) {
-    //useExperimentalContext = use;
-  }
 }
