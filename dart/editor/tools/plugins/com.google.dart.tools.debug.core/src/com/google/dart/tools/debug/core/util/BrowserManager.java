@@ -669,7 +669,7 @@ public class BrowserManager {
     File packageRoot = packageRootProvider.getPackageRoot(launchConfig.getProject());
 
     if (packageRoot != null && launchConfig.getShouldLaunchFile()) {
-      String packageRootUri = getResourceServer().getUrlForFile(packageRoot);
+      String packageRootUri = packageRoot.getAbsolutePath();
 
       // Strip a trailing slash off the uri if the user setting didn't have one.
       if (!packageRoot.getPath().endsWith("/") && packageRootUri.endsWith("/")) {
