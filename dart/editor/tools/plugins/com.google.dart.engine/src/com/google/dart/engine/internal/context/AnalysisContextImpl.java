@@ -1945,7 +1945,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           if (thrownException == null) {
             dartCopy.setValue(DartEntry.HINTS, librarySource, results.getData());
             ChangeNoticeImpl notice = getNotice(unitSource);
-            notice.setErrors(dartEntry.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
+            notice.setErrors(dartCopy.getAllErrors(), dartCopy.getValue(SourceEntry.LINE_INFO));
           } else {
             dartCopy.setState(DartEntry.HINTS, librarySource, CacheState.ERROR);
           }
